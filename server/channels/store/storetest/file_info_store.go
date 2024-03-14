@@ -615,16 +615,26 @@ func testFileInfoPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.S
 	})
 	require.NoError(t, err)
 
+	bookmarkFile, err := ss.FileInfo().Save(rctx, &model.FileInfo{ // should not be deleted
+		PostId:    postId,
+		ChannelId: channelId,
+		CreatorId: model.BookmarkFileOwner,
+		Path:      "file.txt",
+		CreateAt:  1000,
+	})
+	defer ss.FileInfo().PermanentDelete(rctx, bookmarkFile.Id)
+	require.NoError(t, err)
+
 	postFiles, err := ss.FileInfo().GetForPost(postId, true, false, false)
 	require.NoError(t, err)
-	assert.Len(t, postFiles, 3)
+	assert.Len(t, postFiles, 4)
 
 	_, err = ss.FileInfo().PermanentDeleteBatch(rctx, 1500, 1000)
 	require.NoError(t, err)
 
 	postFiles, err = ss.FileInfo().GetForPost(postId, true, false, false)
 	require.NoError(t, err)
-	assert.Len(t, postFiles, 1)
+	assert.Len(t, postFiles, 2)
 }
 
 func testFileInfoPermanentDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -683,14 +693,14 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, rctx request.CTX, s
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.ChannelTypeOpen
-	c1, _ = ss.Channel().Save(c1, -1)
+	c1, _ = ss.Channel().Save(rctx, c1, -1)
 
 	c2 := &model.Channel{}
 	c2.TeamId = model.NewId()
 	c2.DisplayName = "Channel2"
 	c2.Name = "zz" + model.NewId() + "b"
 	c2.Type = model.ChannelTypeOpen
-	c2, _ = ss.Channel().Save(c2, -1)
+	c2, _ = ss.Channel().Save(rctx, c2, -1)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id

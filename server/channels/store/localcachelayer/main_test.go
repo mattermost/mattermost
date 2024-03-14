@@ -157,6 +157,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 	}
 	mockUserStore.On("GetAllProfilesInChannel", mock.Anything, "123", true).Return(fakeProfilesInChannelMap, nil)
 	mockUserStore.On("GetAllProfilesInChannel", mock.Anything, "123", false).Return(fakeProfilesInChannelMap, nil)
+	mockUserStore.On("GetAllProfiles", mock.AnythingOfType("*model.UserGetOptions")).Return(fakeUser, nil)
 
 	mockUserStore.On("Get", mock.Anything, "123").Return(fakeUser[0], nil)
 	users := []*model.User{

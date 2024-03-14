@@ -58,7 +58,7 @@
                 padding: 13px 12px;
                 border: none;
                 background: transparent;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 14px;
                 font-weight: 600;
                 line-height: 20px;
@@ -69,8 +69,8 @@
                 &:focus,
                 &:focus-within {
                     border: none;
-                    background: transparent;
                     border-radius: none;
+                    background: transparent;
                     color: var(--center-channel-color);
                 }
             }
@@ -176,8 +176,8 @@
             flex: 0 0 48px;
             align-items: center;
             justify-content: center;
-            background-color: $white;
             border-radius: 50%;
+            background-color: $white;
 
             svg,
             img {

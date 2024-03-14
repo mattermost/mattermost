@@ -9,14 +9,14 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func (ts *TeamService) CreateTeam(team *model.Team) (*model.Team, error) {
+func (ts *TeamService) CreateTeam(rctx request.CTX, team *model.Team) (*model.Team, error) {
 	team.InviteId = ""
 	rteam, err := ts.store.Save(team)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err := ts.createDefaultChannels(rteam.Id); err != nil {
+	if _, err := ts.createDefaultChannels(rctx, rteam.Id); err != nil {
 		return nil, err
 	}
 
@@ -42,7 +42,7 @@ func (ts *TeamService) GetTeams(teamIDs []string) ([]*model.Team, error) {
 }
 
 // CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
-func (ts *TeamService) createDefaultChannels(teamID string) ([]*model.Channel, error) {
+func (ts *TeamService) createDefaultChannels(rctx request.CTX, teamID string) ([]*model.Channel, error) {
 	displayNames := map[string]string{
 		"town-square": i18n.T("api.channel.create_default_channels.town_square"),
 		"off-topic":   i18n.T("api.channel.create_default_channels.off_topic"),
@@ -50,13 +50,20 @@ func (ts *TeamService) createDefaultChannels(teamID string) ([]*model.Channel, e
 	channels := []*model.Channel{}
 	defaultChannelNames := ts.DefaultChannelNames()
 	for _, name := range defaultChannelNames {
-		displayName := i18n.TDefault(displayNames[name], name)
+		var displayName string
+		if displayNameValue, ok := displayNames[name]; ok {
+			displayName = i18n.TDefault(displayNameValue, name)
+		} else {
+			// If the default channel is experimental (from config.json)
+			// we don't have to translate
+			displayName = name
+		}
 		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.ChannelTypeOpen, TeamId: teamID}
 		// We should use the channel service here (coming soon). Ideally, we should just emit an event
 		// and let the subscribers do the job, in this case it would be the channels service.
 		// Currently we are adding services to the server and because of that we are using
 		// the channel store here. This should be replaced in the future.
-		if _, err := ts.channelStore.Save(channel, *ts.config().TeamSettings.MaxChannelsPerTeam); err != nil {
+		if _, err := ts.channelStore.Save(rctx, channel, *ts.config().TeamSettings.MaxChannelsPerTeam); err != nil {
 			return nil, err
 		}
 		channels = append(channels, channel)

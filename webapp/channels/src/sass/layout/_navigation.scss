@@ -90,8 +90,8 @@
             padding: 0 10px;
             border-width: 0;
             border-color: transparent;
-            margin: 0;
             border-radius: 0;
+            margin: 0;
             fill: var(--sidebar-header-text-color);
             float: left;
             line-height: 48px;
@@ -103,9 +103,9 @@
                 align-items: center;
                 justify-content: center;
                 padding: 0;
+                border-radius: 50px;
                 margin: 9px 10px 0 0;
                 background: rgba(var(--sidebar-header-text-color-rgb), 0.2);
-                border-radius: 50px;
                 line-height: 0;
 
                 &:hover,
@@ -135,7 +135,7 @@
                 width: 30px;
                 padding: 0;
                 font-size: 15px;
-                opacity: 0.6;
+                opacity: 0.73;
             }
 
             .icon--white {

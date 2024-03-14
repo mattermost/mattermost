@@ -3324,16 +3324,8 @@
     "translation": "Eroare la initierea cererii de către furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Eroare în timp ce codare cererea pentru furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML login a avut succes, deoarece criptare nu este activat. Vă rugăm să contactaţi administratorul de sistem."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Identitatea furnizorului Public Certificate dosar nu a fost găsit. Vă rugăm să contactaţi administratorul de sistem."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3344,20 +3336,12 @@
     "translation": "SAML login a avut succes ca răspuns furnizor de identitate nu este criptat. Vă rugăm să contactaţi administratorul de sistem."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML login a avut succes pentru că a apărut o eroare în timp ce decriptarea răspunsul de la furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Am primit un raspuns gol la furnizorul de identitate."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Eroare la parsarea răspunsul de la furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Eroare la validarea răspunsul de la furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -6136,18 +6120,6 @@
     "translation": "Imposibil de șters jetonul de acces personal."
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Serverul SMTP este necesar"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Vă mulțumim că ați contactat Mattermost. Vă vom contacta în curând."
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Consilier Mattermost"
-  },
-  {
     "id": "app.command.tryexecutecustomcommand.internal_error",
     "translation": "Imposibil de executat comanda personalizată."
   },
@@ -6176,90 +6148,6 @@
     "translation": "Funcția de ștergere permanentă a echipei nu este activată. Vă rugăm să contactați administratorul de sistem."
   },
   {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost Cererea de contact"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Dacă aveți întrebări suplimentare, contactați support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "Adresa paginii: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Total utilizatori activi: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "ID de diagnostic: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Contact: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Email: "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Scalare cu Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost recomandă cu tărie ca implementările a peste 500 de utilizatori să profite de funcții precum gestionarea utilizatorilor, clusterizarea serverelor și monitorizarea performanței. Contactați-ne pentru a afla mai multe și anunțați-ne cum vă putem ajuta.\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Scalare cu Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Sistemul dvs. Mattermost are acum 200 de utilizatori. Când vă conectați Mattermost la furnizorul de conectare unică al organizației dvs., utilizatorii pot accesa Mattermost fără a fi nevoie să reintroducă acreditările. Vă recomandăm să vă integrați furnizorul SAML 2.0 cu serverul dvs. Mattermost. [Aflați mai multe despre integrarea cu SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml) .\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Trimite-ti-ne un e-mail"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Mesajul nu a putut fi trimis."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Vă rugăm să ne trimiteți un e-mail."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Cererea de contact"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "URL Site: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Total utilizatori activi: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Dacă aveți întrebări suplimentare, contactați support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Email: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Id Diagnostic: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Contact: {{.contact}}"
-  },
-  {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
     "translation": "Nu se poate actualiza bara laterală pentru a se potrivi cu preferințele actualizate"
   },
@@ -6270,14 +6158,6 @@
   {
     "id": "api.invalid_channel",
     "translation": "Canalul listat în cerere nu aparține utilizatorului"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Nu s-a putut găsi metrica de avertizare."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Eșecul de a trimite un e-mail de confirmare a administratorului"
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -6326,10 +6206,6 @@
   {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "incapabil să migreze."
-  },
-  {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Nu a reușit să stocheze valoarea pentru {{.WarnMetricName}}"
   },
   {
     "id": "app.job.download_export_results_not_enabled",
@@ -6526,10 +6402,6 @@
   {
     "id": "app.system.get_by_name.app_error",
     "translation": "Imposibil de găsit variabila de sistem."
-  },
-  {
-    "id": "app.system.get.app_error",
-    "translation": "Am intalnit o eroare găsirea sistem properties."
   },
   {
     "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
@@ -7000,30 +6872,6 @@
     "translation": "Eșuarea la preluarea membrilor canalului."
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Scalare cu Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Sistemul dvs. cel mai important are acum 200 de utilizatori. Pe măsură ce baza de utilizator crește, furnizarea de conturi noi poate deveni mult timp. Vă recomandăm să faceți upgrade la Ediția Mattermost Enterprise și să integrați Active Directory/LDAP al organizației dvs., ceea ce va permite oricui are un cont să acceseze Mattermost. Utilizatorii se pot autentifica fără a fi nevoie să creeze noi nume de utilizator și parole, iar administratorii economisesc conturi de furnizare și gestionare a timpului.\n\n[Aflați mai multe despre integrarea cu AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAsistența de contact trimite informațiile de contact către Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Aplicarea autentificării cu mai mulți factori"
-  },
-  {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Imposibil de obținut lotul de postări pentru indexare."
   },
@@ -7092,130 +6940,6 @@
     "translation": "Accesul la bot este interzis."
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. După ce aveți un server Elasticsearch, accesați **Consola de sistem > Mediu > Elasticsearch** pentru a configura Elasticsearch."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Sistemul dvs. Mattermost are un număr mare de mesaje. Căutarea implicită a bazei de date Mattermost începe să prezinte degradarea performanței la aproximativ 2,5 milioane de postări. Cu peste 5 milioane de postări, Elasticsearch poate ajuta la evitarea problemelor semnificative de performanță, cum ar fi expirarea timpului, cu căutare și mențiuni. Contactați-ne pentru a afla mai multe și anunțați-ne cum vă putem ajuta.\n\n[Aflați mai multe despre îmbunătățirea performanței](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate](https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Îmbunătățirea performanței"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Sistemul dvs. Mattermost are un număr mare de mesaje. Căutarea implicită a bazei de date Mattermost începe să prezinte degradarea performanței la aproximativ 2,5 milioane de postări. Cu peste 5 milioane de postări, Elasticsearch poate ajuta la evitarea problemelor semnificative de performanță, cum ar fi expirarea timpului, cu căutare și mențiuni. Contactați-ne pentru a afla mai multe și anunțați-ne cum vă putem ajuta.\n\n[Aflați mai multe despre îmbunătățirea performanței](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Cererea cea mai importantă este să ne contactați. Sunt interesat să aflu mai multe despre îmbunătățirea performanței cu Elasticsearch.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați **Consola de sistem > Gestionare utilizator > Permisiuni** pentru a activa permisiunile avansate."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Canalele ajută la îmbunătățirea comunicării, dar odată cu adunarea și crearea de canale de la Mattermost, provocarea de a menține sistemul organizat crește. Permisiunile avansate vă permit să setați ce utilizatori sau roluri pot efectua anumite acțiuni, inclusiv gestionarea setărilor canalului și a membrilor, folosind @channel sau @here pentru a eticheta grupuri largi de utilizatori și crearea de webhook-uri noi.\n\n[Aflați mai multe despre utilizarea permisiunilor avansate](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate](https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Utilizarea permisiunilor avansate"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Canalele contribuie la îmbunătățirea comunicării, dar odată cu adunarea și crearea de canale de la Mattermost, provocarea de a menține sistemul organizat crește. Permisiunile avansate vă permit să setați ce utilizatori sau roluri pot efectua anumite acțiuni, inclusiv gestionarea setărilor canalului și a membrilor, folosind @channel sau @here pentru a eticheta grupuri largi de utilizatori și crearea de webhook-uri noi.\n\n[Aflați mai multe despre utilizarea permisiunilor avansate] (https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Cererea cea mai importantă este să ne contactați. Sunt interesat să aflu mai multe despre utilizarea permisiunilor avansate cu schemele de sistem.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați Consola de sistem pentru a activa funcțiile avansate."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost recomandă cu tărie ca implementările a peste 500 de utilizatori să profite de funcții precum gestionarea utilizatorilor, clusterizarea serverelor și monitorizarea performanței. Contactați-ne pentru a afla mai multe și anunțați-ne cum vă putem ajuta.\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate](https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Canale de anunțuri numai în citire"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Creați un canal și accesați **Consola de sistem > Gestionarea utilizatorilor > Canale** pentru a limita postarea la administratorii canalelor."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Având atâtea conversații în Mattermost, poate fi o provocare să știi unde să cauți informații importante. Dacă doriți să transmiteți un mesaj unui public larg, puteți configura canale de anunțuri numai în citire unde oricine se poate alătura, dar numai administratorii canalelor pot posta mesaje.\n\n[Aflați mai multe despre crearea canalelor de anunțuri numai în citire](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate](https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Având atâtea conversații în Mattermost, poate fi o provocare să știi unde să cauți informații importante. Dacă doriți să transmiteți un mesaj unui public larg, puteți configura canale de anunțuri numai în citire unde oricine se poate alătura, dar numai administratorii canalelor pot posta mesaje.\n\n[Aflați mai multe despre crearea canalelor de anunțuri numai în citire](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Cererea cea mai importantă este să ne contactați. Sunt interesat să aflu mai multe despre crearea de canale de anunțuri numai în citire.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați **Consola de sistem > Autentificare > SAML 2.0** pentru a vă integra cu furnizorul dvs. SAML 2.0."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Sistemul dvs. Mattermost are acum 200 de utilizatori. Când vă conectați Mattermost la furnizorul de conectare unică al organizației dvs., utilizatorii pot accesa Mattermost fără a fi nevoie să reintroducă acreditările. Vă recomandăm să vă integrați furnizorul SAML 2.0 cu serverul dvs. Mattermost. [Aflați mai multe despre integrarea cu SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost] (https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate](https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați **Consola de sistem > Autentificare > AD/LDAP** pentru a vă integra serviciul AD / LDAP."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Sistemul dvs. Mattermost are peste 100 de utilizatori. Pe măsură ce baza dvs. de utilizatori crește, aprovizionarea conturilor noi poate deveni consumatoare de timp. Vă recomandăm să integrați Active Directory/LDAP al organizației dvs., ceea ce va permite oricui are un cont să acceseze Mattermost.\n\n[Aflați mai multe despre integrarea cu AD / LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate] (https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați **Consola de sistem > Autentificare > MFA** pentru a aplica autentificarea cu mai mulți factori."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Sistemul dvs. Mattermost are activată autentificarea cu mai mulți factori, oferind utilizatorilor posibilitatea de a-și securiza conturile cu mijloace suplimentare de autentificare dincolo de o parolă. Pentru a îmbunătăți securitatea în sistem, puteți solicita tuturor conturilor Mattermost să utilizeze autentificarea cu mai mulți factori.\n\n[Aflați mai multe despre aplicarea autentificării cu mai mulți factori](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate] (https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Sistemul dvs. Mattermost are activată autentificarea cu mai mulți factori, oferind utilizatorilor posibilitatea de a-și securiza conturile cu mijloace suplimentare de autentificare dincolo de o parolă. Pentru a îmbunătăți securitatea în sistem, puteți solicita tuturor conturilor Mattermost să utilizeze autentificarea cu mai mulți factori.\n\n[Aflați mai multe despre aplicarea autentificării cu mai mulți factori] (https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Cererea cea mai importantă este să ne contactați. Sunt interesat să aflu mai multe despre aplicarea autentificării cu mai mulți factori.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați ** Consola de sistem> Autentificare> Acces pentru oaspeți ** pentru a activa conturile de oaspeți."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Proiectele implică adesea oameni atât în interiorul, cât și în afara unei organizații. Cu Conturile de oaspeți, puteți aduce parteneri externi în sistemul dvs. Mattermost și puteți specifica cu cine pot lucra și cu ce pot vedea.\n\n[Aflați mai multe despre activarea conturilor de oaspeți] (https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate] (https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Crearea conturilor de oaspeți"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Proiectele implică adesea oameni atât în interiorul, cât și în afara unei organizații. Cu Conturile de oaspeți, puteți aduce parteneri externi în sistemul dvs. Mattermost și puteți specifica cu cine pot lucra și cu ce pot vedea.\n\n[Aflați mai multe despre activarea conturilor de oaspeți] (https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Cererea cea mai importantă este să ne contactați. Sunt interesat să aflu mai multe despre utilizarea conturilor de oaspeți.\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Licența de încercare nu a putut fi recuperată. Accesați https://mattermost.com/trial/ pentru a solicita o licență."
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Una sau mai multe dintre următoarele permisiuni pe care încercați să le adăugați sau să le eliminați nu sunt permise"
   },
@@ -7226,10 +6950,6 @@
   {
     "id": "api.migrate_to_saml.error",
     "translation": "Nu se poate migra SAML."
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Imposibil de obținut o licență de încercare, vă rugăm să încercați din nou sau să contactați support@mattermost.com. Nu se poate obține numărul de utilizatori înregistrați."
   },
   {
     "id": "api.config.migrate_config.app_error",
@@ -7274,26 +6994,6 @@
   {
     "id": "api.system.update_notices.clear_failed",
     "translation": "Ștergerea notificărilor de produse vechi nu a reușit"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Încercarea dvs. Enterprise este acum activă. Accesați **Consola de sistem > Gestionare utilizator > Permisiuni** pentru a activa permisiunile avansate."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Sistemul dvs. Mattermost are acum mai multe echipe. Multe echipe au propriul lor mod preferat de coordonare și colaborare, inclusiv modul în care sunt create canalele, cine poate invita noi coechipieri și modul în care sunt gestionate integrările. Schemele de depășire a echipei vă permit să personalizați permisiunile utilizatorilor în cadrul fiecărei echipe pentru a satisface nevoile lor specifice.\n\n[Aflați mai multe despre utilizarea permisiunilor avansate](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nDând clic pe Începeți încercarea, sunt de acord cu [Acordul de evaluare a software-ului Mattermost](https://mattermost.com/software-evaluation-agreement/), [Politica de confidențialitate](https://mattermost.com/pl/privacy-policy/) și primirea de e-mailuri despre produse."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Utilizarea permisiunilor avansate"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Sistemul dvs. Mattermost are acum mai multe echipe. Multe echipe au propriul lor mod preferat de coordonare și colaborare, inclusiv modul în care sunt create canalele, cine poate invita noi coechipieri și modul în care sunt gestionate integrările. Schemele de depășire a echipei vă permit să personalizați permisiunile utilizatorilor în cadrul fiecărei echipe pentru a satisface nevoile lor specifice.\n\n[Aflați mai multe despre utilizarea permisiunilor avansate](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nDând clic pe Contactați-ne, veți împărtăși informațiile dvs. cu Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Mattermost cerere contactare. Sunt interesat să aflu mai multe despre permisiunile avansate cu schemele de echipă.\n"
   },
   {
     "id": "model.config.is_valid.collapsed_threads.app_error",

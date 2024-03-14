@@ -73,9 +73,9 @@
         align-items: center;
         padding: 24px;
         border: 1px solid rgba(var(--sys-denim-center-channel-text-rgb), 0.08) !important;
+        border-radius: 4px;
         margin-left: 4px;
         background: var(--sys-center-channel-bg);
-        border-radius: 4px;
         box-shadow: var(--elevation-1);
 
         &__scoreEllipseSvg {
@@ -200,8 +200,8 @@
                         height: 44px;
                         align-items: center;
                         justify-content: center;
-                        background-color: rgba(var(--sys-denim-center-channel-text-rgb), 0.16);
                         border-radius: 50%;
+                        background-color: rgba(var(--sys-denim-center-channel-text-rgb), 0.16);
 
                         &.success {
                             background-color: rgba(var(--sys-online-indicator-rgb), 0.16);
@@ -212,7 +212,7 @@
                         }
 
                         svg {
-                            opacity: 0.56;
+                            opacity: 0.73;
                         }
                     }
                 }
@@ -293,9 +293,9 @@
                     button {
                         max-height: 32px;
                         padding: 5px 20px !important;
+                        border-radius: 4px !important;
                         margin-top: 0;
                         margin-right: 10px;
-                        border-radius: 4px !important;
                         font-weight: 600;
                     }
                 }

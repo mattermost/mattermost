@@ -351,13 +351,13 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		require.NoError(t, err)
 
 		c1 := &model.Channel{TeamId: t1.Id, Name: model.NewId(), DisplayName: "c1", Type: model.ChannelTypeOpen}
-		_, err = ss.Channel().Save(c1, -1)
+		_, err = ss.Channel().Save(rctx, c1, -1)
 		require.NoError(t, err)
 		c2 := &model.Channel{TeamId: t1.Id, Name: model.NewId(), DisplayName: "c2", Type: model.ChannelTypeOpen}
-		_, err = ss.Channel().Save(c2, -1)
+		_, err = ss.Channel().Save(rctx, c2, -1)
 		require.NoError(t, err)
 		c3 := &model.Channel{TeamId: t2.Id, Name: model.NewId(), DisplayName: "c1", Type: model.ChannelTypeOpen}
-		_, err = ss.Channel().Save(c3, -1)
+		_, err = ss.Channel().Save(rctx, c3, -1)
 		require.NoError(t, err)
 
 		p1 := model.Post{}

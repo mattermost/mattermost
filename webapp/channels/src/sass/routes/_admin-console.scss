@@ -1,5 +1,7 @@
 @charset 'UTF-8';
 
+@use 'sass:color';
+
 .admin-console__wrapper {
     overflow: auto;
 }
@@ -61,8 +63,8 @@
     }
 
     mark {
-        background-color: $highlight-color;
         border-radius: 5%;
+        background-color: $highlight-color;
     }
 
     .btn {
@@ -155,7 +157,7 @@
             border-color: #66afe9;
             box-shadow:
                 inset 0 1px 1px rgba(0, 0, 0, 0.075),
-                0 0 8px rgba(102, 175, 233, 0.6);
+                0 0 8px rgba(102, 175, 233, 0.75);
             outline: 0;
         }
 
@@ -302,8 +304,8 @@
 
         .banner__url {
             padding: 0.7em 1em;
-            background: alpha-color($black, 0.07);
             border-radius: 2px;
+            background: alpha-color($black, 0.07);
             word-break: break-all;
         }
 
@@ -489,8 +491,8 @@
             height: 34px;
             align-items: center;
             justify-content: center;
-            margin: 0 10px 0 0;
             border-radius: $border-rad;
+            margin: 0 10px 0 0;
             text-decoration: none;
             transition: all 0.15s ease;
 
@@ -600,7 +602,7 @@
             left: 21px;
             width: 16px;
             height: 16px;
-            fill: rgba(var(--sys-sidebar-text-rgb), 0.56);
+            fill: rgba(var(--sys-sidebar-text-rgb), 0.75);
             stroke: #999;
         }
 
@@ -608,9 +610,9 @@
             width: 204px;
             padding: 5px 36px;
             border: 1px solid #666;
+            border-radius: 20px;
             margin: 8px;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
             color: $white;
             font-size: 14px;
             outline: none;
@@ -644,8 +646,8 @@
     }
 
     mark {
-        background-color: $highlight-color;
         border-radius: 5%;
+        background-color: $highlight-color;
     }
 
     body.announcement-bar--fixed & {
@@ -751,9 +753,9 @@
         top: -1px;
         height: 16px;
         padding: 0 4px 0 4px;
-        margin-left: 8px;
-        background-color: rgba(255, 255, 255, 0.64);
         border-radius: 4px;
+        margin-left: 8px;
+        background-color: rgba(255, 255, 255, 0.75);
         color: rgba(61, 60, 64, 1);
         font-size: 10px;
         font-weight: 600;
@@ -795,11 +797,11 @@
         }
 
         &:hover {
-            color: lighten($primary-color, 10);
+            color: color.adjust($primary-color, $lightness: 10%);
             text-decoration: none;
 
             i {
-                color: lighten($primary-color, 10);
+                color: color.adjust($primary-color, $lightness: 10%);
             }
         }
 

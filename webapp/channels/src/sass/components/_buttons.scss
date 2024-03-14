@@ -26,9 +26,9 @@ button {
         display: inline-block;
         width: 8px;
         height: 8px;
+        border-radius: 50%;
         margin: 0 0 0 40px;
         background: #f74343;
-        border-radius: 50%;
     }
 }
 
@@ -51,11 +51,11 @@ button {
         width: 40px;
         padding: 0;
         background-color: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
         }
 
         &:focus,

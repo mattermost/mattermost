@@ -57,7 +57,13 @@ func (a *App) ExportFileBackend() filestore.FileBackend {
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	fileBackendSettings := filestore.NewFileBackendSettingsFromConfig(settings, false, false)
+	var fileBackendSettings filestore.FileBackendSettings
+	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+		fileBackendSettings = filestore.NewExportFileBackendSettingsFromConfig(settings, false, false)
+	} else {
+		fileBackendSettings = filestore.NewFileBackendSettingsFromConfig(settings, false, false)
+	}
+
 	err := fileBackendSettings.CheckMandatoryS3Fields()
 	if err != nil {
 		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest).Wrap(err)
@@ -87,7 +93,15 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	license := a.Srv().License()
 	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections
-	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+	var backend filestore.FileBackend
+	var err error
+	complianceEnabled := license != nil && *license.Features.Compliance
+	if license.IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+		allowInsecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *a.Config().ServiceSettings.EnableInsecureOutgoingConnections
+		backend, err = filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(cfg, complianceEnabled && license.IsCloud(), allowInsecure))
+	} else {
+		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, insecure != nil && *insecure))
+	}
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -690,6 +704,7 @@ func (t *UploadFileTask) init(a *App) {
 	t.fileinfo.CreatorId = t.UserId
 	t.fileinfo.CreateAt = t.Timestamp.UnixNano() / int64(time.Millisecond)
 	t.fileinfo.Path = t.pathPrefix() + t.Name
+	t.fileinfo.ChannelId = t.ChannelId
 
 	t.limitedInput = &io.LimitedReader{
 		R: t.Input,
@@ -936,6 +951,12 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 }
 
 func (t UploadFileTask) pathPrefix() string {
+	if t.UserId == model.BookmarkFileOwner {
+		return model.BookmarkFileOwner +
+			"/teams/" + t.TeamId +
+			"/channels/" + t.ChannelId +
+			"/" + t.fileinfo.Id + "/"
+	}
 	return t.Timestamp.Format("20060102") +
 		"/teams/" + t.TeamId +
 		"/channels/" + t.ChannelId +
@@ -989,6 +1010,9 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	info.CreateAt = now.UnixNano() / int64(time.Millisecond)
 
 	pathPrefix := now.Format("20060102") + "/teams/" + teamID + "/channels/" + channelID + "/users/" + userID + "/" + info.Id + "/"
+	if userID == model.BookmarkFileOwner {
+		pathPrefix = model.BookmarkFileOwner + "/teams/" + teamID + "/channels/" + channelID + "/" + info.Id + "/"
+	}
 	info.Path = pathPrefix + filename
 
 	if info.IsImage() && !info.IsSvg() {

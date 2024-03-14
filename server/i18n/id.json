@@ -772,20 +772,12 @@
     "translation": "Lisensi Anda tidak mendukung autentikasi SAML."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Terjadi kesalahan saat mengesahkan balasan dari Identity Provider. Silakan hubungi Administrator Sistem Anda."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Terjadi kesalahan saat menerima balasan dari Identity Provider. Silakan hubungi Administrator Sistem Anda."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Kami menerima balasan kosong dari Identity Provider"
-  },
-  {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Masuk dengan SAML gagal karena terjadi kesalahan saat mendekripsi balasan dari Identity Provider. Silakan hubungi Administrator Sistem Anda."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
@@ -796,16 +788,8 @@
     "translation": "Masuk dengan SAML gagal karena Kunci Privat Service Provider tidak ditemukan. Silakan hubungi Administrator Sistem Anda."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Berkas Sertifikat Publik Identity Provider tidak dapat ditemukan. Silakan hubungi Administrator Sistem Anda."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Masuk dengan SAML gagal karena enkripsi tidak diaktifkan. Silakan hubungi Administrator Sistem Anda."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Terjadi kesalahan saat membaca kode permintaan untuk Identity Provider. Silakan hubungi Administrator Sistem."
   },
   {
     "id": "ent.saml.build_request.app_error",

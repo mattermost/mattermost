@@ -31,14 +31,14 @@
         }
 
         :last-child {
-            color: rgba(63, 69, 80, 0.72);
+            color: rgba(63, 69, 80, 0.64);
         }
     }
 
     button {
         width: 100%;
-        margin: 5px auto;
         border-radius: 4px;
+        margin: 5px auto;
     }
 
     .purchase_buttons {
@@ -71,7 +71,7 @@
 
     .pre-title {
         margin-bottom: 10px;
-        color: rgba(63, 67, 80, 0.56) !important;
+        color: rgba(63, 67, 80, 0.75) !important;
         font-size: 12px;
         font-weight: 600;
         line-height: 16px;
@@ -99,8 +99,8 @@
     .licenseInformation {
         padding: 24px;
         border: 1px solid rgba(63, 67, 80, 0.16);
-        margin: 15px 0;
         border-radius: 4px;
+        margin: 15px 0;
 
         .license-details-top {
             display: flex;
@@ -178,9 +178,9 @@
                 display: block;
                 padding: 12px 20px;
                 border: 1px solid var(--sys-button-bg);
+                border-radius: 4px;
                 margin-top: 15px;
                 background-color: var(--sys-center-channel-bg);
-                border-radius: 4px;
                 color: var(--sys-button-bg);
 
                 span {

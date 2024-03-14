@@ -36,14 +36,14 @@
                 left: 50%;
                 width: 32px;
                 height: 32px;
-                margin-left: -15px;
                 border-radius: 32px;
+                margin-left: -15px;
                 content: " ";
             }
         }
 
         .DayPicker-Day--disabled {
-            color: rgba(var(--center-channel-color-rgb), 0.56) !important;
+            color: rgba(var(--center-channel-color-rgb), 0.75) !important;
         }
 
         .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--outside):not(.DayPicker-Day--selected) {
@@ -98,8 +98,8 @@
     .DayPickerInput-Overlay {
         padding: 20px 24px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-        background: rgba(var(--center-channel-bg-rgb), 1);
         border-radius: 4px;
+        background: rgba(var(--center-channel-bg-rgb), 1);
         box-shadow: 0 8px 24px 0 alpha-color(black, 0.12);
 
         & .DayPicker {

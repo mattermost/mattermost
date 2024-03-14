@@ -353,7 +353,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 	// Automatic deactivation disabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -362,7 +362,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 
 	th.App.UpdateActive(th.Context, th.BasicUser, false)
 
-	retbot1, err := th.App.GetBot(bot.UserId, true)
+	retbot1, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
 	require.Zero(t, retbot1.DeleteAt)
 	user1, err := th.App.GetUser(bot.UserId)
@@ -378,7 +378,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 
 	th.App.UpdateActive(th.Context, th.BasicUser, false)
 
-	retbot2, err := th.App.GetBot(bot.UserId, true)
+	retbot2, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
 	require.NotZero(t, retbot2.DeleteAt)
 	user2, err := th.App.GetUser(bot.UserId)

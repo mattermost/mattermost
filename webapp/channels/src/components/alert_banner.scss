@@ -60,8 +60,8 @@
 
         padding: 10px 16px;
         border: none;
-        background: var(--denim-button-bg);
         border-radius: 4px;
+        background: var(--denim-button-bg);
         color: white;
         font-size: 12px;
         font-weight: 600;
@@ -74,9 +74,9 @@
 
         padding: 10px 16px;
         border: none;
+        border-radius: 4px;
         margin-left: 4px;
         background: rgba(28, 88, 217, 0.08);
-        border-radius: 4px;
         color: #1c58d9;
     }
 }
@@ -85,8 +85,8 @@
     display: flex;
     padding: 3px;
     border: none;
-    background: none;
     border-radius: 4px;
+    background: none;
 
     &:hover {
         background: rgba(0, 0, 0, 0.08);
@@ -135,7 +135,7 @@
     }
 
     .AlertBanner__closeButton {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
     }
 }
 
@@ -181,6 +181,6 @@
     }
 
     .AlertBanner__closeButton {
-        color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.75);
     }
 }

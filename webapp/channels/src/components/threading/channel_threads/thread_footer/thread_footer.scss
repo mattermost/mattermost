@@ -10,7 +10,7 @@
     padding: 0 0 5px 10px;
     margin-top: 1px;
     margin-bottom: 5px;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
     line-height: 15px;
     white-space: nowrap;
@@ -24,8 +24,8 @@
     .dot-unreads {
         width: 8px;
         height: 8px;
-        background: rgba(var(--sidebar-text-active-border-rgb), 1);
         border-radius: 50%;
+        background: rgba(var(--sidebar-text-active-border-rgb), 1);
     }
 
     .Avatars {

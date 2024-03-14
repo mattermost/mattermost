@@ -13,7 +13,7 @@
     &__RHSCardTitle {
         display: block;
         margin-bottom: 12px;
-        color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
+        color: rgba(var(--sys-denim-center-channel-text-rgb), 0.75);
         font-size: 14px;
         font-weight: 600;
         text-align: center;
@@ -43,14 +43,14 @@
         text-align: center;
 
         .planName {
-            color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
+            color: rgba(var(--sys-denim-center-channel-text-rgb), 0.75);
             font-size: 20px;
             font-weight: 400;
             text-transform: capitalize;
         }
 
         .usage {
-            color: rgba(var(--sys-denim-center-channel-text-rgb), 0.56);
+            color: rgba(var(--sys-denim-center-channel-text-rgb), 0.75);
             font-size: 12px;
             font-weight: 600;
 
@@ -78,7 +78,7 @@
         }
 
         .costPerUser > span:last-child {
-            color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
+            color: rgba(var(--sys-denim-center-channel-text-rgb), 0.75);
             font-size: 12px;
         }
 
@@ -93,7 +93,7 @@
         }
 
         .totalCostWarning > span:last-child {
-            color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
+            color: rgba(var(--sys-denim-center-channel-text-rgb), 0.75);
             font-size: 12px;
         }
 
@@ -118,13 +118,13 @@
 
     &__CompletePurchaseButton {
         width: 100%;
+        border-radius: 4px;
         margin-top: 10px;
         margin-bottom: 10px;
-        border-radius: 4px;
     }
 
     &__ChargedTodayDisclaimer {
-        color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
+        color: rgba(var(--sys-denim-center-channel-text-rgb), 0.75);
         font-size: 12px;
         font-weight: 400;
     }
