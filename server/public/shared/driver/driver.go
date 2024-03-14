@@ -35,14 +35,7 @@ func NewConnector(api plugin.Driver, isMaster bool) *Connector {
 }
 
 func (c *Connector) Connect(_ context.Context) (driver.Conn, error) {
-	// The passing of an empty string is unfortunate.
-	// Because the pluginID is actually passed in the internal driver implementation.
-	// But the issue is that the internal implementation is in the app package, so we cannot
-	// import the app package inside the plugin package. Therefore, we have to stick
-	// with a common API for both the plugin and the internal consumer.
-	//
-	// But it's not a big deal, since all plugins are meant to work via the pluginapi.
-	connID, err := c.api.Conn(c.isMaster, "")
+	connID, err := c.api.Conn(c.isMaster)
 	if err != nil {
 		return nil, err
 	}

@@ -53,7 +53,7 @@ type Environment struct {
 	logger                           *mlog.Logger
 	metrics                          metricsInterface
 	newAPIImpl                       apiImplCreatorFunc
-	dbDriver                         Driver
+	dbDriver                         AppDriver
 	pluginDir                        string
 	webappPluginDir                  string
 	prepackagedPlugins               []*PrepackagedPlugin
@@ -63,7 +63,7 @@ type Environment struct {
 
 func NewEnvironment(
 	newAPIImpl apiImplCreatorFunc,
-	dbDriver Driver,
+	dbDriver AppDriver,
 	pluginDir string,
 	webappPluginDir string,
 	logger *mlog.Logger,

@@ -16,7 +16,7 @@ func TestConnCreateTimeout(t *testing.T) {
 	*th.App.Config().SqlSettings.QueryTimeout = 0
 
 	d := NewDriverImpl(th.Server)
-	_, err := d.Conn(true, "")
+	_, err := d.Conn(true)
 	require.Error(t, err)
 }
 
@@ -25,11 +25,11 @@ func TestShutdownPluginConns(t *testing.T) {
 	defer th.TearDown()
 
 	d := NewDriverImpl(th.Server)
-	_, err := d.Conn(true, "plugin1")
+	_, err := d.ConnWithPluginID(true, "plugin1")
 	require.NoError(t, err)
-	_, err = d.Conn(true, "plugin2")
+	_, err = d.ConnWithPluginID(true, "plugin2")
 	require.NoError(t, err)
-	_, err = d.Conn(true, "plugin1")
+	_, err = d.ConnWithPluginID(true, "plugin1")
 	require.NoError(t, err)
 
 	require.Len(t, d.connMap, 3)
