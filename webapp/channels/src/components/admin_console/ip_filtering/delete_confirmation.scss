@@ -5,8 +5,8 @@
         left: 50%;
         width: 600px;
         border: 1 px solid rgba(var(--center-channel-color-rgb), 0.08);
-        margin: auto;
         border-radius: 12px;
+        margin: auto;
         transform: translate(-50%, -50%) !important;
     }
 
@@ -58,8 +58,8 @@
         padding-bottom: 0;
         padding-left: 32px;
         border: 0;
-        background: var(--center-channel-bg) !important;
         border-radius: 12px;
+        background: var(--center-channel-bg) !important;
         color: var(--center-channel-color);
     }
 
@@ -81,8 +81,8 @@
 
     .modal-footer {
         padding: 24px 32px;
-        border-top: none;
         border-radius: 12px;
+        border-top: none;
         font-family: Open Sans;
         font-size: 14px;
         font-style: normal;
@@ -92,17 +92,17 @@
         .btn-cancel {
             padding: 10px 20px;
             border: none;
-            background: var(--button-bg-8, rgba(28, 88, 217, 0.08));
             border-radius: 4px;
+            background: var(--button-bg-8, rgba(28, 88, 217, 0.08));
             color: var(--button-bg, #1c58d9);
         }
 
         .btn-delete {
             padding: 10px 20px;
             border: none;
+            border-radius: 4px;
             margin-left: 8px;
             background: var(--denim-status-do-not-disturb, #d24b4e);
-            border-radius: 4px;
             color: var(--button-color, #fff);
         }
     }

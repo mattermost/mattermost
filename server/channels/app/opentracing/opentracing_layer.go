@@ -247,6 +247,23 @@ func (a *OpenTracingAppLayer) AddLdapPublicCertificate(fileData *multipart.FileH
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddLicenseListener")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.AddLicenseListener(listener)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) AddPublicKey(name string, key io.Reader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddPublicKey")
@@ -1884,7 +1901,7 @@ func (a *OpenTracingAppLayer) ConvertGroupMessageToChannel(c request.CTX, conver
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) ConvertUserToBot(rctx request.CTX, user *model.User) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ConvertUserToBot")
 
@@ -1896,7 +1913,7 @@ func (a *OpenTracingAppLayer) ConvertUserToBot(user *model.User) (*model.Bot, *m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ConvertUserToBot(user)
+	resultVar0, resultVar1 := a.app.ConvertUserToBot(rctx, user)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1950,7 +1967,7 @@ func (a *OpenTracingAppLayer) CopyWranglerPostlist(c request.CTX, wpl *model.Wra
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateBot")
 
@@ -1962,7 +1979,7 @@ func (a *OpenTracingAppLayer) CreateBot(c request.CTX, bot *model.Bot) (*model.B
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateBot(c, bot)
+	resultVar0, resultVar1 := a.app.CreateBot(rctx, bot)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1985,6 +2002,28 @@ func (a *OpenTracingAppLayer) CreateChannel(c request.CTX, channel *model.Channe
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.CreateChannel(c, channel, addMember)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) CreateChannelBookmark(c request.CTX, newBookmark *model.ChannelBookmark, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateChannelBookmark")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.CreateChannelBookmark(c, newBookmark, connectionId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -3091,6 +3130,28 @@ func (a *OpenTracingAppLayer) DeleteChannel(c request.CTX, channel *model.Channe
 	}
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) DeleteChannelBookmark(bookmarkId string, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteChannelBookmark")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.DeleteChannelBookmark(bookmarkId, connectionId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) DeleteChannelScheme(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
@@ -5006,7 +5067,7 @@ func (a *OpenTracingAppLayer) GetAllTeamsPageWithCount(offset int, limit int, op
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAnalytics(rctx request.CTX, name string, teamID string) (model.AnalyticsRows, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAnalytics")
 
@@ -5018,7 +5079,7 @@ func (a *OpenTracingAppLayer) GetAnalytics(name string, teamID string) (model.An
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAnalytics(name, teamID)
+	resultVar0, resultVar1 := a.app.GetAnalytics(rctx, name, teamID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5138,7 +5199,29 @@ func (a *OpenTracingAppLayer) GetAuthorizedAppsForUser(userID string, page int, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) GetBookmark(bookmarkId string, includeDeleted bool) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetBookmark")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetBookmark(bookmarkId, includeDeleted)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetBot(rctx request.CTX, botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetBot")
 
@@ -5150,7 +5233,7 @@ func (a *OpenTracingAppLayer) GetBot(botUserId string, includeDeleted bool) (*mo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetBot(botUserId, includeDeleted)
+	resultVar0, resultVar1 := a.app.GetBot(rctx, botUserId, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5160,7 +5243,7 @@ func (a *OpenTracingAppLayer) GetBot(botUserId string, includeDeleted bool) (*mo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetBots(rctx request.CTX, options *model.BotGetOptions) (model.BotList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetBots")
 
@@ -5172,7 +5255,7 @@ func (a *OpenTracingAppLayer) GetBots(options *model.BotGetOptions) (model.BotLi
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetBots(options)
+	resultVar0, resultVar1 := a.app.GetBots(rctx, options)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5239,6 +5322,28 @@ func (a *OpenTracingAppLayer) GetChannel(c request.CTX, channelID string) (*mode
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetChannel(c, channelID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetChannelBookmarks(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelBookmarks")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetChannelBookmarks(channelId, since)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7401,7 +7506,7 @@ func (a *OpenTracingAppLayer) GetMemberCountsByGroup(rctx request.CTX, channelID
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+func (a *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, teamName string, siteUrl string, translateFunc i18n.TranslateFunc) string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMessageForNotification")
 
@@ -7413,7 +7518,7 @@ func (a *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, transl
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetMessageForNotification(post, translateFunc)
+	resultVar0 := a.app.GetMessageForNotification(post, teamName, siteUrl, translateFunc)
 
 	return resultVar0
 }
@@ -7440,7 +7545,7 @@ func (a *OpenTracingAppLayer) GetMultipleEmojiByName(c request.CTX, names []stri
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetNewUsersForTeamPage(teamID string, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) GetNewUsersForTeamPage(rctx request.CTX, teamID string, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetNewUsersForTeamPage")
 
@@ -7452,7 +7557,7 @@ func (a *OpenTracingAppLayer) GetNewUsersForTeamPage(teamID string, page int, pe
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetNewUsersForTeamPage(teamID, page, perPage, asAdmin, viewRestrictions)
+	resultVar0, resultVar1 := a.app.GetNewUsersForTeamPage(rctx, teamID, page, perPage, asAdmin, viewRestrictions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8779,7 +8884,7 @@ func (a *OpenTracingAppLayer) GetReactionsForPost(postID string) ([]*model.React
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeam(teamID string) (map[string]*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeam(rctx request.CTX, teamID string) (map[string]*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRecentlyActiveUsersForTeam")
 
@@ -8791,7 +8896,7 @@ func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeam(teamID string) (map[
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetRecentlyActiveUsersForTeam(teamID)
+	resultVar0, resultVar1 := a.app.GetRecentlyActiveUsersForTeam(rctx, teamID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8801,7 +8906,7 @@ func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeam(teamID string) (map[
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeamPage(teamID string, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeamPage(rctx request.CTX, teamID string, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRecentlyActiveUsersForTeamPage")
 
@@ -8813,7 +8918,7 @@ func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeamPage(teamID string, p
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetRecentlyActiveUsersForTeamPage(teamID, page, perPage, asAdmin, viewRestrictions)
+	resultVar0, resultVar1 := a.app.GetRecentlyActiveUsersForTeamPage(rctx, teamID, page, perPage, asAdmin, viewRestrictions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13276,7 +13381,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteAllUsers(c request.CTX) *model.AppE
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PermanentDeleteBot(botUserId string) *model.AppError {
+func (a *OpenTracingAppLayer) PermanentDeleteBot(rctx request.CTX, botUserId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeleteBot")
 
@@ -13288,7 +13393,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteBot(botUserId string) *model.AppErr
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PermanentDeleteBot(botUserId)
+	resultVar0 := a.app.PermanentDeleteBot(rctx, botUserId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -13730,7 +13835,7 @@ func (a *OpenTracingAppLayer) PurgeBleveIndexes(c request.CTX) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes(c request.CTX) *model.AppError {
+func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes(c request.CTX, indexes []string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PurgeElasticsearchIndexes")
 
@@ -13742,7 +13847,7 @@ func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes(c request.CTX) *model.Ap
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PurgeElasticsearchIndexes(c)
+	resultVar0 := a.app.PurgeElasticsearchIndexes(c, indexes)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16150,7 +16255,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToGroup(session model.Session,
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError {
+func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(rctx request.CTX, session model.Session, botUserId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToManageBot")
 
@@ -16162,7 +16267,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(session model.Sess
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SessionHasPermissionToManageBot(session, botUserId)
+	resultVar0 := a.app.SessionHasPermissionToManageBot(rctx, session, botUserId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16240,7 +16345,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToUser(session model.Session, 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SessionHasPermissionToUserOrBot(session model.Session, userID string) bool {
+func (a *OpenTracingAppLayer) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Session, userID string) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToUserOrBot")
 
@@ -16252,7 +16357,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToUserOrBot(session model.Sess
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SessionHasPermissionToUserOrBot(session, userID)
+	resultVar0 := a.app.SessionHasPermissionToUserOrBot(rctx, session, userID)
 
 	return resultVar0
 }
@@ -17496,7 +17601,7 @@ func (a *OpenTracingAppLayer) UpdateActive(c request.CTX, user *model.User, acti
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateBotActive(c request.CTX, botUserId string, active bool) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateBotActive")
 
@@ -17508,7 +17613,7 @@ func (a *OpenTracingAppLayer) UpdateBotActive(c request.CTX, botUserId string, a
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateBotActive(c, botUserId, active)
+	resultVar0, resultVar1 := a.app.UpdateBotActive(rctx, botUserId, active)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -17518,7 +17623,7 @@ func (a *OpenTracingAppLayer) UpdateBotActive(c request.CTX, botUserId string, a
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateBotOwner(botUserId string, newOwnerId string) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateBotOwner(rctx request.CTX, botUserId string, newOwnerId string) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateBotOwner")
 
@@ -17530,7 +17635,7 @@ func (a *OpenTracingAppLayer) UpdateBotOwner(botUserId string, newOwnerId string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateBotOwner(botUserId, newOwnerId)
+	resultVar0, resultVar1 := a.app.UpdateBotOwner(rctx, botUserId, newOwnerId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -17553,6 +17658,50 @@ func (a *OpenTracingAppLayer) UpdateChannel(c request.CTX, channel *model.Channe
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.UpdateChannel(c, channel)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UpdateChannelBookmark(c request.CTX, updateBookmark *model.ChannelBookmarkWithFileInfo, connectionId string) (*model.UpdateChannelBookmarkResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelBookmark")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.UpdateChannelBookmark(c, updateBookmark, connectionId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UpdateChannelBookmarkSortOrder(bookmarkId string, channelId string, newIndex int64, connectionId string) ([]*model.ChannelBookmarkWithFileInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelBookmarkSortOrder")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.UpdateChannelBookmarkSortOrder(bookmarkId, channelId, newIndex, connectionId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
