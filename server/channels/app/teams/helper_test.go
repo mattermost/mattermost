@@ -113,7 +113,7 @@ func (th *TestHelper) UpdateConfig(f func(*model.Config)) {
 
 func (th *TestHelper) CreateUser(u *model.User) *model.User {
 	u.EmailVerified = true
-	user, err := th.dbStore.User().Save(u)
+	user, err := th.dbStore.User().Save(th.Context, u)
 	if err != nil {
 		panic(err)
 	}

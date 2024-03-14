@@ -5,13 +5,14 @@
 
         button.close {
             span {
-                color: rgba(63, 67, 80, 0.56) !important;
+                color: rgba(63, 67, 80, 0.75) !important;
             }
         }
     }
 
     .modal-body {
         padding-top: 0 !important;
+        padding-bottom: 24px !important;
     }
 
     .content-body {
@@ -52,11 +53,11 @@
             width: 90%;
             padding: 12px;
             border: 1px solid rgba(63, 67, 80, 0.32);
-            margin-top: 15px;
             border-radius: 4px;
+            margin-top: 15px;
 
             &__titleSection {
-                color: rgba(63, 67, 80, 0.72);
+                color: rgba(63, 67, 80, 0.75);
                 font-size: 12px;
                 font-weight: bold;
                 line-height: 16px;
@@ -137,8 +138,8 @@
             height: 48px;
             padding: 5px 24px;
             border: 0 !important;
-            margin-top: 15px !important;
             border-radius: 4px;
+            margin-top: 15px !important;
             font-size: 16px;
             font-weight: 600;
             line-height: 18px;

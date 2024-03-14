@@ -5,9 +5,9 @@
     z-index: 2;
     width: calc(100% - 30px);
     height: 32px;
+    border-radius: 4px;
     margin: 10px 15px 0;
     background-color: var(--button-bg);
-    border-radius: 4px;
     color: var(--button-color);
     cursor: default;
     font-size: 13px;
@@ -102,5 +102,5 @@
 }
 
 .tooltip__shortcut--txt {
-    opacity: 0.6;
+    opacity: 0.73;
 }

@@ -10,6 +10,7 @@ import {Link} from 'react-router-dom';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -53,7 +54,7 @@ type Props = {
     roles: Record<string, Role>;
     license: ClientLicense;
     editRole: (role: Role) => void;
-    updateConfig: (config: AdminConfig) => Promise<ActionResult>;
+    patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     isDisabled: boolean;
     consoleAccess: ConsoleAccess;
     cloud: CloudState;
@@ -94,7 +95,7 @@ function descriptorOrStringToString(text: string | MessageDescriptor | undefined
     return typeof text === 'string' ? text : intl.formatMessage(text, values);
 }
 
-class SchemaAdminSettings extends React.PureComponent<Props, State> {
+export class SchemaAdminSettings extends React.PureComponent<Props, State> {
     private isPlugin: boolean;
     private saveActions: Array<() => Promise<{error?: {message?: string}}>>;
     private buildSettingFunctions: {[x: string]: (setting: any) => JSX.Element};
@@ -329,18 +330,24 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         if (!this.props.schema) {
             return '';
         }
-        if (!('name' in this.props.schema)) {
-            return this.props.schema.id;
+
+        let name: string | MessageDescriptor = this.props.schema.id;
+        if (('name' in this.props.schema)) {
+            name = this.props.schema.name;
         }
 
-        if (typeof this.props.schema.name === 'string') {
-            return this.props.schema.name;
+        if (typeof name === 'string') {
+            return (
+                <AdminHeader>
+                    {name}
+                </AdminHeader>
+            );
         }
 
         return (
             <AdminHeader>
                 <FormattedMessage
-                    {...this.props.schema.name}
+                    {...name}
                 />
             </AdminHeader>
         );
@@ -1139,7 +1146,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         let config = JSON.parse(JSON.stringify(this.props.config));
         config = this.getConfigFromState(config);
 
-        const {error} = await this.props.updateConfig(config);
+        const {error} = await this.props.patchConfig(config);
         if (error) {
             this.setState({
                 serverError: error.message,

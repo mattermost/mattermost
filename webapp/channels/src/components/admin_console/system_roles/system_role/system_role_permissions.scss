@@ -48,8 +48,8 @@
 
                 .MenuWrapper {
                     box-sizing: border-box;
-                    background: rgba(var(--sys-center-channel-color-rgb), 0.04);
                     border-radius: 4px;
+                    background: rgba(var(--sys-center-channel-color-rgb), 0.04);
 
                     .PermissionSectionDropdownButton {
                         display: flex;
@@ -59,8 +59,8 @@
                         justify-content: space-between;
                         padding: 1px 0 1px 4px;
                         border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
-                        background: var(--sys-center-channel-bg);
                         border-radius: 4px;
+                        background: var(--sys-center-channel-bg);
                         color: var(--sys-center-channel-color);
                         font-size: 12px;
                         font-style: normal;
@@ -82,7 +82,7 @@
 
                         .PermissionSectionDropdownButton_more {
                             margin-right: 8px;
-                            color: rgba(var(--sys-center-channel-color-rgb), 0.6);
+                            color: rgba(var(--sys-center-channel-color-rgb), 0.75);
                         }
 
                         .PermissionSectionDropdownButton_icon {
@@ -151,8 +151,8 @@
                 .PermissionSection_description {
                     span {
                         padding: 0 4px;
-                        background: rgba(var(--sys-center-channel-color-rgb), 0.08);
                         border-radius: 2px;
+                        background: rgba(var(--sys-center-channel-color-rgb), 0.08);
                     }
 
                     margin: 0;
@@ -180,7 +180,7 @@
         }
 
         .PermissionSectionDropdownOptions_description {
-            color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+            color: rgba(var(--sys-center-channel-color-rgb), 0.75);
             font-size: 12px;
         }
     }

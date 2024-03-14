@@ -23,11 +23,12 @@ import type {
     Team,
     TeamSearchOpts,
 } from '@mattermost/types/teams';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {AdminTypes} from 'mattermost-redux/action_types';
 import {getUsersLimits} from 'mattermost-redux/actions/limits';
 import {Client4} from 'mattermost-redux/client';
-import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -79,9 +80,9 @@ export function getConfig() {
     });
 }
 
-export function updateConfig(config: AdminConfig) {
+export function patchConfig(config: DeepPartial<AdminConfig>) {
     return bindClientFunc({
-        clientFunc: Client4.updateConfig,
+        clientFunc: Client4.patchConfig,
         onSuccess: [AdminTypes.RECEIVED_CONFIG],
         params: [
             config,
@@ -220,7 +221,7 @@ export function getLdapGroups(page = 0, perPage: number = General.PAGE_SIZE_MAXI
     });
 }
 
-export function linkLdapGroup(key: string): NewActionFuncAsync {
+export function linkLdapGroup(key: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -246,7 +247,7 @@ export function linkLdapGroup(key: string): NewActionFuncAsync {
     };
 }
 
-export function unlinkLdapGroup(key: string): NewActionFuncAsync {
+export function unlinkLdapGroup(key: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.unlinkLdapGroup(key);
@@ -357,9 +358,12 @@ export function testElasticsearch(config?: AdminConfig) {
     });
 }
 
-export function purgeElasticsearchIndexes() {
+export function purgeElasticsearchIndexes(indexes?: string[]) {
     return bindClientFunc({
         clientFunc: Client4.purgeElasticsearchIndexes,
+        params: [
+            indexes,
+        ],
     });
 }
 
@@ -372,7 +376,7 @@ export function uploadLicense(fileData: File) {
     });
 }
 
-export function removeLicense(): NewActionFuncAsync<boolean> {
+export function removeLicense(): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
             await Client4.removeLicense();
@@ -388,7 +392,7 @@ export function removeLicense(): NewActionFuncAsync<boolean> {
     };
 }
 
-export function getPrevTrialLicense(): NewActionFuncAsync {
+export function getPrevTrialLicense(): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -403,7 +407,7 @@ export function getPrevTrialLicense(): NewActionFuncAsync {
     };
 }
 
-export function getAnalytics(name: string, teamId = ''): NewActionFuncAsync {
+export function getAnalytics(name: string, teamId = ''): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -444,7 +448,7 @@ export function getUsersPerDayAnalytics(teamId = '') {
     return getAnalytics('user_counts_with_posts_day', teamId);
 }
 
-export function uploadPlugin(fileData: File, force = false): NewActionFuncAsync {
+export function uploadPlugin(fileData: File, force = false): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -459,7 +463,7 @@ export function uploadPlugin(fileData: File, force = false): NewActionFuncAsync 
     };
 }
 
-export function installPluginFromUrl(url: string, force = false): NewActionFuncAsync {
+export function installPluginFromUrl(url: string, force = false): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -488,7 +492,7 @@ export function getPluginStatuses() {
     });
 }
 
-export function removePlugin(pluginId: string): NewActionFuncAsync {
+export function removePlugin(pluginId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.removePlugin(pluginId);
@@ -507,7 +511,7 @@ export function removePlugin(pluginId: string): NewActionFuncAsync {
     };
 }
 
-export function enablePlugin(pluginId: string): NewActionFuncAsync {
+export function enablePlugin(pluginId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.enablePlugin(pluginId);
@@ -523,7 +527,7 @@ export function enablePlugin(pluginId: string): NewActionFuncAsync {
     };
 }
 
-export function disablePlugin(pluginId: string): NewActionFuncAsync {
+export function disablePlugin(pluginId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         dispatch({type: AdminTypes.DISABLE_PLUGIN_REQUEST, data: pluginId});
 
@@ -560,20 +564,7 @@ export function setSamlIdpCertificateFromMetadata(certData: string) {
     });
 }
 
-export function sendWarnMetricAck(warnMetricId: string, forceAck: boolean): NewActionFuncAsync {
-    return async (dispatch) => {
-        try {
-            Client4.trackEvent('api', 'api_request_send_metric_ack', {warnMetricId});
-            await Client4.sendWarnMetricAck(warnMetricId, forceAck);
-            return {data: true};
-        } catch (e) {
-            dispatch(logError(e as ServerError));
-            return {error: (e as ServerError).message};
-        }
-    };
-}
-
-export function getDataRetentionCustomPolicies(page = 0, perPage = 10): NewActionFuncAsync<GetDataRetentionCustomPoliciesRequest> {
+export function getDataRetentionCustomPolicies(page = 0, perPage = 10): ActionFuncAsync<GetDataRetentionCustomPoliciesRequest> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -597,7 +588,7 @@ export function getDataRetentionCustomPolicies(page = 0, perPage = 10): NewActio
     };
 }
 
-export function getDataRetentionCustomPolicy(id: string): NewActionFuncAsync<DataRetentionCustomPolicies> {
+export function getDataRetentionCustomPolicy(id: string): ActionFuncAsync<DataRetentionCustomPolicies> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -621,7 +612,7 @@ export function getDataRetentionCustomPolicy(id: string): NewActionFuncAsync<Dat
     };
 }
 
-export function deleteDataRetentionCustomPolicy(id: string): NewActionFuncAsync<{id: string}> {
+export function deleteDataRetentionCustomPolicy(id: string): ActionFuncAsync<{id: string}> {
     return async (dispatch, getState) => {
         try {
             await Client4.deleteDataRetentionCustomPolicy(id);
@@ -646,7 +637,7 @@ export function deleteDataRetentionCustomPolicy(id: string): NewActionFuncAsync<
     };
 }
 
-export function getDataRetentionCustomPolicyTeams(id: string, page = 0, perPage: number = General.TEAMS_CHUNK_SIZE): NewActionFuncAsync<Team[]> {
+export function getDataRetentionCustomPolicyTeams(id: string, page = 0, perPage: number = General.TEAMS_CHUNK_SIZE): ActionFuncAsync<Team[]> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -670,7 +661,7 @@ export function getDataRetentionCustomPolicyTeams(id: string, page = 0, perPage:
     };
 }
 
-export function getDataRetentionCustomPolicyChannels(id: string, page = 0, perPage: number = General.TEAMS_CHUNK_SIZE): NewActionFuncAsync<{channels: Channel[]; total_count: number}> {
+export function getDataRetentionCustomPolicyChannels(id: string, page = 0, perPage: number = General.TEAMS_CHUNK_SIZE): ActionFuncAsync<{channels: Channel[]; total_count: number}> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -694,7 +685,7 @@ export function getDataRetentionCustomPolicyChannels(id: string, page = 0, perPa
     };
 }
 
-export function searchDataRetentionCustomPolicyTeams(id: string, term: string, opts: TeamSearchOpts): NewActionFuncAsync<DataRetentionCustomPolicies> {
+export function searchDataRetentionCustomPolicyTeams(id: string, term: string, opts: TeamSearchOpts): ActionFuncAsync<DataRetentionCustomPolicies> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -718,7 +709,7 @@ export function searchDataRetentionCustomPolicyTeams(id: string, term: string, o
     };
 }
 
-export function searchDataRetentionCustomPolicyChannels(id: string, term: string, opts: ChannelSearchOpts): NewActionFuncAsync<DataRetentionCustomPolicies> {
+export function searchDataRetentionCustomPolicyChannels(id: string, term: string, opts: ChannelSearchOpts): ActionFuncAsync<DataRetentionCustomPolicies> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -742,7 +733,7 @@ export function searchDataRetentionCustomPolicyChannels(id: string, term: string
     };
 }
 
-export function createDataRetentionCustomPolicy(policy: CreateDataRetentionCustomPolicy): NewActionFuncAsync<DataRetentionCustomPolicies> {
+export function createDataRetentionCustomPolicy(policy: CreateDataRetentionCustomPolicy): ActionFuncAsync<DataRetentionCustomPolicies> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -760,7 +751,7 @@ export function createDataRetentionCustomPolicy(policy: CreateDataRetentionCusto
     };
 }
 
-export function updateDataRetentionCustomPolicy(id: string, policy: PatchDataRetentionCustomPolicy): NewActionFuncAsync<DataRetentionCustomPolicies> {
+export function updateDataRetentionCustomPolicy(id: string, policy: PatchDataRetentionCustomPolicy): ActionFuncAsync<DataRetentionCustomPolicies> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -789,7 +780,7 @@ export function addDataRetentionCustomPolicyTeams(id: string, teams: string[]) {
     });
 }
 
-export function removeDataRetentionCustomPolicyTeams(id: string, teams: string[]): NewActionFuncAsync<{teams: string[]}> {
+export function removeDataRetentionCustomPolicyTeams(id: string, teams: string[]): ActionFuncAsync<{teams: string[]}> {
     return async (dispatch, getState) => {
         try {
             await Client4.removeDataRetentionPolicyTeams(id, teams);
@@ -825,7 +816,7 @@ export function addDataRetentionCustomPolicyChannels(id: string, channels: strin
     });
 }
 
-export function removeDataRetentionCustomPolicyChannels(id: string, channels: string[]): NewActionFuncAsync<{channels: string[]}> {
+export function removeDataRetentionCustomPolicyChannels(id: string, channels: string[]): ActionFuncAsync<{channels: string[]}> {
     return async (dispatch, getState) => {
         try {
             await Client4.removeDataRetentionPolicyChannels(id, channels);

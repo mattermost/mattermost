@@ -19,7 +19,6 @@ import {trackEvent} from 'actions/telemetry_actions';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import ThemeSetting from 'components/user_settings/display/user_settings_theme';
-import BackIcon from 'components/widgets/icons/fa_back_icon';
 
 import * as I18n from 'i18n/i18n.jsx';
 import Constants from 'utils/constants';
@@ -29,6 +28,9 @@ import {a11yFocus} from 'utils/utils';
 
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
+
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
 
 const Preferences = Constants.Preferences;
 
@@ -94,8 +96,8 @@ type Props = {
     user: UserProfile;
     updateSection: (section: string) => void;
     activeSection?: string;
-    closeModal?: () => void;
-    collapseModal?: () => void;
+    closeModal: () => void;
+    collapseModal: () => void;
     setRequireConfirm?: () => void;
     setEnforceFocus?: () => void;
     timezones: Timezone[];
@@ -1100,39 +1102,26 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         return (
             <div id='displaySettings'>
-                <div className='modal-header'>
-                    <button
-                        id='closeButton'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label='Close'
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4 className='modal-title'>
-                        <div className='modal-back'>
-                            <span onClick={this.props.collapseModal}>
-                                <BackIcon/>
-                            </span>
-                        </div>
+                <SettingMobileHeader
+                    closeModal={this.props.closeModal}
+                    collapseModal={this.props.collapseModal}
+                    text={
                         <FormattedMessage
                             id='user.settings.display.title'
                             defaultMessage='Display Settings'
                         />
-                    </h4>
-                </div>
+                    }
+                />
                 <div className='user-settings'>
-                    <h3
+                    <SettingDesktopHeader
                         id='displaySettingsTitle'
-                        className='tab-header'
-                    >
-                        <FormattedMessage
-                            id='user.settings.display.title'
-                            defaultMessage='Display Settings'
-                        />
-                    </h3>
+                        text={
+                            <FormattedMessage
+                                id='user.settings.display.title'
+                                defaultMessage='Display Settings'
+                            />
+                        }
+                    />
                     <div className='divider-dark first'/>
                     {themeSection}
                     {collapsedReplyThreads}

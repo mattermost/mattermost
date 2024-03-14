@@ -61,7 +61,7 @@ tags:
         * [NPM](https://www.npmjs.com/package/@mattermost/client)
         * [Source](https://github.com/mattermost/mattermost/tree/master/webapp/platform/client)
 
-      * [Mattermost Golang Driver](https://github.com/mattermost/mattermost/blob/master/server/public/model/client4.go)
+      * [Mattermost Golang Driver](https://pkg.go.dev/github.com/mattermost/mattermost/server/public/model#Client4)
 
       #### Community-built Drivers
 
@@ -472,38 +472,6 @@ tags:
 
 
       To see how these actions work, please refer to either the [Golang WebSocket driver](https://github.com/mattermost/mattermost/blob/master/server/public/model/websocket_client.go) or our [JavaScript WebSocket driver](https://github.com/mattermost/mattermost/blob/master/webapp/platform/client/src/websocket.ts).
-  - name: APIv3 Deprecation
-    description: >
-      Since Mattermost 4.6 released on January 16, 2018, API v3 has no longer
-      been supported and it will be removed in Mattermost Server v5.0 on June
-      16, 2018. Follow these simple steps to migrate your integrations and apps
-      to API v4. Otherwise your integrations may break once you upgrade to
-      Mattermost 5.0
-
-
-      1. Set your server's log level to `DEBUG` in **System Console > General > Logging > File Log Level** to print detailed logs for API requests.
-
-      2. In **System Console > Logs**, search for requests hitting `/api/v3/` endpoints. Any requests hitting these endpoints are from integrations that should be migrated to API v4.
-        - For in-house or self-built integrations, update them to use v4 with the help of [this API reference](https://api.mattermost.com). Most v3 endpoints have direct counterparts in v4 and should be migrated easily.
-        - For third-party integrations, visit their homepage (on GitHub, GitLab, etc.). Check if they already have a version that uses the Mattermost v4 API. If they do not, consider opening an issue asking them if support is planned.
-      3. Once all integrations have been migrated to API v4, review the server logs with log level set to `DEBUG`. Confirm no requests hit `/api/v3/` endpoints.
-
-      4. Set **Allow use of API v3 endpoints** to `false` in **System Console > General > Configuration**, or set `EnableAPIv3` to `false` in `config.json`. This setting disables API v3 on your server. Any time a v3 endpoint is used, an error is logged in **System Console > Logs**.
-
-      5. Set your server's log level back to `ERROR`. Use the error logs to help track down any remaining uses of API v3.
-
-
-      Below are the major changes made between v3 and v4:
-
-
-      1. Endpoint URLs only require team IDs when necessary. For example, getting a channel by ID no longer requires a team ID in v4.
-
-      2. Collection endpoints now generally return lists and include paging as part of the query string.
-
-      3. User ID is now included in most user endpoints. This allows admins to modify other users through v4 endpoints.
-
-
-      If you have any questions about the API v3 deprecation, or about migrating from v3 to v4, [join our daily build server at community.mattermost.com](https://community.mattermost.com) and ask questions in the [APIv4 channel](https://community.mattermost.com/core/channels/apiv4).
   - name: users
     description: >
       Endpoints for creating, getting and interacting with users.
@@ -522,6 +490,8 @@ tags:
     description: Endpoints for uploading and interacting with files.
   - name: uploads
     description: Endpoints for creating and performing file uploads.
+  - name: bookmarks
+    description: Endpoints for creating, getting and interacting with channel bookmarks.
   - name: preferences
     description: Endpoints for saving and modifying user preferences.
   - name: status
@@ -584,7 +554,6 @@ x-tagGroups:
     tags:
       - introduction
       - schema
-      - APIv3 Deprecation
   - name: Standard Features
     tags:
       - drivers
@@ -602,6 +571,7 @@ x-tagGroups:
       - threads
       - files
       - uploads
+      - bookmarks
       - preferences
       - status
       - emoji

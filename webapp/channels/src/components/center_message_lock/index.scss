@@ -5,9 +5,9 @@
     align-items: center;
     padding: 16px;
     border: 1px rgba(var(--center-channel-color-rgb), 0.08) solid;
+    border-radius: 4px;
     margin: 0 24px 13px;
     background-color: rgba(var(--center-channel-color-rgb), 0.04);
-    border-radius: 4px;
 
     &__left {
         align-self: flex-start;
@@ -15,7 +15,7 @@
     }
 
     &__icon {
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
     }
 
     &__title {

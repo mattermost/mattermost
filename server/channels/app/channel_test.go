@@ -764,6 +764,22 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 }
 
+func TestAddChannelMemberDeletedUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	_, err := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user.Id)
+	require.Nil(t, err)
+
+	deactivated, err := th.App.UpdateActive(th.Context, user, false)
+	require.Greater(t, deactivated.DeleteAt, int64(0))
+
+	require.Nil(t, err)
+	_, err = th.App.AddChannelMember(th.Context, user.Id, th.BasicChannel, ChannelMemberOpts{})
+	require.NotNil(t, err)
+}
+
 func TestAppUpdateChannelScheme(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1564,7 +1580,7 @@ func TestAddUserToChannel(t *testing.T) {
 	defer th.App.PermanentDeleteUser(th.Context, &user1)
 	bot := th.CreateBot()
 	botUser, _ := th.App.GetUser(bot.UserId)
-	defer th.App.PermanentDeleteBot(botUser.Id)
+	defer th.App.PermanentDeleteBot(th.Context, botUser.Id)
 
 	th.App.AddTeamMember(th.Context, th.BasicTeam.Id, ruser1.Id)
 	th.App.AddTeamMember(th.Context, th.BasicTeam.Id, bot.UserId)
@@ -1646,7 +1662,7 @@ func TestRemoveUserFromChannel(t *testing.T) {
 
 	bot := th.CreateBot()
 	botUser, _ := th.App.GetUser(bot.UserId)
-	defer th.App.PermanentDeleteBot(botUser.Id)
+	defer th.App.PermanentDeleteBot(th.Context, botUser.Id)
 
 	th.App.AddTeamMember(th.Context, th.BasicTeam.Id, ruser.Id)
 	th.App.AddTeamMember(th.Context, th.BasicTeam.Id, bot.UserId)
@@ -1700,6 +1716,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 	createReactions := model.ChannelModeratedPermissions[1]
 	manageMembers := model.ChannelModeratedPermissions[2]
 	channelMentions := model.ChannelModeratedPermissions[3]
+	manageBookmarks := model.ChannelModeratedPermissions[4]
 
 	nonChannelModeratedPermission := model.PermissionCreateBot.Id
 
@@ -1794,6 +1811,26 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			},
 		},
 		{
+			Name: "Removing manage bookmarks from members role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &manageBookmarks,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
+				manageBookmarks: {
+					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
+				},
+			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &manageBookmarks,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+				},
+			},
+		},
+		{
 			Name: "Removing create posts from guests role",
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
@@ -1858,6 +1895,18 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageMembers,
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
+			ShouldError:                 false,
+			ShouldHaveNoChannelScheme:   true,
+		},
+		{
+			Name: "Removing manage bookmarks from guests role should not error",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &manageBookmarks,
 					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
 				},
 			},
@@ -1965,6 +2014,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 						Members: model.NewBool(true),
 					},
 				},
+				{
+					Name: &manageBookmarks,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: model.NewBool(true),
+					},
+				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
 			ShouldHaveNoChannelScheme:   true,
@@ -2023,7 +2078,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				if permission, found := tc.PermissionsModeratedByPatch[moderation.Name]; found && permission.Guests != nil {
 					require.Equal(t, moderation.Roles.Guests.Value, permission.Guests.Value)
 					require.Equal(t, moderation.Roles.Guests.Enabled, permission.Guests.Enabled)
-				} else if moderation.Name == manageMembers {
+				} else if moderation.Name == manageMembers || moderation.Name == "manage_bookmarks" {
 					require.Empty(t, moderation.Roles.Guests)
 				} else {
 					require.Equal(t, moderation.Roles.Guests.Value, true)
@@ -2630,7 +2685,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 
 	mockPostStore := mocks.PostStore{}
 	mockStore.On("Post").Return(&mockPostStore)
-	mockPostStore.On("Save", mock.AnythingOfType("*model.Post")).Return(&model.Post{}, nil)
+	mockPostStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.Post")).Return(&model.Post{}, nil)
 	mockPostStore.On("InvalidateLastPostTimeCache", "channelidchannelidchanneli")
 
 	mockSystemStore := mocks.SystemStore{}

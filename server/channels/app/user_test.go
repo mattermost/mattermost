@@ -353,7 +353,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 	// Automatic deactivation disabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -362,7 +362,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 
 	th.App.UpdateActive(th.Context, th.BasicUser, false)
 
-	retbot1, err := th.App.GetBot(bot.UserId, true)
+	retbot1, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
 	require.Zero(t, retbot1.DeleteAt)
 	user1, err := th.App.GetUser(bot.UserId)
@@ -378,7 +378,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 
 	th.App.UpdateActive(th.Context, th.BasicUser, false)
 
-	retbot2, err := th.App.GetBot(bot.UserId, true)
+	retbot2, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
 	require.NotZero(t, retbot2.DeleteAt)
 	user2, err := th.App.GetUser(bot.UserId)
@@ -499,13 +499,13 @@ func TestCreateUserConflict(t *testing.T) {
 		Email:    "test@localhost",
 		Username: model.NewId(),
 	}
-	user, err := th.App.Srv().Store().User().Save(user)
+	user, err := th.App.Srv().Store().User().Save(th.Context, user)
 	require.NoError(t, err)
 	username := user.Username
 
 	var invErr *store.ErrInvalidInput
 	// Same id
-	_, err = th.App.Srv().Store().User().Save(user)
+	_, err = th.App.Srv().Store().User().Save(th.Context, user)
 	require.Error(t, err)
 	require.True(t, errors.As(err, &invErr))
 	assert.Equal(t, "id", invErr.Field)
@@ -515,7 +515,7 @@ func TestCreateUserConflict(t *testing.T) {
 		Email:    "test@localhost",
 		Username: model.NewId(),
 	}
-	_, err = th.App.Srv().Store().User().Save(user)
+	_, err = th.App.Srv().Store().User().Save(th.Context, user)
 	require.Error(t, err)
 	require.True(t, errors.As(err, &invErr))
 	assert.Equal(t, "email", invErr.Field)
@@ -525,7 +525,7 @@ func TestCreateUserConflict(t *testing.T) {
 		Email:    "test2@localhost",
 		Username: username,
 	}
-	_, err = th.App.Srv().Store().User().Save(user)
+	_, err = th.App.Srv().Store().User().Save(th.Context, user)
 	require.Error(t, err)
 	require.True(t, errors.As(err, &invErr))
 	assert.Equal(t, "username", invErr.Field)
@@ -568,7 +568,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			Username: model.NewId(),
 			IsBot:    true,
 		}
-		_, nErr := th.App.Srv().Store().User().Save(&botuser)
+		_, nErr := th.App.Srv().Store().User().Save(th.Context, &botuser)
 		assert.NoError(t, nErr)
 
 		newBotEmail := th.MakeEmail()
@@ -611,7 +611,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			Username: model.NewId(),
 			IsBot:    true,
 		}
-		_, nErr := th.App.Srv().Store().User().Save(&botuser)
+		_, nErr := th.App.Srv().Store().User().Save(th.Context, &botuser)
 		assert.NoError(t, nErr)
 
 		newBotEmail := th.MakeEmail()

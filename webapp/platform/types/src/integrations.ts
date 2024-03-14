@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {MessageAttachment} from './message_attachments';
-import {IDMappedObjects} from './utilities';
+import type {MessageAttachment} from './message_attachments';
+import type {IDMappedObjects} from './utilities';
 
 export type IncomingWebhook = {
     id: string;
@@ -104,18 +104,49 @@ export type OAuthApp = {
     'is_trusted': boolean;
 };
 
+export type OutgoingOAuthConnection = {
+    'id': string;
+    'name': string;
+    'creator_id': string;
+    'create_at': number;
+    'update_at': number;
+    'client_id': string;
+    'client_secret'?: string;
+    'credentials_username'?: string;
+    'credentials_password'?: string;
+    'oauth_token_url': string;
+    'grant_type': 'client_credentials' | 'password';
+    'audiences': string[];
+};
+
 export type IntegrationsState = {
     incomingHooks: IDMappedObjects<IncomingWebhook>;
     outgoingHooks: IDMappedObjects<OutgoingWebhook>;
     oauthApps: IDMappedObjects<OAuthApp>;
+    outgoingOAuthConnections: IDMappedObjects<OutgoingOAuthConnection>;
     appsOAuthAppIDs: string[];
     appsBotIDs: string[];
     systemCommands: IDMappedObjects<Command>;
     commands: IDMappedObjects<Command>;
+    dialog?: {
+        url: string;
+        dialog: Dialog;
+    };
+};
+
+type Dialog = {
+    callback_id?: string;
+    elements?: DialogElement[];
+    title: string;
+    introduction_text?: string;
+    icon_url?: string;
+    submit_label?: string;
+    notify_on_cancel?: boolean;
+    state?: string;
 };
 
 export type DialogSubmission = {
-    url: string;
+    url?: string;
     callback_id: string;
     state: string;
     user_id: string;

@@ -11,8 +11,8 @@
             box-sizing: border-box;
             padding: 12px 16px;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            background: var(--center-channel-bg);
             border-radius: 4px;
+            background: var(--center-channel-bg);
             color: var(--center-channel-color);
             font-size: 14px;
             line-height: 20px;
@@ -38,7 +38,7 @@
 
         .new-channel-modal-purpose-info {
             margin-top: 5px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 12px;
             line-height: 16px;
             text-align: left;

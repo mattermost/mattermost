@@ -19,7 +19,7 @@ type Props = {
     userIsAdmin: boolean;
 };
 
-const learnMoreExternalLink = 'https://mattermost.com/pl/error-code-error-user-limits-exceeded';
+const learnMoreExternalLink = 'https://mattermost.com/pl/error-code-error-safety-limits-exceeded';
 
 function UsersLimitsAnnouncementBar(props: Props) {
     const usersLimits = useSelector(getUsersLimits);
@@ -43,7 +43,7 @@ function UsersLimitsAnnouncementBar(props: Props) {
             message={
                 <FormattedMessage
                     id='users_limits_announcement_bar.copyText'
-                    defaultMessage='User limits exceeded. Contact administrator with: ERROR_USER_LIMITS_EXCEEDED'
+                    defaultMessage='User limits exceeded. Contact administrator with: ERROR_SAFETY_LIMITS_EXCEEDED'
                 />
             }
             type={AnnouncementBarTypes.CRITICAL}

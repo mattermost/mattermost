@@ -132,7 +132,7 @@ let mockState = {
                 },
             },
             channelsInTeam: {
-                team: ['channel1', 'channel2'],
+                team: new Set(['channel1', 'channel2']),
             },
             membersInChannel: {
                 otherChannel: {},
@@ -283,7 +283,7 @@ describe('handleUserRemovedEvent', () => {
 
     let redirectUserToDefaultTeam;
     beforeEach(async () => {
-        const globalActions = require('actions/global_actions'); // eslint-disable-line global-require
+        const globalActions = require('actions/global_actions');
         redirectUserToDefaultTeam = globalActions.redirectUserToDefaultTeam;
         redirectUserToDefaultTeam.mockReset();
     });

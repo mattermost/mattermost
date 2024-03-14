@@ -16,10 +16,10 @@
     height: 24px;
     padding: 0;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    background-color: var(--center-channel-bg);
     border-radius: 16px;
+    background-color: var(--center-channel-bg);
     box-shadow: $elevation-1;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     font-size: 18px;
     line-height: 21px;
 
@@ -48,14 +48,14 @@
     width: 100%;
     padding: 0;
     border: none;
-    background: transparent;
     border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     font-size: 18px;
     line-height: 18px;
 
     &:hover {
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.8);
     }
 
     .icon {

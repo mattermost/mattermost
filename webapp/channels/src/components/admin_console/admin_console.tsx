@@ -8,10 +8,12 @@ import type {RouteComponentProps} from 'react-router-dom';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SchemaAdminSettings from 'components/admin_console/schema_admin_settings';
+import SearchKeywordMarking from 'components/admin_console/search_keyword_marking';
 import AnnouncementBarController from 'components/announcement_bar';
 import BackstageNavbar from 'components/backstage/components/backstage_navbar';
 import DiscardChangesModal from 'components/discard_changes_modal';
@@ -23,7 +25,6 @@ import {applyTheme, resetTheme} from 'utils/utils';
 import {LhsItemType} from 'types/store/lhs';
 
 import AdminSidebar from './admin_sidebar';
-import Highlight from './highlight';
 import type {AdminDefinitionSubSection, AdminDefinitionSection} from './types';
 
 import type {PropsFromRedux} from './index';
@@ -31,7 +32,7 @@ import type {PropsFromRedux} from './index';
 export type Props = PropsFromRedux & RouteComponentProps;
 
 type State = {
-    filter: string;
+    search: string;
 }
 
 // not every page in the system console will need the license and config, but the vast majority will
@@ -43,16 +44,16 @@ type ExtraProps = {
     setNavigationBlocked: (blocked: boolean) => void;
     roles: Record<string, Role>;
     editRole: (role: Role) => void;
-    updateConfig: (config: AdminConfig) => Promise<ActionResult>;
+    patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
 }
 
-export default class AdminConsole extends React.PureComponent<Props, State> {
+class AdminConsole extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
         super(props);
         this.state = {
-            filter: '',
+            search: '',
         };
     }
 
@@ -71,10 +72,13 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
         document.body.classList.remove('console__body');
         document.getElementById('root')?.classList.remove('console__root');
         applyTheme(this.props.currentTheme);
+
+        // Reset the admin console users management table properties
+        this.props.actions.setAdminConsoleUsersManagementTableProperties();
     }
 
-    private onFilterChange = (filter: string) => {
-        this.setState({filter});
+    private handleSearchChange = (search: string) => {
+        this.setState({search});
     };
 
     private mainRolesLoaded(roles: Record<string, Role>) {
@@ -170,7 +174,7 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
             showNavigationPrompt,
             roles,
         } = this.props;
-        const {setNavigationBlocked, cancelNavigation, confirmNavigation, editRole, updateConfig} = this.props.actions;
+        const {setNavigationBlocked, cancelNavigation, confirmNavigation, editRole, patchConfig} = this.props.actions;
 
         if (!this.props.currentUserHasAnAdminRole) {
             return (
@@ -192,14 +196,6 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
             );
         }
 
-        const discardChangesModal: JSX.Element = (
-            <DiscardChangesModal
-                show={showNavigationPrompt}
-                onConfirm={confirmNavigation}
-                onCancel={cancelNavigation}
-            />
-        );
-
         const extraProps: ExtraProps = {
             enterpriseReady: this.props.buildEnterpriseReady,
             license,
@@ -208,27 +204,37 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
             setNavigationBlocked,
             roles,
             editRole,
-            updateConfig,
+            patchConfig,
             cloud: this.props.cloud,
             isCurrentUserSystemAdmin: this.props.isCurrentUserSystemAdmin,
         };
+
         return (
             <>
                 <AnnouncementBarController/>
                 <SystemNotice/>
                 <BackstageNavbar team={this.props.team}/>
-                <AdminSidebar onFilterChange={this.onFilterChange}/>
+                <AdminSidebar onSearchChange={this.handleSearchChange}/>
                 <div
                     className='admin-console__wrapper admin-console'
                     id='adminConsoleWrapper'
                 >
-                    <Highlight filter={this.state.filter}>
+                    <SearchKeywordMarking
+                        keyword={this.state.search}
+                        pathname={this.props.location.pathname}
+                    >
                         {this.renderRoutes(extraProps)}
-                    </Highlight>
+                    </SearchKeywordMarking>
                 </div>
-                {discardChangesModal}
+                <DiscardChangesModal
+                    show={showNavigationPrompt}
+                    onConfirm={confirmNavigation}
+                    onCancel={cancelNavigation}
+                />
                 <ModalController/>
             </>
         );
     }
 }
+
+export default AdminConsole;

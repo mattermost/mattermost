@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Instance} from '@popperjs/core';
-import {debounce} from 'lodash';
+import debounce from 'lodash/debounce';
 import type React from 'react';
 import {useCallback, useEffect, useLayoutEffect, useState} from 'react';
 
@@ -56,6 +56,20 @@ const MAP_WIDE_MODE_TO_CONTROLS_QUANTITY: {[key in WideMode]: number} = {
     min: 1,
 };
 
+export function splitFormattingBarControls(wideMode: WideMode) {
+    const allControls: MarkdownMode[] = ['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote', 'ul', 'ol'];
+
+    const controlsLength = MAP_WIDE_MODE_TO_CONTROLS_QUANTITY[wideMode];
+
+    const controls = allControls.slice(0, controlsLength);
+    const hiddenControls = allControls.slice(controlsLength);
+
+    return {
+        controls,
+        hiddenControls,
+    };
+}
+
 export const useFormattingBarControls = (
     formattingBarRef: React.RefObject<HTMLDivElement>,
 ): {
@@ -65,12 +79,7 @@ export const useFormattingBarControls = (
 } => {
     const wideMode = useResponsiveFormattingBar(formattingBarRef);
 
-    const allControls: MarkdownMode[] = ['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote', 'ul', 'ol'];
-
-    const controlsLength = MAP_WIDE_MODE_TO_CONTROLS_QUANTITY[wideMode];
-
-    const controls = allControls.slice(0, controlsLength);
-    const hiddenControls = allControls.slice(controlsLength);
+    const {controls, hiddenControls} = splitFormattingBarControls(wideMode);
 
     return {
         controls,

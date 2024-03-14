@@ -1,0 +1,20 @@
+.userSettingDesktopHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .userSettingDesktopHeaderInfo {
+        a {
+            font-size: 12px;
+        }
+
+        svg.circular-border {
+            width: 18px;
+            height: 18px;
+            padding: 2px;
+            border-radius: 50%;
+            background: rgba(var(--button-bg-rgb), 0.12);
+            text-align: center;
+        }
+    }
+}

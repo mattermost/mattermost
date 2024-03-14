@@ -1,0 +1,751 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/SchemaAdminSettings should match snapshot with custom component 1`] = `
+<component
+  cloud={Object {}}
+  config={
+    Object {
+      "EscapedSettings": Object {
+        "com.example.setting": Object {
+          "a": true,
+        },
+      },
+      "FirstSettings": Object {
+        "settinga": "fsdsdg",
+        "settingb": false,
+        "settingc": "option3",
+        "settingl": true,
+      },
+      "SecondSettings": Object {
+        "settingd": "option1",
+        "settinge": "Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23",
+        "settingf": "3xz3r6n7dtbbmgref3yw4zg7sr",
+        "settingg": 7,
+        "settingh": 100,
+      },
+    }
+  }
+  consoleAccess={Object {}}
+  disabled={false}
+  editRole={[MockFunction]}
+  enterpriseReady={false}
+  environmentConfig={
+    Object {
+      "FirstSettings": Object {
+        "settingl": true,
+      },
+    }
+  }
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  isCurrentUserSystemAdmin={false}
+  isDisabled={false}
+  license={Object {}}
+  patchConfig={[MockFunction]}
+  roles={Object {}}
+  schema={
+    Object {
+      "component": [Function],
+    }
+  }
+  setNavigationBlocked={[MockFunction]}
+/>
+`;
+
+exports[`components/admin_console/SchemaAdminSettings should match snapshot with settings and plugin 1`] = `
+<div
+  className="wrapper--fixed "
+>
+  <AdminHeader>
+    config
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <form
+        className="form-horizontal"
+        onSubmit={[Function]}
+        role="form"
+      >
+        <Memo(SettingsGroup)
+          container={false}
+        >
+          <AdminTextSetting
+            disabled={false}
+            footer={null}
+            helpText={
+              <SchemaText
+                text="help-text-a"
+              />
+            }
+            id="FirstSettings.settinga"
+            key="Config_text_FirstSettings.settinga"
+            label="label-a"
+            onChange={[Function]}
+            placeholder="placeholder-a"
+            setByEnv={false}
+            type="text"
+            value="fsdsdg"
+          />
+          <BooleanSetting
+            disabled={false}
+            falseText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="false"
+                id="admin.false"
+              />
+            }
+            helpText={
+              <SchemaText
+                text="help-text-b"
+              />
+            }
+            id="FirstSettings.settingb"
+            key="Config_bool_FirstSettings.settingb"
+            label="label-b"
+            onChange={[Function]}
+            setByEnv={false}
+            trueText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="true"
+                id="admin.true"
+              />
+            }
+            value={true}
+          />
+          <Memo(DropdownSetting)
+            disabled={false}
+            helpText={
+              <SchemaText
+                text="help-text-c"
+              />
+            }
+            id="FirstSettings.settingc"
+            key="Config_dropdown_FirstSettings.settingc"
+            label="label-c"
+            onChange={[Function]}
+            setByEnv={false}
+            value="option3"
+            values={
+              Array [
+                Object {
+                  "text": "Option 1",
+                  "value": "option1",
+                },
+                Object {
+                  "text": "Option 2",
+                  "value": "option2",
+                },
+                Object {
+                  "text": "Option 3",
+                  "value": "option3",
+                },
+              ]
+            }
+          />
+          <Memo(RadioSetting)
+            disabled={false}
+            helpText={
+              <SchemaText
+                text="help-text-d"
+              />
+            }
+            id="SecondSettings.settingd"
+            key="Config_radio_SecondSettings.settingd"
+            label="label-d"
+            onChange={[Function]}
+            setByEnv={false}
+            value="option1"
+            values={
+              Array [
+                Object {
+                  "text": "Option 1",
+                  "value": "option1",
+                },
+                Object {
+                  "text": "Option 2",
+                  "value": "option2",
+                },
+                Object {
+                  "text": "Option 3",
+                  "value": "option3",
+                },
+              ]
+            }
+          />
+          <GeneratedSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                text="help-text-e"
+              />
+            }
+            id="SecondSettings.settinge"
+            key="Config_generated_SecondSettings.settinge"
+            label="label-e"
+            onChange={[Function]}
+            placeholder="placeholder-e"
+            regenerateHelpText="This is help text for the regenerate button."
+            regenerateText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Regenerate"
+                id="admin.regenerate"
+              />
+            }
+            setByEnv={false}
+            value="Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23"
+          />
+          <Connect(UserAutocompleteSetting)
+            disabled={false}
+            helpText={
+              <SchemaText
+                text="help-text-f"
+              />
+            }
+            id="SecondSettings.settingf"
+            key="Config_userautocomplete_SecondSettings.settingf"
+            label="label-f"
+            onChange={[Function]}
+            placeholder="placeholder-f"
+            value="3xz3r6n7dtbbmgref3yw4zg7sr"
+          />
+          <AdminTextSetting
+            disabled={false}
+            footer={null}
+            helpText={
+              <SchemaText
+                text="help-text-g"
+              />
+            }
+            id="SecondSettings.settingg"
+            key="Config_text_SecondSettings.settingg"
+            label="label-g"
+            onChange={[Function]}
+            placeholder="placeholder-g"
+            setByEnv={false}
+            type="number"
+            value={7}
+          />
+          <AdminTextSetting
+            disabled={false}
+            footer={null}
+            helpText={
+              <SchemaText
+                text="help-text-h"
+              />
+            }
+            id="SecondSettings.settingh"
+            key="Config_text_SecondSettings.settingh"
+            label="label-h"
+            onChange={[Function]}
+            placeholder="placeholder-h"
+            setByEnv={false}
+            type="number"
+            value={10}
+          />
+          <div
+            className="banner undefined"
+            key="Config_bool_undefined"
+          >
+            <div
+              className="banner__content"
+            >
+              <span>
+                <span>
+                  label-h
+                </span>
+              </span>
+            </div>
+          </div>
+          <Memo(DropdownSetting)
+            disabled={false}
+            helpText={
+              <SchemaText
+                text="help-text-i"
+              />
+            }
+            id="SecondSettings.settingi"
+            key="Config_language_SecondSettings.settingi"
+            label="label-i"
+            onChange={[Function]}
+            setByEnv={false}
+            value="de"
+            values={
+              Array [
+                Object {
+                  "order": 0,
+                  "text": "Deutsch",
+                  "value": "de",
+                },
+                Object {
+                  "order": 1,
+                  "text": "English (US)",
+                  "value": "en",
+                },
+                Object {
+                  "order": 2,
+                  "text": "English (Australia)",
+                  "value": "en-AU",
+                },
+                Object {
+                  "order": 3,
+                  "text": "Español (Beta)",
+                  "value": "es",
+                },
+                Object {
+                  "order": 4,
+                  "text": "Français (Beta)",
+                  "value": "fr",
+                },
+                Object {
+                  "order": 5,
+                  "text": "Italiano (Alpha)",
+                  "value": "it",
+                },
+                Object {
+                  "order": 6,
+                  "text": "Magyar (Beta)",
+                  "value": "hu",
+                },
+                Object {
+                  "order": 7,
+                  "text": "Nederlands",
+                  "value": "nl",
+                },
+                Object {
+                  "order": 8,
+                  "text": "Polski",
+                  "value": "pl",
+                },
+                Object {
+                  "order": 9,
+                  "text": "Português (Brasil) (Alpha)",
+                  "value": "pt-BR",
+                },
+                Object {
+                  "order": 10,
+                  "text": "Română (Alpha)",
+                  "value": "ro",
+                },
+                Object {
+                  "order": 11,
+                  "text": "Svenska",
+                  "value": "sv",
+                },
+                Object {
+                  "order": 12,
+                  "text": "Tiếng Việt (Beta)",
+                  "value": "vi",
+                },
+                Object {
+                  "order": 13,
+                  "text": "Türkçe",
+                  "value": "tr",
+                },
+                Object {
+                  "order": 14,
+                  "text": "Български (Alpha)",
+                  "value": "bg",
+                },
+                Object {
+                  "order": 15,
+                  "text": "Pусский",
+                  "value": "ru",
+                },
+                Object {
+                  "order": 16,
+                  "text": "Yкраїнська (Alpha)",
+                  "value": "uk",
+                },
+                Object {
+                  "order": 17,
+                  "text": "فارسی (Alpha)",
+                  "value": "fa",
+                },
+                Object {
+                  "order": 18,
+                  "text": "한국어 (Alpha)",
+                  "value": "ko",
+                },
+                Object {
+                  "order": 19,
+                  "text": "中文 (简体) (Beta)",
+                  "value": "zh-CN",
+                },
+                Object {
+                  "order": 20,
+                  "text": "中文 (繁體)",
+                  "value": "zh-TW",
+                },
+                Object {
+                  "order": 21,
+                  "text": "日本語",
+                  "value": "ja",
+                },
+              ]
+            }
+          />
+          <MultiSelectSetting
+            disabled={false}
+            helpText={
+              <SchemaText
+                text="help-text-j"
+              />
+            }
+            id="SecondSettings.settingj"
+            key="Config_language_SecondSettings.settingj"
+            label="label-j"
+            noResultText="no-result-j"
+            onChange={[Function]}
+            selected={Array []}
+            setByEnv={false}
+            values={
+              Array [
+                Object {
+                  "order": 0,
+                  "text": "Deutsch",
+                  "value": "de",
+                },
+                Object {
+                  "order": 1,
+                  "text": "English (US)",
+                  "value": "en",
+                },
+                Object {
+                  "order": 2,
+                  "text": "English (Australia)",
+                  "value": "en-AU",
+                },
+                Object {
+                  "order": 3,
+                  "text": "Español (Beta)",
+                  "value": "es",
+                },
+                Object {
+                  "order": 4,
+                  "text": "Français (Beta)",
+                  "value": "fr",
+                },
+                Object {
+                  "order": 5,
+                  "text": "Italiano (Alpha)",
+                  "value": "it",
+                },
+                Object {
+                  "order": 6,
+                  "text": "Magyar (Beta)",
+                  "value": "hu",
+                },
+                Object {
+                  "order": 7,
+                  "text": "Nederlands",
+                  "value": "nl",
+                },
+                Object {
+                  "order": 8,
+                  "text": "Polski",
+                  "value": "pl",
+                },
+                Object {
+                  "order": 9,
+                  "text": "Português (Brasil) (Alpha)",
+                  "value": "pt-BR",
+                },
+                Object {
+                  "order": 10,
+                  "text": "Română (Alpha)",
+                  "value": "ro",
+                },
+                Object {
+                  "order": 11,
+                  "text": "Svenska",
+                  "value": "sv",
+                },
+                Object {
+                  "order": 12,
+                  "text": "Tiếng Việt (Beta)",
+                  "value": "vi",
+                },
+                Object {
+                  "order": 13,
+                  "text": "Türkçe",
+                  "value": "tr",
+                },
+                Object {
+                  "order": 14,
+                  "text": "Български (Alpha)",
+                  "value": "bg",
+                },
+                Object {
+                  "order": 15,
+                  "text": "Pусский",
+                  "value": "ru",
+                },
+                Object {
+                  "order": 16,
+                  "text": "Yкраїнська (Alpha)",
+                  "value": "uk",
+                },
+                Object {
+                  "order": 17,
+                  "text": "فارسی (Alpha)",
+                  "value": "fa",
+                },
+                Object {
+                  "order": 18,
+                  "text": "한국어 (Alpha)",
+                  "value": "ko",
+                },
+                Object {
+                  "order": 19,
+                  "text": "中文 (简体) (Beta)",
+                  "value": "zh-CN",
+                },
+                Object {
+                  "order": 20,
+                  "text": "中文 (繁體)",
+                  "value": "zh-TW",
+                },
+                Object {
+                  "order": 21,
+                  "text": "日本語",
+                  "value": "ja",
+                },
+              ]
+            }
+          />
+          <RequestButton
+            buttonText={
+              <span>
+                label-k
+              </span>
+            }
+            disabled={false}
+            errorMessage="admin.reload.reloadFail"
+            helpText={
+              <SchemaText
+                text="help-text-k"
+              />
+            }
+            id="SecondSettings.settingk"
+            includeDetailedError={true}
+            key="Config_text_SecondSettings.settingk"
+            requestAction={[Function]}
+            saveNeeded={false}
+            showSuccessMessage={false}
+            successMessage={
+              Object {
+                "defaultMessage": "Test Successful",
+                "id": "admin.requestButton.requestSuccess",
+              }
+            }
+          />
+          <BooleanSetting
+            disabled={false}
+            falseText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="false"
+                id="admin.false"
+              />
+            }
+            helpText={
+              <SchemaText
+                text="help-text-l"
+              />
+            }
+            id="FirstSettings.settingl"
+            key="Config_bool_FirstSettings.settingl"
+            label="label-l"
+            onChange={[Function]}
+            setByEnv={true}
+            trueText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="true"
+                id="admin.true"
+              />
+            }
+            value={true}
+          />
+          <Memo(ColorSetting)
+            disabled={false}
+            helpText={
+              <SchemaText
+                text="help-text-m"
+              />
+            }
+            id="FirstSettings.settingm"
+            key="Config_text_FirstSettings.settingm"
+            label="label-m"
+            onChange={[Function]}
+            value=""
+          />
+          <component
+            cancelSubmit={[Function]}
+            config={
+              Object {
+                "EscapedSettings": Object {
+                  "com.example.setting": Object {
+                    "a": true,
+                  },
+                },
+                "FirstSettings": Object {
+                  "settinga": "fsdsdg",
+                  "settingb": false,
+                  "settingc": "option3",
+                  "settingl": true,
+                },
+                "SecondSettings": Object {
+                  "settingd": "option1",
+                  "settinge": "Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23",
+                  "settingf": "3xz3r6n7dtbbmgref3yw4zg7sr",
+                  "settingg": 7,
+                  "settingh": 100,
+                },
+              }
+            }
+            disabled={false}
+            helpText={
+              <span>
+                
+              </span>
+            }
+            id="custom"
+            key="Config_custom_custom"
+            label=""
+            license={Object {}}
+            onChange={[Function]}
+            registerSaveAction={[Function]}
+            setByEnv={false}
+            setSaveNeeded={[Function]}
+            showConfirm={false}
+            unRegisterSaveAction={[Function]}
+          />
+          <Connect(JobTable)
+            createJobButtonText="label-l"
+            createJobHelpText={
+              <SchemaText
+                text="help-text-l"
+              />
+            }
+            disabled={false}
+            getExtraInfoText={[Function]}
+            jobType="test"
+            key="Config_jobstable_undefined"
+          />
+          <BooleanSetting
+            disabled={false}
+            falseText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="false"
+                id="admin.false"
+              />
+            }
+            helpText={
+              <SchemaText
+                text="escaped-help-text-a"
+              />
+            }
+            id="EscapedSettings.com+example+setting.a"
+            key="Config_bool_EscapedSettings.com+example+setting.a"
+            label="escaped-label-a"
+            onChange={[Function]}
+            setByEnv={false}
+            trueText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="true"
+                id="admin.true"
+              />
+            }
+            value={true}
+          />
+        </Memo(SettingsGroup)>
+      </form>
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      btnClass=""
+      defaultMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Save"
+          id="save_button.save"
+        />
+      }
+      disabled={true}
+      extraClasses=""
+      onClick={[Function]}
+      saving={false}
+      savingMessage="Saving Config..."
+    />
+    <div
+      className="error-message"
+      data-testid="errorMessage"
+      onMouseOut={[Function]}
+      onMouseOver={[Function]}
+    >
+      <FormError
+        error=""
+        errors={Array []}
+        iconClassName="fa-exclamation-triangle"
+        textClassName="has-warning"
+      />
+      <FormError
+        error={null}
+        errors={Array []}
+      />
+    </div>
+    <Overlay
+      animation={[Function]}
+      placement="top"
+      rootClose={false}
+      show={false}
+      target={null}
+    >
+      <Tooltip
+        id="error-tooltip"
+      />
+    </Overlay>
+  </div>
+</div>
+`;

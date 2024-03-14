@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isEqual} from 'lodash';
+import isEqual from 'lodash/isEqual';
 import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
@@ -12,11 +12,12 @@ import type {
     ChannelMemberCountByGroup,
     ChannelMemberCountsByGroup,
     ServerChannel,
+    ChannelsState,
 } from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
 import type {
-    RelationOneToMany,
+    RelationOneToManyUnique,
     RelationOneToOne,
     IDMappedObjects,
 } from '@mattermost/types/utilities';
@@ -37,7 +38,7 @@ function removeMemberFromChannels(state: RelationOneToOne<Channel, Record<string
     return nextState;
 }
 
-function channelListToSet(state: any, action: AnyAction) {
+function channelListToSet(state: RelationOneToManyUnique<Team, Channel>, action: AnyAction) {
     const nextState = {...state};
 
     action.data.forEach((channel: Channel) => {
@@ -49,7 +50,7 @@ function channelListToSet(state: any, action: AnyAction) {
     return nextState;
 }
 
-function removeChannelFromSet(state: any, action: AnyAction) {
+function removeChannelFromSet(state: RelationOneToManyUnique<Team, Channel>, action: AnyAction): RelationOneToManyUnique<Team, Channel> {
     const id = action.data.team_id;
     const nextSet = new Set(state[id]);
     nextSet.delete(action.data.id);
@@ -147,36 +148,6 @@ function channels(state: IDMappedObjects<Channel> = {}, action: AnyAction) {
             },
         };
     }
-    case ChannelTypes.UPDATE_CHANNEL_HEADER: {
-        const {channelId, header} = action.data;
-
-        if (!state[channelId]) {
-            return state;
-        }
-
-        return {
-            ...state,
-            [channelId]: {
-                ...state[channelId],
-                header,
-            },
-        };
-    }
-    case ChannelTypes.UPDATE_CHANNEL_PURPOSE: {
-        const {channelId, purpose} = action.data;
-
-        if (!state[channelId]) {
-            return state;
-        }
-
-        return {
-            ...state,
-            [channelId]: {
-                ...state[channelId],
-                purpose,
-            },
-        };
-    }
     case ChannelTypes.LEAVE_CHANNEL: {
         if (action.data) {
             const nextState = {...state};
@@ -250,7 +221,7 @@ function toClientChannel(serverChannel: ServerChannel): Channel {
     return channel;
 }
 
-function channelsInTeam(state: RelationOneToMany<Team, Channel> = {}, action: AnyAction) {
+function channelsInTeam(state: ChannelsState['channelsInTeam'] = {}, action: AnyAction) {
     switch (action.type) {
     case ChannelTypes.RECEIVED_CHANNEL: {
         const nextSet = new Set(state[action.data.team_id]);
