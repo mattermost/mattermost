@@ -137,7 +137,7 @@
   "add_groups_to_team.title": "Dodaj nowe grupy do zespołu {teamName}",
   "add_incoming_webhook.cancel": "Anuluj",
   "add_incoming_webhook.channel": "Kanał",
-  "add_incoming_webhook.channel.help": "Domyślny kanał publiczny lub prywatny, który będzie otrzymywać payloady z webhooka. Musisz należeć do prywatnego kanału, podczas konfiguracji webhooka.",
+  "add_incoming_webhook.channel.help": "To jjest to domyślny kanał publiczny lub prywatny, który odbiera ładunki webhooków. Podczas konfigurowania webhooka musisz należeć do kanału prywatnego.",
   "add_incoming_webhook.channelLocked": "Zablokuj do tego kanału",
   "add_incoming_webhook.channelLocked.help": "Jeśli ustawione, przychodzące webhooki mogą wysyłać wiadomości tylko do kanałów wybranych powyżej.",
   "add_incoming_webhook.channelRequired": "Wymagany jest prawidłowy kanał",
