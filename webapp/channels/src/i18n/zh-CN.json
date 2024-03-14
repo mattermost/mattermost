@@ -548,6 +548,7 @@
   "admin.channel_settings.channel_moderation.createPostsDesc": "成员与游客是否允许在频道发送消息。",
   "admin.channel_settings.channel_moderation.createPostsDescMembers": "成员是否允许在频道发送消息。",
   "admin.channel_settings.channel_moderation.guests": "访客",
+  "admin.channel_settings.channel_moderation.manageBookmarks": "管理书签",
   "admin.channel_settings.channel_moderation.manageMembers": "成员管理",
   "admin.channel_settings.channel_moderation.manageMembers.disabledBoth": "成员与访客在[{scheme_name}](../permissions/{scheme_link})已被禁止管理成员。",
   "admin.channel_settings.channel_moderation.manageMembers.disabledGuest": "访客在[{scheme_name}](../permissions/{scheme_link})已被禁止管理成员。",
