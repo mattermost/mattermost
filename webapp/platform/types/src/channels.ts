@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from './utilities';
-import {Team} from './teams';
+import type {Team} from './teams';
+import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from './utilities';
 
 // e.g.
 // **O**pen channel,

@@ -1716,6 +1716,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 	createReactions := model.ChannelModeratedPermissions[1]
 	manageMembers := model.ChannelModeratedPermissions[2]
 	channelMentions := model.ChannelModeratedPermissions[3]
+	manageBookmarks := model.ChannelModeratedPermissions[4]
 
 	nonChannelModeratedPermission := model.PermissionCreateBot.Id
 
@@ -1810,6 +1811,26 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			},
 		},
 		{
+			Name: "Removing manage bookmarks from members role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &manageBookmarks,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
+				manageBookmarks: {
+					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
+				},
+			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &manageBookmarks,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+				},
+			},
+		},
+		{
 			Name: "Removing create posts from guests role",
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
@@ -1874,6 +1895,18 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageMembers,
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
+			ShouldError:                 false,
+			ShouldHaveNoChannelScheme:   true,
+		},
+		{
+			Name: "Removing manage bookmarks from guests role should not error",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &manageBookmarks,
 					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
 				},
 			},
@@ -1981,6 +2014,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 						Members: model.NewBool(true),
 					},
 				},
+				{
+					Name: &manageBookmarks,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: model.NewBool(true),
+					},
+				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
 			ShouldHaveNoChannelScheme:   true,
@@ -2039,7 +2078,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				if permission, found := tc.PermissionsModeratedByPatch[moderation.Name]; found && permission.Guests != nil {
 					require.Equal(t, moderation.Roles.Guests.Value, permission.Guests.Value)
 					require.Equal(t, moderation.Roles.Guests.Enabled, permission.Guests.Enabled)
-				} else if moderation.Name == manageMembers {
+				} else if moderation.Name == manageMembers || moderation.Name == "manage_bookmarks" {
 					require.Empty(t, moderation.Roles.Guests)
 				} else {
 					require.Equal(t, moderation.Roles.Guests.Value, true)

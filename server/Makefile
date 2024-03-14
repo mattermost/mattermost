@@ -155,6 +155,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
+PLUGIN_PACKAGES += mattermost-plugin-ai-v0.6.2
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 

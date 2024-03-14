@@ -1,5 +1,7 @@
 @charset 'UTF-8';
 
+@use 'sass:color';
+
 .radio,
 .checkbox {
     &.margin-bottom--none {
@@ -45,7 +47,7 @@
     }
 
     &.error {
-        color: darken($red, 20%);
+        color: color.adjust($red, $lightness: -20%);
     }
 }
 
@@ -162,8 +164,8 @@
 .app__body {
     .form-control {
         border-color: rgba(var(--center-channel-color-rgb), 0.16);
-        background: v(center-channel-bg);
         border-radius: 4px;
+        background: v(center-channel-bg);
         box-shadow: none;
         color: v(center-channel-color);
 
