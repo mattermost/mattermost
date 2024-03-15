@@ -571,7 +571,7 @@ func TestOriginChecker(t *testing.T) {
 		r := &http.Request{
 			Header: http.Header{"Origin": []string{fmt.Sprintf("%s%s", tc.HeaderScheme, tc.HeaderHost)}},
 		}
-		res := th.App.OriginChecker(th.TestLogger)(r)
+		res := th.App.OriginChecker()(r)
 		require.Equalf(t, tc.Pass, res, "Test case (%d)", i)
 	}
 }
