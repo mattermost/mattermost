@@ -463,7 +463,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, appErr := c.App.GetAnalytics(name, teamId)
+	rows, appErr := c.App.GetAnalytics(c.AppContext, name, teamId)
 	if appErr != nil {
 		c.Err = appErr
 		return
