@@ -153,7 +153,7 @@
   "add_incoming_webhook.url": "**Adres URL**: {url}",
   "add_incoming_webhook.username": "Nazwa użytkownika",
   "add_incoming_webhook.username.help": "Określ nazwę użytkownika, pod którą ta integracja będzie publikować. Nazwy użytkowników muszą być pisane małymi literami, składać się z maksymalnie 22 znaków i mogą zawierać cyfry oraz symbole \"-\", \"_\" i \".\" . Jeśli pozostawi się puste, używana jest nazwa określona przez twórcę webhooka.",
-  "add_oauth_app.callbackUrls.help": "URLe przekierowania na które usługa przekieruje użytkowników po zaakceptowaniu lub odrzuceniu uwierzytelnienia twojej aplikacji i którą będzie obsługiwać kody uwierzytelniające lub żetony dostepu. Musi być poprawnym URLem i zaczynać się od http:// lub https://.",
+  "add_oauth_app.callbackUrls.help": "Określ identyfikatory URI, do których usługa przekierowuje użytkowników po akceptacji lub odmowie autoryzacji do aplikacji i obsługuje kody autoryzacji lub tokeny dostępu. Musi zaczynać się od http:// lub https://.",
   "add_oauth_app.callbackUrlsRequired": "Wymagany jest jeden lub więcej zwrotny URL",
   "add_oauth_app.clientId": "**ID Klienta**: {id}",
   "add_oauth_app.clientSecret": "**Sekret klienta**: {secret}",
