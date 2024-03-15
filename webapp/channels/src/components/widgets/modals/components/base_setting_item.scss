@@ -101,11 +101,11 @@
     input[type=checkbox] {
         display: grid;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 3px;
         margin: 0;
         -webkit-appearance: none;
         appearance: none;
         background-color: transparent;
-        border-radius: 3px;
         color: rgba(var(--center-channel-color-rgb), 0.24);
         cursor: pointer;
         font: inherit;
@@ -141,11 +141,11 @@
         width: 1.6rem;
         height: 1.6rem;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 50%;
         margin: 0;
         -webkit-appearance: none;
         appearance: none;
         background-color: transparent;
-        border-radius: 50%;
         color: rgba(var(--center-channel-color-rgb), 0.24);
         cursor: pointer;
         font: inherit;
@@ -155,8 +155,8 @@
     input[type="radio"]::before {
         width: 8px;
         height: 8px;
-        background: var(--denim-button-bg);
         border-radius: 50%;
+        background: var(--denim-button-bg);
         content: '';
         transform: scale(0);
         transform-origin: center center;

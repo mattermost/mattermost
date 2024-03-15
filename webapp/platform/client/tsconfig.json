@@ -12,13 +12,10 @@
         "jsx": "react",
         "outDir": "./lib",
         "rootDir": "./src",
-        "composite": true
+        "composite": true,
     },
     "include": [
         "./src/**/*"
-    ],
-    "exclude": [
-        "**/*.test.*"
     ],
     "references": [
         {"path": "../types"}
