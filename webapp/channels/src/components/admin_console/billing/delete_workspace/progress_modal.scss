@@ -12,15 +12,15 @@
     .ProcessPayment-progress {
         width: 387px;
         height: 4px;
+        border-radius: 4px;
         margin: 0 auto;
         margin-top: 60px;
         background: rgba(var(--secondary-blue-rgb), 0.12);
-        border-radius: 4px;
     }
 
     .ProcessPayment-progress-fill {
         height: 100%;
-        background: var(--button-bg);
         border-radius: 4px;
+        background: var(--button-bg);
     }
 }

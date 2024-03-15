@@ -14,8 +14,8 @@
 
 .popover {
     padding: 0;
-    background: var(--center-channel-bg);
     border-radius: $border-rad * 2;
+    background: var(--center-channel-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     color: var(--center-channel-color);
     font-family: inherit;
@@ -50,9 +50,9 @@
             }
 
             .popover-content {
+                border-radius: 0 0 3px 3px;
                 border-top: none;
                 background: v(center-channel-bg);
-                border-radius: 0 0 3px 3px;
                 box-shadow: rgba(var(--center-channel-color-rgb), 0.08) 0 17px 50px 0, rgba(var(--center-channel-color-rgb), 0.08) 0 12px 15px 0;
 
                 .shared-user-icon {
@@ -265,8 +265,8 @@
         width: 24px;
         height: 24px;
         padding: 2px;
-        background: rgba(var(--center-channel-bg-rgb), 1);
         border-radius: 50px;
+        background: rgba(var(--center-channel-bg-rgb), 1);
 
         svg {
             width: 100%;
@@ -298,8 +298,8 @@
     line-height: 18px;
 
     &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
         border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.8);
     }
 }
@@ -374,8 +374,8 @@
 
             &::-webkit-scrollbar-thumb {
                 border: 1px solid v(center-channel-bg);
-                background-color: rgba(var(--center-channel-color-rgb), 0.24) !important;
                 border-radius: 4px;
+                background-color: rgba(var(--center-channel-color-rgb), 0.24) !important;
             }
 
             .rdp-months {
