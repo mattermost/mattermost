@@ -2,10 +2,11 @@
 
 .AdminPanel {
     padding: 0;
-    border: solid 1px alpha-color($black, 0.1);
-    border-radius: var(--radius-xs);
+    background-color: var(--center-channel-bg);
+    border: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: var(--radius-s);
     margin: 2em 0 1em;
-    box-shadow: 0 1px 2px 0 alpha-color($black, 0.5);
+    box-shadow: var(--elevation-1);
     font-size: 0.95em;
 
     .AdminPanel__content {
@@ -36,6 +37,7 @@
         justify-content: space-between;
         padding: 20px;
         background: $white;
+        border-radius: var(--radius-s) var(--radius-s) 0 0;
 
         h3 {
             padding: 0;
