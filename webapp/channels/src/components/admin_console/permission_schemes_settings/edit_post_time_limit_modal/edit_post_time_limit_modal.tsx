@@ -6,6 +6,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -22,7 +23,7 @@ type Props ={
     show: boolean;
     onClose: () => void;
     actions: {
-        updateConfig: (config: AdminConfig) => Promise<ActionResult>;
+        patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     };
 }
 
@@ -48,7 +49,7 @@ export default function EditPostTimeLimitModal(props: Props) {
         const newConfig = JSON.parse(JSON.stringify(props.config));
         newConfig.ServiceSettings.PostEditTimeLimit = alwaysAllowPostEditing ? Constants.UNSET_POST_EDIT_TIME_LIMIT : postEditTimeLimit;
 
-        const {error} = await props.actions.updateConfig(newConfig);
+        const {error} = await props.actions.patchConfig(newConfig);
         if (error) {
             setErrorMessage(error.message);
             setSaving(false);

@@ -28,8 +28,8 @@
         display: block;
         max-height: 347px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        margin: 32px auto 0;
         border-radius: 4px;
+        margin: 32px auto 0;
     }
 
     .productNotices__imageDiv {
@@ -111,8 +111,8 @@
         &.actionButton {
             display: inline-flex;
             align-items: center;
-            background: var(--center-channel-bg);
             border-radius: 4px;
+            background: var(--center-channel-bg);
             color: var(--button-bg);
             text-decoration: none;
 
