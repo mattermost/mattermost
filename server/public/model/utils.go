@@ -302,18 +302,15 @@ func (er *AppError) SystemMessage(T i18n.TranslateFunc) string {
 	return T(er.Id, er.params)
 }
 
-func (er *AppError) ToJSON(enableDeveloper bool) string {
+func (er *AppError) ToJSON() string {
+	// turn the wrapped error into a detailed message
 	detailed := er.DetailedError
 	defer func() {
 		er.DetailedError = detailed
 	}()
 
-	// add the wrapped error to the detailed message if in developer mode
-	if enableDeveloper {
-		er.wrappedToDetailed()
-	} else {
-		er.DetailedError = ""
-	}
+	er.wrappedToDetailed()
+
 	b, _ := json.Marshal(er)
 	return string(b)
 }

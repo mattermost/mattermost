@@ -65,7 +65,7 @@ func Handle404(a app.AppIface, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(err.StatusCode)
 		err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'.  Typo? are you missing a team_id or user_id as part of the url?"
-		w.Write([]byte(err.ToJSON(*a.Config().ServiceSettings.EnableDeveloper)))
+		w.Write([]byte(err.ToJSON()))
 	} else if *a.Config().ServiceSettings.WebserverMode == "disabled" {
 		http.NotFound(w, r)
 	} else {

@@ -29,7 +29,7 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 		mlog.Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(err.ToJSON(*ch.cfgSvc.Config().ServiceSettings.EnableDeveloper)))
+		w.Write([]byte(err.ToJSON()))
 		return
 	}
 
@@ -53,7 +53,7 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 		a.Log().Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(err.ToJSON(*a.Config().ServiceSettings.EnableDeveloper)))
+		w.Write([]byte(err.ToJSON()))
 		return
 	}
 
