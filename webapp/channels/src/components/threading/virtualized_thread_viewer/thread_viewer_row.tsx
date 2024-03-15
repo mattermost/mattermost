@@ -83,8 +83,10 @@ function ThreadViewerRow({
                         <div>
                             <FormattedMessage
                                 id='threading.numReplies'
-                                defaultMessage='{replyCount, plural, =0 {Reply} =1 {# reply} other {# replies}}'
-                                values={{replyCount}}
+                                defaultMessage='{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}'
+                                values={{
+                                    totalReplies: replyCount,
+                                }}
                             />
                         </div>
                     </div>
