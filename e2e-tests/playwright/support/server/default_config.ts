@@ -555,7 +555,6 @@ const defaultServerConfig: AdminConfig = {
         EnableExperimentalGossipEncryption: false,
         ReadOnlyConfig: true,
         GossipPort: 8074,
-        IdleConnTimeoutMilliseconds: 90000,
     },
     MetricsSettings: {
         Enable: false,

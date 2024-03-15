@@ -934,7 +934,6 @@ type ClusterSettings struct {
 	EnableExperimentalGossipEncryption *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
 	ReadOnlyConfig                     *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
 	GossipPort                         *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	IdleConnTimeoutMilliseconds        *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -980,10 +979,6 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.GossipPort == nil {
 		s.GossipPort = NewInt(8074)
-	}
-
-	if s.IdleConnTimeoutMilliseconds == nil {
-		s.IdleConnTimeoutMilliseconds = NewInt(90000)
 	}
 }
 

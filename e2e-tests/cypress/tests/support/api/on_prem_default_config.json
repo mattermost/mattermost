@@ -472,8 +472,7 @@
         "EnableGossipCompression": true,
         "EnableExperimentalGossipEncryption": false,
         "ReadOnlyConfig": true,
-        "GossipPort": 8074,
-        "IdleConnTimeoutMilliseconds": 90000
+        "GossipPort": 8074
     },
     "MetricsSettings": {
         "Enable": false,
