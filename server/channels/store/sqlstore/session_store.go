@@ -123,6 +123,8 @@ func (me SqlSessionStore) GetSessions(c request.CTX, userId string) ([]*model.Se
 	return sessions, nil
 }
 
+// GetLRUSessions gets the Least Recently Used sessions from the store. Note: the use of limit and offset
+// are intentional; they are hardcoded from the app layer (i.e., will not result in a non-performant query).
 func (me SqlSessionStore) GetLRUSessions(c request.CTX, userId string, limit uint64, offset uint64) ([]*model.Session, error) {
 	builder := me.getQueryBuilder().
 		Select("*").
