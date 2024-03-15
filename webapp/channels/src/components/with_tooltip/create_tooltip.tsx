@@ -27,12 +27,16 @@ export function createTooltip(commonTooltipProps: CommonTooltipProps) {
         const contents = [];
 
         if (commonTooltipProps.emoji && commonTooltipProps.emojiStyle === 'large') {
-            // HARRISONTODO The vertical padding in the designs is larger than this, but it isn't final yet
             contents.push(
-                <RenderEmoji
-                    emojiName={commonTooltipProps.emoji}
-                    size={48}
-                />,
+                <div
+                    key='emoji'
+                    className='tooltip-large-emoji'
+                >
+                    <RenderEmoji
+                        emojiName={commonTooltipProps.emoji}
+                        size={48}
+                    />
+                </div>,
             );
         }
 
