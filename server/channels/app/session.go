@@ -22,18 +22,8 @@ import (
 const maxSessionsLimit = 500
 
 func (a *App) CreateSession(c request.CTX, session *model.Session) (*model.Session, *model.AppError) {
-	// MM-55320: limit the number of sessions on creation to prevent OOM in GetSessions
-	const returnLimit = 100
-	sessions, appErr := a.GetLRUSessions(c, session.UserId, returnLimit, maxSessionsLimit-1)
-	if appErr != nil {
-		return nil, model.NewAppError("CreateSession", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-	}
-
-	// Revoke any sessions over the limit to make room for the new session we'll create below.
-	for _, sess := range sessions {
-		if err := a.RevokeSession(c, sess); err != nil {
-			return nil, model.NewAppError("CreateSession", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+	if appErr := a.limitNumberOfSessions(c, session.UserId); appErr != nil {
+		return nil, appErr
 	}
 
 	session, err := a.ch.srv.platform.CreateSession(c, session)
@@ -151,6 +141,25 @@ func (a *App) GetSessions(c request.CTX, userID string) ([]*model.Session, *mode
 	}
 
 	return sessions, nil
+}
+
+// limitNumberOfSessions revokes userId's least recently used sessions to keep the number below
+// maxSessionsLimit; MM-55320
+func (a *App) limitNumberOfSessions(c request.CTX, userId string) *model.AppError {
+	const returnLimit = 100
+	sessions, appErr := a.GetLRUSessions(c, userId, returnLimit, maxSessionsLimit-1)
+	if appErr != nil {
+		return model.NewAppError("limitNumberOfSessions", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	// Revoke any sessions over the limit to make room for new sessions
+	for _, sess := range sessions {
+		if err := a.RevokeSession(c, sess); err != nil {
+			return model.NewAppError("limitNumberOfSessions", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return nil
 }
 
 // GetLRUSessions returns the Least Recently Used sessions for userID, skipping over the newest 'offset'
@@ -410,6 +419,10 @@ func (a *App) createSessionForUserAccessToken(c request.CTX, tokenString string)
 
 	if user.DeleteAt != 0 {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_user_id="+user.Id, http.StatusUnauthorized)
+	}
+
+	if appErr := a.limitNumberOfSessions(c, user.Id); appErr != nil {
+		return nil, appErr
 	}
 
 	session := &model.Session{
