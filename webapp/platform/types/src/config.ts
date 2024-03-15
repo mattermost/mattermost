@@ -762,7 +762,6 @@ export type ClusterSettings = {
     EnableExperimentalGossipEncryption: boolean;
     ReadOnlyConfig: boolean;
     GossipPort: number;
-    MaxIdleConns: number;
     MaxIdleConnsPerHost: number;
     IdleConnTimeoutMilliseconds: number;
 };
