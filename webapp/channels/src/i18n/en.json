@@ -3965,7 +3965,7 @@
   "intro_messages.GM.muted": "This group message is currently <b>muted</b>, so you will not be notified.",
   "intro_messages.GM.none": "You have selected to <b>never</b> be notified in this group message.",
   "intro_messages.group_message": "This is the start of your group message history with these teammates. ",
-  "intro_messages.inviteGropusToChannel.button": "Add groups to this private channel",
+  "intro_messages.inviteGropusToChannel.button": "Add groups",
   "intro_messages.inviteMembersToChannel.button": "Add people",
   "intro_messages.inviteOthers": "Invite others to this team",
   "intro_messages.inviteOthersToWorkspace.button": "Invite others to the workspace",

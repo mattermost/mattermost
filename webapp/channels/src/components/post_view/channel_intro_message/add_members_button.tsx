@@ -121,17 +121,17 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
                         {isPrivate && channel.group_constrained &&
                             <FormattedMessage
                                 id='intro_messages.inviteGropusToChannel.button'
-                                defaultMessage='Add groups to this channel'
+                                defaultMessage='Add groups'
                             />}
                         {isPrivate && !channel.group_constrained &&
                             <FormattedMessage
                                 id='intro_messages.inviteMembersToChannel.button'
-                                defaultMessage='Add members'
+                                defaultMessage='Add people'
                             />}
                         {!isPrivate &&
                             <FormattedMessage
                                 id='intro_messages.inviteMembersToChannel.button'
-                                defaultMessage='Add members'
+                                defaultMessage='Add people'
                             />}
                     </ToggleModalButton>
                 </ChannelPermissionGate>
