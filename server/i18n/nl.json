@@ -10224,5 +10224,29 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
     "translation": "Het bijwerken van de sorteervolgorde van de kanaalbladwijzers is mislukt."
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "Kon bladwijzer niet verwijderen."
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "Kon geen bladwijzer ophalen."
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "Bestaande bladwijzer kon niet worden bijgewerkt."
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "Kon bladwijzer niet opslaan."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Ongeldige update kanaallid: Een gast kan geen teamlid of teambeheerder worden, promoveer eerst als gebruiker."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Ongeldige update van kanaallid: Een gast kan niet ingesteld worden voor een enkel kanaal, een systeembeheerder moet gebruikers promoveren naar of degraderen van gast."
   }
 ]
