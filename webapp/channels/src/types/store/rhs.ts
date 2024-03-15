@@ -16,6 +16,7 @@ export type FakePost = {
     exists: boolean;
     type: PostType;
     message: string;
+    reply_count: number;
     channel_id: Channel['id'];
     user_id: UserProfile['id'];
 };

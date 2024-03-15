@@ -5,7 +5,7 @@
   "keywords": [
     "mattermost"
   ],
-  "homepage": "https://github.com/mattermost/mattermost-server/tree/master/webapp/platform/client#readme",
+  "homepage": "https://github.com/mattermost/mattermost/tree/master/webapp/platform/client#readme",
   "license": "MIT",
   "files": [
     "lib"
@@ -14,15 +14,20 @@
   "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "github:mattermost/mattermost-server",
+    "url": "github:mattermost/mattermost",
     "directory": "webapp/platform/client"
   },
   "dependencies": {
     "form-data": "^4.0.0"
   },
+  "devDependencies": {
+    "@types/jest": "28.1.8",
+    "jest": "27.1.0",
+    "typescript": "^5.0.0"
+  },
   "peerDependencies": {
-    "@mattermost/types": "*",
-    "typescript": "^4.3"
+    "@mattermost/types": "9.3.0",
+    "typescript": "^4.3.0 || ^5.0.0"
   },
   "peerDependenciesMeta": {
     "typescript": {
@@ -30,13 +35,11 @@
     }
   },
   "scripts": {
-    "build": "tsc --build --verbose",
+    "build": "tsc --build tsconfig.build.json --verbose",
+    "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
     "run": "tsc --watch --preserveWatchOutput",
     "test": "jest",
     "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100%",
-    "clean": "rm -rf lib node_modules tsconfig.tsbuildinfo"
-  },
-  "devDependencies": {
-    "jest": "27.1.0"
+    "clean": "rm -rf lib node_modules *.tsbuildinfo"
   }
 }
