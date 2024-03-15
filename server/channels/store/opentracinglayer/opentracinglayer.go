@@ -22,6 +22,7 @@ type OpenTracingLayer struct {
 	AuditStore                      store.AuditStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
+	ChannelBookmarkStore            store.ChannelBookmarkStore
 	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
 	ClusterDiscoveryStore           store.ClusterDiscoveryStore
 	CommandStore                    store.CommandStore
@@ -76,6 +77,10 @@ func (s *OpenTracingLayer) Bot() store.BotStore {
 
 func (s *OpenTracingLayer) Channel() store.ChannelStore {
 	return s.ChannelStore
+}
+
+func (s *OpenTracingLayer) ChannelBookmark() store.ChannelBookmarkStore {
+	return s.ChannelBookmarkStore
 }
 
 func (s *OpenTracingLayer) ChannelMemberHistory() store.ChannelMemberHistoryStore {
@@ -258,6 +263,11 @@ type OpenTracingLayerBotStore struct {
 
 type OpenTracingLayerChannelStore struct {
 	store.ChannelStore
+	Root *OpenTracingLayer
+}
+
+type OpenTracingLayerChannelBookmarkStore struct {
+	store.ChannelBookmarkStore
 	Root *OpenTracingLayer
 }
 
@@ -2681,6 +2691,132 @@ func (s *OpenTracingLayerChannelStore) UserBelongsToChannels(userID string, chan
 
 	defer span.Finish()
 	result, err := s.ChannelStore.UserBelongsToChannels(userID, channelIds)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelBookmarkStore.Delete")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ChannelBookmarkStore.Delete(bookmarkId, deleteFile)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached(fileId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.ChannelBookmarkWithFileInfo, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelBookmarkStore.Get")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelBookmarkStore.Get(Id, includeDeleted)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelBookmarkStore.GetBookmarksForChannelSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelBookmarkStore.GetBookmarksForChannelSince(channelId, since)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (*model.ChannelBookmarkWithFileInfo, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelBookmarkStore.Save")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelBookmarkStore.Save(bookmark, increaseSortOrder)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelBookmarkStore.Update")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ChannelBookmarkStore.Update(bookmark)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerChannelBookmarkStore) UpdateSortOrder(bookmarkId string, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelBookmarkStore.UpdateSortOrder")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelBookmarkStore.UpdateSortOrder(bookmarkId, channelId, newIndex)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -13284,6 +13420,7 @@ func New(childStore store.Store, ctx context.Context) *OpenTracingLayer {
 	newStore.AuditStore = &OpenTracingLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
 	newStore.BotStore = &OpenTracingLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &OpenTracingLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
+	newStore.ChannelBookmarkStore = &OpenTracingLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
 	newStore.ChannelMemberHistoryStore = &OpenTracingLayerChannelMemberHistoryStore{ChannelMemberHistoryStore: childStore.ChannelMemberHistory(), Root: &newStore}
 	newStore.ClusterDiscoveryStore = &OpenTracingLayerClusterDiscoveryStore{ClusterDiscoveryStore: childStore.ClusterDiscovery(), Root: &newStore}
 	newStore.CommandStore = &OpenTracingLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}

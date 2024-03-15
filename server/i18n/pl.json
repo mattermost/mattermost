@@ -3328,16 +3328,8 @@
     "translation": "Podczas rozpoczynania żądania do Identity Provider wystąpił błąd. Skontatuj się z Administratorem Systemu."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Podczas enkodowania żądania do Identity Provider wystąpił błąd. Skontatuj się z Administratorem Systemu."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Logowanie przez SAML nie powiodło się, ponieważ nie jest włączone szyfrowanie. Skontaktuj się z administratorem systemu."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Plik certyfikatu publicznego Identity Provider nie został odnaleziony. Skontaktuj się z administratorem systemu."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3348,20 +3340,12 @@
     "translation": "Logowanie przez SAML nie powiodło się, ponieważ odpowiedź Identity Providera nie została zaszyfrowana. Skontaktuj się z administratorem systemu."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Logowanie SAML nie powiodło się, ponieważ wystapił błąd podczas odkodowywania odpowiedzi dostawcy tożsamości (Identity Provider). Proszę skontaktować się z administratorem systemu."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Odpowiedź dostawcy tożsamości (Identity Provider) jest pusta."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Podczas przetwarzania odpowiedzi dostawcy tożsamości (Identity Provider) wystąpił błąd. Proszę skontaktować się z administratorem systemu."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Podczas weryfikacji odpowiedzi dostawcy tożsamości (Identity Provider) wystąpił błąd. Proszę o kontakt z administratorem systemu."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -10072,10 +10056,6 @@
     "translation": "Brak identyfikatora użytkownika do wysłania raportu"
   },
   {
-    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": "Nieprawidłowa aktualizacja członka zespołu: Użytkownik nie może być jednocześnie gościem i administratorem."
-  },
-  {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Nieprawidłowa aktualizacja członka zespołu: Gość nie może zostać członkiem zespołu ani administratorem zespołu, proszę zamienić go najpierw na użytkownika."
   },
@@ -10162,5 +10142,25 @@
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
     "translation": "Podana grupa odbiorców jest nieprawidłowa: {{ .Error }}"
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "Adres URL jest zbyt długi"
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Nieprawidłowe wejścia (status niestandardowy)"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Nieprawidłowa aktualizacja członka zespołu: Gość nie może być ustawiony dla pojedynczego zespołu, administrator systemu musi promować lub degradować użytkowników do/z gości."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Nie można zaprosić zdalnego do kanału: {{.Error}}"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Interakcje z portalem klienta Mattermost zostały wyłączone przez administratora systemu."
   }
 ]
