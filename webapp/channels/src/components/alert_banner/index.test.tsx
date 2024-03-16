@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import AlertBanner from './alert_banner';
+import AlertBanner from 'components/alert_banner';
 
 describe('Components/AlertBanner', () => {
     test('should match snapshot', () => {

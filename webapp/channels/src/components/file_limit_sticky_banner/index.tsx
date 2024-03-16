@@ -16,7 +16,6 @@ import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import NotifyAdminCTA from 'components/notify_admin_cta/notify_admin_cta';
-import Tooltip from 'components/tooltip';
 
 import {CloudProducts, LicenseSkus, MattermostFeatures, Preferences} from 'utils/constants';
 import {asGBString} from 'utils/limits';
@@ -147,19 +146,13 @@ function FileLimitStickyBanner() {
             />
         );
 
-    const tooltip = (
-        <Tooltip id='file_limit_banner_snooze'>
-            {formatMessage({id: 'create_post.file_limit_sticky_banner.snooze_tooltip', defaultMessage: 'Snooze for {snoozeDays} days'}, {snoozeDays: snoozeCoolOffDays})}
-        </Tooltip>
-    );
-
     return (
         <StyledDiv id='cloud_file_limit_banner'>
             <AlertBanner
                 mode={'warning'}
                 variant={'app'}
                 onDismiss={snoozeBanner}
-                closeBtnTooltip={tooltip}
+                closeBtnTooltip={formatMessage({id: 'create_post.file_limit_sticky_banner.snooze_tooltip', defaultMessage: 'Snooze for {snoozeDays} days'}, {snoozeDays: snoozeCoolOffDays})}
                 title={title}
                 message={isAdmin ? adminMessage : nonAdminMessage}
             />

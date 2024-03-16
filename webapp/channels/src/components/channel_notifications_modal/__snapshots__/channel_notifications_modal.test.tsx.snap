@@ -1455,6 +1455,7 @@ Object {
               </section>
               <div
                 class="AlertBanner info AlertBanner--app"
+                data-testid="channelNotificationsMutedBanner"
               >
                 <div
                   class="AlertBanner__icon"

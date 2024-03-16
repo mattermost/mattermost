@@ -314,6 +314,7 @@ export default function ChannelNotificationsModal(props: Props) {
         </>
     ) : (
         <AlertBanner
+            id='channelNotificationsMutedBanner'
             mode='info'
             variant='app'
             customIcon={
