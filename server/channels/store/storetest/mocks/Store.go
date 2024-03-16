@@ -72,6 +72,22 @@ func (_m *Store) Channel() store.ChannelStore {
 	return r0
 }
 
+// ChannelBookmark provides a mock function with given fields:
+func (_m *Store) ChannelBookmark() store.ChannelBookmarkStore {
+	ret := _m.Called()
+
+	var r0 store.ChannelBookmarkStore
+	if rf, ok := ret.Get(0).(func() store.ChannelBookmarkStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ChannelBookmarkStore)
+		}
+	}
+
+	return r0
+}
+
 // ChannelMemberHistory provides a mock function with given fields:
 func (_m *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	ret := _m.Called()

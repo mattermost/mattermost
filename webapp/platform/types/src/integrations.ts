@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {MessageAttachment} from './message_attachments';
-import {IDMappedObjects} from './utilities';
+import type {MessageAttachment} from './message_attachments';
+import type {IDMappedObjects} from './utilities';
 
 export type IncomingWebhook = {
     id: string;
