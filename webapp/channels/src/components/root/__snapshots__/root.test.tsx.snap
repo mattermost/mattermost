@@ -99,7 +99,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       <CloudEffectsWrapper />
       <withRouter(Connect(TeamSidebar)) />
       <div
-        className="content-container"
+        className="main-wrapper"
       >
         <Switch>
           <Route
