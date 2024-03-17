@@ -245,7 +245,7 @@ const BackstageGlobalStyle = createGlobalStyle`
     #root {
         > #global-header,
         > .team-sidebar,
-        > .content-container .sidebar--right,
+        > .main-wrapper .sidebar--right,
         > .app-bar {
             display: none;
         }

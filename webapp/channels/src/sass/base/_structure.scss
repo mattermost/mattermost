@@ -150,7 +150,7 @@ body.app__body #root {
         grid-area: team-sidebar;
     }
 
-    .content-container {
+    .main-wrapper {
         position: relative;
         display: grid;
         background-color: var(--sidebar-bg);
@@ -219,7 +219,7 @@ body.app__body #root {
                 position: relative;
             }
 
-            .content-container {
+            .main-wrapper {
                 grid-template:
                     'main'
                 ;
