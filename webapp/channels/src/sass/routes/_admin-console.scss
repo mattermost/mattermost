@@ -491,7 +491,7 @@
             height: 34px;
             align-items: center;
             justify-content: center;
-            border-radius: $border-rad;
+            border-radius: var(--radius-s);
             margin: 0 10px 0 0;
             text-decoration: none;
             transition: all 0.15s ease;
