@@ -275,8 +275,8 @@
 #sidebar-right {
     overflow: hidden;
     height: 100%;
-    border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
     border-radius: var(--radius-l);
+    border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
     box-shadow: var(--elevation-2);
 
     &.expanded {
