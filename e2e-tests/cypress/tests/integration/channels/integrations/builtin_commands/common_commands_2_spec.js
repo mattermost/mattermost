@@ -104,7 +104,7 @@ describe('Integrations', () => {
             [`#rhsPost_${postId}`, `#post_${postId}`].forEach((selector) => {
                 cy.get(selector).should('have.class', 'current--user').within(() => {
                     cy.get('.profile-icon').should('not.be.visible');
-                    cy.get('.post-message__text').findByText(message).should('have.css', 'color', 'rgba(63, 67, 80, 0.6)');
+                    cy.get('.post-message__text').findByText(message).should('have.css', 'color', 'rgba(63, 67, 80, 0.75)');
                 });
             });
         });
