@@ -62,7 +62,7 @@ func (s LocalCacheFileInfoStore) InvalidateFileInfosForPostCache(postId string, 
 	if deleted {
 		cacheKey += "_deleted"
 	}
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.fileInfoCache, cacheKey)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.fileInfoCache, cacheKey, nil)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Remove by PostId")
 	}

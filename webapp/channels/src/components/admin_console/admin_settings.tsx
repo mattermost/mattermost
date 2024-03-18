@@ -19,7 +19,7 @@ export type BaseProps = {
     environmentConfig?: EnvironmentConfig;
     setNavigationBlocked?: (blocked: boolean) => void;
     isDisabled?: boolean;
-    updateConfig?: (config: AdminConfig) => {data: AdminConfig; error: ClientErrorPlaceholder};
+    patchConfig?: (config: DeepPartial<AdminConfig>) => {data: AdminConfig; error: ClientErrorPlaceholder};
 }
 
 export type BaseState = {
@@ -31,7 +31,7 @@ export type BaseState = {
 }
 
 // Placeholder type until ClientError is exported from redux.
-// TODO: remove ClientErrorPlaceholder and change the return type of updateConfig
+// TODO: remove ClientErrorPlaceholder and change the return type of patchConfig
 type ClientErrorPlaceholder = {
     message: string;
     server_error_id: string;
@@ -107,8 +107,8 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         let config = JSON.parse(JSON.stringify(this.props.config));
         config = this.getConfigFromState(config);
 
-        if (this.props.updateConfig) {
-            const {data, error} = await this.props.updateConfig(config);
+        if (this.props.patchConfig) {
+            const {data, error} = await this.props.patchConfig(config);
 
             if (data) {
                 this.setState(this.getStateFromConfig(data) as State);

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ProductScope} from './products';
+import type {ProductScope} from './products';
 
 export enum Permission {
     UserJoinedChannelNotification = 'user_joined_channel_notification',
