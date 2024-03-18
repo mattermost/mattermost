@@ -32,8 +32,6 @@ import * as Utils from 'utils/utils';
 import AddMembersButton from './add_members_button';
 import PluggableIntroButtons from './pluggable_intro_buttons';
 
-import '../../../sass/components/_action-button.scss';
-
 type Props = {
     currentUserId: string;
     channel: Channel;
