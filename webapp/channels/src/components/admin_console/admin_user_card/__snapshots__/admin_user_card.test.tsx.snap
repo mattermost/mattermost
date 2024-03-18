@@ -19,7 +19,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
           >
             <img
               alt="user profile image"
-              class="Avatar Avatar-xxl"
+              class="Avatar Avatar-xxxxl"
               loading="lazy"
               src="/api/v4/users/1234/image"
               tabindex="-1"
@@ -79,7 +79,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
           >
             <img
               alt="user profile image"
-              class="Avatar Avatar-xxl"
+              class="Avatar Avatar-xxxxl"
               loading="lazy"
               src="/api/v4/users/1234/image"
               tabindex="-1"
@@ -134,7 +134,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
           >
             <img
               alt="user profile image"
-              class="Avatar Avatar-xxl"
+              class="Avatar Avatar-xxxxl"
               loading="lazy"
               src="/api/v4/users/1234/image"
               tabindex="-1"
@@ -187,7 +187,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
           >
             <img
               alt="user profile image"
-              class="Avatar Avatar-xxl"
+              class="Avatar Avatar-xxxxl"
               loading="lazy"
               src="/api/v4/users/1234/image"
               tabindex="-1"
