@@ -4143,6 +4143,10 @@
     "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
   },
   {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Cannot create new user as active user count have exceeded the permissible limit."
+  },
+  {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "The email address in the token does not match the one in the user data."
   },

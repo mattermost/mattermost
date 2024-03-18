@@ -230,6 +230,15 @@ func (a *App) CreateGuest(c request.CTX, user *model.User) (*model.User, *model.
 }
 
 func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*model.User, *model.AppError) {
+	exceeded, appErr := a.isUserLimitExceeded()
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if exceeded {
+		return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.user_limits.exceeded", nil, "", http.StatusBadRequest)
+	}
+
 	if err := a.isUniqueToGroupNames(user.Username); err != nil {
 		err.Where = "createUserOrGuest"
 		return nil, err
