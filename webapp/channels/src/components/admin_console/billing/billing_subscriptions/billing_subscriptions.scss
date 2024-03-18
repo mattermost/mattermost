@@ -11,10 +11,6 @@
     }
 }
 
-#BillingSubscriptions__seatOverageTooltip {
-    margin-left: -5px;
-}
-
 .BillingSubscriptions__tooltip.tooltip {
     font-family: 'Open Sans', sans-serif;
 
@@ -40,8 +36,8 @@
         max-width: none;
         padding: 24px;
         border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
-        background-color: var(--sys-center-channel-bg);
         border-radius: 4px;
+        background-color: var(--sys-center-channel-bg);
         box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
         color: var(--sys-center-channel-color);
         opacity: 1;
@@ -65,18 +61,6 @@
             content: '';
         }
     }
-}
-
-.BillingSubscriptions__tooltipTitle {
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 24px;
-}
-
-.BillingSubscriptions__tooltipMessage {
-    margin-top: 8px;
-    font-size: 14px;
-    line-height: 20px;
 }
 
 .UpgradeMattermostCloud {
@@ -109,9 +93,9 @@
     width: 100%;
     padding: 13px 0;
     border: none;
+    border-radius: 4px;
     margin-top: 16px;
     background: var(--button-bg);
-    border-radius: 4px;
     box-shadow: inset 0 0 0 1px var(--sys-button-bg);
     color: var(--button-color);
     font-size: 14px;
@@ -170,18 +154,18 @@
 .PrivateCloudCard__actionButton {
     display: block;
 
-    @include fit-content;
-
     padding: 13px 20px;
     border: none;
+    border-radius: 4px;
     margin-top: 16px;
     background: var(--sys-center-channel-bg);
-    border-radius: 4px;
     box-shadow: inset 0 0 0 1px var(--sys-button-bg);
     color: var(--sys-button-bg);
     font-size: 14px;
     font-weight: 600;
     line-height: 14px;
+
+    @include fit-content;
 
     &:hover:not(.disabled) {
         background: rgba(var(--sys-button-bg-rgb), 0.04);
@@ -226,16 +210,16 @@
 .cancelSubscriptionSection__contactUs {
     display: block;
 
-    @include fit-content;
-
     padding: 13px 20px;
-    margin-top: 16px;
     border-radius: 4px;
+    margin-top: 16px;
     box-shadow: inset 0 0 0 1px var(--sys-dnd-indicator);
     color: var(--sys-dnd-indicator);
     font-size: 12px;
     font-weight: 600;
     line-height: 9.5px;
+
+    @include fit-content;
 
     &:hover:not(.disabled) {
         background: rgba(var(--sys-dnd-indicator-rgb), 0.04);

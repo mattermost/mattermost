@@ -4020,6 +4020,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.stateEquals('SamlSettings.IdpMetadataURL', ''),
                             ),
                             sourceUrlKey: 'SamlSettings.IdpMetadataURL',
+                            skipSaveNeeded: true,
                         },
                         {
                             type: 'text',

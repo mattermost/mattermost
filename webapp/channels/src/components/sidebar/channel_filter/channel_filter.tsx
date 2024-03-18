@@ -3,17 +3,32 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {injectIntl} from 'react-intl';
+import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
+import {ShortcutKeys} from 'components/with_tooltip/shortcut';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+
+const messages = defineMessages({
+    disableTooltip: {
+        id: 'sidebar_left.channel_filter.showAllChannels',
+        defaultMessage: 'Show all channels',
+    },
+    enableTooltip: {
+        id: 'sidebar_left.channel_filter.filterByUnread',
+        defaultMessage: 'Filter by unread',
+    },
+});
+
+const shortcut = {
+    default: [ShortcutKeys.ctrl, ShortcutKeys.shift, 'U'],
+    mac: [ShortcutKeys.cmd, ShortcutKeys.shift, 'U'],
+};
 
 type Props = {
     intl: IntlShape;
@@ -62,34 +77,15 @@ export class ChannelFilter extends React.PureComponent<Props> {
     render() {
         const {intl, unreadFilterEnabled, hasMultipleTeams} = this.props;
 
-        let tooltipMessage = intl.formatMessage({id: 'sidebar_left.channel_filter.filterByUnread', defaultMessage: 'Filter by unread'});
-
-        if (unreadFilterEnabled) {
-            tooltipMessage = intl.formatMessage({id: 'sidebar_left.channel_filter.showAllChannels', defaultMessage: 'Show all channels'});
-        }
-
         const unreadsAriaLabel = intl.formatMessage({id: 'sidebar_left.channel_filter.filterUnreadAria', defaultMessage: 'unreads filter'});
-
-        const tooltip = (
-            <Tooltip
-                id='new-group-tooltip'
-                className='hidden-xs'
-            >
-                {tooltipMessage}
-                <KeyboardShortcutSequence
-                    shortcut={KEYBOARD_SHORTCUTS.navToggleUnreads}
-                    hideDescription={true}
-                    isInsideTooltip={true}
-                />
-            </Tooltip>
-        );
 
         return (
             <div className='SidebarFilters'>
-                <OverlayTrigger
-                    delayShow={500}
+                <WithTooltip
+                    id='channel-filter-tooltip'
+                    title={unreadFilterEnabled ? messages.disableTooltip : messages.enableTooltip}
+                    shortcut={shortcut}
                     placement={hasMultipleTeams ? 'top' : 'right'}
-                    overlay={tooltip}
                 >
                     <a
                         href='#'
@@ -101,7 +97,7 @@ export class ChannelFilter extends React.PureComponent<Props> {
                     >
                         <i className='icon icon-filter-variant'/>
                     </a>
-                </OverlayTrigger>
+                </WithTooltip>
             </div>
         );
     }
