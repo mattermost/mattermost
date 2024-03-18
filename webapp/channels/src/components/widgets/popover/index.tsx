@@ -52,4 +52,6 @@ const Popover = React.forwardRef<BSPopover, Props>(({
     );
 });
 
+Popover.displayName = 'Popover';
+
 export default React.memo(Popover);

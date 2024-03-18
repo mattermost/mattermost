@@ -56,7 +56,6 @@ exports[`component/user_group_popover should match snapshot 1`] = `
             },
           }
         }
-        canManageGroup={true}
         group={
           Object {
             "allow_reference": true,
@@ -79,49 +78,8 @@ exports[`component/user_group_popover should match snapshot 1`] = `
         searchTerm=""
         showUserOverlay={[MockFunction]}
       >
-        <ForwardRef
-          actions={
-            Object {
-              "openModal": [MockFunction],
-              "searchProfiles": [MockFunction],
-              "setPopoverSearchTerm": [MockFunction] {
-                "calls": Array [
-                  Array [
-                    "",
-                  ],
-                ],
-                "results": Array [
-                  Object {
-                    "type": "return",
-                    "value": undefined,
-                  },
-                ],
-              },
-            }
-          }
-          canManageGroup={true}
-          group={
-            Object {
-              "allow_reference": true,
-              "create_at": 1,
-              "delete_at": 0,
-              "description": "",
-              "display_name": "group_display_name",
-              "has_syncables": false,
-              "id": "group1",
-              "member_count": 15,
-              "name": "group_name",
-              "remote_id": "",
-              "scheme_admin": false,
-              "source": "",
-              "update_at": 1,
-            }
-          }
-          hide={[MockFunction]}
+        <Popover
           id="user-group-popover"
-          returnFocus={[MockFunction]}
-          searchTerm=""
-          showUserOverlay={[MockFunction]}
         >
           <Popover
             bsClass="popover"
@@ -2126,7 +2084,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
               </div>
             </div>
           </Popover>
-        </ForwardRef>
+        </Popover>
       </Memo(UserGroupPopover)>
     </Router>
   </BrowserRouter>
