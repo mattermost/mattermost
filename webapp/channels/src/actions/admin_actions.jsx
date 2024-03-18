@@ -3,6 +3,7 @@
 
 import * as AdminActions from 'mattermost-redux/actions/admin';
 import {bindClientFunc} from 'mattermost-redux/actions/helpers';
+import {createJob} from 'mattermost-redux/actions/jobs';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import * as UserActions from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
@@ -12,7 +13,7 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getOnNavigationConfirmed} from 'selectors/views/admin';
 import store from 'stores/redux_store';
 
-import {ActionTypes} from 'utils/constants';
+import {ActionTypes, JobTypes} from 'utils/constants';
 
 const dispatch = store.dispatch;
 
@@ -316,13 +317,38 @@ export async function testS3Connection(success, error) {
     }
 }
 
-export async function elasticsearchPurgeIndexes(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.purgeElasticsearchIndexes());
+export async function elasticsearchPurgeIndexes(success, error, indexes) {
+    const {data, error: err} = await dispatch(AdminActions.purgeElasticsearchIndexes(indexes));
     if (data && success) {
         success(data);
     } else if (err && error) {
         error({id: err.server_error_id, ...err});
     }
+}
+
+export async function jobCreate(success, error, job) {
+    const {data, error: err} = await dispatch(createJob(job));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function rebuildChannelsIndex(success, error) {
+    await elasticsearchPurgeIndexes(undefined, error, ['channels']);
+    const job = {
+        type: JobTypes.ELASTICSEARCH_POST_INDEXING,
+        data: {
+            index_posts: 'false',
+            index_users: 'false',
+            index_files: 'false',
+            index_channels: 'true',
+            sub_type: 'channels_index_rebuild',
+        },
+    };
+    await jobCreate(undefined, error, job);
+    success();
 }
 
 export async function blevePurgeIndexes(success, error) {
