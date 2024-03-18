@@ -3668,23 +3668,6 @@ func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u6.Id)) }()
 
-<<<<<<< HEAD
-	teamId1 := model.NewId()
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId1, UserId: u1.Id}, -1)
-	require.NoError(t, nErr)
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId1, UserId: u2.Id}, -1)
-	require.NoError(t, nErr)
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId1, UserId: u3.Id}, -1)
-	require.NoError(t, nErr)
-	// u4 is not in team 1
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId1, UserId: u5.Id}, -1)
-	require.NoError(t, nErr)
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId1, UserId: u6.Id}, -1)
-	require.NoError(t, nErr)
-
-	teamId2 := model.NewId()
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId2, UserId: u4.Id}, -1)
-=======
 	teamID1 := model.NewId()
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID1, UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
@@ -3700,7 +3683,6 @@ func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store
 
 	teamID2 := model.NewId()
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID2, UserId: u4.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	// The users returned from the database will have AuthData as an empty string.
