@@ -115,11 +115,7 @@ func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, maxUsersPerTeam)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, maxUsersPerTeam)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	_, err = ss.User().Save(rctx, &u1)
@@ -161,11 +157,7 @@ func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		defer func() { require.NoError(t, ss.User().PermanentDelete(u.Id)) }()
 
-<<<<<<< HEAD
-		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u.Id}, maxUsersPerTeam)
-=======
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u.Id}, maxUsersPerTeam)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		require.NoError(t, nErr)
 	}
 
@@ -177,11 +169,7 @@ func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, maxUsersPerTeam)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, maxUsersPerTeam)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.Error(t, nErr, "should be the limit")
 }
 
@@ -370,11 +358,7 @@ func testGetAllUsingAuthService(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -384,11 +368,7 @@ func testGetAllUsingAuthService(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -398,11 +378,7 @@ func testGetAllUsingAuthService(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -709,11 +685,7 @@ func testUserStoreGetProfiles(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -722,11 +694,7 @@ func testUserStoreGetProfiles(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -743,11 +711,7 @@ func testUserStoreGetProfiles(t *testing.T, rctx request.CTX, ss store.Store) {
 	u3.IsBot = true
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(u3.Id)) }()
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u4, err := ss.User().Save(rctx, &model.User{
@@ -757,11 +721,7 @@ func testUserStoreGetProfiles(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u4.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u5, err := ss.User().Save(rctx, &model.User{
@@ -771,11 +731,7 @@ func testUserStoreGetProfiles(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u5.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u5.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u5.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	t.Run("get page 0, perPage 100", func(t *testing.T) {
@@ -825,11 +781,7 @@ func testUserStoreGetProfiles(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err := ss.User().Save(rctx, uNew)
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(uNew.Id)) }()
-<<<<<<< HEAD
-		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: uNew.Id}, -1)
-=======
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: uNew.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		require.NoError(t, nErr)
 
 		updatedEtag := ss.User().GetEtagForProfiles(teamID)
@@ -902,11 +854,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, rctx request.CTX, ss store.
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -915,11 +863,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, rctx request.CTX, ss store.
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -928,11 +872,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, rctx request.CTX, ss store.
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -949,11 +889,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, rctx request.CTX, ss store.
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u4.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	ch1 := &model.Channel{
@@ -1080,11 +1016,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, rctx request.CTX, ss store.
 		})
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user2Admin.Id)) }()
-<<<<<<< HEAD
-		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user2Admin.Id}, -1)
-=======
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user2Admin.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		require.NoError(t, nErr)
 
 		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
@@ -1118,11 +1050,7 @@ func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, rctx request.CTX, ss
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(user1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	user2Admin, err := ss.User().Save(rctx, &model.User{
@@ -1131,11 +1059,7 @@ func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, rctx request.CTX, ss
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(user2Admin.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user2Admin.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user2Admin.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	user3, err := ss.User().Save(rctx, &model.User{
@@ -1144,11 +1068,7 @@ func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, rctx request.CTX, ss
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(user3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	ch1 := &model.Channel{
@@ -1208,11 +1128,7 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, rctx request.CTX, s
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -1221,11 +1137,7 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, rctx request.CTX, s
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -1234,11 +1146,7 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, rctx request.CTX, s
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -1255,11 +1163,7 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, rctx request.CTX, s
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u4.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	ch1 := &model.Channel{
@@ -1383,11 +1287,7 @@ func testUserStoreGetProfilesWithoutTeam(t *testing.T, rctx request.CTX, ss stor
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -1454,11 +1354,7 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, rctx request.CTX, ss sto
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -1467,11 +1363,7 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, rctx request.CTX, ss sto
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -1480,11 +1372,7 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, rctx request.CTX, ss sto
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -1592,11 +1480,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, rctx request.CTX, ss sto
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -1605,11 +1489,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, rctx request.CTX, ss sto
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -1618,11 +1498,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, rctx request.CTX, ss sto
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -1766,11 +1642,7 @@ func testUserStoreGetProfilesByIds(t *testing.T, rctx request.CTX, ss store.Stor
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -1779,11 +1651,7 @@ func testUserStoreGetProfilesByIds(t *testing.T, rctx request.CTX, ss store.Stor
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	time.Sleep(time.Millisecond)
@@ -1793,11 +1661,7 @@ func testUserStoreGetProfilesByIds(t *testing.T, rctx request.CTX, ss store.Stor
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -1892,13 +1756,8 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, rctx request.
 	}, -1)
 	require.NoError(t, nErr)
 
-<<<<<<< HEAD
-	for _, uId := range []string{u1.Id, u2.Id, u3.Id} {
-		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
-=======
 	for _, uID := range []string{u1.Id, u2.Id, u3.Id} {
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   gc1.Id,
 			UserId:      uID,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1913,13 +1772,8 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, rctx request.
 	}, -1)
 	require.NoError(t, nErr)
 
-<<<<<<< HEAD
-	for _, uId := range []string{u1.Id, u3.Id, u4.Id} {
-		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
-=======
 	for _, uID := range []string{u1.Id, u3.Id, u4.Id} {
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   gc2.Id,
 			UserId:      uID,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1998,11 +1852,7 @@ func testUserStoreGetProfilesByUsernames(t *testing.T, rctx request.CTX, ss stor
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -2011,11 +1861,7 @@ func testUserStoreGetProfilesByUsernames(t *testing.T, rctx request.CTX, ss stor
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -2076,11 +1922,7 @@ func testUserStoreGetSystemAdminProfiles(t *testing.T, rctx request.CTX, ss stor
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -2089,11 +1931,7 @@ func testUserStoreGetSystemAdminProfiles(t *testing.T, rctx request.CTX, ss stor
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -2103,11 +1941,7 @@ func testUserStoreGetSystemAdminProfiles(t *testing.T, rctx request.CTX, ss stor
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -2137,11 +1971,7 @@ func testUserStoreGetByEmail(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -2150,11 +1980,7 @@ func testUserStoreGetByEmail(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -2163,11 +1989,7 @@ func testUserStoreGetByEmail(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -2220,11 +2042,7 @@ func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -2233,11 +2051,7 @@ func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -2248,11 +2062,7 @@ func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -2308,11 +2118,7 @@ func testUserStoreGetByUsername(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -2321,11 +2127,7 @@ func testUserStoreGetByUsername(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -2334,11 +2136,7 @@ func testUserStoreGetByUsername(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -2397,11 +2195,7 @@ func testUserStoreGetForLogin(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -2412,11 +2206,7 @@ func testUserStoreGetForLogin(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -2427,11 +2217,7 @@ func testUserStoreGetForLogin(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -2505,11 +2291,7 @@ func testUserStoreUpdatePassword(t *testing.T, rctx request.CTX, ss store.Store)
 	_, err := ss.User().Save(rctx, u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	hashedPassword := model.HashPassword("newpwd")
@@ -2543,11 +2325,7 @@ func testUserStoreUpdateAuthData(t *testing.T, rctx request.CTX, ss store.Store)
 	_, err := ss.User().Save(rctx, u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	service := "someservice"
@@ -2633,11 +2411,7 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err := ss.User().Save(rctx, u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2 := &model.User{}
@@ -2646,11 +2420,7 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.User().Save(rctx, u2)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3 := &model.User{}
@@ -2659,11 +2429,7 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.User().Save(rctx, u3)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	_, nErr = ss.Channel().Save(rctx, &c1, -1)
@@ -2800,11 +2566,7 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, rctx request.CTX, 
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -2813,11 +2575,7 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, rctx request.CTX, 
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -2826,11 +2584,7 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, rctx request.CTX, 
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -2887,11 +2641,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, rctx request.CTX, ss store.St
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -2900,11 +2650,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, rctx request.CTX, ss store.St
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -2913,11 +2659,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, rctx request.CTX, ss store.St
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -2934,11 +2676,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, rctx request.CTX, ss store.St
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId2, UserId: u4.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID2, UserId: u4.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	t.Run("get team 1, offset 0, limit 100", func(t *testing.T) {
@@ -4182,15 +3920,9 @@ func testCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err := ss.User().Save(rctx, regularUser)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(regularUser.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: regularUser.Id, SchemeAdmin: false, SchemeUser: true}, -1)
-	require.NoError(t, nErr)
-	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{UserId: regularUser.Id, ChannelId: channelId, SchemeAdmin: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: regularUser.Id, SchemeAdmin: false, SchemeUser: true}, -1)
 	require.NoError(t, nErr)
 	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{UserId: regularUser.Id, ChannelId: channelID, SchemeAdmin: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	guestUser := &model.User{}
@@ -4199,15 +3931,9 @@ func testCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.User().Save(rctx, guestUser)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(guestUser.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: guestUser.Id, SchemeAdmin: false, SchemeUser: false, SchemeGuest: true}, -1)
-	require.NoError(t, nErr)
-	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{UserId: guestUser.Id, ChannelId: channelId, SchemeAdmin: false, SchemeUser: false, SchemeGuest: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: guestUser.Id, SchemeAdmin: false, SchemeUser: false, SchemeGuest: true}, -1)
 	require.NoError(t, nErr)
 	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{UserId: guestUser.Id, ChannelId: channelID, SchemeAdmin: false, SchemeUser: false, SchemeGuest: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	teamAdmin := &model.User{}
@@ -4216,15 +3942,9 @@ func testCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.User().Save(rctx, teamAdmin)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(teamAdmin.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: teamAdmin.Id, SchemeAdmin: true, SchemeUser: true}, -1)
-	require.NoError(t, nErr)
-	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{UserId: teamAdmin.Id, ChannelId: channelId, SchemeAdmin: true, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: teamAdmin.Id, SchemeAdmin: true, SchemeUser: true}, -1)
 	require.NoError(t, nErr)
 	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{UserId: teamAdmin.Id, ChannelId: channelID, SchemeAdmin: true, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	sysAdmin := &model.User{}
@@ -4233,15 +3953,9 @@ func testCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.User().Save(rctx, sysAdmin)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(sysAdmin.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: sysAdmin.Id, SchemeAdmin: false, SchemeUser: true}, -1)
-	require.NoError(t, nErr)
-	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{UserId: sysAdmin.Id, ChannelId: channelId, SchemeAdmin: true, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: sysAdmin.Id, SchemeAdmin: false, SchemeUser: true}, -1)
 	require.NoError(t, nErr)
 	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{UserId: sysAdmin.Id, ChannelId: channelID, SchemeAdmin: true, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	// Deleted
@@ -4253,13 +3967,8 @@ func testCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(deletedUser.Id)) }()
 
 	// Remote User
-<<<<<<< HEAD
-	remoteId := "remote-id"
-	remoteUser, err := ss.User().Save(rctx, &model.User{
-=======
 	remoteID := "remote-id"
 	remoteUser, err := ss.User().Save(&model.User{
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		Email:    MakeEmail(),
 		RemoteId: &remoteID,
 	})
@@ -4867,11 +4576,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, rctx request.CTX, ss store.
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	// Ensure update at timestamp changes
@@ -4883,11 +4588,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, rctx request.CTX, ss store.
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId2, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID2, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	// Ensure update at timestamp changes
@@ -4944,11 +4645,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, rctx request.CTX, ss store.
 	time.Sleep(time.Millisecond)
 
 	// Add u2 to team 1
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	u2.UpdateAt, err = ss.User().UpdateUpdateAt(u2.Id)
 	require.NoError(t, err)
@@ -5004,11 +4701,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, rctx request.CTX, ss store.
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u4.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	t.Run("etag for profiles not in team 1 after addition to team", func(t *testing.T) {
@@ -5017,11 +4710,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, rctx request.CTX, ss store.
 	})
 
 	// Add u3 to team 2
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId2, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID2, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	u3.UpdateAt, err = ss.User().UpdateUpdateAt(u3.Id)
 	require.NoError(t, err)
@@ -5579,21 +5268,12 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
 
-<<<<<<< HEAD
-		teamId := model.NewId()
-		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
-		require.NoError(t, nErr)
-
-		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -5634,21 +5314,12 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
 
-<<<<<<< HEAD
-		teamId := model.NewId()
-		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
-		require.NoError(t, nErr)
-
-		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -5709,13 +5380,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
 
-<<<<<<< HEAD
-		teamId := model.NewId()
-		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
-=======
 		teamID := model.NewId()
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		require.NoError(t, nErr)
 
 		err = ss.User().PromoteGuestToUser(user.Id)
@@ -5744,21 +5410,12 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
 
-<<<<<<< HEAD
-		teamId := model.NewId()
-		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
-		require.NoError(t, nErr)
-
-		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -5798,21 +5455,12 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
 
-<<<<<<< HEAD
-		teamId := model.NewId()
-		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
-		require.NoError(t, nErr)
-
-		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -5852,21 +5500,12 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user1.Id)) }()
 
-<<<<<<< HEAD
-		teamId1 := model.NewId()
-		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: true, SchemeUser: false}, 999)
-		require.NoError(t, nErr)
-
-		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId1,
-=======
 		teamID1 := model.NewId()
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID1, UserId: user1.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID1,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -5889,13 +5528,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user2.Id)) }()
 
-<<<<<<< HEAD
-		teamId2 := model.NewId()
-		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId2, UserId: user2.Id, SchemeGuest: true, SchemeUser: false}, 999)
-=======
 		teamID2 := model.NewId()
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID2, UserId: user2.Id, SchemeGuest: true, SchemeUser: false}, 999)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		require.NoError(t, nErr)
 
 		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user2.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
@@ -5949,21 +5583,12 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
 
-<<<<<<< HEAD
-		teamId := model.NewId()
-		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
-		require.NoError(t, nErr)
-
-		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -6002,21 +5627,12 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
 
-<<<<<<< HEAD
-		teamId := model.NewId()
-		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
-		require.NoError(t, nErr)
-
-		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -6073,13 +5689,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
 
-<<<<<<< HEAD
-		teamId := model.NewId()
-		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
-=======
 		teamID := model.NewId()
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		require.NoError(t, nErr)
 
 		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
@@ -6106,21 +5717,12 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
 
-<<<<<<< HEAD
-		teamId := model.NewId()
-		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
-		require.NoError(t, nErr)
-
-		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -6158,21 +5760,12 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
 
-<<<<<<< HEAD
-		teamId := model.NewId()
-		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
-		require.NoError(t, nErr)
-
-		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -6210,21 +5803,12 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user1.Id)) }()
 
-<<<<<<< HEAD
-		teamId1 := model.NewId()
-		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: false, SchemeUser: true}, 999)
-		require.NoError(t, nErr)
-
-		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId1,
-=======
 		teamID1 := model.NewId()
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID1, UserId: user1.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.NoError(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID1,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -6247,13 +5831,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user2.Id)) }()
 
-<<<<<<< HEAD
-		teamId2 := model.NewId()
-		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId2, UserId: user2.Id, SchemeGuest: false, SchemeUser: true}, 999)
-=======
 		teamID2 := model.NewId()
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID2, UserId: user2.Id, SchemeGuest: false, SchemeUser: true}, 999)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		require.NoError(t, nErr)
 
 		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user2.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
@@ -6409,11 +5988,7 @@ func testGetKnownUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-<<<<<<< HEAD
-	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u2, err := ss.User().Save(rctx, &model.User{
@@ -6422,11 +5997,7 @@ func testGetKnownUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	u3, err := ss.User().Save(rctx, &model.User{
@@ -6435,11 +6006,7 @@ func testGetKnownUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
@@ -6457,11 +6024,7 @@ func testGetKnownUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u4.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	ch1 := &model.Channel{
