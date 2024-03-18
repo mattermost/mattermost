@@ -2251,8 +2251,6 @@
   "admin.security.password": "Passwort",
   "admin.server_logs.CopyLog": "Protokoll kopieren",
   "admin.server_logs.DataCopied": "Daten kopiert",
-  "admin.server_logs.Export": "Exportieren",
-  "admin.server_logs.Exported": "Exportiert",
   "admin.server_logs.LogEvent": "Ereignis protokollieren",
   "admin.service.CorsDebugLabel": "CORS-Debug:",
   "admin.service.attemptDescription": "Anmeldungsversuche bevor ein Benutzer gesperrt wird und dieser sein Passwort via E-Mail zurücksetzen lassen muss.",

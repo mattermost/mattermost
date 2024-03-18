@@ -2251,8 +2251,6 @@
   "admin.security.password": "Parola",
   "admin.server_logs.CopyLog": "Günlüğü kopyala",
   "admin.server_logs.DataCopied": "Veriler kopyalandı",
-  "admin.server_logs.Export": "Dışa aktar",
-  "admin.server_logs.Exported": "Dışa aktarıldı",
   "admin.server_logs.LogEvent": "Günlük olayı",
   "admin.service.CorsDebugLabel": "Kaynaklar arası istekler hata ayıklaması:",
   "admin.service.attemptDescription": "Bir kullanıcının kilitlenmeden ve e-posta ile parolasını sıfırlaması istenilmeden önce deneyebileceği oturum açma girişimi sayısı.",

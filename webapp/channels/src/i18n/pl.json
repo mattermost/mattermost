@@ -2251,8 +2251,6 @@
   "admin.security.password": "Hasło",
   "admin.server_logs.CopyLog": "Kopiuj log",
   "admin.server_logs.DataCopied": "Dane skopiowane",
-  "admin.server_logs.Export": "Eksportuj",
-  "admin.server_logs.Exported": "Wyeksportowane",
   "admin.server_logs.LogEvent": "Logowanie zdarzeń",
   "admin.service.CorsDebugLabel": "Debugowanie CORS:",
   "admin.service.attemptDescription": "Liczba prób logowanie dozwolona przed zablokowaniem użytkownika i wymagane będzie zresetowanie jego hasła poprzez email.",

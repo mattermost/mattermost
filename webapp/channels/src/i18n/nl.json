@@ -2251,8 +2251,6 @@
   "admin.security.password": "Wachtwoord",
   "admin.server_logs.CopyLog": "Logs kopiëren",
   "admin.server_logs.DataCopied": "Data gekopieerd",
-  "admin.server_logs.Export": "Exporteren",
-  "admin.server_logs.Exported": "Geëxporteerd",
   "admin.server_logs.LogEvent": "Log Gebeurtenis",
   "admin.service.CorsDebugLabel": "CORS Foutopsporing:",
   "admin.service.attemptDescription": "Aantal aanmeldingspogingen die zijn toegestaan voordat de gebruiker is vergrendeld en het wachtwoord gereset moet worden via e-mail.",

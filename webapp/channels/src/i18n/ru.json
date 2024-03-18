@@ -2251,8 +2251,6 @@
   "admin.security.password": "Пароль",
   "admin.server_logs.CopyLog": "Копировать журнал",
   "admin.server_logs.DataCopied": "Копирование данных",
-  "admin.server_logs.Export": "Экспорт",
-  "admin.server_logs.Exported": "Экспортировано",
   "admin.server_logs.LogEvent": "Журнал событий",
   "admin.service.CorsDebugLabel": "Отладка CORS:",
   "admin.service.attemptDescription": "Количество разрешенных попыток входа до блокировки пользователя и необходимости сбросить пароль через электронную почту.",

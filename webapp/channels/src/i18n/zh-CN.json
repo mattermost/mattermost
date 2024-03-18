@@ -2243,8 +2243,6 @@
   "admin.security.password": "密码",
   "admin.server_logs.CopyLog": "复制日志",
   "admin.server_logs.DataCopied": "已复制数据",
-  "admin.server_logs.Export": "导出",
-  "admin.server_logs.Exported": "已导出",
   "admin.server_logs.LogEvent": "日志事件",
   "admin.service.CorsDebugLabel": "CORS 调式：",
   "admin.service.attemptDescription": "用户被锁定并需要通过邮件重置密码前最大允许的登录尝试次数。",

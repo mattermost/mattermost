@@ -2250,8 +2250,6 @@
   "admin.security.password": "Lösenord",
   "admin.server_logs.CopyLog": "Kopiera logg",
   "admin.server_logs.DataCopied": "Informationen kopierad",
-  "admin.server_logs.Export": "Exportera",
-  "admin.server_logs.Exported": "Exporterad",
   "admin.server_logs.LogEvent": "Logghändelse",
   "admin.service.CorsDebugLabel": "CORS Debug:",
   "admin.service.attemptDescription": "Antal tillåtna inloggningsförsök innan användarkontot låses och användaren måste återställa lösenordet via e-post.",
