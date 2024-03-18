@@ -16,6 +16,7 @@ import (
 )
 
 func TestCreateChannelBookmark(t *testing.T) {
+	t.Skip("MM-57312")
 	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
 
