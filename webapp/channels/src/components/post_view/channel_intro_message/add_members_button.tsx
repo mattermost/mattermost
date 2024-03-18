@@ -118,17 +118,12 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
                             className='icon-account-plus-outline'
                             title={formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
                         />
-                        {isPrivate && channel.group_constrained &&
+                        {channel.group_constrained &&
                             <FormattedMessage
                                 id='intro_messages.inviteGropusToChannel.button'
                                 defaultMessage='Add groups'
                             />}
-                        {isPrivate && !channel.group_constrained &&
-                            <FormattedMessage
-                                id='intro_messages.inviteMembersToChannel.button'
-                                defaultMessage='Add people'
-                            />}
-                        {!isPrivate &&
+                        {!channel.group_constrained &&
                             <FormattedMessage
                                 id='intro_messages.inviteMembersToChannel.button'
                                 defaultMessage='Add people'

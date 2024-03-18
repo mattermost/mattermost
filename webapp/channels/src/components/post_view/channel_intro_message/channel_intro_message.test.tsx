@@ -100,8 +100,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
             expect(beginningHeading).toBeInTheDocument();
             expect(beginningHeading).toHaveClass('channel-intro__title');
 
-            expect(screen.getByText(`This is the start of the test channel channel, created by ${baseProps.creatorName} on October 17, 2017.`));
-            expect(screen.getByText('Any member can join and read this channel.')).toBeInTheDocument();
+            expect(screen.getByText('This is the start of test channel. Any team member can join and read this channel.')).toBeInTheDocument();
         });
     });
 

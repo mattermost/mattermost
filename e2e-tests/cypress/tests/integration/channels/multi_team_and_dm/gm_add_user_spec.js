@@ -136,7 +136,7 @@ describe('Multi-user group messages', () => {
         // * Original messages does not exist
         cy.contains('.post-message__text', 'historical').should('not.exist');
 
-        cy.contains('p.channel-intro-text span', 'This is the start of your group message history with');
+        cy.contains('p.channel-intro__text', 'This is the start of your group message history with');
 
         // * New user is added to the GM
         cy.get('.member-rhs__trigger').click();

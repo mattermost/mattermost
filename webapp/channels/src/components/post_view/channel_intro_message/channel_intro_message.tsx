@@ -201,13 +201,13 @@ function createGMIntroMessage(
                 <h2 className='channel-intro__title'>
                     {channel.display_name}
                 </h2>
-                <div className='channel-intro__text'>
+                <p className='channel-intro__text'>
                     <FormattedMessage
                         id='intro_messages.group_message'
                         defaultMessage={'This is the start of your group message history with these teammates. '}
                     />
                     {getGMIntroMessageSpecificPart(currentUserProfile, channelMembership)}
-                </div>
+                </p>
                 {actionButtons}
             </div>
         );
@@ -218,12 +218,12 @@ function createGMIntroMessage(
             id={channelIntroId}
             className={'channel-intro ' + centeredIntro}
         >
-            <div className='channel-intro__text'>
+            <p className='channel-intro__text'>
                 <FormattedMessage
                     id='intro_messages.group_message'
                     defaultMessage='This is the start of your group message history with these teammates. Messages and files shared here are not shown to people outside this area.'
                 />
-            </div>
+            </p>
         </div>
     );
 }
@@ -278,7 +278,7 @@ function createDMIntroMessage(
                         disablePopover={false}
                     />
                 </h2>
-                <div className='channel-intro__text'>
+                <p className='channel-intro__text'>
                     <FormattedMarkdownMessage
                         id='intro_messages.DM'
                         defaultMessage='This is the start of your direct message history with {teammate}. Messages and files shared here are not shown to anyone else.'
@@ -286,7 +286,7 @@ function createDMIntroMessage(
                             teammate: teammateName,
                         }}
                     />
-                </div>
+                </p>
                 {actionButtons}
             </div>
         );
@@ -297,12 +297,12 @@ function createDMIntroMessage(
             id={channelIntroId}
             className={'channel-intro ' + centeredIntro}
         >
-            <div className='channel-intro__text'>
+            <p className='channel-intro__text'>
                 <FormattedMessage
                     id='intro_messages.teammate'
                     defaultMessage='This is the start of your direct message history with this teammate. Messages and files shared here are not shown to anyone else.'
                 />
-            </div>
+            </p>
         </div>
     );
 }
@@ -371,7 +371,7 @@ function createOffTopicIntroMessage(
             <h2 className='channel-intro__title'>
                 {channel.display_name}
             </h2>
-            <div className='channel-intro__text'>
+            <p className='channel-intro__text'>
                 <FormattedMessage
                     id='intro_messages.offTopic'
                     defaultMessage='This is the start of {display_name}, a channel for non-work-related conversations.'
@@ -379,7 +379,7 @@ function createOffTopicIntroMessage(
                         display_name: channel.display_name,
                     }}
                 />
-            </div>
+            </p>
             {actionButtons}
         </div>
     );
@@ -488,7 +488,7 @@ function createDefaultIntroMessage(
             <h2 className='channel-intro__title'>
                 {channel.display_name}
             </h2>
-            <div className='channel-intro__text'>
+            <p className='channel-intro__text'>
                 {!isReadOnly &&
                     <FormattedMessage
                         id='intro_messages.default'
@@ -507,7 +507,7 @@ function createDefaultIntroMessage(
                         }}
                     />
                 }
-            </div>
+            </p>
             {actionButtons}
         </div>
     );
@@ -538,14 +538,20 @@ function createStandardIntroMessage(
         memberMessage = (
             <FormattedMessage
                 id='intro_messages.onlyInvited'
-                defaultMessage=' Only invited members can see this private channel.'
+                defaultMessage='This is the start of {display_name}. Only invited members can see this private channel.'
+                values={{
+                    display_name: channel.display_name,
+                }}
             />
         );
     } else {
         memberMessage = (
             <FormattedMessage
                 id='intro_messages.anyMember'
-                defaultMessage=' Any member can join and read this channel.'
+                defaultMessage='This is the start of {display_name}. Any team member can join and read this channel.'
+                values={{
+                    display_name: channel.display_name,
+                }}
             />
         );
     }
@@ -565,7 +571,7 @@ function createStandardIntroMessage(
             createMessage = (
                 <FormattedMessage
                     id='intro_messages.noCreatorPrivate'
-                    defaultMessage='This is the start of the {name} private channel, created on {date}.'
+                    defaultMessage='Private channel created on {date}.'
                     values={{name: (uiName), date}}
                 />
             );
@@ -573,7 +579,7 @@ function createStandardIntroMessage(
             createMessage = (
                 <FormattedMessage
                     id='intro_messages.noCreator'
-                    defaultMessage='This is the start of the {name} channel, created on {date}.'
+                    defaultMessage='Public channel created on {date}.'
                     values={{name: (uiName), date}}
                 />
             );
@@ -583,7 +589,7 @@ function createStandardIntroMessage(
             <span>
                 <FormattedMessage
                     id='intro_messages.creatorPrivate'
-                    defaultMessage='This is the start of the {name} private channel, created by {creator} on {date}.'
+                    defaultMessage='Private channel created by {creator} on {date}.'
                     values={{
                         name: (uiName),
                         creator: (creatorName),
@@ -597,7 +603,7 @@ function createStandardIntroMessage(
             <span>
                 <FormattedMessage
                     id='intro_messages.creator'
-                    defaultMessage='This is the start of the {name} channel, created by {creator} on {date}.'
+                    defaultMessage='Public channel created by {creator} on {date}.'
                     values={{
                         name: (uiName),
                         creator: (creatorName),
@@ -610,27 +616,15 @@ function createStandardIntroMessage(
 
     let purposeMessage;
     if (channel.purpose && channel.purpose !== '') {
-        if (channel.type === Constants.PRIVATE_CHANNEL) {
-            purposeMessage = (
-                <span>
-                    <FormattedMessage
-                        id='intro_messages.purposePrivate'
-                        defaultMessage=" This private channel's purpose is: {purpose}"
-                        values={{purpose: channel.purpose}}
-                    />
-                </span>
-            );
-        } else if (channel.type === Constants.OPEN_CHANNEL) {
-            purposeMessage = (
-                <span>
-                    <FormattedMessage
-                        id='intro_messages.purpose'
-                        defaultMessage=" This channel's purpose is: {purpose}"
-                        values={{purpose: channel.purpose}}
-                    />
-                </span>
-            );
-        }
+        purposeMessage = (
+            <span>
+                <FormattedMessage
+                    id='intro_messages.purpose'
+                    defaultMessage=" This channel's purpose is: {purpose}"
+                    values={{purpose: channel.purpose}}
+                />
+            </span>
+        );
     }
 
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
@@ -689,10 +683,10 @@ function createStandardIntroMessage(
                 {isPrivate ? <LockOutlineIcon size={14}/> : <GlobeIcon size={14}/>}
                 {createMessage}
             </div>
-            <div className='channel-intro__text'>
+            <p className='channel-intro__text'>
                 {memberMessage}
                 {purposeMessage}
-            </div>
+            </p>
             {actionButtons}
         </div>
     );
