@@ -32,7 +32,7 @@ describe('MM-T154 Use keyboard navigation in emoji picker', () => {
             cy.get('#emojiPickerSearch').type(`{${dir}arrow}`);
 
             // * The first emoji in the "People" category should be selected
-            testSelectedIndex((idx) => expect(idx).to.equal((dir==='right')? 1 : 0));
+            testSelectedIndex((idx) => expect(idx).to.equal((dir === 'right') ? 1 : 0));
 
             // # Close emoji picker
             cy.get('#emojiPickerButton').click();

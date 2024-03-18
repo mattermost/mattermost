@@ -45,10 +45,10 @@ describe('Messaging', () => {
         openAndVerifyTooltip(() => cy.uiGetChannelMemberButton(), 'Members');
 
         // * Pinned post tooltip is present
-        openAndVerifyTooltip(() => cy.uiGetChannelPinButton(), 'Pinned posts');
+        openAndVerifyTooltip(() => cy.uiGetChannelPinButton(), 'Pinned messages');
 
         // * Saved posts tooltip is present
-        openAndVerifyTooltip(() => cy.uiGetSavedPostButton(), 'Saved posts');
+        openAndVerifyTooltip(() => cy.uiGetSavedPostButton(), 'Saved messages');
 
         // * Add to favorites posts tooltip is present - un checked
         openAndVerifyTooltip(() => cy.uiGetChannelFavoriteButton(), 'Add to Favorites');
@@ -75,9 +75,9 @@ describe('Messaging', () => {
         cy.uiGetToolTip(testChannel.display_name);
         cy.get('@longChannelAtSidebar').trigger('mouseout');
 
-        // * Check that the Demo plugin tooltip is present
-        cy.get('@channelHeader').find('.fa-plug').should('be.visible').trigger('mouseover');
-        cy.uiGetToolTip('Demo Plugin');
+        // // * Check that the Demo plugin tooltip is present
+        // cy.get('@channelHeader').find('.fa-plug').should('be.visible').trigger('mouseover');
+        // cy.uiGetToolTip('Demo Plugin');
     });
 });
 

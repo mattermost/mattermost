@@ -44,7 +44,7 @@ describe('Mark as Unread', () => {
         });
     });
 
-    it.only('MM-T249 Mark GM post as unread', () => {
+    it('MM-T249 Mark GM post as unread', () => {
         const userGroupIds = [testUser.id, otherUser1.id, otherUser2.id];
 
         // # Create a group channel for 3 users
