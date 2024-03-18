@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS ChannelBookmarks (
+    Id varchar(26) NOT NULL,
+    OwnerId varchar(26) NOT NULL,
+    ChannelId varchar(26) NOT NULL,
+    FileInfoId varchar(26) DEFAULT NULL,
+    CreateAt bigint(20) DEFAULT 0,
+    UpdateAt bigint(20) DEFAULT 0,
+    DeleteAt bigint(20) DEFAULT 0,
+    DisplayName text,
+    SortOrder bigint(20) DEFAULT 0,
+    LinkUrl text DEFAULT NULL,
+    ImageUrl text DEFAULT NULL,
+    Emoji varchar(64) DEFAULT NULL,
+    Type ENUM('link', 'file'),
+    OriginalId varchar(26) DEFAULT NULL,
+    ParentId varchar(26) DEFAULT NULL,
+    PRIMARY KEY (Id),
+    KEY idx_channelbookmarks_channelid (ChannelId),
+    KEY idx_channelbookmarks_update_at (UpdateAt),
+    KEY idx_channelbookmarks_delete_at (DeleteAt)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

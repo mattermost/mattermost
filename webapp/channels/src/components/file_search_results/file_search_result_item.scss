@@ -7,9 +7,9 @@
     align-items: center;
     padding: 11px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
     margin: 0 14px 8px 14px;
     background: transparent;
-    border-radius: 4px;
     color: var(--center-channel-color);
     cursor: pointer;
     transition: box-shadow 0.15s ease;
@@ -90,9 +90,9 @@
         min-width: 32px;
         height: 32px;
         justify-content: center;
+        border-radius: 4px;
         margin-left: 8px;
         background-color: var(--center-channel-bg);
-        border-radius: 4px;
         color: rgba(var(--center-channel-color-rgb), 0.64);
         cursor: pointer;
         fill: rgba(var(--center-channel-color-rgb), 0.64);

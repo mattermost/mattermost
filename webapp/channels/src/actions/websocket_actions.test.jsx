@@ -283,7 +283,7 @@ describe('handleUserRemovedEvent', () => {
 
     let redirectUserToDefaultTeam;
     beforeEach(async () => {
-        const globalActions = require('actions/global_actions'); // eslint-disable-line global-require
+        const globalActions = require('actions/global_actions');
         redirectUserToDefaultTeam = globalActions.redirectUserToDefaultTeam;
         redirectUserToDefaultTeam.mockReset();
     });

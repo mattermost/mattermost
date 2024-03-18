@@ -20,8 +20,8 @@
 .color-pad {
     padding: 5px;
     border-color: rgba(var(--center-channel-color-rgb), 0.32) !important;
-    background: v(center-channel-bg) !important;
     border-radius: 0 2px 2px 0;
+    background: v(center-channel-bg) !important;
     line-height: 0;
 }
 
