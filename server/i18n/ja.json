@@ -10090,10 +10090,6 @@
     "translation": "CSVヘッダーを書き込めませんでした。"
   },
   {
-    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": "チームメンバーの不正な更新: ユーザーをゲストと管理者に同時に設定することはできません。"
-  },
-  {
     "id": "app.compile_report_chunks.unsupported_format",
     "translation": "サポートされていないレポート形式です。"
   },
