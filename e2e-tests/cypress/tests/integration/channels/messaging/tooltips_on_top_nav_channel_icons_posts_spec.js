@@ -19,7 +19,14 @@ describe('Messaging', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
         cy.shouldHavePluginUploadEnabled();
-
+        cy.apiUpdateConfig({
+            ServiceSettings: {
+                EnableGifPicker: true,
+            },
+            FileSettings: {
+                EnablePublicLink: true,
+            },
+        });
         // # Login as test user and visit off-topic
         cy.apiInitSetup().then(({team, user, offTopicUrl}) => {
             testTeam = team;
@@ -76,8 +83,8 @@ describe('Messaging', () => {
         cy.get('@longChannelAtSidebar').trigger('mouseout');
 
         // // * Check that the Demo plugin tooltip is present
-        // cy.get('@channelHeader').find('.fa-plug').should('be.visible').trigger('mouseover');
-        // cy.uiGetToolTip('Demo Plugin');
+        cy.get('[role=button] .fa-plug').should('be.visible').trigger('mouseover');
+        cy.uiGetToolTip('Demo Plugin');
     });
 });
 
