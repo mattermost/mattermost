@@ -13,6 +13,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 import ConfirmModal from 'components/confirm_modal';
+import Nbsp from 'components/html_entities/nbsp';
 import ListModal, {DEFAULT_NUM_PER_PAGE} from 'components/list_modal';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
 import Menu from 'components/widgets/menu/menu';
@@ -128,7 +129,7 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                     height='32'
                 />
                 <div className='more-modal__details'>
-                    <div className='more-modal__name'>{item.display_name} {'-'} {'&nbsp;'}
+                    <div className='more-modal__name'>{item.display_name} <Nbsp/> {'-'} <Nbsp/>
                         <span className='more-modal__name_count'>
                             <FormattedMessage
                                 id='numMembers'

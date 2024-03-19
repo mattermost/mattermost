@@ -2,17 +2,27 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
-import {useIntl, FormattedMessage, FormattedNumber} from 'react-intl';
+import {useIntl, FormattedMessage, FormattedNumber, defineMessages} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import Input from 'components/widgets/inputs/input/input';
+import WithTooltip from 'components/with_tooltip';
 
-import {Constants, ItemStatus} from 'utils/constants';
+import {ItemStatus} from 'utils/constants';
 
 import './seats_calculator.scss';
+
+const messages = defineMessages({
+    tooltipText: {
+        id: 'admin.billing.subscription.userCount.tooltipTitle',
+        defaultMessage: 'Current User Count',
+    },
+    tooltipTitle: {
+        id: 'admin.billing.subscription.userCount.tooltipText',
+        defaultMessage: 'You must purchase at least the current number of active users.',
+    },
+});
 
 interface Props {
     price: number;
@@ -154,25 +164,6 @@ export default function SeatsCalculator(props: Props) {
 
     const maxSeats = calculateMaxUsers(annualPricePerSeat);
     const total = '$' + intl.formatNumber((parseFloat(props.seats.quantity) || 0) * annualPricePerSeat, {maximumFractionDigits: 2});
-    const userCountTooltip = (
-        <Tooltip
-            id='userCount__tooltip'
-            className='self-hosted-user-count-tooltip'
-        >
-            <div className='tooltipTitle'>
-                <FormattedMessage
-                    defaultMessage={'Current User Count'}
-                    id={'admin.billing.subscription.userCount.tooltipTitle'}
-                />
-            </div>
-            <div className='tooltipText'>
-                <FormattedMessage
-                    defaultMessage={'You must purchase at least the current number of active users.'}
-                    id={'admin.billing.subscription.userCount.tooltipText'}
-                />
-            </div>
-        </Tooltip>
-    );
 
     return (
         <div className='SeatsCalculator'>
@@ -198,16 +189,17 @@ export default function SeatsCalculator(props: Props) {
                     </div>
                     <div className='SeatsCalculator__seats-tooltip'>
                         <div className='icon'>
-                            <OverlayTrigger
-                                delayShow={Constants.OVERLAY_TIME_DELAY}
+                            <WithTooltip
+                                id='userCount__tooltip'
+                                title={messages.tooltipTitle}
+                                hint={messages.tooltipText}
                                 placement='right'
-                                overlay={userCountTooltip}
                             >
                                 <InformationOutlineIcon
                                     size={18}
                                     color={'rgba(var(--center-channel-text-rgb), 0.75)'}
                                 />
-                            </OverlayTrigger>
+                            </WithTooltip>
                         </div>
                     </div>
                 </div>
@@ -242,6 +234,5 @@ export default function SeatsCalculator(props: Props) {
                 )}
             </div>
         </div>
-
     );
 }
