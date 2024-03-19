@@ -5012,7 +5012,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Boyut sınırı aşıldı. [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded) değerini denetlemeyi deneyin."
+    "translation": "Boyut sınırı aşıldı. En büyük dosya boyutu ayarını artırmayı deneyin. Ayrıntılı bilgi almak için https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded adresine bakabilirsiniz."
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -7608,7 +7608,7 @@
   },
   {
     "id": "app.user.get_threads_for_user.not_found",
-    "translation": "Kullanıcının konusu bulunamadı ya da takip edilmiyor"
+    "translation": "Kullanıcının konusu bulunamadı ya da izlenmiyor"
   },
   {
     "id": "api.unable_to_read_file_from_backend",
@@ -8523,7 +8523,7 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " takip ettiğiniz bir konuyu yanıtladı."
+    "translation": " izlediğiniz bir konuyu yanıtladı."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -8551,11 +8551,11 @@
   },
   {
     "id": "app.notification.body.thread_channel_full.subTitle",
-    "translation": "Siz uzaktayken {{.SenderName}}, takip ettiğiniz {{.ChannelName}} kanalında bir konuyu yanıtladı."
+    "translation": "Siz uzaktayken {{.SenderName}}, izlediğiniz {{.ChannelName}} kanalında bir konuyu yanıtladı."
   },
   {
     "id": "app.notification.body.thread_channel.subTitle",
-    "translation": "Siz uzaktayken, {{.SenderName}} takip ettiğiniz bir konuyu yanıtladı."
+    "translation": "Siz uzaktayken, {{.SenderName}} izlediğiniz bir konuyu yanıtladı."
   },
   {
     "id": "api.push_notification.title.collapsed_threads_dm",
@@ -9676,5 +9676,25 @@
   {
     "id": "model.config.is_valid.log.advanced_logging.parse",
     "translation": "Biçim geçersiz: {{.Error}}"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "{{.NumMessages}} ileti bulunan bir konu taşındı: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Bir ileti taşındı: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "{{.NumMessages}} ileti bulunan bir konu Doğrudan/Grup iletisine taşındı\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Bir ileti Doğrudan/Grup iletisine taşındı\n"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Bu konu başka bir kanaldan taşınmış"
   }
 ]
