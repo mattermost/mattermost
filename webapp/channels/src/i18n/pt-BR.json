@@ -4241,8 +4241,6 @@
   "team.button.ariaLabel": "equipe {teamName}",
   "team.button.mentions.ariaLabel": "equipe {teamName}, {mentionCount} menções",
   "team.button.name_undefined": "Esta equipe não tem um nome",
-  "team.button.tooltip": "Ctrl+Alt+{order}",
-  "team.button.tooltip.mac": "⌘ ⌥ {order}",
   "team.button.unread.ariaLabel": "{teamName} equipe não lida",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{amount, number} {amount, plural, one {Grupo} other {Grupos}}",
   "team_member_modal.invitePeople": "Convidar Pessoas",

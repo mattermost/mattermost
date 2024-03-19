@@ -5216,8 +5216,6 @@
   "team.button.ariaLabel": "{teamName}チーム",
   "team.button.mentions.ariaLabel": "{teamName}チーム, {mentionCount}のあなたについての投稿",
   "team.button.name_undefined": "このチームには名前がありません",
-  "team.button.tooltip": "Ctrl|Alt|{order}",
-  "team.button.tooltip.mac": "⌘|⌥|{order}",
   "team.button.unread.ariaLabel": "未読の{teamName}チーム",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{amount, number} {amount, plural, one {グループ} other {グループ}}",
   "team_groups": "{team} グループ",

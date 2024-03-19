@@ -4316,8 +4316,6 @@
   "team.button.ariaLabel": "equipo {teamName}",
   "team.button.mentions.ariaLabel": "equipo {teamName}, {mentionCount} menciones",
   "team.button.name_undefined": "Este equipo no tiene nombre",
-  "team.button.tooltip": "Ctrl|Alt|{order}",
-  "team.button.tooltip.mac": "⌘|⌥|{order}",
   "team.button.unread.ariaLabel": "equipo {teamName} sin leer",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{amount, number} {amount, plural, one {Grupo} other {Grupos}}",
   "team_member_modal.invitePeople": "Invitar Personas",

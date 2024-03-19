@@ -5156,8 +5156,6 @@
   "team.button.ariaLabel": "{teamName} takımı",
   "team.button.mentions.ariaLabel": "{teamName} takımı, {mentionCount} anma",
   "team.button.name_undefined": "Bu takımın bir adı yok",
-  "team.button.tooltip": "Ctrl|Alt|{order}",
-  "team.button.tooltip.mac": "⌘|⌥|{order}",
   "team.button.unread.ariaLabel": "{teamName} takımı okunmamış",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{amount, number} {amount, plural, one {grup} other {grup}}",
   "team_groups": "{team} grupları",

@@ -3987,8 +3987,6 @@
   "team.button.ariaLabel": "تیم {teamName}",
   "team.button.mentions.ariaLabel": "تیم {teamName}، {mentionCount} ذکر شده است",
   "team.button.name_undefined": "این تیم نامی ندارد",
-  "team.button.tooltip": "Ctrl|Alt|{سفارش}",
-  "team.button.tooltip.mac": "⌘|⌥|{سفارش}",
   "team.button.unread.ariaLabel": "تیم {teamName} خوانده نشده است",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{مقدار، عدد} {مقدار، جمع، یک {گروه} دیگر {گروه‌ها}}",
   "team_member_modal.invitePeople": "مردم را دعوت کنید",

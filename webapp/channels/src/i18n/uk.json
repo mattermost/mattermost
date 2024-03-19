@@ -2358,8 +2358,6 @@
   "system_notice.remind_me": "Нагадай мені пізніше",
   "system_notice.title": "**Примітка**\nвід Mattermost",
   "team.button.ariaLabel": "{teamName} team",
-  "team.button.tooltip": "Ctrl+Alt+{order}",
-  "team.button.tooltip.mac": "⌘ ⌥ {order}",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{count, number} {count, plural, one {user} other {users}}",
   "team_member_modal.members": "{team} Учасники",
   "team_members_dropdown.confirmDemoteDescription": "Якщо ви позбавите себе статусу Адміністратора системи і не буде нікого з таким же статусом, то ви повинні перепризначити Адміністратора системи за допомогою доступу до сервера Mattermost через термінал.",

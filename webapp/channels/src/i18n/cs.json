@@ -4826,8 +4826,6 @@
   "team.button.ariaLabel": "{teamName} tým",
   "team.button.mentions.ariaLabel": "{teamName} tým, {mentionCount} zmínek",
   "team.button.name_undefined": "Tento tým nemá jméno",
-  "team.button.tooltip": "Ctrl|Alt|{order}",
-  "team.button.tooltip.mac": "⌘|⌥|{order}",
   "team.button.unread.ariaLabel": "nepřečtený tým {teamName}",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{amount, number} {amount, plural, one {Skupina} other {Skupin}}",
   "team_groups": "{team} Skupiny",

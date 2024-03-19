@@ -4604,8 +4604,6 @@
   "team.button.ariaLabel": "đội {teamName}",
   "team.button.mentions.ariaLabel": "Nhóm {teamName}, {nhắcCount} lượt đề cập",
   "team.button.name_undefined": "Nhóm này không có tên",
-  "team.button.tooltip": "Ctrl + Alt + {order}",
-  "team.button.tooltip.mac": "⌘ ⌥ {order}",
   "team.button.unread.ariaLabel": "Nhóm {teamName} chưa đọc",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{amount, number} {amount, số nhiều, một {Group} khác {Groups}}",
   "team_member_modal.invitePeople": "Thêm Mới Thành Viên",

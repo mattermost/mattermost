@@ -3060,8 +3060,6 @@
   "team.button.ariaLabel": "{teamName} 團隊",
   "team.button.mentions.ariaLabel": "{teamName} 團隊，{mentionCount} 個提及",
   "team.button.name_undefined": "此團隊沒有名稱",
-  "team.button.tooltip": "Ctrl+Alt+{order}",
-  "team.button.tooltip.mac": "⌘ ⌥ {order}",
   "team.button.unread.ariaLabel": "來自 {teamName} 團隊的未讀",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{amount, number} 個群組",
   "team_member_modal.invitePeople": "邀請他人",

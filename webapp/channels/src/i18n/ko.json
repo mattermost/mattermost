@@ -2993,8 +2993,6 @@
   "system_notice.remind_me": "나중에 상기시켜 주세요.",
   "system_notice.title.gm_as_dm": "그룹 메시지 업데이트",
   "team.button.ariaLabel": "{teamName} team",
-  "team.button.tooltip": "Ctrl+Alt+{order}",
-  "team.button.tooltip.mac": "⌘ ⌥ {order}",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{amount, number} {amount, plural, one {Group} 그외 {Groups}}",
   "team_member_modal.invitePeople": "초대하기",
   "team_member_modal.members": "{team} 회원",

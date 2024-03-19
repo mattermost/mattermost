@@ -4249,8 +4249,6 @@
   "team.button.ariaLabel": "{teamName} csapat",
   "team.button.mentions.ariaLabel": "A {teamName} csapat {mentionCount} említései",
   "team.button.name_undefined": "Ennek a csapatnak nincs neve",
-  "team.button.tooltip": "Ctrl|Alt|{order}",
-  "team.button.tooltip.mac": "⌘|⌥|{order}",
   "team.button.unread.ariaLabel": "{teamName} csapat olvasatlan",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{amount, number} csoport",
   "team_member_modal.invitePeople": "Személyek meghívása",

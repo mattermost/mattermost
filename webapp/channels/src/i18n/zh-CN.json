@@ -5234,8 +5234,6 @@
   "team.button.ariaLabel": "{teamName} 团队",
   "team.button.mentions.ariaLabel": "{teamName} 团队，{mentionCount} 个提及",
   "team.button.name_undefined": "此团队缺少名称",
-  "team.button.tooltip": "Ctrl|Alt|{order}",
-  "team.button.tooltip.mac": "⌘|⌥|{order}",
   "team.button.unread.ariaLabel": "{teamName} 团队未读",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{amount, number} 个群组",
   "team_groups": "{team} 群组",

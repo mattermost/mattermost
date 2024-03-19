@@ -5104,8 +5104,6 @@
   "team.button.ariaLabel": "{teamName} team",
   "team.button.mentions.ariaLabel": "{teamName} team, {mentionCount} omnämnanden",
   "team.button.name_undefined": "Detta team har inget namn",
-  "team.button.tooltip": "Ctrl|Alt|{order}",
-  "team.button.tooltip.mac": "⌘|⌥|{order}",
   "team.button.unread.ariaLabel": "Oläst team {teamName}",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{amount, number} {amount, plural, one {grupp} other {grupper}}",
   "team_groups": "{team} grupper",

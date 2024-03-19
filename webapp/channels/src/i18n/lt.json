@@ -4618,8 +4618,6 @@
   "team.button.ariaLabel": "{teamName} komanda",
   "team.button.mentions.ariaLabel": "{teamName} komanda, {mentionCount} paminėjimai",
   "team.button.name_undefined": "Ši komanda neturi pavadinimo",
-  "team.button.tooltip": "Ctrl|Alt|{tvarka}",
-  "team.button.tooltip.mac": "⌘|⌥|{užsakymas}",
   "team.button.unread.ariaLabel": "{teamName} komanda neskaityta",
   "team_channel_settings.group.group_user_row.numberOfGroups": "{amount, number} {amount, plural, one {Group} other {Groups}}",
   "team_member_modal.invitePeople": "Pakvieskite žmones",
