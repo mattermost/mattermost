@@ -4,8 +4,9 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"net/http"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )

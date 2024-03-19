@@ -4144,7 +4144,7 @@
   },
   {
     "id": "api.user.create_user.user_limits.exceeded",
-    "translation": "Cannot create new user as active user count have exceeded the permissible limit."
+    "translation": "Can't create user. Server exceeds safe user limit. Contact your system administrator."
   },
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
@@ -7173,6 +7173,10 @@
   {
     "id": "app.user.update.find.app_error",
     "translation": "Unable to find the existing account to update."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Can't activate user. Server exceeds safe user limit. Contact your system administrator. Error code: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "app.user.update.finding.app_error",

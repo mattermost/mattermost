@@ -230,9 +230,9 @@ func (a *App) CreateGuest(c request.CTX, user *model.User) (*model.User, *model.
 }
 
 func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*model.User, *model.AppError) {
-	exceeded, appErr := a.isUserLimitExceeded()
-	if appErr != nil {
-		return nil, appErr
+	exceeded, limitErr := a.isUserLimitExceeded()
+	if limitErr != nil {
+		return nil, limitErr
 	}
 
 	if exceeded {
@@ -333,11 +333,11 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		}(ruser.Id)
 	}
 
-	userLimits, appErr := a.GetUserLimits()
-	if appErr != nil {
+	userLimits, limitErr := a.GetUserLimits()
+	if limitErr != nil {
 		// we don't want to break the create user flow just because of this.
 		// So, we log the error, not return
-		mlog.Error("Error fetching user limits in createUserOrGuest", mlog.Err(appErr))
+		mlog.Error("Error fetching user limits in createUserOrGuest", mlog.Err(limitErr))
 	} else {
 		if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
 			mlog.Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
@@ -1012,6 +1012,17 @@ func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *
 }
 
 func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
+	if active {
+		exceeded, appErr := a.isUserLimitExceeded()
+		if appErr != nil {
+			return nil, appErr
+		}
+
+		if exceeded {
+			return nil, model.NewAppError("UpdateActive", "app.user.update_active.user_limit.exceeded", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	user.UpdateAt = model.GetMillis()
 	if active {
 		user.DeleteAt = 0
@@ -1056,17 +1067,6 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 				return true
 			}, plugin.UserHasBeenDeactivatedID)
 		})
-	}
-
-	if active {
-		userLimits, appErr := a.GetUserLimits()
-		if appErr != nil {
-			mlog.Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
-		} else {
-			if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-				mlog.Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
-			}
-		}
 	}
 
 	return ruser, nil
