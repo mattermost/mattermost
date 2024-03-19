@@ -104,13 +104,12 @@ services:
     networks:
       - mm-test
   keycloak:
-    image: "jboss/keycloak:10.0.2"
+    image: "bitnami/keycloak:23.0.7"
     restart: always
     environment:
-      KEYCLOAK_USER: mmuser
-      KEYCLOAK_PASSWORD: mostest
-      DB_VENDOR: h2
-      KEYCLOAK_IMPORT: /setup/realm.json
+      KEYCLOAK_ADMIN: mmuser
+      KEYCLOAK_ADMIN_PASSWORD: mostest
+      KEYCLOAK_DATABASE_VENDOR: dev-file
     networks:
       - mm-test
     volumes:
