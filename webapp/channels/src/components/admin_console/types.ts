@@ -124,6 +124,7 @@ type AdminDefinitionSettingButton = AdminDefinitionSettingBase & {
     error_message: string | MessageDescriptor;
     success_message?: string | MessageDescriptor;
     sourceUrlKey?: string;
+    skipSaveNeeded?: boolean;
 }
 
 type AdminDefinitionSettingUsername = AdminDefinitionSettingBase & {

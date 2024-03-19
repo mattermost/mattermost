@@ -49,9 +49,9 @@ func (s LocalCachePostStore) ClearCaches() {
 	s.PostStore.ClearCaches()
 
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Purge")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Purge")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Posts Usage Cache - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.lastPostTimeCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.postLastPostsCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.postsUsageCache.Name())
 	}
 }
 
@@ -65,8 +65,8 @@ func (s LocalCachePostStore) InvalidateLastPostTimeCache(channelId string) {
 	s.PostStore.InvalidateLastPostTimeCache(channelId)
 
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Remove by Channel Id")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Remove by Channel Id")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.lastPostTimeCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.postLastPostsCache.Name())
 	}
 }
 
