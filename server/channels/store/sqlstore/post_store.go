@@ -2473,14 +2473,12 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID str
 		ON
 			Posts.ChannelId = Channels.Id
 		WHERE
-			Posts.CreateAt > ?
-		OR
-			(Posts.CreateAt = ? AND Posts.Id > ?)
+			(Posts.CreateAt, Posts.Id) > (?, ?)
 		ORDER BY
 			Posts.CreateAt ASC, Posts.Id ASC
 		LIMIT
 			?`
-	err := s.GetSearchReplicaX().Select(&posts, query, startTime, startTime, startPostID, limit)
+	err := s.GetSearchReplicaX().Select(&posts, query, startTime, startPostID, limit)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
