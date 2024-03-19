@@ -728,13 +728,8 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 			Type:        model.ChannelTypePrivate,
 		}, 10)
 		require.NoError(t, nErr)
-<<<<<<< HEAD
-		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
-			UserId:      userId,
-=======
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   channel1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
@@ -747,13 +742,8 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 			Type:        model.ChannelTypeOpen,
 		}, 10)
 		require.NoError(t, nErr)
-<<<<<<< HEAD
-		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
-			UserId:      userId,
-=======
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   channel2.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
@@ -807,13 +797,8 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		require.NoError(t, nErr)
 		defer ss.Channel().PermanentDelete(rctx, channel1.Id)
 
-<<<<<<< HEAD
-		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
-			UserId:      userId,
-=======
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   channel1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
@@ -856,13 +841,8 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 			Type:        model.ChannelTypePrivate,
 		}, 10)
 		require.NoError(t, nErr)
-<<<<<<< HEAD
-		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
-			UserId:      userId,
-=======
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   channel1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
@@ -875,13 +855,8 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 			Type:        model.ChannelTypeOpen,
 		}, 10)
 		require.NoError(t, nErr)
-<<<<<<< HEAD
-		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
-			UserId:      userId,
-=======
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   channel2.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
@@ -976,13 +951,8 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		}, 10)
 		require.NoError(t, nErr)
 		defer ss.Channel().PermanentDelete(rctx, gmChannel.Id)
-<<<<<<< HEAD
-		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
-			UserId:      userId,
-=======
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   gmChannel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
@@ -1329,13 +1299,8 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-<<<<<<< HEAD
-		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
-			UserId:      userId,
-=======
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
@@ -1594,24 +1559,14 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-<<<<<<< HEAD
-		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
-			UserId:      userId,
-=======
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
 		require.NoError(t, nErr)
-<<<<<<< HEAD
-		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
-			UserId:      userId2,
-=======
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userID2,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
@@ -1717,13 +1672,8 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-<<<<<<< HEAD
-		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
-			UserId:      userId,
-=======
 		_, err := ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
@@ -1890,13 +1840,8 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-<<<<<<< HEAD
-		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
-			UserId:      userId,
-=======
 		_, err := ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
@@ -1963,13 +1908,8 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-<<<<<<< HEAD
-		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
-			UserId:      userId,
-=======
 		_, err := ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})

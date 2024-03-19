@@ -615,21 +615,7 @@ func testFileInfoPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.S
 	})
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	bookmarkFile, err := ss.FileInfo().Save(rctx, &model.FileInfo{ // should not be deleted
-		PostId:    postId,
-		ChannelId: channelId,
-		CreatorId: model.BookmarkFileOwner,
-		Path:      "file.txt",
-		CreateAt:  1000,
-	})
-	defer ss.FileInfo().PermanentDelete(rctx, bookmarkFile.Id)
-	require.NoError(t, err)
-
-	postFiles, err := ss.FileInfo().GetForPost(postId, true, false, false)
-=======
 	postFiles, err := ss.FileInfo().GetForPost(postID, true, false, false)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, err)
 	assert.Len(t, postFiles, 4)
 

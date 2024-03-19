@@ -80,15 +80,9 @@ func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Save replies", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel1, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -101,13 +95,8 @@ func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		o1.RootId = model.NewId()
 		o1.Message = NewTestId()
 
-<<<<<<< HEAD
-		channel2, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		channel2, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName2",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -120,13 +109,8 @@ func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		o2.RootId = o1.RootId
 		o2.Message = NewTestId()
 
-<<<<<<< HEAD
-		channel3, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		channel3, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName3",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -166,15 +150,9 @@ func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Update reply should update the UpdateAt of the root post", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -324,54 +302,33 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Save replies", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel1, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		channel2, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		channel2, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName2",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		channel3, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		channel3, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName3",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		channel4, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		channel4, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName4",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -427,15 +384,9 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Update reply should update the UpdateAt of the root post", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -518,15 +469,9 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Thread participants", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel1, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -541,52 +486,32 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		root, err := ss.Post().Save(rctx, &o1)
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		channel2, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		channel2, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName2",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		channel3, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		channel3, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName3",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		channel4, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		channel4, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName4",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		channel5, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		channel5, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName5",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -701,15 +626,9 @@ func testPostStoreSaveChannelMsgCounts(t *testing.T, rctx request.CTX, ss store.
 }
 
 func testPostStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -742,15 +661,9 @@ func testPostStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 
 func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Post thread is followed", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -778,15 +691,9 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Post thread is explicitly not followed", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -814,15 +721,9 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Post threadmembership does not exist", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -845,15 +746,9 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Pagination", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -1003,15 +898,9 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testPostStoreGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -1077,15 +966,9 @@ func testPostStoreGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -1163,13 +1046,8 @@ func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, ro3a.Hashtags, o3a.Hashtags, "Failed to update/get")
 	}
 
-<<<<<<< HEAD
-	channel2, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -1203,15 +1081,9 @@ func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 
 func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("single post, no replies", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -1258,15 +1130,9 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("thread with one reply", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -1306,15 +1172,9 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("thread with multiple replies", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -1347,13 +1207,8 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		channel2, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		channel2, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -1388,15 +1243,9 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("thread with multiple replies, update thread last reply at", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -1471,15 +1320,9 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("thread with file attachments", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -1560,15 +1403,9 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -1614,13 +1451,8 @@ func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Stor
 	r3, err = ss.Reaction().Save(r3)
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	channel2, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName2",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -1641,13 +1473,8 @@ func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Stor
 	_, err = ss.Reaction().Save(r4)
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	channel3, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	channel3, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName3",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -1747,15 +1574,9 @@ func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Stor
 }
 
 func testPostStorePermDelete1Level2(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel1, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -1777,13 +1598,8 @@ func testPostStorePermDelete1Level2(t *testing.T, rctx request.CTX, ss store.Sto
 	o2, err = ss.Post().Save(rctx, o2)
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	channel2, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName2",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -1811,15 +1627,9 @@ func testPostStorePermDelete1Level2(t *testing.T, rctx request.CTX, ss store.Sto
 }
 
 func testPostStoreGetWithChildren(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel1, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -1872,15 +1682,9 @@ func testPostStoreGetWithChildren(t *testing.T, rctx request.CTX, ss store.Store
 }
 
 func testPostStoreGetPostsWithDetails(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel1, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -1982,15 +1786,9 @@ func testPostStoreGetPostsWithDetails(t *testing.T, rctx request.CTX, ss store.S
 
 func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("without threads", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel1, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -2002,15 +1800,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 
 		var posts []*model.Post
 		for i := 0; i < 10; i++ {
-<<<<<<< HEAD
-			post, err := ss.Post().Save(rctx, &model.Post{
-				ChannelId: channelId,
-				UserId:    userId,
-=======
 			post, err := ss.Post().Save(&model.Post{
 				ChannelId: channelID,
 				UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 				Message:   "message",
 			})
 			require.NoError(t, err)
@@ -2098,15 +1890,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		})
 	})
 	t.Run("with threads", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel1, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -2124,45 +1910,27 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		// post5
 		// post6 (in response to post2)
 
-<<<<<<< HEAD
-		post1, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post1, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "message",
 		})
 		post1.ReplyCount = 1
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post2, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post2, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "message",
 		})
 		require.NoError(t, err)
 		post2.ReplyCount = 2
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post3, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post3, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			RootId:    post1.Id,
 			Message:   "message",
 		})
@@ -2170,15 +1938,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		post3.ReplyCount = 1
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post4, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post4, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			RootId:    post2.Id,
 			Message:   "message",
 		})
@@ -2186,29 +1948,17 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		post4.ReplyCount = 2
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post5, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post5, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "message",
 		})
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post6, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post6, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			RootId:    post2.Id,
 			Message:   "message",
 		})
@@ -2247,15 +1997,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		})
 	})
 	t.Run("with threads (skipFetchThreads)", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel1, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -2273,45 +2017,27 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		// post5
 		// post6 (in response to post2)
 
-<<<<<<< HEAD
-		post1, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post1, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "post1",
 		})
 		require.NoError(t, err)
 		post1.ReplyCount = 1
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post2, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post2, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "post2",
 		})
 		require.NoError(t, err)
 		post2.ReplyCount = 2
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post3, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post3, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			RootId:    post1.Id,
 			Message:   "post3",
 		})
@@ -2319,15 +2045,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		post3.ReplyCount = 1
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post4, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post4, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			RootId:    post2.Id,
 			Message:   "post4",
 		})
@@ -2335,29 +2055,17 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		post4.ReplyCount = 2
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post5, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post5, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "post5",
 		})
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post6, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post6, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			RootId:    post2.Id,
 			Message:   "post6",
 		})
@@ -2404,15 +2112,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		})
 	})
 	t.Run("with threads (collapsedThreads)", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel1, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -2430,45 +2132,27 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		// post5
 		// post6 (in response to post2)
 
-<<<<<<< HEAD
-		post1, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post1, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "post1",
 		})
 		require.NoError(t, err)
 		post1.ReplyCount = 1
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post2, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post2, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "post2",
 		})
 		require.NoError(t, err)
 		post2.ReplyCount = 2
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post3, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post3, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			RootId:    post1.Id,
 			Message:   "post3",
 		})
@@ -2476,15 +2160,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		post3.ReplyCount = 1
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post4, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post4, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			RootId:    post2.Id,
 			Message:   "post4",
 		})
@@ -2492,29 +2170,17 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		post4.ReplyCount = 2
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post5, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post5, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "post5",
 		})
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post6, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post6, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			RootId:    post2.Id,
 			Message:   "post6",
 		})
@@ -2550,15 +2216,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 
 func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should return posts created after the given time", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel1, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -2568,86 +2228,50 @@ func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) 
 		channelID := channel1.Id
 		userID := model.NewId()
 
-<<<<<<< HEAD
-		post1, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post1, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "message",
 		})
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		_, err = ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		_, err = ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "message",
 		})
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post3, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post3, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "message",
 		})
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post4, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post4, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "message",
 		})
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post5, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post5, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "message",
 			RootId:    post3.Id,
 		})
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post6, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post6, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "message",
 			RootId:    post1.Id,
 		})
@@ -2674,15 +2298,9 @@ func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 
 	t.Run("should return empty list when nothing has changed", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel1, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -2692,15 +2310,9 @@ func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) 
 		channelID := channel1.Id
 		userID := model.NewId()
 
-<<<<<<< HEAD
-		post1, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post1, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "message",
 		})
 		require.NoError(t, err)
@@ -2716,15 +2328,9 @@ func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) 
 	t.Run("should not cache a timestamp of 0 when nothing has changed", func(t *testing.T) {
 		ss.Post().ClearCaches()
 
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel1, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -2734,15 +2340,9 @@ func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) 
 		channelID := channel1.Id
 		userID := model.NewId()
 
-<<<<<<< HEAD
-		post1, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post1, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "message",
 		})
 		require.NoError(t, err)
@@ -2765,15 +2365,9 @@ func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) 
 }
 
 func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel1, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -2783,86 +2377,50 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelID := channel1.Id
 	userID := model.NewId()
 
-<<<<<<< HEAD
-	post1, err := ss.Post().Save(rctx, &model.Post{
-		ChannelId: channelId,
-		UserId:    userId,
-=======
 	post1, err := ss.Post().Save(&model.Post{
 		ChannelId: channelID,
 		UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		Message:   "message",
 	})
 	require.NoError(t, err)
 	time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-	post2, err := ss.Post().Save(rctx, &model.Post{
-		ChannelId: channelId,
-		UserId:    userId,
-=======
 	post2, err := ss.Post().Save(&model.Post{
 		ChannelId: channelID,
 		UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		Message:   "message",
 	})
 	require.NoError(t, err)
 	time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-	post3, err := ss.Post().Save(rctx, &model.Post{
-		ChannelId: channelId,
-		UserId:    userId,
-=======
 	post3, err := ss.Post().Save(&model.Post{
 		ChannelId: channelID,
 		UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		Message:   "message",
 	})
 	require.NoError(t, err)
 	time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-	post4, err := ss.Post().Save(rctx, &model.Post{
-		ChannelId: channelId,
-		UserId:    userId,
-=======
 	post4, err := ss.Post().Save(&model.Post{
 		ChannelId: channelID,
 		UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		Message:   "message",
 	})
 	require.NoError(t, err)
 	time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-	post5, err := ss.Post().Save(rctx, &model.Post{
-		ChannelId: channelId,
-		UserId:    userId,
-=======
 	post5, err := ss.Post().Save(&model.Post{
 		ChannelId: channelID,
 		UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		Message:   "message",
 		RootId:    post3.Id,
 	})
 	require.NoError(t, err)
 	time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-	post6, err := ss.Post().Save(rctx, &model.Post{
-		ChannelId: channelId,
-		UserId:    userId,
-=======
 	post6, err := ss.Post().Save(&model.Post{
 		ChannelId: channelID,
 		UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		Message:   "message",
 		RootId:    post1.Id,
 	})
@@ -2995,15 +2553,9 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testPostStoreGetPostBeforeAfter(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel1, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -3048,13 +2600,8 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, rctx request.CTX, ss store.St
 	require.NoError(t, err)
 	time.Sleep(2 * time.Millisecond)
 
-<<<<<<< HEAD
-	channel2, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName2",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -3497,15 +3044,9 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	_, err = ss.Channel().SaveMember(rctx, m0)
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel2, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName2",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -3547,13 +3088,8 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	time.Sleep(2 * time.Millisecond)
 
 	// Post on channel where user is not a member
-<<<<<<< HEAD
-	channel3, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	channel3, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName3",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -3721,15 +3257,9 @@ func testPostStoreGetFlaggedPosts(t *testing.T, rctx request.CTX, ss store.Store
 	time.Sleep(2 * time.Millisecond)
 
 	// Post on channel where user is not a member
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel2, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName2",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -3866,15 +3396,9 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, rctx request.CTX, ss s
 	time.Sleep(2 * time.Millisecond)
 
 	// deleted post
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel3, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel3, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName3",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -3899,13 +3423,8 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, rctx request.CTX, ss s
 	time.Sleep(2 * time.Millisecond)
 
 	// Post on channel where user is not a member
-<<<<<<< HEAD
-	channel4, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	channel4, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName4",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -3994,15 +3513,9 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, rctx request.CTX, ss s
 }
 
 func testPostStoreGetPostsCreatedAt(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel1, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -4036,13 +3549,8 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, rctx request.CTX, ss store.Sto
 	_, err = ss.Post().Save(rctx, o2)
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	channel2, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName2",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -4062,15 +3570,9 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, rctx request.CTX, ss store.Sto
 }
 
 func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel1, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -4099,13 +3601,8 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 	o3, err = ss.Post().Save(rctx, o3)
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	channel2, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName2",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -4120,13 +3617,8 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	channel3, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	channel3, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName3",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -4228,15 +3720,9 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 }
 
 func testPostStoreOverwrite(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel1, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -4265,13 +3751,8 @@ func testPostStoreOverwrite(t *testing.T, rctx request.CTX, ss store.Store) {
 	o3, err = ss.Post().Save(rctx, o3)
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	channel2, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	channel2, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName2",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -4356,15 +3837,9 @@ func testPostStoreOverwrite(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testPostStoreGetPostsByIds(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel1, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -4735,15 +4210,9 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 }
 
 func testPostStoreGetOldest(t *testing.T, rctx request.CTX, ss store.Store) {
-<<<<<<< HEAD
-	teamId := model.NewId()
-	channel1, err := ss.Channel().Save(rctx, &model.Channel{
-		TeamId:      teamId,
-=======
 	teamID := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		DisplayName: "DisplayName1",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
@@ -5138,15 +4607,9 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 
 func testHasAutoResponsePostByUserSince(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should return posts created after the given time", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel1, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
@@ -5156,15 +4619,9 @@ func testHasAutoResponsePostByUserSince(t *testing.T, rctx request.CTX, ss store
 		channelID := channel1.Id
 		userID := model.NewId()
 
-<<<<<<< HEAD
-		_, err = ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		_, err = ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "message",
 		})
 		require.NoError(t, err)
@@ -5172,29 +4629,17 @@ func testHasAutoResponsePostByUserSince(t *testing.T, rctx request.CTX, ss store
 		// runs in a goroutine.
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post2, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post2, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "message",
 		})
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-<<<<<<< HEAD
-		post3, err := ss.Post().Save(rctx, &model.Post{
-			ChannelId: channelId,
-			UserId:    userId,
-=======
 		post3, err := ss.Post().Save(&model.Post{
 			ChannelId: channelID,
 			UserId:    userID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			Message:   "auto response message",
 			Type:      model.PostTypeAutoResponder,
 		})

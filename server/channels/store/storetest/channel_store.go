@@ -375,15 +375,9 @@ func testGetChannelUnread(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamID2 := model.NewId()
 
 	uid := model.NewId()
-<<<<<<< HEAD
-	m1 := &model.TeamMember{TeamId: teamId1, UserId: uid}
-	m2 := &model.TeamMember{TeamId: teamId2, UserId: uid}
-	_, nErr := ss.Team().SaveMember(rctx, m1, -1)
-=======
 	m1 := &model.TeamMember{TeamId: teamID1, UserId: uid}
 	m2 := &model.TeamMember{TeamId: teamID2, UserId: uid}
 	_, nErr := ss.Team().SaveMember(m1, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 	_, nErr = ss.Team().SaveMember(rctx, m2, -1)
 	require.NoError(t, nErr)
@@ -4617,54 +4611,30 @@ func testCountPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		channelID := model.NewId()
 
-<<<<<<< HEAD
-		p1, err := ss.Post().Save(rctx, &model.Post{
-			UserId:    userId1,
-			ChannelId: channelId,
-=======
 		p1, err := ss.Post().Save(&model.Post{
 			UserId:    userID1,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1000,
 		})
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		_, err = ss.Post().Save(rctx, &model.Post{
-			UserId:    userId1,
-			ChannelId: channelId,
-=======
 		_, err = ss.Post().Save(&model.Post{
 			UserId:    userID1,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1001,
 		})
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		_, err = ss.Post().Save(rctx, &model.Post{
-			UserId:    userId2,
-			ChannelId: channelId,
-=======
 		_, err = ss.Post().Save(&model.Post{
 			UserId:    userID2,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1002,
 		})
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		_, err = ss.Post().Save(rctx, &model.Post{
-			UserId:    userId3,
-			ChannelId: channelId,
-=======
 		_, err = ss.Post().Save(&model.Post{
 			UserId:    userID3,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1003,
 		})
 		require.NoError(t, err)
@@ -4691,28 +4661,16 @@ func testCountPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		channelID := model.NewId()
 
-<<<<<<< HEAD
-		p1, err := ss.Post().Save(rctx, &model.Post{
-			UserId:    userId1,
-			ChannelId: channelId,
-=======
 		p1, err := ss.Post().Save(&model.Post{
 			UserId:    userID1,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1000,
 		})
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		_, err = ss.Post().Save(rctx, &model.Post{
-			UserId:    userId1,
-			ChannelId: channelId,
-=======
 		_, err = ss.Post().Save(&model.Post{
 			UserId:    userID1,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1001,
 			DeleteAt:  1001,
 		})
@@ -4732,84 +4690,48 @@ func testCountPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		channelID := model.NewId()
 
-<<<<<<< HEAD
-		p1, err := ss.Post().Save(rctx, &model.Post{
-			UserId:    userId1,
-			ChannelId: channelId,
-=======
 		p1, err := ss.Post().Save(&model.Post{
 			UserId:    userID1,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1000,
 		})
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		_, err = ss.Post().Save(rctx, &model.Post{
-			UserId:    userId1,
-			ChannelId: channelId,
-=======
 		_, err = ss.Post().Save(&model.Post{
 			UserId:    userID1,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1001,
 			Type:      model.PostTypeJoinChannel,
 		})
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		_, err = ss.Post().Save(rctx, &model.Post{
-			UserId:    userId1,
-			ChannelId: channelId,
-=======
 		_, err = ss.Post().Save(&model.Post{
 			UserId:    userID1,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1002,
 			Type:      model.PostTypeRemoveFromChannel,
 		})
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		_, err = ss.Post().Save(rctx, &model.Post{
-			UserId:    userId1,
-			ChannelId: channelId,
-=======
 		_, err = ss.Post().Save(&model.Post{
 			UserId:    userID1,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1003,
 			Type:      model.PostTypeLeaveTeam,
 		})
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		p5, err := ss.Post().Save(rctx, &model.Post{
-			UserId:    userId1,
-			ChannelId: channelId,
-=======
 		p5, err := ss.Post().Save(&model.Post{
 			UserId:    userID1,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1004,
 			Type:      model.PostTypeHeaderChange,
 		})
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		_, err = ss.Post().Save(rctx, &model.Post{
-			UserId:    userId1,
-			ChannelId: channelId,
-=======
 		_, err = ss.Post().Save(&model.Post{
 			UserId:    userID1,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1005,
 			Type:      "custom_nps_survey",
 		})
@@ -4841,15 +4763,9 @@ func testCountUrgentPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		channelID := model.NewId()
 
-<<<<<<< HEAD
-		p1, err := ss.Post().Save(rctx, &model.Post{
-			UserId:    userId1,
-			ChannelId: channelId,
-=======
 		p1, err := ss.Post().Save(&model.Post{
 			UserId:    userID1,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1000,
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
@@ -4861,15 +4777,9 @@ func testCountUrgentPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		_, err = ss.Post().Save(rctx, &model.Post{
-			UserId:    userId1,
-			ChannelId: channelId,
-=======
 		_, err = ss.Post().Save(&model.Post{
 			UserId:    userID1,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1001,
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
@@ -4881,28 +4791,16 @@ func testCountUrgentPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		_, err = ss.Post().Save(rctx, &model.Post{
-			UserId:    userId2,
-			ChannelId: channelId,
-=======
 		_, err = ss.Post().Save(&model.Post{
 			UserId:    userID2,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1002,
 		})
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-		_, err = ss.Post().Save(rctx, &model.Post{
-			UserId:    userId3,
-			ChannelId: channelId,
-=======
 		_, err = ss.Post().Save(&model.Post{
 			UserId:    userID3,
 			ChannelId: channelID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			CreateAt:  1003,
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
@@ -5233,11 +5131,7 @@ func testGetMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 	_, err := ss.User().Save(rctx, u1)
 	require.NoError(t, err)
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	m1 := model.ChannelMember{
@@ -5258,11 +5152,7 @@ func testGetMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 	_, err = ss.User().Save(rctx, &u2)
 	require.NoError(t, err)
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	m2 := model.ChannelMember{
@@ -5284,11 +5174,7 @@ func testGetMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 	_, err = ss.User().Save(rctx, &u3)
 	require.NoError(t, err)
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	m3 := model.ChannelMember{
@@ -5310,11 +5196,7 @@ func testGetMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 	_, err = ss.User().Save(rctx, u4)
 	require.NoError(t, err)
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u4.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	m4 := model.ChannelMember{
@@ -5358,11 +5240,7 @@ func testGetMemberCountsByGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	}
 	_, nErr = ss.User().Save(rctx, u1)
 	require.NoError(t, nErr)
-<<<<<<< HEAD
-	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, nErr)
 
 	m1 := model.ChannelMember{
@@ -5433,11 +5311,7 @@ func testGetMemberCountsByGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 		}
 		_, nErr = ss.User().Save(rctx, u)
 		require.NoError(t, nErr)
-<<<<<<< HEAD
-		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
-=======
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		require.NoError(t, nErr)
 
 		m := model.ChannelMember{
@@ -5491,11 +5365,7 @@ func testGetMemberCountsByGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 		}
 		_, nErr = ss.User().Save(rctx, u)
 		require.NoError(t, nErr)
-<<<<<<< HEAD
-		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
-=======
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		require.NoError(t, nErr)
 
 		m := model.ChannelMember{
@@ -5586,11 +5456,7 @@ func testGetGuestCount(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		_, err := ss.User().Save(rctx, u1)
 		require.NoError(t, err)
-<<<<<<< HEAD
-		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
-=======
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		require.NoError(t, nErr)
 
 		m1 := model.ChannelMember{
@@ -5615,11 +5481,7 @@ func testGetGuestCount(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		_, err := ss.User().Save(rctx, &u2)
 		require.NoError(t, err)
-<<<<<<< HEAD
-		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
-=======
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		require.NoError(t, nErr)
 
 		m2 := model.ChannelMember{
@@ -5644,11 +5506,7 @@ func testGetGuestCount(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		_, err := ss.User().Save(rctx, &u3)
 		require.NoError(t, err)
-<<<<<<< HEAD
-		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-=======
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u3.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		require.NoError(t, nErr)
 
 		m3 := model.ChannelMember{
@@ -5673,11 +5531,7 @@ func testGetGuestCount(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		_, err := ss.User().Save(rctx, u4)
 		require.NoError(t, err)
-<<<<<<< HEAD
-		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
-=======
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: u4.Id}, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 		require.NoError(t, nErr)
 
 		m4 := model.ChannelMember{
@@ -6273,13 +6127,8 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	_, err = ss.Channel().SaveMember(rctx, &m6)
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	tm5 := &model.TeamMember{TeamId: leftTeamId, UserId: m1.UserId}
-	_, err = ss.Team().SaveMember(rctx, tm5, -1)
-=======
 	tm5 := &model.TeamMember{TeamId: leftTeamID, UserId: m1.UserId}
 	_, err = ss.Team().SaveMember(tm5, -1)
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 	require.NoError(t, err)
 
 	err = ss.Channel().RemoveMember(rctx, o5.Id, m1.UserId)
@@ -6892,13 +6741,8 @@ func testChannelStoreSearchGroupChannels(t *testing.T, rctx request.CTX, ss stor
 	_, nErr := ss.Channel().Save(rctx, &gc1, -1)
 	require.NoError(t, nErr)
 
-<<<<<<< HEAD
-	for _, userId := range userIds {
-		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
-=======
 	for _, userID := range userIds {
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   gc1.Id,
 			UserId:      userID,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -6914,13 +6758,8 @@ func testChannelStoreSearchGroupChannels(t *testing.T, rctx request.CTX, ss stor
 	_, nErr = ss.Channel().Save(rctx, &gc2, -1)
 	require.NoError(t, nErr)
 
-<<<<<<< HEAD
-	for _, userId := range userIds {
-		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
-=======
 	for _, userID := range userIds {
 		_, err := ss.Channel().SaveMember(&model.ChannelMember{
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   gc2.Id,
 			UserId:      userID,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -6936,13 +6775,8 @@ func testChannelStoreSearchGroupChannels(t *testing.T, rctx request.CTX, ss stor
 	_, nErr = ss.Channel().Save(rctx, &gc3, -1)
 	require.NoError(t, nErr)
 
-<<<<<<< HEAD
-	for _, userId := range userIds {
-		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
-=======
 	for _, userID := range userIds {
 		_, err := ss.Channel().SaveMember(&model.ChannelMember{
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			ChannelId:   gc3.Id,
 			UserId:      userID,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -7147,15 +6981,9 @@ func testChannelStoreGetPinnedPosts(t *testing.T, rctx request.CTX, ss store.Sto
 	require.Empty(t, pl.Posts, "wasn't supposed to return posts")
 
 	t.Run("with correct ReplyCount", func(t *testing.T) {
-<<<<<<< HEAD
-		teamId := model.NewId()
-		channel, err := ss.Channel().Save(rctx, &model.Channel{
-			TeamId:      teamId,
-=======
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamID,
->>>>>>> fixed var-naming issues identified by go.lint-revive in 13 files
 			DisplayName: "DisplayName",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
