@@ -293,7 +293,9 @@ export function convertGroupMessageToPrivateChannel(channelID: string, teamID: s
             return {};
         }
 
-        return response;
+        return {
+            data: response.data,
+        };
     };
 }
 
