@@ -31,7 +31,7 @@ func testLogJoinEvent(t *testing.T, rctx request.CTX, ss store.Store) {
 	ch := model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(rctx, &ch, -1)
@@ -57,7 +57,7 @@ func testLogLeaveEvent(t *testing.T, rctx request.CTX, ss store.Store) {
 	ch := model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(rctx, &ch, -1)
@@ -86,7 +86,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, rctx request.CTX,
 	ch := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(rctx, ch, -1)
@@ -182,7 +182,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, rctx request.CTX, ss st
 	channel := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(rctx, channel, -1)
@@ -294,7 +294,7 @@ func testPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(rctx, channel, -1)
