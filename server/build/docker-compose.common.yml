@@ -106,7 +106,7 @@ services:
   keycloak:
     image: "quay.io/keycloak/keycloak:24.0.1"
     restart: always
-    command: start-dev --import-realm
+    command: start-dev --import-realm --verbose
     environment:
       KEYCLOAK_ADMIN: mmuser
       KEYCLOAK_ADMIN_PASSWORD: mostest
