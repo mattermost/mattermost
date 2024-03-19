@@ -82,12 +82,12 @@
         width: fit-content;
         flex-direction: row;
         align-items: center;
+        margin-bottom: 0;
         cursor: pointer;
         font-size: 14px;
         font-weight: 400;
         gap: 8px;
         line-height: 20px;
-        margin-bottom: 0;
     }
 
     // Todo: add styling for react select

@@ -5,8 +5,8 @@
     .modalSectionHeader {
         display: flex;
         flex-direction: column;
-        margin-block-end: 24px;
         gap: 8px;
+        margin-block-end: 24px;
 
         .modalSectionTitle {
             display: flex;
@@ -18,8 +18,8 @@
             font-size: 16px;
             font-style: normal;
             font-weight: 600;
-            line-height: 24px;
             gap: 8px;
+            line-height: 24px;
         }
 
         .modalSectionDescription {
