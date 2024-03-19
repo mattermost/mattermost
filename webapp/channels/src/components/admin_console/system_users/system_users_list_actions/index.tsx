@@ -12,7 +12,8 @@ import type {UserProfile} from '@mattermost/types/users';
 import {updateUserActive} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
 import General from 'mattermost-redux/constants/general';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig} from 'mattermost-redux/selectors/entities/admin';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isSystemAdmin, isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {adminResetMfa} from 'actions/admin_actions';
@@ -208,7 +209,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 }}
             />
 
-            {config.EnableUserAccessTokens === 'true' &&
+            {config.ServiceSettings?.EnableUserAccessTokens &&
             <Menu.Item
                 id={`${menuItemIdPrefix}-manageTokens`}
                 labels={
@@ -244,7 +245,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 }}
             />}
 
-            {user.mfa_active && config.EnableMultifactorAuthentication &&
+            {user.mfa_active && config.ServiceSettings?.EnableMultifactorAuthentication &&
             <Menu.Item
                 id={`${menuItemIdPrefix}-removeMFA`}
                 labels={
@@ -260,7 +261,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 }}
             />}
 
-            {Boolean(user.auth_service) && config.ExperimentalEnableAuthenticationTransfer === 'true' &&
+            {Boolean(user.auth_service) && config.ServiceSettings?.ExperimentalEnableAuthenticationTransfer &&
             <Menu.Item
                 id={`${menuItemIdPrefix}-switchToEmailPassword`}
                 labels={
@@ -323,7 +324,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     }));
                 }}
             />}
-            {!isGuest(user.roles) && user.id !== currentUser.id && isLicensed && config.EnableGuestAccounts === 'true' &&
+            {!isGuest(user.roles) && user.id !== currentUser.id && isLicensed && config.GuestAccountsSettings?.Enable &&
             <Menu.Item
                 id={`${menuItemIdPrefix}-demoteToGuest`}
                 labels={
@@ -364,7 +365,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 />}
             </SystemPermissionGate>
             <SystemPermissionGate permissions={[Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS]}>
-                {user.auth_service === Constants.LDAP_SERVICE &&
+                {(user.auth_service === Constants.LDAP_SERVICE || (user.auth_service === Constants.SAML_SERVICE && config.SamlSettings?.EnableSyncWithLdap)) &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-resyncUserViaLdapGroups`}
                     labels={

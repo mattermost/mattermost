@@ -3,55 +3,97 @@
 
 import React from 'react';
 import type {ComponentProps} from 'react';
-import type {MessageDescriptor} from 'react-intl';
+import {type MessageDescriptor} from 'react-intl';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
 import Tooltip from 'components/tooltip';
 
-import {getStringOrDescriptorComponent} from './utils';
+import {TooltipShortcutSequence, type ShortcutDefinition} from './shortcut';
+import {getAsFormattedMessage} from './utils';
+
+type EmojiStyle = 'inline' | 'large' | undefined;
 
 export type CommonTooltipProps = {
     id: string;
-    title: string | MessageDescriptor;
-    hint?: string | MessageDescriptor;
-    shortcut?: string[];
+    title: string | MessageDescriptor | React.ReactElement;
+    hint?: string | MessageDescriptor | React.ReactElement;
+    shortcut?: ShortcutDefinition;
     emoji?: string;
+    emojiStyle?: EmojiStyle;
 }
 
 export function createTooltip(commonTooltipProps: CommonTooltipProps) {
     return (props: Omit<ComponentProps<typeof Tooltip>, 'children' | 'id'>) => {
-        const title = getStringOrDescriptorComponent(commonTooltipProps.title);
-        const hint = getStringOrDescriptorComponent(commonTooltipProps.hint);
+        const contents = [];
 
-        const emoji = commonTooltipProps.emoji && (
-            <RenderEmoji
-                emojiName={commonTooltipProps.emoji}
-                size={12}
-            />
-        );
+        if (commonTooltipProps.emoji && commonTooltipProps.emojiStyle === 'large') {
+            contents.push(
+                <div
+                    key='emoji'
+                    className='tooltip-large-emoji'
+                >
+                    <RenderEmoji
+                        emojiName={commonTooltipProps.emoji}
+                        size={48}
+                    />
+                </div>,
+            );
+        }
+
+        const title = getAsFormattedMessage(commonTooltipProps.title);
+        if (commonTooltipProps.emoji && commonTooltipProps.emojiStyle !== 'large') {
+            contents.push(
+                <div
+                    key='title'
+                    className={'tooltip-title'}
+                >
+                    <RenderEmoji
+                        emojiName={commonTooltipProps.emoji}
+                        size={16}
+                    />
+                    {title}
+                </div>,
+            );
+        } else {
+            contents.push(
+                <div
+                    key='title'
+                    className={'tooltip-title'}
+                >
+                    {title}
+                </div>,
+            );
+        }
+
+        if (commonTooltipProps.shortcut) {
+            contents.push(
+                <div
+                    key='shortcut'
+                    className={'tooltip-shortcuts-container'}
+                >
+                    <TooltipShortcutSequence shortcut={commonTooltipProps.shortcut}/>
+                </div>,
+            );
+        }
+
+        const hint = getAsFormattedMessage(commonTooltipProps.hint);
+        if (commonTooltipProps.hint) {
+            contents.push(
+                <div
+                    key='hint'
+                    className={'tooltip-hint'}
+                >
+                    {hint}
+                </div>,
+            );
+        }
+
         return (
             <Tooltip
                 {...props}
                 id={commonTooltipProps.id}
             >
-                <div className={'tooltip-title'}>
-                    {emoji}
-                    {title}
-                </div>
-                {commonTooltipProps.shortcut && (
-                    <div className={'tooltip-shortcuts-container'}>
-                        {commonTooltipProps.shortcut.map((v) => (
-                            <ShortcutKey
-                                key={v}
-                                variant={ShortcutKeyVariant.Tooltip}
-                            >
-                                {v}
-                            </ShortcutKey>
-                        ))}
-                    </div>
-                )}
-                {commonTooltipProps.hint && (<div className={'tooltip-hint'}>{hint}</div>)}
+                {contents}
             </Tooltip>
         );
     };
