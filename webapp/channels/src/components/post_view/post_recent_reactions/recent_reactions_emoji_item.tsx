@@ -7,7 +7,7 @@ import {useIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
-import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
+import {getEmojiImageUrl, getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 type Props = {
     emoji: Emoji;
@@ -24,7 +24,7 @@ const EmojiItem = ({emoji, onItemClick, order}: Props) => {
 
     const itemClassName = 'post-menu__item';
 
-    const emojiName = isSystemEmoji(emoji) ? emoji.short_name ?? emoji.name : emoji.name;
+    const emojiName = getEmojiName(emoji);
 
     return (
         <div

@@ -10056,10 +10056,6 @@
     "translation": "Brak identyfikatora użytkownika do wysłania raportu"
   },
   {
-    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": "Nieprawidłowa aktualizacja członka zespołu: Użytkownik nie może być jednocześnie gościem i administratorem."
-  },
-  {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Nieprawidłowa aktualizacja członka zespołu: Gość nie może zostać członkiem zespołu ani administratorem zespołu, proszę zamienić go najpierw na użytkownika."
   },
@@ -10150,5 +10146,21 @@
   {
     "id": "basic_security_check.url.too_long_error",
     "translation": "Adres URL jest zbyt długi"
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Nieprawidłowe wejścia (status niestandardowy)"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Nieprawidłowa aktualizacja członka zespołu: Gość nie może być ustawiony dla pojedynczego zespołu, administrator systemu musi promować lub degradować użytkowników do/z gości."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Nie można zaprosić zdalnego do kanału: {{.Error}}"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Interakcje z portalem klienta Mattermost zostały wyłączone przez administratora systemu."
   }
 ]
