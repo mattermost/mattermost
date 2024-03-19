@@ -32,6 +32,7 @@ To setup SAML with the default development configuration, use the following sett
   - **Id Attribute**: `id`
   - **First Name Attribute**: `firstName`
   - **Last Name Attribute**: `lastName`
+  - **Nickname Attribute**: `` (leave empty)
 
 ## Credentials to log in
 
