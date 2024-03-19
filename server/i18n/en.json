@@ -4143,10 +4143,6 @@
     "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
   },
   {
-    "id": "api.user.create_user.user_limits.exceeded",
-    "translation": "Can't create user. Server exceeds safe user limit. Contact your system administrator."
-  },
-  {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "The email address in the token does not match the one in the user data."
   },
@@ -4181,6 +4177,10 @@
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "The signup link does not appear to be valid."
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Can't create user. Server exceeds safe user limit. Contact your system administrator."
   },
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
@@ -7175,12 +7175,12 @@
     "translation": "Unable to find the existing account to update."
   },
   {
-    "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Can't activate user. Server exceeds safe user limit. Contact your system administrator. Error code: ERROR_SAFETY_LIMITS_EXCEEDED."
-  },
-  {
     "id": "app.user.update.finding.app_error",
     "translation": "We encountered an error finding the account."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Can't activate user. Server exceeds safe user limit. Contact your system administrator. Error code: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "app.user.update_active_for_multiple_users.updating.app_error",
