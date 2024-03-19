@@ -27,11 +27,11 @@ export const getAvatarWidth = (size: TAvatarSizeToken) => {
         return 36;
     case 'xl':
         return 50;
-    case 'xxl':
-        return 72;
-    case 'xxxl':
+    case 'xl-custom-DM':
         return 96;
-    case 'xxxxl':
+    case 'xl-custom-GM':
+        return 72;
+    case 'xxl':
         return 128;
     }
     return 0;

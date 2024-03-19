@@ -175,7 +175,7 @@ function createGMIntroMessage(
                 <ProfilePicture
                     key={'introprofilepicture' + profile.id}
                     src={Utils.imageURLForUser(profile.id, profile.last_picture_update)}
-                    size='xxl'
+                    size='xl-custom-GM'
                     userId={profile.id}
                     username={profile.username}
                 />
@@ -265,7 +265,7 @@ function createDMIntroMessage(
                 <div className='post-profile-img__container channel-intro-img'>
                     <ProfilePicture
                         src={src}
-                        size='xxxl'
+                        size='xl-custom-DM'
                         status={teammate.is_bot ? '' : channel.status}
                         userId={teammate?.id}
                         username={teammate?.username}
