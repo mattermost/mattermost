@@ -48,22 +48,93 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	license.Features.Users = model.NewInt(licenseUsers)
 	th.App.Srv().SetLicense(license)
 
-	t.Run("Happy path", func(t *testing.T) {
-		// Happy path where we have a support packet yaml file without any warnings
+	generateSupportPacket := func(t *testing.T) *model.SupportPacket {
+		t.Helper()
 
 		fileData, err := th.App.generateSupportPacketYaml(th.Context)
 		require.NotNil(t, fileData)
 		assert.Equal(t, "support_packet.yaml", fileData.Filename)
 		assert.Positive(t, len(fileData.Body))
 		assert.NoError(t, err)
+
 		var packet model.SupportPacket
 		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
+		require.NotNil(t, packet)
+		return &packet
+	}
 
-		assert.Equal(t, 3, packet.ActiveUsers) // from InitBasic.
-		assert.Equal(t, licenseUsers, packet.LicenseSupportedUsers)
+	t.Run("Happy path", func(t *testing.T) {
+		// Happy path where we have a support packet yaml file without any warnings
+		packet := generateSupportPacket(t)
+
+		/* Build information */
+		assert.NotEmpty(t, packet.ServerOS)
+		assert.NotEmpty(t, packet.ServerArchitecture)
+		assert.NotEmpty(t, packet.ServerVersion)
+		assert.Equal(t, model.CurrentVersion, packet.ServerVersion)
+		// BuildHash is not present in tests
+
+		/* DB */
+		assert.NotEmpty(t, packet.DatabaseType)
+		assert.NotEmpty(t, packet.DatabaseVersion)
+		assert.NotEmpty(t, packet.DatabaseSchemaVersion)
+		assert.Zero(t, packet.WebsocketConnections)
+		assert.NotZero(t, packet.MasterDbConnections)
+		assert.Zero(t, packet.ReplicaDbConnections)
+
+		/* Cluster */
 		assert.Empty(t, packet.ClusterID)
+
+		/* File store */
 		assert.Equal(t, "local", packet.FileDriver)
 		assert.Equal(t, "OK", packet.FileStatus)
+
+		/* LDAP */
+		assert.Empty(t, packet.LdapVendorName)
+		assert.Empty(t, packet.LdapVendorVersion)
+
+		/* Elastic Search */
+		assert.Empty(t, packet.ElasticServerVersion)
+		assert.Empty(t, packet.ElasticServerPlugins)
+
+		/* License */
+		assert.Equal(t, "My awesome Company", packet.LicenseTo)
+		assert.Equal(t, licenseUsers, packet.LicenseSupportedUsers)
+		assert.Equal(t, "false", packet.LicenseIsTrial)
+
+		/* Server stats */
+		assert.Equal(t, 3, packet.ActiveUsers) // from InitBasic()
+		assert.Equal(t, 0, packet.DailyActiveUsers)
+		assert.Equal(t, 0, packet.MonthlyActiveUsers)
+		assert.Equal(t, 0, packet.InactiveUserCount)
+		assert.Equal(t, 5, packet.TotalPosts)    // from InitBasic()
+		assert.Equal(t, 3, packet.TotalChannels) // from InitBasic()
+		assert.Equal(t, 1, packet.TotalTeams)    // from InitBasic()
+
+		/* Jobs */
+		assert.Empty(t, packet.DataRetentionJobs)
+		assert.Empty(t, packet.MessageExportJobs)
+		assert.Empty(t, packet.ElasticPostIndexingJobs)
+		assert.Empty(t, packet.ElasticPostAggregationJobs)
+		assert.Empty(t, packet.BlevePostIndexingJobs)
+		assert.Empty(t, packet.LdapSyncJobs)
+		assert.Empty(t, packet.MigrationJobs)
+		assert.Empty(t, packet.ComplianceJobs)
+	})
+
+	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewInt(1)
+		})
+
+		for i := 0; i < 5; i++ {
+			p := th.CreatePost(th.BasicChannel)
+			require.NotNil(t, p)
+		}
+
+		// InitBasic() already creats 5 posts
+		packet := generateSupportPacket(t)
+		assert.Equal(t, 10, packet.TotalPosts)
 	})
 
 	t.Run("filestore fails", func(t *testing.T) {
@@ -72,13 +143,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		fb.On("DriverName").Return("mock")
 		fb.On("TestConnection").Return(errors.New("all broken"))
 
-		fileData, err := th.App.generateSupportPacketYaml(th.Context)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "support_packet.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
-		assert.NoError(t, err)
-		var packet model.SupportPacket
-		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
+		packet := generateSupportPacket(t)
 
 		assert.Equal(t, "mock", packet.FileDriver)
 		assert.Equal(t, "FAIL: all broken", packet.FileStatus)
