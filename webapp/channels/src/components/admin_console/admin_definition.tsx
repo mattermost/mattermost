@@ -218,7 +218,7 @@ export const it = {
     configContains: (group: keyof Partial<AdminConfig>, setting: string, word: string) => (config: Partial<AdminConfig>) => Boolean((config[group] as any)?.[setting]?.includes(word)),
     enterpriseReady: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean) => Boolean(enterpriseReady),
     licensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => license?.IsLicensed === 'true',
-    cloudLicensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicenced && isCloudLicense(license)),
+    cloudLicensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license)),
     licensedForFeature: (feature: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license[feature] === 'true'),
     licensedForSku: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license.SkuShortName === skuName),
     licensedForCloudStarter: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license) && license.SkuShortName === LicenseSkus.Starter),
@@ -725,7 +725,7 @@ const AdminDefinition: AdminDefinitionType = {
                             disabled_help_text: defineMessage({id: 'admin.service.forward80To443Description.disabled', defaultMessage: 'Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server. This setting cannot be enabled until your server is [listening](#ServiceSettings.ListenAddress) on port 443.'}),
                             disabled_help_text_markdown: true,
                             isDisabled: it.any(
-                                it.not(it.cloudLicensed),
+                                it.cloudLicensed,
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                                 it.not(it.stateMatches('ServiceSettings.ListenAddress', /:443$/)),
                             ),
@@ -895,7 +895,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.database', defaultMessage: 'Database'}),
                 searchableStrings: databaseSearchableStrings,
                 isHidden: it.any(
-                    it.not(it.cloudLicensed),
+                    it.cloudLicensed,
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DATABASE)),
                 ),
