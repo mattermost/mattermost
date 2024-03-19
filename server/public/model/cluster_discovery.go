@@ -19,7 +19,7 @@ type ClusterDiscovery struct {
 	ClusterName string `json:"cluster_name"`
 	Hostname    string `json:"hostname"`
 	GossipPort  int32  `json:"gossip_port"`
-	Port        int32  `json:"port"`
+	Port        int32  `json:"port"` // Deperacted: Port is unused. It's only kept for backwards compatibility.
 	CreateAt    int64  `json:"create_at"`
 	LastPingAt  int64  `json:"last_ping_at"`
 }
