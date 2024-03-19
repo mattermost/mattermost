@@ -89,6 +89,21 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
         return url.toString();
     };
 
+    extractFilename = (input: string | null): string => {
+        // construct the expected filename in case of an error in the header
+        const formattedDate = (moment(new Date())).format('YYYY-MM-DD-HH-mm');
+        const presumedFileName = `mattermost_support_packet_${formattedDate}.zip`;
+
+        if (input === null) {
+            return presumedFileName;
+        }
+
+        const regex = /filename\*?=["']?((?:\\.|[^"'\s])+)(?=["']?)/g;
+        const matches = regex.exec(input!);
+
+        return matches ? matches[1] : presumedFileName;
+    };
+
     downloadSupportPacket = async () => {
         this.setState({loading: true});
         const res = await fetch(this.genereateDownloadURLWithParams(), {
@@ -98,12 +113,10 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
         const blob = await res.blob();
         this.setState({loading: false});
 
-        // we emulate the server filenaming convention to maintain file name
-        const formattedDate = (moment(new Date())).format('YYYY-MM-DD-HH-mm');
         const href = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = href;
-        link.setAttribute('download', `mattermost_support_packet_${formattedDate}.zip`);
+        link.setAttribute('download', this.extractFilename(res.headers.get('content-disposition')));
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
