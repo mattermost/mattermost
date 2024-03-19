@@ -50,7 +50,7 @@ $app-bar-width: 48px;
                     left: 0;
                     width: 3px;
                     height: $app-bar-icon-size;
-                    border-radius: 0 2px 2px 0;
+                    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
                     background-color: var(--sidebar-text-active-border);
                     content: '';
                 }
@@ -72,7 +72,7 @@ $app-bar-width: 48px;
                 overflow: hidden;
                 width: $app-bar-icon-size;
                 height: $app-bar-icon-size;
-                border-radius: 50%;
+                border-radius: var(--radius-full);
                 margin: 0 auto;
                 line-height: 1;
 
@@ -83,7 +83,7 @@ $app-bar-width: 48px;
                 img {
                     width: $app-bar-icon-size;
                     height: $app-bar-icon-size;
-                    border-radius: 50%;
+                    border-radius: var(--radius-full);
                 }
             }
 
