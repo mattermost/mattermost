@@ -180,6 +180,11 @@ function printServerDetails() {
   - TelemetryId             = ${config.TelemetryId}
   - ServiceEnvironment      = ${config.ServiceEnvironment}`);
     });
+    cy.apiGetConfig().then(({config}) => {
+        cy.log(`Notable Server Config:
+  - ServiceSettings.EnableSecurityFixAlert  = ${config.ServiceSettings.EnableSecurityFixAlert}
+  - LogSettings.EnableDiagnostics           = ${config.LogSettings.EnableDiagnostics}`);
+    });
 }
 
 function sysadminSetup(user) {
