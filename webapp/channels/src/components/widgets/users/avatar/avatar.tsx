@@ -11,7 +11,7 @@ import BotDefaultIcon from 'images/bot_default_icon.png';
 
 import './avatar.scss';
 
-export type TAvatarSizeToken = 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | 'xxxl' | 'xxxxl';
+export type TAvatarSizeToken = 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xl-custom-DM' | 'xl-custom-GM' | 'xxl';
 
 export const getAvatarWidth = (size: TAvatarSizeToken) => {
     switch (size) {
