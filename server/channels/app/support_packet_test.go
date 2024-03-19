@@ -70,7 +70,6 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		/* Build information */
 		assert.NotEmpty(t, packet.ServerOS)
 		assert.NotEmpty(t, packet.ServerArchitecture)
-		assert.NotEmpty(t, packet.ServerVersion)
 		assert.Equal(t, model.CurrentVersion, packet.ServerVersion)
 		// BuildHash is not present in tests
 
