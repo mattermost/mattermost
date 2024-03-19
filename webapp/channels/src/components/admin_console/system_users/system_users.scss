@@ -63,11 +63,12 @@ table.systemUsersTable {
                     max-width: 300px;
                     align-self: start;
                     grid-area: error;
+
+                    @include textElipsis;
+
                     // this need to be here, after textElipsis because
                     // we need to override white-space property coming from the mixing
                     white-space: normal;
-
-                    @include textElipsis;
                 }
             }
 
