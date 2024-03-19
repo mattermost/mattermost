@@ -137,7 +137,7 @@ describe('Group Message', () => {
         });
 
         // * Assert that intro message includes the right copy
-        const expectedChannelInfo = `This is the start of your group message history with these teammates.`;
+        const expectedChannelInfo = 'This is the start of your group message history with these teammates.';
         cy.get('#channelIntro p.channel-intro__text').first().should('contain', expectedChannelInfo);
         cy.get('#channelIntro .profile-icon').should('have.length', '2');
 

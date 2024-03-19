@@ -65,7 +65,7 @@ describe('Keyboard Shortcuts', () => {
             cy.uiGetLhsSection('CHANNELS').findByText(testChannel.display_name).should('be.visible');
 
             // # Verify that the current user(sysadmin) created the channel
-            cy.get('#channelIntro').contains('.channel-intro__created', `Public channel created by sysadmin`).should('be.visible');
+            cy.get('#channelIntro').contains('.channel-intro__created', 'Public channel created by sysadmin').should('be.visible');
         });
     });
 
