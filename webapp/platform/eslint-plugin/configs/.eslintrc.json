@@ -1,6 +1,7 @@
 {
   "extends": [
-    "eslint:recommended"
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
   ],
   "parserOptions": {
     "ecmaVersion": 8,
@@ -11,9 +12,12 @@
       "modules": true
     }
   },
-  "parser": "babel-eslint",
+  "parser": "@typescript-eslint/parser",
   "plugins": [
-    "header"
+    "@mattermost",
+    "@typescript-eslint",
+    "header",
+    "import"
   ],
   "env": {
     "browser": true,
@@ -23,6 +27,59 @@
   },
   "rules": {
     "@mattermost/no-dispatch-getstate": 2,
+    "@mattermost/use-external-link": 2,
+    "@typescript-eslint/array-type": [2, {"default": "array-simple"}],
+    "@typescript-eslint/consistent-type-imports": ["error", {"disallowTypeAnnotations": false}],
+    "@typescript-eslint/explicit-function-return-type": 0,
+    "@typescript-eslint/explicit-module-boundary-types": 0,
+    "@typescript-eslint/indent": [
+      2,
+      4,
+      {
+        "SwitchCase": 0
+      }
+    ],
+    "@typescript-eslint/member-delimiter-style": 2,
+    "@typescript-eslint/naming-convention": [
+      2,
+      {
+        "selector": "function",
+        "format": ["camelCase", "PascalCase"]
+      },
+      {
+        "selector": "variable",
+        "format": ["camelCase", "PascalCase", "UPPER_CASE"]
+      },
+      {
+        "selector": "parameter",
+        "format": ["camelCase", "PascalCase"],
+        "leadingUnderscore": "allow"
+      },
+      {
+        "selector": "typeLike",
+        "format": ["PascalCase"]
+      }
+    ],
+    "@typescript-eslint/no-dupe-class-members": 2,
+    "@typescript-eslint/no-empty-function": 0,
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": [
+      2,
+      {
+        "vars": "all",
+        "args": "after-used"
+      }
+    ],
+    "@typescript-eslint/no-use-before-define": [
+      2,
+      {
+        "classes": false,
+        "functions": false,
+        "variables": false
+      }
+    ],
+    "@typescript-eslint/no-var-requires": 0,
+    "@typescript-eslint/type-annotation-spacing": 2,
     "array-bracket-spacing": [
       2,
       "never"
@@ -48,12 +105,7 @@
         "allowSingleLine": false
       }
     ],
-    "camelcase": [
-      2,
-      {
-        "properties": "never"
-      }
-    ],
+    "camelcase": 0, // Handled by @typescript-eslint/naming-convention
     "capitalized-comments": 0,
     "class-methods-use-this": 0,
     "comma-dangle": [
@@ -94,6 +146,7 @@
       "object"
     ],
     "dot-notation": 2,
+    "eol-last": ["error", "always"],
     "eqeqeq": [
       2,
       "smart"
@@ -123,16 +176,60 @@
     "header/header": [
       2,
       "line",
-      " Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\n See LICENSE.txt for license information."
+      " Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\n See LICENSE.txt for license information.",
+      2
     ],
     "id-blacklist": 0,
-    "indent": [
+    "import/no-duplicates": 2,
+    "import/no-unresolved": 0, // Handled better by TS
+    "import/order": [
       2,
-      4,
       {
-        "SwitchCase": 0
+        "newlines-between": "always",
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "sibling",
+          "parent",
+          "index"
+        ],
+        "pathGroups": [
+          {
+            "pattern": "@mattermost/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "mattermost-redux/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "@(selectors|actions|stores|store|reducers){,/**}",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "components/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "types{,/**}",
+            "group": "internal",
+            "position": "after"
+          }
+        ],
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        },
+        "distinctGroup": true,
+        "pathGroupsExcludedImportTypes": ["builtin"]
       }
     ],
+    "indent": 0, // Handled by @typescript-eslint/indent
     "jsx-quotes": [
       2,
       "prefer-single"
@@ -165,19 +262,14 @@
       }
     ],
     "max-lines": [
-      1,
+      "warn",
       {
-        "max": 450,
+        "max": 800,
         "skipBlankLines": true,
         "skipComments": false
       }
     ],
-    "max-nested-callbacks": [
-      2,
-      {
-        "max": 2
-      }
-    ],
+    "max-nested-callbacks": ["error", 10],
     "max-statements-per-line": [
       2,
       {
@@ -211,18 +303,13 @@
     "no-debugger": 2,
     "no-div-regex": 2,
     "no-dupe-args": 2,
-    "no-dupe-class-members": 2,
+    "no-dupe-class-members": 0, // Handled by @typescript-eslint/no-dupe-class-members
     "no-dupe-keys": 2,
     "no-duplicate-case": 2,
-    "no-duplicate-imports": [
-      2,
-      {
-        "includeExports": true
-      }
-    ],
+    "no-duplicate-imports": 0, // Handled by import/no-duplicates
     "no-else-return": 2,
     "no-empty": 2,
-    "no-empty-function": 2,
+    "no-empty-function": 0,
     "no-empty-pattern": 2,
     "no-eval": 2,
     "no-ex-assign": 2,
@@ -284,7 +371,33 @@
     "no-process-exit": 2,
     "no-proto": 2,
     "no-prototype-builtins": 1,
-    "no-redeclare": 2,
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["@mattermost/compass-components/*"],
+            "message": "compass-components is now archived."
+          }
+        ],
+        "paths": [
+          {
+            "name": "react-bootstrap",
+            "importNames": ["OverlayTrigger"],
+            "message": "Use OverlayTrigger from '/components/overlay_trigger' instead."
+          },
+          {
+            "name": "redux",
+            "importNames": ["DeepPartial"],
+            "message": "Use DeepPartial from '@mattermost/types/utilities instead."
+          },
+          {
+            "name": "lodash",
+            "message": "Import individual functions from lodash/<function> instead."
+          }
+        ]
+      }
+    ],
     "no-return-assign": [
       2,
       "always"
@@ -299,12 +412,7 @@
     ],
     "no-self-compare": 2,
     "no-sequences": 2,
-    "no-shadow": [
-      2,
-      {
-        "hoist": "functions"
-      }
-    ],
+    "no-shadow": 0, // This isn't currently enabled, but it probably should be
     "no-shadow-restricted-names": 2,
     "no-spaced-func": 2,
     "no-tabs": 0,
@@ -319,7 +427,7 @@
       }
     ],
     "no-undef-init": 2,
-    "no-undefined": 2,
+    "no-undefined": 0,
     "no-underscore-dangle": 2,
     "no-unexpected-multiline": 2,
     "no-unmodified-loop-condition": 2,
@@ -333,21 +441,8 @@
     "no-unsafe-finally": 2,
     "no-unsafe-negation": 2,
     "no-unused-expressions": 2,
-    "no-unused-vars": [
-      2,
-      {
-        "vars": "all",
-        "args": "after-used"
-      }
-    ],
-    "no-use-before-define": [
-      2,
-      {
-        "classes": false,
-        "functions": false,
-        "variables": false
-      }
-    ],
+    "no-unused-vars": 0, // Handled by @typescript-eslint/no-unused-vars
+    "no-use-before-define": 0, // Handled by @typescript-eslint/no-use-before-define
     "no-useless-computed-key": 2,
     "no-useless-concat": 2,
     "no-useless-constructor": 2,
@@ -475,14 +570,14 @@
         "exceptRange": false,
         "onlyEquality": false
       }
-    ],
-    "@typescript-eslint/array-type": [2, {"default": "array-simple"}],
-    "@typescript-eslint/member-delimiter-style": 2,
-    "@typescript-eslint/type-annotation-spacing": 2
+    ]
   },
   "overrides": [
     {
-      "files": ["*.test.js", "*.test.jsx", "*.test.ts", "*.test.tsx", "tests/**"],
+      "files": ["*.test.*", "src/tests/**"],
+      "env": {
+        "jest": true
+      },
       "globals": {
         "after": true,
         "afterAll": true,
@@ -497,10 +592,14 @@
         "test": true
       },
       "rules": {
-        "no-empty-function": 0,
+        "func-names": 0,
+        "global-require": 0,
         "no-console": 0,
+        "no-import-assign": 0,
+        "max-lines": 0,
         "max-nested-callbacks": 0,
-        "no-undefined": 0
+        "new-cap": 0,
+        "prefer-arrow-callback": 0
       }
     }
   ]

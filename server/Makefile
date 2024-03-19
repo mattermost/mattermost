@@ -135,8 +135,8 @@ DIST_ROOT=dist
 DIST_PATH=$(DIST_ROOT)/mattermost
 DIST_PATH_LIN_AMD64=$(DIST_ROOT)/linux_amd64/mattermost
 DIST_PATH_LIN_ARM64=$(DIST_ROOT)/linux_arm64/mattermost
-DIST_PATH_OSX_AMD64=$(DIST_ROOT)/osx_amd64/mattermost
-DIST_PATH_OSX_ARM64=$(DIST_ROOT)/osx_arm64/mattermost
+DIST_PATH_OSX_AMD64=$(DIST_ROOT)/darwin_amd64/mattermost
+DIST_PATH_OSX_ARM64=$(DIST_ROOT)/darwin_arm64/mattermost
 DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 
 # Packages lists
@@ -147,14 +147,15 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.24.0
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.7
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.8.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.25.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.2.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.8.1
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.1
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
+PLUGIN_PACKAGES += mattermost-plugin-ai-v0.6.2
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 

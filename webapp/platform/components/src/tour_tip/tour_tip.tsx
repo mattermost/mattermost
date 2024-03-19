@@ -1,21 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
 import Tippy from '@tippyjs/react';
-import {Placement} from 'tippy.js';
 import classNames from 'classnames';
+import React, {useRef} from 'react';
+import {FormattedMessage} from 'react-intl';
+import type {Placement} from 'tippy.js';
+
+import {TourTipBackdrop} from './tour_tip_backdrop';
 
 import type {Props as PunchOutCoordsHeightAndWidth} from '../common/hooks/useMeasurePunchouts';
+import {PulsatingDot} from '../pulsating_dot';
 
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/themes/light-border.css';
 import 'tippy.js/animations/scale-subtle.css';
 import 'tippy.js/animations/perspective-subtle.css';
-import {PulsatingDot} from '../pulsating_dot';
 
-import {TourTipBackdrop} from './tour_tip_backdrop';
 import './tour_tip.scss';
 
 export type TourTipEventSource = 'next' | 'prev' | 'dismiss' | 'jump' | 'skipped' | 'open' | 'punchOut'

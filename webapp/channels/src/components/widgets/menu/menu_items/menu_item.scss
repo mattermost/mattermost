@@ -50,7 +50,7 @@
             display: inline-flex;
             padding: 5px 0;
             line-height: 22px;
-            white-space: normal;
+            white-space: nowrap;
         }
 
         span.MenuItem__text-color {
@@ -63,7 +63,7 @@
             font-size: 12px;
             line-height: 16px;
             opacity: 0.7;
-            white-space: normal;
+            white-space: nowrap;
 
             @media (max-width: 768px) {
                 padding-left: 28px !important;
@@ -195,9 +195,9 @@
 
     .MenuCloudTrial {
         padding: 8px 12px;
+        border-radius: 4px;
         margin: 8px;
         margin-top: 0;
-        border-radius: 4px;
 
         &__free-trial {
             &__content-title {
@@ -315,10 +315,10 @@
         align-items: flex-start;
         padding: 8px;
         padding-left: 16px;
+        border-radius: 4px;
         margin: 8px;
         margin-top: 0;
         background-color: rgba(var(--button-bg-rgb), 0.04);
-        border-radius: 4px;
 
         button {
             padding: 3px 0;
