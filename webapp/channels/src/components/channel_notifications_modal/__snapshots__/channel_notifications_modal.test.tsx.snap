@@ -67,19 +67,19 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Mute or ignore
                   </h4>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
@@ -147,28 +147,24 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Desktop Notifications
-                    </h4>
-                  </div>
+                    Desktop Notifications
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
@@ -233,16 +229,12 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Mobile Notifications
-                    </h4>
+                    Mobile Notifications
                     <button
                       class="channel-notifications-settings-modal__reset-btn"
                     >
@@ -260,18 +252,18 @@ Object {
                       </svg>
                       Reset to default
                     </button>
-                  </div>
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Notification alerts are pushed to your mobile device when there is activity in Mattermost.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
@@ -499,19 +491,19 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Mute or ignore
                   </h4>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
@@ -579,16 +571,12 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Desktop Notifications
-                    </h4>
+                    Desktop Notifications
                     <button
                       class="channel-notifications-settings-modal__reset-btn"
                     >
@@ -606,18 +594,18 @@ Object {
                       </svg>
                       Reset to default
                     </button>
-                  </div>
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
@@ -682,16 +670,12 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Mobile Notifications
-                    </h4>
+                    Mobile Notifications
                     <button
                       class="channel-notifications-settings-modal__reset-btn"
                     >
@@ -709,18 +693,18 @@ Object {
                       </svg>
                       Reset to default
                     </button>
-                  </div>
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Notification alerts are pushed to your mobile device when there is activity in Mattermost.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
@@ -948,19 +932,19 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Mute or ignore
                   </h4>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
@@ -1028,28 +1012,24 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Desktop Notifications
-                    </h4>
-                  </div>
+                    Desktop Notifications
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
@@ -1114,16 +1094,12 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Mobile Notifications
-                    </h4>
+                    Mobile Notifications
                     <button
                       class="channel-notifications-settings-modal__reset-btn"
                     >
@@ -1141,18 +1117,18 @@ Object {
                       </svg>
                       Reset to default
                     </button>
-                  </div>
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Notification alerts are pushed to your mobile device when there is activity in Mattermost.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
@@ -1380,19 +1356,19 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Mute or ignore
                   </h4>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
@@ -1635,19 +1611,19 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Mute or ignore
                   </h4>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
@@ -1715,28 +1691,24 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Desktop Notifications
-                    </h4>
-                  </div>
+                    Desktop Notifications
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
@@ -1801,16 +1773,12 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Mobile Notifications
-                    </h4>
+                    Mobile Notifications
                     <button
                       class="channel-notifications-settings-modal__reset-btn"
                     >
@@ -1828,18 +1796,18 @@ Object {
                       </svg>
                       Reset to default
                     </button>
-                  </div>
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Notification alerts are pushed to your mobile device when there is activity in Mattermost.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
@@ -2011,19 +1979,19 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Mute or ignore
                   </h4>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
@@ -2091,28 +2059,24 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Desktop Notifications
-                    </h4>
-                  </div>
+                    Desktop Notifications
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
@@ -2177,16 +2141,12 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
-                  <div
-                    class="mm-modal-generic-section__row"
+                  <h4
+                    class="modalSectionTitle"
                   >
-                    <h4
-                      class="mm-modal-generic-section__title"
-                    >
-                      Mobile Notifications
-                    </h4>
+                    Mobile Notifications
                     <button
                       class="channel-notifications-settings-modal__reset-btn"
                     >
@@ -2204,18 +2164,18 @@ Object {
                       </svg>
                       Reset to default
                     </button>
-                  </div>
+                  </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     Notification alerts are pushed to your mobile device when there is activity in Mattermost.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
@@ -2303,24 +2263,24 @@ Object {
                 class="mm-modal-generic-section"
               >
                 <div
-                  class="mm-modal-generic-section__title-description-ctr"
+                  class="modalSectionHeader"
                 >
                   <h4
-                    class="mm-modal-generic-section__title"
+                    class="modalSectionTitle"
                   >
                     Follow all threads in this channel
                   </h4>
                   <p
-                    class="mm-modal-generic-section__description"
+                    class="modalSectionDescription"
                   >
                     When enabled, all new replies in this channel will be automatically followed and will appear in your Threads view.
                   </p>
                 </div>
                 <div
-                  class="mm-modal-generic-section__content"
+                  class="modalSectionContent"
                 >
                   <div
-                    class="mm-modal-generic-section-item first-setting-item"
+                    class="mm-modal-generic-section-item"
                   >
                     <div
                       class="mm-modal-generic-section-item__content"

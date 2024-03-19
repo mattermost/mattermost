@@ -9,11 +9,11 @@
         padding: 0;
         margin: 0 0 8px;
         color: var(--center-channel-color);
-        font-family: 'Metropolis', sans-serif;
-        font-size: 16px;
+        font-family: "Open Sans", sans-serif;
+        font-size: 14px;
         font-style: normal;
         font-weight: 600;
-        line-height: 24px;
+        line-height: 20px;
     }
 
     &__description {
@@ -87,6 +87,7 @@
         font-weight: 400;
         gap: 8px;
         line-height: 20px;
+        margin-bottom: 0;
     }
 
     // Todo: add styling for react select
@@ -169,9 +170,5 @@
 
     input[type="radio"]:checked {
         border-color: var(--denim-button-bg);
-    }
-
-    &.first-setting-item {
-        margin-block-start: 24px;
     }
 }

@@ -18,48 +18,29 @@ function ModalSection({
     description,
     content,
     titleSuffix,
-}: Props): JSX.Element {
+}: Props) {
     const titleComponent = title && (
-        <h4 className='mm-modal-generic-section__title'>
+        <h4 className='modalSectionTitle'>
             {title}
+            {titleSuffix}
         </h4>
     );
 
     const descriptionComponent = description && (
-        <p className='mm-modal-generic-section__description'>
+        <p className='modalSectionDescription'>
             {description}
         </p>
     );
 
-    function titleRow() {
-        if (titleSuffix) {
-            return (
-                <div className='mm-modal-generic-section__row'>
-                    {titleComponent}
-                    {titleSuffix}
-                </div>
-            );
-        }
-
-        return titleComponent;
-    }
-
-    const titleDescriptionSection = () => {
-        if (title || description) {
-            return (
-                <div className='mm-modal-generic-section__title-description-ctr'>
-                    {titleRow()}
-                    {descriptionComponent}
-                </div>
-            );
-        }
-        return null;
-    };
-
     return (
         <section className='mm-modal-generic-section'>
-            {titleDescriptionSection()}
-            <div className='mm-modal-generic-section__content'>
+            {(title || description) && (
+                <div className='modalSectionHeader'>
+                    {titleComponent}
+                    {descriptionComponent}
+                </div>
+            )}
+            <div className='modalSectionContent'>
                 {content}
             </div>
         </section>

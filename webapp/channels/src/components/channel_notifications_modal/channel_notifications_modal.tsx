@@ -117,7 +117,6 @@ export default function ChannelNotificationsModal(props: Props) {
                     id: 'channel_notifications.muteChannelDesc',
                     defaultMessage: 'Turns off notifications for this channel. You\'ll still see badges if you\'re mentioned.',
                 })}
-                className='first-setting-item'
                 inputFieldValue={settings.mark_unread === 'mention'}
                 inputFieldData={utils.MuteChannelInputFieldData}
                 handleChange={(e) => handleChange({mark_unread: e ? 'mention' : 'all'})}
@@ -147,7 +146,6 @@ export default function ChannelNotificationsModal(props: Props) {
                     id: 'channel_notifications.NotifyMeTitle',
                     defaultMessage: 'Notify me about…',
                 })}
-                className='first-setting-item'
                 inputFieldValue={settings.desktop}
                 inputFieldData={utils.desktopNotificationInputFieldData(props.currentUser.notify_props.desktop)}
                 handleChange={(e) => handleChange({desktop: e.target.value})}
@@ -174,7 +172,6 @@ export default function ChannelNotificationsModal(props: Props) {
     const MobileNotificationsSectionContent = (
         <>
             <CheckboxSettingItem
-                className='first-setting-item'
                 inputFieldTitle={
                     <FormattedMessage
                         id='channel_notifications.checkbox.sameMobileSettingsDesktop'
@@ -219,7 +216,6 @@ export default function ChannelNotificationsModal(props: Props) {
 
     const AutoFollowThreadsSectionContent = (
         <CheckboxSettingItem
-            className='first-setting-item'
             inputFieldTitle={
                 <FormattedMessage
                     id='channel_notifications.checkbox.autoFollowThreadsTitle'

@@ -39,7 +39,7 @@ function BaseSettingItem({title, description, content, className, error, descrip
         </h4>
     );
 
-    const Description = description && (
+    const descriptionComponent = description && (
         <p
             data-testid='mm-modal-generic-section-item__description'
             className='mm-modal-generic-section-item__description'
@@ -61,14 +61,14 @@ function BaseSettingItem({title, description, content, className, error, descrip
     return (
         <div className={classNames('mm-modal-generic-section-item', className)}>
             {titleComponent}
-            {descriptionAboveContent ? Description : undefined}
+            {descriptionAboveContent ? descriptionComponent : undefined}
             <div
                 data-testid='mm-modal-generic-section-item__content'
                 className='mm-modal-generic-section-item__content'
             >
                 {content}
             </div>
-            {descriptionAboveContent ? undefined : Description}
+            {descriptionAboveContent ? undefined : descriptionComponent}
             {Error}
         </div>
     );
