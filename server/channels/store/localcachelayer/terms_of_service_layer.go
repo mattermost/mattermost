@@ -31,7 +31,7 @@ func (s LocalCacheTermsOfServiceStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.termsOfServiceCache)
 
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Terms Of Service - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.termsOfServiceCache.Name())
 	}
 }
 
@@ -40,7 +40,7 @@ func (s LocalCacheTermsOfServiceStore) Save(termsOfService *model.TermsOfService
 
 	if err == nil {
 		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, tos.Id, tos)
-		s.rootStore.doInvalidateCacheCluster(s.rootStore.termsOfServiceCache, LatestKey)
+		s.rootStore.doInvalidateCacheCluster(s.rootStore.termsOfServiceCache, LatestKey, nil)
 	}
 	return tos, err
 }

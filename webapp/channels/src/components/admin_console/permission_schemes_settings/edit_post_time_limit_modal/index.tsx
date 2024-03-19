@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {updateConfig} from 'mattermost-redux/actions/admin';
+import {patchConfig} from 'mattermost-redux/actions/admin';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 
 import type {GlobalState} from 'types/store';
@@ -20,7 +20,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators({updateConfig}, dispatch),
+        actions: bindActionCreators({patchConfig}, dispatch),
     };
 }
 
