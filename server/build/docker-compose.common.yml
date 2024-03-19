@@ -104,16 +104,17 @@ services:
     networks:
       - mm-test
   keycloak:
-    image: "bitnami/keycloak:23.0.7"
+    image: "quay.io/keycloak/keycloak:24.0.1"
     restart: always
+    command: start-dev --import-realm
     environment:
       KEYCLOAK_ADMIN: mmuser
       KEYCLOAK_ADMIN_PASSWORD: mostest
-      KEYCLOAK_DATABASE_VENDOR: dev-file
+      KC_DB: dev-file
     networks:
       - mm-test
     volumes:
-     - "./docker/keycloak:/setup"
+     - "./docker/keycloak/realm.json:/opt/keycloak/data/import/realm.json"
   prometheus:
     image: "prom/prometheus:v2.46.0"
     volumes:
