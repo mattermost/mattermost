@@ -4,9 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import WithTooltip from 'components/with_tooltip';
+
 import './multi_select_card.scss';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 
 export type Props = {
     onClick: () => void;
@@ -49,21 +49,13 @@ const MultiSelectCard = (props: Props) => {
 
     if (props.tooltip) {
         button = (
-            <OverlayTrigger
-                className='hidden-xs'
-                delayShow={500}
+            <WithTooltip
+                id={props.id}
                 placement='top'
-                overlay={
-                    <Tooltip
-                        id={props.tooltip}
-                        className='hidden-xs'
-                    >
-                        {props.tooltip}
-                    </Tooltip>
-                }
+                title={props.tooltip}
             >
                 {button}
-            </OverlayTrigger>
+            </WithTooltip>
         );
     }
 

@@ -11,10 +11,6 @@
     }
 }
 
-#BillingSubscriptions__seatOverageTooltip {
-    margin-left: -5px;
-}
-
 .BillingSubscriptions__tooltip.tooltip {
     font-family: 'Open Sans', sans-serif;
 
@@ -65,18 +61,6 @@
             content: '';
         }
     }
-}
-
-.BillingSubscriptions__tooltipTitle {
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 24px;
-}
-
-.BillingSubscriptions__tooltipMessage {
-    margin-top: 8px;
-    font-size: 14px;
-    line-height: 20px;
 }
 
 .UpgradeMattermostCloud {
