@@ -12,6 +12,8 @@ $app-bar-width: 48px;
         display: none;
     }
 
+    position: relative;
+    left: -8px;
     display: flex;
     min-height: 0;
     flex-flow: column;

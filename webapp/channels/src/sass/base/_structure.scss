@@ -100,8 +100,6 @@ body.app__body #root {
 
     &.channel-view {
         background-color: var(--sidebar-header-bg);
-        padding-bottom: 8px;
-        padding-right: 8px;
         --columns: min-content minmax(385px, 1fr) min-content;
         grid-template:
             'announcement announcement announcement' min-content
@@ -155,6 +153,7 @@ body.app__body #root {
         display: grid;
         background-color: var(--sidebar-bg);
         outline: solid 1px rgba(var(--center-channel-color-rgb),0.08);
+        margin: 0 8px 8px 0;
         border-radius: var(--radius-l);
         grid-area: main;
         grid-template:
@@ -220,6 +219,7 @@ body.app__body #root {
             }
 
             .main-wrapper {
+                margin: 0;
                 grid-template:
                     'main'
                 ;
