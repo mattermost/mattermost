@@ -31,7 +31,7 @@ func (s LocalCacheTermsOfServiceStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.termsOfServiceCache)
 
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Terms Of Service - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.termsOfServiceCache.Name())
 	}
 }
 

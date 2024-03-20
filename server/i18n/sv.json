@@ -2913,7 +2913,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Storleksbgränsen överskriden. Kolla inställningen [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Storleksbegränsningen överskriden. Öka inställningen för Maximum page size. Kolla https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded för mer information."
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -10160,5 +10160,149 @@
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
     "translation": "Angiven \"audience\" är ogiltig: {{ .Error }}"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Din licens ger inte tillgång till bokmärken i kanaler."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Användaren är inte tillåten att skapa bokmärken i kanaler."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunde inte skapa bokmärke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Kunde inte skapa bokmärke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunde inte ta bort bokmärke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunde inte ta bort bokmärke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Kunde inte ta bort bokmärke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunde inte uppdatera bokmärket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunde inte uppdatera bokmärket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Kunde inte uppdatera bokmärket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunde inte ta uppdatera sorteringsordningen av bokmärken i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunde inte ta uppdatera sorteringsordningen av bokmärken i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Kunde inte ta uppdatera sorteringsordningen av bokmärken i kanalen."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Ogiltig uppdatering av kanalmedlem: En gäst kan inte bli teammedlem eller teamadministratör, gör till användare först."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Ogiltig uppdatering av kanalmedlem: En gäst kan inte ansvara för en kanal. En systemadministratör behöver göra gästen till användare först."
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "Kunde inte ta bort bokmärket."
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "Kunde inte hämta bokmärken."
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "Kunde inte spara bokmärket."
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "Kunde inte uppdatera bokmärket."
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "Kunde inte hitta befintligt bokmärke att uppdatera."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "Kunde inte sortera bokmärken."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "Kunde inte sortera bokmärken. Felaktig inmatning."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "Kunde inte sortera bokmärket. Hittades inte."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "Ogiltigt kanal-id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "\"Create at\" måste vara en giltig tid."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "Displaynamn saknas."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "Fil-ID saknas eller är ogiltigt."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Ogiltigt id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "Ogiltig URL för bild."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Det går inte att ange en länk och en fil i samma bokmärke."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "Länkens url saknas eller är ogiltig."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "Ogiltigt originalpost-id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "Ogiltigt ägar-ID."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "Ogiltigt parent-id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "Ogiltig typ."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "\"Update at\" måste vara en giltig tid."
   }
 ]

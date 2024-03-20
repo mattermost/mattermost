@@ -65,12 +65,12 @@ func (ps *PlatformService) GetStatusesByIds(userIDs []string) (map[string]any, *
 		if err := ps.statusCache.Get(userID, &status); err == nil {
 			statusMap[userID] = status.Status
 			if metrics != nil {
-				metrics.IncrementMemCacheHitCounter("Status")
+				metrics.IncrementMemCacheHitCounter(ps.statusCache.Name())
 			}
 		} else {
 			missingUserIds = append(missingUserIds, userID)
 			if metrics != nil {
-				metrics.IncrementMemCacheMissCounter("Status")
+				metrics.IncrementMemCacheMissCounter(ps.statusCache.Name())
 			}
 		}
 	}
@@ -112,12 +112,12 @@ func (ps *PlatformService) GetUserStatusesByIds(userIDs []string) ([]*model.Stat
 		if err := ps.statusCache.Get(userID, &status); err == nil {
 			statusMap = append(statusMap, status)
 			if metrics != nil {
-				metrics.IncrementMemCacheHitCounter("Status")
+				metrics.IncrementMemCacheHitCounter(ps.statusCache.Name())
 			}
 		} else {
 			missingUserIds = append(missingUserIds, userID)
 			if metrics != nil {
-				metrics.IncrementMemCacheMissCounter("Status")
+				metrics.IncrementMemCacheMissCounter(ps.statusCache.Name())
 			}
 		}
 	}
