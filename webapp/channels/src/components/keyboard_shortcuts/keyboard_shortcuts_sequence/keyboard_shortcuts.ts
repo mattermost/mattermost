@@ -9,12 +9,6 @@ export type KeyboardShortcutDescriptor =
 	| MessageDescriptor
 	| {default: MessageDescriptor; mac?: MessageDescriptor};
 
-export function isMessageDescriptor(
-    descriptor: KeyboardShortcutDescriptor,
-): descriptor is MessageDescriptor {
-    return Boolean((descriptor as MessageDescriptor).id);
-}
-
 const callsKBShortcuts = {
     global: {
         callsJoinCall: {
@@ -169,16 +163,6 @@ export const KEYBOARD_SHORTCUTS = {
         mac: {
             id: t('shortcuts.team_nav.switcher.mac'),
             defaultMessage: 'Navigate to a specific team:\t⌘|⌥|[1-9]',
-        },
-    },
-    teamNavigation: {
-        default: {
-            id: t('team.button.tooltip'),
-            defaultMessage: 'Ctrl|Alt|{order}',
-        },
-        mac: {
-            id: t('team.button.tooltip.mac'),
-            defaultMessage: '⌘|⌥|{order}',
         },
     },
     navSwitcher: {

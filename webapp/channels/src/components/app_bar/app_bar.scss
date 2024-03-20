@@ -49,8 +49,8 @@ $app-bar-width: 48px;
                     left: 0;
                     width: 3px;
                     height: $app-bar-icon-size;
-                    background-color: var(--sidebar-text-active-border);
                     border-radius: 0 2px 2px 0;
+                    background-color: var(--sidebar-text-active-border);
                     content: '';
                 }
 
@@ -71,8 +71,8 @@ $app-bar-width: 48px;
                 overflow: hidden;
                 width: $app-bar-icon-size;
                 height: $app-bar-icon-size;
-                margin: 0 auto;
                 border-radius: 50%;
+                margin: 0 auto;
                 line-height: 1;
 
                 &:hover {
