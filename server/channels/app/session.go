@@ -157,6 +157,10 @@ func (a *App) limitNumberOfSessions(c request.CTX, userId string) *model.AppErro
 		if err := a.RevokeSession(c, sess); err != nil {
 			return model.NewAppError("limitNumberOfSessions", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+
+		c.Logger().Debug("Session revoked; user's number of sessions were over the maxSessionsLimit",
+			mlog.String("user_id", userId),
+			mlog.String("session_id", sess.Id))
 	}
 
 	return nil
