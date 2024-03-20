@@ -48,6 +48,11 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			opts.IncludeProfilePictures = true
 		}
 
+		includeRolesAndSchemes, ok := job.Data["include_roles_and_schemes"]
+		if ok && includeRolesAndSchemes == "true" {
+			opts.IncludeRolesAndSchemes = true
+		}
+
 		outPath := *app.Config().ExportSettings.Directory
 		exportFilename := job.Id + "_export.zip"
 

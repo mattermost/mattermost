@@ -31,9 +31,9 @@ import (
 func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dryRun bool) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Name != nil {
-		fields = append(fields, mlog.String("schema_name", *data.Name))
+		fields = append(fields, mlog.String("scheme_name", *data.Name))
 	}
-	rctx.Logger().Info("Validating schema", fields...)
+	rctx.Logger().Info("Validating scheme", fields...)
 
 	if err := imports.ValidateSchemeImportData(data); err != nil {
 		return err
@@ -44,7 +44,7 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 		return nil
 	}
 
-	rctx.Logger().Info("Importing schema", fields...)
+	rctx.Logger().Info("Importing scheme", fields...)
 
 	scheme, err := a.GetSchemeByName(*data.Name)
 	if err != nil {
@@ -73,44 +73,46 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 
 	if scheme.Scope == model.SchemeScopeTeam {
 		data.DefaultTeamAdminRole.Name = &scheme.DefaultTeamAdminRole
-		if err := a.importRole(rctx, data.DefaultTeamAdminRole, dryRun, true); err != nil {
+		if err := a.importRole(rctx, data.DefaultTeamAdminRole, dryRun); err != nil {
 			return err
 		}
 
 		data.DefaultTeamUserRole.Name = &scheme.DefaultTeamUserRole
-		if err := a.importRole(rctx, data.DefaultTeamUserRole, dryRun, true); err != nil {
+		if err := a.importRole(rctx, data.DefaultTeamUserRole, dryRun); err != nil {
 			return err
 		}
 
 		if data.DefaultTeamGuestRole == nil {
 			data.DefaultTeamGuestRole = &imports.RoleImportData{
-				DisplayName: model.NewString("Team Guest Role for Scheme"),
+				DisplayName:   model.NewString("Team Guest Role for Scheme"),
+				SchemeManaged: model.NewBool(true),
 			}
 		}
 		data.DefaultTeamGuestRole.Name = &scheme.DefaultTeamGuestRole
-		if err := a.importRole(rctx, data.DefaultTeamGuestRole, dryRun, true); err != nil {
+		if err := a.importRole(rctx, data.DefaultTeamGuestRole, dryRun); err != nil {
 			return err
 		}
 	}
 
 	if scheme.Scope == model.SchemeScopeTeam || scheme.Scope == model.SchemeScopeChannel {
 		data.DefaultChannelAdminRole.Name = &scheme.DefaultChannelAdminRole
-		if err := a.importRole(rctx, data.DefaultChannelAdminRole, dryRun, true); err != nil {
+		if err := a.importRole(rctx, data.DefaultChannelAdminRole, dryRun); err != nil {
 			return err
 		}
 
 		data.DefaultChannelUserRole.Name = &scheme.DefaultChannelUserRole
-		if err := a.importRole(rctx, data.DefaultChannelUserRole, dryRun, true); err != nil {
+		if err := a.importRole(rctx, data.DefaultChannelUserRole, dryRun); err != nil {
 			return err
 		}
 
 		if data.DefaultChannelGuestRole == nil {
 			data.DefaultChannelGuestRole = &imports.RoleImportData{
-				DisplayName: model.NewString("Channel Guest Role for Scheme"),
+				DisplayName:   model.NewString("Channel Guest Role for Scheme"),
+				SchemeManaged: model.NewBool(true),
 			}
 		}
 		data.DefaultChannelGuestRole.Name = &scheme.DefaultChannelGuestRole
-		if err := a.importRole(rctx, data.DefaultChannelGuestRole, dryRun, true); err != nil {
+		if err := a.importRole(rctx, data.DefaultChannelGuestRole, dryRun); err != nil {
 			return err
 		}
 	}
@@ -118,18 +120,16 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 	return nil
 }
 
-func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
+func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun bool) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("role_name", *data.Name))
 	}
 
-	if !isSchemeRole {
-		rctx.Logger().Info("Validating role", fields...)
+	rctx.Logger().Info("Validating role", fields...)
 
-		if err := imports.ValidateRoleImportData(data); err != nil {
-			return err
-		}
+	if err := imports.ValidateRoleImportData(data); err != nil {
+		return err
 	}
 
 	// If this is a Dry Run, do not continue any further.
@@ -158,10 +158,8 @@ func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun 
 		role.Permissions = *data.Permissions
 	}
 
-	if isSchemeRole {
-		role.SchemeManaged = true
-	} else {
-		role.SchemeManaged = false
+	if data.SchemeManaged != nil {
+		role.SchemeManaged = *data.SchemeManaged
 	}
 
 	if role.Id == "" {

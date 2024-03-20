@@ -366,6 +366,7 @@ func importJobListCmdF(c client.Client, command *cobra.Command, args []string) e
 }
 
 type Statistics struct {
+	Roles          uint64 `json:"roles"`
 	Schemes        uint64 `json:"schemes"`
 	Teams          uint64 `json:"teams"`
 	Channels       uint64 `json:"channels"`
@@ -495,6 +496,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 	}
 
 	stat := Statistics{
+		Roles:          validator.Roles(),
 		Schemes:        validator.Schemes(),
 		Teams:          validator.TeamCount(),
 		Channels:       validator.ChannelCount(),
@@ -542,6 +544,7 @@ func configurePrinter() {
 
 func printStatistics(stat Statistics) {
 	tmpl := "\n" +
+		"Roles           {{ .Roles }}\n" +
 		"Schemes         {{ .Schemes }}\n" +
 		"Teams           {{ .Teams }}\n" +
 		"Channels        {{ .Channels }}\n" +

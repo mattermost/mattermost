@@ -90,6 +90,28 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		return err
 	}
 
+	if opts.IncludeRolesAndSchemes {
+		ctx.Logger().Info("Bulk export: exporting roles")
+
+		// We export schemes first since they'll already include their attached roles
+		// which we map to avoid exporting them twice later in exportRoles.
+		schemeRolesMap := make(map[string]bool)
+
+		ctx.Logger().Info("Bulk export: exporting team schemes")
+		if err := a.exportSchemes(ctx, job, writer, model.SchemeScopeTeam, schemeRolesMap); err != nil {
+			return err
+		}
+
+		ctx.Logger().Info("Bulk export: exporting channel schemes")
+		if err := a.exportSchemes(ctx, job, writer, model.SchemeScopeChannel, schemeRolesMap); err != nil {
+			return err
+		}
+
+		if err := a.exportRoles(ctx, job, writer, schemeRolesMap); err != nil {
+			return err
+		}
+	}
+
 	ctx.Logger().Info("Bulk export: exporting teams")
 	teamNames, err := a.exportAllTeams(ctx, job, writer)
 	if err != nil {
@@ -192,6 +214,86 @@ func (a *App) exportVersion(writer io.Writer) *model.AppError {
 	}
 
 	return a.exportWriteLine(writer, versionLine)
+}
+
+func (a *App) exportRoles(ctx request.CTX, job *model.Job, writer io.Writer, schemeRoles map[string]bool) *model.AppError {
+	roles, appErr := a.Srv().Store().Role().GetAll()
+	if appErr != nil {
+		return model.NewAppError("exportSchemes", "app.role.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	for _, role := range roles {
+		// We skip any roles that will be included as part of custom schemes.
+		if !schemeRoles[role.Name] {
+			if err := a.exportWriteLine(writer, ImportLineFromRole(role)); err != nil {
+				return err
+			}
+		}
+	}
+
+	updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "roles_exported", len(roles))
+
+	return nil
+}
+
+func (a *App) exportSchemes(ctx request.CTX, job *model.Job, writer io.Writer, scope string, schemeRolesMap map[string]bool) *model.AppError {
+	var cnt int
+	pageSize := 100
+
+	roles, appErr := a.Srv().Store().Role().GetAll()
+	if appErr != nil {
+		return model.NewAppError("exportSchemes", "app.role.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	rolesMap := make(map[string]*model.Role, len(roles))
+	for _, role := range roles {
+		rolesMap[role.Name] = role
+	}
+
+	for {
+		schemes, appErr := a.Srv().Store().Scheme().GetAllPage(scope, cnt, pageSize)
+		if appErr != nil {
+			return model.NewAppError("exportSchemes", "app.scheme.get_all_page.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
+
+		for _, scheme := range schemes {
+			if ok := scheme.IsValid(); !ok {
+				return model.NewAppError("exportSchemes", "model.scheme.is_valid.app_error", nil, "", http.StatusInternalServerError)
+			}
+
+			if scheme.Scope == model.SchemeScopeTeam {
+				schemeRolesMap[scheme.DefaultTeamAdminRole] = true
+				schemeRolesMap[scheme.DefaultTeamUserRole] = true
+				schemeRolesMap[scheme.DefaultTeamGuestRole] = true
+
+				// Playbooks
+				// At the moment this is only needed to avoid exporting and
+				// importing spurious roles.
+				schemeRolesMap[scheme.DefaultPlaybookAdminRole] = true
+				schemeRolesMap[scheme.DefaultPlaybookMemberRole] = true
+				schemeRolesMap[scheme.DefaultRunAdminRole] = true
+				schemeRolesMap[scheme.DefaultRunMemberRole] = true
+			}
+
+			if scheme.Scope == model.SchemeScopeTeam || scheme.Scope == model.SchemeScopeChannel {
+				schemeRolesMap[scheme.DefaultChannelAdminRole] = true
+				schemeRolesMap[scheme.DefaultChannelUserRole] = true
+				schemeRolesMap[scheme.DefaultChannelGuestRole] = true
+			}
+
+			if err := a.exportWriteLine(writer, ImportLineFromScheme(scheme, rolesMap)); err != nil {
+				return err
+			}
+		}
+
+		cnt += len(schemes)
+
+		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, fmt.Sprintf("%s_schemes_exported", scope), cnt)
+
+		if len(schemes) < pageSize {
+			return nil
+		}
+	}
 }
 
 func (a *App) exportAllTeams(ctx request.CTX, job *model.Job, writer io.Writer) (map[string]bool, *model.AppError) {

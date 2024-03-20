@@ -58,6 +58,7 @@ type Validator struct { //nolint:govet
 	attachmentsUsed map[string]uint64
 	allFileNames    []string
 
+	roles          map[string]ImportFileInfo
 	schemes        map[string]ImportFileInfo
 	teams          map[string]ImportFileInfo
 	channels       map[ChannelTeam]ImportFileInfo
@@ -75,6 +76,7 @@ type Validator struct { //nolint:govet
 
 const (
 	LineTypeVersion       = "version"
+	LineTypeRole          = "role"
 	LineTypeScheme        = "scheme"
 	LineTypeTeam          = "team"
 	LineTypeChannel       = "channel"
@@ -110,6 +112,7 @@ func NewValidator(
 		attachments:     make(map[string]*zip.File),
 		attachmentsUsed: make(map[string]uint64),
 
+		roles:    map[string]ImportFileInfo{},
 		schemes:  map[string]ImportFileInfo{},
 		teams:    map[string]ImportFileInfo{},
 		channels: map[ChannelTeam]ImportFileInfo{},
@@ -119,6 +122,10 @@ func NewValidator(
 
 	v.loadFromServer()
 	return v
+}
+
+func (v *Validator) Roles() uint64 {
+	return uint64(len(v.roles))
 }
 
 func (v *Validator) Schemes() uint64 {
@@ -388,6 +395,8 @@ func (v *Validator) validateLine(info ImportFileInfo, line imports.LineImportDat
 	switch line.Type {
 	case LineTypeVersion:
 		err = v.validateVersion(info, line)
+	case LineTypeRole:
+		err = v.validateRole(info, line)
 	case LineTypeScheme:
 		err = v.validateScheme(info, line)
 	case LineTypeTeam:
@@ -439,6 +448,37 @@ func (v *Validator) validateVersion(info ImportFileInfo, line imports.LineImport
 		}); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (v *Validator) validateRole(info ImportFileInfo, line imports.LineImportData) (err error) {
+	ivErr := validateNotNil(info, "role", line.Role, func(data imports.RoleImportData) *ImportValidationError {
+		appErr := imports.ValidateRoleImportData(&data)
+		if appErr != nil {
+			return &ImportValidationError{
+				ImportFileInfo: info,
+				FieldName:      "role",
+				Err:            appErr,
+			}
+		}
+
+		if data.Name != nil {
+			if existing, ok := v.roles[*data.Name]; ok {
+				return &ImportValidationError{
+					ImportFileInfo: info,
+					FieldName:      "role",
+					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.CurrentLine),
+				}
+			}
+			v.roles[*data.Name] = info
+		}
+
+		return nil
+	})
+	if ivErr != nil {
+		return v.onError(ivErr)
 	}
 
 	return nil
