@@ -411,9 +411,6 @@ func (e *DialogElement) IsValid() error {
 	if e.MinLength < 0 {
 		multiErr = multierror.Append(multiErr, errors.New("min length cannot be a negative number"))
 	}
-	if e.MaxLength < 0 {
-		multiErr = multierror.Append(multiErr, errors.New("max length cannot be a negative number"))
-	}
 	if e.MinLength > e.MaxLength {
 		multiErr = multierror.Append(multiErr, errors.New("min length should not be greater then max length"))
 	}
