@@ -904,6 +904,31 @@ func TestExportRoles(t *testing.T) {
 }
 
 func TestExportSchemes(t *testing.T) {
+	t.Run("no schemes", func(t *testing.T) {
+		th1 := Setup(t).InitBasic()
+		defer th1.TearDown()
+
+		// Need to set this or working with schemes won't work until the job is
+		// completed which is unnecessary for the purpose of this test.
+		err := th1.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		var b bytes.Buffer
+		appErr := th1.App.BulkExport(th1.Context, &b, "", nil, model.BulkExportOpts{})
+		require.Nil(t, appErr)
+
+		// The following causes the original store to be wiped so from here on we are targeting the
+		// second instance where the import will be loaded.
+		th2 := Setup(t)
+		defer th2.TearDown()
+		err = th2.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, i)
+	})
+
 	t.Run("skip export", func(t *testing.T) {
 		th1 := Setup(t).InitBasic()
 		defer th1.TearDown()
