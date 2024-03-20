@@ -264,6 +264,19 @@ function DesktopAndMobileNotificationSettings({
             maximizedSettingInputs.push(triggerMobileNotificationsSection);
         }
 
+        if (!sendPushNotifications) {
+            const disabledPushNotificationsSection = (
+                <>
+                    <br/>
+                    <FormattedMessage
+                        id='user.settings.notifications.desktopAndMobile.pushNotificationsDisabled'
+                        defaultMessage='Push notifications have not been enabled by your System Administrator.'
+                    />
+                </>
+            );
+            maximizedSettingInputs.push(disabledPushNotificationsSection);
+        }
+
         return maximizedSettingInputs;
     },
     [
