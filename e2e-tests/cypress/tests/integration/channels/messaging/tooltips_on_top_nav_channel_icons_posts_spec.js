@@ -27,6 +27,7 @@ describe('Messaging', () => {
                 EnablePublicLink: true,
             },
         });
+
         // # Login as test user and visit off-topic
         cy.apiInitSetup().then(({team, user, offTopicUrl}) => {
             testTeam = team;

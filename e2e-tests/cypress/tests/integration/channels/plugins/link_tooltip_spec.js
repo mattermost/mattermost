@@ -29,8 +29,9 @@ describe('Link tooltips', () => {
                 EnablePublicLink: true,
             },
         };
+
         cy.apiUpdateConfig(newSettings);
-    
+
         // # Enable the demo-plugin
         cy.apiUploadAndEnablePlugin(demoPlugin);
 
