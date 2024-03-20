@@ -90,8 +90,7 @@
     width: 350px;
     flex-direction: column;
     border: 1px solid;
-    border-radius: $border-rad;
-    border-radius: 4px;
+    border-radius: var(--radius-s);
     margin-right: 3px;
     background: var(--center-channel-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
