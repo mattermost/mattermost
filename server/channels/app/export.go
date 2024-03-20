@@ -91,22 +91,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 
 	if opts.IncludeRolesAndSchemes {
-		// We export schemes first since they'll already include their attached roles
-		// which we map to avoid exporting them twice later in exportRoles.
-		schemeRolesMap := make(map[string]bool)
-
-		ctx.Logger().Info("Bulk export: exporting team schemes")
-		if err := a.exportSchemes(ctx, job, writer, model.SchemeScopeTeam, schemeRolesMap); err != nil {
-			return err
-		}
-
-		ctx.Logger().Info("Bulk export: exporting channel schemes")
-		if err := a.exportSchemes(ctx, job, writer, model.SchemeScopeChannel, schemeRolesMap); err != nil {
-			return err
-		}
-
-		ctx.Logger().Info("Bulk export: exporting roles")
-		if err := a.exportRoles(ctx, job, writer, schemeRolesMap); err != nil {
+		if err := a.exportRolesAndSchemes(ctx, job, writer); err != nil {
 			return err
 		}
 	}
@@ -215,44 +200,64 @@ func (a *App) exportVersion(writer io.Writer) *model.AppError {
 	return a.exportWriteLine(writer, versionLine)
 }
 
-func (a *App) exportRoles(ctx request.CTX, job *model.Job, writer io.Writer, schemeRoles map[string]bool) *model.AppError {
+func (a *App) exportRolesAndSchemes(ctx request.CTX, job *model.Job, writer io.Writer) *model.AppError {
+	// We export schemes first since they'll already include their attached roles
+	// which we map to avoid exporting them twice later in exportRoles.
+	schemeRolesMap := make(map[string]bool)
+
 	roles, appErr := a.Srv().Store().Role().GetAll()
 	if appErr != nil {
-		return model.NewAppError("exportSchemes", "app.role.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		return model.NewAppError("exportRolesAndSchemes", "app.role.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	for _, role := range roles {
+	ctx.Logger().Info("Bulk export: exporting team schemes")
+	if err := a.exportSchemes(ctx, job, writer, model.SchemeScopeTeam, schemeRolesMap, roles); err != nil {
+		return err
+	}
+
+	ctx.Logger().Info("Bulk export: exporting channel schemes")
+	if err := a.exportSchemes(ctx, job, writer, model.SchemeScopeChannel, schemeRolesMap, roles); err != nil {
+		return err
+	}
+
+	ctx.Logger().Info("Bulk export: exporting roles")
+	if err := a.exportRoles(ctx, job, writer, schemeRolesMap, roles); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) exportRoles(ctx request.CTX, job *model.Job, writer io.Writer, schemeRoles map[string]bool, allRoles []*model.Role) *model.AppError {
+	var cnt int
+	for _, role := range allRoles {
 		// We skip any roles that will be included as part of custom schemes.
 		if !schemeRoles[role.Name] {
 			if err := a.exportWriteLine(writer, ImportLineFromRole(role)); err != nil {
 				return err
 			}
+			cnt++
 		}
 	}
 
-	updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "roles_exported", len(roles))
+	updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "roles_exported", cnt)
 
 	return nil
 }
 
-func (a *App) exportSchemes(ctx request.CTX, job *model.Job, writer io.Writer, scope string, schemeRolesMap map[string]bool) *model.AppError {
-	var cnt int
-	pageSize := 100
-
-	roles, appErr := a.Srv().Store().Role().GetAll()
-	if appErr != nil {
-		return model.NewAppError("exportSchemes", "app.role.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-	}
-
-	rolesMap := make(map[string]*model.Role, len(roles))
-	for _, role := range roles {
+func (a *App) exportSchemes(ctx request.CTX, job *model.Job, writer io.Writer, scope string, schemeRolesMap map[string]bool, allRoles []*model.Role) *model.AppError {
+	rolesMap := make(map[string]*model.Role, len(allRoles))
+	for _, role := range allRoles {
 		rolesMap[role.Name] = role
 	}
 
+	var cnt int
+	pageSize := 100
+
 	for {
-		schemes, appErr := a.Srv().Store().Scheme().GetAllPage(scope, cnt, pageSize)
-		if appErr != nil {
-			return model.NewAppError("exportSchemes", "app.scheme.get_all_page.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		schemes, err := a.Srv().Store().Scheme().GetAllPage(scope, cnt, pageSize)
+		if err != nil {
+			return model.NewAppError("exportSchemes", "app.scheme.get_all_page.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		for _, scheme := range schemes {
