@@ -2106,8 +2106,6 @@
   "admin.security.password": "Contraseña",
   "admin.server_logs.CopyLog": "Copiar log",
   "admin.server_logs.DataCopied": "Datos copiados",
-  "admin.server_logs.Export": "Exportar",
-  "admin.server_logs.Exported": "Exportado",
   "admin.server_logs.LogEvent": "Registrar Evento",
   "admin.service.CorsDebugLabel": "Depurar CORS:",
   "admin.service.attemptDescription": "Número de intentos de inicio de sesión permitidos antes de que un usuario sea bloqueado y sea necesario restablecer su contraseña a través de correo electrónico.",
