@@ -52,7 +52,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
       className="CommercialSupportModal"
     >
       <FormattedMarkdownMessage
-        defaultMessage="If you're experiencing issues, [submit a support ticket](!{supportLink}). To help with troubleshooting, it's recommended to download the support packet below that includes more details about your Mattermost environment."
+        defaultMessage="If you're experiencing issues, [submit a support ticket](!{supportLink}). To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment."
         id="commercial_support.description"
         values={
           Object {
@@ -74,7 +74,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
         className="CommercialSupportModal__packet_contents_download"
       >
         <FormattedMarkdownMessage
-          defaultMessage="**Select your support packet contents to download**"
+          defaultMessage="**Select your Support Packet contents to download**"
           id="commercial_support.download_contents"
         />
       </div>
