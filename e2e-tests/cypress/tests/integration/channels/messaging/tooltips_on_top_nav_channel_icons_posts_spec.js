@@ -83,7 +83,7 @@ describe('Messaging', () => {
         cy.uiGetToolTip(testChannel.display_name);
         cy.get('@longChannelAtSidebar').trigger('mouseout');
 
-        // // * Check that the Demo plugin tooltip is present
+        // * Check that the Demo plugin tooltip is present
         cy.get('[role=button] .fa-plug').should('be.visible').trigger('mouseover');
         cy.uiGetToolTip('Demo Plugin');
     });
