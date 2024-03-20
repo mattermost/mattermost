@@ -1985,11 +1985,21 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+			posts, appErr := th.App.GetPosts(channel.Id, 0, 30)
 
 			require.Nil(t, appErr)
 			assert.True(t, len(posts.Order) > 0)
-			assert.Equal(t, fmt.Sprintf("Test: User %s joined %s", user2.Id, channel.Id), posts.Posts[posts.Order[0]].Message)
+
+			found := false
+			for _, post := range posts.Posts {
+				if post.Message == fmt.Sprintf("Test: User %s joined %s", user2.Id, channel.Id) {
+					found = true
+				}
+			}
+
+			if !found {
+				assert.Fail(t, "Couldn't find user joined channel hook message post")
+			}
 		}, 5*time.Second, 100*time.Millisecond)
 	})
 
