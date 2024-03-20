@@ -2462,7 +2462,16 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID str
 	posts := []*model.PostForIndexing{}
 
 	var err error
-	// We force this index to avoid any chances of index merge intersection.
+	// In order to use an index scan for both MySQL and Postgres, we need to
+	// diverge the implementation of the query, specifically in the WHERE
+	// condition: for MySQL, we need to do
+	//     (CreateAt > ?) OR (CreateAt = ? AND Id > ?)
+	// while for Postgres we need
+	//     (CreateAt, Id) > (?, ?)
+	// The wrong choice for any of the two databases makes the query go from
+	// milliseconds to dozens of seconds.
+	// More information in: https://github.com/mattermost/mattermost/pull/26517
+	// and https://community.mattermost.com/core/pl/ui5dz96shinetb8nq83myggbma
 	if s.DriverName() == model.DatabaseDriverMysql {
 		query := `SELECT
 				Posts.*, Channels.TeamId
