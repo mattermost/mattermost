@@ -89,8 +89,8 @@
     display: flex;
     align-items: center;
     padding: 0;
-    background: rgba(var(--sidebar-text-rgb), 0.08);
     border-radius: 4px;
+    background: rgba(var(--sidebar-text-rgb), 0.08);
 
     .searchTypeBadge {
         position: relative;
@@ -99,9 +99,9 @@
         align-items: center;
         justify-content: center;
         padding: 2px 2px 2px 7px;
+        border-radius: 4px;
         margin: 0 6px;
         background: rgba(var(--sidebar-text-rgb), 0.08);
-        border-radius: 4px;
         color: var(--sidebar-text);
         font-size: 10px;
         font-weight: 700;
@@ -142,8 +142,8 @@
         width: 180px;
         height: 32px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
-        margin: 16px 0 0;
         border-radius: 4px;
+        margin: 16px 0 0;
 
         .input-clear {
             right: 4px;
@@ -391,8 +391,8 @@
 
 .search-hint__suggestion-list__label {
     padding: 1px 5px;
-    background: rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.16);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -418,9 +418,9 @@
         justify-content: center;
         padding: 8px 16px;
         border: 1px solid v(button-bg);
+        border-radius: 4px;
         margin: 18px 8px 16px 0;
         background: v(center-channel-bg);
-        border-radius: 4px;
         color: v(button-bg);
         font-size: 12px;
         line-height: 1;
@@ -470,8 +470,8 @@
         display: inline-flex !important;
         align-items: center;
         padding: 4px;
-        background-color: hsla(221, 77%, 48%, 0.08);
         border-radius: 50%;
+        background-color: hsla(221, 77%, 48%, 0.08);
         font-size: 14px !important;
         gap: 10px;
 

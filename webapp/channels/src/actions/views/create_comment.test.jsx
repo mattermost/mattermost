@@ -287,7 +287,7 @@ describe('rhs view actions', () => {
 
             jest.resetModules();
 
-            const {submitCommand: remockedSubmitCommand} = require('actions/views/create_comment'); // eslint-disable-like @typescript-eslint/no-var-requires
+            const {submitCommand: remockedSubmitCommand} = require('actions/views/create_comment');
 
             await store.dispatch(remockedSubmitCommand(channelId, rootId, draft));
 

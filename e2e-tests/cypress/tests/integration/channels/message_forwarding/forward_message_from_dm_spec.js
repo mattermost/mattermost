@@ -192,7 +192,7 @@ describe('Forward Message', () => {
             cy.get('.forward-post__select').should('not.exist');
 
             // * Assert if button is enabled
-            cy.get('.GenericModal__button.confirm').should('not.be.disabled');
+            cy.get('.btn-tertiary').should('not.be.disabled');
 
             // * Assert Notification is shown
             cy.findByTestId('notification_forward_post').should('be.visible').should('contain.text', `This message is from a private conversation and can only be shared with ${dmChannel.display_name}`);
@@ -207,7 +207,7 @@ describe('Forward Message', () => {
 
             if (cancel) {
                 // * Assert if button is active
-                cy.get('.GenericModal__button.cancel').should('not.be.disabled').type('{esc}', {force: true});
+                cy.get('.btn-tertiary').should('not.be.disabled').type('{esc}', {force: true});
             } else {
                 // * Assert if button is active
                 cy.get('.GenericModal__button.confirm').should('not.be.disabled').type('{enter}', {force: true});

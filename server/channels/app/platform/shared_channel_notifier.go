@@ -95,7 +95,7 @@ func handleContentSync(ps *PlatformService, syncService SharedChannelServiceIFac
 		for _, remote := range remotes {
 			// invite remote to channel (will share the channel if not already shared)
 			if err := syncService.InviteRemoteToChannel(channel.Id, remote.RemoteId, remote.CreatorId, true); err != nil {
-				return fmt.Errorf("cannot invite remote to channel %s: %w", channel.Id, err)
+				return fmt.Errorf("cannot invite remote %s to channel %s: %w", remote.RemoteId, channel.Id, err)
 			}
 			shouldNotify = true
 		}
