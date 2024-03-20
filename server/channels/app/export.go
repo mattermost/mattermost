@@ -91,8 +91,6 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 
 	if opts.IncludeRolesAndSchemes {
-		ctx.Logger().Info("Bulk export: exporting roles")
-
 		// We export schemes first since they'll already include their attached roles
 		// which we map to avoid exporting them twice later in exportRoles.
 		schemeRolesMap := make(map[string]bool)
@@ -107,6 +105,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 			return err
 		}
 
+		ctx.Logger().Info("Bulk export: exporting roles")
 		if err := a.exportRoles(ctx, job, writer, schemeRolesMap); err != nil {
 			return err
 		}
