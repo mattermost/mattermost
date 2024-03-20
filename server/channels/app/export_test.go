@@ -913,8 +913,18 @@ func TestExportSchemes(t *testing.T) {
 		err := th1.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
+		schemes, err := th1.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeChannel, 0, 1)
+		require.NoError(t, err)
+		require.Empty(t, schemes)
+
+		schemes, err = th1.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeTeam, 0, 1)
+		require.NoError(t, err)
+		require.Empty(t, schemes)
+
 		var b bytes.Buffer
-		appErr := th1.App.BulkExport(th1.Context, &b, "", nil, model.BulkExportOpts{})
+		appErr := th1.App.BulkExport(th1.Context, &b, "", nil, model.BulkExportOpts{
+			IncludeRolesAndSchemes: true,
+		})
 		require.Nil(t, appErr)
 
 		// The following causes the original store to be wiped so from here on we are targeting the
@@ -927,6 +937,14 @@ func TestExportSchemes(t *testing.T) {
 		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, i)
+
+		schemes, err = th2.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeChannel, 0, 1)
+		require.NoError(t, err)
+		require.Empty(t, schemes)
+
+		schemes, err = th2.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeTeam, 0, 1)
+		require.NoError(t, err)
+		require.Empty(t, schemes)
 	})
 
 	t.Run("skip export", func(t *testing.T) {
