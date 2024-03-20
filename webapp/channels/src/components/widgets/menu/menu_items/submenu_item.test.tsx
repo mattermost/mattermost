@@ -4,6 +4,7 @@
 import {mount} from 'enzyme';
 import React from 'react';
 
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import SubMenuItem from './submenu_item';
@@ -27,6 +28,7 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
 
         expect(wrapper).toMatchSnapshot();
     });
+
     test('present subMenu should match snapshot with submenu', () => {
         const wrapper = mount(
             <SubMenuItem
@@ -52,11 +54,13 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
 
         expect(wrapper).toMatchSnapshot();
     });
-    test('test subMenu click triggers action', async () => {
-        const action1 = jest.fn().mockReturnValueOnce('default');
-        const action2 = jest.fn().mockReturnValueOnce('default');
-        const action3 = jest.fn().mockReturnValueOnce('default');
-        const wrapper = mount(
+
+    test('test subMenu click triggers action', () => {
+        const action1 = jest.fn();
+        const action2 = jest.fn();
+        const action3 = jest.fn();
+
+        render(
             <SubMenuItem
                 key={'_pluginmenuitem'}
                 id={'Z'}
@@ -79,16 +83,20 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
                 root={true}
             />,
         );
-        wrapper.setState({show: true});
-        wrapper.find('#Z').at(1).simulate('click');
-        await expect(action1).toHaveBeenCalledTimes(1);
-        wrapper.setState({show: true});
-        wrapper.find('#A').at(1).simulate('click');
-        await expect(action2).toHaveBeenCalledTimes(1);
-        wrapper.setState({show: true});
-        wrapper.find('#B').at(1).simulate('click');
-        await expect(action3).toHaveBeenCalledTimes(1);
+
+        userEvent.click(screen.getByText('test'));
+        expect(action1).toHaveBeenCalledTimes(1);
+
+        userEvent.click(screen.getByText('Test A'));
+        expect(action2).toHaveBeenCalledTimes(1);
+
+        userEvent.click(screen.getByText('Test B'));
+        expect(action3).toHaveBeenCalledTimes(1);
+
+        // Confirm that the parent's action wasn't called again when clicking on a child item
+        expect(action1).toHaveBeenCalledTimes(1);
     });
+
     test('should show/hide submenu based on keyboard commands', () => {
         const wrapper = mount<SubMenuItem>(
             <SubMenuItem
