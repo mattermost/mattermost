@@ -39,5 +39,43 @@
         &:first-child {
             margin-left: unset;
         }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+    &__select-item {
+        display: flex;
+        overflow: hidden;
+        width: 140px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        border: unset;
+        margin-left: 8px;
+        background: transparent;
+        border-radius: 4px;
+        font-size: 14px;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        &.active {
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        &:first-child {
+            margin-left: unset;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+    &__select-item-option {
+        color: black;
     }
 }
