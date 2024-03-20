@@ -9,9 +9,9 @@
 
     .react-select__multi-value {
         align-items: center;
+        border-radius: 32px;
         margin: 4px 4px 4px 0;
         background: rgba(var(--sys-center-channel-color-rgb), 0.08);
-        border-radius: 32px;
         color: var(--sys-center-channel-color);
 
         .app__body & {
