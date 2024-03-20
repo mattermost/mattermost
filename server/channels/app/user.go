@@ -230,7 +230,7 @@ func (a *App) CreateGuest(c request.CTX, user *model.User) (*model.User, *model.
 }
 
 func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*model.User, *model.AppError) {
-	exceeded, limitErr := a.isUserLimitExceeded()
+	exceeded, limitErr := a.isHardUserLimitExceeded()
 	if limitErr != nil {
 		return nil, limitErr
 	}
@@ -1013,7 +1013,7 @@ func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *
 
 func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
 	if active {
-		exceeded, appErr := a.isUserLimitExceeded()
+		exceeded, appErr := a.isHardUserLimitExceeded()
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -1067,6 +1067,17 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 				return true
 			}, plugin.UserHasBeenDeactivatedID)
 		})
+	}
+
+	if active {
+		userLimits, appErr := a.GetUserLimits()
+		if appErr != nil {
+			mlog.Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
+		} else {
+			if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
+				mlog.Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			}
+		}
 	}
 
 	return ruser, nil

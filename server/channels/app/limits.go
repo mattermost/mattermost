@@ -11,7 +11,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-const maxUsersLimit = 10000
+const (
+	maxUsersLimit     = 10000
+	maxUsersHardLimit = 11000
+)
 
 func (a *App) GetUserLimits() (*model.UserLimits, *model.AppError) {
 	if !a.shouldShowUserLimits() {
@@ -25,8 +28,9 @@ func (a *App) GetUserLimits() (*model.UserLimits, *model.AppError) {
 	}
 
 	return &model.UserLimits{
-		ActiveUserCount: activeUserCount,
-		MaxUsersLimit:   maxUsersLimit,
+		ActiveUserCount:   activeUserCount,
+		MaxUsersLimit:     maxUsersLimit,
+		MaxUsersHardLimit: maxUsersHardLimit,
 	}, nil
 }
 
@@ -38,7 +42,7 @@ func (a *App) shouldShowUserLimits() bool {
 	return a.License() == nil
 }
 
-func (a *App) isUserLimitExceeded() (bool, *model.AppError) {
+func (a *App) isHardUserLimitExceeded() (bool, *model.AppError) {
 	if should := a.shouldShowUserLimits(); !should {
 		return false, nil
 	}
@@ -48,5 +52,5 @@ func (a *App) isUserLimitExceeded() (bool, *model.AppError) {
 		return false, appErr
 	}
 
-	return userLimits.ActiveUserCount >= userLimits.MaxUsersLimit, appErr
+	return userLimits.ActiveUserCount >= userLimits.MaxUsersHardLimit, appErr
 }
