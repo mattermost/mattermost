@@ -209,6 +209,38 @@ func TestOpenDialog(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("Should fail with too long display name of elements", func(t *testing.T) {
+		request.Dialog.Elements = []model.DialogElement{
+			{
+				DisplayName: "Very very long Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+		}
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.ErrorContains(t, err, "Invalid request to open interactive dialog")
+	})
+
+	t.Run("Should fail with same elements", func(t *testing.T) {
+		request.Dialog.Elements = []model.DialogElement{
+			{
+				DisplayName: "Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+			{
+				DisplayName: "Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+		}
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.ErrorContains(t, err, "Invalid request to open interactive dialog")
+	})
+
 	t.Run("Should pass with nil elements slice", func(t *testing.T) {
 		request.Dialog.Elements = nil
 		_, err := client.OpenInteractiveDialog(context.Background(), request)

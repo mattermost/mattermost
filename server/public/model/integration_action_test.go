@@ -180,3 +180,172 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 		require.True(t, pa1.Equals(pa2))
 	})
 }
+
+func TestOpenDialogRequestIsValid(t *testing.T) {
+	request := OpenDialogRequest{
+		TriggerId: "triggerId",
+		URL:       "http://localhost:8065",
+		Dialog: Dialog{
+			CallbackId: "callbackid",
+			Title:      "Some Title",
+			Elements: []DialogElement{
+				{
+					DisplayName: "Element Name",
+					Name:        "element_name",
+					Type:        "text",
+					Placeholder: "Enter a value",
+				},
+			},
+			SubmitLabel:    "Submit",
+			NotifyOnCancel: false,
+			State:          "somestate",
+		},
+	}
+
+	t.Run("should pass validation", func(t *testing.T) {
+		err := request.IsValid()
+		assert.Nil(t, err)
+	})
+
+	t.Run("should fail on wrong url", func(t *testing.T) {
+		request.URL = "wrong url"
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "invalid URL")
+		t.Cleanup(func() {
+			request.URL = "http://localhost:8065"
+		})
+	})
+
+	t.Run("should fail on empty trigger", func(t *testing.T) {
+		request.TriggerId = ""
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "empty trigger id")
+		t.Cleanup(func() {
+			request.TriggerId = "triggerId"
+		})
+	})
+
+	t.Run("should fail on empty dialog title", func(t *testing.T) {
+		request.Dialog.Title = ""
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "invalid dialog title")
+		t.Cleanup(func() {
+			request.Dialog.Title = "Some Title"
+		})
+	})
+
+	t.Run("should fail on wrong subtype and long dialog title", func(t *testing.T) {
+		request.Dialog.Elements[0].SubType = "wrong SubType"
+		request.Dialog.Title = "Very very long Dialog Name"
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "invalid subtype")
+		assert.ErrorContains(t, err, "invalid dialog title")
+		t.Cleanup(func() {
+			request.Dialog.Elements[0].SubType = ""
+			request.Dialog.Title = "Some Title"
+		})
+	})
+
+	t.Run("should fail on wrong dialog icon url", func(t *testing.T) {
+		request.Dialog.IconURL = "wrong url"
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "invalid icon url")
+		t.Cleanup(func() {
+			request.Dialog.IconURL = "http://localhost:8065/icon-url"
+		})
+	})
+
+	t.Run("should pass on empty dialog icon url", func(t *testing.T) {
+		request.Dialog.IconURL = ""
+		err := request.IsValid()
+		assert.Nil(t, err)
+		t.Cleanup(func() {
+			request.Dialog.IconURL = "http://localhost:8065/icon-url"
+		})
+	})
+
+	t.Run("should fail on wrong minimal and maximal element length", func(t *testing.T) {
+		request.Dialog.Elements[0].MinLength = 10
+		request.Dialog.Elements[0].MaxLength = 9
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "field is not valid")
+		assert.ErrorContains(t, err, "min length should not be greater then max length")
+		t.Cleanup(func() {
+			request.Dialog.Elements[0].MinLength = 0
+			request.Dialog.Elements[0].MaxLength = 150
+		})
+	})
+
+	t.Run("should fail on wrong element type", func(t *testing.T) {
+		request.Dialog.Elements[0].Type = "wrong type"
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "invalid element type")
+		t.Cleanup(func() {
+			request.Dialog.Elements[0].Type = "text"
+		})
+	})
+
+	t.Run("should fail on duplicate element name", func(t *testing.T) {
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName: "Radio element name",
+			Name:        "element_name",
+			Type:        "radio",
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "duplicate dialog element")
+		t.Cleanup(func() {
+			request.Dialog.Elements = request.Dialog.Elements[:1]
+		})
+	})
+
+	t.Run("should fail on wrong bool default value", func(t *testing.T) {
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName: "Bool element name",
+			Name:        "bool_element_name",
+			Type:        "bool",
+			Default:     "wrong default",
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "invalid default of bool")
+		t.Cleanup(func() {
+			request.Dialog.Elements = request.Dialog.Elements[:1]
+		})
+	})
+
+	t.Run("should pass on bool default value", func(t *testing.T) {
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName: "Bool element name",
+			Name:        "bool_element_name",
+			Type:        "bool",
+			Default:     "true",
+		})
+		err := request.IsValid()
+		assert.Nil(t, err)
+		t.Cleanup(func() {
+			request.Dialog.Elements = request.Dialog.Elements[:1]
+		})
+	})
+
+	t.Run("should fail on wrong select datasource value", func(t *testing.T) {
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName: "Select element name",
+			Name:        "select_element_name",
+			Type:        "select",
+			DataSource:  "wrong DataSource",
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "invalid data source")
+		t.Cleanup(func() {
+			request.Dialog.Elements = request.Dialog.Elements[:1]
+		})
+	})
+
+	t.Run("should fail on too long text placeholder", func(t *testing.T) {
+		request.Dialog.Elements[0].Placeholder = "Very very very very very very very very very very very very very very very very very very very very very very very very very very very long placeholder"
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "Placeholder cannot be longer than 150 characters")
+		t.Cleanup(func() {
+			request.Dialog.Elements[0].Placeholder = ""
+		})
+	})
+}
