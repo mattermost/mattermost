@@ -333,6 +333,11 @@ func (er *AppError) Wrap(err error) *AppError {
 	return er
 }
 
+func (er *AppError) WipeDetailed() {
+	er.wrapped = nil
+	er.DetailedError = ""
+}
+
 // AppErrorFromJSON will decode the input and return an AppError
 func AppErrorFromJSON(data io.Reader) *AppError {
 	str := ""

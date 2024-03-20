@@ -150,6 +150,18 @@ func TestAppErrorSerialize(t *testing.T) {
 		require.EqualError(t, berr, aerr.Error())
 	})
 
+	t.Run("Wipe Detailed", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot)
+		aerr.WipeDetailed()
+		js := aerr.ToJSON()
+		berr := AppErrorFromJSON(strings.NewReader(js))
+		require.Equal(t, "message", berr.Id)
+		require.Equal(t, "", berr.DetailedError)
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+
+		require.EqualError(t, berr, aerr.Error())
+	})
+
 	t.Run("Wrapped", func(t *testing.T) {
 		aerr := NewAppError("", "message", nil, "", http.StatusTeapot).Wrap(errors.New("wrapped"))
 		js := aerr.ToJSON()
@@ -161,12 +173,36 @@ func TestAppErrorSerialize(t *testing.T) {
 		require.EqualError(t, berr, aerr.Error())
 	})
 
+	t.Run("Wipe Wrapped", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "", http.StatusTeapot).Wrap(errors.New("wrapped"))
+		aerr.WipeDetailed()
+		js := aerr.ToJSON()
+		berr := AppErrorFromJSON(strings.NewReader(js))
+		require.Equal(t, "message", berr.Id)
+		require.Equal(t, "", berr.DetailedError)
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+
+		require.EqualError(t, berr, aerr.Error())
+	})
+
 	t.Run("Detailed + Wrapped", func(t *testing.T) {
 		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot).Wrap(errors.New("wrapped"))
 		js := aerr.ToJSON()
 		berr := AppErrorFromJSON(strings.NewReader(js))
 		require.Equal(t, "message", berr.Id)
 		require.Equal(t, "detail, wrapped", berr.DetailedError)
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+
+		require.EqualError(t, berr, aerr.Error())
+	})
+
+	t.Run("Detailed + Wrapped", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot).Wrap(errors.New("wrapped"))
+		aerr.WipeDetailed()
+		js := aerr.ToJSON()
+		berr := AppErrorFromJSON(strings.NewReader(js))
+		require.Equal(t, "message", berr.Id)
+		require.Equal(t, "", berr.DetailedError)
 		require.Equal(t, http.StatusTeapot, berr.StatusCode)
 
 		require.EqualError(t, berr, aerr.Error())
