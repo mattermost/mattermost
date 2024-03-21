@@ -6591,6 +6591,10 @@
     "translation": "We encountered an error finding the session."
   },
   {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Unable to get least recently used sessions."
+  },
+  {
     "id": "app.session.get_sessions.app_error",
     "translation": "We encountered an error while finding user sessions."
   },
