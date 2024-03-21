@@ -192,6 +192,7 @@
 
     .heading {
         overflow: hidden;
+        align-self: center;
         margin: 0 0 0 2px;
         color: var(--center-channel-color);
         font-family: Metropolis, sans-serif;
@@ -200,7 +201,6 @@
         line-height: 16px;
         text-overflow: ellipsis;
         white-space: nowrap;
-        align-self: center;
     }
 
     .caret {
@@ -337,24 +337,24 @@
     }
 
     .channel-header__icons {
+        display: flex;
         margin-right: 8px;
         gap: 4px;
-        display: flex;
     }
 
     .channel-header__description {
         position: relative;
         display: flex;
-        flex: 1;
         overflow: hidden;
         height: 24px;
+        flex: 1;
         align-items: center;
         margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
         gap: 2px;
-        text-overflow: ellipsis;
-        color: rgba(var(--center-channel-color-rgb), 0.75);
         line-height: 24px;
+        text-overflow: ellipsis;
 
         span[data-emoticon] {
             .emoticon {
@@ -434,9 +434,9 @@
         }
 
         .markdown-inline-img {
+            display: inline-block;
             max-height: 18px;
             margin: 0 2px;
-            display: inline-block;
         }
 
         .edit-icon {
