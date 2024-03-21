@@ -48,17 +48,19 @@ describe('CRT Desktop notifications', () => {
         });
     });
 
-    it.only('MM-T4417_1 Trigger notifications on all replies when channel setting is checked', () => {
+    it('MM-T4417_1 Trigger notifications on all replies when channel setting is checked', () => {
         // # Visit channel
         cy.visit(testChannelUrl);
 
         cy.uiOpenChannelMenu('Notification Preferences');
 
-        // # click on Mute Channel to Unmute Channel
-        cy.findByText('Mute Channel').should('be.visible').click({force: true});
+        // # Click on Mute Channel to Unmute Channel
+        cy.findByText('Mute channel').should('be.visible').click({force: true});
 
+        // * Verify that channel is muted alert is visible
         cy.findByText('This channel is muted').should('be.visible');
 
+        // # Save the changes
         cy.findByText('Save').should('be.visible').click();
 
         // Setup notification spy
@@ -67,8 +69,8 @@ describe('CRT Desktop notifications', () => {
         // # Set users notification settings
         cy.uiOpenChannelMenu('Notification Preferences');
 
-        // # click on Mute Channel to Unmute Channel
-        cy.get('[data-testid="muteChannel"]').click();
+        // # Click on Mute Channel to Unmute Channel
+        cy.findByText('Mute channel').should('be.visible').click({force: true});
 
         // # Click "Desktop Notifications"
         cy.findByText('Desktop Notifications').should('be.visible');
@@ -86,15 +88,16 @@ describe('CRT Desktop notifications', () => {
         cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-none').should('be.visible').click();
         cy.get('.channel-notifications-settings-modal__body').get('#desktopNotification-none').should('be.checked');
 
-        // # click on Save button
-        cy.get('.channel-notifications-settings-modal__save-btn').should('be.visible').click();
+        // # Save the changes
+        cy.findByText('Save').should('be.visible').click();
 
         // # Set users notification settings
         cy.uiOpenChannelMenu('Notification Preferences');
         cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-none').should('be.checked');
         cy.get('.channel-notifications-settings-modal__body').get('#desktopNotification-all').scrollIntoView().should('be.visible').click();
 
-        cy.get('.channel-notifications-settings-modal__save-btn').should('be.visible').click();
+        // # Save the changes
+        cy.findByText('Save').should('be.visible').click();
 
         // # Post a root message as other user
         cy.postMessageAs({sender, message: 'This is a not followed root message', channelId: testChannelId, rootId: ''}).then(({id: postId}) => {
@@ -140,6 +143,7 @@ describe('CRT Desktop notifications', () => {
     it('MM-T4417_2 Click on sameMobileSettingsDesktop and check if additional settings still appears', () => {
         cy.visit(testChannelUrl);
         cy.uiOpenChannelMenu('Notification Preferences');
+
         cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-mention').should('be.visible').click().then(() => {
             cy.get('[data-testid="desktopReplyThreads"]').should('be.visible').click();
         });
@@ -160,8 +164,8 @@ describe('CRT Desktop notifications', () => {
 
         cy.get('[data-testid="autoFollowThreads"]').should('be.visible').click();
 
-        // # click on Save button
-        cy.get('.channel-notifications-settings-modal__save-btn').should('be.visible').click();
+        // # Save the changes
+        cy.findByText('Save').should('be.visible').click();
     });
 
     it('MM-T4417_3 Trigger notifications only on mention replies when channel setting is unchecked', () => {
@@ -171,7 +175,9 @@ describe('CRT Desktop notifications', () => {
         spyNotificationAs('notifySpy', 'granted');
         cy.uiOpenChannelMenu('Notification Preferences');
         cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-mention').should('be.visible').click();
-        cy.get('.channel-notifications-settings-modal__save-btn').should('be.visible').click();
+
+        // # Save the changes
+        cy.findByText('Save').should('be.visible').click();
 
         // # Post a root message as other user
         cy.postMessageAs({sender, message: 'This is a not followed root message', channelId: testChannelId, rootId: ''}).then(({id: postId}) => {
