@@ -91,10 +91,24 @@ func TestGenerateSupportPacket(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	d1 := []byte("hello\ngo\n")
-	err := os.WriteFile("mattermost.log", d1, 0777)
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
-	err = os.WriteFile("notifications.log", d1, 0777)
+	t.Cleanup(func() {
+		err = os.RemoveAll(dir)
+		assert.NoError(t, err)
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.LogSettings.FileLocation = dir
+	})
+
+	logLocation := config.GetLogFileLocation(dir)
+	notificationsLogLocation := config.GetNotificationsLogFileLocation(dir)
+
+	d1 := []byte("hello\ngo\n")
+	err = os.WriteFile(logLocation, d1, 0777)
+	require.NoError(t, err)
+	err = os.WriteFile(notificationsLogLocation, d1, 0777)
 	require.NoError(t, err)
 
 	fileDatas := th.App.GenerateSupportPacket(th.Context)
@@ -118,9 +132,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 	assert.ElementsMatch(t, testFiles, rFileNames)
 
 	// Remove these two files and ensure that warning.txt file is generated
-	err = os.Remove("notifications.log")
+	err = os.Remove(logLocation)
 	require.NoError(t, err)
-	err = os.Remove("mattermost.log")
+	err = os.Remove(notificationsLogLocation)
 	require.NoError(t, err)
 	fileDatas = th.App.GenerateSupportPacket(th.Context)
 	testFiles = []string{
