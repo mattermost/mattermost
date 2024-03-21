@@ -112,6 +112,57 @@ func TestCreateBot(t *testing.T) {
 	})
 }
 
+func TestEnsureBot(t *testing.T) {
+	t.Run("ensure bot should pass if already exist bot user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		pluginId := "pluginId"
+
+		PluginErr := th.App.SetPluginKey(pluginId, "key", []byte("test"))
+		assert.Nil(t, PluginErr)
+
+		_, err := th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+
+		_, err = th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+	})
+
+	t.Run("ensure bot should pass even after delete bot user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		pluginId := "pluginId"
+
+		PluginErr := th.App.SetPluginKey(pluginId, "key", []byte("test"))
+		assert.Nil(t, PluginErr)
+
+		bot := model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		}
+
+		_, err := th.App.EnsureBot(th.Context, pluginId, &bot)
+		require.Nil(t, err)
+		err = th.App.Srv().Store().User().PermanentDelete(bot.UserId)
+		require.Nil(t, err)
+		_, err = th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username:    "username",
+			Description: "another bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+	})
+}
+
 func TestPatchBot(t *testing.T) {
 	t.Run("invalid patch for user", func(t *testing.T) {
 		th := Setup(t).InitBasic()

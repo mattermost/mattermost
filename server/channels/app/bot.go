@@ -38,29 +38,32 @@ func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (stri
 		return "", err
 	}
 
-	// If the bot has already been created, use it
+	// If the bot has already been created, check whether it still exists and use it
 	if botIDBytes != nil {
 		botID := string(botIDBytes)
 
-		// ensure existing bot is synced with what is being created
-		botPatch := &model.BotPatch{
-			Username:    &bot.Username,
-			DisplayName: &bot.DisplayName,
-			Description: &bot.Description,
-		}
+		if _, err := a.GetBot(rctx, botID, true); err == nil {
 
-		if _, err = a.PatchBot(rctx, botID, botPatch); err != nil {
-			return "", fmt.Errorf("failed to patch bot: %w", err)
-		}
+			// ensure existing bot is synced with what is being created
+			botPatch := &model.BotPatch{
+				Username:    &bot.Username,
+				DisplayName: &bot.DisplayName,
+				Description: &bot.Description,
+			}
 
-		return botID, nil
+			if _, err = a.PatchBot(rctx, botID, botPatch); err != nil {
+				return "", fmt.Errorf("failed to patch bot: %w", err)
+			}
+
+			return botID, nil
+		}
 	}
 
 	// Check for an existing bot user with that username. If one exists, then use that.
 	if user, appErr := a.GetUserByUsername(bot.Username); appErr == nil && user != nil {
 		if user.IsBot {
 			if appErr := a.SetPluginKey(pluginID, botUserKey, []byte(user.Id)); appErr != nil {
-				return "", fmt.Errorf("failed to set plugin key: %w", err)
+				return "", fmt.Errorf("failed to set plugin key: %w", appErr)
 			}
 		} else {
 			rctx.Logger().Error("Plugin attempted to use an account that already exists. Convert user to a bot "+
@@ -82,7 +85,7 @@ func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (stri
 	}
 
 	if appErr := a.SetPluginKey(pluginID, botUserKey, []byte(createdBot.UserId)); appErr != nil {
-		return "", fmt.Errorf("failed to set plugin key: %w", err)
+		return "", fmt.Errorf("failed to set plugin key: %w", appErr)
 	}
 
 	return createdBot.UserId, nil
