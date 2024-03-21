@@ -33,7 +33,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 
 		s.client.
 			EXPECT().
-			InstallMarketplacePlugin(context.Background(), pluginRequest).
+			InstallMarketplacePlugin(context.TODO(), pluginRequest).
 			Return(manifest, &model.Response{}, nil).
 			Times(1)
 
@@ -53,7 +53,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 
 		s.client.
 			EXPECT().
-			InstallMarketplacePlugin(context.Background(), pluginRequest).
+			InstallMarketplacePlugin(context.TODO(), pluginRequest).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -77,7 +77,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceListCmd() {
 
 		s.client.
 			EXPECT().
-			GetMarketplacePlugins(context.Background(), pluginFilter).
+			GetMarketplacePlugins(context.TODO(), pluginFilter).
 			Return(plugins, &model.Response{}, nil).
 			Times(1)
 
@@ -99,19 +99,19 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceListCmd() {
 
 		s.client.
 			EXPECT().
-			GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{Page: 0, PerPage: 1}).
+			GetMarketplacePlugins(context.TODO(), &model.MarketplacePluginFilter{Page: 0, PerPage: 1}).
 			Return([]*model.MarketplacePlugin{mockPlugin1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{Page: 1, PerPage: 1}).
+			GetMarketplacePlugins(context.TODO(), &model.MarketplacePluginFilter{Page: 1, PerPage: 1}).
 			Return([]*model.MarketplacePlugin{mockPlugin2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{Page: 2, PerPage: 1}).
+			GetMarketplacePlugins(context.TODO(), &model.MarketplacePluginFilter{Page: 2, PerPage: 1}).
 			Return([]*model.MarketplacePlugin{}, &model.Response{}, nil).
 			Times(1)
 
@@ -131,7 +131,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceListCmd() {
 
 		s.client.
 			EXPECT().
-			GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{Page: 0, PerPage: 200}).
+			GetMarketplacePlugins(context.TODO(), &model.MarketplacePluginFilter{Page: 0, PerPage: 200}).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -155,7 +155,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceListCmd() {
 
 		s.client.
 			EXPECT().
-			GetMarketplacePlugins(context.Background(), pluginFilter).
+			GetMarketplacePlugins(context.TODO(), pluginFilter).
 			Return(plugins, &model.Response{}, nil).
 			Times(1)
 
