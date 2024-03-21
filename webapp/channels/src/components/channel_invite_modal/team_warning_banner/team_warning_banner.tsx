@@ -110,11 +110,11 @@ const TeamWarningBanner = (props: Props) => {
                             mentionName={firstName}
                         />
                     ),
-                    team: (<strong>{team.display_name}</strong>),
+                    team: (<strong>{team?.display_name}</strong>),
                 },
             )
         );
-    }, [guests, formatMessage, getCommaSeparatedUsernames, team.display_name]);
+    }, [guests, formatMessage, getCommaSeparatedUsernames, team?.display_name]);
 
     const getMessage = useCallback(() => {
         const commaSeparatedUsernames = getCommaSeparatedUsernames(users);
@@ -151,7 +151,7 @@ const TeamWarningBanner = (props: Props) => {
                             </span>
                         </SimpleTooltip>
                     ),
-                    team: (<strong>{team.display_name}</strong>),
+                    team: (<strong>{team?.display_name}</strong>),
                 },
             );
         }
@@ -180,7 +180,7 @@ const TeamWarningBanner = (props: Props) => {
                             mentionName={firstName}
                         />
                     ),
-                    team: (<strong>{team.display_name}</strong>),
+                    team: (<strong>{team?.display_name}</strong>),
                 },
             )
         );

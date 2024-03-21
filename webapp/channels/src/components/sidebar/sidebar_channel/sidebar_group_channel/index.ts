@@ -25,7 +25,7 @@ function makeMapStateToProps() {
     return (state: GlobalState, ownProps: OwnProps) => {
         const currentUserId = getCurrentUserId(state);
         const currentTeam = getCurrentTeam(state);
-        const redirectChannel = getRedirectChannelNameForTeam(state, currentTeam.id);
+        const redirectChannel = currentTeam ? getRedirectChannelNameForTeam(state, currentTeam.id) : '';
         const currentChannelId = getCurrentChannelId(state);
         const membersCount = getMemberCount(state, ownProps.channel);
         const active = ownProps.channel.id === currentChannelId;

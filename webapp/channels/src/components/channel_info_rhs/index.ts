@@ -47,8 +47,8 @@ function mapStateToProps(state: GlobalState) {
     const isMobile = getIsMobileView(state);
 
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
-    const canManageMembers = haveIChannelPermission(state, currentTeam.id, channel.id, isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS);
-    const canManageProperties = haveIChannelPermission(state, currentTeam.id, channel.id, isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES);
+    const canManageMembers = haveIChannelPermission(state, currentTeam?.id, channel.id, isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS);
+    const canManageProperties = haveIChannelPermission(state, currentTeam?.id, channel.id, isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES);
 
     const channelMembers = getProfilesInCurrentChannel(state);
 

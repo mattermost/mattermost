@@ -10,7 +10,7 @@ import type {GlobalState} from 'types/store';
 import TeamPermissionGate from './team_permission_gate';
 
 type Props = {
-    teamId: string;
+    teamId?: string;
     permissions: string[];
 }
 

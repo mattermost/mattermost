@@ -33,6 +33,10 @@ function SidebarChannel({
 }: Props) {
     const [show, setShow] = useState(true);
 
+    if (!currentTeamName) {
+        return null;
+    }
+
     function isCollapsed() {
         return isCategoryDragged || (isCategoryCollapsed && !isUnread && !isCurrentChannel);
     }

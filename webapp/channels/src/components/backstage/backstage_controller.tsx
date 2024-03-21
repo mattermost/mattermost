@@ -66,7 +66,7 @@ type Props = {
     /**
      * Current team.
      */
-    team: Team;
+    team?: Team;
 
     /**
      * Object from react-router

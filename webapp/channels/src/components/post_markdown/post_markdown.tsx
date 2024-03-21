@@ -66,7 +66,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
 
         if (this.props.post) {
             const renderedSystemMessage = renderSystemMessage(this.props.post,
-                this.props.currentTeam,
+                this.props.currentTeam?.name ?? '',
                 this.props.channel,
                 this.props.hideGuestTags,
                 this.props.isUserCanManageMembers,
@@ -78,6 +78,9 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         }
 
         if (this.props.post && this.props.post.type === Posts.POST_TYPES.REMINDER) {
+            if (!this.props.currentTeam) {
+                return null;
+            }
             const renderedSystemBotMessage = renderReminderSystemBotMessage(this.props.post, this.props.currentTeam);
             return <div>{renderedSystemBotMessage}</div>;
         }

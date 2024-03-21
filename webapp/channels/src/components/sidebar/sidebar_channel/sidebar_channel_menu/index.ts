@@ -52,7 +52,6 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     }
 
     return {
-        currentTeamId: currentTeam.id,
         currentUserId: getCurrentUserId(state),
         categories,
         currentCategory,

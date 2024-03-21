@@ -1329,7 +1329,11 @@ export class AppCommandParser {
                 const getChannel = async (channelName: string) => {
                     let channel = selectChannelByName(this.store.getState(), channelName);
                     if (!channel) {
-                        const dispatchResult = await this.store.dispatch(getChannelByNameAndTeamName(getCurrentTeam(this.store.getState()).name, channelName) as any);
+                        const team = getCurrentTeam(this.store.getState());
+                        if (!team) {
+                            return null;
+                        }
+                        const dispatchResult = await this.store.dispatch(getChannelByNameAndTeamName(team.name, channelName) as any);
                         if ('error' in dispatchResult) {
                             return null;
                         }

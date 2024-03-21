@@ -26,7 +26,7 @@ const MAX_SELECTABLE_VALUES = 10;
 type GroupValue = Value & {member_count?: number};
 
 type Props = {
-    currentTeamName: string;
+    currentTeamName?: string;
     currentTeamId: string;
     intl: IntlShape;
     searchTerm: string;
@@ -291,7 +291,7 @@ export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
                             defaultMessage='Add New Groups to {teamName} Team'
                             values={{
                                 teamName: (
-                                    <strong>{this.props.currentTeamName}</strong>
+                                    <strong>{this.props.currentTeamName ?? ''}</strong>
                                 ),
                             }}
                         />
