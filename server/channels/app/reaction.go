@@ -52,7 +52,8 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 	if channel.DeleteAt > 0 {
 		return nil, model.NewAppError("SaveReactionForPost", "api.reaction.save.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
-
+	// Pre-populating the channelID to save a DB call in store.
+	reaction.ChannelId = post.ChannelId
 	reaction, nErr := a.Srv().Store().Reaction().Save(reaction)
 	if nErr != nil {
 		var appErr *model.AppError
@@ -66,6 +67,13 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 
 	if post.RootId == "" {
 		if appErr := a.ResolvePersistentNotification(c, post, reaction.UserId); appErr != nil {
+			a.NotificationsLog().Error("Error resolving persistent notification",
+				mlog.String("sender_id", reaction.UserId),
+				mlog.String("post_id", post.RootId),
+				mlog.String("status", model.StatusServerError),
+				mlog.String("reason", model.ReasonFetchError),
+				mlog.Err(appErr),
+			)
 			return nil, appErr
 		}
 	}
@@ -81,9 +89,7 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 		}, plugin.ReactionHasBeenAddedID)
 	})
 
-	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WebsocketEventReactionAdded, reaction, post)
-	})
+	a.sendReactionEvent(model.WebsocketEventReactionAdded, reaction, post)
 
 	return reaction, nil
 }
@@ -154,9 +160,7 @@ func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *mo
 		}, plugin.ReactionHasBeenRemovedID)
 	})
 
-	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WebsocketEventReactionRemoved, reaction, post)
-	})
+	a.sendReactionEvent(model.WebsocketEventReactionRemoved, reaction, post)
 
 	return nil
 }

@@ -34,8 +34,8 @@ func (api *API) InitLdap() {
 	// DELETE /api/v4/ldap/groups/:remote_id/link
 	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.APISessionRequired(unlinkLdapGroup)).Methods("DELETE")
 
-	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(addLdapPublicCertificate)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(addLdapPrivateCertificate)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(addLdapPublicCertificate, handlerParamFileAPI)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(addLdapPrivateCertificate, handlerParamFileAPI)).Methods("POST")
 
 	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(removeLdapPublicCertificate)).Methods("DELETE")
 	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(removeLdapPrivateCertificate)).Methods("DELETE")
@@ -433,7 +433,7 @@ func addUserToGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if user.AuthService != model.UserAuthServiceLdap {
+	if user.AuthService != model.UserAuthServiceLdap && (user.AuthService != model.UserAuthServiceSaml || !*c.App.Config().SamlSettings.EnableSyncWithLdap) {
 		c.Err = model.NewAppError("addUserToGroupSyncables", "api.user.add_user_to_group_syncables.not_ldap_user.app_error", nil, "", http.StatusBadRequest)
 		return
 	}

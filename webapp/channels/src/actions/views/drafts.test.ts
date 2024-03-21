@@ -164,6 +164,19 @@ describe('draft actions', () => {
 
     describe('removeDraft', () => {
         it('calls setGlobalItem action correctly', async () => {
+            store = mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        config: {
+                            ...initialState.entities.general.config,
+                            AllowSyncedDrafts: 'false',
+                        },
+                    },
+                },
+            });
             await store.dispatch(removeDraft(key, channelId));
 
             const testStore = mockStore(initialState);

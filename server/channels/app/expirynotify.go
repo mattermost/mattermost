@@ -24,6 +24,12 @@ func (a *App) NotifySessionsExpired() error {
 	// Get all mobile sessions that expired within the last hour.
 	sessions, err := a.ch.srv.Store().Session().GetSessionsExpired(OneHourMillis, true, true)
 	if err != nil {
+		a.NotificationsLog().Error("Cannot get sessions expired",
+			mlog.String("type", model.TypePush),
+			mlog.String("status", model.StatusServerError),
+			mlog.String("reason", model.ReasonFetchError),
+			mlog.Err(err),
+		)
 		return model.NewAppError("NotifySessionsExpired", "app.session.analytics_session_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -40,21 +46,25 @@ func (a *App) NotifySessionsExpired() error {
 
 		errPush := a.sendToPushProxy(tmpMessage, session)
 		if errPush != nil {
-			a.NotificationsLog().Error("Notification error",
-				mlog.String("ackId", tmpMessage.AckId),
-				mlog.String("type", tmpMessage.Type),
-				mlog.String("userId", session.UserId),
-				mlog.String("deviceId", tmpMessage.DeviceId),
-				mlog.String("status", errPush.Error()),
+			a.NotificationsLog().Error("Failed to send to push proxy",
+				mlog.String("type", model.TypePush),
+				mlog.String("status", model.StatusNotSent),
+				mlog.String("reason", model.ReasonPushProxyError),
+				mlog.String("ack_id", tmpMessage.AckId),
+				mlog.String("push_type", tmpMessage.Type),
+				mlog.String("user_id", session.UserId),
+				mlog.String("device_id", tmpMessage.DeviceId),
+				mlog.Err(errPush),
 			)
 			continue
 		}
 
-		a.NotificationsLog().Info("Notification sent",
-			mlog.String("ackId", tmpMessage.AckId),
-			mlog.String("type", tmpMessage.Type),
-			mlog.String("userId", session.UserId),
-			mlog.String("deviceId", tmpMessage.DeviceId),
+		a.NotificationsLog().Trace("Notification sent to push proxy",
+			mlog.String("type", model.TypePush),
+			mlog.String("ack_id", tmpMessage.AckId),
+			mlog.String("push_type", tmpMessage.Type),
+			mlog.String("user_id", session.UserId),
+			mlog.String("device_id", tmpMessage.DeviceId),
 			mlog.String("status", model.PushSendSuccess),
 		)
 

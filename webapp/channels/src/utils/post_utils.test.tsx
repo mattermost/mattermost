@@ -801,7 +801,7 @@ describe('PostUtils.getOldestPostId', () => {
     });
 
     test('Should not return START_OF_NEW_MESSAGES', () => {
-        const postId = PostUtils.getOldestPostId(['postId1', 'postId2', PostListRowListIds.START_OF_NEW_MESSAGES]);
+        const postId = PostUtils.getOldestPostId(['postId1', 'postId2', PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000]);
         expect(postId).toEqual('postId2');
     });
 });
@@ -813,7 +813,7 @@ describe('PostUtils.getPreviousPostId', () => {
     });
 
     test('Should skip START_OF_NEW_MESSAGES', () => {
-        const postId = PostUtils.getPreviousPostId(['postId1', 'postId2', PostListRowListIds.START_OF_NEW_MESSAGES, 'postId3'], 1);
+        const postId = PostUtils.getPreviousPostId(['postId1', 'postId2', PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000, 'postId3'], 1);
         expect(postId).toEqual('postId3');
     });
 
@@ -845,7 +845,7 @@ describe('PostUtils.getLatestPostId', () => {
     });
 
     test('Should not return START_OF_NEW_MESSAGES', () => {
-        const postId = PostUtils.getLatestPostId([PostListRowListIds.START_OF_NEW_MESSAGES, 'postId1', 'postId2']);
+        const postId = PostUtils.getLatestPostId([PostListRowListIds.START_OF_NEW_MESSAGES + 1551711599000, 'postId1', 'postId2']);
         expect(postId).toEqual('postId1');
     });
 
