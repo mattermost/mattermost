@@ -4,6 +4,7 @@
 package email
 
 import (
+	"fmt"
 	"html"
 	"html/template"
 	"net/url"
@@ -28,9 +29,9 @@ type EmailMessageAttachment struct {
 	FieldRows []FieldRow
 }
 
-func (es *Service) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+func (es *Service) GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string {
 	if strings.TrimSpace(post.Message) != "" || len(post.FileIds) == 0 {
-		return post.Message
+		return es.prepareNotificationMessageForEmail(post.Message, teamName, siteUrl)
 	}
 
 	// extract the filenames from their paths and determine what type of files are attached
@@ -133,4 +134,50 @@ func prepareTextForEmail(text, siteURL string) template.HTML {
 	}
 
 	return template.HTML(markdownText)
+}
+
+func (es *Service) prepareNotificationMessageForEmail(postMessage, teamName, siteURL string) string {
+	postMessage = html.EscapeString(postMessage)
+	mdPostMessage, mdErr := utils.MarkdownToHTML(postMessage, siteURL)
+	if mdErr != nil {
+		mlog.Warn("Encountered error while converting markdown to HTML", mlog.Err(mdErr))
+		mdPostMessage = postMessage
+	}
+
+	landingURL := siteURL + "/landing#/" + teamName
+	normalizedPostMessage, err := es.GenerateHyperlinkForChannels(mdPostMessage, teamName, landingURL)
+	if err != nil {
+		mlog.Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
+		normalizedPostMessage = mdPostMessage
+	}
+	return normalizedPostMessage
+}
+
+func (es *Service) GenerateHyperlinkForChannels(postMessage, teamName, landingURL string) (string, error) {
+	channelNames := model.ChannelMentions(postMessage)
+	if len(channelNames) == 0 {
+		return postMessage, nil
+	}
+
+	team, err := es.Store().Team().GetByName(teamName)
+	if err != nil {
+		mlog.Error("Team not found with the name", mlog.String("team_name", teamName), mlog.Err(err))
+		return postMessage, nil
+	}
+
+	channels, err := es.store.Channel().GetByNames(team.Id, channelNames, true)
+	if err != nil {
+		return "", err
+	}
+
+	visited := make(map[string]bool)
+	for _, ch := range channels {
+		if !visited[ch.Id] && ch.Type == model.ChannelTypeOpen {
+			channelURL := landingURL + "/channels/" + ch.Name
+			channelHyperLink := fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.Name)
+			postMessage = strings.Replace(postMessage, "~"+ch.Name, channelHyperLink, -1)
+			visited[ch.Id] = true
+		}
+	}
+	return postMessage, nil
 }

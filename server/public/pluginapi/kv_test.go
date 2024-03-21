@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -153,49 +152,6 @@ func TestKVSet(t *testing.T) {
 			api.AssertExpectations(t)
 		})
 	}
-}
-
-func TestSetWithExpiry(t *testing.T) {
-	api := &plugintest.API{}
-	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-	api.On("KVSetWithOptions", "1", []byte(`2`), model.PluginKVSetOptions{
-		ExpireInSeconds: 60,
-	}).Return(true, nil)
-
-	err := client.KV.SetWithExpiry("1", 2, time.Minute)
-	require.NoError(t, err)
-}
-
-func TestCompareAndSet(t *testing.T) {
-	api := &plugintest.API{}
-	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-	api.On("KVSetWithOptions", "1", []byte("2"), model.PluginKVSetOptions{
-		Atomic:   true,
-		OldValue: []byte("3"),
-	}).Return(true, nil)
-
-	upserted, err := client.KV.CompareAndSet("1", 3, 2)
-	require.NoError(t, err)
-	assert.True(t, upserted)
-}
-
-func TestCompareAndDelete(t *testing.T) {
-	api := &plugintest.API{}
-	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-	api.On("KVSetWithOptions", "1", []byte(nil), model.PluginKVSetOptions{
-		Atomic:   true,
-		OldValue: []byte("2"),
-	}).Return(true, nil)
-
-	deleted, err := client.KV.CompareAndDelete("1", 2)
-	require.NoError(t, err)
-	assert.True(t, deleted)
 }
 
 func TestSetAtomicWithRetries(t *testing.T) {

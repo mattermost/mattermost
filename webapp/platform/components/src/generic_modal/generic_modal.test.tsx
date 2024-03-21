@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {render, screen} from '@testing-library/react';
+import React from 'react';
 
 import {GenericModal} from './generic_modal';
+
 import {wrapIntl} from '../testUtils';
 
 describe('GenericModal', () => {
@@ -32,7 +33,7 @@ describe('GenericModal', () => {
         render(
             wrapIntl(<GenericModal {...props}/>),
         );
-        
+
         expect(screen.getByText('Confirm')).toBeInTheDocument();
         expect(screen.getByText('Cancel')).toBeInTheDocument();
     });

@@ -719,7 +719,7 @@ const AdvanceTextEditor = ({
                                 {showFormatJSX}
                             </TexteditorActions>
                         )}
-                        {showFormattingSpacer || shouldShowPreview || attachmentPreview ? (
+                        {showFormattingSpacer || shouldShowPreview || attachmentPreview || isRHS ? (
                             <FormattingBarSpacer>
                                 {formattingBar}
                             </FormattingBarSpacer>

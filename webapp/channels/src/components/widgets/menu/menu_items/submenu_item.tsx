@@ -55,7 +55,7 @@ export type Props = {
     direction?: 'left' | 'right';
     openUp?: boolean;
     styleSelectableItem?: boolean;
-    extraText?: string;
+    extraText?: string| JSX.Element;
     rightDecorator?: React.ReactNode;
     isHeader?: boolean;
     tabIndex?: number;
@@ -95,7 +95,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
         this.setState({show: false});
     };
 
-    private onClick = (event: React.SyntheticEvent<HTMLElement>) => {
+    private onClick = (event: React.SyntheticEvent<HTMLElement>| React.BaseSyntheticEvent<HTMLElement>) => {
         event.preventDefault();
         const {id, postId, subMenu, action, root, isHeader} = this.props;
         const isMobile = isMobileViewHack();
@@ -112,8 +112,13 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
             } else if (action) { // leaf node in the tree handles action only
                 action(postId);
             }
-        } else if (event.currentTarget.id === id && action) {
-            action(postId);
+        } else {
+            const shouldCallAction =
+                (event.type === 'keydown' && event.currentTarget.id === id) ||
+                event.target.parentElement.id === id;
+            if (shouldCallAction && action) {
+                action(postId);
+            }
         }
     };
 
@@ -233,7 +238,6 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                     aria-label={ariaLabel}
                     onMouseEnter={this.show}
                     onMouseLeave={this.hide}
-                    onClick={this.onClick}
                     tabIndex={tabIndex ?? 0}
                     onKeyDown={this.handleKeyDown}
                 >

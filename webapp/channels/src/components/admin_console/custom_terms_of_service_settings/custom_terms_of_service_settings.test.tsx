@@ -25,7 +25,7 @@ describe('components/admin_console/CustomTermsOfServiceSettings', () => {
             CustomTermsOfService: 'true',
         },
         setNavigationBlocked: jest.fn(),
-        updateConfig: jest.fn(),
+        patchConfig: jest.fn(),
     };
 
     test('should match snapshot', () => {

@@ -1367,94 +1367,6 @@
     "translation": "Το μήνυμα είναι πολύ μεγάλο"
   },
   {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην ενότητα **Κονσόλα Συστήματος > Έλεγχος Ταυτότητας > MFA** για την επιβολή ελέγχου ταυτότητας πολλών παραγόντων (MFA)."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Το σύστημά σας της Mattermost διαθέτει έλεγχο ταυτότητας πολλών παραγόντων (MFA), δίνοντας στους χρήστες την επιλογή να ασφαλίσουν τους λογαριασμούς τους με πρόσθετα μέσα ελέγχου ταυτότητας πέρα από έναν κωδικό πρόσβασης. Για να βελτιώσετε την ασφάλεια σε ολόκληρο το σύστημα, μπορείτε να θέσετε σε όλους τους λογαριασμούς Mattermost να χρησιμοποιούν έλεγχο ταυτότητας πολλών παραγόντων (MFA).\n\n[Μάθετε περισσότερα σχετικά με την επιβολή ελέγχου ταυτότητας πολλών παραγόντων (MFA)](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Επιβολή ελέγχου ταυτότητας πολλών παραγόντων (MFA)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Το σύστημά σας της Mattermost διαθέτει έλεγχο ταυτότητας πολλών παραγόντων (MFA), δίνοντας στους χρήστες την επιλογή να ασφαλίσουν τους λογαριασμούς τους με πρόσθετα μέσα ελέγχου ταυτότητας πέρα από έναν κωδικό πρόσβασης. Για να βελτιώσετε την ασφάλεια σε ολόκληρο το σύστημα, μπορείτε να θέσετε σε όλους τους λογαριασμούς Mattermost να χρησιμοποιούν έλεγχο ταυτότητας πολλών παραγόντων (MFA).\n\n[Μάθετε περισσότερα σχετικά με την επιβολή ελέγχου ταυτότητας πολλών παραγόντων (MFA)](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με την Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Ενδιαφέρομαι να μάθω περισσότερα σχετικά με την εφαρμογή ελέγχου ταυτότητας πολλών παραγόντων (MFA).\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Στείλτε μας email"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην ενότητα **Κονσόλα Συστήματος> Έλεγχος Ταυτότητας > Πρόσβαση Επισκέπτη** για να ενεργοποιήσετε τους Λογαριασμούς Επισκεπτών."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Τα πρότζεκτ συχνά περιλαμβάνουν άτομα εντός και εκτός ενός οργανισμού. Με τους Λογαριασμούς Επισκεπτών, μπορείτε να προσθέσετε εξωτερικούς συνεργάτες στο δικό σας οικοσύστημα του Mattermost και να καθορίσετε με ποιον μπορούν να συνεργαστούν και τι μπορούν να δουν.\n\n[Μάθετε περισσότερα σχετικά με την ενεργοποίηση των Λογαριασμών Επισκεπτών](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με την Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Τα πρότζεκτ συχνά περιλαμβάνουν άτομα εντός και εκτός ενός οργανισμού. Με τους Λογαριασμούς Επισκεπτών, μπορείτε να προσθέσετε εξωτερικούς συνεργάτες στο δικό σας οικοσύστημα της Mattermost και να καθορίσετε με ποιον μπορούν να συνεργαστούν και τι μπορούν να δουν.\n\n[Μάθετε περισσότερα σχετικά με την ενεργοποίηση των Λογαριασμών Επισκεπτών](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Δημιουργία Λογαριασμών Επισκεπτών"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Ενδιαφέρομαι να μάθω περισσότερα σχετικά με τη χρήση Λογαριασμών Επισκεπτών.\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Δεν ήταν δυνατή η ανάκτηση της δοκιμαστικής άδειας. Επισκεφτείτε τη διεύθυνση https://mattermost.com/trial/ για να αποκτήσετε μία."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Σας ευχαριστούμε που επικοινωνήσατε με τη Mattermost. Θα επικοινωνήσουμε μαζί σας το συντομότερο δυνατόν."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Δεν ήταν δυνατή η αποστολή μηνύματος."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Παρακαλώ στείλτε μας email."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Αίτημα επικοινωνίας με τη Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "Διεύθυνση ιστότοπου: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Σύνολο ενεργών χρηστών: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Εάν έχετε επιπλέον απορίες, παρακαλώ επικοινωνήστε με το support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Διεύθυνση ηλεκτρονικού ταχυδρομείου: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Αναγνωριστικό διάγνωσης: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Επικοινωνία: {{.Contact}}"
-  },
-  {
     "id": "api.server.start_server.starting.critical",
     "translation": "Σφάλμα έναρξης διακομιστή, err:%v"
   },
@@ -1585,98 +1497,6 @@
   {
     "id": "api.command.execute_command.failed_empty.app_error",
     "translation": "H χρήση εντολής '{{.Trigger}}' επέστρεψε μια κενή απάντηση."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Το σύστημά σας Mattermost έχει τώρα 200 χρήστες. Όταν συνδέετε το Mattermost με το single sign-on (SSO) του οργανισμού σας, οι χρήστες μπορούν να έχουν πρόσβαση στο Mattermost χωρίς να χρειάζεται να εισαγάγουν ξανά τα διαπιστευτήριά τους. Σας συνιστούμε να ενσωματώσετε τον παροχέα SAML 2.0 στον διακομιστή του Mattermost. [Μάθετε περισσότερα σχετικά με την ενοποίηση με το SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Η ομάδα μου έχει τώρα 200 χρήστες και σκέφτομαι την Εταιρική έκδοση της Mattermost.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην ενότητα **Κονσόλα συστήματος > Έλεγχος ταυτότητας > AD/LDAP** για να ενσωματώσετε το δικό σας Active Directory/LDAP."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Το σύστημά σας Mattermost έχει περισσότερους από 100 χρήστες. Καθώς αυξάνεται ο αριθμός χρηστών σας, η παροχή νέων λογαριασμών μπορεί να είναι χρονοβόρα. Σας συνιστούμε να ενσωματώσετε τον Active Directory/LDAP του οργανισμού σας, το οποίο θα επιτρέπει σε οποιονδήποτε με λογαριασμό να έχει πρόσβαση και στο Mattermost.\n\n[Μάθετε περισσότερα σχετικά με την ενσωμάτωση με Active Directory/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Αναπτυχτείτε μαζί με το Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Το σύστημά σας Mattermost έχει περισσότερους από 100 χρήστες. Καθώς αυξάνεται ο αριθμός χρηστών σας, η παροχή νέων λογαριασμών μπορεί να είναι χρονοβόρα. Σας συνιστούμε να ενσωματώσετε τον Active Directory/LDAP του οργανισμού σας, το οποίο θα επιτρέπει σε οποιονδήποτε με λογαριασμό να έχει πρόσβαση και στο Mattermost.\n\n[Μάθετε περισσότερα σχετικά με την ενσωμάτωση με Active Directory/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Η ομάδα μου έχει τώρα 100 χρήστες και σκέφτομαι την Εταιρική έκδοση της Mattermost.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Χρήση Προηγμένων δικαιωμάτων"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Τα κανάλια συμβάλλουν στη βελτίωση της επικοινωνίας, αλλά με τους χρήστες στο Mattermost να συμμετέχουν και να δημιουργούν κανάλια, η πρόκληση να διατηρηθεί το σύστημα οργανωμένο αυξάνεται. Τα Προηγμένα δικαιώματα σάς δίνουν τη δυνατότητα να ορίσετε ποιοι χρήστες ή ρόλοι μπορούν να εκτελέσουν συγκεκριμένες ενέργειες, συμπεριλαμβανομένης της διαχείρισης ρυθμίσεων καναλιού και μελών, χρησιμοποιώντας το @channel ή το @here για να επισημάνετε ευρείες ομάδες χρηστών και τη δημιουργία νέων webhooks.\n\n[Μάθετε περισσότερα σχετικά με τη χρήση Προηγμένων δικαιωμάτων](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Ενδιαφέρομαι να μάθω περισσότερα σχετικά με τη χρήση των προηγμένων δικαιωμάτων με σχήματα συστήματος.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην Κονσόλα συστήματος για να ενεργοποιήσετε τις προηγμένες δυνατότητες."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Η Mattermost συνιστά ανεπιφύλακτα ότι τα συστήματα άνω των 500 χρηστών αξιοποιούν λειτουργίες όπως η διαχείριση χρηστών, η ομαδοποίηση διακομιστών και η παρακολούθηση επιδόσεων. Επικοινωνήστε μαζί μας για να μάθετε περισσότερα και πείτε μας πώς μπορούμε να σας βοηθήσουμε.\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Αναπτυχτείτε μαζί με το Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Η Mattermost συνιστά ανεπιφύλακτα ότι τα συστήματα άνω των 500 χρηστών αξιοποιούν λειτουργίες όπως η διαχείριση χρηστών, η ομαδοποίηση διακομιστών και η παρακολούθηση επιδόσεων. Επικοινωνήστε μαζί μας για να μάθετε περισσότερα και πείτε μας πώς μπορούμε να σας βοηθήσουμε.\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Η ομάδα μου έχει τώρα 500 χρήστες και σκέφτομαι την Εταιρική έκδοση της Mattermost.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Κανάλια Ανακοίνωσης μόνο για ανάγνωση"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Δημιουργήστε ένα κανάλι και μεταβείτε στην ενότητα **Κονσόλα συστήματος > Διαχείριση χρηστών > Κανάλια** για να περιορίσετε την ανάρτηση δημοσιεύσεων μόνο στους διαχειριστές καναλιών."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Με τόσες πολλές συνομιλίες στο Mattermost, μπορεί να είναι δύσκολο να γνωρίζουμε πού να αναζητήσουμε σημαντικές πληροφορίες. Αν θέλετε να μεταδώσετε ένα μήνυμα σε μεγάλο κοινό, μπορείτε να ρυθμίσετε Κανάλια Ανακοίνωσης τα οποία είναι μόνο για ανάγνωση, όπου μπορούν να συμμετέχουν όλοι, αλλά μόνο οι διαχειριστές καναλιών μπορούν να δημοσιεύουν μηνύματα.\n\n[Μάθετε περισσότερα σχετικά με τη δημιουργία Καναλιών Ανακοίνωσης μόνο για ανάγνωση](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Με τόσες πολλές συνομιλίες στο Mattermost, μπορεί να είναι δύσκολο να γνωρίζουμε πού να αναζητήσουμε σημαντικές πληροφορίες. Αν θέλετε να μεταδώσετε ένα μήνυμα σε μεγάλο κοινό, μπορείτε να ρυθμίσετε Κανάλια Ανακοίνωσης τα οποία είναι μόνο για ανάγνωση, όπου μπορούν να συμμετέχουν όλοι, αλλά μόνο οι διαχειριστές καναλιών μπορούν να δημοσιεύουν μηνύματα.\n\n[Μάθετε περισσότερα σχετικά με τη δημιουργία Καναλιών Ανακοίνωσης μόνο για ανάγνωση](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Ενδιαφέρομαι να μάθω περισσότερα σχετικά με τη δημιουργία Καναλιών Ανακοίνωσης τα οποία είναι μόνο για ανάγνωση.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην ενότητα **Κονσόλα συστήματος > Έλεγχος ταυτότητας > SAML 2.0** για να γίνει ενοποίηση με τον παροχέα σας SAML 2.0."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Το σύστημά σας Mattermost έχει τώρα 200 χρήστες. Όταν συνδέετε το Mattermost με το single sign-on (SSO) του οργανισμού σας, οι χρήστες μπορούν να έχουν πρόσβαση στο Mattermost χωρίς να χρειάζεται να εισαγάγουν ξανά τα διαπιστευτήριά τους. Σας συνιστούμε να ενσωματώσετε τον παροχέα SAML 2.0 στον διακομιστή του Mattermost. [Μάθετε περισσότερα σχετικά με την ενοποίηση με το SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Αναπτυχτείτε μαζί με το Mattermost"
   },
   {
     "id": "api.command_share.permission_required",
@@ -2203,54 +2023,6 @@
     "translation": "Έγινε εισαγωγή του χρήστη Integration/Slack Bot με email {{.Email}} και κωδικό πρόσβασης {{.Password}}.\n"
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην ενότητα **Κονσόλα συστήματος > Διαχείριση χρηστών > Δικαιώματα** για να ενεργοποιήσετε τα Προηγμένα δικαιώματα."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Το Mattermost σας έχει τώρα αρκετές ομάδες. Πολλές ομάδες έχουν τον δικό τους τρόπο συντονισμού και συνεργασίας, συμπεριλαμβανομένου και του τρόπου δημιουργίας καναλιών, τα οποία μπορούν να προσκαλέσουν νέους συναδέλφους καθώς και του τρόπου που διαχειρίζονται τα integrations. Τα Σχέδια Παράκαμψης Ομάδας σας επιτρέπουν να προσαρμόσετε τα δικαιώματα χρήστη σε κάθε ομάδα για να ικανοποιήσετε τις συγκεκριμένες ανάγκες τους.\n\n[Μάθετε περισσότερα σχετικά με τη χρήση των Προηγμένων δικαιωμάτων] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Χρήση Προηγμένων Δικαιωμάτων"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Το Mattermost σας έχει τώρα αρκετές ομάδες. Πολλές ομάδες έχουν τον δικό τους τρόπο συντονισμού και συνεργασίας, συμπεριλαμβανομένου και του τρόπου δημιουργίας καναλιών, τα οποία μπορούν να προσκαλέσουν νέους συναδέλφους καθώς και του τρόπου που διαχειρίζονται τα integrations. Τα Σχέδια Παράκαμψης Ομάδας σας επιτρέπουν να προσαρμόσετε τα δικαιώματα χρήστη σε κάθε ομάδα για να ικανοποιήσετε τις συγκεκριμένες ανάγκες τους.\n\n[Μάθετε περισσότερα σχετικά με τη χρήση των Προηγμένων δικαιωμάτων] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Ενδιαφέρομαι να μάθω περισσότερα σχετικά με τη χρήση των προηγμένων δικαιωμάτων με σχήματα συστήματος.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μόλις έχετε το Elasticsearch, μεταβείτε στο **Κονσόλα συστήματος > Περιβάλλον > Elasticsearch** για να διαμορφώσετε το Elasticsearch."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Το Mattermost σας διαθέτει μεγάλο αριθμό μηνυμάτων. Η προεπιλεγμένη αναζήτηση βάσης δεδομένων του Mattermost αρχίζει να δείχνει σημάδια υποβάθμισης της απόδοσης του, σε περίπου 2,5 εκατομμύρια δημοσιεύσεις. Με πάνω από 5 εκατομμύρια δημοσιεύσεις, το Elasticsearch μπορεί να σας βοηθήσει στο να αποφύγετε σημαντικά ζητήματα απόδοσης, όπως χρονικές διακοπές στις αναζητήσεις και στην εύρεση αναφορών. Επικοινωνήστε μαζί μας για να μάθετε περισσότερα και πείτε μας πώς μπορούμε να βοηθήσουμε.\n\n[Μάθετε περισσότερα σχετικά με τη βελτίωση της απόδοσης] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Βελτίωση της απόδοσης"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Το Mattermost σας διαθέτει μεγάλο αριθμό μηνυμάτων. Η προεπιλεγμένη αναζήτηση βάσης δεδομένων του Mattermost αρχίζει να δείχνει σημάδια υποβάθμισης της απόδοσης του, σε περίπου 2,5 εκατομμύρια δημοσιεύσεις. Με πάνω από 5 εκατομμύρια δημοσιεύσεις, το Elasticsearch μπορεί να σας βοηθήσει στο να αποφύγετε σημαντικά ζητήματα απόδοσης, όπως χρονικές διακοπές στις αναζητήσεις και στην εύρεση αναφορών. Επικοινωνήστε μαζί μας για να μάθετε περισσότερα και πείτε μας πώς μπορούμε να βοηθήσουμε.\n\n[Μάθετε περισσότερα σχετικά με τη βελτίωση της απόδοσης] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nΚάνοντας κλικ στην επιλογή Επικοινωνήστε μαζί μας, θα μοιραστείτε τις πληροφορίες σας με τη Mattermost, Inc. [Μάθετε περισσότερα] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Αίτημα επικοινωνίας με τη Mattermost. Ενδιαφέρομαι να μάθω περισσότερα σχετικά με τη βελτίωση της απόδοσης με το Elasticsearch.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Η Εταιρική σας δοκιμαστική έκδοση είναι πλέον ενεργή. Μεταβείτε στην ενότητα **Κονσόλα συστήματος > Διαχείριση χρηστών > Δικαιώματα** για να ενεργοποιήσετε τα Προηγμένα δικαιώματα."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Τα κανάλια συμβάλλουν στη βελτίωση της επικοινωνίας, αλλά με τους χρήστες στο Mattermost να συμμετέχουν και να δημιουργούν κανάλια, η πρόκληση να διατηρηθεί το σύστημα οργανωμένο αυξάνεται. Τα Προηγμένα δικαιώματα σάς δίνουν τη δυνατότητα να ορίσετε ποιοι χρήστες ή ρόλοι μπορούν να εκτελέσουν συγκεκριμένες ενέργειες, συμπεριλαμβανομένης της διαχείρισης ρυθμίσεων καναλιού και μελών, χρησιμοποιώντας το @channel ή το @here για να επισημάνετε ευρείες ομάδες χρηστών και τη δημιουργία νέων webhooks.\n\n[Μάθετε περισσότερα σχετικά με τη χρήση Προηγμένων δικαιωμάτων](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nΕπιλέγοντας την Έναρξη δοκιμαστικής έκδοσης, συμφωνώ με τις [Συμφωνία Αξιολόγησης Λογισμικού Mattermost](https://mattermost.com/software-evaluation-agaration/), [Πολιτική απορρήτου](https://mattermost.com/privacy-policy/) και λήψη ενημερωτικών email."
-  },
-  {
     "id": "api.team.demote_user_to_guest.license.error",
     "translation": "Η άδειά σας δεν υποστηρίζει λογαριασμούς επισκεπτών"
   },
@@ -2337,18 +2109,6 @@
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
     "translation": "Το κανάλι λήψης των ομαδικών μηνυμάτων ηλεκτρονικού ταχυδρομείου ήταν πλήρες. Παρακαλούμε αυξήστε το EmailBatchingBufferSize."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Απαιτείται διακομιστής SMTP"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Δεν ήταν δυνατή η εύρεση της μέτρησης της προειδοποίησης."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Αποτυχία αποστολής email επιβεβαίωσης διαχειριστή"
   },
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
@@ -2675,10 +2435,6 @@
   {
     "id": "api.marshal_error",
     "translation": "σφάλμα διευθέτησης"
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Δεν είναι δυνατή η λήψη μιας δοκιμαστικής άδειας, δοκιμάστε ξανά ή επικοινωνήστε με το support@mattermost.com. Δεν είναι δυνατή η απόκτηση του αριθμού των εγγεγραμμένων χρηστών."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -3429,34 +3185,6 @@
   {
     "id": "api.templates.welcome_body.app_download_info",
     "translation": "Για την καλύτερη δυνατή εμπειρία, κατεβάστε τις εφαρμογές για Η/Υ, Mac, iOS και Android."
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Αίτημα επικοινωνίας με τη Mattermost"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Εάν έχετε επιπλέον απορίες, επικοινωνήστε με το support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "Διεύθυνση URL ιστότοπου: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Σύνολο ενεργών χρηστών: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Διαγνωστικό αναγνωριστικό: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Επικοινωνία: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Email: "
   },
   {
     "id": "api.templates.verify_subject",

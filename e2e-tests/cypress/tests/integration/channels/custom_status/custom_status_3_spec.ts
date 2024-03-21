@@ -27,7 +27,7 @@ describe('Custom Status - Setting Your Own Custom Status', () => {
 
     it('MM-T3846_1 should change the emoji to speech balloon when typed in the input', () => {
         // # Open the custom status modal
-        cy.uiOpenUserMenu('Set a Custom Status');
+        cy.uiOpenUserMenu('Set a custom status');
 
         // * Default emoji is currently visible in the custom status input
         cy.get('#custom_status_modal .StatusModal__emoji-button span').should('have.class', 'icon--emoji');

@@ -52,8 +52,8 @@
         display: flex;
         padding: 5px 8px;
         border: none;
-        background: transparent;
         border-radius: 4px;
+        background: transparent;
         color: var(--button-bg);
         font-size: 12px;
         font-weight: 600;
@@ -75,8 +75,8 @@
     &__save-btn {
         padding: 12px 20px 12px 20px;
         border: none;
-        background: var(--button-bg);
         border-radius: 4px;
+        background: var(--button-bg);
         color: var(--button-color);
         font-size: 14px;
         font-weight: 600;
@@ -100,8 +100,8 @@
     &__cancel-btn {
         padding: 12px 20px 12px 20px;
         border: none;
-        background: rgba(var(--button-bg-rgb), 0.08);
         border-radius: 4px;
+        background: rgba(var(--button-bg-rgb), 0.08);
         color: var(--button-bg);
         font-size: 14px;
         font-weight: 600;

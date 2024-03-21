@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, FormattedNumber, FormattedDate} from 'react-intl';
+import {FormattedMessage, FormattedNumber, FormattedDate, defineMessages} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
@@ -14,15 +14,25 @@ import {openModal} from 'actions/views/modals';
 
 import {getPaymentStatus} from 'components/admin_console/billing/billing_summary/billing_summary';
 import CloudInvoicePreview from 'components/cloud_invoice_preview';
-import OverlayTrigger from 'components/overlay_trigger';
 import type {Seats} from 'components/seats_calculator';
 import SeatsCalculator from 'components/seats_calculator';
-import Tooltip from 'components/tooltip';
 import EllipsisHorizontalIcon from 'components/widgets/icons/ellipsis_h_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import {BillingSchemes, ModalIdentifiers, TELEMETRY_CATEGORIES, CloudLinks} from 'utils/constants';
 
 import './renewal_card.scss';
+
+const messages = defineMessages({
+    partialChargesTooltipTitle: {
+        id: 'admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges',
+        defaultMessage: 'What are partial charges?',
+    },
+    partialChargesTooltipText: {
+        id: 'admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges.message',
+        defaultMessage: 'Users who have not been enabled for the full duration of the month are charged at a prorated monthly rate.',
+    },
+});
 
 type RenewalCardProps = {
     invoice: Invoice;
@@ -39,6 +49,7 @@ type RenewalCardProps = {
 
 export default function RenewalCard({invoice, product, hasMore, fullCharges, partialCharges, seats, onSeatChange, existingUsers, buttonDisabled, onButtonClick}: RenewalCardProps) {
     const dispatch = useDispatch();
+
     const openInvoicePreview = () => {
         dispatch(
             openModal({
@@ -178,32 +189,14 @@ export default function RenewalCard({invoice, product, hasMore, fullCharges, par
                                 id='admin.billing.subscriptions.billing_summary.lastInvoice.partialCharges'
                                 defaultMessage='Partial charges'
                             />
-                            <OverlayTrigger
-                                delayShow={500}
+                            <WithTooltip
+                                id='BillingSubscriptions__seatOverageTooltip'
+                                title={messages.partialChargesTooltipTitle}
+                                hint={messages.partialChargesTooltipText}
                                 placement='bottom'
-                                overlay={
-                                    <Tooltip
-                                        id='BillingSubscriptions__seatOverageTooltip'
-                                        className='BillingSubscriptions__tooltip BillingSubscriptions__tooltip-right'
-                                        positionLeft={390}
-                                    >
-                                        <div className='BillingSubscriptions__tooltipTitle'>
-                                            <FormattedMessage
-                                                id='admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges'
-                                                defaultMessage='What are partial charges?'
-                                            />
-                                        </div>
-                                        <div className='BillingSubscriptions__tooltipMessage'>
-                                            <FormattedMessage
-                                                id='admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges.message'
-                                                defaultMessage='Users who have not been enabled for the full duration of the month are charged at a prorated monthly rate.'
-                                            />
-                                        </div>
-                                    </Tooltip>
-                                }
                             >
                                 <i className='icon-information-outline'/>
-                            </OverlayTrigger>
+                            </WithTooltip>
                         </div>
                         {partialCharges.map((charge: any) => (
                             <div

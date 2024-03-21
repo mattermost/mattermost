@@ -76,9 +76,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
           dir="auto"
           id="channelHeaderDescription"
         >
-          <StatusIcon
-            button={false}
-            className=""
+          <Memo(StatusIcon)
             status="offline"
           />
           <span
@@ -372,9 +370,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
           dir="auto"
           id="channelHeaderDescription"
         >
-          <StatusIcon
-            button={false}
-            className=""
+          <Memo(StatusIcon)
             status="offline"
           />
           <span
@@ -2344,9 +2340,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
           dir="auto"
           id="channelHeaderDescription"
         >
-          <StatusIcon
-            button={false}
-            className=""
+          <Memo(StatusIcon)
             status="offline"
           />
           <span
@@ -2638,9 +2632,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
           dir="auto"
           id="channelHeaderDescription"
         >
-          <StatusIcon
-            button={false}
-            className=""
+          <Memo(StatusIcon)
             status="offline"
           />
           <span

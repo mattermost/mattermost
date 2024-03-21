@@ -15,7 +15,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         id="admin.advance.cluster"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <Memo(ClusterTableContainer) />
       <div
         className="banner"
@@ -249,7 +249,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         }
         setByEnv={false}
       />
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >
@@ -308,7 +308,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         id="admin.advance.cluster"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <Memo(ClusterTableContainer) />
       <div
         className="banner"
@@ -542,7 +542,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         }
         setByEnv={false}
       />
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >
@@ -601,7 +601,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         id="admin.advance.cluster"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <Memo(ClusterTableContainer) />
       <div
         className="banner"
@@ -835,7 +835,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         }
         setByEnv={false}
       />
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >
@@ -894,7 +894,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         id="admin.advance.cluster"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <Memo(ClusterTableContainer) />
       <div
         className="banner"
@@ -1128,7 +1128,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         }
         setByEnv={false}
       />
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >

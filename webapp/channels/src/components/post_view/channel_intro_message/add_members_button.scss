@@ -2,12 +2,10 @@
 .MoreThanMaxFreeUsers {
     display: flex;
     flex-direction: row;
-    margin-top: 10px;
 
     .titleAndButton {
         display: flex;
         flex-direction: column;
-        padding: 20px 5px;
         margin-left: 20px;
 
         > span {
@@ -17,56 +15,10 @@
             line-height: 24px;
         }
     }
-
-    button {
-        width: fit-content;
-        padding: 8px 16px;
-        border: none;
-        background-color: var(--button-bg);
-        border-radius: 4px;
-        color: var(--button-color);
-        font-size: 12px;
-        font-weight: 600;
-        line-height: 16px;
-
-        span {
-            color: var(--button-color);
-        }
-
-        i {
-            color: var(--button-color);
-            font-size: 14px;
-        }
-
-        &:hover:not(.disabled) {
-            background: linear-gradient(0deg, rgba(var(--center-channel-color-rgb), 0.16), rgba(var(--center-channel-color-rgb), 0.16)), var(--button-bg);
-            color: var(--button-color);
-            text-decoration: none;
-        }
-    }
 }
 
 .MoreThanMaxFreeUsersWrapper {
     display: flex;
     flex-direction: row;
-
-    .channelIntroButton {
-        margin-top: 10px;
-    }
-}
-
-.channelIntroButton {
-    border-radius: 4px;
-    color: var(--button-bg);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 16px;
-
-    i {
-        font-size: 14px;
-    }
-
-    &:hover {
-        background-color: rgba(var(--button-bg-rgb), 0.04);
-    }
+    gap: 8px;
 }

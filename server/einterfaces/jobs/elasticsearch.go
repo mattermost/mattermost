@@ -15,7 +15,3 @@ type ElasticsearchAggregatorInterface interface {
 	MakeWorker() model.Worker
 	MakeScheduler() Scheduler
 }
-
-type ElasticsearchFixChannelIndexInterface interface {
-	MakeWorker() model.Worker
-}

@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 @import 'utils/variables';
 @import 'utils/mixins';
 
@@ -21,14 +23,14 @@
         display: inline-block;
         width: 6px;
         height: 6px;
+        border-radius: 6px;
         margin: 5px 0;
         background: $primary-color;
-        border-radius: 6px;
         opacity: 0.2;
 
         &.active {
             opacity: 1;
-            outline: 3px solid lighten($primary-color, 50%);
+            outline: 3px solid color.adjust($primary-color, $lightness: 50%);
         }
     }
 

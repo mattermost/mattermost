@@ -115,8 +115,8 @@
                 color: rgba(var(--center-channel-color-rgb), 0.64);
 
                 &:hover {
-                    background: rgba(var(--center-channel-color-rgb), 0.08);
                     border-radius: 4px;
+                    background: rgba(var(--center-channel-color-rgb), 0.08);
                     color: rgba(var(--center-channel-color-rgb), 0.8);
                 }
             }

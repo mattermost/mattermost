@@ -92,11 +92,14 @@ export async function initSetup({
     }
 }
 
-export async function getAdminClient() {
-    const {client: adminClient, user: adminUser} = await makeClient({
-        username: testConfig.adminUsername,
-        password: testConfig.adminPassword,
-    });
+export async function getAdminClient(opts: {skipLog: boolean} = {skipLog: false}) {
+    const {client: adminClient, user: adminUser} = await makeClient(
+        {
+            username: testConfig.adminUsername,
+            password: testConfig.adminPassword,
+        },
+        opts,
+    );
 
     return {adminClient, adminUser};
 }

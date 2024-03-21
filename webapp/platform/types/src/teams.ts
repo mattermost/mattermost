@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from './errors';
-import {UserProfile} from './users';
-import {RelationOneToOne} from './utilities';
+import type {ServerError} from './errors';
+import type {UserProfile} from './users';
+import type {RelationOneToOne} from './utilities';
 
 export type TeamMembership = TeamUnread & {
     user_id: string;

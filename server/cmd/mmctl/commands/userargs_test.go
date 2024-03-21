@@ -20,17 +20,17 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), notFoundEmail, "").
+			GetUserByEmail(context.TODO(), notFoundEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.Background(), notFoundEmail, "").
+			GetUserByUsername(context.TODO(), notFoundEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUser(context.Background(), notFoundEmail, "").
+			GetUser(context.TODO(), notFoundEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 
@@ -46,17 +46,17 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), badRequestEmail, "").
+			GetUserByEmail(context.TODO(), badRequestEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.Background(), badRequestEmail, "").
+			GetUserByUsername(context.TODO(), badRequestEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUser(context.Background(), badRequestEmail, "").
+			GetUser(context.TODO(), badRequestEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 
@@ -72,7 +72,7 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), unexpectedErrEmail, "").
+			GetUserByEmail(context.TODO(), unexpectedErrEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, unexpectedErr).
 			Times(1)
 		users, err := getUsersFromArgs(s.client, []string{unexpectedErrEmail})
@@ -86,7 +86,7 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), forbiddenErrEmail, "").
+			GetUserByEmail(context.TODO(), forbiddenErrEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
 			Times(1)
 		users, err := getUsersFromArgs(s.client, []string{forbiddenErrEmail})
@@ -100,7 +100,7 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), successEmail, "").
+			GetUserByEmail(context.TODO(), successEmail, "").
 			Return(successUser, nil, nil).
 			Times(1)
 		users, err := getUsersFromArgs(s.client, []string{successEmail})

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Address, Product, Invoice} from './cloud';
-import {ValueOf} from './utilities';
+import type {ValueOf} from './utilities';
 
 export const SelfHostedSignupProgress = {
     START: 'START',

@@ -20,6 +20,7 @@ func genStore() *mocks.Store {
 	mock.On("Bot").Return(&mocks.BotStore{})
 	mock.On("Channel").Return(&mocks.ChannelStore{})
 	mock.On("ChannelMemberHistory").Return(&mocks.ChannelMemberHistoryStore{})
+	mock.On("ChannelBookmark").Return(&mocks.ChannelBookmarkStore{})
 	mock.On("ClusterDiscovery").Return(&mocks.ClusterDiscoveryStore{})
 	mock.On("RemoteCluster").Return(&mocks.RemoteClusterStore{})
 	mock.On("Command").Return(&mocks.CommandStore{})
@@ -61,6 +62,7 @@ func genStore() *mocks.Store {
 	mock.On("PostPersistentNotification").Return(&mocks.PostPersistentNotificationStore{})
 	mock.On("TrueUpReview").Return(&mocks.TrueUpReviewStore{})
 	mock.On("DesktopTokens").Return(&mocks.DesktopTokensStore{})
+	mock.On("ChannelBookmark").Return(&mocks.ChannelBookmarkStore{})
 	return mock
 }
 

@@ -22,7 +22,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.Background(), false).
+			SyncLdap(context.TODO(), false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -39,7 +39,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.Background(), false).
+			SyncLdap(context.TODO(), false).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -56,7 +56,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.Background(), false).
+			SyncLdap(context.TODO(), false).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -74,7 +74,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.Background(), true).
+			SyncLdap(context.TODO(), true).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -89,7 +89,7 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 
 		s.client.
 			EXPECT().
-			MigrateIdLdap(context.Background(), "test-id").
+			MigrateIdLdap(context.TODO(), "test-id").
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -105,7 +105,7 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 
 		s.client.
 			EXPECT().
-			MigrateIdLdap(context.Background(), "test-id").
+			MigrateIdLdap(context.TODO(), "test-id").
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("test-error")).
 			Times(1)
 

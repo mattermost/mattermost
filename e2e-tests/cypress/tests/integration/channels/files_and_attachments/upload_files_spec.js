@@ -243,11 +243,8 @@ describe('Upload Files', () => {
         // # Set the viewport to mobile
         cy.viewport('iphone-6');
 
-        // # Scan inside of the message input region
-        cy.findByLabelText('Login Successful message input complimentary region').should('be.visible').within(() => {
-            // * Check if the attachment button is present
-            cy.findByLabelText('Attachment Icon').should('be.visible').and('have.css', 'cursor', 'pointer');
-        });
+        // * Check if the attachment button is present
+        cy.findByLabelText('Attachment Icon').should('be.visible').and('have.css', 'cursor', 'pointer');
 
         const imageFilename = 'jpg-image-file.jpg';
         const imageType = 'JPG';

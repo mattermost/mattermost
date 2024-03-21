@@ -118,6 +118,43 @@ func TestUserStoreCache(t *testing.T) {
 	})
 }
 
+func TestUserStoreGetAllProfiles(t *testing.T) {
+	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		require.NoError(t, err)
+
+		users, err := cachedStore.User().GetAllProfiles(&model.UserGetOptions{Page: 0, PerPage: 100})
+		require.NoError(t, err)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfiles", 1)
+
+		users2, _ := cachedStore.User().GetAllProfiles(&model.UserGetOptions{Page: 0, PerPage: 100})
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfiles", 1)
+		assert.Equal(t, users, users2)
+
+		_, _ = cachedStore.User().GetAllProfiles(&model.UserGetOptions{Page: 2, PerPage: 1})
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfiles", 2)
+		assert.Equal(t, users, users2)
+	})
+
+	t.Run("different page sizes aren't cached", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		require.NoError(t, err)
+
+		_, _ = cachedStore.User().GetAllProfiles(&model.UserGetOptions{Page: 0, PerPage: 100})
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfiles", 1)
+
+		_, _ = cachedStore.User().GetAllProfiles(&model.UserGetOptions{Page: 2, PerPage: 1})
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfiles", 2)
+
+		_, _ = cachedStore.User().GetAllProfiles(&model.UserGetOptions{Page: 1, PerPage: 2})
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfiles", 3)
+	})
+}
+
 func TestUserStoreProfilesInChannelCache(t *testing.T) {
 	fakeChannelId := "123"
 	fakeUserId := "456"

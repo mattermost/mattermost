@@ -24,8 +24,8 @@
             height: 120px;
             align-items: center;
             justify-content: center;
-            background-color: var(--sidebar-header-bg);
             border-radius: 24px;
+            background-color: var(--sidebar-header-bg);
             cursor: pointer;
         }
 
@@ -45,8 +45,8 @@
             bottom: -6px;
             padding: 4px;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            background: var(--center-channel-bg, #fff);
             border-radius: 20px;
+            background: var(--center-channel-bg, #fff);
             box-shadow: 0 2px 3px 0 var(--elevation-1);
             cursor: pointer;
         }

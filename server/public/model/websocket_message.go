@@ -86,6 +86,10 @@ const (
 	WebsocketEventAcknowledgementRemoved              WebsocketEventType = "post_acknowledgement_removed"
 	WebsocketEventPersistentNotificationTriggered     WebsocketEventType = "persistent_notification_triggered"
 	WebsocketEventHostedCustomerSignupProgressUpdated WebsocketEventType = "hosted_customer_signup_progress_updated"
+	WebsocketEventChannelBookmarkCreated                                 = "channel_bookmark_created"
+	WebsocketEventChannelBookmarkUpdated                                 = "channel_bookmark_updated"
+	WebsocketEventChannelBookmarkDeleted                                 = "channel_bookmark_deleted"
+	WebsocketEventChannelBookmarkSorted                                  = "channel_bookmark_sorted"
 	WebsocketPresenceIndicator                        WebsocketEventType = "presence"
 )
 

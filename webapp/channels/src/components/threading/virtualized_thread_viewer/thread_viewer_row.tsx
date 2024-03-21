@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 
@@ -22,13 +23,13 @@ import Reply from './reply';
 type Props = {
     a11yIndex: number;
     currentUserId: string;
+    replyCount: number;
     isRootPost: boolean;
     isLastPost: boolean;
     listId: string;
     onCardClick: (post: Post) => void;
     previousPostId: string;
     timestampProps?: Partial<TimestampProps>;
-    lastViewedAt: number;
     threadId: string;
     newMessagesSeparatorActions: PluginComponent[];
 };
@@ -40,10 +41,10 @@ function ThreadViewerRow({
     isRootPost,
     isLastPost,
     listId,
+    replyCount,
     onCardClick,
     previousPostId,
     timestampProps,
-    lastViewedAt,
     threadId,
     newMessagesSeparatorActions,
 }: Props) {
@@ -62,7 +63,6 @@ function ThreadViewerRow({
         return (
             <NewMessageSeparator
                 separatorId={listId}
-                lastViewedAt={lastViewedAt}
                 threadId={threadId}
                 newMessagesSeparatorActions={newMessagesSeparatorActions}
             />
@@ -70,13 +70,28 @@ function ThreadViewerRow({
 
     case isRootPost:
         return (
-            <PostComponent
-                postId={listId}
-                isLastPost={isLastPost}
-                handleCardClick={onCardClick}
-                timestampProps={timestampProps}
-                location={Locations.RHS_ROOT}
-            />
+            <>
+                <PostComponent
+                    postId={listId}
+                    isLastPost={isLastPost}
+                    handleCardClick={onCardClick}
+                    timestampProps={timestampProps}
+                    location={Locations.RHS_ROOT}
+                />
+                {replyCount > 0 && (
+                    <div className='root-post__divider'>
+                        <div>
+                            <FormattedMessage
+                                id='threading.numReplies'
+                                defaultMessage='{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}'
+                                values={{
+                                    totalReplies: replyCount,
+                                }}
+                            />
+                        </div>
+                    </div>
+                )}
+            </>
         );
     case PostListUtils.isCombinedUserActivityPost(listId): {
         return (

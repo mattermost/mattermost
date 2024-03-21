@@ -17,7 +17,7 @@ describe('Status dropdown menu', () => {
     const statusTestCases = [
         {text: 'Online', className: 'icon-check-circle', profileClassName: 'icon-check-circle'},
         {text: 'Away', className: 'icon-clock'},
-        {text: 'Do Not Disturb', className: 'icon-minus-circle'},
+        {text: 'Do not disturb', className: 'icon-minus-circle'},
         {text: 'Offline', className: 'icon-circle-outline'},
     ];
 
@@ -67,7 +67,7 @@ describe('Status dropdown menu', () => {
         cy.uiOpenUserMenu().as('userMenu');
 
         // * Verify "Set a Custom Status" header is clickable
-        cy.get('@userMenu').findByText('Set a Custom Status').should('have.css', 'cursor', 'pointer');
+        cy.get('@userMenu').findByText('Set a custom status').should('have.css', 'cursor', 'pointer');
     });
 
     it('MM-T2927_5 When custom status is disabled, status menu is displayed when status icon is clicked', () => {
@@ -110,7 +110,7 @@ function stepThroughStatuses(statusTestCases = []) {
     // * Verify the user's status icon changes correctly every time
     statusTestCases.forEach((tc) => {
         // # Open user menu and click option
-        if (tc.text === 'Do Not Disturb') {
+        if (tc.text === 'Do not disturb') {
             cy.uiOpenDndStatusSubMenu().find('#dndTime-thirty_minutes_menuitem').click();
         } else {
             cy.uiOpenUserMenu(tc.text);

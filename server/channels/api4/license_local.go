@@ -15,7 +15,7 @@ import (
 )
 
 func (api *API) InitLicenseLocal() {
-	api.BaseRoutes.APIRoot.Handle("/license", api.APILocal(localAddLicense)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/license", api.APILocal(localAddLicense, handlerParamFileAPI)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/license", api.APILocal(localRemoveLicense)).Methods("DELETE")
 }
 

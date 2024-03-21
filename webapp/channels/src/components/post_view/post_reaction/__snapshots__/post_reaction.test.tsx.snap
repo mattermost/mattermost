@@ -17,27 +17,14 @@ exports[`components/post_view/PostReaction should match snapshot 1`] = `
     target={[MockFunction]}
     topOffset={-7}
   />
-  <OverlayTrigger
-    className="hidden-xs"
-    defaultOverlayShown={false}
-    delayShow={500}
-    overlay={
-      <Tooltip
-        className="hidden-xs"
-        id="reaction-icon-tooltip"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Add Reaction"
-          id="post_info.tooltip.add_reactions"
-        />
-      </Tooltip>
-    }
+  <WithTooltip
+    id="reaction-icon-tooltip"
     placement="top"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+    title={
+      Object {
+        "defaultMessage": "Add Reaction",
+        "id": "post_info.tooltip.add_reactions",
+      }
     }
   >
     <button
@@ -51,6 +38,6 @@ exports[`components/post_view/PostReaction should match snapshot 1`] = `
         className="icon icon--small"
       />
     </button>
-  </OverlayTrigger>
+  </WithTooltip>
 </Connect(Component)>
 `;

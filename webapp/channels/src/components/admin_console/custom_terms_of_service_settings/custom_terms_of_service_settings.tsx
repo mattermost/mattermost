@@ -31,7 +31,7 @@ type Props = BaseProps & {
     /*
      * Action to save config file
      */
-    updateConfig: () => void;
+    patchConfig: () => void;
 };
 
 type State = BaseState & {
@@ -120,7 +120,7 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
         let config = JSON.parse(JSON.stringify(this.props.config));
         config = this.getConfigFromState(config);
 
-        const {data, error} = await this.props.updateConfig(config);
+        const {data, error} = await this.props.patchConfig(config);
 
         if (data) {
             this.setState(this.getStateFromConfig(data));

@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {mount} from 'enzyme';
-import {cloneDeep, set} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
+import set from 'lodash/set';
 import React from 'react';
 import {Provider} from 'react-redux';
 

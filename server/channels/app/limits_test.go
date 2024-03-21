@@ -114,7 +114,7 @@ func TestGetUserLimits(t *testing.T) {
 		require.Equal(t, int64(3), userLimits.ActiveUserCount)
 
 		// now we'll delete the bot
-		_ = th.App.PermanentDeleteBot(newBot.UserId)
+		_ = th.App.PermanentDeleteBot(th.Context, newBot.UserId)
 		userLimits, appErr = th.App.GetUserLimits()
 		require.Nil(t, appErr)
 		require.Equal(t, int64(3), userLimits.ActiveUserCount)

@@ -445,5 +445,5 @@ describe('Integrations page', () => {
 
 function integrationPageTitleIsBold(title) {
     cy.get('.section-title__text').contains(title).click();
-    cy.get('.item-details__name').should('be.visible').and('have.css', 'font-weight', '600');
+    cy.get('.item-details__name').should('be.visible').and('have.css', 'font-weight', '400');
 }

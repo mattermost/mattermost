@@ -105,8 +105,8 @@
         align-items: center;
         justify-content: center;
         border: none;
-        background: transparent;
         border-radius: 4px;
+        background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.64);
         fill: rgba(var(--center-channel-color-rgb), 0.64);
 
@@ -211,8 +211,8 @@
         font-size: inherit;
 
         &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.08);
             border-radius: 4px;
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
         }
 
         &:active {
@@ -338,8 +338,8 @@ span.emoticon[style]:hover {
         height: 40px;
         padding: 10px 40px;
         border: 2px solid var(--button-bg);
-        background: var(--center-channel-bg);
         border-radius: 4px;
+        background: var(--center-channel-bg);
         color: var(--center-channel-color);
         cursor: pointer;
         font-size: 14px;

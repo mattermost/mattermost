@@ -54,7 +54,6 @@ function makeMapStateToProps() {
             isMobileView: getIsMobileView(state),
             lastPost,
             replyListIds,
-            lastViewedAt,
             newMessagesSeparatorActions,
         };
     };

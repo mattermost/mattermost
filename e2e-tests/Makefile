@@ -39,6 +39,10 @@ cloud-init: requirecmd-jq requirecmd-curl
 cloud-teardown:
 	bash ./.ci/server.cloud_teardown.sh
 
+.PHONY: publish-report
+publish-report: requirecmd-node
+	bash ./.ci/report.publish.sh
+
 .PHONY: fmt-node fmt-shell fmt
 requirecmd-%:
 	@which "$(*)" >/dev/null || { echo "Error, missing required CLI tool: $(*). Aborting." >&2; exit 1; }

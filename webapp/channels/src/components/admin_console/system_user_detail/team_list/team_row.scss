@@ -56,8 +56,8 @@
         text-decoration: none;
 
         &:hover {
-            background-color: $light-gray;
             border-radius: 3px;
+            background-color: $light-gray;
         }
 
         &.warning {

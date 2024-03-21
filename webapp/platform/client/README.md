@@ -20,15 +20,17 @@ $ npm install @mattermost/client @mattermost/types
 
 ## Usage
 
-To use the client, create an instance of `Client4`, set the server URL, and log in, and then you can start making requests.
+### Rest Client
+
+To use this client, create an instance of `Client4`, set the server URL, and log in, and then you can start making requests.
 
 ```js
 import {Client4} from '@mattermost/client';
 
 const client = new Client4();
-client4.setUrl('https://mymattermostserver.example.com');
+client.setUrl('https://mymattermostserver.example.com');
 
-client4.login('username', 'password').then((user) => {
+client.login('username', 'password').then((user) => {
     // ...
 });
 ```
@@ -39,9 +41,9 @@ If you already have a session token or a user access token, you can call `Client
 import {Client4} from '@mattermost/client';
 
 const client = new Client4();
-client4.setUrl('https://mymattermostserver.example.com');
+client.setUrl('https://mymattermostserver.example.com');
 
-client4.setToken('accesstoken');
+client.setToken('accesstoken');
 ```
 
 If needed, methods exist to set other headers such as the User-Agent (`Client4.setUserAgent`), the CSRF token (`Client4.setCSRF`), or any extra headers you wish to include (`Client4.setHeader`).
@@ -58,6 +60,54 @@ try {
 } catch (e) {
     console.error(`An error occurred when making a request to ${e.url}: ${e.message}`);
 }
+```
+
+### WebSocket Client
+
+To use the WebSocket client, create an instance of `WebSocketClient` and then call its `initialize` method with the connection URL and an optional session token or user access token. After that, you can call the client's `addMessageListener` method to register a listener which will be called whenever a WebSocket message is received from the server.
+
+```js
+import {WebSocketClient} from '@mattermost/client';
+
+// If you already have an instance of Client4, you can call its getWebSocketUrl method to get this URL
+const connectionUrl = 'https://mymattermostserver.example.com/api/v4/websocket';
+
+// In a browser, the token may be passed automatically from a cookie
+const authToken = process.env.TOKEN;
+
+const wsClient = new WebSocketClient();
+wsClient.authorize(connectionUrl, authToken);
+
+wsClient.addMessageListener((msg) => {
+    if (msg.event === 'posted') {
+        console.log('New post received', JSON.parse(msg.data.post));
+    }
+});
+```
+
+#### Node.js
+
+Note that `WebSocketClient` expects `globalThis.WebSocket` to be defined as it was originally written for use in the Mattermost web app. If you're using it in a Node.js environment, you should set `globalThis.WebSocket` before instantiating the `WebSocketClient`.
+
+```js
+import WebSocket from 'ws';
+
+if (!globalThis.WebSocket) {
+    globalThis.WebSocket = WebSocket;
+}
+
+const wsClient = new WebSocketClient();
+```
+
+This can also be done using dynamic imports if you're using them.
+
+```js
+if (!globalThis.WebSocket) {
+    const {WebSocket} = await import('ws');
+    globalThis.WebSocket = WebSocket;
+}
+
+const wsClient = new WebSocketClient();
 ```
 
 ## Compilation and Packaging

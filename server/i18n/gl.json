@@ -164,10 +164,6 @@
     "translation": "[{{.SiteName}}] Actualizouse a súa AMF"
   },
   {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "A súa proba de Enterprise xa está activa. Vaia a **Consola do sistema > Autenticación > AMF** para aplicar a autenticación de múltiples factores."
-  },
-  {
     "id": "mfa.mfa_disabled.app_error",
     "translation": "Desactivouse a autenticación de múltiples factores neste servidor."
   },
@@ -188,28 +184,12 @@
     "translation": "Engadiuse a autenticación de múltiples factores á súa conta en {{.SiteURL}}."
   },
   {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Aplicar a autenticación de múltiples factores"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Solicitude de contacto con Mattermost. Estou interesado en saber máis sobre como aplicar a autenticación de múltiples factores.\n"
-  },
-  {
     "id": "api.context.mfa_required.app_error",
     "translation": "Neste servidor é necesaria a autenticación de múltiples factores."
   },
   {
     "id": "ent.cluster.save_config.error",
     "translation": "A consola do sistema está configurada só para lectura cando a Alta dispoñibilidade está habilitada a menos que ReadOnlyConfig estea desactivado no ficheiro de configuración."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "A súa proba de Enterprise xa está activa. Vaia á consola do sistema para activar as funcións avanzadas."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "A súa proba de Enterprise xa está activa. Vaia a **Consola do sistema > Autenticación > Acceso de convidado** para activar as contas de convidado."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",

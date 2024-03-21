@@ -53,9 +53,9 @@
     .total-count {
         width: 100%;
         border: 1px solid $light-gray;
+        border-radius: 3px;
         margin: 1em 0;
         background: $white;
-        border-radius: 3px;
         text-align: center;
 
         &--has-message {

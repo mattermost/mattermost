@@ -32,39 +32,38 @@ type Props = {
     };
 }
 
-export default class ModalController extends React.PureComponent<Props> {
-    public render(): React.ReactNode {
-        const {modals, ...props} = this.props;
-        const {modalState} = modals;
+const ModalController = ({
+    modals,
+    actions,
+}: Props) => {
+    if (!modals) {
+        return null;
+    }
 
-        if (!modals) {
-            return null;
-        }
+    const {modalState} = modals;
+    const modalOutput = [];
 
-        const modalOutput = [];
+    for (const modalId in modalState) {
+        if (modalState.hasOwnProperty(modalId)) {
+            const modal = modalState[modalId];
+            if (modal.open) {
+                const modalComponent = React.createElement(modal.dialogType, Object.assign({}, modal.dialogProps, {
+                    onExited: () => {
+                        actions.closeModal(modalId);
 
-        for (const modalId in modalState) {
-            if (modalState.hasOwnProperty(modalId)) {
-                const modal = modalState[modalId];
-                if (modal.open) {
-                    const modalComponent = React.createElement(modal.dialogType, Object.assign({}, modal.dialogProps, {
-                        onExited: () => {
-                            props.actions.closeModal(modalId);
+                        // Call any onExited prop provided by whoever opened the modal, if one was provided
+                        modal.dialogProps?.onExited?.();
+                    },
+                    onHide: actions.closeModal.bind(this, modalId),
+                    key: `${modalId}_modal`,
+                }));
 
-                            // Call any onExited prop provided by whoever opened the modal, if one was provided
-                            modal.dialogProps?.onExited?.();
-                        },
-                        onHide: props.actions.closeModal.bind(this, modalId),
-                        key: `${modalId}_modal`,
-                    }));
-
-                    modalOutput.push(modalComponent);
-                }
+                modalOutput.push(modalComponent);
             }
         }
-
-        return (
-            modalOutput
-        );
     }
-}
+
+    return <>{modalOutput}</>;
+};
+
+export default ModalController;

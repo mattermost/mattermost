@@ -1,7 +1,7 @@
 .Card {
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    background-color: var(--center-channel-bg);
     border-radius: 4px;
+    background-color: var(--center-channel-bg);
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
     transition: box-shadow 0.3s ease-in-out;
 
@@ -22,9 +22,9 @@
     &.console {
         width: 100%;
         border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+        border-radius: 2px;
         margin-bottom: 20px;
         background-color: var(--sys-center-channel-bg);
-        border-radius: 2px;
         box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
         color: var(--sys-center-channel-color);
 
@@ -50,8 +50,8 @@
                 height: 32px;
                 padding: 10px 16px;
                 border: none;
-                margin-left: auto;
                 border-radius: 4px;
+                margin-left: auto;
                 font-size: 12px;
                 font-weight: 600;
                 line-height: 9.5px;

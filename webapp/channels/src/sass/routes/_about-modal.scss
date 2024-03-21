@@ -2,7 +2,7 @@
 
 .modal {
     .modal-content {
-        border-radius: $border-rad;
+        border-radius: var(--radius-s);
         box-shadow: 0 0 10px rgba($black, 0.5);
     }
 

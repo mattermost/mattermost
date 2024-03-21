@@ -327,6 +327,20 @@ func (_m *SearchEngineInterface) IsAutocompletionEnabled() bool {
 	return r0
 }
 
+// IsChannelsIndexVerified provides a mock function with given fields:
+func (_m *SearchEngineInterface) IsChannelsIndexVerified() bool {
+	ret := _m.Called()
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // IsEnabled provides a mock function with given fields:
 func (_m *SearchEngineInterface) IsEnabled() bool {
 	ret := _m.Called()
@@ -378,6 +392,22 @@ func (_m *SearchEngineInterface) IsSearchEnabled() bool {
 		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// PurgeIndexList provides a mock function with given fields: rctx, indexes
+func (_m *SearchEngineInterface) PurgeIndexList(rctx request.CTX, indexes []string) *model.AppError {
+	ret := _m.Called(rctx, indexes)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) *model.AppError); ok {
+		r0 = rf(rctx, indexes)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
 	}
 
 	return r0

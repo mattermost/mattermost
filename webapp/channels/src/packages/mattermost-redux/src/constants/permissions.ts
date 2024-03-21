@@ -247,6 +247,7 @@ const values = {
         CREATE_REACTIONS: 'create_reactions',
         MANAGE_MEMBERS: 'manage_members',
         USE_CHANNEL_MENTIONS: 'use_channel_mentions',
+        MANAGE_BOOKMARKS: 'manage_bookmarks',
     },
     MANAGE_BOTS: 'manage_bots',
     MANAGE_OTHERS_BOTS: 'manage_others_bots',
@@ -260,6 +261,15 @@ const values = {
     EDIT_CUSTOM_GROUP: 'edit_custom_group',
     DELETE_CUSTOM_GROUP: 'delete_custom_group',
     RESTORE_CUSTOM_GROUP: 'restore_custom_group',
+
+    ADD_BOOKMARK_PUBLIC_CHANNEL: 'add_bookmark_public_channel',
+    EDIT_BOOKMARK_PUBLIC_CHANNEL: 'edit_bookmark_public_channel',
+    DELETE_BOOKMARK_PUBLIC_CHANNEL: 'delete_bookmark_public_channel',
+    ORDER_BOOKMARK_PUBLIC_CHANNEL: 'order_bookmark_public_channel',
+    ADD_BOOKMARK_PRIVATE_CHANNEL: 'add_bookmark_private_channel',
+    EDIT_BOOKMARK_PRIVATE_CHANNEL: 'edit_bookmark_private_channel',
+    DELETE_BOOKMARK_PRIVATE_CHANNEL: 'delete_bookmark_private_channel',
+    ORDER_BOOKMARK_PRIVATE_CHANNEL: 'order_bookmark_private_channel',
 };
 
 values.SYSCONSOLE_READ_PERMISSIONS = [

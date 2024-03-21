@@ -7,14 +7,14 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       COMPOSE_PROJECT_NAME: ghactions
-      BUILD_IMAGE: mattermost/mattermost-build-server:20230904_golang-1.20.7
+      BUILD_IMAGE: mattermost/mattermost-build-server:1.21.8
       TEST_IMAGE: migration-test-image
     defaults:
       run:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Run docker compose
         run: |
           cd build
@@ -61,7 +61,7 @@ jobs:
           $TEST_IMAGE \
           make test-migration
       - name: Upload artifacts
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
         with:
           name: Migration logs
           path: server/migration.log

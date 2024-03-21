@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getDataRetentionCustomPolicies as fetchDataRetentionCustomPolicies, deleteDataRetentionCustomPolicy, updateConfig} from 'mattermost-redux/actions/admin';
+import {getDataRetentionCustomPolicies as fetchDataRetentionCustomPolicies, deleteDataRetentionCustomPolicy, patchConfig} from 'mattermost-redux/actions/admin';
 import {createJob, getJobsByType} from 'mattermost-redux/actions/jobs';
 import {getDataRetentionCustomPolicies, getDataRetentionCustomPoliciesCount} from 'mattermost-redux/selectors/entities/admin';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -35,7 +35,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             createJob,
             getJobsByType,
             deleteDataRetentionCustomPolicy,
-            updateConfig,
+            patchConfig,
         }, dispatch),
     };
 }

@@ -186,8 +186,8 @@
                     padding-bottom: 24px;
                     padding-left: 24px;
                     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-                    background-color: var(--center-channel-bg);
                     border-radius: 0 0 4px 4px;
+                    background-color: var(--center-channel-bg);
 
                     .enable_annual_sub {
                         margin-top: 12px;
@@ -198,8 +198,8 @@
                         height: 40px;
                         padding: 10px 24px;
                         border: none;
-                        background: none;
                         border-radius: 4px;
+                        background: none;
                         color: var(--denim-button-bg);
                         font-size: 14px;
                         font-weight: 700;
@@ -240,8 +240,8 @@
                         text-align: center;
 
                         .summary-section {
-                            background-color: rgba(var(--denim-button-bg-rgb), 0.08);
                             border-radius: 4px;
+                            background-color: rgba(var(--denim-button-bg-rgb), 0.08);
                             font-family: 'Metropolis';
 
                             .summary-title {

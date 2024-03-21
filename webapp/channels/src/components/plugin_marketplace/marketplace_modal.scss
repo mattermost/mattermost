@@ -69,8 +69,8 @@
                 &:focus,
                 &:focus-within {
                     border: none;
-                    background: transparent;
                     border-radius: none;
+                    background: transparent;
                     color: var(--center-channel-color);
                 }
             }
@@ -176,8 +176,8 @@
             flex: 0 0 48px;
             align-items: center;
             justify-content: center;
-            background-color: $white;
             border-radius: 50%;
+            background-color: $white;
 
             svg,
             img {

@@ -16,16 +16,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
-	userOptions := &model.UserGetOptions{
-		Page:     0,
-		PerPage:  100,
-		Role:     model.SystemAdminRoleId,
-		Inactive: false,
-	}
-	return a.GetUsersFromProfiles(userOptions)
-}
-
 func getCurrentPlanName(a *App) (string, *model.AppError) {
 	subscription, err := a.Cloud().GetSubscription("")
 	if err != nil {
@@ -48,7 +38,7 @@ func getCurrentPlanName(a *App) (string, *model.AppError) {
 }
 
 func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError {
-	sysAdmins, err := a.getSysAdminsEmailRecipients()
+	sysAdmins, err := a.getAllSystemAdmins()
 	if err != nil {
 		return err
 	}
@@ -77,7 +67,7 @@ func getCurrentProduct(subscriptionProductID string, products []*model.Product) 
 }
 
 func (a *App) SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.AppError {
-	sysAdmins, aErr := a.getSysAdminsEmailRecipients()
+	sysAdmins, aErr := a.getAllSystemAdmins()
 	if aErr != nil {
 		return aErr
 	}
@@ -161,7 +151,7 @@ func getNextBillingDateString() string {
 }
 
 func (a *App) SendUpgradeConfirmationEmail(isYearly bool) *model.AppError {
-	sysAdmins, e := a.getSysAdminsEmailRecipients()
+	sysAdmins, e := a.getAllSystemAdmins()
 	if e != nil {
 		return e
 	}
@@ -220,7 +210,7 @@ func (a *App) SendUpgradeConfirmationEmail(isYearly bool) *model.AppError {
 
 // SendNoCardPaymentFailedEmail
 func (a *App) SendNoCardPaymentFailedEmail() *model.AppError {
-	sysAdmins, err := a.getSysAdminsEmailRecipients()
+	sysAdmins, err := a.getAllSystemAdmins()
 	if err != nil {
 		return err
 	}
@@ -271,6 +261,10 @@ func (a *App) DoSubscriptionRenewalCheck() {
 		return // Don't send renewal emails for free trials
 	}
 
+	if model.BillingType(subscription.BillingType) == model.BillingTypeLicensed || model.BillingType(subscription.BillingType) == model.BillingTypeInternal {
+		return // Don't send renewal emails for licensed or internal billing
+	}
+
 	sysVar, err := a.Srv().Store().System().GetByName(model.CloudRenewalEmail)
 	if err != nil {
 		// We only care about the error if it wasn't a not found error
@@ -319,7 +313,7 @@ func (a *App) DoSubscriptionRenewalCheck() {
 		return
 	}
 
-	sysAdmins, aErr := a.getSysAdminsEmailRecipients()
+	sysAdmins, aErr := a.getAllSystemAdmins()
 	if aErr != nil {
 		a.Log().Error("Error getting sys admins", mlog.Err(aErr))
 		return

@@ -87,6 +87,19 @@ func StringSliceDiff(a, b []string) []string {
 	return result
 }
 
+func InsertElementToSliceAtIndex[T comparable](slice []T, element T, index int) []T {
+	if len(slice) == index {
+		return append(slice, element)
+	}
+	slice = append(slice[:index+1], slice[index:]...)
+	slice[index] = element
+	return slice
+}
+
+func RemoveElementFromSliceAtIndex[T comparable](slice []T, index int) []T {
+	return append(slice[:index], slice[index+1:]...)
+}
+
 func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
 	address := ""
 

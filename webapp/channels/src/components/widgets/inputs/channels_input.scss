@@ -169,9 +169,9 @@
     .channels-input__multi-value {
         align-items: center;
         padding: 4px;
+        border-radius: 16px;
         margin: 4px;
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        border-radius: 16px;
         color: var(--center-channel-color);
 
         &:nth-last-child(2) {
@@ -192,9 +192,9 @@
             width: 24px;
             height: 24px;
             padding: 4px;
+            border-radius: 16px;
             margin-right: 4px;
             background: rgba(var(--center-channel-color-rgb), 0.75);
-            border-radius: 16px;
         }
 
         .public-channel-icon {

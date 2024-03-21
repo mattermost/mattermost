@@ -11,9 +11,9 @@
     min-width: 0;
     align-items: center;
     border: 0;
+    border-radius: 4px;
     margin: 4px 0;
     background: rgba(var(--online-indicator-rgb), 0.08);
-    border-radius: 4px;
     color: var(--online-indicator);
     font-weight: 600;
     transition: all 0.15s ease-out;

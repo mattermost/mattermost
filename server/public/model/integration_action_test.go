@@ -144,7 +144,7 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 		require.False(t, pa1.Equals(pa2))
 	})
 
-	t.Run("nil check", func(t *testing.T) {
+	t.Run("nil check in input integration", func(t *testing.T) {
 		pa1 := &PostAction{
 			Integration: &PostActionIntegration{},
 		}
@@ -154,5 +154,29 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 		}
 
 		require.False(t, pa1.Equals(pa2))
+	})
+
+	t.Run("nil check in original integration", func(t *testing.T) {
+		pa1 := &PostAction{
+			Integration: nil,
+		}
+
+		pa2 := &PostAction{
+			Integration: &PostActionIntegration{},
+		}
+
+		require.False(t, pa1.Equals(pa2))
+	})
+
+	t.Run("both nil", func(t *testing.T) {
+		pa1 := &PostAction{
+			Integration: nil,
+		}
+
+		pa2 := &PostAction{
+			Integration: nil,
+		}
+
+		require.True(t, pa1.Equals(pa2))
 	})
 }

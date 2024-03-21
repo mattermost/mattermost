@@ -45,13 +45,6 @@ func (ps *PlatformService) AddSessionToCache(session *model.Session) {
 	ps.sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*ps.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute)
 }
 
-func (ps *PlatformService) SessionCacheLength() int {
-	if l, err := ps.sessionCache.Len(); err == nil {
-		return l
-	}
-	return 0
-}
-
 func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 	if keys, err := ps.sessionCache.Keys(); err == nil {
 		var session *model.Session

@@ -32,7 +32,7 @@ type Props = {
     fileRetentionHours: string | undefined;
     environmentConfig: Partial<EnvironmentConfig>;
     actions: {
-        updateConfig: (config: AdminConfig) => Promise<ActionResult>;
+        patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
 };
@@ -121,7 +121,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
             newConfig.DataRetentionSettings.FileRetentionHours = this.setRetentionHours(fileRetentionDropdownValue.value, fileRetentionInputValue);
         }
 
-        const {error} = await this.props.actions.updateConfig(newConfig);
+        const {error} = await this.props.actions.patchConfig(newConfig);
 
         if (error) {
             this.setState({serverError: error.message, saving: false});

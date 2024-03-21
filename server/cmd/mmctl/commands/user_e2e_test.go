@@ -1077,14 +1077,14 @@ func (s *MmctlE2ETestSuite) cleanUpPreferences(userID string) {
 	s.T().Helper()
 
 	// Delete any existing preferences
-	preferences, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), userID)
+	preferences, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), userID)
 	s.NoError(err)
 
 	if len(preferences) == 0 {
 		return
 	}
 
-	_, err = s.th.SystemAdminClient.DeletePreferences(context.Background(), userID, preferences)
+	_, err = s.th.SystemAdminClient.DeletePreferences(context.TODO(), userID, preferences)
 	s.NoError(err)
 }
 
@@ -1095,17 +1095,17 @@ func (s *MmctlE2ETestSuite) TestPreferenceListCmd() {
 	s.cleanUpPreferences(s.th.BasicUser2.Id)
 
 	preference1 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
-	_, err := s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference1})
+	_, err := s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference1})
 	s.NoError(err)
 	preference2 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "colorize_usernames", Value: "threads_view"}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference2})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference2})
 	s.NoError(err)
 	preference3 := model.Preference{UserId: s.th.BasicUser.Id, Category: "drafts", Name: "drafts_tour_tip_showed", Value: `{"drafts_tour_tip_showed":true}`}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference3})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference3})
 	s.NoError(err)
 
 	preference4 := model.Preference{UserId: s.th.BasicUser2.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser2.Id, model.Preferences{preference4})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser2.Id, model.Preferences{preference4})
 	s.NoError(err)
 
 	s.Run("list all preferences for single user", func() {
@@ -1186,17 +1186,17 @@ func (s *MmctlE2ETestSuite) TestPreferenceGetCmd() {
 	s.cleanUpPreferences(s.th.BasicUser2.Id)
 
 	preference1 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
-	_, err := s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference1})
+	_, err := s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference1})
 	s.NoError(err)
 	preference2 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "colorize_usernames", Value: "threads_view"}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference2})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference2})
 	s.NoError(err)
 	preference3 := model.Preference{UserId: s.th.BasicUser.Id, Category: "drafts", Name: "drafts_tour_tip_showed", Value: `{"drafts_tour_tip_showed":true}`}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference3})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference3})
 	s.NoError(err)
 
 	preference4 := model.Preference{UserId: s.th.BasicUser2.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser2.Id, model.Preferences{preference4})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser2.Id, model.Preferences{preference4})
 	s.NoError(err)
 
 	s.Run("get preference for single user", func() {
@@ -1255,14 +1255,14 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.cleanUpPreferences(s.th.BasicUser.Id)
 		s.cleanUpPreferences(s.th.BasicUser2.Id)
 
-		_, err := s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference1})
+		_, err := s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference1})
 		s.NoError(err)
-		_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference2})
+		_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference2})
 		s.NoError(err)
-		_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference3})
+		_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference3})
 		s.NoError(err)
 
-		_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser2.Id, model.Preferences{preference4})
+		_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser2.Id, model.Preferences{preference4})
 		s.NoError(err)
 	}
 
@@ -1281,7 +1281,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 4)
 		s.Require().Equal(preference1, actualPreferencesUser1[0])
@@ -1290,7 +1290,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().Equal(preferenceNew, actualPreferencesUser1[3])
 
 		// Second user unaffected
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 1)
 		s.Require().Equal(preference4, actualPreferencesUser2[0])
@@ -1312,7 +1312,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 4)
 		s.Require().Equal(preference1, actualPreferencesUser1[0])
@@ -1321,7 +1321,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().Equal(preferenceNew, actualPreferencesUser1[3])
 
 		// Second user unaffected
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 2)
 		s.Require().Equal(preference4, actualPreferencesUser2[0])
@@ -1358,7 +1358,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 3)
 		s.Require().Equal(preferenceUpdated, actualPreferencesUser1[0])
@@ -1366,7 +1366,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().Equal(preference3, actualPreferencesUser1[2])
 
 		// Second user unaffected
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 1)
 		s.Require().Equal(preference4, actualPreferencesUser2[0])
@@ -1388,14 +1388,14 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 3)
 		s.Require().Equal(preferenceUpdated, actualPreferencesUser1[0])
 		s.Require().Equal(preference2, actualPreferencesUser1[1])
 		s.Require().Equal(preference3, actualPreferencesUser1[2])
 
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 1)
 		s.Require().Equal(preferenceUpdated2, actualPreferencesUser2[0])
@@ -1424,17 +1424,17 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 	s.cleanUpPreferences(s.th.BasicUser2.Id)
 
 	preference1 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
-	_, err := s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference1})
+	_, err := s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference1})
 	s.NoError(err)
 	preference2 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "colorize_usernames", Value: "threads_view"}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference2})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference2})
 	s.NoError(err)
 	preference3 := model.Preference{UserId: s.th.BasicUser.Id, Category: "drafts", Name: "drafts_tour_tip_showed", Value: `{"drafts_tour_tip_showed":true}`}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference3})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser.Id, model.Preferences{preference3})
 	s.NoError(err)
 
 	preference4 := model.Preference{UserId: s.th.BasicUser2.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
-	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser2.Id, model.Preferences{preference4})
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.TODO(), s.th.BasicUser2.Id, model.Preferences{preference4})
 	s.NoError(err)
 
 	s.Run("delete non-existing preference for single user", func() {
@@ -1450,7 +1450,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 3)
 		s.Require().Equal(preference1, actualPreferencesUser1[0])
@@ -1458,7 +1458,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 		s.Require().Equal(preference3, actualPreferencesUser1[2])
 
 		// Second user unaffected
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 1)
 		s.Require().Equal(preference4, actualPreferencesUser2[0])
@@ -1475,14 +1475,14 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 2)
 		s.Require().Equal(preference2, actualPreferencesUser1[0])
 		s.Require().Equal(preference3, actualPreferencesUser1[1])
 
 		// Second user unaffected
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 1)
 		s.Require().Equal(preference4, actualPreferencesUser2[0])
@@ -1499,14 +1499,14 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 2)
 		s.Require().Equal(preference2, actualPreferencesUser1[0])
 		s.Require().Equal(preference3, actualPreferencesUser1[1])
 
 		// Second user unaffected
-		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser2, 0)
 	})

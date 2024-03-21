@@ -211,16 +211,18 @@ func TestGenerateSupportPacket(t *testing.T) {
 	th.LoginSystemManager()
 	defer th.TearDown()
 
-	t.Run("As a System Administrator", func(t *testing.T) {
+	t.Run("system admin and local client can generate support packet", func(t *testing.T) {
 		l := model.NewTestLicense()
 		th.App.Srv().SetLicense(l)
 
-		file, _, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
-		require.NoError(t, err)
-		require.NotZero(t, len(file))
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+			file, _, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
+			require.NoError(t, err)
+			require.NotZero(t, len(file))
+		})
 	})
 
-	t.Run("As a System Administrator but with RestrictSystemAdmin true", func(t *testing.T) {
+	t.Run("Using system admin and local client but with RestrictSystemAdmin true", func(t *testing.T) {
 		originalRestrictSystemAdminVal := *th.App.Config().ExperimentalSettings.RestrictSystemAdmin
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 		defer func() {
@@ -229,9 +231,11 @@ func TestGenerateSupportPacket(t *testing.T) {
 			})
 		}()
 
-		_, resp, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+			_, resp, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+		})
 	})
 
 	t.Run("As a system role, not system admin", func(t *testing.T) {
@@ -583,15 +587,6 @@ func TestS3TestConnection(t *testing.T) {
 		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &configCopy)
 		CheckInternalErrorStatus(t, resp)
 		CheckErrorID(t, err, "api.file.test_connection_s3_auth.app_error")
-	})
-
-	t.Run("as restricted system admin", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = false })
-
-		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("empty file settings", func(t *testing.T) {

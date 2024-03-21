@@ -144,7 +144,7 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 		s.Require().Equal("mysql", *(config.SqlSettings.DriverName))
 	})
 
-	s.RunForSystemAdminAndLocal("Get error if the key doesn't exists", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Get error if the key doesn't exist", func(c client.Client) {
 		printer.Clean()
 
 		args := []string{"SqlSettings.WrongKey", "mysql"}

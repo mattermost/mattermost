@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedNumber} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedNumber, defineMessages} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CheckCircleOutlineIcon, CheckIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
@@ -18,10 +18,20 @@ import CloudInvoicePreview from 'components/cloud_invoice_preview';
 import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import ExternalLink from 'components/external_link';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {BillingSchemes, CloudLinks, TrialPeriodDays, ModalIdentifiers} from 'utils/constants';
+
+const messages = defineMessages({
+    partialChargesTooltipTitle: {
+        id: 'admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges',
+        defaultMessage: 'What are partial charges?',
+    },
+    partialChargesTooltipText: {
+        id: 'admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges.message',
+        defaultMessage: 'Users who have not been enabled for the full duration of the month are charged at a prorated monthly rate.',
+    },
+});
 
 export const noBillingHistory = (
     <div className='BillingSummary__noBillingHistory'>
@@ -180,6 +190,7 @@ type InvoiceInfoProps = {
 
 export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasMore, willRenew}: InvoiceInfoProps) => {
     const dispatch = useDispatch();
+
     const isUpcomingInvoice = invoice?.status.toLowerCase() === 'upcoming';
     const openInvoicePreview = () => {
         dispatch(
@@ -298,32 +309,14 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
                             id='admin.billing.subscriptions.billing_summary.lastInvoice.partialCharges'
                             defaultMessage='Partial charges'
                         />
-                        <OverlayTrigger
-                            delayShow={500}
+                        <WithTooltip
+                            id='BillingSubscriptions__seatOverageTooltip'
+                            title={messages.partialChargesTooltipTitle}
+                            hint={messages.partialChargesTooltipText}
                             placement='bottom'
-                            overlay={
-                                <Tooltip
-                                    id='BillingSubscriptions__seatOverageTooltip'
-                                    className='BillingSubscriptions__tooltip BillingSubscriptions__tooltip-right'
-                                    positionLeft={390}
-                                >
-                                    <div className='BillingSubscriptions__tooltipTitle'>
-                                        <FormattedMessage
-                                            id='admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges'
-                                            defaultMessage='What are partial charges?'
-                                        />
-                                    </div>
-                                    <div className='BillingSubscriptions__tooltipMessage'>
-                                        <FormattedMessage
-                                            id='admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges.message'
-                                            defaultMessage='Users who have not been enabled for the full duration of the month are charged at a prorated monthly rate.'
-                                        />
-                                    </div>
-                                </Tooltip>
-                            }
                         >
                             <i className='icon-information-outline'/>
-                        </OverlayTrigger>
+                        </WithTooltip>
                     </div>
                     {partialCharges.map((charge: any) => (
                         <div

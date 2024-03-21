@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {debounce} from 'lodash';
+import debounce from 'lodash/debounce';
 import React, {useEffect, useCallback, useState, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
@@ -64,16 +64,14 @@ export type Props = {
     };
 }
 
-const UserGroupPopover = (props: Props) => {
-    const {
-        group,
-        actions,
-        hide,
-        returnFocus,
-        searchTerm,
-        showUserOverlay,
-    } = props;
-
+const UserGroupPopover = ({
+    actions,
+    group,
+    hide,
+    returnFocus,
+    searchTerm,
+    showUserOverlay,
+}: Props) => {
     const {formatMessage} = useIntl();
 
     const closeRef = useRef<HTMLButtonElement>(null);
@@ -183,7 +181,6 @@ const UserGroupPopover = (props: Props) => {
 
     return (
         <Popover
-            {...props}
             id='user-group-popover'
         >
             {tabCatcher}

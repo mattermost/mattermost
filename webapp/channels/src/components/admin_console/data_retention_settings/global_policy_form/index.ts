@@ -6,7 +6,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {
-    updateConfig,
+    patchConfig,
 } from 'mattermost-redux/actions/admin';
 import {getEnvironmentConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -31,7 +31,7 @@ function mapStateToProps(state: GlobalState) {
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
-            updateConfig,
+            patchConfig,
             setNavigationBlocked,
         }, dispatch),
     };

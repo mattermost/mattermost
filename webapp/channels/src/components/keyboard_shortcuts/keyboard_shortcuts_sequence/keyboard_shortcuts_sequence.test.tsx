@@ -7,8 +7,6 @@ import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import KeyboardShortcutsSequence from './keyboard_shortcuts_sequence';
 
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from './index';
-
 describe('components/shortcuts/KeyboardShortcutsSequence', () => {
     test('should match snapshot when used for modal with description', () => {
         const wrapper = mountWithIntl(
@@ -93,23 +91,6 @@ describe('components/shortcuts/KeyboardShortcutsSequence', () => {
         expect(wrapper.contains(tag)).toEqual(false);
         expect(wrapper).toMatchSnapshot();
         expect(wrapper.find('.shortcut-key--tooltip')).toHaveLength(2);
-        expect(wrapper.find('.shortcut-key--shortcut-modal')).toHaveLength(0);
-    });
-
-    test('should create sequence with order', () => {
-        const order = 3;
-        const wrapper = mountWithIntl(
-            <KeyboardShortcutSequence
-                shortcut={KEYBOARD_SHORTCUTS.teamNavigation}
-                values={{order}}
-                hideDescription={true}
-                isInsideTooltip={true}
-            />,
-        );
-        expect(wrapper).toMatchSnapshot();
-        const tag = <span>{'Keyboard shortcuts'}</span>;
-        expect(wrapper.contains(tag)).toEqual(false);
-        expect(wrapper.find('.shortcut-key--tooltip')).toHaveLength(3);
         expect(wrapper.find('.shortcut-key--shortcut-modal')).toHaveLength(0);
     });
 });

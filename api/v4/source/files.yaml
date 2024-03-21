@@ -19,6 +19,12 @@
         Server versions 4.8 and higher support both types of requests.
 
 
+        __Minimum server version__: 9.4
+
+        Starting with server version 9.4 when uploading a file for a channel bookmark, the bookmark=true query
+        parameter should be included in the query string
+
+
         ##### Permissions
 
         Must have `upload_file` permission.

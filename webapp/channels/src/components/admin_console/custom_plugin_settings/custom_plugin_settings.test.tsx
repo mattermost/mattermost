@@ -137,7 +137,7 @@ describe('components/admin_console/CustomPluginSettings', () => {
                 {...baseProps}
                 config={config}
                 schema={{...plugin.settings_schema, id: plugin.id, name: plugin.name, settings}}
-                updateConfig={jest.fn()}
+                patchConfig={jest.fn()}
             />,
         );
         expect(wrapper).toMatchSnapshot();
@@ -152,7 +152,7 @@ describe('components/admin_console/CustomPluginSettings', () => {
                     id: 'testplugin',
                     name: 'testplugin',
                 }}
-                updateConfig={jest.fn()}
+                patchConfig={jest.fn()}
             />,
         );
         expect(wrapper).toMatchSnapshot();
@@ -171,7 +171,7 @@ describe('components/admin_console/CustomPluginSettings', () => {
                     } as PluginSettings,
                 }}
                 schema={{...plugin.settings_schema, id: plugin.id, name: plugin.name, settings}}
-                updateConfig={jest.fn()}
+                patchConfig={jest.fn()}
             />,
         );
         expect(wrapper).toMatchSnapshot();

@@ -1765,7 +1765,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with other fi
           className="file-preview-modal__content"
           onClick={[Function]}
         >
-          <Connect(FileInfoPreview)
+          <Connect(Component)
             fileInfo={
               Object {
                 "archived": false,

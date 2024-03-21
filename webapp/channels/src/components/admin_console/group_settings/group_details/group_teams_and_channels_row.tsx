@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import {isNil} from 'lodash';
+import isNil from 'lodash/isNil';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 

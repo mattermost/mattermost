@@ -9,7 +9,7 @@ exports[`component/PDFPreview should match snapshot, loading 1`] = `
 `;
 
 exports[`component/PDFPreview should match snapshot, not successful 1`] = `
-<Connect(FileInfoPreview)
+<Connect(Component)
   fileInfo={
     Object {
       "archived": false,

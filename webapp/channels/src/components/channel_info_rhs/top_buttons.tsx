@@ -29,7 +29,7 @@ const Button = styled.button`
         color: rgba(var(--center-channel-color-rgb), 0.8);
 
         & i {
-            color: rgba(var(--center-channel-color-rgb), 0.8);
+            color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
         }
     }
 
@@ -44,7 +44,7 @@ const Button = styled.button`
     }
 
     & i {
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
         font-size: 24px;
     }
 

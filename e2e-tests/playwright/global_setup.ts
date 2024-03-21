@@ -13,10 +13,11 @@ import testConfig from './test.config';
 async function globalSetup() {
     let adminClient: Client;
     let adminUser: UserProfile | null;
-    ({adminClient, adminUser} = await getAdminClient());
+    ({adminClient, adminUser} = await getAdminClient({skipLog: true}));
 
     if (!adminUser) {
-        const {client: firstClient} = await makeClient();
+        const firstClient = new Client();
+        firstClient.setUrl(testConfig.baseURL);
         const defaultAdmin = getDefaultAdminUser();
         await firstClient.createUser(defaultAdmin, '', '');
 
@@ -100,8 +101,6 @@ async function printClientInfo(client: Client) {
   - BuildHash                   = ${config.BuildHash}
   - BuildHashEnterprise         = ${config.BuildHashEnterprise}
   - BuildEnterpriseReady        = ${config.BuildEnterpriseReady}
-  - FeatureFlagAppsEnabled      = ${config.FeatureFlagAppsEnabled}
-  - FeatureFlagCallsEnabled     = ${config.FeatureFlagCallsEnabled}
   - TelemetryId                 = ${config.TelemetryId}
   - ServiceEnvironment          = ${config.ServiceEnvironment}`);
 }

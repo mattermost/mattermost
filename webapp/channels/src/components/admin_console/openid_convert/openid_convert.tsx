@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -21,7 +22,7 @@ import './openid_convert.scss';
 type Props = BaseProps & {
     disabled?: boolean;
     actions: {
-        updateConfig: (config: AdminConfig) => Promise<ActionResult>;
+        patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     };
 };
 type State = {
@@ -59,7 +60,7 @@ export default class OpenIdConvert extends React.PureComponent<Props, State> {
             newConfig[setting].TokenEndpoint = '';
         });
 
-        const {error: err} = await this.props.actions.updateConfig(newConfig);
+        const {error: err} = await this.props.actions.patchConfig(newConfig);
         if (err) {
             this.setState({serverError: err.message});
         } else {

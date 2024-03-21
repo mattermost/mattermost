@@ -6,8 +6,8 @@
     align-items: center;
     padding: 0 6px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    margin: 0 2px;
     border-radius: 4px;
+    margin: 0 2px;
     color: var(--center-channel-color);
 
     &__name {
@@ -31,8 +31,8 @@
         max-width: 28px;
         min-height: 28px;
         max-height: 28px;
-        margin-right: 8px;
         border-radius: 2px;
+        margin-right: 8px;
     }
 
     &__attachment {

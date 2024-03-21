@@ -29,7 +29,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 
 		s.client.
 			EXPECT().
-			ResetSamlAuthDataToEmail(context.Background(), false, false, []string{}).
+			ResetSamlAuthDataToEmail(context.TODO(), false, false, []string{}).
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 
@@ -49,7 +49,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 
 		s.client.
 			EXPECT().
-			ResetSamlAuthDataToEmail(context.Background(), false, true, []string{}).
+			ResetSamlAuthDataToEmail(context.TODO(), false, true, []string{}).
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 
@@ -65,7 +65,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		users := []string{"user1"}
 		s.client.
 			EXPECT().
-			ResetSamlAuthDataToEmail(context.Background(), false, false, users).
+			ResetSamlAuthDataToEmail(context.TODO(), false, false, users).
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 

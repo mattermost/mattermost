@@ -298,6 +298,68 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/ChannelWithTeamData"
+    ChannelBookmark:
+      type: object
+      properties:
+        id:
+          type: string
+        create_at:
+          description: The time in milliseconds a channel bookmark was created
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds a channel bookmark was last updated
+          type: integer
+          format: int64
+        delete_at:
+          description: The time in milliseconds a channel bookmark was deleted
+          type: integer
+          format: int64
+        channel_id:
+          type: string
+        owner_id:
+          description: The ID of the user that the channel bookmark belongs to
+          type: string
+        file_id:
+          description: The ID of the file associated with the channel bookmark
+          type: string
+        display_name:
+          type: string
+        sort_order:
+          description: The order of the channel bookmark
+          type: integer
+          format: int64
+        link_url:
+          description: The URL associated with the channel bookmark
+          type: string
+        image_url:
+          description: The URL of the image associated with the channel bookmark
+          type: string
+        emoji:
+          type: string
+        type:
+          type: string
+          enum: [link, file]
+        original_id:
+          description: The ID of the original channel bookmark
+          type: string
+        parent_id:
+          description: The ID of the parent channel bookmark
+          type: string
+    ChannelBookmarkWithFileInfo:
+      allOf:
+        - $ref: "#/components/schemas/ChannelBookmark"
+        - type: object
+          properties:
+            file:
+              $ref: "#/components/schemas/FileInfo"
+    UpdateChannelBookmarkResponse:
+      type: object
+      properties:
+        updated:
+          $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
+        deleted:
+          $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
     Post:
       type: object
       properties:

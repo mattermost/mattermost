@@ -490,6 +490,8 @@ tags:
     description: Endpoints for uploading and interacting with files.
   - name: uploads
     description: Endpoints for creating and performing file uploads.
+  - name: bookmarks
+    description: Endpoints for creating, getting and interacting with channel bookmarks.
   - name: preferences
     description: Endpoints for saving and modifying user preferences.
   - name: status
@@ -569,6 +571,7 @@ x-tagGroups:
       - threads
       - files
       - uploads
+      - bookmarks
       - preferences
       - status
       - emoji

@@ -32,6 +32,7 @@ describe('components/threading/ThreadViewer', () => {
         user_id: post.user_id,
         channel_id: post.channel_id,
         message: post.message,
+        reply_count: 3,
     };
 
     const channel: Channel = TestHelper.getChannelMock({

@@ -7,6 +7,7 @@ import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import {Preferences} from 'mattermost-redux/constants';
+import {getNewMessagesIndex} from 'mattermost-redux/utils/post_list';
 
 import {HintToast} from 'components/hint-toast/hint_toast';
 import ScrollToBottomToast from 'components/scroll_to_bottom_toast';
@@ -18,7 +19,7 @@ import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 import {isToday} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
-import {isIdNotPost, getNewMessageIndex} from 'utils/post_utils';
+import {isIdNotPost} from 'utils/post_utils';
 import {localizeMessage} from 'utils/utils';
 
 import './toast__wrapper.scss';
@@ -91,7 +92,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
     }
 
     static countNewMessages = (rootPosts: Record<string, boolean>, isCollapsedThreadsEnabled: boolean, postListIds: string[] = []) => {
-        const mark = getNewMessageIndex(postListIds);
+        const mark = getNewMessagesIndex(postListIds);
         if (mark <= 0) {
             return 0;
         }

@@ -117,7 +117,13 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 
 	// set the channel `shared` flag if needed
 	if shareIfNotShared {
-		if _, err = scs.ShareChannel(&model.SharedChannel{ChannelId: channelID, CreatorId: userID}); err != nil {
+		sc := &model.SharedChannel{
+			ChannelId: channelID,
+			CreatorId: userID,
+			Home:      true,
+			RemoteId:  remoteID,
+		}
+		if _, err = scs.ShareChannel(sc); err != nil {
 			return model.NewAppError("InviteRemoteToChannel", "api.command_share.share_channel.error",
 				map[string]any{"Error": err.Error()}, "", http.StatusBadRequest)
 		}

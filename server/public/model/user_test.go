@@ -355,3 +355,24 @@ func TestUserSlice(t *testing.T) {
 		assert.Len(t, nonBotUsers, 1)
 	})
 }
+
+func TestValidateCustomStatus(t *testing.T) {
+	t.Run("ValidateCustomStatus", func(t *testing.T) {
+		user0 := &User{Id: "user0", DeleteAt: 0, IsBot: true}
+
+		user0.Props = map[string]string{UserPropsKeyCustomStatus: ""}
+		assert.True(t, user0.ValidateCustomStatus())
+
+		user0.Props[UserPropsKeyCustomStatus] = "hello"
+		assert.False(t, user0.ValidateCustomStatus())
+
+		user0.Props[UserPropsKeyCustomStatus] = "{\"emoji\":{\"foo\":\"bar\"}}"
+		assert.True(t, user0.ValidateCustomStatus())
+
+		user0.Props[UserPropsKeyCustomStatus] = "{\"text\": \"hello\"}"
+		assert.True(t, user0.ValidateCustomStatus())
+
+		user0.Props[UserPropsKeyCustomStatus] = "{\"wrong\": \"hello\"}"
+		assert.True(t, user0.ValidateCustomStatus())
+	})
+}

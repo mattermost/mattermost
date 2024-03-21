@@ -12,9 +12,7 @@ exports[`components/ProfilePicture should match snapshot, no user specified, def
       url="http://example.com/image.png"
     />
   </span>
-  <StatusIcon
-    button={false}
-    className=""
+  <Memo(StatusIcon)
     status="away"
   />
 </span>
@@ -32,9 +30,7 @@ exports[`components/ProfilePicture should match snapshot, no user specified, ove
       url="http://example.com/image.png"
     />
   </span>
-  <StatusIcon
-    button={false}
-    className=""
+  <Memo(StatusIcon)
     status="away"
   />
 </span>
@@ -76,9 +72,7 @@ exports[`components/ProfilePicture should match snapshot, profile and src, defau
         />
       </span>
     </RoundButton>
-    <StatusIcon
-      button={false}
-      className=""
+    <Memo(StatusIcon)
       status="away"
     />
   </span>
@@ -97,9 +91,7 @@ exports[`components/ProfilePicture should match snapshot, user specified 1`] = `
       url="http://example.com/image.png"
     />
   </span>
-  <StatusIcon
-    button={false}
-    className=""
+  <Memo(StatusIcon)
     status="away"
   />
 </span>
@@ -117,9 +109,7 @@ exports[`components/ProfilePicture should match snapshot, user specified, overri
       url="http://example.com/image.png"
     />
   </span>
-  <StatusIcon
-    button={false}
-    className=""
+  <Memo(StatusIcon)
     status="away"
   />
 </span>

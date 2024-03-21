@@ -1,3 +1,3 @@
-FROM golang:1.20.7-bullseye@sha256:c95c52c458a2678251e0769ea13c710b0c52814771c53a495f53b9e87f9c0e99
+FROM golang:1.21.8-bullseye@sha256:81d98548f08e22a59c5c0be814acc0997f3dfd3313487adcf4e1d3d962af3a43
 
 RUN apt-get update && apt-get install -y make git apt-transport-https ca-certificates curl software-properties-common build-essential zip xmlsec1 jq

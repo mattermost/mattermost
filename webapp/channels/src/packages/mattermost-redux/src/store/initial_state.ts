@@ -12,7 +12,6 @@ const state: GlobalState = {
             config: {},
             license: {},
             serverVersion: '',
-            warnMetricsStatus: {},
             firstAdminVisitMarketplaceStatus: false,
             firstAdminCompleteSetup: false,
         },
@@ -34,6 +33,7 @@ const state: GlobalState = {
             filteredStats: {},
             myUserAccessTokens: {},
             lastActivity: {},
+            dndEndTimes: {},
         },
         limits: {
             usersLimits: {

@@ -71,25 +71,14 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
         }
         teamId="teamId"
       >
-        <OverlayTrigger
-          defaultOverlayShown={false}
-          delayShow={400}
-          overlay={
-            <Tooltip
-              id="addReactionTooltip"
-            >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Add a reaction"
-                id="reaction_list.addReactionTooltip"
-              />
-            </Tooltip>
-          }
+        <WithTooltip
+          id="addReactionTooltip"
           placement="top"
-          trigger={
-            Array [
-              "hover",
-              "focus",
-            ]
+          title={
+            Object {
+              "defaultMessage": "Add a reaction",
+              "id": "reaction_list.addReactionTooltip",
+            }
           }
         >
           <button
@@ -104,7 +93,7 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
               <AddReactionIcon />
             </span>
           </button>
-        </OverlayTrigger>
+        </WithTooltip>
       </Connect(Component)>
     </span>
   </div>

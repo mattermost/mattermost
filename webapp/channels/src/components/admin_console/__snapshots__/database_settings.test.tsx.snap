@@ -15,7 +15,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         id="admin.database.title"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <div
         className="banner"
       >
@@ -422,7 +422,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           </div>
         </div>
       </div>
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >

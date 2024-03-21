@@ -1640,10 +1640,6 @@
     "translation": "مجوز شما از تأیید اعتبار SAML پشتیبانی نمی کند."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "هنگام تأیید پاسخ از طرف ارائه دهنده هویت ، خطایی روی داد. لطفا با سرپرست سیستم خود تماس بگیرید."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "هنگام تجزیه و تحلیل پاسخ از طرف ارائه دهنده هویت خطایی روی داد. لطفا با سرپرست سیستم خود تماس بگیرید."
   },
@@ -1660,10 +1656,6 @@
     "translation": "ما یک پاسخ خالی از ارائه دهنده هویت دریافت کرده است."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "ورود به سیستم SAML ناموفق بود زیرا هنگام رمزگشایی پاسخ از طرف ارائه دهنده هویت خطایی روی داد. لطفا با سرپرست سیستم خود تماس بگیرید."
-  },
-  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "ورود SAML ناموفق بود زیرا پاسخ Identity Provider رمزگذاری نشده است. لطفا با سرپرست سیستم خود تماس بگیرید."
   },
@@ -1672,16 +1664,8 @@
     "translation": "ورود SAML ناموفق بود زیرا کلید خصوصی ارائه دهنده خدمات یافت نشد. لطفا با سرپرست سیستم خود تماس بگیرید."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "پرونده گواهی عمومی ارائه دهنده هویت یافت نشد. لطفا با سرپرست سیستم خود تماس بگیرید."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "ورود SAML ناموفق بود زیرا رمزگذاری فعال نیست. لطفا با سرپرست سیستم خود تماس بگیرید."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "هنگام رمزگذاری درخواست برای Identity Provider خطایی روی داد. لطفا با سرپرست سیستم خود تماس بگیرید."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -3816,14 +3800,6 @@
     "translation": "تاریخ نصب تجزیه نشد."
   },
   {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "مقدار برای {{.WarnMetricName}} ذخیره نشد"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "مشاور Mattermost"
-  },
-  {
     "id": "app.system.system_bot.bot_displayname",
     "translation": "سیستم"
   },
@@ -3838,10 +3814,6 @@
   {
     "id": "app.system.get_by_name.app_error",
     "translation": "متغیر سیستم یافت نشد."
-  },
-  {
-    "id": "app.system.get.app_error",
-    "translation": "در پیدا کردن خصوصیات سیستم با خطایی روبرو شدیم."
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
@@ -4682,34 +4654,6 @@
   {
     "id": "api.templates.welcome_body.app_download_button",
     "translation": "دانلود"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "درخواست ارتباط با ما"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "اگر سوال دیگری دارید ، لطفا با support@mattermost.com تماس بگیرید"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "آدرس سایت: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "کل کاربران فعال: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "شناسه تشخیصی: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "مخاطب: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "ایمیل: "
   },
   {
     "id": "api.templates.verify_subject",
@@ -5620,10 +5564,6 @@
     "translation": "گرفتن ربات امکان پذیر نیست."
   },
   {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "لیست ادمین ها خالی است."
-  },
-  {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "لیست ادمین ها خالی است."
   },
@@ -6088,234 +6028,6 @@
     "translation": "کاربر ادغام / Slack Bot با ایمیل {{.Email}} و رمز عبور {{.Password}} وارد شده است.\n"
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای فعال کردن مجوزهای پیشرفته به ** سیستم کنسول> مدیریت کاربر> مجوزها ** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "سیستم Mattermost شما اکنون چندین تیم دارد. بسیاری از تیم ها روش ترجیحی خود را برای هماهنگی و همکاری دارند ، از جمله نحوه ایجاد کانال ها ، افرادی که می توانند از هم تیمی های جدید دعوت کنند و نحوه مدیریت ادغام ها. طرح های لغو تیم به شما امکان می دهد مجوزهای کاربر را در هر تیم برای نیازهای خاص آنها سفارشی کنید. \r\n\r\n [درباره استفاده از مجوزهای پیشرفته بیشتر بدانید](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\r\n\r\n با کلیک روی شروع آزمایش ، من با [ارزیابی نرم افزار ](https://mattermost.com/software-evaluation-agreement/) ، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول موافقت می کنم ."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "استفاده از مجوزهای پیشرفته"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "سیستم Mattermost شما اکنون چندین تیم دارد. بسیاری از تیم ها روش ترجیحی خود را برای هماهنگی و همکاری دارند ، از جمله نحوه ایجاد کانال ها ، افرادی که می توانند از هم تیمی های جدید دعوت کنند و نحوه مدیریت ادغام ها. طرح های لغو تیم به شما امکان می دهد مجوزهای کاربر را در هر تیم برای تأمین نیازهای خاص آنها شخصی سازی کنید.\r\n\r\n [درباره استفاده از مجوزهای پیشرفته بیشتر بدانید](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\r\n\r\n با کلیک روی تماس با ما ، اطلاعات خود را با Mattermost ، Inc به اشتراک خواهید گذاشت. [ بیشتر بیاموزید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost .من علاقه مندم درباره مجوزهای پیشرفته با برنامه های تیمی بیشتر بدانم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. پس از داشتن سرور جستجوی الاستیک، برای پیکربندی جستجوی الاستیک به ** سیستم کنسول> محیط> جستجوی الاستیک** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "سیستم Mattermost شما تعداد زیادی پیام دارد. جستجوی پیش فرض پایگاه داده Mattermost شروع به نشان دادن تخریب عملکرد در حدود 2.5 میلیون پست می کند. با بیش از 5 میلیون پست ، Elasticsearch می تواند با جستجو و موارد ذکر شده از مشکلات قابل توجه عملکرد ، مانند وقفه زمانی ، جلوگیری کند. برای کسب اطلاعات بیشتر با ما تماس بگیرید و به ما اطلاع دهید که چگونه می توانیم کمک کنیم. \n\n[درباره بهبود عملکرد بیشتر بدانید](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nبا کلیک روی شروع آزمایش ، من با [توافق نامه ارزیابی نرم افزار ](https://mattermost.com/software-evaluation-agreement/) ، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول موافقت می کنم ."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "بهبود عملکرد"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "سیستم Mattermost شما تعداد زیادی پیام دارد. جستجوی پیش فرض پایگاه داده Mattermost شروع به نشان دادن تخریب عملکرد در حدود 2.5 میلیون پست می کند. با بیش از 5 میلیون پست ، Elasticsearch می تواند با جستجو و موارد ذکر شده از مشکلات قابل توجه عملکرد ، مانند وقفه زمانی ، جلوگیری کند. برای کسب اطلاعات بیشتر با ما تماس بگیرید و به ما اطلاع دهید که چگونه می توانیم کمک کنیم.\r\n\r\n [درباره بهبود عملکرد بیشتر بدانید](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\n با کلیک روی تماس با ما ، اطلاعات خود را با Mattermost ، Inc به اشتراک می گذارید [بیشتر بدانید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost .من علاقه مندم در مورد بهبود عملکرد با Elasticsearch بیشتر بدانم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای فعال کردن مجوزهای پیشرفته به ** سیستم کنسول> مدیریت کاربر> مجوزها ** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "کانال ها به بهبود ارتباطات کمک می کنند ، اما با پیوستن کاربران در سراسر Mattermost و ایجاد کانال ها ، چالش سازماندهی سیستم افزایش می یابد. مجوزهای پیشرفته شما را قادر می سازد که کدام یک از کاربران یا نقشها می توانند اقدامات خاصی را انجام دهند ، از جمله مدیریت تنظیمات کانال و اعضای آن ، استفاده ازchannel یا @ اینجا برای برچسب گذاری گروههای گسترده ای از کاربران و ایجاد وب بوک های جدید. \r\n\r\n [بیاموزید اطلاعات بیشتر در مورد استفاده از مجوزهای پیشرفته](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\n با کلیک روی شروع آزمایش ، من با [موافقت نامه ارزیابی نرم افزار ](https://mattermost.com/software-evaluation-agreement/) ، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) و دریافت ایمیل محصولات موافقت می کنم ."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "استفاده از مجوزهای پیشرفته"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "کانال ها به بهبود ارتباطات کمک می کنند ، اما با پیوستن کاربران در سراسر Mattermost و ایجاد کانال ها ، چالش سازماندهی سیستم افزایش می یابد. مجوزهای پیشرفته به شما امکان می دهد تا تعیین کنید کدام یک از کاربران یا نقش ها می توانند اقدامات خاصی را انجام دهند ، از جمله مدیریت تنظیمات کانال و اعضای آن ، استفاده ازchannel یا @ اینجا برای برچسب گذاری گروه های گسترده ای از کاربران و ایجاد وب بوک های جدید. \r\n\r\n [بیاموزید اطلاعات بیشتر در مورد استفاده از مجوزهای پیشرفته](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\n با کلیک روی تماس با ما ، اطلاعات خود را با Mattermost، Inc به اشتراک خواهید گذاشت. [بیشتر بیاموزید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost .من علاقه مندم در مورد استفاده از مجوزهای پیشرفته با طرح های سیستم بیشتر بیاموزم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای فعال کردن ویژگی های پیشرفته به سیستم کنسول بروید."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost اکیداً توصیه می کند که استقرار بیش از 500 کاربر از ویژگی هایی مانند مدیریت کاربر ، خوشه بندی سرور و نظارت بر عملکرد بهره مند شوند. برای کسب اطلاعات بیشتر با ما تماس بگیرید و به ما بگویید چگونه می توانیم کمک کنیم. \r\n\r\n با کلیک روی شروع آزمایش ، من با [توافق نامه ارزیابی نرم افزار](https://mattermost.com/software-evaluation-agreement/) ، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول موافقت می کنم ."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "مقیاس گذاری با Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost اکیداً توصیه می کند که استقرار بیش از 500 کاربر از ویژگی هایی مانند مدیریت کاربر ، خوشه بندی سرور و نظارت بر عملکرد بهره مند شوند. برای کسب اطلاعات بیشتر با ما تماس بگیرید و به ما بگویید چگونه می توانیم کمک کنیم.\r\n\r\n با کلیک روی 'تماس با ما' ، اطلاعات خود را با Mattermost ، Inc به اشتراک می گذارید [بیشتر بدانید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost .تیم من اکنون 500 کاربر دارد و من نسخه Mattermost تجاری را در نظر دارم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "کانال های اعلامیه فقط خواندنی"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. یک کانال ایجاد کنید و به ** سیستم کنسول> مدیریت کاربر> کانالها ** بروید تا ارسال پست به سرپرستان کانال محدود شود."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "با وجود مکالمات بسیار زیاد در Mattermost ، دانستن اینکه کجا باید به دنبال اطلاعات مهم بگردید چالش برانگیز است. اگر می خواهید پیامی را برای مخاطبان زیادی پخش کنید ، می توانید کانال های اعلامیه فقط خواندنی را تنظیم کنید که هر کسی می تواند به آنها بپیوندد اما فقط سرپرستان کانال می توانند پیام ارسال کنند. .\r\n\r\n [درباره ایجاد اعلامیه فقط خواندنی بیشتر بدانید](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\n با کلیک روی شروع آزمایش ، من با[توافقنامه ارزیابی نرم افزار ](https://mattermost.com/software-evaluation-agreement/) ، [خط مشی رازداری](https://mattermost.com/pl/privacy-policy/) ، و دريافت نامه های الكترونیکی محصول موافقت می کنم ."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "با وجود مکالمات بسیار زیاد در Mattermost ، دانستن اینکه کجا باید به دنبال اطلاعات مهم بگردید چالش برانگیز است. اگر می خواهید پیامی را برای مخاطبان زیادی پخش کنید ، می توانید کانال های اعلامیه فقط خواندنی را تنظیم کنید که هر کسی می تواند به آنها بپیوندد اما فقط سرپرستان کانال می توانند پیام ارسال کنند. \r\n\r\n[درباره ایجاد اعلامیه فقط خواندنی بیشتر بدانید ](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\n با کلیک روی تماس با ما ، شما به اشتراک گذاشتن اطلاعات خود با Mattermost، Inc [بیشتر بیاموزید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost .من علاقه مندم در مورد ایجاد کانال های اعلامیه فقط خواندنی بیشتر بدانم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای ادغام با ارائه دهنده SAML 2.0 خود به ** سیستم کنسول> احراز هویت> SAML 2.0 ** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "سیستم Mattermost شما اکنون 200 کاربر دارد. هنگامی که Mattermost را با ارائه دهنده ورود به سیستم واحد سازمان خود متصل می کنید ، کاربران می توانند بدون نیاز به وارد کردن مجدد اعتبارنامه خود ، به Mattermost دسترسی پیدا کنند. ما به شما توصیه می کنیم ارائه دهنده SAML 2.0 خود را با سرور Mattermost خود ادغام کنید. [درباره ادغام با SAML 2.0 بیشتر بیاموزید](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\n با کلیک بر روی شروع آزمایش ، من با [توافق نامه ارزیابی نرم افزار](https://mattermost.com/software-evaluation-agreement/)، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول موافقت میکنم."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "مقیاس گذاری با Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "سیستم Mattermost شما اکنون 200 کاربر دارد. هنگامی که Mattermost را با ارائه دهنده ورود به سیستم واحد سازمان خود متصل می کنید ، کاربران می توانند بدون نیاز به وارد کردن مجدد اعتبارنامه خود ، به Mattermost دسترسی پیدا کنند. ما به شما توصیه می کنیم ارائه دهنده SAML 2.0 خود را با سرور Mattermost خود ادغام کنید. [درباره ادغام با SAML 2.0 بیشتر بیاموزید](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\r\n\r\n با کلیک روی تماس با ما ، اطلاعات خود را با Mattermost، Inc به اشتراک می گذارید. [بیشتر بدانید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost.تیم من اکنون 200 کاربر دارد و من نسخه Mattermost تجاری را در نظر دارم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای ادغام سرویس AD/LDAP خود به ** سیستم کنسول> احراز هویت> AD/LDAP ** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "سیستم Mattermost شما بیش از 100 کاربر دارد. با رشد پایگاه کاربری شما ، تهیه حساب های جدید می تواند زمانبر شود. ما به شما توصیه می کنیم Active Directory / LDAP سازمان خود را یکپارچه کنید ، این امکان را برای هرکسی که دارای حساب کاربری است امکان دسترسی به Mattermost را فراهم می کند. \r\n\r\n[درباره ادغام با AD / LDAP بیشتر بدانید](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\n با کلیک روی شروع آزمایش ، من با [توافق نامه ارزیابی نرم افزار مهمترین](https://mattermost.com/software-evaluation-agreement/)، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول. موافقت میکنم."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "مقیاس گذاری با Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "سیستم Mattermost شما بیش از 100 کاربر دارد. با رشد پایگاه کاربری شما ، تهیه حساب های جدید می تواند زمانبر شود. ما به شما توصیه می کنیم Active Directory /LDAP سازمان خود را یکپارچه کنید ، این امکان را برای هرکسی که دارای یک حساب کاربری است امکان دسترسی به Mattermost را فراهم می کند.\r\n\r\n[اطلاعات بیشتر](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\n با کلیک روی تماس با ما اطلاعات Mattermost را به اشتراک میگذارید.[اطلاعات بیشتر](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost . تیم من اکنون 100 کاربر دارد و من نسخه Mattermost تجاری را در نظر دارم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای اجرای احراز هویت چند عاملی ، به ** کنسول سیستم> احراز هویت> MFA ** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "سیستم Mattermost شما احراز هویت چند عاملی را فعال کرده است ، به کاربران این امکان را می دهد تا حساب های خود را با استفاده از ابزارهای تأیید اعتبار اضافی فراتر از رمز عبور ، امن کنند. برای بهبود امنیت در سیستم می توانید از همه احراز هویت چند عاملی استفاده کنید. \r\n\r\n[درباره اعمال احراز هویت چند عاملی بیشتر بدانید](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\r\n\r\n با کلیک روی شروع آزمایش ، من با [توافق نامه ارزیابی نرم افزار مهمترین](https://mattermost.com/software-evaluation-agreement/)موافقت می کنم ، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "اجرای احراز هویت چند عاملی"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "سیستم Mattermost شما احراز هویت چند عاملی را فعال کرده است ، به کاربران این امکان را می دهد تا حساب های خود را با استفاده از ابزارهای تأیید اعتبار اضافی فراتر از رمز عبور ، امن کنند. برای بهبود امنیت در سیستم می توانید از همه احراز هویت چند عاملی استفاده کنید.\r\n\r\n [درباره اعمال احراز هویت چند عاملی بیشتر بدانید](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\r\n\r\n با کلیک روی تماس با ما ، اطلاعات خود را با Mattermost، Inc به اشتراک می گذارید.[اطلاعات بیشتر](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "درخواست تماس Mattermost .من علاقه مندم در مورد اجرای احراز هویت چند عاملی بیشتر بدانم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "ایمیل برای ما"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "دوره آزمایشی تجاری شما اکنون فعال است. برای فعال کردن حساب های مهمان به ** سیستم کنسول> تأیید اعتبار> دسترسی مهمان ** بروید."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "پروژه ها اغلب افراد را در داخل و خارج از سازمان درگیر می كنند. با حساب های مهمان ، می توانید شرکای خارجی را وارد سیستم Mattermost کنید و مشخص کنید که با چه کسانی می توانند کار کنند و چه چیزهایی را می توانند ببینند. \r\n\r\n[درباره فعال کردن حساب های مهمان بیشتر بدانید](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts) \r\n\r\n با کلیک روی شروع آزمایش ، من با [توافق نامه ارزیابی نرم افزار مهمترین](https://mattermost.com/software-evaluation-agreement/) موافقت می کنم، [سیاست حفظ حریم خصوصی](https://mattermost.com/pl/privacy-policy/) ، و دریافت ایمیل های محصول."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "ایجاد حساب های مهمان"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "پروژه ها اغلب افراد را در داخل و خارج از سازمان درگیر می كنند. با حساب های مهمان ، می توانید شرکای خارجی را وارد سیستم Mattermost کنید و مشخص کنید که با چه کسانی می توانند کار کنند و چه چیزهایی را می توانند ببینند.\r\n\r\n [درباره فعال کردن حساب های مهمان بیشتر بدانید](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts). \r\n\r\n با کلیک روی تماس با ما ، اطلاعات خود را با Mattermost، Inc به اشتراک خواهید گذاشت. [ بیشتر بیاموزید](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "درخواست تماس با ما Mattermost. من علاقه مندم درباره استفاده از حساب های مهمان بیشتر بیاموزم.\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "مجوز آزمایشی بازیابی نمی شود. برای درخواست مجوز به https://mattermost.com/trial/ مراجعه کنید."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "از اینکه با Mattermost تماس گرفتید متشکریم ما به زودی با شما در ارتباط خواهیم بود."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "پیام ارسال نشد."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "لطفا برای ما ایمیل بزنید."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "درخواست ارتباط با ما"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "آدرس سایت: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "کل کاربران فعال: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "اگر س موارد دیگری نیاز دارید ، لطفا با support@mattermost.com تماس بگیرید"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "پست الکترونیک: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "شناسه تشخیصی: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "مخاطب: {{.Contact}}"
-  },
-  {
     "id": "api.server.start_server.starting.critical",
     "translation": "خطا هنگام راه اندازی سرور ، خطا: %v"
   },
@@ -6728,10 +6440,6 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "ویژگی نیاز به ارتقاء به نسخه Enterprise دارد."
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "دریافت مجوز آزمایشی امکان پذیر نیست ، لطفاً دوباره امتحان کنید یا با support@mattermost.com تماس بگیرید. تعداد کاربران ثبت شده امکان پذیر نیست."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -7279,18 +6987,6 @@
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
     "translation": "کانال دریافت شغل دسته ای ایمیل پر بود. لطفاً EmailBatchingBufferSize را افزایش دهید."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "سرور SMTP مورد نیاز است"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "معیار هشدار پیدا نشد."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "عدم ارسال ایمیل تأیید مدیر"
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",

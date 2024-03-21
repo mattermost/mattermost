@@ -105,9 +105,6 @@ export function removeDraft(key: string, channelId: string, rootId = ''): Action
         // set draft to empty to re-render the component
         await dispatch(setGlobalItem(key, {message: '', fileInfos: [], uploadsInProgress: []}));
 
-        // remove draft from storage
-        await dispatch(removeGlobalItem(key));
-
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             const connectionId = getConnectionId(getState());
 
@@ -119,6 +116,9 @@ export function removeDraft(key: string, channelId: string, rootId = ''): Action
                     error,
                 };
             }
+        } else {
+            // only remove draft from storage for local drafts
+            await dispatch(removeGlobalItem(key));
         }
         return {data: true};
     };

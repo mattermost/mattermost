@@ -51,10 +51,10 @@ describe('Messaging', () => {
 
         // # Verify that we are in a DM channel
         cy.get('#channelIntro').should('be.visible').within(() => {
-            cy.get('.channel-intro-profile').
+            cy.get('.channel-intro__title').
                 should('be.visible').
                 and('have.text', secondUser.username);
-            cy.get('.channel-intro-text').
+            cy.get('.channel-intro__text').
                 should('be.visible').
                 and('contain', `This is the start of your direct message history with ${secondUser.username}.`).
                 and('contain', 'Direct messages and files shared here are not shown to people outside this area.');

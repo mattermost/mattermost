@@ -8,6 +8,7 @@ import type {RouteComponentProps} from 'react-router-dom';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -43,7 +44,7 @@ type ExtraProps = {
     setNavigationBlocked: (blocked: boolean) => void;
     roles: Record<string, Role>;
     editRole: (role: Role) => void;
-    updateConfig: (config: AdminConfig) => Promise<ActionResult>;
+    patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
 }
@@ -173,7 +174,7 @@ class AdminConsole extends React.PureComponent<Props, State> {
             showNavigationPrompt,
             roles,
         } = this.props;
-        const {setNavigationBlocked, cancelNavigation, confirmNavigation, editRole, updateConfig} = this.props.actions;
+        const {setNavigationBlocked, cancelNavigation, confirmNavigation, editRole, patchConfig} = this.props.actions;
 
         if (!this.props.currentUserHasAnAdminRole) {
             return (
@@ -203,7 +204,7 @@ class AdminConsole extends React.PureComponent<Props, State> {
             setNavigationBlocked,
             roles,
             editRole,
-            updateConfig,
+            patchConfig,
             cloud: this.props.cloud,
             isCurrentUserSystemAdmin: this.props.isCurrentUserSystemAdmin,
         };
