@@ -151,6 +151,7 @@ body.app__body #root {
     .main-wrapper {
         position: relative;
         display: grid;
+        overflow:hidden;
         background-color: var(--sidebar-bg);
         outline: solid 1px rgba(var(--center-channel-color-rgb),0.08);
         margin: 0 8px 8px 0;
@@ -168,6 +169,11 @@ body.app__body #root {
                 'header' min-content
                 'center'
             ;
+        }
+
+        &:has(#playbooks-backstageRoot){
+            margin:0;
+            border-radius: 0;
         }
     }
 
