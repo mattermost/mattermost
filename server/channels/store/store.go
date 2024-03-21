@@ -501,6 +501,7 @@ type SessionStore interface {
 	Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error)
 	Save(session *model.Session) (*model.Session, error)
 	GetSessions(userID string) ([]*model.Session, error)
+	GetLRUSessions(userID string, limit uint64, offset uint64) ([]*model.Session, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error

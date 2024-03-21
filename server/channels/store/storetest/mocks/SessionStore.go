@@ -80,6 +80,32 @@ func (_m *SessionStore) Get(ctx context.Context, sessionIDOrToken string) (*mode
 	return r0, r1
 }
 
+// GetLRUSessions provides a mock function with given fields: userID, limit, offset
+func (_m *SessionStore) GetLRUSessions(userID string, limit uint64, offset uint64) ([]*model.Session, error) {
+	ret := _m.Called(userID, limit, offset)
+
+	var r0 []*model.Session
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, uint64, uint64) ([]*model.Session, error)); ok {
+		return rf(userID, limit, offset)
+	}
+	if rf, ok := ret.Get(0).(func(string, uint64, uint64) []*model.Session); ok {
+		r0 = rf(userID, limit, offset)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Session)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, uint64, uint64) error); ok {
+		r1 = rf(userID, limit, offset)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSessions provides a mock function with given fields: userID
 func (_m *SessionStore) GetSessions(userID string) ([]*model.Session, error) {
 	ret := _m.Called(userID)
