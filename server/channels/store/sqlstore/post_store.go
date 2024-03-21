@@ -2460,28 +2460,51 @@ func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, erro
 
 func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error) {
 	posts := []*model.PostForIndexing{}
-	table := "Posts"
-	// We force this index to avoid any chances of index merge intersection.
-	if s.DriverName() == model.DatabaseDriverMysql {
-		table += " USE INDEX(idx_posts_create_at_id)"
-	}
-	query := `SELECT
-			Posts.*, Channels.TeamId
-		FROM ` + table + `
-		LEFT JOIN
-			Channels
-		ON
-			Posts.ChannelId = Channels.Id
-		WHERE
-			Posts.CreateAt > ?
-		OR
-			(Posts.CreateAt = ? AND Posts.Id > ?)
-		ORDER BY
-			Posts.CreateAt ASC, Posts.Id ASC
-		LIMIT
-			?`
-	err := s.GetSearchReplicaX().Select(&posts, query, startTime, startTime, startPostID, limit)
 
+	var err error
+	// In order to use an index scan for both MySQL and Postgres, we need to
+	// diverge the implementation of the query, specifically in the WHERE
+	// condition: for MySQL, we need to do
+	//     (CreateAt > ?) OR (CreateAt = ? AND Id > ?)
+	// while for Postgres we need
+	//     (CreateAt, Id) > (?, ?)
+	// The wrong choice for any of the two databases makes the query go from
+	// milliseconds to dozens of seconds.
+	// More information in: https://github.com/mattermost/mattermost/pull/26517
+	// and https://community.mattermost.com/core/pl/ui5dz96shinetb8nq83myggbma
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query := `SELECT
+				Posts.*, Channels.TeamId
+			FROM Posts USE INDEX(idx_posts_create_at_id)
+			LEFT JOIN
+				Channels
+			ON
+				Posts.ChannelId = Channels.Id
+			WHERE
+				Posts.CreateAt > ?
+				OR
+				(Posts.CreateAt = ? AND Posts.Id > ?)
+			ORDER BY
+				Posts.CreateAt ASC, Posts.Id ASC
+			LIMIT
+				?`
+		err = s.GetSearchReplicaX().Select(&posts, query, startTime, startTime, startPostID, limit)
+	} else {
+		query := `SELECT
+				Posts.*, Channels.TeamId
+			FROM Posts
+			LEFT JOIN
+				Channels
+			ON
+				Posts.ChannelId = Channels.Id
+			WHERE
+				(Posts.CreateAt, Posts.Id) > (?, ?)
+			ORDER BY
+				Posts.CreateAt ASC, Posts.Id ASC
+			LIMIT
+				?`
+		err = s.GetSearchReplicaX().Select(&posts, query, startTime, startPostID, limit)
+	}
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
