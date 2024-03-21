@@ -35,7 +35,7 @@ import ProfilePopoverSelfUserRow from './components/profile_popover_self_user_ro
 import ProfilePopoverTimezone from './components/profile_popover_timezone';
 import ProfilePopoverTitle from './components/profile_popover_title';
 
-import './index.scss';
+import './profile_popover.scss';
 
 export interface Props {
     userId: string;

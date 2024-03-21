@@ -9,8 +9,8 @@
     width: 240px;
     max-height: calc(100vh - 240px);
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    background: var(--center-channel-bg);
     border-radius: 4px;
+    background: var(--center-channel-bg);
     box-shadow: var(--elevation-4);
     overflow-y: auto;
 
@@ -29,8 +29,8 @@
             > span {
                 height: 16px;
                 padding: 0 4px;
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
                 border-radius: 4px;
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
                 color: var(--center-channel-color-rgb);
                 font-family: Open Sans, sans-serif;
                 font-size: 10px;
@@ -62,8 +62,8 @@
                 width: 24px;
                 height: 24px;
                 padding: 2px;
-                background: rgba(var(--center-channel-bg-rgb), 1);
                 border-radius: 50px;
+                background: rgba(var(--center-channel-bg-rgb), 1);
 
                 svg {
                     width: 100%;
