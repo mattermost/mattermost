@@ -99,7 +99,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		/* License */
 		assert.Equal(t, "My awesome Company", packet.LicenseTo)
 		assert.Equal(t, licenseUsers, packet.LicenseSupportedUsers)
-		assert.Equal(t, "false", packet.LicenseIsTrial)
+		assert.Equal(t, false, packet.LicenseIsTrial)
 
 		/* Server stats */
 		assert.Equal(t, 3, packet.ActiveUsers) // from InitBasic()
