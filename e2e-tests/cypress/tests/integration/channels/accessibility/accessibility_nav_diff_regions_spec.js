@@ -66,7 +66,7 @@ describe('Verify Quick Navigation support across different regions in the app', 
         cy.uiGetPostTextBox().focus().tab().tab({shift: true});
 
         // * Verify post input region reads out correctly
-        verifyNavSupport('#advancedTextEditorCell', 'Login Successful message input complimentary region', '2');
+        verifyNavSupport('#advancedTextEditorCell', 'message input complimentary region', '2');
     });
 
     it('MM-T1460_3 Verify Navigation Support in RHS Post List & RHS Post Input', () => {
@@ -90,7 +90,7 @@ describe('Verify Quick Navigation support across different regions in the app', 
 
             // * Verify post input on RHS reads out correctly
             cy.get('#advancedTextEditorCell').
-                should('have.attr', 'aria-label', 'Login Successful message input complimentary region').
+                should('have.attr', 'aria-label', 'message input complimentary region').
                 and('have.attr', 'data-a11y-sort-order', '2').
                 and('have.class', 'a11y__region');
             cy.uiGetReplyTextBox().
