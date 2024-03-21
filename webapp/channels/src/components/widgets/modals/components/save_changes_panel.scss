@@ -6,12 +6,12 @@
     align-items: center;
     padding: 12px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
     animation-duration: 300ms;
     animation-fill-mode: forwards;
     animation-name: entry-animation;
     animation-timing-function: ease;
     background: var(--center-channel-bg);
-    border-radius: 4px;
     box-shadow: var(--elevation-3);
     font-family: 'Open Sans', sans-serif;
     transition: all 300ms ease;
@@ -88,8 +88,8 @@
         align-items: center;
         padding: 10px 16px;
         border: none;
-        background: rgba(var(--denim-button-bg-rgb), 0.08);
         border-radius: 4px;
+        background: rgba(var(--denim-button-bg-rgb), 0.08);
         color: var(--denim-button-bg);
         font-family: inherit;
         font-size: 12px;
@@ -111,8 +111,8 @@
         align-items: center;
         padding: 10px 16px;
         border: none;
-        background: var(--denim-button-bg);
         border-radius: 4px;
+        background: var(--denim-button-bg);
         color: var(--button-color);
         font-family: inherit;
         font-size: 12px;

@@ -495,7 +495,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             placement='bottom'
                             rootClose={true}
                             target={this.headerDescriptionRef.current as React.ReactInstance}
-                            ref={this.headerOverlayRef}
+                            ref={this.headerOverlayRef as any}
                             onHide={() => this.setState({showChannelHeaderPopover: false})}
                         >
                             {popoverContent}
