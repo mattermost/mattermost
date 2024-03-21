@@ -1293,6 +1293,13 @@ type API interface {
 	// @tag SharedChannels
 	// Minimum server version: 9.5
 	UninviteRemoteFromChannel(channelID string, remoteID string) error
+
+	// UpdateUserRoles updates the role for a user.
+	//
+	// @tag Team
+	// @tag User
+	// Minimum server version: 9.8
+	UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{
