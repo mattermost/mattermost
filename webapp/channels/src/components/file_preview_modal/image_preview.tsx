@@ -129,98 +129,100 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
     }
 
     return (
-        <a
-            className='image_preview'
-            href='#'
+        <TransformWrapper
+            onTransformed={(e) => setScale(e.state.scale)}
+            ref={transformWrapperRef}
         >
-            <TransformWrapper
-                onTransformed={(e) => setScale(e.state.scale)}
-                ref={transformWrapperRef}
-            >
-                {({zoomIn, zoomOut}) => (
-                    <>
-                        <div className='image_preview_zoom_actions__actions'>
-                            <WithTooltip
-                                id='zoomInTooltip'
-                                title={formatMessage({id: 'file_preview_modal_image_zoom_actions.zoom_in', defaultMessage: 'Zoom in'})}
-                                placement='top'
+            {({zoomIn, zoomOut}) => (
+                <div className='image_preview_wrapper'>
+                    <div className='image_preview_zoom_actions__actions'>
+                        <WithTooltip
+                            id='zoomOutTooltip'
+                            title={formatMessage({id: 'file_preview_modal_image_zoom_actions.zoom_out', defaultMessage: 'Zoom out'})}
+                            placement='top'
+                        >
+                            <button
+                                onClick={() => zoomOut()}
+                                className='image_preview_zoom_actions__action-item'
+                                disabled={scale <= 1}
                             >
-                                <button
-                                    onClick={() => zoomIn()}
-                                    className='image_preview_zoom_actions__action-item'
-                                >
-                                    <i className='icon icon-plus'/>
-                                </button>
-                            </WithTooltip>
-                            <WithTooltip
-                                id='zoomOutTooltip'
-                                title={formatMessage({id: 'file_preview_modal_image_zoom_actions.zoom_out', defaultMessage: 'Zoom out'})}
-                                placement='top'
+                                <i className='icon icon-minus'/>
+                            </button>
+                        </WithTooltip>
+                        <WithTooltip
+                            id='zoomInTooltip'
+                            title={formatMessage({id: 'file_preview_modal_image_zoom_actions.zoom_in', defaultMessage: 'Zoom in'})}
+                            placement='top'
+                        >
+                            <button
+                                onClick={() => zoomIn()}
+                                className='image_preview_zoom_actions__action-item'
                             >
-                                <button
-                                    onClick={() => zoomOut()}
-                                    className='image_preview_zoom_actions__action-item'
-                                    disabled={scale <= 1}
-                                >
-                                    <i className='icon icon-minus'/>
-                                </button>
-                            </WithTooltip>
-                            <WithTooltip
-                                id='zoomSelectTooltip'
-                                title={formatMessage({id: 'file_preview_modal_image_zoom_actions.zoom_select', defaultMessage: 'Zoom'})}
-                                placement='top'
+                                <i className='icon icon-plus'/>
+                            </button>
+                        </WithTooltip>
+                        <WithTooltip
+                            id='zoomSelectTooltip'
+                            title={formatMessage({id: 'file_preview_modal_image_zoom_actions.zoom_select', defaultMessage: 'Zoom'})}
+                            placement='top'
+                        >
+                            <select
+                                className='image_preview_zoom_actions__select-item'
+                                value={scale}
+                                onChange={selectZoomLevel}
                             >
-                                <select
-                                    className='image_preview_zoom_actions__select-item'
-                                    value={scale}
-                                    onChange={selectZoomLevel}
-                                >
-                                    {scaleOptions.map((o) => o.value).includes(scale) ? null : (
-                                        <option
-                                            className='image_preview_zoom_actions__select-item-option'
-                                            value={scale}
-                                            hidden={true}
-                                        >
-                                            {`${Math.round((scale / baseScale) * 100)}%`}
-                                        </option>
-                                    )}
-                                    {scaleOptions.map((opt) => (
-                                        <option
-                                            key={opt.key}
-                                            value={opt.value}
-                                            className='image_preview_zoom_actions__select-item-option'
-                                        >
-                                            {opt.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </WithTooltip>
-                            <WithTooltip
-                                id='fullscreenTooltip'
-                                title={formatMessage({id: 'file_preview_modal_image_zoom_actions.fullscreen', defaultMessage: 'Fullscreen'})}
-                                placement='top'
+                                {scaleOptions.map((o) => o.value).includes(scale) ? null : (
+                                    <option
+                                        className='image_preview_zoom_actions__select-item-option'
+                                        value={scale}
+                                        hidden={true}
+                                    >
+                                        {`${Math.round((scale / baseScale) * 100)}%`}
+                                    </option>
+                                )}
+                                {scaleOptions.map((opt) => (
+                                    <option
+                                        key={opt.key}
+                                        value={opt.value}
+                                        className='image_preview_zoom_actions__select-item-option'
+                                    >
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </WithTooltip>
+                        <WithTooltip
+                            id='fullscreenTooltip'
+                            title={formatMessage({id: 'file_preview_modal_image_zoom_actions.fullscreen', defaultMessage: 'Fullscreen'})}
+                            placement='top'
+                        >
+                            <button
+                                onClick={toggleFullscreen}
+                                className='image_preview_zoom_actions__action-item'
                             >
-                                <button
-                                    onClick={toggleFullscreen}
-                                    className='image_preview_zoom_actions__action-item'
-                                >
-                                    <i className='icon icon-arrow-expand-all'/>
-                                </button>
-                            </WithTooltip>
-                        </div>
-                        <TransformComponent>
-                            <img
-                                className='image_preview__image'
-                                loading='lazy'
-                                data-testid='imagePreview'
-                                alt={'preview url image'}
-                                src={previewUrl}
-                                ref={imageRef}
-                            />
-                        </TransformComponent>
-                    </>
-                )}
-            </TransformWrapper>
-        </a>
+                                <i className='icon icon-arrow-expand-all'/>
+                            </button>
+                        </WithTooltip>
+                    </div>
+                    <div className='image_preview__content'>
+                        <a
+                            className='image_preview'
+                            href='#'
+                        >
+                            <TransformComponent>
+                                <img
+                                    className='image_preview__image'
+                                    loading='lazy'
+                                    data-testid='imagePreview'
+                                    alt={'preview url image'}
+                                    src={previewUrl}
+                                    ref={imageRef}
+                                />
+                            </TransformComponent>
+                        </a>
+                    </div>
+                </div>
+            )}
+        </TransformWrapper>
     );
 }
