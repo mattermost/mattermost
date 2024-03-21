@@ -1475,6 +1475,66 @@ func TestGetGroupsByUserId(t *testing.T) {
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
 }
 
+func TestGetGroupMembers(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
+	assert.Nil(t, appErr)
+
+	user2, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SystemUserRoleId})
+	assert.Nil(t, appErr)
+
+	_, appErr = th.App.UpsertGroupMembers(group.Id, []string{user1.Id, user2.Id})
+	require.Nil(t, appErr)
+
+	t.Run("Requires ldap license", func(t *testing.T) {
+		members, response, err := th.SystemAdminClient.GetGroupMembers(context.Background(), group.Id)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, response)
+		assert.Nil(t, members)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	t.Run("Non admins are not allowed to get members for LDAP groups", func(t *testing.T) {
+		members, response, err := th.Client.GetGroupMembers(context.Background(), group.Id)
+		assert.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		assert.Nil(t, members)
+	})
+
+	t.Run("Admins are not allowed to get members for LDAP groups", func(t *testing.T) {
+		members, response, err := th.SystemAdminClient.GetGroupMembers(context.Background(), group.Id)
+		assert.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.NotNil(t, members)
+		assert.Equal(t, 2, members.Count)
+	})
+
+	group.AllowReference = valTrue
+	group, appErr = th.App.UpdateGroup(group)
+	assert.Nil(t, appErr)
+
+	t.Run("Non admins are not allowed to get members for LDAP groups", func(t *testing.T) {
+		members, response, err := th.Client.GetGroupMembers(context.Background(), group.Id)
+		assert.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.NotNil(t, members)
+		assert.Equal(t, 2, members.Count)
+	})
+}
+
 func TestGetGroupStats(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
