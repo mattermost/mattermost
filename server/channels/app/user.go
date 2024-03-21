@@ -2864,3 +2864,13 @@ func (a *App) UserIsFirstAdmin(user *model.User) bool {
 
 	return true
 }
+
+func (a *App) getAllSystemAdmins() ([]*model.User, *model.AppError) {
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  500,
+		Role:     model.SystemAdminRoleId,
+		Inactive: false,
+	}
+	return a.GetUsersFromProfiles(userOptions)
+}

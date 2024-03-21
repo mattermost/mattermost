@@ -21,6 +21,7 @@
     "form-data": "^4.0.0"
   },
   "devDependencies": {
+    "@types/jest": "28.1.8",
     "jest": "27.1.0",
     "typescript": "^5.0.0"
   },
@@ -34,10 +35,11 @@
     }
   },
   "scripts": {
-    "build": "tsc --build --verbose",
+    "build": "tsc --build tsconfig.build.json --verbose",
+    "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
     "run": "tsc --watch --preserveWatchOutput",
     "test": "jest",
     "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100%",
-    "clean": "rm -rf lib node_modules tsconfig.tsbuildinfo"
+    "clean": "rm -rf lib node_modules *.tsbuildinfo"
   }
 }

@@ -1012,6 +1012,7 @@ describe('Reducers.users', () => {
 
         let state: UsersState = {
             currentUserId: '',
+            dndEndTimes: {},
             mySessions: [],
             myAudits: [],
             myUserAccessTokens: {},
@@ -1060,6 +1061,7 @@ describe('Reducers.users', () => {
 
         expect(nextState).toEqual({
             currentUserId: '',
+            dndEndTimes: {},
             mySessions: [],
             myAudits: [],
             myUserAccessTokens: {},

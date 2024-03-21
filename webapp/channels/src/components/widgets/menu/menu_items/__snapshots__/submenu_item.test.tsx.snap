@@ -21,7 +21,6 @@ exports[`components/widgets/menu/menu_items/submenu_item empty subMenu should ma
     <div
       className=""
       id="1"
-      onClick={[Function]}
       onKeyDown={[Function]}
       onMouseEnter={[Function]}
       onMouseLeave={[Function]}
@@ -89,7 +88,6 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
     <div
       className=""
       id="1"
-      onClick={[Function]}
       onKeyDown={[Function]}
       onMouseEnter={[Function]}
       onMouseLeave={[Function]}
@@ -142,7 +140,6 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
               <div
                 className=""
                 id="A"
-                onClick={[Function]}
                 onKeyDown={[Function]}
                 onMouseEnter={[Function]}
                 onMouseLeave={[Function]}
@@ -199,7 +196,6 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
               <div
                 className=""
                 id="B"
-                onClick={[Function]}
                 onKeyDown={[Function]}
                 onMouseEnter={[Function]}
                 onMouseLeave={[Function]}

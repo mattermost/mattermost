@@ -13,8 +13,8 @@
     align-items: center;
     justify-content: center;
     border: 1px solid alpha-color($black, 0.15);
-    background: $white;
     border-radius: 4px;
+    background: $white;
 
     img {
         max-width: 100%;
@@ -32,8 +32,8 @@
     align-items: center;
     justify-content: center;
     border: none;
-    background: alpha-color($black, 0.8);
     border-radius: 40px;
+    background: alpha-color($black, 0.8);
     color: white;
     font-size: 20px;
 

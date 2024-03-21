@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, mount} from 'enzyme';
+import {shallow} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
+
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 import SubMenuModal from './submenu_modal';
 
@@ -67,24 +69,19 @@ describe('components/submenu_modal', () => {
         const props = {
             ...baseProps,
         };
-        const wrapper = mount(
+
+        render(
             <SubMenuModal {...props}/>,
         );
 
-        wrapper.setState({show: true});
-        await wrapper.find('#A').at(1).simulate('click');
+        userEvent.click(screen.getByText('Text A'));
         expect(action1).toHaveBeenCalledTimes(1);
-        expect(wrapper.state('show')).toEqual(false);
 
-        wrapper.setState({show: true});
-        await wrapper.find('#B').at(1).simulate('click');
+        userEvent.click(screen.getByText('Text B'));
         expect(action2).toHaveBeenCalledTimes(1);
-        expect(wrapper.state('show')).toEqual(false);
 
-        wrapper.setState({show: true});
-        await wrapper.find('#C').at(1).simulate('click');
+        userEvent.click(screen.getByText('Text C'));
         expect(action3).toHaveBeenCalledTimes(1);
-        expect(wrapper.state('show')).toEqual(false);
     });
 
     test('should have called props.onExited when Modal.onExited is called', () => {

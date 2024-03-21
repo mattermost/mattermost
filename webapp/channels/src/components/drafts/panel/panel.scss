@@ -3,8 +3,8 @@
 
 .Panel {
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    background-color: var(--center-channel-bg);
     border-radius: 4px;
+    background-color: var(--center-channel-bg);
     box-shadow: var(--elevation-1);
     cursor: pointer;
     transition: box-shadow 0.3s ease-in-out;
