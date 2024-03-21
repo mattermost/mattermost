@@ -63,7 +63,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
       <AlertBanner
         message={
           <FormattedMarkdownMessage
-            defaultMessage="Before downloading the support packet, set **Output Logs to File** to **true** and set **File Log Level** to **DEBUG** [here](!/admin_console/environment/logging)."
+            defaultMessage="Before downloading the Support Packet, set **Output Logs to File** to **true** and set **File Log Level** to **DEBUG** [here](!/admin_console/environment/logging)."
             id="commercial_support.warning.banner"
           />
         }
