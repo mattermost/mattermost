@@ -73,7 +73,7 @@ const ChannelHeaderTitle = ({
         return (
             <div
                 id='channelHeaderDropdownButton'
-                className='channel-header__top channel-header__bot'
+                className='channel-header__bot'
             >
                 <ChannelHeaderTitleFavorite/>
                 <ProfilePicture
@@ -108,7 +108,6 @@ const ChannelHeaderTitle = ({
             <MenuWrapper onToggle={setTitleMenuOpen}>
                 <div
                     id='channelHeaderDropdownButton'
-                    className='channel-header__top'
                 >
                     <button
                         className={classNames('channel-header__trigger style--none', {active: titleMenuOpen})}

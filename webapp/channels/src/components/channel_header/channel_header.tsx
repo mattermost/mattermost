@@ -268,7 +268,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     <span tabIndex={0}>
                         <FormattedMessage
                             id='channel_header.channelHasGuests'
-                            defaultMessage='This channel has guests'
+                            defaultMessage='Channel has guests'
                         />
                     </span>
                 </span>
@@ -422,7 +422,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     id='header-popover'
                     popoverStyle='info'
                     popoverSize='lg'
-                    style={{transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`, maxWidth: this.state.channelHeaderPoverWidth}}
+                    style={{transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`, maxWidth: this.state.channelHeaderPoverWidth + 16}}
                     placement='bottom'
                     className={classNames('channel-header__popover', {'chanel-header__popover--lhs_offset': this.props.hasMoreThanOneTeam})}
                 >
@@ -530,7 +530,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             headerTextContainer = (
                 <div
                     id='channelHeaderDescription'
-                    className='channel-header__description light'
+                    className='channel-header__description'
                 >
                     {dmHeaderTextStatus}
                     {hasGuestsText}
@@ -587,12 +587,10 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             <div
                                 className='channel-header__title dropdown'
                             >
-                                <div>
-                                    <ChannelHeaderTitle
-                                        dmUser={dmUser}
-                                        gmMembers={gmMembers}
-                                    />
-                                </div>
+                                <ChannelHeaderTitle
+                                    dmUser={dmUser}
+                                    gmMembers={gmMembers}
+                                />
                                 <div
                                     className='channel-header__icons'
                                 >

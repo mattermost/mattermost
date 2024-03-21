@@ -95,13 +95,16 @@
             }
 
             .file-preview__button {
-                max-height: inherit;
-                vertical-align: middle;
+                display: inline-block;
+
+                .markdown-inline-img {
+                    margin: 0 2px !important;
+                }
             }
         }
 
         &.bottom {
-            margin-top: -32px;
+            margin-top: -30px;
         }
     }
 

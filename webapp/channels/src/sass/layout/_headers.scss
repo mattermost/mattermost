@@ -10,6 +10,10 @@
     background: v(center-channel-bg);
     font-size: 14px;
 
+    #channelHeaderDropdownButton {
+        display: flex;
+    }
+
     .channel-header__trigger {
         display: flex;
         min-width: 0;
@@ -33,9 +37,7 @@
         }
 
         .heading > span {
-            overflow: hidden;
             line-height: 20px;
-            text-overflow: ellipsis;
         }
     }
 
@@ -104,7 +106,7 @@
         &:first-child {
             min-width: 0;
             flex: 1;
-            padding: 0 28px 0 0;
+            padding: 0 24px 0 2px;
         }
 
         .markdown__paragraph-inline {
@@ -113,10 +115,6 @@
             width: 100%;
             margin: 0;
             text-overflow: ellipsis;
-
-            .file-preview__button {
-                vertical-align: middle;
-            }
         }
     }
 
@@ -201,6 +199,8 @@
         font-weight: 600;
         line-height: 16px;
         text-overflow: ellipsis;
+        white-space: nowrap;
+        align-self: center;
     }
 
     .caret {
@@ -251,15 +251,31 @@
     line-height: 16px;
 }
 
-.channel-header__top {
+.channel-header__top,
+.channel-header__bot {
     display: flex;
     min-width: 0;
+    max-width: 60%;
     align-items: center;
-    gap: 4px;
-}
+    gap: 2px;
 
-.channel-header__bot {
-    margin-right: 8px;
+    .status-wrapper {
+        padding: 0 2px;
+    }
+
+    .BotTag {
+        margin: 0 8px 0 4px;
+    }
+
+    .GuestTag {
+        position: relative;
+        top: -1px;
+    }
+
+    .MenuWrapper {
+        min-width: 0;
+        flex: 0 auto;
+    }
 }
 
 .channel-header__info {
@@ -309,19 +325,10 @@
             opacity: 0.5;
         }
 
-        > div {
-            display: flex;
-            flex: 0 1 auto;
-        }
-
         > a {
             display: inline-block;
             width: calc(100% - 65px);
             text-decoration: none;
-        }
-
-        .MenuWrapper {
-            width: 100%;
         }
 
         .modal {
@@ -332,19 +339,22 @@
     .channel-header__icons {
         margin-right: 8px;
         gap: 4px;
+        display: flex;
     }
 
     .channel-header__description {
         position: relative;
         display: flex;
+        flex: 1;
         overflow: hidden;
-        width: 100%;
         height: 24px;
         align-items: center;
         margin: 0;
         font-size: 12px;
         gap: 2px;
         text-overflow: ellipsis;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        line-height: 24px;
 
         span[data-emoticon] {
             .emoticon {
@@ -384,10 +394,9 @@
         }
 
         .header-description__text {
-            display: flex;
             overflow: hidden;
-            height: 20px;
-            flex-direction: column;
+            height: 24px;
+            line-height: inherit;
 
             ul {
                 &:first-child {
@@ -424,42 +433,10 @@
             margin: 1px 0 0;
         }
 
-        &.light {
-            overflow: visible;
-            color: inherit;
-            opacity: 1;
-
-            button {
-                color: rgba(var(--center-channel-color-rgb), 0.75);
-
-                i {
-                    color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
-                }
-
-                .edit-icon {
-                    display: none;
-                }
-
-                &:focus,
-                &:hover {
-                    color: rgba(var(--center-channel-color-rgb), 0.88);
-                    text-decoration: none;
-
-                    i {
-                        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
-                    }
-                }
-
-                &:hover {
-                    .edit-icon {
-                        display: block;
-                    }
-                }
-            }
-        }
-
         .markdown-inline-img {
-            max-height: 45px;
+            max-height: 18px;
+            margin: 0 2px;
+            display: inline-block;
         }
 
         .edit-icon {
@@ -473,11 +450,18 @@
     }
 
     .has-guest-header {
-        &::after {
-            position: relative;
-            top: 1px;
-            margin: 0 2px 0 5px;
-            content: "\2022";
+        height: 16px;
+        line-height: 16px;
+
+        //show left border if channel has guests is showing
+        & ~ .header-description__text,
+        & ~ .header-placeholder {
+            ::before {
+                border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
+                margin-right: 6px;
+                margin-left: 6px;
+                content: "";
+            }
         }
     }
 
