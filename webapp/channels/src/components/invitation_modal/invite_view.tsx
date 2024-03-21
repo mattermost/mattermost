@@ -55,7 +55,7 @@ export type Props = InviteState & {
     onChannelsInputChange: (channelsInputValue: string) => void;
     onClose: () => void;
     currentTeam: Team;
-    currentChannel: Channel;
+    currentChannel?: Channel;
     setCustomMessage: (message: string) => void;
     toggleCustomMessage: () => void;
     channelsLoader: (value: string, callback?: (channels: Channel[]) => void) => Promise<Channel[]>;

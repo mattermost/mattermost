@@ -62,13 +62,13 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
     const guestAccountsEnabled = config.EnableGuestAccounts === 'true';
     const channelID = ownProps.match.params.channel_id;
-    const channel = getChannel(state, channelID) || {};
-    const team = getTeam(state, channel.team_id) || {};
+    const channel = getChannel(state, channelID);
+    const team = channel ? getTeam(state, channel.team_id) : undefined;
     const groups = getGroupsAssociatedToChannel(state, channelID);
     const totalGroups = groups.length;
     const allGroups = getAllGroups(state);
     const channelPermissions = getChannelModerations(state, channelID);
-    const teamScheme = getScheme(state, team.scheme_id);
+    const teamScheme = team ? getScheme(state, team.scheme_id) : undefined;
     return {
         channelID,
         channel,

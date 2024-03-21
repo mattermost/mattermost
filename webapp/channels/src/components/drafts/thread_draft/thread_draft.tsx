@@ -24,7 +24,7 @@ import PanelBody from '../panel/panel_body';
 import Header from '../panel/panel_header';
 
 type Props = {
-    channel: Channel;
+    channel?: Channel;
     displayName: string;
     draftId: string;
     rootId: UserThread['id'] | UserThreadSynthetic['id'];
@@ -58,18 +58,18 @@ function ThreadDraft({
 
     const onSubmit = useMemo(() => {
         if (thread) {
-            return makeOnSubmit(channel.id, thread.id, '');
+            return makeOnSubmit(channel!.id, thread.id, '');
         }
 
         return () => Promise.resolve({data: true});
-    }, [channel.id, thread?.id]);
+    }, [channel?.id, thread?.id]);
 
     const handleOnDelete = useCallback((id: string) => {
-        dispatch(removeDraft(id, channel.id, rootId));
-    }, [channel.id, rootId]);
+        dispatch(removeDraft(id, channel!.id, rootId));
+    }, [channel?.id, rootId]);
 
     const handleOnEdit = useCallback(() => {
-        dispatch(selectPost({id: rootId, channel_id: channel.id} as Post));
+        dispatch(selectPost({id: rootId, channel_id: channel!.id} as Post));
     }, [channel]);
 
     const handleOnSend = useCallback(async (id: string) => {
@@ -79,7 +79,7 @@ function ThreadDraft({
         handleOnEdit();
     }, [value, onSubmit]);
 
-    if (!thread) {
+    if (!thread || !channel) {
         return null;
     }
 

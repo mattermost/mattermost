@@ -18,7 +18,7 @@ import type {FakePost, RhsState} from 'types/store/rhs';
 type Props = {
     currentTeam: Team;
     posts: Post[];
-    channel: Channel | null;
+    channel?: Channel;
     selected: Post | FakePost;
     previousRhsState?: RhsState;
     fromSuppressed: boolean;

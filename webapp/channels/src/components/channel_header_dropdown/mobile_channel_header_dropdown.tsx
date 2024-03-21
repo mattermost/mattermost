@@ -19,7 +19,7 @@ import MobileChannelHeaderDropdownAnimation from './mobile_channel_header_dropdo
 
 type Props = {
     user: UserProfile;
-    channel: Channel;
+    channel?: Channel;
     teammateId: string | null;
     teammateIsBot?: boolean;
     teammateStatus?: string;
@@ -30,6 +30,10 @@ type Props = {
 class MobileChannelHeaderDropdown extends React.PureComponent<Props> {
     getChannelTitle = () => {
         const {user, channel, teammateId, displayName} = this.props;
+
+        if (!channel) {
+            return '';
+        }
 
         if (channel.type === Constants.DM_CHANNEL) {
             if (user.id === teammateId) {

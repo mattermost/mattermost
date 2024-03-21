@@ -1262,7 +1262,7 @@ export function favoriteChannel(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const channel = getChannelSelector(state, channelId);
-        const category = getCategoryInTeamByType(state, channel.team_id || getCurrentTeamId(state), CategoryTypes.FAVORITES);
+        const category = getCategoryInTeamByType(state, channel?.team_id || getCurrentTeamId(state), CategoryTypes.FAVORITES);
 
         Client4.trackEvent('action', 'action_channels_favorite');
 
@@ -1279,6 +1279,10 @@ export function unfavoriteChannel(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const channel = getChannelSelector(state, channelId);
+        if (!channel) {
+            return {data: false};
+        }
+
         const category = getCategoryInTeamByType(
             state,
             channel.team_id || getCurrentTeamId(state),

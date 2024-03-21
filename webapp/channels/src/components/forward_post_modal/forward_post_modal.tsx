@@ -49,7 +49,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
     const relativePermaLink = useSelector((state: GlobalState) => getPermalinkURL(state, currentTeam.id, post.id));
     const permaLink = `${getSiteURL()}${relativePermaLink}`;
 
-    const isPrivateConversation = channel.type !== Constants.OPEN_CHANNEL;
+    const isPrivateConversation = channel?.type !== Constants.OPEN_CHANNEL;
 
     const [comment, setComment] = useState('');
     const [bodyHeight, setBodyHeight] = useState<number>(0);
@@ -77,7 +77,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
 
     const canPostInSelectedChannel = useSelector(
         (state: GlobalState) => {
-            const channelId = isPrivateConversation ? channel.id : selectedChannelId;
+            const channelId = isPrivateConversation ? channel?.id : selectedChannelId;
             const isDMChannel = selectedChannel?.details?.type === Constants.DM_CHANNEL;
             const teamId = isPrivateConversation ? currentTeam.id : selectedChannel?.details?.team_id;
 
@@ -123,15 +123,15 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
         post,
         post_id: post.id,
         team_name: currentTeam.name,
-        channel_display_name: channel.display_name,
-        channel_type: channel.type,
-        channel_id: channel.id,
+        channel_display_name: channel?.display_name || '',
+        channel_type: channel?.type || 'O',
+        channel_id: channel?.id || '',
     };
 
     let notification;
     if (isPrivateConversation) {
         let notificationText;
-        if (channel.type === General.PRIVATE_CHANNEL) {
+        if (channel?.type === General.PRIVATE_CHANNEL) {
             const channelName = `~${channel.display_name}`;
             notificationText = (
                 <FormattedMessage
@@ -144,7 +144,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
                 />
             );
         } else {
-            const allParticipants = channel.display_name.split(', ');
+            const allParticipants = channel?.display_name.split(', ') || [];
             const participants = allParticipants.map((participant) => <strong key={participant}>{participant}</strong>);
 
             notificationText = (
@@ -176,6 +176,10 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
 
     const handleSubmit = () => {
         if (postError) {
+            return Promise.resolve();
+        }
+
+        if (!channel) {
             return Promise.resolve();
         }
 
@@ -227,7 +231,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
         defaultMessage: 'Originally posted in ~{channel}',
     },
     {
-        channel: channel.display_name,
+        channel: channel?.display_name || '',
     });
 
     return (

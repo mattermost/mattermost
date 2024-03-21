@@ -55,7 +55,7 @@ function mapStateToProps(state: GlobalState) {
         teamId,
         channelId,
         maxPostSize: parseInt(config.MaxPostSize || '0', 10) || Constants.DEFAULT_CHARACTER_LIMIT,
-        readOnlyChannel: !isCurrentUserSystemAdmin(state) && channel.name === Constants.DEFAULT_CHANNEL,
+        readOnlyChannel: !isCurrentUserSystemAdmin(state) && channel?.name === Constants.DEFAULT_CHANNEL,
         useChannelMentions,
         isRHSOpened: getIsRhsOpen(state),
         isEditHistoryShowing: getRhsState(state) === RHSStates.EDIT_HISTORY,

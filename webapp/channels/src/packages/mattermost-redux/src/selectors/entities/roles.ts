@@ -204,12 +204,20 @@ export const haveIGroupPermission: (state: GlobalState, groupID: string, permiss
     },
 );
 
-export function haveIChannelPermission(state: GlobalState, teamId: string, channelId: string, permission: string): boolean {
-    return (
-        getMySystemPermissions(state).has(permission) ||
-        getMyPermissionsByTeam(state)[teamId]?.has(permission) ||
-        getMyPermissionsByChannel(state)[channelId]?.has(permission)
-    );
+export function haveIChannelPermission(state: GlobalState, teamId: string | undefined, channelId: string | undefined, permission: string): boolean {
+    if (getMySystemPermissions(state).has(permission)) {
+        return true;
+    }
+
+    if (teamId && getMyPermissionsByTeam(state)[teamId]?.has(permission)) {
+        return true;
+    }
+
+    if (channelId) {
+        return getMyPermissionsByChannel(state)[channelId]?.has(permission);
+    }
+
+    return false;
 }
 
 export function haveICurrentTeamPermission(state: GlobalState, permission: string): boolean {
