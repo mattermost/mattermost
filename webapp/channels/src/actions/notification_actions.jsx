@@ -27,7 +27,7 @@ import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import * as NotificationSounds from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
-import {isDesktopApp, isMobileApp, isWindowsApp} from 'utils/user_agent';
+import {isDesktopApp, isMobileApp, isWindowsApp, isLinux} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import {runDesktopNotificationHooks} from './hooks';
@@ -247,7 +247,7 @@ export function sendDesktopNotification(post, msgProps) {
         let strippedMarkdownNotifyText = stripMarkdown(notifyText);
 
         const notifyTextMaxLength = isWindowsApp() ? WINDOWS_NOTIFY_TEXT_MAX_LENGTH : NOTIFY_TEXT_MAX_LENGTH;
-        if (strippedMarkdownNotifyText.length > notifyTextMaxLength) {
+        if (!isLinux() && strippedMarkdownNotifyText.length > notifyTextMaxLength) {
             strippedMarkdownNotifyText = strippedMarkdownNotifyText.substring(0, notifyTextMaxLength - 1) + '...';
         }
 
