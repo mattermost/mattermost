@@ -147,14 +147,15 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.24.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.25.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.2.0
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.8.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.8.1
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.1
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
+PLUGIN_PACKAGES += mattermost-plugin-ai-v0.6.2
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
@@ -390,11 +391,11 @@ setup-go-work: ## Sets up your go.work file
 ifneq ($(IGNORE_GO_WORK_IF_EXISTS),true)
 	@echo "Creating a go.work file"
 	rm -f go.work
-	go work init
-	go work use .
-	go work use ./public
+	$(GO) work init
+	$(GO) work use .
+	$(GO) work use ./public
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	go work use ../../enterprise
+	$(GO) work use ../../enterprise
 endif
 endif
 

@@ -30,7 +30,10 @@ export default [
             },
         ],
         plugins: [
-            scss(),
+            scss({
+                fileName: 'index.esm.css',
+                outputToFilesystem: true,
+            }),
             resolve({
                 browser: true,
                 extensions: ['.ts', '.tsx'],

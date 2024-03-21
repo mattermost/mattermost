@@ -4,10 +4,10 @@
     justify-content: space-between;
     padding: 4px;
     padding-left: 12px;
+    border-radius: 4px;
 
     // background-color: var(--center-channel-color--88);
     background: linear-gradient(0deg, rgba(63, 67, 80, 0.9) 0%, rgba(63, 67, 80, 0.9) 100%), #fff;
-    border-radius: 4px;
     box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.12);
     color: var(--sidebar-text);
     cursor: pointer;

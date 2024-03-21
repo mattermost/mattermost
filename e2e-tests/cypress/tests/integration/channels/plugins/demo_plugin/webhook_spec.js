@@ -32,6 +32,9 @@ describe('Demo plugin - Webhook events', () => {
             ServiceSettings: {
                 EnableGifPicker: true,
             },
+            FileSettings: {
+                EnablePublicLink: true,
+            },
         };
         cy.apiUpdateConfig(newSettings);
 

@@ -292,7 +292,7 @@ callbackUrl2.com
               values={
                 Object {
                   "link": <ExternalLink
-                    href="https://mattermost.com/pl/configure-session-lengths"
+                    href="https://mattermost.com/pl/default-allow-untrusted-internal-connections"
                     location="abstract_outgoing_webhook"
                   >
                     <Memo(MemoizedFormattedMessage)
