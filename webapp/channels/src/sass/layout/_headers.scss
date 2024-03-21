@@ -380,8 +380,8 @@
             display: none;
             overflow: hidden;
             align-items: center;
-            line-height: 16px;
             color: rgba(var(--center-channel-color-rgb), 0.75);
+            line-height: 16px;
 
             span {
                 overflow: hidden;
@@ -451,19 +451,19 @@
 
     .has-guest-header {
         height: 16px;
-        line-height: 16px;
         color: rgba(var(--center-channel-color-rgb), 0.75);
+        line-height: 16px;
 
         //show left border if channel has guests is showing
         & ~ .header-description__text,
         & ~ .header-placeholder {
             &::before {
+                display: inline-block;
+                height: 20px;
                 border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
                 margin-right: 6px;
                 margin-left: 6px;
                 content: "";
-                height: 20px;
-                display: inline-block;
             }
         }
     }
