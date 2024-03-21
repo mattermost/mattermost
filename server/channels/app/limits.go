@@ -43,14 +43,10 @@ func (a *App) shouldShowUserLimits() bool {
 }
 
 func (a *App) isHardUserLimitExceeded() (bool, *model.AppError) {
-	if should := a.shouldShowUserLimits(); !should {
-		return false, nil
-	}
-
 	userLimits, appErr := a.GetUserLimits()
 	if appErr != nil {
 		return false, appErr
 	}
 
-	return userLimits.ActiveUserCount >= userLimits.MaxUsersHardLimit, appErr
+	return userLimits.ActiveUserCount > userLimits.MaxUsersHardLimit, appErr
 }
