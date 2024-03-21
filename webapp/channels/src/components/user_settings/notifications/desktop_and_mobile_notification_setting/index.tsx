@@ -270,7 +270,7 @@ function DesktopAndMobileNotificationSettings({
                     <br/>
                     <FormattedMessage
                         id='user.settings.notifications.desktopAndMobile.pushNotificationsDisabled'
-                        defaultMessage='Push notifications have not been enabled by your System Administrator.'
+                        defaultMessage={'Mobile push notifications haven\'t been enabled by your system administrator.'}
                     />
                 </>
             );
