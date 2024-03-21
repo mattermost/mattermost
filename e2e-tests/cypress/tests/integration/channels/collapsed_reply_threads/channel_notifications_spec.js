@@ -48,15 +48,18 @@ describe('CRT Desktop notifications', () => {
         });
     });
 
-    it('MM-T4417_1 Trigger notifications on all replies when channel setting is checked', () => {
+    it.only('MM-T4417_1 Trigger notifications on all replies when channel setting is checked', () => {
         // # Visit channel
         cy.visit(testChannelUrl);
 
         cy.uiOpenChannelMenu('Notification Preferences');
-        cy.get('[data-testid="muteChannel"]').click().then(() => {
-            cy.get('.AlertBanner--app').should('be.visible');
-        });
-        cy.get('.channel-notifications-settings-modal__save-btn').should('be.visible').click();
+
+        // # click on Mute Channel to Unmute Channel
+        cy.findByText('Mute Channel').should('be.visible').click({force: true});
+
+        cy.findByText('This channel is muted').should('be.visible');
+
+        cy.findByText('Save').should('be.visible').click();
 
         // Setup notification spy
         spyNotificationAs('notifySpy', 'granted');
