@@ -5,7 +5,7 @@ import {Client4} from 'mattermost-redux/client';
 import {Posts, Preferences} from 'mattermost-redux/constants';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {removeGlobalItem, setGlobalItem} from 'actions/storage';
+import {setGlobalItem} from 'actions/storage';
 
 import mockStore from 'tests/test_store';
 import {StoragePrefixes} from 'utils/constants';
@@ -164,19 +164,6 @@ describe('draft actions', () => {
 
     describe('removeDraft', () => {
         it('calls setGlobalItem action correctly', async () => {
-            store = mockStore({
-                ...initialState,
-                entities: {
-                    ...initialState.entities,
-                    general: {
-                        ...initialState.entities.general,
-                        config: {
-                            ...initialState.entities.general.config,
-                            AllowSyncedDrafts: 'false',
-                        },
-                    },
-                },
-            });
             await store.dispatch(removeDraft(key, channelId));
 
             const testStore = mockStore(initialState);
@@ -186,8 +173,6 @@ describe('draft actions', () => {
                 fileInfos: [],
                 uploadsInProgress: [],
             }));
-
-            testStore.dispatch(removeGlobalItem(StoragePrefixes.DRAFT + channelId));
 
             expect(store.getActions()).toEqual(testStore.getActions());
         });
