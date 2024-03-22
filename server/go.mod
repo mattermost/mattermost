@@ -1,6 +1,8 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.20
+go 1.21
+
+toolchain go1.21.8
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
@@ -40,7 +42,7 @@ require (
 	github.com/mattermost/gosaml2 v0.8.0
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
 	github.com/mattermost/logr/v2 v2.0.21
-	github.com/mattermost/mattermost/server/public v0.0.14
+	github.com/mattermost/mattermost/server/public v0.1.0
 	github.com/mattermost/morph v1.1.0
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.4.0

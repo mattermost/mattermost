@@ -353,6 +353,9 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         const isLastPost = itemId === this.props.lastPost.id;
         const isRootPost = itemId === this.props.selected.id;
 
+        /* eslint-disable react-hooks/rules-of-hooks */
+
+        // Temporarily allow these while MM-56831 is fixed
         const post = useSelector((state: GlobalState) => getPost(state, this.props.selected.id));
         const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, []);
 
@@ -360,6 +363,8 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             const thread = getThreadOrSynthetic(state, post);
             return thread.reply_count || 0;
         });
+
+        /* eslint-enable react-hooks/rules-of-hooks */
 
         if (!isDateLine(itemId) && !isStartOfNewMessages(itemId) && !isCreateComment(itemId) && !isRootPost) {
             a11yIndex++;

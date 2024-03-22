@@ -75,7 +75,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v9.5 server
+// Based on v9.7 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -101,6 +101,7 @@ const defaultServerConfig: AdminConfig = {
         EnableOAuthServiceProvider: true,
         EnableIncomingWebhooks: true,
         EnableOutgoingWebhooks: true,
+        EnableOutgoingOAuthConnections: false,
         EnableCommands: true,
         OutgoingIntegrationRequestsTimeout: 30,
         EnablePostUsernameOverride: false,
@@ -700,6 +701,7 @@ const defaultServerConfig: AdminConfig = {
         CWSURL: 'https://customers.mattermost.com',
         CWSAPIURL: 'https://portal.internal.prod.cloud.mattermost.com',
         CWSMock: false,
+        Disable: false,
     },
     FeatureFlags: {
         TestFeature: 'off',
@@ -720,7 +722,8 @@ const defaultServerConfig: AdminConfig = {
         CloudIPFiltering: false,
         ConsumePostHook: false,
         CloudAnnualRenewals: false,
-        OutgoingOAuthConnections: false,
+        CloudDedicatedExportUI: false,
+        WebSocketEventScope: false,
     },
     ImportSettings: {
         Directory: './import',

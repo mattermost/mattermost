@@ -2034,8 +2034,6 @@
   "admin.security.password": "Mật khẩu",
   "admin.server_logs.CopyLog": "Copy log",
   "admin.server_logs.DataCopied": "Đã copy dữ liệu",
-  "admin.server_logs.Export": "Xuất",
-  "admin.server_logs.Exported": "Đã xuất",
   "admin.server_logs.LogEvent": "Log Event",
   "admin.service.CorsDebugLabel": "Gỡ lỗi CORS:",
   "admin.service.attemptDescription": "Số lần đăng nhập được phép trước khi người dùng bị khóa và được yêu cầu đặt lại mật khẩu của họ qua email.",
