@@ -12,6 +12,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/pkg/errors"
@@ -22,6 +23,13 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+)
+
+const (
+	perPage = 200
+
+	shellCompletionMaxItems = 50 // Maximum number of items that will be loaded and shown in shell completion.
+	shellCompleteTimeout    = 5 * time.Second
 )
 
 var (
@@ -62,22 +70,34 @@ func CheckVersionMatch(version, serverVersion string) (bool, error) {
 	return true, nil
 }
 
+func getClient(ctx context.Context) (*model.Client4, string, bool, error) {
+	if viper.GetBool("local") {
+		c, err := InitUnixClient(viper.GetString("local-socket-path"))
+		if err != nil {
+			return nil, "", true, err
+		}
+		printer.SetServerAddres("local instance")
+
+		return c, "", true, nil
+	}
+
+	c, serverVersion, err := InitClient(ctx, viper.GetBool("insecure-sha1-intermediate"), viper.GetBool("insecure-tls-version"))
+	if err != nil {
+		return nil, "", false, err
+	}
+
+	return c, serverVersion, false, nil
+}
+
 func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if viper.GetBool("local") {
-			c, err := InitUnixClient(viper.GetString("local-socket-path"))
-			if err != nil {
-				return err
-			}
-			printer.SetServerAddres("local instance")
-			return fn(c, cmd, args)
-		}
-
 		ctx := context.TODO()
-
-		c, serverVersion, err := InitClient(ctx, viper.GetBool("insecure-sha1-intermediate"), viper.GetBool("insecure-tls-version"))
+		c, serverVersion, local, err := getClient(ctx)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create client: %w", err)
+		}
+		if local {
+			return fn(c, cmd, args)
 		}
 
 		if Version != "unspecified" { // unspecified version indicates that we are on dev mode.

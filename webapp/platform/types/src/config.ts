@@ -303,6 +303,7 @@ export type ServiceSettings = {
     EnableOAuthServiceProvider: boolean;
     EnableIncomingWebhooks: boolean;
     EnableOutgoingWebhooks: boolean;
+    EnableOutgoingOAuthConnections: boolean;
     EnableCommands: boolean;
     OutgoingIntegrationRequestsTimeout: number;
     EnablePostUsernameOverride: boolean;
@@ -907,6 +908,7 @@ export type CloudSettings = {
     CWSURL: string;
     CWSAPIURL: string;
     CWSMock: boolean;
+    Disable: boolean;
 };
 
 export type FeatureFlags = Record<string, string | boolean>;

@@ -285,7 +285,7 @@ else
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57.1
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
@@ -391,11 +391,11 @@ setup-go-work: ## Sets up your go.work file
 ifneq ($(IGNORE_GO_WORK_IF_EXISTS),true)
 	@echo "Creating a go.work file"
 	rm -f go.work
-	go work init
-	go work use .
-	go work use ./public
+	$(GO) work init
+	$(GO) work use .
+	$(GO) work use ./public
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	go work use ../../enterprise
+	$(GO) work use ../../enterprise
 endif
 endif
 

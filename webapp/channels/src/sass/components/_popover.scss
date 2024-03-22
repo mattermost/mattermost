@@ -14,7 +14,7 @@
 
 .popover {
     padding: 0;
-    border-radius: $border-rad * 2;
+    border-radius: var(--radius-s);
     background: var(--center-channel-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     color: var(--center-channel-color);

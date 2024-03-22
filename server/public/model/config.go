@@ -4487,9 +4487,8 @@ func isSafeLink(link *string) bool {
 			return true
 		} else if strings.HasPrefix(*link, "/") {
 			return true
-		} else {
-			return false
 		}
+		return false
 	}
 
 	return true

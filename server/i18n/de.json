@@ -4988,7 +4988,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Größenbegrenzung überschritten. Überprüfe die [maximale Seitengröße](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Das Größenlimit wurde überschritten. Versuche, deine Einstellung für die maximale Seitengröße zu erhöhen. Weitere Informationen findest du unter https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded."
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
@@ -9739,7 +9739,7 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.audience.error",
-    "translation": "Einige Audience URLs sind nicht korrekt."
+    "translation": "Audience URL ist ungültig: {{ .Url }}"
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
@@ -9895,11 +9895,11 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": "Es ist ein Fehler beim Speichern der ausgehenden Oauth-Verbindung aufgetreten."
+    "translation": "Es ist ein Fehler beim Speichern der ausgehenden Oauth-Verbindung aufgetreten: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": "Es ist ein Fehler bei der Aktualisierung der ausgehenden Oauth-Verbindung aufgetreten."
+    "translation": "Es ist ein Fehler bei der Aktualisierung der ausgehenden Oauth-Verbindung aufgetreten: {{ .Error }}"
   },
   {
     "id": "api.command_share.channel_not_shared.error",
@@ -10160,5 +10160,149 @@
   {
     "id": "api.server.cws.disabled",
     "translation": "Die Interaktionen mit dem Mattermost-Kundenportal wurden vom Systemadministrator deaktiviert."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Deine Lizenz unterstützt keine Kanal-Lesezeichen."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Du darfst keine Lesezeichen für einen Kanal erstellen."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Lesezeichen für den Channel konnte nicht erstellt werden."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Lesezeichen für den Channel konnte nicht erstellt werden."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Lesezeichen für den Kanal konnte nicht gelöscht werden."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Lesezeichen für den Kanal konnte nicht gelöscht werden."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Lesezeichen für den Kanal konnte nicht gelöscht werden."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Aktualisierung des Kanal-Lesezeichens ist fehlgeschlagen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Aktualisierung des Kanal-Lesezeichens ist fehlgeschlagen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Aktualisierung des Kanal-Lesezeichens ist fehlgeschlagen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Sortierreihenfolge des Kanal-Lesezeichens konnte nicht aktualisiert werden."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Sortierreihenfolge des Kanal-Lesezeichens konnte nicht aktualisiert werden."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Sortierreihenfolge des Kanal-Lesezeichens konnte nicht aktualisiert werden."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Ungültige Aktualisierung eines Channel-Mitglieds: Ein Gast kann nicht für einen einzelnen Kanal festgelegt werden, ein Systemadministrator muss Benutzer zu/von Gästen befördern oder zurückstufen."
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "Lesezeichen konnte nicht gelöscht werden."
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "Lesezeichen konnte nicht geholt werden."
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "Das vorhandene Lesezeichen konnte nicht aktualisiert werden."
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "Lesezeichen konnte nicht gespeichert werden."
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "Lesezeichen konnte nicht aktualisiert werden."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "Das Lesezeichen konnte nicht sortiert werden."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "Das Lesezeichen konnte nicht sortiert werden. Ungültige Eingabe."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "Konnte das Lesezeichen nicht sortieren. Nicht gefunden."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "Ungültige Kanal-ID."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "Erstellt am muss eine gültige Zeit sein."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "Anzeigename fehlt."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "Die Datei-ID fehlt oder ist ungültig."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "Ungültige Bild-URL."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Ein Link und eine Datei können nicht im selben Lesezeichen gesetzt werden."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "Link-URL fehlt oder ist ungültig."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "Ungültige Original-ID."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "Ungültige Eigentümer-ID."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "Ungültige Vorgänger-ID."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Ungültige Id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "Ungültiger Typ."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "Aktualisier am muss eine gültige Zeit sein."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Ungültige Aktualisierung des Kanal-Mitglieds: Ein Gast kann nicht zum Teammitglied oder Admin gemacht werden, bitte befördere ihn zuerst zum Benutzer."
   }
 ]
