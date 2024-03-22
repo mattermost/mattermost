@@ -20,7 +20,7 @@ const (
 )
 
 func (api *API) InitEmoji() {
-	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(createEmoji)).Methods("POST")
+	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(createEmoji, handlerParamFileAPI)).Methods("POST")
 	api.BaseRoutes.Emojis.Handle("", api.APISessionRequired(getEmojiList)).Methods("GET")
 	api.BaseRoutes.Emojis.Handle("/search", api.APISessionRequired(searchEmojis)).Methods("POST")
 	api.BaseRoutes.Emojis.Handle("/autocomplete", api.APISessionRequired(autocompleteEmojis)).Methods("GET")

@@ -103,7 +103,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var preferences model.Preferences
-	err := model.StructFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes, &preferences)
+	err := model.StructFromJSONLimited(r.Body, &preferences)
 	if err != nil {
 		c.SetInvalidParamWithErr("preferences", err)
 		return
@@ -155,7 +155,7 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var preferences model.Preferences
-	err := model.StructFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes, &preferences)
+	err := model.StructFromJSONLimited(r.Body, &preferences)
 	if err != nil {
 		c.SetInvalidParamWithErr("preferences", err)
 		return
