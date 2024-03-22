@@ -637,10 +637,9 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 		}
 
 		return count > 0
-	} else {
-		mlog.Fatal("Failed to check if column exists because of missing driver")
-		return false
 	}
+	mlog.Fatal("Failed to check if column exists because of missing driver")
+	return false
 }
 
 func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
@@ -685,10 +684,9 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		}
 
 		return count > 0
-	} else {
-		mlog.Fatal("Failed to check if column exists because of missing driver")
-		return false
 	}
+	mlog.Fatal("Failed to check if column exists because of missing driver")
+	return false
 }
 
 func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
@@ -725,10 +723,9 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 		}
 
 		return count > 0
-	} else {
-		mlog.Fatal("Failed to check if column exists because of missing driver")
-		return false
 	}
+	mlog.Fatal("Failed to check if column exists because of missing driver")
+	return false
 }
 
 func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string) bool {
@@ -750,10 +747,9 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 		}
 
 		return true
-	} else {
-		mlog.Fatal("Failed to create column because of missing driver")
-		return false
 	}
+	mlog.Fatal("Failed to create column because of missing driver")
+	return false
 }
 
 func (ss *SqlStore) RemoveTableIfExists(tableName string) bool {
