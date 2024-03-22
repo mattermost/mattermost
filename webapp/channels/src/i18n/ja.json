@@ -2235,8 +2235,6 @@
   "admin.security.password": "パスワード",
   "admin.server_logs.CopyLog": "ログをコピー",
   "admin.server_logs.DataCopied": "データがコピーされました",
-  "admin.server_logs.Export": "エクスポート",
-  "admin.server_logs.Exported": "エクスポート済み",
   "admin.server_logs.LogEvent": "ログイベント",
   "admin.service.CorsDebugLabel": "CORSデバッグ:",
   "admin.service.attemptDescription": "ユーザがロックアウトされるまでのログイン施行回数を指定します。ロックアウトされるとメールによるパスワードの初期化が必要になります。",

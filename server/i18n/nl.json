@@ -4968,7 +4968,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Groottelimiet overschreden. Probeer de [maximale paginagrootte] (https: //docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-overschreden) te controleren."
+    "translation": "Grootte-limiet overschreden. Probeer je instelling voor maximale paginagrootte te verhogen. Kijk op https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded voor meer informatie."
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
@@ -10122,10 +10122,6 @@
     "translation": "Ongeldig email_token"
   },
   {
-    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": "Ongeldige update van teamlid: Een gebruiker kan niet tegelijkertijd als gast en als admin ingesteld zijn."
-  },
-  {
     "id": "ent.outgoing_oauth_connections.authenticate.app_error",
     "translation": "Er is een fout opgetreden bij het verifiëren van de uitgaande oauth-verbinding: {{ .Error }}"
   },
@@ -10156,5 +10152,125 @@
   {
     "id": "app.channel.add_member.deleted_user.app_error",
     "translation": "Kan de gebruiker niet toevoegen als lid van het kanaal."
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Ongeldige props (aangepaste status)"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Ongeldige update teamlid: Een gast kan niet worden ingesteld voor een enkel team, een systeembeheerder moet gebruikers promoveren naar of degraderen van gast."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Kan externe gebruiker niet uitnodigen tot het kanaal: {{.Error}}"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Interacties met het Mattermost Klantenportaal zijn uitgeschakeld door de systeembeheerder."
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL is te lang"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Je licentie ondersteunt geen kanaalbladwijzers."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Gebruiker mag geen kanaalbladwijzer aanmaken."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Het aanmaken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Het aanmaken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Fout bij het verwijderen van de kanaalbladwijzer."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Het verwijderen van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Het verwijderen van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Het bijwerken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Het bijwerken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Het bijwerken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Het bijwerken van de sorteervolgorde van de kanaalbladwijzers is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Het bijwerken van de sorteervolgorde van de kanaalbladwijzers is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Het bijwerken van de sorteervolgorde van de kanaalbladwijzers is mislukt."
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "Kon bladwijzer niet verwijderen."
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "Kon geen bladwijzer ophalen."
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "Bestaande bladwijzer kon niet worden bijgewerkt."
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "Kon bladwijzer niet opslaan."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Ongeldige update kanaallid: Een gast kan geen teamlid of teambeheerder worden, promoveer eerst als gebruiker."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Ongeldige update van kanaallid: Een gast kan niet ingesteld worden voor een enkel kanaal, een systeembeheerder moet gebruikers promoveren naar of degraderen van gast."
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "Kon bladwijzer niet bijwerken."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "Kon de bladwijzer niet sorteren."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "Kon de bladwijzer niet sorteren. Ongeldige invoer."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "Kon de bladwijzer niet sorteren. Niet gevonden."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "Ongeldige kanaal id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "Create at moet een geldige tijd bevatten."
   }
 ]

@@ -91,6 +91,7 @@ type Store interface {
 	PostPersistentNotification() PostPersistentNotificationStore
 	TrueUpReview() TrueUpReviewStore
 	DesktopTokens() DesktopTokensStore
+	ChannelBookmark() ChannelBookmarkStore
 }
 
 type RetentionPolicyStore interface {
@@ -496,6 +497,7 @@ type SessionStore interface {
 	Get(c request.CTX, sessionIDOrToken string) (*model.Session, error)
 	Save(c request.CTX, session *model.Session) (*model.Session, error)
 	GetSessions(c request.CTX, userID string) ([]*model.Session, error)
+	GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
@@ -1031,6 +1033,16 @@ type TrueUpReviewStore interface {
 	GetTrueUpReviewStatus(dueDate int64) (*model.TrueUpReviewStatus, error)
 	CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
 	Update(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
+}
+
+type ChannelBookmarkStore interface {
+	ErrorIfBookmarkFileInfoAlreadyAttached(fileId string) error
+	Get(Id string, includeDeleted bool) (b *model.ChannelBookmarkWithFileInfo, err error)
+	Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (b *model.ChannelBookmarkWithFileInfo, err error)
+	Update(bookmark *model.ChannelBookmark) error
+	UpdateSortOrder(bookmarkId, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error)
+	Delete(bookmarkId string, deleteFile bool) error
+	GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.
