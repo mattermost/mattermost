@@ -103,9 +103,9 @@
         .profile-img-preview {
             width: 128px;
             height: 128px;
+            border-radius: 100%;
             background-position: 50% 50%;
             background-size: cover;
-            border-radius: 100%;
         }
 
         .profile-img__container {
@@ -125,8 +125,8 @@
             justify-content: center;
             padding: 0;
             border: none;
-            background: $black;
             border-radius: 50%;
+            background: $black;
             color: $white;
             text-decoration: none;
             transition: all 0.15s ease;
@@ -151,8 +151,8 @@
             .img-preview__image {
                 overflow: hidden;
                 border: 1px solid alpha-color($black, 0.15);
-                background-color: $white;
                 border-radius: 6px;
+                background-color: $white;
             }
 
             div {
@@ -173,8 +173,8 @@
             height: 24px;
             padding: 0;
             border: none;
-            background: $black;
             border-radius: 50%;
+            background: $black;
             color: $white;
             line-height: 23px;
             text-align: center;
@@ -355,9 +355,9 @@
                     .theme-elements__body {
                         max-height: 0;
                         padding: 0 0 0 24px;
+                        border-radius: 0 0 3px 3px;
                         margin: 0 20px 0 0;
                         background-color: rgba(255, 255, 255, 0.05);
-                        border-radius: 0 0 3px 3px;
                         overflow-y: hidden;
                         transition: all 0.4s ease-out;
 
@@ -597,8 +597,8 @@
     }
 
     .post-profile-img {
-        margin-right: 8px;
         border-radius: 50px;
+        margin-right: 8px;
     }
 }
 
@@ -692,8 +692,8 @@
                 align-items: center;
                 justify-content: center;
                 padding: 0 6px;
-                background-color: rgba(var(--button-bg-rgb), 0.08);
                 border-radius: 12px;
+                background-color: rgba(var(--button-bg-rgb), 0.08);
                 color: var(--button-bg);
                 font-size: 12px;
                 font-weight: 600;

@@ -26,9 +26,9 @@ button {
         display: inline-block;
         width: 8px;
         height: 8px;
+        border-radius: var(--radius-full);
         margin: 0 0 0 40px;
         background: #f74343;
-        border-radius: 50%;
     }
 }
 
@@ -40,7 +40,7 @@ button {
     justify-content: center;
     padding: 0 20px;
     border: none;
-    border-radius: $border-rad * 2;
+    border-radius: var(--radius-s);
     font-size: 14px;
     font-weight: 600;
     gap: 8px;

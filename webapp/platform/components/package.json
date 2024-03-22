@@ -7,6 +7,7 @@
   "styles": "dist/index.esm.css",
   "scripts": {
     "build": "rollup -c",
+    "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
     "run": "rollup -c --watch",
     "test": "cross-env TZ=Etc/UTC jest",
     "test:updatesnapshot": "cross-env TZ=Etc/UTC jest --updateSnapshot",
@@ -28,9 +29,8 @@
     "@types/shallow-equals": "^1.0.0",
     "@types/styled-components": "^5.1.19",
     "rollup": "^2.75.7",
-    "rollup-plugin-auto-external": "^2.0.0",
-    "rollup-plugin-peer-deps-external": "^2.2.4",
-    "rollup-plugin-scss": "^3.0.0",
+    "rollup-plugin-scss": "4.0.0",
+    "rollup-plugin-ts": "^2.0.5",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {

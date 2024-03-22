@@ -15,7 +15,7 @@ exports[`AudioVideoPreview should match snapshot without children 1`] = `
 `;
 
 exports[`AudioVideoPreview should match snapshot, cannot play 1`] = `
-<Connect(FileInfoPreview)
+<Connect(Component)
   fileInfo={
     Object {
       "archived": false,

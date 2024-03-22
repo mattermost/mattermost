@@ -16,7 +16,7 @@
     .btn {
         height: 4rem;
         padding: 0 2rem;
-        border-radius: $border-rad*2;
+        border-radius: var(--radius-s);
         font-size: 14px;
         font-weight: 600;
     }
