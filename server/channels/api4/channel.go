@@ -421,6 +421,12 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	allowed := false
 
+	// single userId allowed if creating a self-channel
+	// NonSortedArrayFromJSON will remove duplicates, so need to add back
+	if len(userIds) == 1 && userIds[0] == c.AppContext.Session().UserId {
+		userIds = append(userIds, userIds[0])
+	}
+
 	if len(userIds) != 2 {
 		c.SetInvalidParam("user_ids")
 		return
