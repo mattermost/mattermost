@@ -110,7 +110,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	pErr := th.App.CreateDefaultMemberships(th.Context, model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: false})
 	if pErr != nil {
-		t.Errorf("faild to populate syncables: %s", pErr.Error())
+		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
 
 	// Singer should be in team and channel
@@ -180,7 +180,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	// Sync everything after syncable was created (proving that team updates trigger re-sync)
 	pErr = th.App.CreateDefaultMemberships(th.Context, model.CreateDefaultMembershipParams{Since: scientistGroupMember.CreateAt + 1, ReAddRemovedMembers: false})
 	if pErr != nil {
-		t.Errorf("faild to populate syncables: %s", pErr.Error())
+		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
 
 	// Scientist should be in team but not the channel
@@ -223,7 +223,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	// Sync everything after syncable was created (proving that channel updates trigger re-sync)
 	pErr = th.App.CreateDefaultMemberships(th.Context, model.CreateDefaultMembershipParams{Since: scientistGroupMember.CreateAt + 1, ReAddRemovedMembers: false})
 	if pErr != nil {
-		t.Errorf("faild to populate syncables: %s", pErr.Error())
+		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
 
 	expected = 1
@@ -248,7 +248,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	// Even re-syncing from the beginning doesn't re-add to channel or team
 	pErr = th.App.CreateDefaultMemberships(th.Context, model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: false})
 	if pErr != nil {
-		t.Errorf("faild to populate syncables: %s", pErr.Error())
+		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
 
 	// Singer should not be in team or channel
@@ -289,7 +289,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	pErr = th.App.CreateDefaultMemberships(th.Context, model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: false})
 	if pErr != nil {
-		t.Errorf("faild to populate syncables: %s", pErr.Error())
+		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
 
 	timeBeforeLeaving := model.GetMillis()
