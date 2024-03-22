@@ -502,9 +502,11 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 // getPostsByIds also sets a header to indicate, if posts were truncated as per the cloud plan's limit.
 func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	postIDs := model.ArrayFromJSON(r.Body)
-
-	if len(postIDs) == 0 {
+	postIDs, jsonErr := model.SortedArrayFromJSON(r.Body)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getPostsByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(jsonErr)
+		return
+	} else if len(postIDs) == 0 {
 		c.SetInvalidParam("post_ids")
 		return
 	}
