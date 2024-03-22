@@ -177,7 +177,7 @@ func (a *App) deleteGroupConstrainedTeamMemberships(rctx request.CTX, teamID *st
 			continue
 		}
 
-		logger.Info("Removed team member for group contrained team membership")
+		logger.Info("Removed team member for group constrained team membership")
 	}
 
 	return multiErr.ErrorOrNil()
@@ -207,7 +207,7 @@ func (a *App) deleteGroupConstrainedChannelMemberships(rctx request.CTX, channel
 
 		err = a.RemoveUserFromChannel(rctx, userChannel.UserId, "", channel)
 		if err != nil {
-			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to remove channel member for group contrained channel membership: %w", err))
+			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to remove channel member for group constrained channel membership: %w", err))
 			continue
 		}
 
@@ -270,7 +270,7 @@ func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncab
 			rctx.Logger().Warn("Error creating default team memberships", mlog.Err(err))
 		}
 		if err := a.deleteGroupConstrainedTeamMemberships(rctx, &syncableID); err != nil {
-			rctx.Logger().Warn("Error deleting group contrained team memberships", mlog.Err(err))
+			rctx.Logger().Warn("Error deleting group constrained team memberships", mlog.Err(err))
 		}
 		if err := a.ClearTeamMembersCache(syncableID); err != nil {
 			rctx.Logger().Warn("Error clearing team members cache", mlog.Err(err))
@@ -281,7 +281,7 @@ func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncab
 			rctx.Logger().Warn("Error creating default channel memberships", mlog.Err(err))
 		}
 		if err := a.deleteGroupConstrainedChannelMemberships(rctx, &syncableID); err != nil {
-			rctx.Logger().Warn("Error deleting group contrained team memberships", mlog.Err(err))
+			rctx.Logger().Warn("Error deleting group constrained team memberships", mlog.Err(err))
 		}
 		if err := a.ClearChannelMembersCache(rctx, syncableID); err != nil {
 			rctx.Logger().Warn("Error clearing channel members cache", mlog.Err(err))
