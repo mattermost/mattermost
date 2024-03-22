@@ -25,8 +25,9 @@
         .close {
             top: -12px;
             right: -12px;
-            border-radius: 16px;
+            border-radius: var(--radius-full);
             opacity: 0.8;
+            z-index: 1;
 
             :hover {
                 opacity: 1;
@@ -43,15 +44,14 @@
         height: 100vh;
         max-height: 506px;
         padding: 0;
-        border: none;
-        border-radius: 8px;
+        border: none !important;
     }
 
     .modal-body {
         overflow: hidden;
         height: 100%;
         padding: 0;
-        border-radius: 8px;
+        border-radius: var(--radius-l);
         margin: 0;
     }
 
