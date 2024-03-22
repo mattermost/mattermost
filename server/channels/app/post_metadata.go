@@ -842,10 +842,9 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 			return og, nil, nil
 		}
 		return nil, nil, nil
-	} else {
-		// Not an image or web page with OpenGraph information
-		return nil, nil, nil
 	}
+	// Not an image or web page with OpenGraph information
+	return nil, nil, nil
 }
 
 func parseImages(body io.Reader) (*model.PostImage, error) {
