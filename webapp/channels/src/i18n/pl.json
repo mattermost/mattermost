@@ -213,7 +213,7 @@
   "add_outgoing_webhook.callbackUrlsRequired": "Wymagany jest jeden lub więcej zwrotny URL",
   "add_outgoing_webhook.cancel": "Anuluj",
   "add_outgoing_webhook.channel": "Kanał",
-  "add_outgoing_webhook.channel.help": "To pole jest opcjonalne, jeśli zostanie podane przynajmniej jedno słowo trigera. Określa kanał publiczny, który dostarcza dane do webhooka.",
+  "add_outgoing_webhook.channel.help": "To pole jest opcjonalne, jeśli zostanie podane przynajmniej jedno słowo wyzwalacza. Określa kanał publiczny, który dostarcza dane do webhooka.",
   "add_outgoing_webhook.contentType.help1": "Określa typ zawartości, za pomocą którego ma zostać wysłane żądanie.",
   "add_outgoing_webhook.contentType.help2": "Aby serwer zakodował parametry w formacie URL w treści żądania, wybierz application/x-www-form-urlencoded.",
   "add_outgoing_webhook.contentType.help3": "Aby serwer formatował treść żądania jako JSON, wybierz application/json.",
