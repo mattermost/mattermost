@@ -53,7 +53,7 @@ func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, inclu
 func (s LocalCacheFileInfoStore) ClearCaches() {
 	s.rootStore.fileInfoCache.Purge()
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.fileInfoCache.Name())
 	}
 }
 
@@ -64,7 +64,7 @@ func (s LocalCacheFileInfoStore) InvalidateFileInfosForPostCache(postId string, 
 	}
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.fileInfoCache, cacheKey, nil)
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Remove by PostId")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.fileInfoCache.Name())
 	}
 }
 
