@@ -3,8 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {Tooltip} from 'react-bootstrap';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import type {AppBinding} from '@mattermost/types/apps';
@@ -111,18 +110,6 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
 
         this.buttonRef = React.createRef<HTMLButtonElement>();
     }
-
-    tooltip = (
-        <Tooltip
-            id='actions-menu-icon-tooltip'
-            className='hidden-xs'
-        >
-            <FormattedMessage
-                id='post_info.tooltip.actions'
-                defaultMessage='Message actions'
-            />
-        </Tooltip>
-    );
 
     componentDidUpdate(prevProps: Props) {
         if (this.props.isMenuOpen && !prevProps.isMenuOpen) {
@@ -391,7 +378,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     className='hidden-xs'
                     delayShow={500}
                     placement='top'
-                    overlay={this.tooltip}
+                    overlay={undefined}
                     rootClose={true}
                 >
                     <button

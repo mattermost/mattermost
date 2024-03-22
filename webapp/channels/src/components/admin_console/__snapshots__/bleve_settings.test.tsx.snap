@@ -235,17 +235,6 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -486,17 +475,6 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>

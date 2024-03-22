@@ -3,8 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useState} from 'react';
-import {Tooltip} from 'react-bootstrap';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -224,24 +223,7 @@ const NewChannelModal = () => {
         <OverlayTrigger
             delayShow={Constants.OVERLAY_TIME_DELAY}
             placement='right'
-            overlay={(
-                <Tooltip
-                    id='new-channel-with-board-tooltip'
-                >
-                    <div className='title'>
-                        <FormattedMessage
-                            id={'channel_modal.create_board.tooltip_title'}
-                            defaultMessage={'Manage your task with a board'}
-                        />
-                    </div>
-                    <div className='description'>
-                        <FormattedMessage
-                            id={'channel_modal.create_board.tooltip_description'}
-                            defaultMessage={'Use any of our templates to manage your tasks or start from scratch with your own!'}
-                        />
-                    </div>
-                </Tooltip>
-            )}
+            overlay={null}
         >
             <i className='icon-information-outline'/>
         </OverlayTrigger>

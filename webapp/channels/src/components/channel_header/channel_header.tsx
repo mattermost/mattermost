@@ -4,7 +4,6 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {MouseEvent, ReactNode, RefObject} from 'react';
-import {Overlay} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
@@ -25,7 +24,6 @@ import {statusDropdownMessages} from 'components/status_dropdown/status_dropdown
 import StatusIcon from 'components/status_icon';
 import Timestamp from 'components/timestamp';
 import Tooltip from 'components/tooltip';
-import Popover from 'components/widgets/popover';
 
 import CallButton from 'plugins/call_button';
 import ChannelHeaderPlug from 'plugins/channel_header_plug';
@@ -423,26 +421,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             const imageProps = {
                 hideUtilities: true,
             };
-            const popoverContent = (
-                <Popover
-                    id='header-popover'
-                    popoverStyle='info'
-                    popoverSize='lg'
-                    style={{transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`, maxWidth: this.state.channelHeaderPoverWidth}}
-                    placement='bottom'
-                    className={classNames('channel-header__popover', {'chanel-header__popover--lhs_offset': this.props.hasMoreThanOneTeam})}
-                >
-                    <span
-                        onClick={this.handleFormattedTextClick}
-                    >
-                        <Markdown
-                            message={headerText}
-                            options={this.getPopoverMarkdownOptions(channelNamesMap)}
-                            imageProps={imageProps}
-                        />
-                    </span>
-                </Popover>
-            );
 
             headerTextContainer = (
                 <div
@@ -490,7 +468,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                         onMouseOut={() => this.setState({showChannelHeaderPopover: false})}
                         ref={this.headerDescriptionRef}
                     >
-                        <Overlay
+                        {/* <Overlay
                             show={this.state.showChannelHeaderPopover}
                             placement='bottom'
                             rootClose={true}
@@ -499,7 +477,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             onHide={() => this.setState({showChannelHeaderPopover: false})}
                         >
                             {popoverContent}
-                        </Overlay>
+                        </Overlay> */}
 
                         <Markdown
                             message={headerText}

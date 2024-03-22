@@ -158,49 +158,6 @@ exports[`components/ChannelHeader should match snapshot with last active display
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="not the bot description"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -432,49 +389,6 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="not the bot description"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -672,49 +586,6 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="header"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -910,49 +781,6 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="header"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -1148,49 +976,6 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="header"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -1386,49 +1171,6 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="header"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -1624,49 +1366,6 @@ exports[`components/ChannelHeader should render archived view 1`] = `
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="header"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -1894,49 +1593,6 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="header"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -2132,49 +1788,6 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="header"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -2422,49 +2035,6 @@ exports[`components/ChannelHeader should render properly when custom status is e
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="not the bot description"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -2734,49 +2304,6 @@ exports[`components/ChannelHeader should render properly when custom status is s
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="not the bot description"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -2974,49 +2501,6 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="header"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -3212,49 +2696,6 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="header"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -3454,53 +2895,6 @@ exports[`components/ChannelHeader should render properly when populated with cha
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="See ~test"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": Object {
-                          "test": Object {
-                            "display_name": "Test",
-                          },
-                        },
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -3714,49 +3108,6 @@ exports[`components/ChannelHeader should render shared view 1`] = `
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="header"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {
@@ -3962,49 +3313,6 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
             onMouseOut={[Function]}
             onMouseOver={[Function]}
           >
-            <Overlay
-              animation={[Function]}
-              onHide={[Function]}
-              placement="bottom"
-              rootClose={true}
-              show={false}
-              target={null}
-            >
-              <Memo(Popover)
-                className="channel-header__popover"
-                id="header-popover"
-                placement="bottom"
-                popoverSize="lg"
-                popoverStyle="info"
-                style={
-                  Object {
-                    "maxWidth": 0,
-                    "transform": "translate(0px, 0px)",
-                  }
-                }
-              >
-                <span
-                  onClick={[Function]}
-                >
-                  <Connect(Markdown)
-                    imageProps={
-                      Object {
-                        "hideUtilities": true,
-                      }
-                    }
-                    message="header"
-                    options={
-                      Object {
-                        "atMentions": true,
-                        "channelNamesMap": undefined,
-                        "mentionHighlight": false,
-                        "singleline": false,
-                      }
-                    }
-                  />
-                </span>
-              </Memo(Popover)>
-            </Overlay>
             <Connect(Markdown)
               imageProps={
                 Object {

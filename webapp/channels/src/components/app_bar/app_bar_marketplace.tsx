@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {Tooltip} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -36,11 +35,7 @@ const AppBarMarketplace = () => {
             trigger={['hover', 'focus']}
             delayShow={Constants.OVERLAY_TIME_DELAY}
             placement='left'
-            overlay={(
-                <Tooltip id='tooltip-app-bar-marketplace'>
-                    <span>{label}</span>
-                </Tooltip>
-            )}
+            overlay={null}
         >
             <button
                 key='app_bar_marketplace'

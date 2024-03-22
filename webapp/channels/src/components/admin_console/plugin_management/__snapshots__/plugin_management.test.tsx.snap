@@ -332,17 +332,6 @@ exports[`components/PluginManagement should match snapshot 1`] = `
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -680,17 +669,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -776,17 +754,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -1124,17 +1091,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -1474,17 +1430,6 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -1826,17 +1771,6 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -2174,17 +2108,6 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -2499,17 +2422,6 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -2847,17 +2759,6 @@ exports[`components/PluginManagement should match snapshot, text entered into th
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -3202,17 +3103,6 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -3613,17 +3503,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -3992,17 +3871,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -4371,17 +4239,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -4750,17 +4607,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -5161,17 +5007,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>

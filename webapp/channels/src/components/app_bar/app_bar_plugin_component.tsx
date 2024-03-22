@@ -3,7 +3,6 @@
 
 import classNames from 'classnames';
 import React, {useState, useEffect} from 'react';
-import {Tooltip} from 'react-bootstrap';
 import {useSelector} from 'react-redux';
 
 import {getCurrentChannel, getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
@@ -55,12 +54,7 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
     };
 
     const buttonId = `app-bar-icon-${component.pluginId}`;
-    const tooltipText = component.tooltipText || component.dropdownText || component.pluginId;
-    const tooltip = (
-        <Tooltip id={'pluginTooltip-' + buttonId}>
-            <span>{tooltipText}</span>
-        </Tooltip>
-    );
+    const tooltip = null;
 
     const iconUrl = component.iconUrl;
     let content: React.ReactNode = (

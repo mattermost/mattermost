@@ -26,41 +26,14 @@ exports[`components/QuickInput should render clear button with customized toolti
       ]
     }
   >
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={400}
-      overlay={
-        <OverlayWrapper
-          id="InputClearTooltip"
-          intl={null}
-        >
-          <span>
-            Custom
-          </span>
-        </OverlayWrapper>
-      }
-      placement="bottom"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
+    <span
+      aria-hidden="true"
+      className="input-clear-x"
     >
-      <span
-        aria-hidden="true"
-        className="input-clear-x"
-        onBlur={[Function]}
-        onClick={null}
-        onFocus={[Function]}
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <i
-          className="icon icon-close-circle"
-        />
-      </span>
-    </OverlayTrigger>
+      <i
+        className="icon icon-close-circle"
+      />
+    </span>
   </OverlayTrigger>
 </div>
 `;
@@ -89,39 +62,14 @@ exports[`components/QuickInput should render clear button with customized toolti
       ]
     }
   >
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={400}
-      overlay={
-        <OverlayWrapper
-          id="InputClearTooltip"
-          intl={null}
-        >
-          Custom
-        </OverlayWrapper>
-      }
-      placement="bottom"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
+    <span
+      aria-hidden="true"
+      className="input-clear-x"
     >
-      <span
-        aria-hidden="true"
-        className="input-clear-x"
-        onBlur={[Function]}
-        onClick={null}
-        onFocus={[Function]}
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <i
-          className="icon icon-close-circle"
-        />
-      </span>
-    </OverlayTrigger>
+      <i
+        className="icon icon-close-circle"
+      />
+    </span>
   </OverlayTrigger>
 </div>
 `;
@@ -153,42 +101,14 @@ exports[`components/QuickInput should render clear button with default tooltip t
       ]
     }
   >
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={400}
-      overlay={
-        <OverlayWrapper
-          id="InputClearTooltip"
-          intl={null}
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Clear"
-            id="input.clear"
-          />
-        </OverlayWrapper>
-      }
-      placement="bottom"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
+    <span
+      aria-hidden="true"
+      className="input-clear-x"
     >
-      <span
-        aria-hidden="true"
-        className="input-clear-x"
-        onBlur={[Function]}
-        onClick={null}
-        onFocus={[Function]}
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
-      >
-        <i
-          className="icon icon-close-circle"
-        />
-      </span>
-    </OverlayTrigger>
+      <i
+        className="icon icon-close-circle"
+      />
+    </span>
   </OverlayTrigger>
 </div>
 `;

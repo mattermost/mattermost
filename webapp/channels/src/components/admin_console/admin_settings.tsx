@@ -2,14 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Overlay} from 'react-bootstrap';
 
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
-import Tooltip from 'components/tooltip';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {localizeMessage} from 'utils/utils';
@@ -259,7 +257,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
                         >
                             <FormError error={this.state.serverError}/>
                         </div>
-                        <Overlay
+                        {/* <Overlay
                             show={this.state.errorTooltip}
                             placement='top'
                             target={this.errorMessageRef.current as HTMLElement}
@@ -267,7 +265,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
                             <Tooltip id='error-tooltip' >
                                 {this.state.serverError}
                             </Tooltip>
-                        </Overlay>
+                        </Overlay> */}
                     </div>
                 </div>
             </form>

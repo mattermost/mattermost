@@ -3,15 +3,11 @@
 
 import React, {useState, useRef} from 'react';
 import type {MouseEvent} from 'react';
-import {Overlay} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 
 import type {Role} from '@mattermost/types/roles';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import Tooltip from 'components/tooltip';
-
-import {generateId} from 'utils/utils';
 
 import type {AdditionalValues} from './permissions_tree/types';
 import {rolesRolesStrings} from './strings/roles';
@@ -31,8 +27,8 @@ const PermissionDescription = ({
     additionalValues,
     inherited,
 }: Props): JSX.Element => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [open, setOpen] = useState(false);
-    const randomId = generateId();
     const contentRef = useRef<HTMLSpanElement>(null);
     const intl = useIntl();
 
@@ -69,17 +65,7 @@ const PermissionDescription = ({
     } else {
         content = description;
     }
-    let tooltip: JSX.Element | null = (
-        <Overlay
-            show={open}
-            placement='top'
-            target={(contentRef.current as HTMLSpanElement)}
-        >
-            <Tooltip id={randomId}>
-                {content}
-            </Tooltip>
-        </Overlay>
-    );
+    let tooltip: JSX.Element | null = null;
     if (!inherited && additionalValues) {
         tooltip = null;
     }

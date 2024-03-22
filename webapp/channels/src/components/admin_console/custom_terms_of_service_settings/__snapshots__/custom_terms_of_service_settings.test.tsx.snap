@@ -43,17 +43,6 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -102,17 +91,6 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -161,17 +139,6 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -220,17 +187,6 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>

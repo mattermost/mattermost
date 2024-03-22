@@ -593,93 +593,33 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
                     ]
                   }
                 >
-                  <OverlayTrigger
-                    defaultOverlayShown={false}
-                    delay={400}
-                    overlay={
-                      <OverlayWrapper
-                        intl={
-                          Object {
-                            "$t": [Function],
-                            "defaultFormats": Object {},
-                            "defaultLocale": "en",
-                            "defaultRichTextElements": undefined,
-                            "fallbackOnEmptyString": true,
-                            "formatDate": [Function],
-                            "formatDateTimeRange": [Function],
-                            "formatDateToParts": [Function],
-                            "formatDisplayName": [Function],
-                            "formatList": [Function],
-                            "formatListToParts": [Function],
-                            "formatMessage": [Function],
-                            "formatNumber": [Function],
-                            "formatNumberToParts": [Function],
-                            "formatPlural": [Function],
-                            "formatRelativeTime": [Function],
-                            "formatTime": [Function],
-                            "formatTimeToParts": [Function],
-                            "formats": Object {},
-                            "formatters": Object {
-                              "getDateTimeFormat": [Function],
-                              "getDisplayNames": [Function],
-                              "getListFormat": [Function],
-                              "getMessageFormat": [Function],
-                              "getNumberFormat": [Function],
-                              "getPluralRules": [Function],
-                              "getRelativeTimeFormat": [Function],
-                            },
-                            "locale": "en",
-                            "messages": Object {},
-                            "onError": [Function],
-                            "onWarn": [Function],
-                            "textComponent": "span",
-                            "timeZone": "Etc/UTC",
-                            "wrapRichTextChunksInFragment": undefined,
-                          }
-                        }
-                      />
-                    }
-                    placement="bottom"
-                    trigger={
-                      Array [
-                        "hover",
-                        "focus",
-                      ]
-                    }
+                  <div
+                    className="disabled-overlay-wrapper"
                   >
-                    <div
-                      className="disabled-overlay-wrapper"
-                      onBlur={[Function]}
-                      onClick={null}
-                      onFocus={[Function]}
-                      onMouseOut={[Function]}
-                      onMouseOver={[Function]}
-                    >
-                      <button
-                        className="btn btn-danger ArchiveButton ArchiveButton___archived cloud-limits-disabled"
-                        disabled={true}
-                        onClick={[Function]}
-                        style={
-                          Object {
-                            "pointerEvents": "none",
-                          }
+                    <button
+                      className="btn btn-danger ArchiveButton ArchiveButton___archived cloud-limits-disabled"
+                      disabled={true}
+                      onClick={[Function]}
+                      style={
+                        Object {
+                          "pointerEvents": "none",
                         }
-                        type="button"
+                      }
+                      type="button"
+                    >
+                      <i
+                        className="icon icon-archive-arrow-up-outline"
+                      />
+                      <FormattedMessage
+                        defaultMessage="Unarchive Team"
+                        id="admin.team_settings.team_details.unarchiveTeam"
                       >
-                        <i
-                          className="icon icon-archive-arrow-up-outline"
-                        />
-                        <FormattedMessage
-                          defaultMessage="Unarchive Team"
-                          id="admin.team_settings.team_details.unarchiveTeam"
-                        >
-                          <span>
-                            Unarchive Team
-                          </span>
-                        </FormattedMessage>
-                      </button>
-                    </div>
-                  </OverlayTrigger>
+                        <span>
+                          Unarchive Team
+                        </span>
+                      </FormattedMessage>
+                    </button>
+                  </div>
                 </OverlayTrigger>
               </WithTooltip>
               <button

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, {useRef, useState, useMemo, type ComponentProps} from 'react';
-import {Overlay} from 'react-bootstrap';
 
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -41,7 +41,7 @@ export const AtMention = (props: Props) => {
     const [show, setShow] = useState(false);
     const [groupUser, setGroupUser] = useState<UserProfile | undefined>();
     const [target, setTarget] = useState<HTMLAnchorElement | undefined>();
-    const [placement, setPlacement] = useState<ComponentProps<typeof Overlay>['placement']>('right');
+    const [placement, setPlacement] = useState('right');
 
     const [user, group] = useMemo(
         () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight),
@@ -158,54 +158,56 @@ export const AtMention = (props: Props) => {
         displayName = group.name;
     }
 
-    return (
-        <>
-            <span
-                className={highlightMention ? 'mention--highlight' : undefined}
-            >
-                <Overlay
-                    placement={placement}
-                    show={show}
-                    target={target}
-                    rootClose={true}
-                    onHide={hideOverlay}
-                >
-                    {getPopOver(user, group)}
-                </Overlay>
-                <Overlay
-                    placement={placement}
-                    show={groupUser !== undefined}
-                    target={target}
-                    onHide={hideGroupUserOverlay}
-                    rootClose={true}
-                >
-                    {groupUser ? (
-                        <ProfilePopover
-                            className='user-profile-popover'
-                            userId={groupUser.id}
-                            src={Client4.getProfilePictureUrl(groupUser.id, groupUser.last_picture_update)}
-                            channelId={props.channelId}
-                            hide={hideGroupUserOverlay}
-                            returnFocus={returnFocus}
-                        />
-                    ) : <span/> // prevents blank-screen crash when closing groupUser ProfilePopover
-                    }
-                </Overlay>
-                <a
-                    onClick={handleClick}
-                    onKeyDown={handleKeyDown}
-                    className={group ? 'group-mention-link' : 'mention-link'}
-                    ref={ref}
-                    aria-haspopup='dialog'
-                    role='button'
-                    tabIndex={0}
-                >
-                    {'@' + displayName}
-                </a>
-            </span>
-            {suffix}
-        </>
-    );
+    return null;
+
+    // return (
+    //     <>
+    //         <span
+    //             className={highlightMention ? 'mention--highlight' : undefined}
+    //         >
+    //             <Overlay
+    //                 placement={placement}
+    //                 show={show}
+    //                 target={target}
+    //                 rootClose={true}
+    //                 onHide={hideOverlay}
+    //             >
+    //                 {getPopOver(user, group)}
+    //             </Overlay>
+    //             <Overlay
+    //                 placement={placement}
+    //                 show={groupUser !== undefined}
+    //                 target={target}
+    //                 onHide={hideGroupUserOverlay}
+    //                 rootClose={true}
+    //             >
+    //                 {groupUser ? (
+    //                     <ProfilePopover
+    //                         className='user-profile-popover'
+    //                         userId={groupUser.id}
+    //                         src={Client4.getProfilePictureUrl(groupUser.id, groupUser.last_picture_update)}
+    //                         channelId={props.channelId}
+    //                         hide={hideGroupUserOverlay}
+    //                         returnFocus={returnFocus}
+    //                     />
+    //                 ) : <span/> // prevents blank-screen crash when closing groupUser ProfilePopover
+    //                 }
+    //             </Overlay>
+    //             <a
+    //                 onClick={handleClick}
+    //                 onKeyDown={handleKeyDown}
+    //                 className={group ? 'group-mention-link' : 'mention-link'}
+    //                 ref={ref}
+    //                 aria-haspopup='dialog'
+    //                 role='button'
+    //                 tabIndex={0}
+    //             >
+    //                 {'@' + displayName}
+    //             </a>
+    //         </span>
+    //         {suffix}
+    //     </>
+    // );
 };
 
 export default React.memo(AtMention);
