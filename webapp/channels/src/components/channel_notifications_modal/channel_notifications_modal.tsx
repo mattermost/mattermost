@@ -43,10 +43,8 @@ type Props = PropsFromRedux & {
 };
 
 function getUseSameDesktopSetting(currentUserNotifyProps: UserNotifyProps, channelMemberNotifyProps?: ChannelMemberNotifyProps) {
-    const isSameAsDesktop = channelMemberNotifyProps ? channelMemberNotifyProps?.desktop === channelMemberNotifyProps?.push :
-        currentUserNotifyProps.push === currentUserNotifyProps.desktop;
-    const isSameAsDesktopThreads = channelMemberNotifyProps ? channelMemberNotifyProps?.desktop_threads === channelMemberNotifyProps?.push_threads :
-        currentUserNotifyProps.push_threads === currentUserNotifyProps.desktop_threads;
+    const isSameAsDesktop = channelMemberNotifyProps ? channelMemberNotifyProps?.desktop === channelMemberNotifyProps?.push : currentUserNotifyProps.push === currentUserNotifyProps.desktop;
+    const isSameAsDesktopThreads = channelMemberNotifyProps ? channelMemberNotifyProps?.desktop_threads === channelMemberNotifyProps?.push_threads : currentUserNotifyProps.push_threads === currentUserNotifyProps.desktop_threads;
     return isSameAsDesktop && isSameAsDesktopThreads;
 }
 
@@ -106,16 +104,34 @@ export default function ChannelNotificationsModal(props: Props) {
         setSettings((prevSettings) => ({...prevSettings, push: prevSettings.desktop, push_threads: prevSettings.desktop_threads}));
     }, []);
 
-    const MuteIgnoreSectionContent = (
+    const MuteOrIgnoreSectionContent = (
         <>
             <CheckboxSettingItem
-                description={utils.MuteChannelDesc}
+                inputFieldTitle={
+                    <FormattedMessage
+                        id='channel_notifications.muteChannelTitle'
+                        defaultMessage='Mute channel'
+                    />
+                }
+                description={formatMessage({
+                    id: 'channel_notifications.muteChannelDesc',
+                    defaultMessage: 'Turns off notifications for this channel. You\'ll still see badges if you\'re mentioned.',
+                })}
                 inputFieldValue={settings.mark_unread === 'mention'}
                 inputFieldData={utils.MuteChannelInputFieldData}
                 handleChange={(e) => handleChange({mark_unread: e ? 'mention' : 'all'})}
             />
             <CheckboxSettingItem
-                description={utils.IgnoreMentionsDesc}
+                inputFieldTitle={
+                    <FormattedMessage
+                        id='channel_notifications.ignoreMentionsTitle'
+                        defaultMessage='Ignore mentions for @channel, @here and @all'
+                    />
+                }
+                description={formatMessage({
+                    id: 'channel_notifications.ignoreMentionsDesc',
+                    defaultMessage: 'When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel',
+                })}
                 inputFieldValue={settings.ignore_channel_mentions === 'on'}
                 inputFieldData={utils.IgnoreMentionsInputFieldData}
                 handleChange={(e) => handleChange({ignore_channel_mentions: e ? 'on' : 'off'})}
@@ -126,16 +142,28 @@ export default function ChannelNotificationsModal(props: Props) {
     const DesktopNotificationsSectionContent = (
         <>
             <RadioSettingItem
-                title={utils.NotifyMeTitle}
+                title={formatMessage({
+                    id: 'channel_notifications.NotifyMeTitle',
+                    defaultMessage: 'Notify me about…',
+                })}
                 inputFieldValue={settings.desktop}
                 inputFieldData={utils.desktopNotificationInputFieldData(props.currentUser.notify_props.desktop)}
                 handleChange={(e) => handleChange({desktop: e.target.value})}
             />
             {props.collapsedReplyThreads && settings.desktop === 'mention' &&
                 <CheckboxSettingItem
-                    title={utils.ThreadsReplyTitle}
+                    title={formatMessage({
+                        id: 'channel_notifications.ThreadsReplyTitle',
+                        defaultMessage: 'Thread reply notifications',
+                    })}
                     inputFieldValue={settings.desktop_threads === 'all'}
                     inputFieldData={utils.DesktopReplyThreadsInputFieldData}
+                    inputFieldTitle={
+                        <FormattedMessage
+                            id='channel_notifications.checkbox.threadsReplyTitle'
+                            defaultMessage="Notify me about replies to threads I\'m following"
+                        />
+                    }
                     handleChange={(e) => handleChange({desktop_threads: e ? 'all' : 'mention'})}
                 />}
         </>
@@ -144,6 +172,12 @@ export default function ChannelNotificationsModal(props: Props) {
     const MobileNotificationsSectionContent = (
         <>
             <CheckboxSettingItem
+                inputFieldTitle={
+                    <FormattedMessage
+                        id='channel_notifications.checkbox.sameMobileSettingsDesktop'
+                        defaultMessage='Use the same notification settings as desktop'
+                    />
+                }
                 inputFieldValue={mobileSettingsSameAsDesktop}
                 inputFieldData={utils.sameMobileSettingsDesktopInputFieldData}
                 handleChange={() => handleMobileSettingsChange()}
@@ -151,14 +185,26 @@ export default function ChannelNotificationsModal(props: Props) {
             {!mobileSettingsSameAsDesktop && (
                 <>
                     <RadioSettingItem
-                        title={utils.NotifyMeTitle}
+                        title={formatMessage({
+                            id: 'channel_notifications.NotifyMeTitle',
+                            defaultMessage: 'Notify me about…',
+                        })}
                         inputFieldValue={settings.push}
                         inputFieldData={utils.mobileNotificationInputFieldData(props.currentUser.notify_props.push)}
                         handleChange={(e) => handleChange({push: e.target.value})}
                     />
                     {props.collapsedReplyThreads && settings.push === 'mention' &&
                     <CheckboxSettingItem
-                        title={utils.ThreadsReplyTitle}
+                        title={formatMessage({
+                            id: 'channel_notifications.ThreadsReplyTitle',
+                            defaultMessage: 'Thread reply notifications',
+                        })}
+                        inputFieldTitle={
+                            <FormattedMessage
+                                id='channel_notifications.checkbox.threadsReplyTitle'
+                                defaultMessage="Notify me about replies to threads I\'m following"
+                            />
+                        }
                         inputFieldValue={settings.push_threads === 'all'}
                         inputFieldData={utils.MobileReplyThreadsInputFieldData}
                         handleChange={(e) => handleChange({push_threads: e ? 'all' : 'mention'})}
@@ -169,13 +215,17 @@ export default function ChannelNotificationsModal(props: Props) {
     );
 
     const AutoFollowThreadsSectionContent = (
-        <>
-            <CheckboxSettingItem
-                inputFieldValue={settings.channel_auto_follow_threads === 'on'}
-                inputFieldData={utils.AutoFollowThreadsInputFieldData}
-                handleChange={(e) => handleChange({channel_auto_follow_threads: e ? 'on' : 'off'})}
-            />
-        </>
+        <CheckboxSettingItem
+            inputFieldTitle={
+                <FormattedMessage
+                    id='channel_notifications.checkbox.autoFollowThreadsTitle'
+                    defaultMessage='Automatically follow threads in this channel'
+                />
+            }
+            inputFieldValue={settings.channel_auto_follow_threads === 'on'}
+            inputFieldData={utils.AutoFollowThreadsInputFieldData}
+            handleChange={(e) => handleChange({channel_auto_follow_threads: e ? 'on' : 'off'})}
+        />
     );
 
     function handleSave() {
@@ -229,25 +279,38 @@ export default function ChannelNotificationsModal(props: Props) {
         );
     }, [props.currentUser, settings]);
 
-    const settingsAndAlertBanner = settings.mark_unread === 'all' ? (
+    const desktopAndMobileNotificationSectionContent = settings.mark_unread === 'all' ? (
         <>
             <div className='channel-notifications-settings-modal__divider'/>
             <ModalSection
-                title={utils.DesktopNotificationsSectionTitle}
-                description={utils.DesktopNotificationsSectionDesc}
-                content={DesktopNotificationsSectionContent}
+                title={formatMessage({
+                    id: 'channel_notifications.desktopNotificationsTitle',
+                    defaultMessage: 'Desktop Notifications',
+                })}
                 titleSuffix={resetToDefaultBtn('desktop')}
+                description={formatMessage({
+                    id: 'channel_notifications.desktopNotificationsDesc',
+                    defaultMessage: 'Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.',
+                })}
+                content={DesktopNotificationsSectionContent}
             />
             <div className='channel-notifications-settings-modal__divider'/>
             <ModalSection
-                title={utils.MobileNotificationsSectionTitle}
-                description={utils.MobileNotificationsSectionDesc}
-                content={MobileNotificationsSectionContent}
+                title={formatMessage({
+                    id: 'channel_notifications.mobileNotificationsTitle',
+                    defaultMessage: 'Mobile Notifications',
+                })}
                 titleSuffix={resetToDefaultBtn('push')}
+                description={formatMessage({
+                    id: 'channel_notifications.mobileNotificationsDesc',
+                    defaultMessage: 'Notification alerts are pushed to your mobile device when there is activity in Mattermost.',
+                })}
+                content={MobileNotificationsSectionContent}
             />
         </>
     ) : (
         <AlertBanner
+            id='channelNotificationsMutedBanner'
             mode='info'
             variant='app'
             customIcon={
@@ -292,16 +355,25 @@ export default function ChannelNotificationsModal(props: Props) {
             />
             <main className='channel-notifications-settings-modal__body'>
                 <ModalSection
-                    title={utils.MuteAndIgnoreSectionTitle}
-                    content={MuteIgnoreSectionContent}
+                    title={formatMessage({
+                        id: 'channel_notifications.muteAndIgnore',
+                        defaultMessage: 'Mute or ignore',
+                    })}
+                    content={MuteOrIgnoreSectionContent}
                 />
-                {settingsAndAlertBanner}
+                {desktopAndMobileNotificationSectionContent}
                 {props.collapsedReplyThreads &&
                     <>
                         <div className='channel-notifications-settings-modal__divider'/>
                         <ModalSection
-                            title={utils.AutoFollowThreadsTitle}
-                            description={utils.AutoFollowThreadsDesc}
+                            title={formatMessage({
+                                id: 'channel_notifications.autoFollowThreadsTitle',
+                                defaultMessage: 'Follow all threads in this channel',
+                            })}
+                            description={formatMessage({
+                                id: 'channel_notifications.autoFollowThreadsDesc',
+                                defaultMessage: 'When enabled, all new replies in this channel will be automatically followed and will appear in your Threads view.',
+                            })}
                             content={AutoFollowThreadsSectionContent}
                         />
                     </>
@@ -314,8 +386,8 @@ export default function ChannelNotificationsModal(props: Props) {
                     </span>
                 }
                 <button
+                    className='btn btn-tertiary btn-md'
                     onClick={handleHide}
-                    className='channel-notifications-settings-modal__cancel-btn'
                 >
                     <FormattedMessage
                         id='generic_btn.cancel'
@@ -323,7 +395,7 @@ export default function ChannelNotificationsModal(props: Props) {
                     />
                 </button>
                 <button
-                    className={'channel-notifications-settings-modal__save-btn'}
+                    className='btn btn-primary btn-md'
                     onClick={handleSave}
                 >
                     <FormattedMessage

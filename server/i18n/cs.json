@@ -2460,20 +2460,12 @@
     "translation": "Vaše licence nepodporuje SAML ověřování."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Při ověřování odpovědi od Identity Providera došlo k chybě. Obraťte se na správce systému."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Při analýze odpovědi poskytovatele identit došlo k chybě. Obraťte se na správce systému."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Od Identity Providera jsme obdrželi prázdnou odpověď."
-  },
-  {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML přihlášení nebylo úspěšné, protože při dešifrování odpovědi od Identity Providera došlo k chybě. Prosím obraťte se na správce systému."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
@@ -2484,16 +2476,8 @@
     "translation": "Přihlášení SAML bylo neúspěšné, protože veřejný klíč Service Providera nebyl nalezen. Obraťte se na správce systému."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Soubor s veřejný certifikátem Identity Providera nebyl nalezen. Obraťte se na správce systému."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Přihlášení SAML bylo neúspěšné, protože šifrování není povoleno. Obraťte se na správce systému."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Při kódování požadavku na poskytovatele totožnosti došlo k chybě. Obraťte se na správce systému."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -7454,5 +7438,9 @@
   {
     "id": "api.command_share.hint",
     "translation": "[akce]"
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL adresa je příliš dlouhá"
   }
 ]

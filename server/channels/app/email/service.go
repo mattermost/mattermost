@@ -162,12 +162,22 @@ type ServiceInterface interface {
 	SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) error
 	SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
-	GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string
+	GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string
+	GenerateHyperlinkForChannels(postMessage, teamName, teamURL string) (string, error)
 	InitEmailBatching()
 	SendChangeUsernameEmail(newUsername, email, locale, siteURL string) error
 	CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, error)
 	SendIPFiltersChangedEmail(email string, userWhoChangedFilter *model.User, siteURL, portalURL, locale string, isWorkspaceOwner bool) error
+	SetStore(st store.Store)
 	Stop()
+}
+
+func (es *Service) Store() store.Store {
+	return es.store
+}
+
+func (es *Service) SetStore(st store.Store) {
+	es.store = st
 }
 
 func (es *Service) GetPerDayEmailRateLimiter() *throttled.GCRARateLimiter {

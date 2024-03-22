@@ -16,15 +16,15 @@ const (
 //
 // Call this when your plugin is ready to start.
 func ClientMain(pluginImplementation any) {
-	if impl, ok := pluginImplementation.(interface {
+	impl, ok := pluginImplementation.(interface {
 		SetAPI(api API)
 		SetDriver(driver Driver)
-	}); !ok {
+	})
+	if !ok {
 		panic("Plugin implementation given must embed plugin.MattermostPlugin")
-	} else {
-		impl.SetAPI(nil)
-		impl.SetDriver(nil)
 	}
+	impl.SetAPI(nil)
+	impl.SetDriver(nil)
 
 	pluginMap := map[string]plugin.Plugin{
 		"hooks": &hooksPlugin{hooks: pluginImplementation},

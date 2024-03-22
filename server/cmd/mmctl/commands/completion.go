@@ -213,7 +213,7 @@ func noCompletion(_ *cobra.Command, _ []string, _ string) ([]string, cobra.Shell
 
 type validateArgsFn func(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective)
 
-func validateArgsWithClient(fn validateArgsFn) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) { //nolint:unused // Remove with https://github.com/mattermost/mattermost/pull/25633
+func validateArgsWithClient(fn validateArgsFn) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		ctx, cancel := context.WithTimeout(context.Background(), shellCompleteTimeout)
 		defer cancel()
@@ -240,16 +240,16 @@ func fetchAndComplete[T any](f fetcher[T], m matcher[T]) validateArgsFn {
 
 		var page int
 		for {
-			ts, _, err := f(ctx, c, page, perPage)
+			entities, _, err := f(ctx, c, page, perPage)
 			if err != nil {
 				// Return what we got so far
 				return res, cobra.ShellCompDirectiveNoFileComp
 			}
 
-			for _, t := range ts {
-				for _, f := range m(t) {
-					if strings.HasPrefix(f, toComplete) {
-						res = append(res, f)
+			for _, e := range entities {
+				for _, field := range m(e) {
+					if strings.HasPrefix(field, toComplete) {
+						res = append(res, field)
 
 						// Only complete one field per entity.
 						break
@@ -262,7 +262,7 @@ func fetchAndComplete[T any](f fetcher[T], m matcher[T]) validateArgsFn {
 				break
 			}
 
-			if len(ts) < perPage {
+			if len(entities) < perPage {
 				break
 			}
 
