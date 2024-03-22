@@ -508,7 +508,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 		nErr = th.App.CreateDefaultMemberships(th.Context, model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: false})
 		require.Error(t, nErr)
-		assert.ErrorContains(t, nErr, "Failed to add team member for default team membership")
+		assert.ErrorContains(t, nErr, "failed to add team member for default team membership")
 		assert.ErrorContains(t, nErr, user1.Id)
 		assert.ErrorContains(t, nErr, user2.Id)
 	})
