@@ -2,7 +2,7 @@
 
 .alert {
     padding: 8px 12px;
-    border-radius: $border-rad;
+    border-radius: var(--radius-s);
 
     .alert-transparent {
         border-color: rgba(var(--center-channel-color-rgb), 0.12);

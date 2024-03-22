@@ -2048,8 +2048,6 @@
   "admin.security.password": "Slaptažodis",
   "admin.server_logs.CopyLog": "Kopijuoti žurnalą",
   "admin.server_logs.DataCopied": "Duomenys nukopijuoti",
-  "admin.server_logs.Export": "Eksportuoti",
-  "admin.server_logs.Exported": "Eksportuota",
   "admin.server_logs.LogEvent": "Įvykio žurnalas",
   "admin.service.CorsDebugLabel": "CORS derinimas:",
   "admin.service.attemptDescription": "Leidžiamų bandymų prisijungti skaičius, kol naudotojas bus užblokuotas ir prireiks iš naujo nustatyti slaptažodį el. paštu.",
