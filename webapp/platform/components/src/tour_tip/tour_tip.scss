@@ -6,7 +6,7 @@
             padding: 18px 24px 24px;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             background: var(--button-bg);
-            border-radius: 4px;
+            border-radius: var(--radius-s);
             color: var(--button-color);
             filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.12));
 
@@ -86,9 +86,7 @@
 
                 &.btn-tertiary {
                     background: rgba(var(--button-color-rgb), 0.08);
-                    border-radius: 4px;
                     color: var(--button-color);
-                    text-decoration: none;
 
                     &:hover {
                         background: rgba(var(--button-color-rgb), 0.12);
@@ -108,12 +106,9 @@
                 }
 
                 &.btn-icon {
-                    display: flex;
                     margin-right: -8px;
                     margin-left: 1.2rem;
-                    border-radius: 4px;
                     color: rgba(var(--button-color-rgb), 0.64);
-                    font-weight: 600;
 
                     &:hover {
                         background: rgba(var(--button-color-rgb), 0.08);
@@ -282,12 +277,12 @@
         align-items: center;
         justify-content: center;
         margin-top: 2.4rem;
-        border-radius: 4px;
+        border-radius: var(--radius-s);
 
         img {
             width: 100%;
             height: 136px;
-            border-radius: 4px;
+            border-radius: var(--radius-s);
             object-fit: cover;
         }
     }
@@ -313,7 +308,7 @@
         justify-content: center;
         margin-right: 4px;
         background: transparent;
-        border-radius: 50%;
+        border-radius: var(--radius-full);
 
         &:last-child {
             margin-right: 0;
@@ -331,7 +326,7 @@
         width: 6px;
         height: 6px;
         background: rgba(var(--button-color-rgb), 0.32);
-        border-radius: 6px;
+        border-radius: var(--radius-full);
 
         &.active {
             background: rgba(var(--button-color-rgb), 1);
