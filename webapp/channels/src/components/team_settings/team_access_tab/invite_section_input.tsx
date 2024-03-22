@@ -24,14 +24,6 @@ const translations = defineMessages({
         id: 'team_settings.openInviteDescription.error',
         defaultMessage: 'There was an error generating the invite code, please try again',
     },
-    CodeTitle: {
-        id: 'general_tab.codeTitle',
-        defaultMessage: 'Invite Code',
-    },
-    CodeLongDesc: {
-        id: 'general_tab.codeLongDesc',
-        defaultMessage: 'The Invite Code is part of the unique team invitation link which is sent to members you’re inviting to this team. Regenerating the code creates a new invitation link and invalidates the previous link.',
-    },
 });
 
 type Props = {
@@ -91,8 +83,15 @@ const InviteSectionInput = ({regenerateTeamInviteId}: Props) => {
     return (
         <BaseSettingItem
             className='access-invite-section'
-            title={translations.CodeTitle}
-            description={translations.CodeLongDesc}
+            title={formatMessage({
+                id: 'general_tab.codeTitle',
+                defaultMessage: 'Invite Code',
+            })}
+            description={formatMessage({
+                id: 'general_tab.codeLongDesc',
+                defaultMessage: 'The Invite Code is part of the unique team invitation link which is sent to members you’re inviting to this team. Regenerating the code creates a new invitation link and invalidates the previous link.',
+
+            })}
             content={inviteSectionInput}
             error={inviteIdError}
             descriptionAboveContent={true}
