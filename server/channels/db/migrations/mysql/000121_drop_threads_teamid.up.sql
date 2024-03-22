@@ -3,7 +3,7 @@ SET @preparedStatement = (SELECT IF(
 	SELECT row_format FROM INFORMATION_SCHEMA.TABLES
 	WHERE table_name = 'Threads'
 		AND table_schema = DATABASE()
-	) != 'Compact'
+	) != 'Compressed'
 AND
 	(
     SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
