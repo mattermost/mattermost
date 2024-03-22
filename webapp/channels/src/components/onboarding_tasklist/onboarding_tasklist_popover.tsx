@@ -85,6 +85,7 @@ export const TaskListPopover = ({
     const style = {
         ...popper,
         zIndex: isVisible ? 100 : -1,
+        position: 'fixed',
     };
     return (
         <>
