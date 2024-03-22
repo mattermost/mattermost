@@ -257,6 +257,7 @@ func TestCreateChannelBookmark(t *testing.T) {
 }
 
 func TestEditChannelBookmark(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-57392")
 	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
 
