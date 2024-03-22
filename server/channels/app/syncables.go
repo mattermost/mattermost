@@ -173,7 +173,7 @@ func (a *App) deleteGroupConstrainedTeamMemberships(rctx request.CTX, teamID *st
 
 		err := a.RemoveUserFromTeam(rctx, userTeam.TeamId, userTeam.UserId, "")
 		if err != nil {
-			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to add team member for default team membership: %w", err))
+			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to remove team member for default team membership: %w", err))
 			continue
 		}
 
@@ -201,7 +201,7 @@ func (a *App) deleteGroupConstrainedChannelMemberships(rctx request.CTX, channel
 
 		channel, err := a.GetChannel(rctx, userChannel.ChannelId)
 		if err != nil {
-			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to get channel for group contrained channel membership: %w", err))
+			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to get channel for group constrained channel membership: %w", err))
 			continue
 		}
 
@@ -211,7 +211,7 @@ func (a *App) deleteGroupConstrainedChannelMemberships(rctx request.CTX, channel
 			continue
 		}
 
-		logger.Info("Removed chanel member for group contrained channel membership")
+		logger.Info("Removed channel member for group constrained channel membership")
 	}
 
 	return multiErr.ErrorOrNil()
