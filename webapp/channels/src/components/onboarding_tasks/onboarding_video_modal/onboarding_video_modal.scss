@@ -23,11 +23,11 @@
         border: none;
 
         .close {
+            z-index: 1;
             top: -12px;
             right: -12px;
             border-radius: var(--radius-full);
             opacity: 0.8;
-            z-index: 1;
 
             :hover {
                 opacity: 1;
