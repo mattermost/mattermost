@@ -1541,6 +1541,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if _, err = c.App.UpdateActive(c.AppContext, user, active); err != nil {
 		c.Err = err
+		return
 	}
 
 	auditRec.Success()
