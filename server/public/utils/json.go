@@ -28,9 +28,8 @@ func HumanizeJSONError(err error, data []byte) error {
 		return NewHumanizedJSONError(syntaxError, data, syntaxError.Offset)
 	} else if unmarshalError, ok := err.(*json.UnmarshalTypeError); ok {
 		return NewHumanizedJSONError(unmarshalError, data, unmarshalError.Offset)
-	} else {
-		return err
 	}
+	return err
 }
 
 func NewHumanizedJSONError(err error, data []byte, offset int64) *HumanizedJSONError {
