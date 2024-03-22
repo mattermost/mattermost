@@ -136,8 +136,13 @@ var browserNames = map[uasurfer.BrowserName]string{
 func getBrowserName(ua *uasurfer.UserAgent, userAgentString string) string {
 	browser := ua.Browser.Name
 
-	if strings.Contains(userAgentString, "Mattermost") {
+	if strings.Contains(userAgentString, "Electron") ||
+		(strings.Contains(userAgentString, "Mattermost") && !strings.Contains(userAgentString, "Mattermost Mobile")) {
 		return "Desktop App"
+	}
+
+	if strings.Contains(userAgentString, "Mattermost Mobile") {
+		return "Mobile App"
 	}
 
 	if strings.Contains(userAgentString, "mmctl") {
@@ -153,7 +158,6 @@ func getBrowserName(ua *uasurfer.UserAgent, userAgentString string) string {
 	}
 
 	return browserNames[uasurfer.BrowserUnknown]
-
 }
 
 // min should be replaced by to go 1.21 built-in generic function, see MM-57356.

@@ -109,7 +109,7 @@ func TestGetBrowserName(t *testing.T) {
 		"Chrome",
 		"mmctl",
 		"Desktop App",
-		"Chrome",
+		"Desktop App",
 		"Edge",
 		"Internet Explorer",
 		"Internet Explorer",
