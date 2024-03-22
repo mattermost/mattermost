@@ -383,6 +383,11 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectURI, c
 }
 
 func (a *App) newSession(app *model.OAuthApp, user *model.User) (*model.Session, *model.AppError) {
+	if err := a.limitNumberOfSessions(user.Id); err != nil {
+		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil,
+			"", http.StatusInternalServerError).Wrap(err)
+	}
+
 	// Set new token an session
 	session := &model.Session{UserId: user.Id, Roles: user.Roles, IsOAuth: true}
 	session.GenerateCSRF()

@@ -18,7 +18,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+// maxSessionsLimit prevents a potential DOS caused by creating an unbounded number of sessions; MM-55320
+const maxSessionsLimit = 500
+
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
+	if appErr := a.limitNumberOfSessions(session.UserId); appErr != nil {
+		return nil, appErr
+	}
+
 	session, err := a.ch.srv.platform.CreateSession(session)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -128,6 +135,40 @@ func (a *App) GetSessions(userID string) ([]*model.Session, *model.AppError) {
 	sessions, err := a.ch.srv.platform.GetSessions(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return sessions, nil
+}
+
+// limitNumberOfSessions revokes userId's least recently used sessions to keep the number below
+// maxSessionsLimit; MM-55320
+func (a *App) limitNumberOfSessions(userId string) *model.AppError {
+	const returnLimit = 100
+	sessions, appErr := a.GetLRUSessions(userId, returnLimit, maxSessionsLimit-1)
+	if appErr != nil {
+		return model.NewAppError("limitNumberOfSessions", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	// Revoke any sessions over the limit to make room for new sessions
+	for _, sess := range sessions {
+		if err := a.RevokeSession(sess); err != nil {
+			return model.NewAppError("limitNumberOfSessions", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		mlog.Debug("Session revoked; user's number of sessions were over the maxSessionsLimit",
+			mlog.String("user_id", userId),
+			mlog.String("session_id", sess.Id))
+	}
+
+	return nil
+}
+
+// GetLRUSessions returns the Least Recently Used sessions for userID, skipping over the newest 'offset'
+// number of sessions. E.g., if userID has 100 sessions, offset 98 will return the oldest 2 sessions.
+func (a *App) GetLRUSessions(userID string, limit uint64, offset uint64) ([]*model.Session, *model.AppError) {
+	sessions, err := a.ch.srv.platform.GetLRUSessions(userID, limit, offset)
+	if err != nil {
+		return nil, model.NewAppError("GetLRUSessions", "app.session.get_lru_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return sessions, nil
@@ -376,6 +417,10 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 
 	if user.DeleteAt != 0 {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_user_id="+user.Id, http.StatusUnauthorized)
+	}
+
+	if appErr := a.limitNumberOfSessions(user.Id); appErr != nil {
+		return nil, appErr
 	}
 
 	session := &model.Session{
