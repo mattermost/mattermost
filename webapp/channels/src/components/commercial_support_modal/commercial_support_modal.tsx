@@ -147,7 +147,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                     <div className='CommercialSupportModal'>
                         <FormattedMarkdownMessage
                             id='commercial_support.description'
-                            defaultMessage={'If you\'re experiencing issues, [submit a support ticket](!{supportLink}). To help with troubleshooting, it\'s recommended to download the support packet below that includes more details about your Mattermost environment.'}
+                            defaultMessage={'If you\'re experiencing issues, [submit a support ticket](!{supportLink}). To help with troubleshooting, it\'s recommended to download the Support Packet below that includes more details about your Mattermost environment.'}
                             values={{
                                 supportLink,
                             }}
@@ -158,7 +158,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                 message={
                                     <FormattedMarkdownMessage
                                         id='commercial_support.warning.banner'
-                                        defaultMessage='Before downloading the support packet, set **Output Logs to File** to **true** and set **File Log Level** to **DEBUG** [here](!/admin_console/environment/logging).'
+                                        defaultMessage='Before downloading the Support Packet, set **Output Logs to File** to **true** and set **File Log Level** to **DEBUG** [here](!/admin_console/environment/logging).'
                                     />
                                 }
                                 onDismiss={this.hideBannerWarning}
@@ -167,7 +167,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                         <div className='CommercialSupportModal__packet_contents_download'>
                             <FormattedMarkdownMessage
                                 id='commercial_support.download_contents'
-                                defaultMessage={'**Select your support packet contents to download**'}
+                                defaultMessage={'**Select your Support Packet contents to download**'}
                             />
                         </div>
                         {this.state.packetContents.map((item, index) => (
