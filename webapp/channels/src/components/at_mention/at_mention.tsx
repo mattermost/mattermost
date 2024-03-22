@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useRef, useState, useMemo, type ComponentProps} from 'react';
-import {Overlay} from 'react-bootstrap';
+import type {Overlay} from 'react-bootstrap';
 
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -10,7 +11,9 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
+import OverlayTrigger from 'components/overlay_trigger';
 import ProfilePopover from 'components/profile_popover';
+import ProfilePopoverController from 'components/profile_popover_controller';
 import UserGroupPopover from 'components/user_group_popover';
 import {MAX_LIST_HEIGHT, getListHeight, VIEWPORT_SCALE_FACTOR} from 'components/user_group_popover/group_member_list/group_member_list';
 
@@ -77,7 +80,8 @@ export const AtMention = (props: Props) => {
 
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
-        showOverlay(e.target as HTMLAnchorElement);
+
+        // showOverlay(e.target as HTMLAnchorElement);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
@@ -86,7 +90,8 @@ export const AtMention = (props: Props) => {
 
             // Prevent propagation so that the message textbox isn't focused
             e.stopPropagation();
-            showOverlay(e.target as HTMLAnchorElement);
+
+            // showOverlay(e.target as HTMLAnchorElement);
         }
     };
 
@@ -114,96 +119,151 @@ export const AtMention = (props: Props) => {
         ));
     };
 
-    const getPopOver = (user?: UserProfile, group?: Group) => {
-        if (user) {
-            return (
-                <ProfilePopover
-                    userId={user.id}
-                    userProfileSrc={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
-                    hide={hideOverlay}
-                    channelId={props.channelId}
-                />
-            );
-        }
-
-        if (group) {
-            return (
-                <UserGroupPopover
-                    group={group}
-                    hide={hideOverlay}
-                    showUserOverlay={showGroupUserOverlay}
-                    returnFocus={returnFocus}
-                />
-            );
-        }
-
-        return null;
-    };
-
     if (!user && !group) {
-        return <>{props.children}</>;
+        return null;
     }
-
-    let suffix = '';
-    let displayName = '';
-    let highlightMention = false; // only for user
 
     if (user) {
-        suffix = props.mentionName.substring(user.username.length);
-        displayName = displayUsername(user, props.teammateNameDisplay);
-        highlightMention = !props.disableHighlight && user.id === props.currentUserId;
-    } else if (group) { // if statement needed for union
-        suffix = props.mentionName.substring(group.name.length);
-        displayName = group.name;
-    }
+        const suffix = props.mentionName.substring(user.username.length);
+        const displayName = displayUsername(user, props.teammateNameDisplay);
+        const highlightMention = !props.disableHighlight && user.id === props.currentUserId;
 
-    return (
-        <>
-            <span
-                className={highlightMention ? 'mention--highlight' : undefined}
-            >
-                <Overlay
-                    placement={placement}
-                    show={show}
-                    target={target}
-                    rootClose={true}
-                    onHide={hideOverlay}
+        return (
+            <>
+                <ProfilePopoverController
+                    triggerComponentRootProps={{
+                        className: classNames({'mention--highlight': highlightMention}),
+                    }}
+                    userId={user.id}
+                    userProfileSrc={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
+                    channelId={props.channelId}
                 >
-                    {getPopOver(user, group)}
-                </Overlay>
-                <Overlay
-                    placement={placement}
-                    show={groupUser !== undefined}
-                    target={target}
-                    onHide={hideGroupUserOverlay}
-                    rootClose={true}
-                >
-                    {groupUser ? (
-                        <ProfilePopover
+                    {/* <Overlay
+                        placement={placement}
+                        show={show}
+                        target={target}
+                        rootClose={true}
+                        onHide={hideOverlay}
+                        >
+                        {getPopOver(user, group)}
+                        </Overlay>
+                        <Overlay
+                        placement={placement}
+                        show={groupUser !== undefined}
+                        target={target}
+                        onHide={hideGroupUserOverlay}
+                        rootClose={true}
+                        >
+                        {groupUser ? (
+                            <ProfilePopover
                             userId={groupUser.id}
                             userProfileSrc={Client4.getProfilePictureUrl(groupUser.id, groupUser.last_picture_update)}
                             channelId={props.channelId}
                             hide={hideGroupUserOverlay}
                             returnFocus={returnFocus}
-                        />
-                    ) : <span/> // prevents blank-screen crash when closing groupUser ProfilePopover
-                    }
-                </Overlay>
-                <a
-                    onClick={handleClick}
-                    onKeyDown={handleKeyDown}
-                    className={group ? 'group-mention-link' : 'mention-link'}
-                    ref={ref}
-                    aria-haspopup='dialog'
-                    role='button'
-                    tabIndex={0}
-                >
-                    {'@' + displayName}
-                </a>
-            </span>
-            {suffix}
-        </>
-    );
+                            />
+                            ) : <span/> // prevents blank-screen crash when closing groupUser ProfilePopover
+                        }
+                    </Overlay> */}
+                    <a
+                        onClick={handleClick}
+                        onKeyDown={handleKeyDown}
+                        className='mention-link'
+                        role='button'
+                        tabIndex={0}
+                    >
+                        {'@' + displayName}
+                    </a>
+                </ProfilePopoverController>
+                {suffix}
+            </>
+        );
+    } else if (group) {
+        const suffix = props.mentionName.substring(group.name.length);
+        const displayName = group.name;
+
+        return (
+            <>
+                <span >
+                    <OverlayTrigger
+                        trigger={['click']}
+                        placement={'top'}
+                        rootClose={true}
+                        overlay={
+                            <UserGroupPopover
+                                group={group}
+                                hide={hideOverlay}
+                                showUserOverlay={showGroupUserOverlay}
+                                returnFocus={returnFocus}
+                            />
+                        }
+                    >
+                        <a
+                            ref={ref}
+                            onClick={handleClick}
+                            onKeyDown={handleKeyDown}
+                            className='group-mention-link'
+                            aria-haspopup='dialog'
+                            role='button'
+                            tabIndex={0}
+                        >
+                            {'@' + displayName}
+                        </a>
+                    </OverlayTrigger>
+                </span>
+                {suffix}
+            </>
+        );
+    }
+
+    return <>{props.children}</>;
+
+    // return (
+    //     <>
+    //         <span
+    //         >
+    //             <Overlay
+    //                 placement={placement}
+    //                 show={show}
+    //                 target={target}
+    //                 rootClose={true}
+    //                 onHide={hideOverlay}
+    //             >
+    //                 {getPopOver(user, group)}
+    //             </Overlay>
+    //             <Overlay
+    //                 placement={placement}
+    //                 show={groupUser !== undefined}
+    //                 target={target}
+    //                 onHide={hideGroupUserOverlay}
+    //                 rootClose={true}
+    //             >
+    //                 {groupUser ? (
+    //                     <ProfilePopover
+    //                         userId={groupUser.id}
+    //                         userProfileSrc={Client4.getProfilePictureUrl(groupUser.id, groupUser.last_picture_update)}
+    //                         channelId={props.channelId}
+    //                         hide={hideGroupUserOverlay}
+    //                         returnFocus={returnFocus}
+    //                     />
+    //                 ) : <span/> // prevents blank-screen crash when closing groupUser ProfilePopover
+    //                 }
+    //             </Overlay>
+    //             <a
+    //                 onClick={handleClick}
+    //                 onKeyDown={handleKeyDown}
+    //                 className={group ? 'group-mention-link' : 'mention-link'}
+    //                 ref={ref}
+    //                 aria-haspopup='dialog'
+    //                 role='button'
+    //                 tabIndex={0}
+    //             >
+    //                 {'@' + displayName}
+    //             </a>
+    //         </span>
+    //         {suffix}
+    //     </>
+    // );
 };
 
 export default React.memo(AtMention);
