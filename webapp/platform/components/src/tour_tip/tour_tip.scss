@@ -52,6 +52,80 @@
                 }
             }
 
+            .btn {
+                &.btn-primary {
+                    background: var(--button-color);
+                    color: var(--button-bg) !important;
+
+                    &:hover:not(.disabled) {
+                        background:
+                            linear-gradient(
+                                0deg,
+                                rgba(var(--button-bg-rgb), 0.08) 0%,
+                                rgba(var(--button-bg-rgb), 0.08) 100%),
+                                var(--button-color);
+                    }
+
+                    &:active {
+                        background:
+                            linear-gradient(
+                                0deg,
+                                rgba(var(--button-bg-rgb), 0.16) 0%,
+                                rgba(var(--button-bg-rgb), 0.16) 100%),
+                                var(--button-color);
+                    }
+
+                    &:focus {
+                        box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+                    }
+
+                    .icon-chevron-right::before {
+                        margin-right: -7px;
+                    }
+                }
+
+                &.btn-tertiary {
+                    background: rgba(var(--button-color-rgb), 0.08);
+                    border-radius: 4px;
+                    color: var(--button-color);
+                    text-decoration: none;
+
+                    &:hover {
+                        background: rgba(var(--button-color-rgb), 0.12);
+                    }
+
+                    &:active {
+                        background: rgba(var(--button-color-rgb), 0.16);
+                    }
+
+                    &:focus {
+                        box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+                    }
+
+                    .icon-chevron-left::before {
+                        margin-left: -7px;
+                    }
+                }
+
+                &.btn-icon {
+                    display: flex;
+                    margin-right: -8px;
+                    margin-left: 1.2rem;
+                    border-radius: 4px;
+                    color: rgba(var(--button-color-rgb), 0.64);
+                    font-weight: 600;
+
+                    &:hover {
+                        background: rgba(var(--button-color-rgb), 0.08);
+                        color: rgba(var(--button-color-rgb), 0.8);
+                    }
+
+                    &.active {
+                        background: rgba(var(--button-color-rgb), 0.16);
+                    }
+                }
+            }
+
             // fix for https://mattermost.atlassian.net/browse/MM-41711. This covers the current placements we use for the channels and other tools tour
             &[data-placement^=right] > .tippy-arrow {
                 transform: translate3d(0, 14px, 0) !important;
@@ -176,40 +250,6 @@
             font-weight: 600;
             line-height: 2rem;
         }
-
-        &__close {
-            display: flex;
-            overflow: hidden;
-            width: 3.2rem;
-            height: 3.2rem;
-            align-items: center;
-            justify-content: center;
-            border: unset;
-            margin-right: -8px;
-            margin-left: 1.2rem;
-            background: transparent;
-            border-radius: 4px;
-            color: rgba(var(--button-color-rgb), 0.64);
-            font-weight: 600;
-
-            &:hover {
-                background: rgba(var(--button-color-rgb), 0.08);
-                color: rgba(var(--button-color-rgb), 0.8);
-            }
-
-            &.active {
-                background: rgba(var(--button-color-rgb), 0.08);
-            }
-
-            i {
-                font-size: 1.8rem;
-                line-height: 1.8rem;
-
-                ::before {
-                    margin-right: 0;
-                }
-            }
-        }
     }
 
     &__body {
@@ -252,73 +292,6 @@
         display: flex;
         flex-grow: 1;
         justify-content: flex-end;
-    }
-
-    &__btn {
-        display: flex;
-        height: 3.2rem;
-        align-items: center;
-        padding: 10px 16px;
-        border: none;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 600;
-        line-height: 12px;
-    }
-
-    &__confirm-btn {
-        background: var(--button-color);
-        color: var(--button-bg);
-
-        &:hover:not(.disabled) {
-            background:
-                linear-gradient(
-                    0deg,
-                    rgba(var(--button-bg-rgb), 0.08) 0%,
-                    rgba(var(--button-bg-rgb), 0.08) 100%),
-                    var(--button-color);
-        }
-
-        &:active {
-            background:
-                linear-gradient(
-                    0deg,
-                    rgba(var(--button-bg-rgb), 0.16) 0%,
-                    rgba(var(--button-bg-rgb), 0.16) 100%),
-                    var(--button-color);
-        }
-
-        &:focus {
-            box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
-        }
-
-        .icon-chevron-right::before {
-            margin-right: -7px;
-        }
-    }
-
-    &__cancel-btn {
-        margin-right: 4px;
-        background: rgba(var(--button-color-rgb), 0.08);
-        border-radius: 4px;
-        color: var(--button-color);
-        text-decoration: none;
-
-        &:hover {
-            background: rgba(var(--button-color-rgb), 0.12);
-        }
-
-        &:active {
-            background: rgba(var(--button-color-rgb), 0.16);
-        }
-
-        &:focus {
-            box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
-        }
-
-        .icon-chevron-left::before {
-            margin-left: -7px;
-        }
     }
 
     &__dot-ctr {
