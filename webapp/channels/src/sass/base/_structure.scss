@@ -153,7 +153,7 @@ body.app__body #root {
         display: grid;
         overflow:hidden;
         background-color: var(--sidebar-bg);
-        outline: solid 1px rgba(var(--center-channel-color-rgb),0.08);
+        outline: var(--border-light);
         margin: 0 8px 8px 0;
         border-radius: var(--radius-l);
         grid-area: main;
