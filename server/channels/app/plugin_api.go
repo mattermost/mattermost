@@ -743,6 +743,11 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 	return list, appErr
 }
 
+func (api *PluginAPI) GetPostsById(postIDs []string) ([]*model.Post, *model.AppError) {
+	posts, _, appErr := api.app.GetPostsByIds(postIDs)
+	return posts, appErr
+}
+
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	post, appErr := api.app.UpdatePost(api.ctx, post, false)
 	if post != nil {

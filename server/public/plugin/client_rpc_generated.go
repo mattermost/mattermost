@@ -4418,6 +4418,35 @@ func (s *apiRPCServer) GetPostsForChannel(args *Z_GetPostsForChannelArgs, return
 	return nil
 }
 
+type Z_GetPostsByIdArgs struct {
+	A []string
+}
+
+type Z_GetPostsByIdReturns struct {
+	A []*model.Post
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPostsById(postIDs []string) ([]*model.Post, *model.AppError) {
+	_args := &Z_GetPostsByIdArgs{postIDs}
+	_returns := &Z_GetPostsByIdReturns{}
+	if err := g.client.Call("Plugin.GetPostsById", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPostsById API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPostsById(args *Z_GetPostsByIdArgs, returns *Z_GetPostsByIdReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPostsById(postIDs []string) ([]*model.Post, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPostsById(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetPostsById called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetTeamStatsArgs struct {
 	A string
 }

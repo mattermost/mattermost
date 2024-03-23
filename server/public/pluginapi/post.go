@@ -143,6 +143,11 @@ func (p *PostService) GetPostsForChannel(channelID string, page, perPage int) (*
 	return postList, normalizeAppErr(appErr)
 }
 
+func (p *PostService) GetPostsById(postIDs []string) ([]*model.Post, error) {
+	posts, appErr := p.api.GetPostsById(postIDs)
+	return posts, normalizeAppErr(appErr)
+}
+
 // SearchPostsInTeam returns a list of posts in a specific team that match the given params.
 //
 // Minimum server version: 5.10

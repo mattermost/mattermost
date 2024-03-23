@@ -810,6 +810,13 @@ func (api *apiTimerLayer) GetPostsForChannel(channelId string, page, perPage int
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetPostsById(postIDs []string) ([]*model.Post, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPostsById(postIDs)
+	api.recordTime(startTime, "GetPostsById", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetTeamStats(teamID string) (*model.TeamStats, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetTeamStats(teamID)

@@ -745,6 +745,12 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError)
 
+	// GetPostsById gets a list of posts by ids.
+	//
+	// @tag Post
+	// Minimum server version: 9.8
+	GetPostsById(postIDs []string) ([]*model.Post, *model.AppError)
+
 	// GetTeamStats gets a team's statistics
 	//
 	// @tag Team
