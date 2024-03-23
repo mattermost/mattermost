@@ -62,20 +62,27 @@ func channelUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) err
 
 	users := getUsersFromUserArgs(c, args[1:])
 	for i, user := range users {
-		addUserToChannel(c, channel, user, args[i+1])
+		err := addUserToChannel(c, channel, user, args[i+1])
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func addUserToChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) {
+func addUserToChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) error {
 	if user == nil {
-		printer.PrintError("Can't find user '" + userArg + "'")
-		return
+		errString := fmt.Sprintf("Can't find user '%s'", userArg)
+		printer.PrintError(errString)
+		return errors.New(errString)
 	}
-	if _, _, err := c.AddChannelMember(context.TODO(), channel.Id, user.Id); err != nil {
+	_, _, err := c.AddChannelMember(context.TODO(), channel.Id, user.Id)
+	if err != nil {
 		printer.PrintError("Unable to add '" + userArg + "' to " + channel.Name + ". Error: " + err.Error())
+		return err
 	}
+	return nil
 }
 
 func channelUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) error {

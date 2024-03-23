@@ -153,13 +153,8 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 			GetUserByEmail(context.TODO(), userEmail, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
-		s.client.
-			EXPECT().
-			AddChannelMember(context.TODO(), channelID, userID).
-			Return(&model.ChannelMember{}, &model.Response{}, nil).
-			Times(1)
 		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, nilUserArg, userEmail})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal("Can't find user '"+nilUserArg+"'", printer.GetErrorLines()[0])
@@ -191,7 +186,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, userEmail})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal("Unable to add '"+userEmail+"' to "+channelName+". Error: mock error",
