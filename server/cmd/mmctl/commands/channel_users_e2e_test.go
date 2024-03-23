@@ -67,7 +67,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 
 		nonexistentUserName := "nonexistent"
 		err := channelUsersAddCmdF(c, &cobra.Command{}, []string{channel.Id, nonexistentUserName})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("Can't find user '%s'", nonexistentUserName), printer.GetErrorLines()[0])
@@ -85,7 +85,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 
 		nonexistentUserName := "nonexistent"
 		err := channelUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{channel.Id, nonexistentUserName})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("Can't find user '%s'", nonexistentUserName), printer.GetErrorLines()[0])
@@ -95,7 +95,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 		printer.Clean()
 
 		err := channelUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{channel.Id, user.Id})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("Unable to add '%s' to %s. Error: You do not have the appropriate permissions.", user.Id, channelName), printer.GetErrorLines()[0])
