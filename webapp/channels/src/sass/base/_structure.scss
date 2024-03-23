@@ -273,7 +273,7 @@ body.app__body #root {
 #channel_view.channel-view {
     overflow: hidden;
     border-radius: var(--radius-l);
-    border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
+    border-left: var(--border-default);
     background: var(--center-channel-bg);
     box-shadow: var(--elevation-1);
 }
