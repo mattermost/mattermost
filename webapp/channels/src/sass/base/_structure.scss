@@ -94,7 +94,7 @@ body.app__body #root {
 
     grid-template:
         'header' min-content
-        'center'
+        'main'
         'footer' min-content
     ;
 
@@ -167,7 +167,7 @@ body.app__body #root {
             padding: 0;
             grid-template:
                 'header' min-content
-                'center'
+                'main'
             ;
         }
 
