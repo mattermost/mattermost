@@ -3037,12 +3037,18 @@ func (s *CloudSettings) SetDefaults() {
 	switch GetServiceEnvironment() {
 	case ServiceEnvironmentProduction:
 		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
-		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
 	case ServiceEnvironmentTest, ServiceEnvironmentDev:
 		s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
-		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 	}
 
+	if s.CWSAPIURL == nil {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
+		}
+	}
 	if s.CWSMock == nil {
 		isMockCws := MockCWS == "true"
 		s.CWSMock = &isMockCws
