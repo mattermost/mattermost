@@ -1514,7 +1514,7 @@ func TestGetGroupMembers(t *testing.T) {
 		assert.Nil(t, members)
 	})
 
-	t.Run("Admins are not allowed to get members for LDAP groups", func(t *testing.T) {
+	t.Run("Admins are allowed to get members for LDAP groups", func(t *testing.T) {
 		members, response, err := th.SystemAdminClient.GetGroupMembers(context.Background(), group.Id)
 		assert.NoError(t, err)
 		CheckOKStatus(t, response)
