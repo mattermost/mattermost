@@ -62,7 +62,7 @@ type PluginSetting struct {
 	//
 	// "longtext" will result in a multi line string that can be typed in manually.
 	//
-	// "number" will result in in integer setting that can be typed in manually.
+	// "number" will result in integer setting that can be typed in manually.
 	//
 	// "username" will result in a text setting that will autocomplete to a username.
 	//
