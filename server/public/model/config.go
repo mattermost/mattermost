@@ -3015,15 +3015,18 @@ type CloudSettings struct {
 }
 
 func (s *CloudSettings) SetDefaults() {
-	switch GetServiceEnvironment() {
-	case ServiceEnvironmentProduction:
-		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
-	case ServiceEnvironmentTest, ServiceEnvironmentDev:
-		s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
+	serviceEnvironment := GetServiceEnvironment()
+	if s.CWSURL == nil || serviceEnvironment == ServiceEnvironmentProduction {
+		switch serviceEnvironment {
+		case ServiceEnvironmentProduction:
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
+		}
 	}
 
 	if s.CWSAPIURL == nil {
-		switch GetServiceEnvironment() {
+		switch serviceEnvironment {
 		case ServiceEnvironmentProduction:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
 		case ServiceEnvironmentTest, ServiceEnvironmentDev:

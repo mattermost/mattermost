@@ -227,6 +227,8 @@ func TestRemoveLicenseFile(t *testing.T) {
 func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
+	// svcEnv := model.GetServiceEnvironment()
+	// os.Setenv("MM_SERVICEENVIRONMENT", "test")
 
 	licenseManagerMock := &mocks.LicenseInterface{}
 	licenseManagerMock.On("CanStartTrial").Return(true, nil)
@@ -295,7 +297,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 
 	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
 		license := model.NewTestLicense()
-		license.Features.Users = model.NewInt(nUsers)
+		license.Features.Users = model.NewInt(10)
 		licenseJSON, jsonErr := json.Marshal(license)
 		require.NoError(t, jsonErr)
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
