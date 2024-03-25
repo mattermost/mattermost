@@ -343,9 +343,9 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 			return
-		} else { // For web
-			c.App.AttachSessionCookies(c.AppContext, w, r)
 		}
+		// For web
+		c.App.AttachSessionCookies(c.AppContext, w, r)
 
 		desktopToken := ""
 		if val, ok := props["desktop_token"]; ok {
