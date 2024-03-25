@@ -1027,11 +1027,11 @@ func (api *PluginAPI) PatchBot(userID string, botPatch *model.BotPatch) (*model.
 }
 
 func (api *PluginAPI) GetBot(userID string, includeDeleted bool) (*model.Bot, *model.AppError) {
-	return api.app.GetBot(userID, includeDeleted)
+	return api.app.GetBot(api.ctx, userID, includeDeleted)
 }
 
 func (api *PluginAPI) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
-	bots, err := api.app.GetBots(options)
+	bots, err := api.app.GetBots(api.ctx, options)
 
 	return []*model.Bot(bots), err
 }
@@ -1041,7 +1041,7 @@ func (api *PluginAPI) UpdateBotActive(userID string, active bool) (*model.Bot, *
 }
 
 func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
-	return api.app.PermanentDeleteBot(userID)
+	return api.app.PermanentDeleteBot(api.ctx, userID)
 }
 
 func (api *PluginAPI) EnsureBotUser(bot *model.Bot) (string, error) {

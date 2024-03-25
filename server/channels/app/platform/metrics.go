@@ -175,8 +175,10 @@ func (pm *platformMetrics) initMetricsRouter() error {
 	// Manually add support for paths linked to by index page at /debug/pprof/
 	pm.router.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
 	pm.router.Handle("/debug/pprof/heap", pprof.Handler("heap"))
+	pm.router.Handle("/debug/pprof/allocs", pprof.Handler("allocs"))
 	pm.router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
 	pm.router.Handle("/debug/pprof/block", pprof.Handler("block"))
+	pm.router.Handle("/debug/pprof/mutex", pprof.Handler("mutex"))
 
 	// Plugins metrics route
 	pluginsMetricsRoute := pm.router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/metrics").Subrouter()

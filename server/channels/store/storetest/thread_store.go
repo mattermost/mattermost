@@ -42,7 +42,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		u, err := ss.User().Save(rctx, &u1)
 		require.NoError(t, err)
 
-		c, err2 := ss.Channel().Save(&model.Channel{
+		c, err2 := ss.Channel().Save(rctx, &model.Channel{
 			DisplayName: model.NewId(),
 			Type:        model.ChannelTypeOpen,
 			Name:        model.NewId(),
@@ -118,7 +118,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Participants)
 
 		teamId := model.NewId()
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId,
 			DisplayName: "DisplayName1",
 			Name:        "channel" + model.NewId(),
@@ -162,7 +162,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("Update reply should update the UpdateAt of the thread", func(t *testing.T) {
 		teamId := model.NewId()
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId,
 			DisplayName: "DisplayName",
 			Name:        "channel" + model.NewId(),
@@ -218,7 +218,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("Deleting reply should update the thread", func(t *testing.T) {
 		teamId := model.NewId()
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId,
 			DisplayName: "DisplayName",
 			Name:        "channel" + model.NewId(),
@@ -279,7 +279,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("Deleting root post should delete the thread", func(t *testing.T) {
 		teamId := model.NewId()
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId,
 			DisplayName: "DisplayName",
 			Name:        "channel" + model.NewId(),
@@ -499,7 +499,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx 
 		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
-	channel, err := ss.Channel().Save(&model.Channel{
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
@@ -588,7 +588,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
-	channel, err := ss.Channel().Save(&model.Channel{
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
@@ -683,7 +683,7 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
-	channel1, err := ss.Channel().Save(&model.Channel{
+	channel1, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team1.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
@@ -725,7 +725,7 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
-	channel2, err := ss.Channel().Save(&model.Channel{
+	channel2, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team2.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
@@ -835,7 +835,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	team1channel1, err := ss.Channel().Save(&model.Channel{
+	team1channel1, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team1.Id,
 		DisplayName: "Channel1",
 		Name:        "channel" + model.NewId(),
@@ -843,7 +843,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 	}, -1)
 	require.NoError(t, err)
 
-	team2channel1, err := ss.Channel().Save(&model.Channel{
+	team2channel1, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team2.Id,
 		DisplayName: "Channel2",
 		Name:        "channel" + model.NewId(),
@@ -854,7 +854,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 	dm1, err := ss.Channel().CreateDirectChannel(rctx, &model.User{Id: user1ID}, &model.User{Id: user2ID})
 	require.NoError(t, err)
 
-	gm1, err := ss.Channel().Save(&model.Channel{
+	gm1, err := ss.Channel().Save(rctx, &model.Channel{
 		DisplayName: "GM",
 		Name:        "gm" + model.NewId(),
 		Type:        model.ChannelTypeGroup,
@@ -1216,7 +1216,7 @@ func testMarkAllAsReadByChannels(t *testing.T, rctx request.CTX, ss store.Store)
 	})
 	require.NoError(t, err)
 
-	channel1, err := ss.Channel().Save(&model.Channel{
+	channel1, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team1.Id,
 		DisplayName: "Channel1",
 		Name:        "channel1" + model.NewId(),
@@ -1224,7 +1224,7 @@ func testMarkAllAsReadByChannels(t *testing.T, rctx request.CTX, ss store.Store)
 	}, -1)
 	require.NoError(t, err)
 
-	channel2, err := ss.Channel().Save(&model.Channel{
+	channel2, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team1.Id,
 		DisplayName: "Channel2",
 		Name:        "channel2" + model.NewId(),
@@ -1382,7 +1382,7 @@ func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	team1channel1, err := ss.Channel().Save(&model.Channel{
+	team1channel1, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team1.Id,
 		DisplayName: "Team1: Channel1",
 		Name:        "team1channel1" + model.NewId(),
@@ -1390,7 +1390,7 @@ func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	}, -1)
 	require.NoError(t, err)
 
-	team1channel2, err := ss.Channel().Save(&model.Channel{
+	team1channel2, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team1.Id,
 		DisplayName: "Team1: Channel2",
 		Name:        "team1channel2" + model.NewId(),
@@ -1406,7 +1406,7 @@ func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	team2channel1, err := ss.Channel().Save(&model.Channel{
+	team2channel1, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team2.Id,
 		DisplayName: "Team2: Channel1",
 		Name:        "team2channel1" + model.NewId(),
@@ -1414,7 +1414,7 @@ func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	}, -1)
 	require.NoError(t, err)
 
-	team2channel2, err := ss.Channel().Save(&model.Channel{
+	team2channel2, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team2.Id,
 		DisplayName: "Team2: Channel2",
 		Name:        "team2channel2" + model.NewId(),
@@ -1482,7 +1482,7 @@ func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	gm1, err := ss.Channel().Save(&model.Channel{
+	gm1, err := ss.Channel().Save(rctx, &model.Channel{
 		DisplayName: "GM1",
 		Name:        "gm1" + model.NewId(),
 		Type:        model.ChannelTypeGroup,
@@ -1504,7 +1504,7 @@ func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	gm2, err := ss.Channel().Save(&model.Channel{
+	gm2, err := ss.Channel().Save(rctx, &model.Channel{
 		DisplayName: "GM1",
 		Name:        "gm1" + model.NewId(),
 		Type:        model.ChannelTypeGroup,
@@ -1604,14 +1604,14 @@ func testDeleteMembershipsForChannel(t *testing.T, rctx request.CTX, ss store.St
 	})
 	require.NoError(t, err)
 
-	channel1, err := ss.Channel().Save(&model.Channel{
+	channel1, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel1" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
-	channel2, err := ss.Channel().Save(&model.Channel{
+	channel2, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName2",
 		Name:        "channel2" + model.NewId(),

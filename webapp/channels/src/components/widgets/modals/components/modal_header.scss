@@ -15,6 +15,7 @@
         font-style: normal;
         font-weight: 600;
         line-height: 28px;
+        white-space: nowrap;
     }
 
     &__vertical-divider {
@@ -42,28 +43,6 @@
         flex: 1 1 auto;
         align-items: center;
         justify-content: flex-end;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        gap: 24px;
-    }
-
-    &__close-btn {
-        display: flex;
-        overflow: hidden;
-        width: 40px;
-        height: 40px;
-        align-items: center;
-        justify-content: center;
-        border: unset;
-        margin-left: 8px;
-        background: transparent;
-        border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-
-        &:hover,
-        &.active {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-        }
     }
 
     @media screen and (max-width: 768px) {

@@ -132,7 +132,7 @@ func testComplianceExport(t *testing.T, rctx request.CTX, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = NewTestId()
 	c1.Type = model.ChannelTypeOpen
-	c1, nErr = ss.Channel().Save(c1, -1)
+	c1, nErr = ss.Channel().Save(rctx, c1, -1)
 	require.NoError(t, nErr)
 
 	o1 := &model.Post{}
@@ -266,7 +266,7 @@ func testComplianceExportDirectMessages(t *testing.T, rctx request.CTX, ss store
 	c1.DisplayName = "Channel2"
 	c1.Name = NewTestId()
 	c1.Type = model.ChannelTypeOpen
-	c1, nErr = ss.Channel().Save(c1, -1)
+	c1, nErr = ss.Channel().Save(rctx, c1, -1)
 	require.NoError(t, nErr)
 
 	cDM, nErr := ss.Channel().CreateDirectChannel(rctx, u1, u2)
@@ -446,7 +446,7 @@ func testMessageExportPublicChannel(t *testing.T, rctx request.CTX, ss store.Sto
 		DisplayName: "Public Channel",
 		Type:        model.ChannelTypeOpen,
 	}
-	channel, nErr = ss.Channel().Save(channel, -1)
+	channel, nErr = ss.Channel().Save(rctx, channel, -1)
 	require.NoError(t, nErr)
 
 	// user1 posts twice in the public channel
@@ -550,7 +550,7 @@ func testMessageExportPrivateChannel(t *testing.T, rctx request.CTX, ss store.St
 		DisplayName: "Private Channel",
 		Type:        model.ChannelTypePrivate,
 	}
-	channel, nErr = ss.Channel().Save(channel, -1)
+	channel, nErr = ss.Channel().Save(rctx, channel, -1)
 	require.NoError(t, nErr)
 
 	// user1 posts twice in the private channel
@@ -748,7 +748,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, rctx request.CTX, ss sto
 		Name:   model.NewId(),
 		Type:   model.ChannelTypeGroup,
 	}
-	groupMessageChannel, nErr = ss.Channel().Save(groupMessageChannel, -1)
+	groupMessageChannel, nErr = ss.Channel().Save(rctx, groupMessageChannel, -1)
 	require.NoError(t, nErr)
 
 	// user1 posts in the GM
@@ -823,7 +823,7 @@ func testEditExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 		DisplayName: "Public Channel",
 		Type:        model.ChannelTypeOpen,
 	}
-	channel, nErr = ss.Channel().Save(channel, -1)
+	channel, nErr = ss.Channel().Save(rctx, channel, -1)
 	require.NoError(t, nErr)
 
 	// user1 posts in the public channel
@@ -915,7 +915,7 @@ func testEditAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store) 
 		DisplayName: "Public Channel",
 		Type:        model.ChannelTypeOpen,
 	}
-	channel, nErr = ss.Channel().Save(channel, -1)
+	channel, nErr = ss.Channel().Save(rctx, channel, -1)
 	require.NoError(t, nErr)
 
 	// user1 posts in the public channel
@@ -1026,7 +1026,7 @@ func testDeleteExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 		DisplayName: "Public Channel",
 		Type:        model.ChannelTypeOpen,
 	}
-	channel, nErr = ss.Channel().Save(channel, -1)
+	channel, nErr = ss.Channel().Save(rctx, channel, -1)
 	require.NoError(t, nErr)
 
 	// user1 posts in the public channel
@@ -1111,7 +1111,7 @@ func testDeleteAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store
 		DisplayName: "Public Channel",
 		Type:        model.ChannelTypeOpen,
 	}
-	channel, nErr = ss.Channel().Save(channel, -1)
+	channel, nErr = ss.Channel().Save(rctx, channel, -1)
 	require.NoError(t, nErr)
 
 	// user1 posts in the public channel

@@ -7,7 +7,7 @@ import {Elements} from '@stripe/react-stripe-js';
 import type {Stripe, StripeCardElementChangeEvent} from '@stripe/stripe-js';
 import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
 import classnames from 'classnames';
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';

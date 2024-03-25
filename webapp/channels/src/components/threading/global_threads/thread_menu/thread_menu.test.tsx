@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import {set} from 'lodash';
+import set from 'lodash/set';
 import React from 'react';
 import type {ComponentProps} from 'react';
 

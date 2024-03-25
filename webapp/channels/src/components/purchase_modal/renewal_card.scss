@@ -10,8 +10,8 @@
             max-width: 353px;
             padding: 28px 32px;
             border: 1px solid var(--light-8-center-channel-text, rgba(61, 60, 64, 0.08));
-            background: var(--light-center-channel-bg, #fff);
             border-radius: 4px;
+            background: var(--light-center-channel-bg, #fff);
             box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.08);
 
             .SeatsCalculator {
@@ -26,9 +26,9 @@
                 width: 332px;
                 padding: 28px 32px;
                 border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+                border-radius: 4px;
                 margin-left: 20px;
                 background-color: var(--sys-center-channel-bg);
-                border-radius: 4px;
                 box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
             }
 
@@ -195,8 +195,8 @@
                 align-items: center;
                 justify-content: center;
                 padding: 11px 20px;
-                background: var(--sys-button-bg);
                 border-radius: 4px;
+                background: var(--sys-button-bg);
                 color: var(--sys-button-color);
 
                 &:hover:not(:disabled) {
