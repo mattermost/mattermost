@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {MutableRefObject, useEffect} from 'react';
+import type {MutableRefObject} from 'react';
+import {useEffect} from 'react';
 
 export function useClickOutsideRef(ref: MutableRefObject<HTMLElement | null>, handler: (event: MouseEvent) => void): void {
     useEffect(() => {

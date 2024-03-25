@@ -728,20 +728,12 @@
     "translation": "Vaša licenca ne podpira overjanja SAML."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Pri preverjanju odgovora ponudnika identitete je prišlo do napake. Obrnite se na skrbnika sistema."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Med razčlenjevanjem odgovora ponudnika identitete je prišlo do napake. Obrnite se na skrbnika sistema."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Od ponudnika identitete smo prejeli prazen odgovor"
-  },
-  {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Prijava SAML ni bila uspešna, ker je prišlo do napake pri dešifriranju odgovora ponudnika identitete. Obrnite se na skrbnika sistema."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
@@ -752,16 +744,8 @@
     "translation": "Prijava SAML ni bila uspešna, ker zasebnega ključa ponudnika storitev ni bilo mogoče najti. Obrnite se na skrbnika sistema."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Datoteke za javno potrdilo ponudnika identitete ni bilo mogoče najti. Obrnite se na skrbnika sistema."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Prijava SAML ni bila uspešna, ker šifriranje ni omogočeno. Obrnite se na skrbnika sistema."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Med kodiranjem zahteve za ponudnika identitete je prišlo do napake. Obrnite se na skrbnika sistema."
   },
   {
     "id": "ent.saml.build_request.app_error",
