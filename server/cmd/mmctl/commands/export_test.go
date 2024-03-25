@@ -27,7 +27,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(context.Background(), mockJob).
+			CreateJob(context.TODO(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -49,7 +49,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(context.Background(), mockJob).
+			CreateJob(context.TODO(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -96,7 +96,7 @@ func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 
 	s.client.
 		EXPECT().
-		DeleteExport(context.Background(), exportName).
+		DeleteExport(context.TODO(), exportName).
 		Return(&model.Response{StatusCode: http.StatusOK}, nil).
 		Times(1)
 
@@ -114,7 +114,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 
 		s.client.
 			EXPECT().
-			ListExports(context.Background()).
+			ListExports(context.TODO()).
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
@@ -135,7 +135,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 
 		s.client.
 			EXPECT().
-			ListExports(context.Background()).
+			ListExports(context.TODO()).
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 

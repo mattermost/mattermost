@@ -6,10 +6,15 @@ package app
 import (
 	"net/http"
 
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-const maxUsersLimit = 10000
+const (
+	maxUsersLimit     = 10000
+	maxUsersHardLimit = 11000
+)
 
 func (a *App) GetUserLimits() (*model.UserLimits, *model.AppError) {
 	if !a.shouldShowUserLimits() {
@@ -18,12 +23,14 @@ func (a *App) GetUserLimits() (*model.UserLimits, *model.AppError) {
 
 	activeUserCount, appErr := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if appErr != nil {
+		mlog.Error("Failed to get active user count from database", mlog.String("error", appErr.Error()))
 		return nil, model.NewAppError("GetUsersLimits", "app.limits.get_user_limits.user_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	return &model.UserLimits{
-		ActiveUserCount: activeUserCount,
-		MaxUsersLimit:   maxUsersLimit,
+		ActiveUserCount:   activeUserCount,
+		MaxUsersLimit:     maxUsersLimit,
+		MaxUsersHardLimit: maxUsersHardLimit,
 	}, nil
 }
 
@@ -33,4 +40,13 @@ func (a *App) shouldShowUserLimits() bool {
 	}
 
 	return a.License() == nil
+}
+
+func (a *App) isHardUserLimitExceeded() (bool, *model.AppError) {
+	userLimits, appErr := a.GetUserLimits()
+	if appErr != nil {
+		return false, appErr
+	}
+
+	return userLimits.ActiveUserCount > userLimits.MaxUsersHardLimit, appErr
 }
