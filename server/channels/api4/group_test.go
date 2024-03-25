@@ -1522,11 +1522,17 @@ func TestGetGroupMembers(t *testing.T) {
 		assert.Equal(t, 2, members.Count)
 	})
 
-	group.AllowReference = true
-	group, appErr = th.App.UpdateGroup(group)
-	assert.Nil(t, appErr)
-
 	t.Run("If AllowReference is enabled, non admins are allowed to get members for LDAP groups", func(t *testing.T) {
+		group.AllowReference = true
+		group, appErr = th.App.UpdateGroup(group)
+		assert.Nil(t, appErr)
+
+		t.Cleanup(func() {
+			group.AllowReference = false
+			group, appErr = th.App.UpdateGroup(group)
+			assert.Nil(t, appErr)
+		})
+
 		members, response, err := th.Client.GetGroupMembers(context.Background(), group.Id)
 		assert.NoError(t, err)
 		CheckOKStatus(t, response)
