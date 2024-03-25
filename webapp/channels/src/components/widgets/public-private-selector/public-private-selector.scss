@@ -10,8 +10,8 @@
         align-items: center;
         padding: 12px 22px 12px 12px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        background: var(--center-channel-bg);
         border-radius: 4px;
+        background: var(--center-channel-bg);
         box-shadow: var(--elevation-1);
 
         &:not(:first-child) {

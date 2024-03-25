@@ -40,16 +40,16 @@
             display: inline-block;
             width: 4px;
             height: 4px;
+            border-radius: 10px;
             margin: 0 2px;
             animation: move 0.75s infinite linear;
             background-color: var(--center-channel-color);
-            border-radius: 10px;
             opacity: 0.1;
         }
 
         @for $i from 1 through 3 {
             .round-#{$i} {
-                animation-delay: 0.2s*$i;
+                animation-delay: 0.2s * $i;
             }
         }
     }

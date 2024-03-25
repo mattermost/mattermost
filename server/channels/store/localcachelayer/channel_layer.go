@@ -112,14 +112,14 @@ func (s LocalCacheChannelStore) InvalidateMemberCount(channelId string) {
 func (s LocalCacheChannelStore) InvalidateGuestCount(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelGuestCountCache, channelId, nil)
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guests Count - Remove by channelId")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelGuestCountCache.Name())
 	}
 }
 
 func (s LocalCacheChannelStore) InvalidateChannel(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByIdCache, channelId, nil)
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel - Remove by ChannelId")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelByIdCache.Name())
 	}
 }
 

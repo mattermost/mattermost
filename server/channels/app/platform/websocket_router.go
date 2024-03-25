@@ -134,7 +134,7 @@ func returnWebSocketError(ps *PlatformService, conn *WebConn, r *model.WebSocket
 		return
 	}
 
-	err.DetailedError = ""
+	err.WipeDetailed()
 	errorResp := model.NewWebSocketError(r.Seq, err)
 	hub.SendMessage(conn, errorResp)
 }

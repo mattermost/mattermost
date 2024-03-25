@@ -32,7 +32,7 @@ describe('Custom Status - Recent Statuses', () => {
 
     it('MM-T3847_1 set a status', () => {
         // # Open the custom status modal
-        cy.uiOpenUserMenu('Set a Custom Status');
+        cy.uiOpenUserMenu('Set a custom status');
 
         // # Type the custom status text in the custom status modal input
         cy.get('#custom_status_modal .StatusModal__input input').typeWithForce(customStatus.text);

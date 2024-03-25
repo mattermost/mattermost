@@ -1,13 +1,10 @@
 run:
   timeout: 10m
-  skip-dirs:
-    - channels/store/storetest/mocks
 
 linters-settings:
   gofmt:
     simplify: true
   govet:
-    check-shadowing: true
     enable-all: true
     disable:
       - fieldalignment
@@ -33,6 +30,8 @@ linters:
     # - errcheck
 
 issues:
+  skip-dirs:
+    - channels/store/storetest/mocks
   exclude-rules:
     - linters:
       # ignore unused warnings from enterprise code
