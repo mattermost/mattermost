@@ -4180,7 +4180,7 @@
   },
   {
     "id": "api.user.create_user.user_limits.exceeded",
-    "translation": "Can't create user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETYUSER_LIMITS_EXCEEDED."
+    "translation": "Can't create user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
