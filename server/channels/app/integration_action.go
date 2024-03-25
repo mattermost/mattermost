@@ -461,7 +461,7 @@ func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppE
 	}
 
 	if dialogErr := request.IsValid(); dialogErr != nil {
-		return model.NewAppError("OpenInteractiveDialog", "app.open_interactive_dialog.invalid_request", nil, dialogErr.Error(), http.StatusBadRequest)
+		return model.NewAppError("OpenInteractiveDialog", "app.open_interactive_dialog.invalid_request", nil, "", http.StatusBadRequest).Wrap(dialogErr)
 	}
 
 	request.TriggerId = clientTriggerId

@@ -28,7 +28,6 @@ import (
 const (
 	PostActionTypeButton              = "button"
 	PostActionTypeSelect              = "select"
-	DialogMaxElements                 = 5
 	DialogTitleMaxLength              = 24
 	DialogElementDisplayNameMaxLength = 24
 	DialogElementNameMaxLength        = 300
@@ -349,8 +348,8 @@ func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey, timeou
 
 func (r *OpenDialogRequest) IsValid() error {
 	var multiErr *multierror.Error
-	if r.URL == "" || !IsValidHTTPURL(r.URL) {
-		multiErr = multierror.Append(multiErr, errors.New("invalid URL"))
+	if r.URL == "" {
+		multiErr = multierror.Append(multiErr, errors.New("empty URL"))
 	}
 
 	if r.TriggerId == "" {
@@ -361,6 +360,7 @@ func (r *OpenDialogRequest) IsValid() error {
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
 	}
+
 	return multiErr.ErrorOrNil()
 }
 
@@ -368,14 +368,7 @@ func (d *Dialog) IsValid() error {
 	var multiErr *multierror.Error
 
 	if d.Title == "" || len(d.Title) > DialogTitleMaxLength {
-		multiErr = multierror.Append(multiErr, errors.New("invalid dialog title"))
-	}
-
-	if d.IconURL != "" && !IsValidHTTPURL(d.IconURL) {
-		multiErr = multierror.Append(multiErr, errors.New("invalid icon url"))
-	}
-	if len(d.Elements) > DialogMaxElements {
-		multiErr = multierror.Append(multiErr, errors.Errorf("maximum number of dialog elements is %d", DialogMaxElements))
+		multiErr = multierror.Append(multiErr, errors.Errorf("invalid dialog title %q", d.Title))
 	}
 
 	if len(d.Elements) != 0 {
@@ -398,7 +391,7 @@ func (d *Dialog) IsValid() error {
 
 func (e *DialogElement) IsValid() error {
 	var multiErr *multierror.Error
-	subTypeMap := map[string]bool{
+	textSubTypes := map[string]bool{
 		"":         true,
 		"text":     true,
 		"email":    true,
@@ -409,10 +402,10 @@ func (e *DialogElement) IsValid() error {
 	}
 
 	if e.MinLength < 0 {
-		multiErr = multierror.Append(multiErr, errors.New("min length cannot be a negative number"))
+		multiErr = multierror.Append(multiErr, errors.Errorf("min length cannot be a negative number, got %d", e.MinLength))
 	}
 	if e.MinLength > e.MaxLength {
-		multiErr = multierror.Append(multiErr, errors.New("min length should not be greater then max length"))
+		multiErr = multierror.Append(multiErr, errors.Errorf("min length should be less then max length, got %d > %d", e.MinLength, e.MaxLength))
 	}
 
 	multiErr = multierror.Append(multiErr, checkMaxLength("DisplayName", e.DisplayName, DialogElementDisplayNameMaxLength))
@@ -423,7 +416,7 @@ func (e *DialogElement) IsValid() error {
 	case "text":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
-		if _, ok := subTypeMap[e.SubType]; !ok {
+		if _, ok := textSubTypes[e.SubType]; !ok {
 			multiErr = multierror.Append(multiErr, errors.Errorf("invalid subtype %q", e.Type))
 		}
 
@@ -431,7 +424,7 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextareaMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextareaMaxLength))
 
-		if _, ok := subTypeMap[e.SubType]; !ok {
+		if _, ok := textSubTypes[e.SubType]; !ok {
 			multiErr = multierror.Append(multiErr, errors.Errorf("invalid subtype %q", e.Type))
 		}
 
@@ -458,14 +451,14 @@ func (e *DialogElement) IsValid() error {
 }
 
 func checkMaxLength(fieldName string, field string, length int) error {
-	var check bool
+	var valid bool
 	// DisplayName and Name are required fields
 	if fieldName == "DisplayName" || fieldName == "Name" {
-		check = len(field) > 0 && len(field) > length
+		valid = len(field) > 0 && len(field) > length
 	} else {
-		check = len(field) > length
+		valid = len(field) > length
 	}
-	if check {
+	if valid {
 		return errors.Errorf("%v cannot be longer than %d characters", fieldName, length)
 	}
 	return nil
