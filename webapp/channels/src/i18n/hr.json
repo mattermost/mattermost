@@ -266,7 +266,6 @@
   "admin.cluster.ClusterNameEx": "Npr.: „Produkcija” ili „Staging”",
   "admin.cluster.GossipPortEx": "Npr.: „8074”",
   "admin.cluster.OverrideHostnameEx": "Npr.: „app-server-01”",
-  "admin.cluster.StreamingPortEx": "Npr.: „8075”",
   "admin.cluster.status_table.status": "Stanje",
   "admin.cluster.status_table.version": "Verzija",
   "admin.cluster.unknown": "nepoznato",
