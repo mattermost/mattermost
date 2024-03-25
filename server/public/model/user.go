@@ -750,9 +750,8 @@ func (u *User) GetFullName() string {
 		return u.FirstName
 	} else if u.LastName != "" {
 		return u.LastName
-	} else {
-		return ""
 	}
+	return ""
 }
 
 func (u *User) getDisplayName(baseName, nameFormat string) string {
