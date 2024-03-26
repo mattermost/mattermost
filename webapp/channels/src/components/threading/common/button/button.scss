@@ -53,6 +53,17 @@
     font-style: normal;
     font-weight: 600;
 
+    &.ReplyButton {
+        height: 24px;
+        padding-left: 8px;
+        overflow:visible;
+    }
+
+    &.FollowButton {
+        height: 24px;
+        overflow:visible;
+    }
+
     &.allowTextOverflow {
         min-width: 4rem;
 
@@ -107,11 +118,11 @@
     }
 
     .Button_prepended {
-        margin-right: 0.5em;
+        margin-right: 0.4em;
     }
 
     .Button_appended {
-        margin-left: 0.5em;
+        margin-left: 0.4em;
     }
 
     .dot {
