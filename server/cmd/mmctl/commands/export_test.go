@@ -74,7 +74,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(context.Background(), mockJob).
+			CreateJob(context.TODO(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
