@@ -371,6 +371,10 @@ func (d *Dialog) IsValid() error {
 		multiErr = multierror.Append(multiErr, errors.Errorf("invalid dialog title %q", d.Title))
 	}
 
+	if d.IconURL != "" && !IsValidHTTPURL(d.IconURL) {
+		multiErr = multierror.Append(multiErr, errors.New("invalid icon url"))
+	}
+
 	if len(d.Elements) != 0 {
 		elementMap := make(map[string]bool)
 

@@ -183,6 +183,28 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 }
 
 func TestOpenDialogRequestIsValid(t *testing.T) {
+	getBaseOpenDialogRequest := func() OpenDialogRequest {
+		return OpenDialogRequest{
+			TriggerId: "triggerId",
+			URL:       "http://localhost:8065",
+			Dialog: Dialog{
+				CallbackId: "callbackid",
+				Title:      "Some Title",
+				Elements: []DialogElement{
+					{
+						DisplayName: "Element Name",
+						Name:        "element_name",
+						Type:        "text",
+						Placeholder: "Enter a value",
+					},
+				},
+				SubmitLabel:    "Submit",
+				NotifyOnCancel: false,
+				State:          "somestate",
+			},
+		}
+	}
+
 	t.Run("should pass validation", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		err := request.IsValid()
@@ -221,6 +243,20 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 			request.Dialog.Elements[0].SubType = ""
 			request.Dialog.Title = "Some Title"
 		})
+	})
+
+	t.Run("should fail on wrong dialog icon url", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.IconURL = "wrong url"
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "invalid icon url")
+	})
+
+	t.Run("should pass on empty dialog icon url", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.IconURL = ""
+		err := request.IsValid()
+		assert.Nil(t, err)
 	})
 
 	t.Run("should fail on wrong minimal and maximal element length", func(t *testing.T) {
@@ -292,26 +328,4 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "Placeholder cannot be longer than 150 characters")
 	})
-}
-
-func getBaseOpenDialogRequest() OpenDialogRequest {
-	return OpenDialogRequest{
-		TriggerId: "triggerId",
-		URL:       "http://localhost:8065",
-		Dialog: Dialog{
-			CallbackId: "callbackid",
-			Title:      "Some Title",
-			Elements: []DialogElement{
-				{
-					DisplayName: "Element Name",
-					Name:        "element_name",
-					Type:        "text",
-					Placeholder: "Enter a value",
-				},
-			},
-			SubmitLabel:    "Submit",
-			NotifyOnCancel: false,
-			State:          "somestate",
-		},
-	}
 }
