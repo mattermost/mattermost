@@ -4179,6 +4179,10 @@
     "translation": "The signup link does not appear to be valid."
   },
   {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Can't create user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "Permanent channel deletion feature is not enabled. Please contact your System Administrator."
   },
@@ -6691,6 +6695,10 @@
     "translation": "We encountered an error finding the session."
   },
   {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Unable to get least recently used sessions."
+  },
+  {
     "id": "app.session.get_sessions.app_error",
     "translation": "We encountered an error while finding user sessions."
   },
@@ -7173,6 +7181,10 @@
   {
     "id": "app.user.update.finding.app_error",
     "translation": "We encountered an error finding the account."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Can't activate user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "app.user.update_active_for_multiple_users.updating.app_error",

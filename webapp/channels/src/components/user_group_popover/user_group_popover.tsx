@@ -64,16 +64,14 @@ export type Props = {
     };
 }
 
-const UserGroupPopover = (props: Props) => {
-    const {
-        group,
-        actions,
-        hide,
-        returnFocus,
-        searchTerm,
-        showUserOverlay,
-    } = props;
-
+const UserGroupPopover = ({
+    actions,
+    group,
+    hide,
+    returnFocus,
+    searchTerm,
+    showUserOverlay,
+}: Props) => {
     const {formatMessage} = useIntl();
 
     const closeRef = useRef<HTMLButtonElement>(null);
@@ -183,7 +181,6 @@ const UserGroupPopover = (props: Props) => {
 
     return (
         <Popover
-            {...props}
             id='user-group-popover'
         >
             {tabCatcher}
