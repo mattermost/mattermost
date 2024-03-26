@@ -44,7 +44,10 @@
         height: 100vh;
         max-height: 506px;
         padding: 0;
-        border: none !important;
+
+        .app__body .modal & {
+            border: none;
+        }
     }
 
     .modal-body {
