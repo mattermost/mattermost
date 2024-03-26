@@ -119,21 +119,33 @@ func TestEnsureBot(t *testing.T) {
 		pluginId := "pluginId"
 
 		PluginErr := th.App.SetPluginKey(pluginId, "key", []byte("test"))
-		assert.Nil(t, PluginErr)
+		assert.NoError(t, PluginErr)
 
-		_, err := th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+		botID1, err1 := th.App.EnsureBot(th.Context, pluginId, &model.Bot{
 			Username:    "username",
 			Description: "a bot",
 			OwnerId:     th.BasicUser.Id,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err1)
 
-		_, err = th.App.EnsureBot(th.Context, pluginId, &model.Bot{
-			Username:    "username",
-			Description: "a bot",
+		getBot, getBotErr := th.App.GetBot(th.Context, botID1, true)
+		require.NoError(t, getBotErr)
+		assert.Equal(t, "username", getBot.Username)
+		assert.Equal(t, "a bot", getBot.Description)
+
+		botID2, err2 := th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username:    "another_username",
+			Description: "another bot",
 			OwnerId:     th.BasicUser.Id,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err2)
+		require.True(t, botID1 == botID2)
+
+		getBot, getBotErr = th.App.GetBot(th.Context, botID2, true)
+		require.NoError(t, getBotErr)
+		assert.Equal(t, "another_username", getBot.Username)
+		assert.Equal(t, "another bot", getBot.Description)
+
 	})
 
 	t.Run("ensure bot should pass even after delete bot user", func(t *testing.T) {
@@ -142,7 +154,7 @@ func TestEnsureBot(t *testing.T) {
 		pluginId := "pluginId"
 
 		PluginErr := th.App.SetPluginKey(pluginId, "key", []byte("test"))
-		assert.Nil(t, PluginErr)
+		assert.NoError(t, PluginErr)
 
 		bot := model.Bot{
 			Username:    "username",
@@ -150,16 +162,29 @@ func TestEnsureBot(t *testing.T) {
 			OwnerId:     th.BasicUser.Id,
 		}
 
-		_, err := th.App.EnsureBot(th.Context, pluginId, &bot)
-		require.Nil(t, err)
-		err = th.App.Srv().Store().User().PermanentDelete(bot.UserId)
-		require.Nil(t, err)
-		_, err = th.App.EnsureBot(th.Context, pluginId, &model.Bot{
-			Username:    "username",
+		botID1, err1 := th.App.EnsureBot(th.Context, pluginId, &bot)
+		require.NoError(t, err1)
+
+		getBot, getBotErr := th.App.GetBot(th.Context, botID1, true)
+		require.NoError(t, getBotErr)
+		assert.Equal(t, "username", getBot.Username)
+		assert.Equal(t, "a bot", getBot.Description)
+
+		err := th.App.Srv().Store().User().PermanentDelete(bot.UserId)
+		require.NoError(t, err)
+		botID2, err2 := th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username:    "another_username",
 			Description: "another bot",
 			OwnerId:     th.BasicUser.Id,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err2)
+		require.False(t, botID1 == botID2)
+
+		getBot, getBotErr = th.App.GetBot(th.Context, botID2, true)
+		require.NoError(t, getBotErr)
+		assert.Equal(t, "another_username", getBot.Username)
+		assert.Equal(t, "another bot", getBot.Description)
+
 	})
 }
 
