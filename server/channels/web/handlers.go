@@ -394,14 +394,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Block out detailed error when not in developer mode
 		if !*c.App.Config().ServiceSettings.EnableDeveloper {
-			c.Err.DetailedError = ""
+			c.Err.WipeDetailed()
 		}
 
 		// Sanitize all 5xx error messages in hardened mode
 		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err.StatusCode >= 500 {
 			c.Err.Id = ""
 			c.Err.Message = "Internal Server Error"
-			c.Err.DetailedError = ""
+			c.Err.WipeDetailed()
 			c.Err.StatusCode = 500
 			c.Err.Where = ""
 			c.Err.IsOAuth = false
