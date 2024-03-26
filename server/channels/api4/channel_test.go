@@ -144,6 +144,23 @@ func TestCreateChannel(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, *groupConstrainedChannel.GroupConstrained, *rchannel.GroupConstrained, "GroupConstrained flags do not match")
+
+	t.Run("Test create channel with missing team id", func(t *testing.T) {
+		channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: ""}
+
+		_, resp, err := client.CreateChannel(context.Background(), channel)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Test create channel with missing display name", func(t *testing.T) {
+		channel := &model.Channel{DisplayName: "", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+
+		_, resp, err := client.CreateChannel(context.Background(), channel)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+		CheckBadRequestStatus(t, resp)
+
+	})
 }
 
 func TestUpdateChannel(t *testing.T) {
@@ -4957,29 +4974,4 @@ func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
 	threads, _, err = client.GetUserThreads(context.Background(), user.Id, team.Id, model.GetUserThreadsOpts{})
 	require.NoError(t, err)
 	require.Zero(t, threads.TotalUnreadMentions)
-}
-
-func TestCreateChannelWithMissingTeamId(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	client := th.Client
-
-	channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: ""}
-
-	_, resp, err := client.CreateChannel(context.Background(), channel)
-	CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
-	CheckBadRequestStatus(t, resp)
-}
-
-func TestCreateChannelWithMissingDisplayName(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	client := th.Client
-	team := th.BasicTeam
-
-	channel := &model.Channel{DisplayName: "", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
-
-	_, resp, err := client.CreateChannel(context.Background(), channel)
-	CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
-	CheckBadRequestStatus(t, resp)
 }
