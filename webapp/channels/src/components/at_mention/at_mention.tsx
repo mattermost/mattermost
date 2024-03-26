@@ -158,56 +158,54 @@ export const AtMention = (props: Props) => {
         displayName = group.name;
     }
 
-    return null;
-
-    // return (
-    //     <>
-    //         <span
-    //             className={highlightMention ? 'mention--highlight' : undefined}
-    //         >
-    //             <Overlay
-    //                 placement={placement}
-    //                 show={show}
-    //                 target={target}
-    //                 rootClose={true}
-    //                 onHide={hideOverlay}
-    //             >
-    //                 {getPopOver(user, group)}
-    //             </Overlay>
-    //             <Overlay
-    //                 placement={placement}
-    //                 show={groupUser !== undefined}
-    //                 target={target}
-    //                 onHide={hideGroupUserOverlay}
-    //                 rootClose={true}
-    //             >
-    //                 {groupUser ? (
-    //                     <ProfilePopover
-    //                         className='user-profile-popover'
-    //                         userId={groupUser.id}
-    //                         src={Client4.getProfilePictureUrl(groupUser.id, groupUser.last_picture_update)}
-    //                         channelId={props.channelId}
-    //                         hide={hideGroupUserOverlay}
-    //                         returnFocus={returnFocus}
-    //                     />
-    //                 ) : <span/> // prevents blank-screen crash when closing groupUser ProfilePopover
-    //                 }
-    //             </Overlay>
-    //             <a
-    //                 onClick={handleClick}
-    //                 onKeyDown={handleKeyDown}
-    //                 className={group ? 'group-mention-link' : 'mention-link'}
-    //                 ref={ref}
-    //                 aria-haspopup='dialog'
-    //                 role='button'
-    //                 tabIndex={0}
-    //             >
-    //                 {'@' + displayName}
-    //             </a>
-    //         </span>
-    //         {suffix}
-    //     </>
-    // );
+    return (
+        <>
+            <span
+                className={highlightMention ? 'mention--highlight' : undefined}
+            >
+                {/* <Overlay
+                    placement={placement}
+                    show={show}
+                    target={target}
+                    rootClose={true}
+                    onHide={hideOverlay}
+                >
+                    {getPopOver(user, group)}
+                </Overlay> */}
+                {/* <Overlay
+                    placement={placement}
+                    show={groupUser !== undefined}
+                    target={target}
+                    onHide={hideGroupUserOverlay}
+                    rootClose={true}
+                >
+                    {groupUser ? (
+                        <ProfilePopover
+                            className='user-profile-popover'
+                            userId={groupUser.id}
+                            src={Client4.getProfilePictureUrl(groupUser.id, groupUser.last_picture_update)}
+                            channelId={props.channelId}
+                            hide={hideGroupUserOverlay}
+                            returnFocus={returnFocus}
+                        />
+                    ) : <span/> // prevents blank-screen crash when closing groupUser ProfilePopover
+                    }
+                </Overlay> */}
+                <a
+                    onClick={handleClick}
+                    onKeyDown={handleKeyDown}
+                    className={group ? 'group-mention-link' : 'mention-link'}
+                    ref={ref}
+                    aria-haspopup='dialog'
+                    role='button'
+                    tabIndex={0}
+                >
+                    {'@' + displayName}
+                </a>
+            </span>
+            {suffix}
+        </>
+    );
 };
 
 export default React.memo(AtMention);
