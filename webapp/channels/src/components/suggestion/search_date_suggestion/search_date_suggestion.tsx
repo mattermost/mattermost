@@ -15,9 +15,9 @@ import 'react-day-picker/dist/style.css';
 
 type Props = SuggestionProps<never> & {
     currentDate?: Date;
-    handleEscape: () => void;
+    handleEscape?: () => void;
     locale: string;
-    preventClose: () => void;
+    preventClose?: () => void;
 }
 
 export default class SearchDateSuggestion extends React.PureComponent<Props> {
@@ -36,7 +36,7 @@ export default class SearchDateSuggestion extends React.PureComponent<Props> {
         if (Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN) && document.activeElement?.id === 'searchBox') {
             this.setState({datePickerFocused: true});
         } else if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
-            this.props.handleEscape();
+            this.props.handleEscape?.();
         }
     };
 
