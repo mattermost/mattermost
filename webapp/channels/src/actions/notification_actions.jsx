@@ -239,7 +239,7 @@ export function sendDesktopNotification(post, msgProps) {
             image |= attachment.image_url.length > 0;
         });
 
-        let strippedMarkdownNotifyText = stripMarkdown(notifyText);
+        const strippedMarkdownNotifyText = stripMarkdown(notifyText);
 
         let body = `@${username}`;
         if (strippedMarkdownNotifyText.length === 0) {
