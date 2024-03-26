@@ -791,10 +791,6 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 		return th.App.CreateOutgoingWebhook(&outgoingWebhook)
 	}
 
-	type TestCaseOutgoing struct {
-		CallBackURLs []string
-	}
-
 	chanTs1 := make(chan string, 1)
 	ts1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		chanTs1 <- "webhook received!"
@@ -829,7 +825,6 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 			})
-
 			channel := th.CreateChannel(th.Context, th.BasicTeam)
 			hook, _ := createOutgoingWebhook(channel, testCase.CallBackURLs, th)
 			payload := getPayload(hook, th, channel)
