@@ -54,14 +54,14 @@
     font-weight: 600;
 
     &.ReplyButton {
+        overflow:visible;
         height: 24px;
         padding-left: 8px;
-        overflow:visible;
     }
 
     &.FollowButton {
-        height: 24px;
         overflow:visible;
+        height: 24px;
     }
 
     &.allowTextOverflow {
