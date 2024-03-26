@@ -64,9 +64,15 @@ func init() {
 }
 
 func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	message, _ := cmd.Flags().GetString("message")
+	message := args[1]
 	if message == "" {
 		return errors.New("message cannot be empty")
+	}
+
+	user := getUserFromUserArg(c, args[0])
+	channel := getChannelFromChannelArg(c, args[0])
+	if user == nil && channel == nil {
+		return errors.New("unable to find user or channel '" + args[0] + "'")
 	}
 
 	replyTo, _ := cmd.Flags().GetString("reply-to")
@@ -80,24 +86,34 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	channel := getChannelFromChannelArg(c, args[0])
-	if channel == nil {
-		return errors.New("Unable to find channel '" + args[0] + "'")
-	}
-
 	post := &model.Post{
-		ChannelId: channel.Id,
-		Message:   message,
-		RootId:    replyTo,
+		Message: message,
+		RootId:  replyTo,
 	}
 
-	url := "/posts" + "?set_online=false"
+	ctx := context.TODO()
+	url := "/posts"
+	if user != nil {
+		// create a direct channel
+		directChannel, _, err := c.CreateChannel(ctx, &model.Channel{
+			Type: "direct",
+		})
+		if err != nil {
+			return fmt.Errorf("could not create direct channel: %w", err)
+		}
+		post.ChannelId = directChannel.Id
+		url = url + "/direct?set_online=false"
+	} else {
+		post.ChannelId = channel.Id
+		url = url + "?set_online=false"
+	}
+
 	data, err := post.ToJSON()
 	if err != nil {
 		return fmt.Errorf("could not decode post: %w", err)
 	}
 
-	if _, err := c.DoAPIPost(context.TODO(), url, data); err != nil {
+	if _, err := c.DoAPIPost(ctx, url, data); err != nil {
 		return fmt.Errorf("could not create post: %s", err.Error())
 	}
 	return nil
