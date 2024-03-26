@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from 'mattermost-redux/types/users';
-
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)
@@ -13,7 +11,7 @@ import {UserProfile} from 'mattermost-redux/types/users';
 // Group: @channels @channel
 
 describe('Leave and Archive channel actions display as destructive', () => {
-    let testUser: UserProfile;
+    let testUser: Cypress.UserProfile;
     let offTopicUrl: string;
 
     before(() => {

@@ -74,7 +74,7 @@
           description: Boolean which filters the group entries with the `allow_reference` attribute set.
           schema:
             type: boolean
-            default: false            
+            default: false
       responses:
         "200":
           description: Group list retrieval successful
@@ -122,10 +122,10 @@
                     - allow_reference
                   description: Group object to create.
                   properties:
-                    name: 
+                    name:
                       type: string
                       description: The unique group name used for at-mentioning.
-                    display_name: 
+                    display_name:
                       type: string
                       description: The display name of the group which can include spaces.
                     source:
@@ -1006,6 +1006,9 @@
       description: |
         Retrieve the list of groups associated with a given team.
 
+        ##### Permissions
+        Must have the `list_team_channels` permission.
+
         __Minimum server version__: 5.11
       operationId: GetGroupsByTeam
       parameters:
@@ -1061,7 +1064,7 @@
           Retrieve the set of groups associated with the channels in the given team grouped by channel.
 
           ##### Permissions
-          Must have `manage_system` permission or can access only for current user
+          Must have the `list_team_channels` permission.
 
           __Minimum server version__: 5.11
         operationId: GetGroupsAssociatedToChannelsByTeam
@@ -1095,7 +1098,7 @@
             description: Boolean to determine whether the pagination should be applied or not
             schema:
               type: boolean
-              default: false              
+              default: false
         responses:
           "200":
             description: Group list retrieval successful

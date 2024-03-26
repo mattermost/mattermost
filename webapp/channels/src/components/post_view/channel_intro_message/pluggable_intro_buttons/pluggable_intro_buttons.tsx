@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
-import {PluginComponent} from 'types/store/plugins';
+import type {PluginComponent} from 'types/store/plugins';
 
 type Props = {
     channel: Channel;
@@ -23,7 +23,7 @@ const PluggableIntroButtons = React.memo((props: Props) => {
         return (
             <button
                 key={buttonProps.id}
-                className={'intro-links color--link channelIntroButton style--none'}
+                className={'action-button'}
                 onClick={() => buttonProps.action?.(props.channel, props.channelMember)}
             >
                 {buttonProps.icon}

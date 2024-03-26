@@ -4,18 +4,18 @@
 import {useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
-import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
-
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTrialFormModal';
 
-import {GlobalState} from 'types/store';
+import {trackEvent} from 'actions/telemetry_actions';
+import {isModalOpen} from 'selectors/views/modals';
+
+import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
+import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTrialFormModal';
 
 import {
     Preferences,
@@ -24,14 +24,13 @@ import {
     ModalIdentifiers,
 } from 'utils/constants';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {isModalOpen} from 'selectors/views/modals';
+import type {GlobalState} from 'types/store';
 
 const ShowStartTrialModal = () => {
     const isUserAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));
     const openStartTrialFormModal = useOpenStartTrialFormModal();
 
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const getCategory = makeGetCategory();
 
     const userThreshold = 10;

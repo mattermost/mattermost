@@ -294,7 +294,6 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 	})
 
 	t.Run("returns status 451 when it receives status 451", func(t *testing.T) {
-
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewInt(nUsers)
 		licenseJSON, jsonErr := json.Marshal(license)
@@ -369,7 +368,6 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
 		CheckForbiddenStatus(t, resp)
 	})
-
 }
 
 func TestRequestTrialLicense(t *testing.T) {
@@ -488,6 +486,7 @@ func TestRequestTrueUpReview(t *testing.T) {
 
 		cloud := mocks.CloudInterface{}
 		cloud.Mock.On("SubmitTrueUpReview", mock.Anything, mock.Anything).Return(nil)
+		cloud.Mock.On("CheckCWSConnection", mock.Anything).Return(nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {

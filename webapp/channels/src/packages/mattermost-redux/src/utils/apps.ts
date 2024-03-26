@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AppBinding, AppField, AppForm} from '@mattermost/types/apps';
+import type {AppBinding, AppField, AppForm} from '@mattermost/types/apps';
 
 import {AppBindingLocations, AppFieldTypes} from 'mattermost-redux/constants/apps';
 

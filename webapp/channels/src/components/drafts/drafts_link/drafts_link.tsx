@@ -2,19 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useEffect} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {NavLink, useRouteMatch} from 'react-router-dom';
-import {FormattedMessage} from 'react-intl';
 
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {getDrafts} from 'actions/views/drafts';
-
 import {makeGetDraftsCount} from 'selectors/drafts';
 
-import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
 import DraftsTourTip from 'components/drafts/drafts_link/drafts_tour_tip/drafts_tour_tip';
+import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
 
 import './drafts_link.scss';
 

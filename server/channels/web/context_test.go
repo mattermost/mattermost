@@ -71,7 +71,7 @@ func TestMfaRequired(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
 
-	th.Context.SetSession(&model.Session{Id: "abc", UserId: "userid"})
+	th.Context = th.Context.WithSession(&model.Session{Id: "abc", UserId: "userid"})
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.AnnouncementSettings.UserNoticesEnabled = false

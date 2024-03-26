@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import * as reactRedux from 'react-redux';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
@@ -25,7 +24,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
                 general: {
                     config: {
-                        EnableTutorial: true,
+                        EnableTutorial: 'true',
                     },
                     license: {
                         IsLicensed: 'false',
@@ -63,7 +62,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
                 general: {
                     config: {
-                        EnableTutorial: true,
+                        EnableTutorial: 'true',
                     },
                     license: {
                         IsLicensed: 'false',
@@ -102,7 +101,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
                 general: {
                     config: {
-                        EnableTutorial: true,
+                        EnableTutorial: 'true',
                     },
                     license: {
                         IsLicensed: 'true',
@@ -141,7 +140,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
                 general: {
                     config: {
-                        EnableTutorial: true,
+                        EnableTutorial: 'true',
                     },
                     license: {
                         IsLicensed: 'true',
@@ -181,7 +180,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
                 general: {
                     config: {
-                        EnableTutorial: true,
+                        EnableTutorial: 'true',
                     },
                     license: {
                         IsLicensed: 'false',

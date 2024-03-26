@@ -9,10 +9,11 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/driver"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/plugin_api_tests"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/driver"
 )
 
 type MyPlugin struct {
@@ -29,9 +30,10 @@ func (p *MyPlugin) OnConfigurationChange() error {
 }
 
 func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
+	rctx := request.TestContext(p.t)
 	settings := p.API.GetUnsanitizedConfig().SqlSettings
 	settings.Trace = model.NewBool(false)
-	store, err := sqlstore.New(settings, nil)
+	store, err := sqlstore.New(settings, rctx.Logger(), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -43,11 +45,11 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 
 		wrapper := sqlstore.NewStoreTestWrapper(store)
 		// Testing with a handful of stores
-		storetest.TestPostStore(p.t, store, wrapper)
-		storetest.TestUserStore(p.t, store, wrapper)
-		storetest.TestTeamStore(p.t, store)
-		storetest.TestChannelStore(p.t, store, wrapper)
-		storetest.TestBotStore(p.t, store, wrapper)
+		storetest.TestPostStore(p.t, rctx, store, wrapper)
+		storetest.TestUserStore(p.t, rctx, store, wrapper)
+		storetest.TestTeamStore(p.t, rctx, store)
+		storetest.TestChannelStore(p.t, rctx, store, wrapper)
+		storetest.TestBotStore(p.t, rctx, store, wrapper)
 
 		store.GetMasterX().Close()
 	}

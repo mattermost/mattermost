@@ -84,7 +84,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.findByTestId('post_textbox').clear().type('/playbook check ');
 
             // * Verify suggestions number: a single run with 4 tasks + 1 title
-            cy.get('.slash-command').should('have.length', 5);
+            cy.get('.slash-command__info').should('have.length', 5);
 
             // # Clear input
             cy.findByTestId('post_textbox').clear();
@@ -295,7 +295,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.findByTestId('post_textbox').clear().type('/playbook check ');
 
             // * Verify suggestions number: 2 runs * 4 tasks + 1 title
-            cy.get('.slash-command').should('have.length', 9);
+            cy.get('.slash-command__info').should('have.length', 9);
 
             // # Clear input
             cy.findByTestId('post_textbox').clear();
@@ -337,7 +337,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.findByTestId('post_textbox').clear().type('/playbook checkadd ');
 
             // * Verify suggestions number: 2 runs * 2 checklists + 1 title
-            cy.get('.slash-command').should('have.length', 5);
+            cy.get('.slash-command__info').should('have.length', 5);
 
             // # Clear input
             cy.findByTestId('post_textbox').clear();
@@ -380,7 +380,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.findByTestId('post_textbox').clear().type('/playbook checkremove ');
 
             // * Verify suggestions number: 2 runs * 4 tasks + 1 title
-            cy.get('.slash-command').should('have.length', 9);
+            cy.get('.slash-command__info').should('have.length', 9);
 
             // # Clear input
             cy.findByTestId('post_textbox').clear();
@@ -423,7 +423,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.findByTestId('post_textbox').clear().type('/playbook owner ');
 
             // * Verify suggestions number: 2 runs + 1 title
-            cy.get('.slash-command').should('have.length', 3);
+            cy.get('.slash-command__info').should('have.length', 3);
 
             // # Clear input
             cy.findByTestId('post_textbox').clear();
@@ -465,7 +465,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.findByTestId('post_textbox').clear().type('/playbook finish ');
 
             // * Verify suggestions number: 2 runs + 1 title
-            cy.get('.slash-command').should('have.length', 3);
+            cy.get('.slash-command__info').should('have.length', 3);
 
             // # Clear input
             cy.findByTestId('post_textbox').clear();
@@ -528,7 +528,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.findByTestId('post_textbox').clear().type('/playbook update ');
 
             // * Verify suggestions number: 2 runs + 1 title
-            cy.get('.slash-command').should('have.length', 3);
+            cy.get('.slash-command__info').should('have.length', 3);
 
             // # Clear input
             cy.findByTestId('post_textbox').clear();

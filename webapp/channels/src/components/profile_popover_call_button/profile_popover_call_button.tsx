@@ -2,16 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useRef} from 'react';
-
 import {useDispatch} from 'react-redux';
 
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+
 import {createDirectChannel} from 'mattermost-redux/actions/channels';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import {Constants} from 'utils/constants';
 
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {PluginComponent} from 'types/store/plugins';
+import type {PluginComponent} from 'types/store/plugins';
 
 type Props = {
     channelMember?: ChannelMembership;
@@ -44,7 +43,7 @@ export default function ProfilePopoverCallButton({pluginCallComponents, channelM
 
     const getDmChannel = async () => {
         if (!dmChannel) {
-            const {data} = await dispatch(createDirectChannel(currentUserId, userId)) as ActionResult;
+            const {data} = await dispatch(createDirectChannel(currentUserId, userId));
             if (data) {
                 return data;
             }

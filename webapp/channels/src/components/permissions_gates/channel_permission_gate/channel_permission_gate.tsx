@@ -36,16 +36,11 @@ type Props = {
     children: React.ReactNode;
 }
 
-export default class ChannelPermissionGate extends React.PureComponent<Props> {
-    render() {
-        const {hasPermission, children, invert = false} = this.props;
-
-        if (hasPermission && !invert) {
-            return children;
-        }
-        if (!hasPermission && invert) {
-            return children;
-        }
-        return null;
+const ChannelPermissionGate = ({hasPermission, children, invert = false}: Props) => {
+    if (hasPermission !== invert) {
+        return <>{children}</>;
     }
-}
+    return null;
+};
+
+export default React.memo(ChannelPermissionGate);

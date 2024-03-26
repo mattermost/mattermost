@@ -5,23 +5,19 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
+
 import {Client4} from 'mattermost-redux/client';
-import {UserAccessToken, UserProfile} from '@mattermost/types/users';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import RevokeTokenButton from 'components/admin_console/revoke_token_button';
+import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 import Avatar from 'components/widgets/users/avatar';
-import ExternalLink from 'components/external_link';
+
 import {DeveloperLinks} from 'utils/constants';
 
 export type Props = {
-
-    /**
-     * Set to render the modal
-     */
-    show: boolean;
 
     /**
      * The user the roles are being managed for
@@ -33,20 +29,18 @@ export type Props = {
      */
     userAccessTokens?: Record<string, UserAccessToken>;
 
-    /**
-     * Function called when modal is dismissed
-     */
-    onModalDismissed: (e?: React.MouseEvent<HTMLButtonElement>) => void;
+    onExited: () => void;
     actions: {
 
         /**
          * Function to get a user's access tokens
          */
-        getUserAccessTokensForUser: (userId: string, page: number, perPage: number) => ActionFunc;
+        getUserAccessTokensForUser: (userId: string, page: number, perPage: number) => void;
     };
 };
 
 type State = {
+    show: boolean;
     error: string | null;
 }
 
@@ -54,6 +48,7 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
     public constructor(props: Props) {
         super(props);
         this.state = {
+            show: true,
             error: null,
         };
     }
@@ -70,6 +65,10 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
         this.setState({
             error,
         });
+    };
+
+    private onModalDismissed = () => {
+        this.setState({show: false});
     };
 
     private renderContents = (): JSX.Element => {
@@ -187,8 +186,9 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
     public render = (): JSX.Element => {
         return (
             <Modal
-                show={this.props.show}
-                onHide={this.props.onModalDismissed}
+                show={this.state.show}
+                onHide={this.onModalDismissed}
+                onExited={this.props.onExited}
                 dialogClassName='a11y__modal manage-teams'
                 role='dialog'
                 aria-labelledby='manageTokensModalLabel'

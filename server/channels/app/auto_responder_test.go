@@ -30,7 +30,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 	userUpdated1, _ := th.App.PatchUser(th.Context, user.Id, patch, true)
 
 	// autoResponder is enabled, status should be OOO
-	th.App.SetAutoResponderStatus(userUpdated1, user.NotifyProps)
+	th.App.SetAutoResponderStatus(th.Context, userUpdated1, user.NotifyProps)
 
 	status, err := th.App.GetStatus(userUpdated1.Id)
 	require.Nil(t, err)
@@ -44,12 +44,11 @@ func TestSetAutoResponderStatus(t *testing.T) {
 	userUpdated2, _ := th.App.PatchUser(th.Context, user.Id, patch2, true)
 
 	// autoResponder is disabled, status should be ONLINE
-	th.App.SetAutoResponderStatus(userUpdated2, userUpdated1.NotifyProps)
+	th.App.SetAutoResponderStatus(th.Context, userUpdated2, userUpdated1.NotifyProps)
 
 	status, err = th.App.GetStatus(userUpdated2.Id)
 	require.Nil(t, err)
 	assert.Equal(t, model.StatusOnline, status.Status)
-
 }
 
 func TestDisableAutoResponder(t *testing.T) {
@@ -219,7 +218,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		// Clean up all posts from this user.
 		// There are some dummy messages like "user joined team" etc.
 		// which needs to be cleaned up.
-		require.NoError(t, th.GetSqlStore().Post().PermanentDeleteByUser(th.BasicUser.Id))
+		require.NoError(t, th.GetSqlStore().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id))
 
 		savedPost, err := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,

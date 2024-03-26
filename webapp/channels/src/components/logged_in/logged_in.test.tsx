@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import LoggedIn, {Props} from 'components/logged_in/logged_in';
-import BrowserStore from 'stores/browser_store';
+import type {UserProfile} from '@mattermost/types/users';
+
 import * as GlobalActions from 'actions/global_actions';
-import {UserProfile} from '@mattermost/types/users';
+import BrowserStore from 'stores/browser_store';
+
+import LoggedIn from 'components/logged_in/logged_in';
+import type {Props} from 'components/logged_in/logged_in';
 
 jest.mock('actions/websocket_actions.jsx', () => ({
     initialize: jest.fn(),
@@ -20,12 +23,13 @@ describe('components/logged_in/LoggedIn', () => {
     const baseProps: Props = {
         currentUser: {} as UserProfile,
         mfaRequired: false,
-        enableTimezone: false,
         actions: {
             autoUpdateTimezone: jest.fn(),
             getChannelURLAction: jest.fn(),
-            viewChannel: jest.fn(),
+            markChannelAsViewedOnServer: jest.fn(),
+            updateApproximateViewTime: jest.fn(),
         },
+        isCurrentChannelManuallyUnread: false,
         showTermsOfService: false,
         location: {
             pathname: '/',

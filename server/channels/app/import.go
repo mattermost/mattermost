@@ -16,8 +16,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 type ReactionImportData = imports.ReactionImportData // part of the app interface
@@ -118,7 +118,7 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 	c.Logger().Info("Started new bulk import worker", mlog.String("bulk_import_worker_id", workerID))
 	defer func() {
 		wg.Done()
-		c.Logger().Info("Bulk import worker finished", mlog.String("bulk_import_worker_id", workerID), mlog.Uint64("processed_lines", processedLines))
+		c.Logger().Info("Bulk import worker finished", mlog.String("bulk_import_worker_id", workerID), mlog.Uint("processed_lines", processedLines))
 	}()
 
 	postLines := []imports.LineImportWorkerData{}
@@ -155,7 +155,7 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 
 		processedLines++
 		if processedLines%statusUpdateAfterLines == 0 {
-			c.Logger().Info("Worker progress", mlog.String("bulk_import_worker_id", workerID), mlog.Uint64("processed_lines", processedLines))
+			c.Logger().Info("Worker progress", mlog.String("bulk_import_worker_id", workerID), mlog.Uint("processed_lines", processedLines))
 		}
 	}
 
@@ -171,11 +171,11 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 	}
 }
 
-func (a *App) BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int) {
+func (a *App) BulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int) {
 	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, "")
 }
 
-func (a *App) BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+func (a *App) BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, importPath)
 }
 
@@ -314,6 +314,11 @@ func processImportDataFileVersionLine(line imports.LineImportData) (int, *model.
 
 func (a *App) importLine(c request.CTX, line imports.LineImportData, dryRun bool) *model.AppError {
 	switch {
+	case line.Type == "role":
+		if line.Role == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_role.error", nil, "", http.StatusBadRequest)
+		}
+		return a.importRole(c, line.Role, dryRun)
 	case line.Type == "scheme":
 		if line.Scheme == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_scheme.error", nil, "", http.StatusBadRequest)

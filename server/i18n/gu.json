@@ -1,0 +1,82 @@
+[
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "મલ્ટિફોર્મ વિનંતિનું પદચ્છેદન કરવામાં ભૂલ"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "તમે આર્કાઇવ કરેલી ચેનલમાં સ્વીકૃતિ આપી શકતા નથી."
+  },
+  {
+    "id": "November",
+    "translation": "નવેમ્બર"
+  },
+  {
+    "id": "May",
+    "translation": "મે"
+  },
+  {
+    "id": "December",
+    "translation": "ડિસેમ્બર"
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "પ્રમાણપત્ર ફાઇલ ખોલી શકાઈ નથી."
+  },
+  {
+    "id": "February",
+    "translation": "ફેબ્રુઆરી"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "તમે આર્કાઇવ કરેલી ચેનલમાંથી સ્વીકૃતિ દૂર કરી શકતા નથી."
+  },
+  {
+    "id": "October",
+    "translation": "ઓક્ટોબર"
+  },
+  {
+    "id": "September",
+    "translation": "સપ્ટેમ્બર"
+  },
+  {
+    "id": "March",
+    "translation": "માર્ચ"
+  },
+  {
+    "id": "April",
+    "translation": "એપ્રિલ"
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "વિનંતીમાં 'certificate' હેઠળ કોઈ ફાઇલ નથી."
+  },
+  {
+    "id": "August",
+    "translation": "ઓગસ્ટ"
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "વિનંતીમાં 'certificate' હેઠળ કોઈ ફાઇલ નથી."
+  },
+  {
+    "id": "January",
+    "translation": "જાન્યુઆરી"
+  },
+  {
+    "id": "June",
+    "translation": "જૂન"
+  },
+  {
+    "id": "July",
+    "translation": "જુલાઈ"
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "5 મિનિટ વીતી ગયા પછી તમે સ્વીકૃતિ કાઢી શકતા નથી."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "પ્રમાણપત્ર ફાઇલ સાચવી શકાઈ નથી."
+  }
+]

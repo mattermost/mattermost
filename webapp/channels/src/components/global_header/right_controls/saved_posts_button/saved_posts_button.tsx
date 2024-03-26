@@ -8,11 +8,14 @@ import {useDispatch, useSelector} from 'react-redux';
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
 import {closeRightHandSide, showFlaggedPosts} from 'actions/views/rhs';
+import {getRhsState} from 'selectors/rhs';
+
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import {getRhsState} from 'selectors/rhs';
-import {GlobalState} from 'types/store';
+
 import Constants, {RHSStates} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 const SavedPostsButton = (): JSX.Element | null => {
     const {formatMessage} = useIntl();
@@ -32,7 +35,7 @@ const SavedPostsButton = (): JSX.Element | null => {
         <Tooltip id='recentMentions'>
             <FormattedMessage
                 id='channel_header.flagged'
-                defaultMessage='Saved posts'
+                defaultMessage='Saved messages'
             />
         </Tooltip>
     );
@@ -53,7 +56,7 @@ const SavedPostsButton = (): JSX.Element | null => {
                 compact={true}
                 aria-expanded={rhsState === RHSStates.FLAG}
                 aria-controls='searchContainer' // Must be changed if the ID of the container changes
-                aria-label={formatMessage({id: 'channel_header.flagged', defaultMessage: 'Saved posts'})}
+                aria-label={formatMessage({id: 'channel_header.flagged', defaultMessage: 'Saved messages'})}
             />
         </OverlayTrigger>
     );

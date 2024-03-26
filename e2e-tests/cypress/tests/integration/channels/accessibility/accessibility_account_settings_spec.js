@@ -34,8 +34,9 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
             {key: 'desktop', label: 'Desktop Notifications', type: 'radio'},
             {key: 'email', label: 'Email Notifications', type: 'radio'},
             {key: 'push', label: 'Mobile Push Notifications', type: 'radio'},
-            {key: 'keys', label: 'Words That Trigger Mentions', type: 'checkbox'},
-            {key: 'comments', label: 'Reply notifications', type: 'radio'},
+            {key: 'keysWithNotification', label: 'Keywords That Trigger Notifications', type: 'checkbox'},
+            {key: 'keysWithHighlight', label: 'Keywords That Get Highlighted (Without Notifications)', type: 'checkbox'},
+            {key: 'comments', label: 'Reply Notifications', type: 'radio'},
         ],
         display: [
             {key: 'theme', label: 'Theme', type: 'radio'},
@@ -71,9 +72,6 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         cy.apiUpdateConfig({
             ServiceSettings: {
                 EnableMultifactorAuthentication: true,
-            },
-            DisplaySettings: {
-                ExperimentalTimezone: true,
             },
             SamlSettings: {
                 Enable: false,
@@ -133,6 +131,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
         // * Verify if the focus goes to the individual fields in Notifications section
         cy.findByRole('tab', {name: 'notifications'}).click().tab();
+        cy.focused().should('have.text', 'Learn more about notifications').tab();
         verifySettings(settings.notifications);
 
         // // * Verify if the focus goes to the individual fields in Display section

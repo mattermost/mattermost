@@ -1,0 +1,152 @@
+name: Server CI Artifacts
+
+on:
+  workflow_run:
+    workflows:
+      - "Server CI PR"
+    types:
+      - completed
+
+env:
+  COSIGN_VERSION: 2.2.0
+
+jobs:
+  ## We only need the condition on the first job
+  ## This will run only when a pull request is created with server changes
+  update-initial-status:
+    if: github.repository_owner == 'mattermost' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ github.event.workflow_run.head_sha }}
+          context: Server CI/Artifacts Build
+          description: Artifacts upload and build for mattermost team platform
+          status: pending
+
+  upload-artifacts:
+    runs-on: ubuntu-22.04
+    needs:
+      - update-initial-status
+    steps:
+      - name: cd/configure-aws-credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 #v4.0.2
+        with:
+          aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.PR_BUILDS_BUCKET_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PR_BUILDS_BUCKET_AWS_SECRET_ACCESS_KEY }}
+
+      - name: cd/download-artifacts-from-PR-workflow
+        uses: dawidd6/action-download-artifact@71072fbb1229e1317f1a8de6b04206afb461bd67 # v2.26.0
+        with:
+          workflow: ${{ github.event.workflow_run.workflow_id }}
+          run_id: ${{ github.event.workflow_run.id }}
+          workflow_conclusion: success
+          name: server-dist-artifact
+          path: server/dist
+
+      - name: cd/generate-packages-file-list
+        working-directory: ./server/dist
+        run: |
+          echo "PACKAGES_FILE_LIST<<EOF" >> "${GITHUB_ENV}"
+          ls | grep -E "*.(tar.gz|zip)$" >> "${GITHUB_ENV}"
+          echo "EOF" >> "${GITHUB_ENV}"
+
+      - name: cd/upload-artifacts-to-s3
+        run: aws s3 sync server/dist/ s3://pr-builds.mattermost.com/mattermost/commit/${{ github.event.workflow_run.head_sha }}/ --cache-control no-cache --no-progress --acl public-read
+
+      - name: cd/generate-summary
+        run: |
+          echo "### Download links for Mattermost team package" >> "${GITHUB_STEP_SUMMARY}"
+          echo " " >> "${GITHUB_STEP_SUMMARY}"
+          echo "Mattermost Repo SHA: \`${{ github.event.workflow_run.head_sha }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "|Download Link|" >> "${GITHUB_STEP_SUMMARY}"
+          echo "| --- |" >> "${GITHUB_STEP_SUMMARY}"
+          for package in ${PACKAGES_FILE_LIST}
+            do 
+              echo "|[${package}](https://pr-builds.mattermost.com/mattermost/commit/${{ github.event.workflow_run.head_sha }}/${package})|" >> "${GITHUB_STEP_SUMMARY}"
+          done
+
+  build-docker:
+    runs-on: ubuntu-22.04
+    needs:
+      - upload-artifacts
+    steps:
+      - name: cd/docker-login
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          username: mattermostdev
+          password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+
+      - name: cd/setup-cosign
+        uses: sigstore/cosign-installer@11086d25041f77fe8fe7b9ea4e48e3b9192b8f19 # v3.1.2
+        with:
+          cosign-release: v${{ env.COSIGN_VERSION }}
+
+      - name: cd/download-artifacts-from-PR-workflow
+        uses: dawidd6/action-download-artifact@71072fbb1229e1317f1a8de6b04206afb461bd67 # v2.26.0
+        with:
+          workflow: ${{ github.event.workflow_run.workflow_id }}
+          run_id: ${{ github.event.workflow_run.id }}
+          workflow_conclusion: success
+          name: server-build-artifact
+          path: server/build/
+
+      - name: cd/setup-docker-buildx
+        uses: docker/setup-buildx-action@0d103c3126aa41d772a8362f6aa67afac040f80c # v3.1.0
+
+      - name: cd/docker-build-and-push
+        id: docker
+        env:
+          MM_PACKAGE: https://pr-builds.mattermost.com/mattermost/commit/${{ github.event.workflow_run.head_sha }}/mattermost-team-linux-amd64.tar.gz
+        run: |
+          cd server/build
+          export TAG=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+          docker buildx build --no-cache --platform linux/amd64 --push --build-arg MM_PACKAGE=${MM_PACKAGE} -t mattermostdevelopment/mm-te-test:${TAG} -t mattermostdevelopment/mattermost-team-edition:${TAG} .
+          echo "DOCKERHUB_IMAGE_DIGEST=$(cosign triangulate mattermostdevelopment/mattermost-team-edition:${TAG} | cut -d: -f2 | sed 's/\.sig$//' | tr '-' ':')" >> "${GITHUB_OUTPUT}"
+
+      - name: cd/generate-summary
+        run: |
+          echo "### Docker Image for Mattermost team package" >> "${GITHUB_STEP_SUMMARY}"
+          echo " " >> "${GITHUB_STEP_SUMMARY}"
+          echo "Mattermost Repo SHA: \`${{ github.event.workflow_run.head_sha }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo " " >> "${GITHUB_STEP_SUMMARY}"
+          echo "Docker Image: \`mattermostdevelopment/mattermost-team-edition:${{ steps.docker.outputs.tag }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Image Digest: \`${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Secure Image: \`mattermostdevelopment/mattermost-team-edition:${{ steps.docker.outputs.tag }}@${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}\`" >> "${GITHUB_STEP_SUMMARY}"
+
+  update-failure-final-status:
+    if: failure() || cancelled()
+    runs-on: ubuntu-22.04
+    needs:
+      - build-docker
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ github.event.workflow_run.head_sha }}
+          context: Server CI/Artifacts Build
+          description: Artifacts upload and build for mattermost team platform
+          status: failure
+
+  update-success-final-status:
+    if: success()
+    runs-on: ubuntu-22.04
+    needs:
+      - build-docker
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ github.event.workflow_run.head_sha }}
+          context: Server CI/Artifacts Build
+          description: Artifacts upload and build for mattermost team platform
+          status: success

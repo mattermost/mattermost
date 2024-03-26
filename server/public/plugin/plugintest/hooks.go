@@ -131,6 +131,11 @@ func (_m *Hooks) Implemented() ([]string, error) {
 	return r0, r1
 }
 
+// MessageHasBeenDeleted provides a mock function with given fields: c, post
+func (_m *Hooks) MessageHasBeenDeleted(c *plugin.Context, post *model.Post) {
+	_m.Called(c, post)
+}
+
 // MessageHasBeenPosted provides a mock function with given fields: c, post
 func (_m *Hooks) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	_m.Called(c, post)
@@ -186,6 +191,48 @@ func (_m *Hooks) MessageWillBeUpdated(c *plugin.Context, newPost *model.Post, ol
 
 	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.Post, *model.Post) string); ok {
 		r1 = rf(c, newPost, oldPost)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	return r0, r1
+}
+
+// MessagesWillBeConsumed provides a mock function with given fields: posts
+func (_m *Hooks) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+	ret := _m.Called(posts)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func([]*model.Post) []*model.Post); ok {
+		r0 = rf(posts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	return r0
+}
+
+// NotificationWillBePushed provides a mock function with given fields: pushNotification, userID
+func (_m *Hooks) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
+	ret := _m.Called(pushNotification, userID)
+
+	var r0 *model.PushNotification
+	var r1 string
+	if rf, ok := ret.Get(0).(func(*model.PushNotification, string) (*model.PushNotification, string)); ok {
+		return rf(pushNotification, userID)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PushNotification, string) *model.PushNotification); ok {
+		r0 = rf(pushNotification, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PushNotification)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PushNotification, string) string); ok {
+		r1 = rf(pushNotification, userID)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
@@ -264,6 +311,72 @@ func (_m *Hooks) OnSendDailyTelemetry() {
 	_m.Called()
 }
 
+// OnSharedChannelsAttachmentSyncMsg provides a mock function with given fields: fi, post, rc
+func (_m *Hooks) OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error {
+	ret := _m.Called(fi, post, rc)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.FileInfo, *model.Post, *model.RemoteCluster) error); ok {
+		r0 = rf(fi, post, rc)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// OnSharedChannelsPing provides a mock function with given fields: rc
+func (_m *Hooks) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
+	ret := _m.Called(rc)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*model.RemoteCluster) bool); ok {
+		r0 = rf(rc)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// OnSharedChannelsProfileImageSyncMsg provides a mock function with given fields: user, rc
+func (_m *Hooks) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error {
+	ret := _m.Called(user, rc)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.User, *model.RemoteCluster) error); ok {
+		r0 = rf(user, rc)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// OnSharedChannelsSyncMsg provides a mock function with given fields: msg, rc
+func (_m *Hooks) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+	ret := _m.Called(msg, rc)
+
+	var r0 model.SyncResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.SyncMsg, *model.RemoteCluster) (model.SyncResponse, error)); ok {
+		return rf(msg, rc)
+	}
+	if rf, ok := ret.Get(0).(func(*model.SyncMsg, *model.RemoteCluster) model.SyncResponse); ok {
+		r0 = rf(msg, rc)
+	} else {
+		r0 = ret.Get(0).(model.SyncResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.SyncMsg, *model.RemoteCluster) error); ok {
+		r1 = rf(msg, rc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // OnWebSocketConnect provides a mock function with given fields: webConnID, userID
 func (_m *Hooks) OnWebSocketConnect(webConnID string, userID string) {
 	_m.Called(webConnID, userID)
@@ -272,6 +385,11 @@ func (_m *Hooks) OnWebSocketConnect(webConnID string, userID string) {
 // OnWebSocketDisconnect provides a mock function with given fields: webConnID, userID
 func (_m *Hooks) OnWebSocketDisconnect(webConnID string, userID string) {
 	_m.Called(webConnID, userID)
+}
+
+// PreferencesHaveChanged provides a mock function with given fields: c, preferences
+func (_m *Hooks) PreferencesHaveChanged(c *plugin.Context, preferences []model.Preference) {
+	_m.Called(c, preferences)
 }
 
 // ReactionHasBeenAdded provides a mock function with given fields: c, reaction
@@ -313,8 +431,18 @@ func (_m *Hooks) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	_m.Called(c, w, r)
 }
 
+// ServeMetrics provides a mock function with given fields: c, w, r
+func (_m *Hooks) ServeMetrics(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+	_m.Called(c, w, r)
+}
+
 // UserHasBeenCreated provides a mock function with given fields: c, user
 func (_m *Hooks) UserHasBeenCreated(c *plugin.Context, user *model.User) {
+	_m.Called(c, user)
+}
+
+// UserHasBeenDeactivated provides a mock function with given fields: c, user
+func (_m *Hooks) UserHasBeenDeactivated(c *plugin.Context, user *model.User) {
 	_m.Called(c, user)
 }
 

@@ -26,9 +26,11 @@ import (
 )
 
 const (
-	RedirectLocationCacheSize = 10000
-	DefaultServerBusySeconds  = 3600
-	MaxServerBusySeconds      = 86400
+	RedirectLocationCacheSize     = 10000
+	RedirectLocationMaximumLength = 2100
+	RedirectLocationCacheExpiry   = 1 * time.Hour
+	DefaultServerBusySeconds      = 3600
+	MaxServerBusySeconds          = 86400
 )
 
 var redirectLocationDataCache = cache.NewLRU(cache.LRUOptions{
@@ -64,9 +66,6 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise", api.APISessionRequired(upgradeToEnterprise)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise/status", api.APISessionRequired(upgradeToEnterpriseStatus)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/restart", api.APISessionRequired(restart)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/status", api.APISessionRequired(getWarnMetricsStatus)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(sendWarnMetricAckEmail)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
 	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
@@ -96,7 +95,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileDatas := c.App.GenerateSupportPacket()
+	fileDatas := c.App.GenerateSupportPacket(c.AppContext)
 
 	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
 	now := time.Now()
@@ -144,39 +143,40 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	actualGoroutines := runtime.NumGoroutine()
 	if *c.App.Config().ServiceSettings.GoroutineHealthThreshold > 0 && actualGoroutines >= *c.App.Config().ServiceSettings.GoroutineHealthThreshold {
-		mlog.Warn("The number of running goroutines is over the health threshold", mlog.Int("goroutines", actualGoroutines), mlog.Int("health_threshold", *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
+		c.Logger.Warn("The number of running goroutines is over the health threshold", mlog.Int("goroutines", actualGoroutines), mlog.Int("health_threshold", *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
 		s[model.STATUS] = model.StatusUnhealthy
 	}
 
 	// Enhanced ping health check:
 	// If an extra form value is provided then perform extra health checks for
 	// database and file storage backends.
-	if r.FormValue("get_server_status") != "" {
+	if r.FormValue("get_server_status") == "true" {
 		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.StatusOk
 
 		writeErr := c.App.DBHealthCheckWrite()
 		if writeErr != nil {
-			mlog.Warn("Unable to write to database.", mlog.Err(writeErr))
+			c.Logger.Warn("Unable to write to database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.StatusUnhealthy
 			s[model.STATUS] = model.StatusUnhealthy
 		}
 
 		writeErr = c.App.DBHealthCheckDelete()
 		if writeErr != nil {
-			mlog.Warn("Unable to remove ping health check value from database.", mlog.Err(writeErr))
+			c.Logger.Warn("Unable to remove ping health check value from database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.StatusUnhealthy
 			s[model.STATUS] = model.StatusUnhealthy
 		}
 
 		if s[dbStatusKey] == model.StatusOk {
-			mlog.Debug("Able to write to database.")
+			c.Logger.Debug("Able to write to database.")
 		}
 
 		filestoreStatusKey := "filestore_status"
 		s[filestoreStatusKey] = model.StatusOk
 		appErr := c.App.TestFileStoreConnection()
 		if appErr != nil {
+			c.Logger.Warn("Unable to test filestore connection.", mlog.Err(appErr))
 			s[filestoreStatusKey] = model.StatusUnhealthy
 			s[model.STATUS] = model.StatusUnhealthy
 		}
@@ -192,7 +192,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	s["ActiveSearchBackend"] = c.App.ActiveSearchBackend()
 
-	if s[model.STATUS] != model.StatusOk {
+	if s[model.STATUS] != model.StatusOk && r.FormValue("use_rest_semantics") != "true" {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	w.Write([]byte(model.MapToJSON(s)))
@@ -223,7 +223,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr := c.App.TestEmail(c.AppContext.Session().UserId, cfg)
+	appErr := c.App.TestEmail(c.AppContext, c.AppContext.Session().UserId, cfg)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -250,7 +250,7 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr := c.App.TestSiteURL(siteURL)
+	appErr := c.App.TestSiteURL(c.AppContext, siteURL)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -268,7 +268,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audits, appErr := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
+	audits, appErr := c.App.GetAuditsPage(c.AppContext, "", c.Params.Page, c.Params.PerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -345,7 +345,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var logFilter *model.LogFilter
 	err := json.NewDecoder(r.Body).Decode(&logFilter)
-	if err != nil {
+	if err != nil || logFilter == nil {
 		c.Err = model.NewAppError("queryLogs", "api.system.logs.invalidFilter", nil, "", http.StatusInternalServerError)
 		return
 	}
@@ -364,7 +364,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 			if err2 == nil {
 				logsJSON[node] = append(logsJSON[node], result)
 			} else {
-				mlog.Warn("Error parsing log line in Server Logs")
+				c.Logger.Warn("Error parsing log line in Server Logs")
 			}
 		}
 	}
@@ -463,7 +463,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, appErr := c.App.GetAnalytics(name, teamId)
+	rows, appErr := c.App.GetAnalytics(c.AppContext, name, teamId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -485,7 +485,7 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, appErr := c.App.GetLatestVersion("https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
+	resp, appErr := c.App.GetLatestVersion(c.AppContext, "https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -532,11 +532,6 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
 		c.SetPermissionError(model.PermissionTestS3)
-		return
-	}
-
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("testS3", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -589,7 +584,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	res, err := client.Head(url)
 	if err != nil {
 		// Cache failures to prevent retries.
-		redirectLocationDataCache.SetWithExpiry(url, "", 1*time.Hour)
+		redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
 		// Always return a success status and a JSON string to limit information returned to client.
 		w.Write([]byte(model.MapToJSON(m)))
 		return
@@ -600,7 +595,17 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	}()
 
 	location = res.Header.Get("Location")
-	redirectLocationDataCache.SetWithExpiry(url, location, 1*time.Hour)
+
+	// If the location length is > 2100, we can probably ignore. Fixes https://mattermost.atlassian.net/browse/MM-54219
+	if len(location) > RedirectLocationMaximumLength {
+		// Treating as a "failure". Cache failures to prevent retries.
+		redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
+		// Always return a success status and a JSON string to limit information returned to client.
+		w.Write([]byte(model.MapToJSON(m)))
+		return
+	}
+
+	redirectLocationDataCache.SetWithExpiry(url, location, RedirectLocationCacheExpiry)
 	m["location"] = location
 
 	w.Write([]byte(model.MapToJSON(m)))
@@ -626,15 +631,19 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	err := c.App.SendAckToPushProxy(&ack)
 	if ack.IsIdLoaded {
 		if err != nil {
-			// Log the error only, then continue to fetch notification message
 			c.App.NotificationsLog().Error("Notification ack not sent to push proxy",
-				mlog.String("ackId", ack.Id),
-				mlog.String("type", ack.NotificationType),
-				mlog.String("postId", ack.PostId),
-				mlog.String("status", err.Error()),
+				mlog.String("type", model.TypePush),
+				mlog.String("status", model.StatusServerError),
+				mlog.String("reason", model.ReasonServerError),
+				mlog.String("ack_id", ack.Id),
+				mlog.String("push_type", ack.NotificationType),
+				mlog.String("post_id", ack.PostId),
+				mlog.String("ack_type", ack.NotificationType),
+				mlog.String("device_type", ack.ClientPlatform),
+				mlog.Int("received_at", ack.ClientReceivedAt),
+				mlog.Err(err),
 			)
 		}
-
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
 			if _, appErr := c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
@@ -649,7 +658,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			msg, appError := notificationInterface.GetNotificationMessage(&ack, c.AppContext.Session().UserId)
+			msg, appError := notificationInterface.GetNotificationMessage(c.AppContext, &ack, c.AppContext.Session().UserId)
 			if appError != nil {
 				c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
 				return
@@ -691,7 +700,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "seconds", i)
 
 	c.App.Srv().Platform().Busy.Set(time.Second * time.Duration(i))
-	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
+	c.Logger.Warn("server busy state activated - non-critical services disabled", mlog.Int("seconds", i))
 
 	auditRec.Success()
 	ReturnStatusOK(w)
@@ -707,7 +716,7 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	c.App.Srv().Platform().Busy.Clear()
-	mlog.Info("server busy state cleared - non-critical services enabled")
+	c.Logger.Info("server busy state cleared - non-critical services enabled")
 
 	auditRec.Success()
 	ReturnStatusOK(w)
@@ -723,11 +732,11 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 	// along with doing some computations.
 	sbsJSON, jsonErr := c.App.Srv().Platform().Busy.ToJSON()
 	if jsonErr != nil {
-		mlog.Warn(jsonErr.Error())
+		c.Logger.Warn(jsonErr.Error())
 	}
 
 	if _, err := w.Write(sbsJSON); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -833,100 +842,6 @@ func restart(c *Context, w http.ResponseWriter, r *http.Request) {
 	}()
 }
 
-func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
-		c.SetPermissionError(model.SysconsoleReadPermissions...)
-		return
-	}
-
-	license := c.App.Channels().License()
-	if license != nil {
-		mlog.Debug("License is present, skip.")
-		return
-	}
-
-	status, appErr := c.App.GetWarnMetricsStatus()
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	js, err := json.Marshal(status)
-	if err != nil {
-		c.Err = model.NewAppError("getWarnMetricsStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	w.Write(js)
-}
-
-func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("sendWarnMetricAckEmail", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	c.LogAudit("attempt")
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	license := c.App.Channels().License()
-	if license != nil {
-		mlog.Debug("License is present, skip.")
-		return
-	}
-
-	user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	var ack model.SendWarnMetricAck
-	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
-		c.SetInvalidParamWithErr("ack", jsonErr)
-		return
-	}
-
-	appErr = c.App.NotifyAndSetWarnMetricAck(c.Params.WarnMetricId, user, ack.ForceAck, false)
-	if appErr != nil {
-		c.Err = appErr
-	}
-
-	auditRec.Success()
-	ReturnStatusOK(w)
-}
-
-func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("requestTrialLicenseAndAckWarnMetric", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	c.LogAudit("attempt")
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	if model.BuildEnterpriseReady != "true" {
-		mlog.Debug("Not Enterprise Edition, skip.")
-		return
-	}
-
-	license := c.App.Channels().License()
-	if license != nil {
-		mlog.Debug("License is present, skip.")
-		return
-	}
-
-	if err := c.App.RequestLicenseAndAckWarnMetric(c.AppContext, c.Params.WarnMetricId, false); err != nil {
-		c.Err = err
-		return
-	}
-
-	auditRec.Success()
-	ReturnStatusOK(w)
-}
-
 func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
@@ -935,7 +850,7 @@ func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	client, parseError := model.NoticeClientTypeFromString(r.URL.Query().Get("client"))
 	if parseError != nil {
-		c.SetInvalidParam("client")
+		c.SetInvalidParamWithErr("client", parseError)
 		return
 	}
 	clientVersion := r.URL.Query().Get("clientVersion")
@@ -955,7 +870,11 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	ids := model.ArrayFromJSON(r.Body)
+	ids, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("updateViewedProductNotices", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
 	appErr := c.App.UpdateViewedProductNotices(c.AppContext.Session().UserId, ids)
 	if appErr != nil {
 		c.Err = appErr

@@ -1,18 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect, ConnectedProps} from 'react-redux';
+import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
 
-import {Channel} from '@mattermost/types/channels';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {Post} from '@mattermost/types/posts';
-
+import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {joinChannelById, switchToChannel} from 'actions/views/channel';
 import {forwardPost} from 'actions/views/posts';
-import {openDirectChannelToUserId} from 'actions/channel_actions';
 
 import ForwardPostModal from './forward_post_modal';
 
@@ -27,7 +28,7 @@ export type ActionProps = {
     switchToChannel: (channel: Channel) => Promise<ActionResult>;
 
     // switch to the selected channel
-    openDirectChannelToUserId: (userId: string) => Promise<ActionResult>;
+    openDirectChannelToUserId: (userId: string) => Promise<ActionResult<Channel>>;
 
     // action called to forward the post with an optional comment
     forwardPost: (post: Post, channelId: Channel, message?: string) => Promise<ActionResult>;
@@ -44,7 +45,7 @@ export type OwnProps = {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<any>, ActionProps>({
+        actions: bindActionCreators({
             joinChannelById,
             switchToChannel,
             forwardPost,

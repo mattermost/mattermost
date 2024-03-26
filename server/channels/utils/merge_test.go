@@ -258,7 +258,6 @@ func TestMergeWithMaps(t *testing.T) {
 		// test replacing a referenced map
 		m1["base"] = map[string]*int{"third": newInt(777)}
 		assert.Equal(t, 10, *merged["base"]["level"])
-
 	})
 
 	t.Run("merge map[string]map[string]*int, pointers are not copied - change in patch do not affect merged", func(t *testing.T) {
@@ -661,7 +660,6 @@ func TestMergeWithEvenSimpler(t *testing.T) {
 		*t1.ES2.S = "new base"
 		assert.Equal(t, "base", *merged.ES2.S)
 	})
-
 }
 
 type sliceStruct struct {
@@ -1549,8 +1547,8 @@ func mergeSimple(base, patch simple) (*simple, error) {
 	if err != nil {
 		return nil, err
 	}
-	retS := ret.(simple)
-	return &retS, nil
+
+	return &ret, nil
 }
 
 func mergeEvenSimpler(base, patch evenSimpler) (*evenSimpler, error) {
@@ -1558,8 +1556,8 @@ func mergeEvenSimpler(base, patch evenSimpler) (*evenSimpler, error) {
 	if err != nil {
 		return nil, err
 	}
-	retTS := ret.(evenSimpler)
-	return &retTS, nil
+
+	return &ret, nil
 }
 
 func mergeEvenSimplerWithConfig(base, patch evenSimpler, mergeConfig *utils.MergeConfig) (*evenSimpler, error) {
@@ -1567,8 +1565,8 @@ func mergeEvenSimplerWithConfig(base, patch evenSimpler, mergeConfig *utils.Merg
 	if err != nil {
 		return nil, err
 	}
-	retTS := ret.(evenSimpler)
-	return &retTS, nil
+
+	return &ret, nil
 }
 
 func mergeSliceStruct(base, patch sliceStruct) (*sliceStruct, error) {
@@ -1576,8 +1574,8 @@ func mergeSliceStruct(base, patch sliceStruct) (*sliceStruct, error) {
 	if err != nil {
 		return nil, err
 	}
-	retTS := ret.(sliceStruct)
-	return &retTS, nil
+
+	return &ret, nil
 }
 
 func mergeMapPtr(base, patch mapPtr) (*mapPtr, error) {
@@ -1585,8 +1583,8 @@ func mergeMapPtr(base, patch mapPtr) (*mapPtr, error) {
 	if err != nil {
 		return nil, err
 	}
-	retTS := ret.(mapPtr)
-	return &retTS, nil
+
+	return &ret, nil
 }
 
 func mergeMapPtrState(base, patch mapPtrState) (*mapPtrState, error) {
@@ -1594,8 +1592,8 @@ func mergeMapPtrState(base, patch mapPtrState) (*mapPtrState, error) {
 	if err != nil {
 		return nil, err
 	}
-	retTS := ret.(mapPtrState)
-	return &retTS, nil
+
+	return &ret, nil
 }
 
 func mergeMapPtrState2(base, patch mapPtrState2) (*mapPtrState2, error) {
@@ -1603,8 +1601,8 @@ func mergeMapPtrState2(base, patch mapPtrState2) (*mapPtrState2, error) {
 	if err != nil {
 		return nil, err
 	}
-	retTS := ret.(mapPtrState2)
-	return &retTS, nil
+
+	return &ret, nil
 }
 
 func mergeTestStructs(base, patch testStruct) (*testStruct, error) {
@@ -1612,71 +1610,36 @@ func mergeTestStructs(base, patch testStruct) (*testStruct, error) {
 	if err != nil {
 		return nil, err
 	}
-	retTS := ret.(testStruct)
-	return &retTS, nil
+
+	return &ret, nil
 }
 
 func mergeStringIntMap(base, patch map[string]int) (map[string]int, error) {
-	ret, err := utils.Merge(base, patch, nil)
-	if err != nil {
-		return nil, err
-	}
-	retTS := ret.(map[string]int)
-	return retTS, nil
+	return utils.Merge(base, patch, nil)
 }
 
 func mergeStringPtrIntMap(base, patch map[string]*int) (map[string]*int, error) {
-	ret, err := utils.Merge(base, patch, nil)
-	if err != nil {
-		return nil, err
-	}
-	retTS := ret.(map[string]*int)
-	return retTS, nil
+	return utils.Merge(base, patch, nil)
 }
 
 func mergeStringSliceIntMap(base, patch map[string][]int) (map[string][]int, error) {
-	ret, err := utils.Merge(base, patch, nil)
-	if err != nil {
-		return nil, err
-	}
-	retTS := ret.(map[string][]int)
-	return retTS, nil
+	return utils.Merge(base, patch, nil)
 }
 
 func mergeMapOfMap(base, patch map[string]map[string]*int) (map[string]map[string]*int, error) {
-	ret, err := utils.Merge(base, patch, nil)
-	if err != nil {
-		return nil, err
-	}
-	retTS := ret.(map[string]map[string]*int)
-	return retTS, nil
+	return utils.Merge(base, patch, nil)
 }
 
 func mergeInterfaceMap(base, patch map[string]any) (map[string]any, error) {
-	ret, err := utils.Merge(base, patch, nil)
-	if err != nil {
-		return nil, err
-	}
-	retTS := ret.(map[string]any)
-	return retTS, nil
+	return utils.Merge(base, patch, nil)
 }
 
 func mergeStringSlices(base, patch []string) ([]string, error) {
-	ret, err := utils.Merge(base, patch, nil)
-	if err != nil {
-		return nil, err
-	}
-	retTS := ret.([]string)
-	return retTS, nil
+	return utils.Merge(base, patch, nil)
 }
 
 func mergeTestStructsPtrs(base, patch *testStruct) (*testStruct, error) {
-	ret, err := utils.Merge(base, patch, nil)
-	if err != nil {
-		return nil, err
-	}
-	retTS := ret.(testStruct)
-	return &retTS, nil
+	return utils.Merge(base, patch, nil)
 }
 
 func newBool(b bool) *bool          { return &b }

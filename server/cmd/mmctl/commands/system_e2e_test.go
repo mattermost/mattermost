@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"os"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
@@ -101,5 +103,63 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 		s.Require().Equal(printer.GetLines()[0], map[string]string{"status": "ok"})
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().False(s.th.App.Srv().Platform().Busy.IsBusy())
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestSupportPacketCmdF() {
+	s.SetupEnterpriseTestHelper().InitBasic()
+
+	printer.SetFormat(printer.FormatPlain)
+	s.T().Cleanup(func() { printer.SetFormat(printer.FormatJSON) })
+
+	s.Run("Download support packet with default filename", func() {
+		printer.Clean()
+
+		s.T().Cleanup(cleanupSupportPacket(s.T()))
+
+		err := systemSupportPacketCmdF(s.th.SystemAdminClient, SystemSupportPacketCmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
+		s.Require().Contains(printer.GetLines()[1], "Downloaded Support Packet to ")
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		var found bool
+
+		entries, err := os.ReadDir(".")
+		s.Require().NoError(err)
+		for _, e := range entries {
+			if strings.HasPrefix(e.Name(), "mattermost_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
+				b, err := os.ReadFile(e.Name())
+				s.NoError(err)
+
+				s.NotEmpty(b, b)
+
+				found = true
+			}
+		}
+		s.True(found)
+	})
+
+	s.Run("Download support packet with custom filename", func() {
+		printer.Clean()
+
+		err := SystemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
+		s.Require().NoError(err)
+
+		s.T().Cleanup(func() {
+			s.Require().NoError(os.Remove("foo.zip"))
+		})
+
+		err = systemSupportPacketCmdF(s.th.SystemAdminClient, SystemSupportPacketCmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
+		s.Require().Equal(printer.GetLines()[1], "Downloaded Support Packet to foo.zip")
+
+		b, err := os.ReadFile("foo.zip")
+		s.Require().NoError(err)
+		s.NotNil(b, b)
 	})
 }

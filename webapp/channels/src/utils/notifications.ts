@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as UserAgent from 'utils/user_agent';
-import Constants from 'utils/constants';
 import icon50 from 'images/icon50x50.png';
 import iconWS from 'images/icon_WS.png';
+import Constants from 'utils/constants';
+import * as UserAgent from 'utils/user_agent';
 
 let requestedNotificationPermission = false;
 

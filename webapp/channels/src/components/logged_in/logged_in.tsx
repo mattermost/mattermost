@@ -4,19 +4,20 @@
 import React from 'react';
 import {Redirect} from 'react-router-dom';
 
-import semver from 'semver';
+import type {UserProfile} from '@mattermost/types/users';
 
 import * as GlobalActions from 'actions/global_actions';
 import * as WebSocketActions from 'actions/websocket_actions.jsx';
-import * as UserAgent from 'utils/user_agent';
-import LoadingScreen from 'components/loading_screen';
-import {getBrowserTimezone} from 'utils/timezone';
-import WebSocketClient from 'client/web_websocket_client.jsx';
 import BrowserStore from 'stores/browser_store';
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
-import {isKeyPressed} from 'utils/keyboard';
+
+import LoadingScreen from 'components/loading_screen';
+
+import WebSocketClient from 'client/web_websocket_client';
 import Constants from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
+import {isKeyPressed} from 'utils/keyboard';
+import {getBrowserTimezone} from 'utils/timezone';
+import * as UserAgent from 'utils/user_agent';
 
 declare global {
     interface Window {
@@ -29,13 +30,14 @@ declare global {
 export type Props = {
     currentUser?: UserProfile;
     currentChannelId?: string;
+    isCurrentChannelManuallyUnread: boolean;
     children?: React.ReactNode;
     mfaRequired: boolean;
-    enableTimezone: boolean;
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
-        getChannelURLAction: (channel: Channel, teamId: string, url: string) => void;
-        viewChannel: (channelId: string, prevChannelId?: string) => void;
+        getChannelURLAction: (channelId: string, teamId: string, url: string) => void;
+        markChannelAsViewedOnServer: (channelId: string) => void;
+        updateApproximateViewTime: (channelId: string) => void;
     };
     showTermsOfService: boolean;
     location: {
@@ -44,22 +46,9 @@ export type Props = {
     };
 }
 
-type DesktopMessage = {
-    origin: string;
-    data: {
-        type: string;
-        message: {
-            version: string;
-            userIsActive: boolean;
-            manual: boolean;
-            channel: Channel;
-            teamId: string;
-            url: string;
-        };
-    };
-}
-
 export default class LoggedIn extends React.PureComponent<Props> {
+    private cleanupDesktopListeners?: () => void;
+
     constructor(props: Props) {
         super(props);
 
@@ -77,9 +66,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
         // Initialize websocket
         WebSocketActions.initialize();
 
-        if (this.props.enableTimezone) {
-            this.props.actions.autoUpdateTimezone(getBrowserTimezone());
-        }
+        this.props.actions.autoUpdateTimezone(getBrowserTimezone());
 
         // Make sure the websockets close and reset version
         window.addEventListener('beforeunload', this.handleBeforeUnload);
@@ -91,16 +78,13 @@ export default class LoggedIn extends React.PureComponent<Props> {
             GlobalActions.emitBrowserFocus(false);
         }
 
-        // Listen for messages from the desktop app
-        window.addEventListener('message', this.onDesktopMessageListener);
-
-        // Tell the desktop app the webapp is ready
-        window.postMessage(
-            {
-                type: 'webapp-ready',
-            },
-            window.location.origin,
-        );
+        // Listen for user activity and notifications from the Desktop App (if applicable)
+        const offUserActivity = DesktopApp.onUserActivityUpdate(this.updateActiveStatus);
+        const offNotificationClicked = DesktopApp.onNotificationClicked(this.clickNotification);
+        this.cleanupDesktopListeners = () => {
+            offUserActivity();
+            offNotificationClicked();
+        };
 
         // Device tracking setup
         if (UserAgent.isIos()) {
@@ -132,7 +116,8 @@ export default class LoggedIn extends React.PureComponent<Props> {
 
         window.removeEventListener('focus', this.onFocusListener);
         window.removeEventListener('blur', this.onBlurListener);
-        window.removeEventListener('message', this.onDesktopMessageListener);
+
+        this.cleanupDesktopListeners?.();
     }
 
     public render(): React.ReactNode {
@@ -163,44 +148,22 @@ export default class LoggedIn extends React.PureComponent<Props> {
         GlobalActions.emitBrowserFocus(false);
     }
 
-    // listen for messages from the desktop app
-    // TODO: This needs to be deprecated in favour of a more solid Desktop App API.
-    private onDesktopMessageListener = (desktopMessage: DesktopMessage) => {
+    private updateActiveStatus = (userIsActive: boolean, idleTime: number, manual: boolean) => {
         if (!this.props.currentUser) {
             return;
         }
-        if (desktopMessage.origin !== window.location.origin) {
-            return;
-        }
 
-        switch (desktopMessage.data.type) {
-        case 'register-desktop': {
-            // Currently used by calls
-            const {version} = desktopMessage.data.message;
-            if (!window.desktop) {
-                window.desktop = {};
-            }
-            window.desktop.version = semver.valid(semver.coerce(version));
-            break;
+        // update the server with the users current away status
+        if (userIsActive === true || userIsActive === false) {
+            WebSocketClient.userUpdateActiveStatus(userIsActive, manual);
         }
-        case 'user-activity-update': {
-            const {userIsActive, manual} = desktopMessage.data.message;
+    };
 
-            // update the server with the users current away status
-            if (userIsActive === true || userIsActive === false) {
-                WebSocketClient.userUpdateActiveStatus(userIsActive, manual);
-            }
-            break;
-        }
-        case 'notification-clicked': {
-            const {channel, teamId, url} = desktopMessage.data.message;
-            window.focus();
+    private clickNotification = (channelId: string, teamId: string, url: string) => {
+        window.focus();
 
-            // navigate to the appropriate channel
-            this.props.actions.getChannelURLAction(channel, teamId, url);
-            break;
-        }
-        }
+        // navigate to the appropriate channel
+        this.props.actions.getChannelURLAction(channelId, teamId, url);
     };
 
     private handleBackSpace = (e: KeyboardEvent): void => {
@@ -226,8 +189,9 @@ export default class LoggedIn extends React.PureComponent<Props> {
     private handleBeforeUnload = (): void => {
         // remove the event listener to prevent getting stuck in a loop
         window.removeEventListener('beforeunload', this.handleBeforeUnload);
-        if (document.cookie.indexOf('MMUSERID=') > -1) {
-            this.props.actions.viewChannel('', this.props.currentChannelId || '');
+        if (document.cookie.indexOf('MMUSERID=') > -1 && this.props.currentChannelId && !this.props.isCurrentChannelManuallyUnread) {
+            this.props.actions.updateApproximateViewTime(this.props.currentChannelId);
+            this.props.actions.markChannelAsViewedOnServer(this.props.currentChannelId);
         }
         WebSocketActions.close();
     };

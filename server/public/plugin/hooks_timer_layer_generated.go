@@ -113,6 +113,19 @@ func (hooks *hooksTimerLayer) MessageHasBeenUpdated(c *Context, newPost, oldPost
 	hooks.recordTime(startTime, "MessageHasBeenUpdated", true)
 }
 
+func (hooks *hooksTimerLayer) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.MessagesWillBeConsumed(posts)
+	hooks.recordTime(startTime, "MessagesWillBeConsumed", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) MessageHasBeenDeleted(c *Context, post *model.Post) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.MessageHasBeenDeleted(c, post)
+	hooks.recordTime(startTime, "MessageHasBeenDeleted", true)
+}
+
 func (hooks *hooksTimerLayer) ChannelHasBeenCreated(c *Context, channel *model.Channel) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.ChannelHasBeenCreated(c, channel)
@@ -217,4 +230,57 @@ func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*m
 	_returnsA, _returnsB := hooks.hooksImpl.ConfigurationWillBeSaved(newCfg)
 	hooks.recordTime(startTime, "ConfigurationWillBeSaved", _returnsB == nil)
 	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.NotificationWillBePushed(pushNotification, userID)
+	hooks.recordTime(startTime, "NotificationWillBePushed", true)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) UserHasBeenDeactivated(c *Context, user *model.User) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.UserHasBeenDeactivated(c, user)
+	hooks.recordTime(startTime, "UserHasBeenDeactivated", true)
+}
+
+func (hooks *hooksTimerLayer) ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.ServeMetrics(c, w, r)
+	hooks.recordTime(startTime, "ServeMetrics", true)
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.OnSharedChannelsSyncMsg(msg, rc)
+	hooks.recordTime(startTime, "OnSharedChannelsSyncMsg", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnSharedChannelsPing(rc)
+	hooks.recordTime(startTime, "OnSharedChannelsPing", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) PreferencesHaveChanged(c *Context, preferences []model.Preference) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.PreferencesHaveChanged(c, preferences)
+	hooks.recordTime(startTime, "PreferencesHaveChanged", true)
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnSharedChannelsAttachmentSyncMsg(fi, post, rc)
+	hooks.recordTime(startTime, "OnSharedChannelsAttachmentSyncMsg", _returnsA == nil)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnSharedChannelsProfileImageSyncMsg(user, rc)
+	hooks.recordTime(startTime, "OnSharedChannelsProfileImageSyncMsg", _returnsA == nil)
+	return _returnsA
 }

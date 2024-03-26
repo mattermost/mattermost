@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
-
-import {ViewsState} from 'types/store/views';
 
 import {ActionTypes} from 'utils/constants';
 
-export function modalState(state: ViewsState['modals']['modalState'] = {}, action: GenericAction) {
+import type {ViewsState} from 'types/store/views';
+
+export function modalState(state: ViewsState['modals']['modalState'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.MODAL_OPEN:
         return {
@@ -34,7 +34,7 @@ export function modalState(state: ViewsState['modals']['modalState'] = {}, actio
     }
 }
 
-export function showLaunchingWorkspace(state = false, action: GenericAction) {
+export function showLaunchingWorkspace(state = false, action: AnyAction) {
     switch (action.type) {
     case GeneralTypes.SHOW_LAUNCHING_WORKSPACE:
         return action.open;

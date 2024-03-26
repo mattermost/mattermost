@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 
 import {makeGetUsersTypingByChannelAndPost} from 'mattermost-redux/selectors/entities/typing';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import {userStartedTyping, userStoppedTyping} from './actions';
 import MsgTyping from './msg_typing';

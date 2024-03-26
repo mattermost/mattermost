@@ -1,38 +1,85 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Installing a managed plugin consists of copying the uploaded plugin (*.tar.gz) to the filestore,
-// unpacking to the configured local directory (PluginSettings.Directory), and copying any webapp bundle therein
-// to the configured local client directory (PluginSettings.ClientDirectory). The unpacking and copy occurs
-// each time the server starts, ensuring it remains synchronized with the set of installed plugins.
+// ### Plugin Bundles
 //
-// When a plugin is enabled, all connected websocket clients are notified so as to fetch any webapp bundle and
-// load the client-side portion of the plugin. This works well in a single-server system, but requires careful
-// coordination in a high-availability cluster with multiple servers. In particular, websocket clients must not be
-// notified of the newly enabled plugin until all servers in the cluster have finished unpacking the plugin, otherwise
-// the webapp bundle might not yet be available. Ideally, each server would just notify its own set of connected peers
-// after it finishes this process, but nothing prevents those clients from re-connecting to a different server behind
-// the load balancer that hasn't finished unpacking.
+// A plugin bundle consists of a server and/or webapp component designed to extend the
+// functionality of the server. Bundles are first extracted to the configured local directory
+// (PluginSettings.Directory), with any webapp component additionally copied to the configured
+// local client directory (PluginSettings.ClientDirectory) to be loaded alongside the webapp.
 //
-// To achieve this coordination, each server instead checks the status of its peers after unpacking. If it finds peers with
-// differing versions of the plugin, it skips the notification. If it finds all peers with the same version of the plugin,
-// it notifies all websocket clients connected to all peers. There's a small chance that this never occurs if the last
-// server to finish unpacking dies before it can announce. There is also a chance that multiple servers decide to notify,
-// but the webapp handles this idempotently.
+// Plugin bundles are sourced in one of three ways:
+//   - plugins prepackged with the server in the prepackaged_plugins/ directory
+//   - plugins transitionally prepackaged with the server in the prepackaged_plugins/ directory
+//   - plugins installed to the filestore (amazons3 or local, alongisde files and images)
+//   - unmanaged plugins manually extracted to the confgured local directory
+//     ┌────────────────────────────┐
+//     │ ┌────────────────────────┐ │
+//     │ │prepackaged_plugins/    │ │
+//     │ │    prepackaged.tar.gz  │ │
+//     │ │    transitional.tar.gz │ │
+//     │ │                        │ │
+//     │ └────────────────────────┘ │
+//     │              │             │
+//     │              ▼             │
+//     │ ┌────────────────────────┐ │
+//     │ │plugins/                │ │
+//     │ │    unmanaged/          │ │
+//     │ │    filestore/          │ │   ┌────────────────────────┐
+//     │ │      .filestore        │ │   │s3://bucket/plugins/    │
+//     │ │    prepackaged/        │◀┼───│    filestore.tar.gz    │
+//     │ │      .filestore        │ │   │    transitional.tar.gz │
+//     │ │    transitional/       │ │   └────────────────────────┘
+//     │ │      .filestore        │ │
+//     │ └────────────────────────┘ │
+//     │                   ┌────────┤
+//     │                   │ server │
+//     └───────────────────┴────────┘
 //
-// Complicating this flow further are the various means of notifying. In addition to websocket events, there are cluster
-// messages between peers. There is a cluster message when the config changes and a plugin is enabled or disabled.
-// There is a cluster message when installing or uninstalling a plugin. There is a cluster message when peer's plugin change
-// its status. And finally the act of notifying websocket clients is propagated itself via a cluster message.
+// Prepackaged plugins are bundles shipped alongside the server to simplify installation and
+// upgrade. This occurs automatically if configured (PluginSettings.AutomaticPrepackagedPlugins)
+// and the plugin is enabled (PluginSettings.PluginStates[plugin_id].Enable), unless a matching or
+// newer version of the plugin is already installed.
 //
-// The key methods involved in handling these notifications are notifyPluginEnabled and notifyPluginStatusesChanged.
-// Note that none of this complexity applies to single-server systems or to plugins without a webapp bundle.
+// Transitionally prepackaged plugins are bundles that will stop being prepackaged in a future
+// release. On first startup, they are unpacked just like prepackaged plugins, but also get copied
+// to the filestore. On future startups, the server uses the version in the filestore.
 //
-// Finally, in addition to managed plugins, note that there are unmanaged and prepackaged plugins.
-// Unmanaged plugins are plugins installed manually to the configured local directory (PluginSettings.Directory).
-// Prepackaged plugins are included with the server. They otherwise follow the above flow, except do not get uploaded
-// to the filestore. Prepackaged plugins override all other plugins with the same plugin id, but only when the prepackaged
-// plugin is newer. Managed plugins unconditionally override unmanaged plugins with the same plugin id.
+// Plugins are installed to the filestore when the user installs via the marketplace or manually
+// uploads a plugin bundle. (Or because the plugin is transitionally prepackaged).
+//
+// Unmanaged plugins were manually extracted by into the configured local directory. This legacy
+// method of installing plugins is distinguished from other extracted plugins by the absence of a
+// flag file (.filestore). Managed plugins unconditionally override unmanaged plugins. A future
+// version of Mattermost will likely drop support for unmanaged plugins.
+//
+// ### Enabling a Plugin
+//
+// When a plugin is enabled, all connected websocket clients are notified so as to fetch any
+// webapp bundle and load the client-side portion of the plugin. This works well in a
+// single-server system, but requires careful coordination in a high-availability cluster with
+// multiple servers. In particular, websocket clients must not be notified of the newly enabled
+// plugin until all servers in the cluster have finished unpacking the plugin, otherwise the
+// webapp bundle might not yet be available. Ideally, each server would just notify its own set of
+// connected peers after it finishes this process, but nothing prevents those clients from
+// re-connecting to a different server behind the load balancer that hasn't finished unpacking.
+//
+// To achieve this coordination, each server instead checks the status of its peers after
+// unpacking. If it finds peers with differing versions of the plugin, it skips the notification.
+// If it finds all peers with the same version of the plugin, it notifies all websocket clients
+// connected to all peers. There's a small chance that this never occurs if the last server to
+// finish unpacking dies before it can announce. There is also a chance that multiple servers
+// decide to notify, but the webapp handles this idempotently.
+//
+// Complicating this flow further are the various means of notifying. In addition to websocket
+// events, there are cluster messages between peers. There is a cluster message when the config
+// changes and a plugin is enabled or disabled. There is a cluster message when installing or
+// uninstalling a plugin. There is a cluster message when a peer's plugin changes its status. And
+// finally the act of notifying websocket clients is itself propagated via a cluster message.
+//
+// The key methods involved in handling these notifications are notifyPluginEnabled and
+// notifyPluginStatusesChanged. Note that none of this complexity applies to single-server
+// systems or to plugins without a webapp bundle.
 package app
 
 import (
@@ -43,7 +90,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -91,9 +138,14 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 			return
 		}
 		defer signature.Close()
+
+		if err := ch.verifyPlugin(bundle, signature); err != nil {
+			mlog.Error("Failed to validate plugin signature.", mlog.Err(appErr))
+			return
+		}
 	}
 
-	manifest, appErr := ch.installPluginLocally(bundle, signature, installPluginLocallyAlways)
+	manifest, appErr := ch.installPluginLocally(bundle, installPluginLocallyAlways)
 	if appErr != nil {
 		// A log line already appears if the plugin is on the blocklist or skipped
 		if appErr.Id != "app.plugin.blocked.app_error" && appErr.Id != "app.plugin.skip_installation.app_error" {
@@ -144,7 +196,7 @@ func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 //
 // The given installation strategy decides how to handle upgrade scenarios.
 func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
-	manifest, appErr := ch.installPluginLocally(bundle, signature, installationStrategy)
+	manifest, appErr := ch.installPluginLocally(bundle, installationStrategy)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -161,7 +213,7 @@ func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationS
 	}
 
 	if err := ch.notifyPluginEnabled(manifest); err != nil {
-		logger.Warn("Failed notify plugin enabled", mlog.Err(err))
+		logger.Warn("Failed to notify plugin enabled", mlog.Err(err))
 	}
 
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
@@ -174,20 +226,33 @@ func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationS
 // installPluginToFilestore saves the given plugin bundle (optionally signed) to the filestore,
 // notifying cluster peers accordingly.
 func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, signature io.ReadSeeker) *model.AppError {
-	if signature != nil {
+	logger := ch.srv.Log().With(mlog.String("plugin_id", manifest.Id))
+	logger.Info("Persisting plugin to filestore")
+
+	if signature == nil {
+		logger.Warn("No signature when persisting plugin to filestore")
+	} else {
+		signatureStorePath := getSignatureStorePath(manifest.Id)
 		_, err := signature.Seek(0, 0)
 		if err != nil {
 			return model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		if _, appErr := ch.srv.writeFile(signature, getSignatureStorePath(manifest.Id)); appErr != nil {
+		logger.Debug("Persisting plugin signature to filestore", mlog.String("path", signatureStorePath))
+		if _, appErr := ch.srv.writeFile(signature, signatureStorePath); appErr != nil {
 			return model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
 	}
 
 	// Store bundle in the file store to allow access from other servers.
-	bundle.Seek(0, 0)
-	if _, appErr := ch.srv.writeFile(bundle, getBundleStorePath(manifest.Id)); appErr != nil {
+	bundleStorePath := getBundleStorePath(manifest.Id)
+	_, err := bundle.Seek(0, 0)
+	if err != nil {
+		return model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	logger.Debug("Persisting plugin bundle to filestore", mlog.String("path", bundleStorePath))
+	if _, appErr := ch.srv.writeFile(bundle, bundleStorePath); appErr != nil {
 		return model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
@@ -269,6 +334,11 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
 	}
 
+	appErr = ch.verifyPlugin(pluginFile, signatureFile)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	manifest, appErr := ch.installPlugin(pluginFile, signatureFile, installPluginLocallyAlways)
 	if appErr != nil {
 		return nil, appErr
@@ -288,21 +358,14 @@ const (
 	installPluginLocallyAlways
 )
 
-// installPluginLocally extracts and installs the given plugin bundle (optionally signed) for the
-// current server, activating the plugin if already enabled.
+// installPluginLocally extracts and installs the given plugin bundle for the current server,
+// activating the plugin if already enabled.
 //
 // The given installation strategy decides how to handle upgrade scenarios.
-func (ch *Channels) installPluginLocally(bundle, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+func (ch *Channels) installPluginLocally(bundle io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	// verify signature
-	if signature != nil {
-		if err := ch.verifyPlugin(bundle, signature); err != nil {
-			return nil, err
-		}
 	}
 
 	tmpDir, err := os.MkdirTemp("", "plugintmp")

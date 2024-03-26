@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import * as Selectors from 'selectors/rhs';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 describe('Selectors.Rhs', () => {
     describe('should return the last time a post was selected', () => {

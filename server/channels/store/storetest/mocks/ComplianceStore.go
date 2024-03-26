@@ -5,9 +5,8 @@
 package mocks
 
 import (
-	context "context"
-
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -101,32 +100,32 @@ func (_m *ComplianceStore) GetAll(offset int, limit int) (model.Compliances, err
 	return r0, r1
 }
 
-// MessageExport provides a mock function with given fields: ctx, cursor, limit
-func (_m *ComplianceStore) MessageExport(ctx context.Context, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
-	ret := _m.Called(ctx, cursor, limit)
+// MessageExport provides a mock function with given fields: c, cursor, limit
+func (_m *ComplianceStore) MessageExport(c request.CTX, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
+	ret := _m.Called(c, cursor, limit)
 
 	var r0 []*model.MessageExport
 	var r1 model.MessageExportCursor
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, model.MessageExportCursor, int) ([]*model.MessageExport, model.MessageExportCursor, error)); ok {
-		return rf(ctx, cursor, limit)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.MessageExportCursor, int) ([]*model.MessageExport, model.MessageExportCursor, error)); ok {
+		return rf(c, cursor, limit)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, model.MessageExportCursor, int) []*model.MessageExport); ok {
-		r0 = rf(ctx, cursor, limit)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.MessageExportCursor, int) []*model.MessageExport); ok {
+		r0 = rf(c, cursor, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.MessageExport)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, model.MessageExportCursor, int) model.MessageExportCursor); ok {
-		r1 = rf(ctx, cursor, limit)
+	if rf, ok := ret.Get(1).(func(request.CTX, model.MessageExportCursor, int) model.MessageExportCursor); ok {
+		r1 = rf(c, cursor, limit)
 	} else {
 		r1 = ret.Get(1).(model.MessageExportCursor)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, model.MessageExportCursor, int) error); ok {
-		r2 = rf(ctx, cursor, limit)
+	if rf, ok := ret.Get(2).(func(request.CTX, model.MessageExportCursor, int) error); ok {
+		r2 = rf(c, cursor, limit)
 	} else {
 		r2 = ret.Error(2)
 	}

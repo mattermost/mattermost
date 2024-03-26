@@ -4,16 +4,17 @@
 import React, {PureComponent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import BrowserStore from 'stores/browser_store';
+
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
+
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
 import MattermostLogoSvg from 'images/logo.svg';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import BrowserStore from 'stores/browser_store';
 import {LandingPreferenceTypes} from 'utils/constants';
-import * as Utils from 'utils/utils';
-
 import * as UserAgent from 'utils/user_agent';
+import * as Utils from 'utils/utils';
 
 type Props = {
     defaultTheme: any;
@@ -160,14 +161,14 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     renderGoNativeAppMessage = () => {
         return (
             <a
-                href={Utils.isMobile() ? '#' : this.state.nativeLocation}
+                href={UserAgent.isMobile() ? '#' : this.state.nativeLocation}
                 onMouseDown={() => {
                     this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
                 }}
                 onClick={() => {
                     this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
                     this.setState({redirectPage: true, navigating: true});
-                    if (Utils.isMobile()) {
+                    if (UserAgent.isMobile()) {
                         if (UserAgent.isAndroidWeb()) {
                             const timeout = setTimeout(() => {
                                 window.location.replace(this.getDownloadLink()!);
@@ -373,27 +374,23 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
             <div className='get-app__dialog-body'>
                 {this.renderDialogHeader()}
                 <div className='get-app__buttons'>
-                    <div className='get-app__status'>
-                        {this.renderGoNativeAppMessage()}
-                    </div>
-                    <div className='get-app__status'>
-                        <a
-                            href={this.state.location}
-                            onMouseDown={() => {
-                                this.setPreference(LandingPreferenceTypes.BROWSER, true);
-                            }}
-                            onClick={() => {
-                                this.setPreference(LandingPreferenceTypes.BROWSER, true);
-                                this.setState({navigating: true});
-                            }}
-                            className='btn btn-default btn-lg get-app__continue'
-                        >
-                            <FormattedMessage
-                                id='get_app.continueToBrowser'
-                                defaultMessage='View in Browser'
-                            />
-                        </a>
-                    </div>
+                    {this.renderGoNativeAppMessage()}
+                    <a
+                        href={this.state.location}
+                        onMouseDown={() => {
+                            this.setPreference(LandingPreferenceTypes.BROWSER, true);
+                        }}
+                        onClick={() => {
+                            this.setPreference(LandingPreferenceTypes.BROWSER, true);
+                            this.setState({navigating: true});
+                        }}
+                        className='btn btn-tertiary btn-lg'
+                    >
+                        <FormattedMessage
+                            id='get_app.continueToBrowser'
+                            defaultMessage='View in Browser'
+                        />
+                    </a>
                 </div>
                 <div className='get-app__preference'>
                     <button

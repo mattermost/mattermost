@@ -2,34 +2,32 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
 import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
-
 import styled from 'styled-components';
 
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {GenericModal} from '@mattermost/components';
+import type {ChannelMembership} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {getUsers, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
-import {displayUsername} from 'mattermost-redux/utils/user_utils';
+import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
+import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getUsers, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
+
 import {openDirectChannelToUserId} from 'actions/channel_actions';
-import {isModalOpen} from 'selectors/views/modals';
 import {closeModal} from 'actions/views/modals';
-import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
+import {isModalOpen} from 'selectors/views/modals';
 
-import {GlobalState} from 'types/store';
+import MemberList from 'components/channel_members_rhs/member_list';
 
-import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
 import {ModalIdentifiers} from 'utils/constants';
+import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
 
-import {ListItemType} from 'components/channel_members_rhs/channel_members_rhs';
-import {GenericModal} from '@mattermost/components';
-
-import MemberList from '../channel_members_rhs/member_list';
-import {ChannelMembership} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
+import type {GlobalState} from 'types/store';
 
 import './notification_from_members_modal.scss';
 
@@ -43,6 +41,12 @@ export interface ChannelMember {
     membership?: ChannelMembership;
     status?: string;
     displayName: string;
+}
+
+enum ListItemType {
+    Member = 'member',
+    FirstSeparator = 'first-separator',
+    Separator = 'separator',
 }
 
 export interface ListItem {
@@ -111,9 +115,14 @@ function NotificationFromMembersModal(props: Props) {
 
     const modalTitle = formatMessage({id: 'postypes.custom_open_pricing_modal_post_renderer.membersThatRequested', defaultMessage: 'Members that requested '});
 
-    const modalHeaderText = (<h1 id='invitation_modal_title'>
-        {`${modalTitle}${mapFeatureIdToTranslation(props.feature, formatMessage)}`}
-    </h1>);
+    const modalHeaderText = (
+        <h1
+            id='invitation_modal_title'
+            className='modal-title'
+        >
+            {`${modalTitle}${mapFeatureIdToTranslation(props.feature, formatMessage)}`}
+        </h1>
+    );
 
     return (
         <GenericModal

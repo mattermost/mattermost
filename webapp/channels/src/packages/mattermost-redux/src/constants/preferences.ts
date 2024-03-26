@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Theme, ThemeKey} from 'mattermost-redux/selectors/entities/preferences';
+import type {Theme, ThemeKey} from 'mattermost-redux/selectors/entities/preferences';
 
 const Preferences = {
     APP_BAR: 'app_bar',
@@ -76,6 +76,11 @@ const Preferences = {
 
     CATEGORY_DRAFTS: 'drafts',
     DRAFTS_TOUR_TIP_SHOWED: 'drafts_tour_tip_showed',
+
+    CATEGORY_REPORTING: 'reporting',
+
+    HIDE_BATCH_EXPORT_CONFIRM_MODAL: 'hide_batch_export_confirm_modal',
+    HIDE_MYSQL_STATS_NOTIFICATION: 'hide_mysql_stats_notifcation',
 
     CATEGORY_THEME: 'theme',
     THEMES: {

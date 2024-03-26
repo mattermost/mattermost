@@ -3,24 +3,12 @@
 
 /* eslint-disable max-lines */
 
+import type {Store} from 'redux';
+
 import {Constants} from 'utils/constants';
 
 import {
     AppsTypes,
-    AppCallRequest,
-    AppBinding,
-    AppCall,
-    AppField,
-    DoAppCallResult,
-    AppLookupResponse,
-    AppContext,
-    AppForm,
-    AppCallValues,
-    AppSelectOption,
-    AutocompleteSuggestion,
-    AutocompleteStaticSelect,
-    Channel,
-    Store,
 
     AppBindingLocations,
     AppCallResponseTypes,
@@ -52,11 +40,25 @@ import {
     getChannelSuggestions,
     getUserSuggestions,
     inTextMentionSuggestions,
-    ExtendedAutocompleteSuggestion,
     getAppCommandForm,
     getAppRHSCommandForm,
     makeRHSAppBindingSelector,
 } from './app_command_parser_dependencies';
+import type {
+    AppCallRequest,
+    AppBinding,
+    AppCall,
+    AppField,
+    DoAppCallResult,
+    AppLookupResponse,
+    AppContext,
+    AppForm,
+    AppCallValues,
+    AppSelectOption,
+    AutocompleteSuggestion,
+    AutocompleteStaticSelect,
+    Channel,
+    ExtendedAutocompleteSuggestion} from './app_command_parser_dependencies';
 
 export enum ParseState {
     Start = 'Start',
@@ -989,7 +991,7 @@ export class AppCommandParser {
                             // Silently fail on default value
                             break;
                         }
-                        user = dispatchResult.data;
+                        user = dispatchResult.data!;
                     }
                     parsed.values[f.name] = user.username;
                     break;
@@ -1003,7 +1005,7 @@ export class AppCommandParser {
                             // Silently fail on default value
                             break;
                         }
-                        channel = dispatchResult.data;
+                        channel = dispatchResult.data!;
                     }
                     parsed.values[f.name] = channel.name;
                     break;

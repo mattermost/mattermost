@@ -51,10 +51,8 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
-	defer log.Shutdown()
-
-	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	logger := mlog.CreateConsoleTestLogger(t)
+	supervisor, err := newSupervisor(bundle, nil, nil, logger, nil)
 	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()
@@ -94,10 +92,8 @@ func testPluginHealthCheckPanic(t *testing.T) {
 	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)
-	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
-	defer log.Shutdown()
-
-	supervisor, err := newSupervisor(bundle, nil, nil, log, nil)
+	logger := mlog.CreateConsoleTestLogger(t)
+	supervisor, err := newSupervisor(bundle, nil, nil, logger, nil)
 	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()

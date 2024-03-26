@@ -1,14 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import React from 'react';
+import type {ComponentProps} from 'react';
 import styled from 'styled-components';
 
-import OverlayTrigger, {BaseOverlayTrigger} from 'components/overlay_trigger';
+import OverlayTrigger from 'components/overlay_trigger';
+import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ProfilePopover from 'components/profile_popover';
 import StatusIcon from 'components/status_icon';
 import StatusIconNew from 'components/status_icon_new';
-import Avatar, {TAvatarSizeToken, getAvatarWidth} from 'components/widgets/users/avatar';
+import Avatar, {getAvatarWidth} from 'components/widgets/users/avatar';
+import type {TAvatarSizeToken} from 'components/widgets/users/avatar';
 
 import './profile_picture.scss';
 
@@ -17,8 +20,6 @@ interface MMOverlayTrigger extends BaseOverlayTrigger {
 }
 
 type Props = {
-    hasMention?: boolean;
-    isBusy?: boolean;
     isEmoji?: boolean;
     profileSrc?: string;
     size?: ComponentProps<typeof Avatar>['size'];
@@ -77,10 +78,8 @@ export default class ProfilePicture extends React.PureComponent<Props> {
                             className='user-profile-popover'
                             userId={this.props.userId}
                             src={profileSrc}
-                            isBusy={this.props.isBusy}
                             hide={this.hideProfilePopover}
                             channelId={this.props.channelId}
-                            hasMention={this.props.hasMention}
                             overwriteIcon={this.props.overwriteIcon}
                             overwriteName={this.props.overwriteName}
                             fromWebhook={this.props.fromWebhook}

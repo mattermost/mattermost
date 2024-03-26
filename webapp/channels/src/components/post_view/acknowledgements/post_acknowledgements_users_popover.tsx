@@ -6,17 +6,17 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import Timestamp from 'components/timestamp';
-import Avatar from 'components/widgets/users/avatar';
-import Nbsp from 'components/html_entities/nbsp';
+import type {PostAcknowledgement} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
+import Nbsp from 'components/html_entities/nbsp';
+import Timestamp from 'components/timestamp';
+import Avatar from 'components/widgets/users/avatar';
 
-import type {UserProfile} from '@mattermost/types/users';
-import type {PostAcknowledgement} from '@mattermost/types/posts';
+import type {GlobalState} from 'types/store';
 
 type Props = {
     currentUserId: UserProfile['id'];
@@ -39,7 +39,7 @@ const Info = styled.div`
 `;
 
 const Title = styled.div`
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
     font-weight: 600;
     line-height: 16px;
@@ -47,7 +47,7 @@ const Title = styled.div`
 `;
 
 const Span = styled.span`
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
     line-height: 18px;
 `;
@@ -57,7 +57,7 @@ const Popover = styled.div`
     border-radius: 4px;
     border: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    color: lighten($black, 25%);
+    color: color.adjust($black, $lightness: 25%);
     font-family: inherit;
     max-height: 400px;
     overflow-y: scroll;

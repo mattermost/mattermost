@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import IconMessage from 'components/purchase_modal/icon_message';
-import FullScreenModal from 'components/widgets/modals/full_screen_modal';
-import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
-
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
-import {GlobalState} from 'types/store';
-import {Modal} from 'react-bootstrap';
+
+import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
+import IconMessage from 'components/purchase_modal/icon_message';
+import FullScreenModal from 'components/widgets/modals/full_screen_modal';
+
+import type {GlobalState} from 'types/store';
 
 import './result_modal.scss';
 
@@ -63,12 +64,12 @@ export default function ResultModal({type, icon, title, subtitle, primaryButtonT
                         buttonHandler={primaryButtonHandler}
                         className={'success'}
                         formattedTertiaryButonText={
-                            contactSupportButtonVisible ?
+                            contactSupportButtonVisible ? (
                                 <FormattedMessage
                                     id={'admin.billing.deleteWorkspace.resultModal.ContactSupport'}
                                     defaultMessage={'Contact Support'}
-                                /> :
-                                undefined
+                                />
+                            ) : undefined
                         }
                         tertiaryButtonHandler={contactSupportButtonVisible ? openContactSupport : undefined}
                     />

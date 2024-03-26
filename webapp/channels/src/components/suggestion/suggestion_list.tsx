@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
-import {cloneDeep} from 'lodash';
 
-import {Constants} from 'utils/constants';
-
-import {isEmptyObject} from 'utils/utils';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-interface Props {
+import {Constants} from 'utils/constants';
+import {isEmptyObject} from 'utils/utils';
+
+export interface Props {
     ariaLiveRef?: React.RefObject<HTMLDivElement>;
     inputRef?: React.RefObject<HTMLDivElement>;
     open: boolean;
@@ -28,7 +28,7 @@ interface Props {
     items: any[];
     terms: string[];
     selection: string;
-    components: Array<React.FunctionComponent<any>>;
+    components: Array<React.ComponentType<any>>;
     wrapperHeight?: number;
 
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret
@@ -105,14 +105,14 @@ export default class SuggestionList extends React.PureComponent<Props> {
     announceLabel() {
         const suggestionReadOut = this.props.ariaLiveRef?.current;
         if (suggestionReadOut) {
-            suggestionReadOut.innerHTML = this.currentLabel as string;
+            suggestionReadOut.textContent = this.currentLabel;
         }
     }
 
     removeLabel() {
         const suggestionReadOut = this.props.ariaLiveRef?.current;
         if (suggestionReadOut) {
-            suggestionReadOut.innerHTML = '';
+            suggestionReadOut.textContent = '';
         }
     }
 

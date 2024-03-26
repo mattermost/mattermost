@@ -125,7 +125,6 @@ func TestFileStoreNew(t *testing.T) {
 		assert.Equal(t, "http://TestStoreNew", *configStore.Get().ServiceSettings.SiteURL)
 		// nonexisting value should be overwritten by the custom
 		// defaults
-		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
 		assertFileNotEqualsConfig(t, testConfig, path)
 	})
 
@@ -156,7 +155,6 @@ func TestFileStoreNew(t *testing.T) {
 		// as the whole config has default values already, custom
 		// defaults should have no effect
 		assert.Equal(t, "http://minimal", *configStore.Get().ServiceSettings.SiteURL)
-		assert.NotEqual(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
 		assertFileEqualsConfig(t, minimalConfigNoFF, path)
 	})
 
@@ -195,7 +193,6 @@ func TestFileStoreNew(t *testing.T) {
 		defer configStore.Close()
 
 		assert.Equal(t, *customConfigDefaults.ServiceSettings.SiteURL, *configStore.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
 	})
 
 	t.Run("absolute path, path to file does not exist", func(t *testing.T) {
@@ -1007,7 +1004,6 @@ func TestFileGetFile(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, []byte("new file"), data)
 	})
-
 }
 
 func TestFileSetFile(t *testing.T) {
@@ -1141,7 +1137,6 @@ func TestFileHasFile(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, has)
 	})
-
 }
 
 func TestFileRemoveFile(t *testing.T) {
@@ -1226,7 +1221,6 @@ func TestFileRemoveFile(t *testing.T) {
 		has, err := fs.HasFile(filename)
 		require.NoError(t, err)
 		require.True(t, has)
-
 	})
 }
 

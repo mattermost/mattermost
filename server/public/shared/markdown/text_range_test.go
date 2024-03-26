@@ -108,8 +108,6 @@ func TestTextRanges(t *testing.T) {
 			})
 			assert.Equal(t, tc.ExpectedRanges, ranges)
 			assert.Equal(t, tc.ExpectedValues, values)
-
 		})
 	}
-
 }

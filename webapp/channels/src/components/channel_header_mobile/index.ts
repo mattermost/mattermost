@@ -1,28 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Location} from 'history';
+import type {Location} from 'history';
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
 import {withRouter, matchPath} from 'react-router-dom';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {
     getCurrentChannel,
     getMyCurrentChannelMembership,
 } from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
+import {close as closeLhs} from 'actions/views/lhs';
 import {
     closeRightHandSide as closeRhs,
     closeMenu as closeRhsMenu,
 } from 'actions/views/rhs';
-import {close as closeLhs} from 'actions/views/lhs';
-
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import ChannelHeaderMobile from './channel_header_mobile';
 

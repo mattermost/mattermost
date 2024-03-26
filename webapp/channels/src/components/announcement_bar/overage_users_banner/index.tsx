@@ -5,23 +5,27 @@ import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {GlobalState} from 'types/store';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
-import {calculateOverageUserActivated} from 'utils/overage_team';
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import type {PreferenceType} from '@mattermost/types/preferences';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {getConfig} from 'mattermost-redux/selectors/entities/admin';
+import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
-import {PreferenceType} from '@mattermost/types/preferences';
+import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+
+import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
+import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
 import {useExpandOverageUsersCheck} from 'components/common/hooks/useExpandOverageUsersCheck';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+
 import {StatTypes, Preferences, AnnouncementBarTypes, ConsolePages} from 'utils/constants';
+import {calculateOverageUserActivated} from 'utils/overage_team';
+import {getSiteURL} from 'utils/url';
+
+import type {GlobalState} from 'types/store';
 
 import './overage_users_banner.scss';
-import {getSiteURL} from 'utils/url';
-import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
-import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 
 type AdminHasDismissedItArgs = {
     preferenceName: string;

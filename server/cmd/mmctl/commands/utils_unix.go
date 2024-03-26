@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"os/user"
+	"strconv"
 	"syscall"
 
 	"github.com/isacikgoz/prompt"
@@ -20,7 +21,7 @@ func checkValidSocket(socketPath string) error {
 	// check file mode and permissions
 	fi, err := os.Stat(socketPath)
 	if err != nil && os.IsNotExist(err) {
-		return fmt.Errorf("socket file %q doesn't exists, please check the server configuration for local mode", socketPath)
+		return fmt.Errorf("socket file %q doesn't exist, please check the server configuration for local mode", socketPath)
 	} else if err != nil {
 		return err
 	}
@@ -38,7 +39,7 @@ func checkValidSocket(socketPath string) error {
 		return fmt.Errorf("cannot get owner of the file %q", socketPath)
 	}
 	// if user id is "0", they are root and we should avoid this check
-	if fmt.Sprint(s.Uid) != cUser.Uid && cUser.Uid != "0" {
+	if strconv.FormatUint(uint64(s.Uid), 10) != cUser.Uid && cUser.Uid != "0" {
 		return fmt.Errorf("owner of the file %q must be the same user running mmctl", socketPath)
 	}
 

@@ -6,16 +6,17 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {trackEvent} from 'actions/telemetry_actions';
+
 import BlockableLink from 'components/admin_console/blockable_link';
-import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
-
-import {GlobalState} from 'types/store';
-
-import './payment_info_display.scss';
 import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
+import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
+
+import type {GlobalState} from 'types/store';
 
 import PaymentDetails from './payment_details';
+
+import './payment_info_display.scss';
 
 const addInfoButton = (
     <div className='PaymentInfoDisplay__addInfo'>

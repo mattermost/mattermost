@@ -2,34 +2,26 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
+import type {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 
 import {getDataRetentionCustomPolicyChannels, searchDataRetentionCustomPolicyChannels as searchChannels} from 'mattermost-redux/actions/admin';
-import {filterChannelList, getChannelsInPolicy, searchChannelsInPolicy} from 'mattermost-redux/selectors/entities/channels';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
+import {filterChannelList, getChannelsInPolicy, searchChannelsInPolicy} from 'mattermost-redux/selectors/entities/channels';
 import {filterChannelsMatchingTerm, channelListToMap} from 'mattermost-redux/utils/channel_utils';
 
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-
-import {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
-
-import {GlobalState} from 'types/store';
-
 import {setChannelListSearch, setChannelListFilters} from 'actions/views/search';
-import {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelList from './channel_list';
 
 type OwnProps = {
     policyId?: string;
     channelsToAdd: Record<string, ChannelWithTeamData>;
-}
-
-type Actions = {
-    searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<{ data: ChannelWithTeamData[] }>;
-    getDataRetentionCustomPolicyChannels: (id: string, page: number, perPage: number) => Promise<{ data: ChannelWithTeamData[] }>;
-    setChannelListSearch: (term: string) => ActionResult;
-    setChannelListFilters: (filters: ChannelSearchOpts) => ActionResult;
 }
 
 function searchChannelsToAdd(channels: Record<string, Channel>, term: string, filters: ChannelSearchOpts): Record<string, Channel> {
@@ -72,7 +64,7 @@ function mapStateToProps() {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             getDataRetentionCustomPolicyChannels,
             searchChannels,
             setChannelListSearch,

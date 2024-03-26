@@ -5,13 +5,13 @@ import nock from 'nock';
 
 import {Client4} from 'mattermost-redux/client';
 
-import TestHelper from 'packages/mattermost-redux/test/test_helper';
-
 import {
     login,
     loginById,
 } from 'actions/views/login';
 import configureStore from 'store';
+
+import TestHelper from 'packages/mattermost-redux/test/test_helper';
 
 describe('actions/views/login', () => {
     describe('login', () => {

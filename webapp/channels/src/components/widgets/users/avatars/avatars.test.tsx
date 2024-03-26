@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {mount} from 'enzyme';
+import React from 'react';
 
 jest.mock('mattermost-redux/actions/users', () => {
     return {
@@ -17,13 +16,13 @@ jest.mock('mattermost-redux/actions/users', () => {
     };
 });
 
-import {mockStore} from 'tests/test_store';
-
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 
-import Avatar from '../avatar';
+import {mockStore} from 'tests/test_store';
 
 import Avatars from './avatars';
+
+import Avatar from '../avatar';
 
 describe('components/widgets/users/Avatars', () => {
     const state = {
@@ -40,7 +39,7 @@ describe('components/widgets/users/Avatars', () => {
                         nickname: 'nickname1',
                         first_name: 'First1',
                         last_name: 'Last1',
-                        last_picture_update: '1620680333191',
+                        last_picture_update: 1620680333191,
 
                     },
                     2: {
@@ -49,7 +48,7 @@ describe('components/widgets/users/Avatars', () => {
                         nickname: 'nickname2',
                         first_name: 'First2',
                         last_name: 'Last2',
-                        last_picture_update: '1620680333191',
+                        last_picture_update: 1620680333191,
                     },
                     3: {
                         id: '3',
@@ -57,7 +56,7 @@ describe('components/widgets/users/Avatars', () => {
                         nickname: 'nickname3',
                         first_name: 'First3',
                         last_name: 'Last3',
-                        last_picture_update: '1620680333191',
+                        last_picture_update: 1620680333191,
                     },
                     4: {
                         id: '4',
@@ -65,7 +64,7 @@ describe('components/widgets/users/Avatars', () => {
                         nickname: 'nickname4',
                         first_name: 'First4',
                         last_name: 'Last4',
-                        last_picture_update: '1620680333191',
+                        last_picture_update: 1620680333191,
                     },
                     5: {
                         id: '5',
@@ -73,7 +72,7 @@ describe('components/widgets/users/Avatars', () => {
                         nickname: 'nickname5',
                         first_name: 'First5',
                         last_name: 'Last5',
-                        last_picture_update: '1620680333191',
+                        last_picture_update: 1620680333191,
                     },
                 },
             },

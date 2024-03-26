@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {General} from 'mattermost-redux/constants';
+
 import mockStore from 'tests/test_store';
 
 import {

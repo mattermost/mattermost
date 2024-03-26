@@ -171,7 +171,6 @@ func SetupTestResources() (string, error) {
 		} else {
 			return "", errors.Wrapf(err, "Invalid action: %d", testResource.action)
 		}
-
 	}
 
 	return tempDir, nil

@@ -30,7 +30,7 @@
 
     .section-title {
         margin-bottom: 24px;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 16px;
         font-weight: 600;
         text-align: left;
@@ -45,10 +45,6 @@
         .DropDown__control {
             min-height: 0;
             background-color: var(--center-channel-bg) !important;
-
-            .DropDown__value-container > div {
-                color: var(--center-channel-color) !important;
-            }
         }
 
         .DropDown__menu {
@@ -112,7 +108,7 @@
 
             &::placeholder {
                 color: var(--center-channel-color);
-                opacity: 0.64;
+                opacity: 0.73;
             }
         }
     }
@@ -123,9 +119,9 @@
         box-sizing: border-box;
         padding: 24px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: 4px;
         margin-bottom: 16px;
         background: #fff;
-        border-radius: 4px;
     }
 
     .PaymentForm-saved-title {

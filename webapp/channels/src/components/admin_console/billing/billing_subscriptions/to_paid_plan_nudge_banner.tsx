@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {useIntl, FormattedMessage} from 'react-intl';
 import moment from 'moment';
+import React, {useEffect} from 'react';
+import {useIntl, FormattedMessage} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
+
+import type {GlobalState} from '@mattermost/types/store';
+
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {deprecateCloudFree, get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import AlertBanner from 'components/alert_banner';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
-
-import {getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {deprecateCloudFree, get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
+import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 import {AnnouncementBarTypes, CloudBanners, CloudProducts, Preferences} from 'utils/constants';
 import {t} from 'utils/i18n';
-
-import {GlobalState} from '@mattermost/types/store';
 
 import './to_paid_plan_nudge_banner.scss';
 

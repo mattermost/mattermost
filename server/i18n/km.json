@@ -1,0 +1,106 @@
+[
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "មិនអាចបើកឯកសារ certificate បាន។"
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "ពុំមានឯកសារនៅក្រោម 'certificate' ក្នុងការស្នើសុំ។"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "មិនអាចបើកឯកសារ certificate បាន។"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "ពុំមានឯកសារនៅក្រោម 'certificate' ក្នុងការស្នើសុំ។"
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "មិនអាចបើកឯកសារ certificate បាន។"
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "ពុំមានឯកសារនៅក្រោម 'certificate' ក្នុងការស្នើសុំ។"
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "មិនអាចបើកឯកសារ certificate បាន។"
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "ពុំមានឯកសារនៅក្រោម 'certificate' ក្នុងការស្នើសុំ។"
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "ពុំមានឯកសារនៅក្រោម 'certificate' ក្នុងការស្នើសុំ។"
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "មិនអាចរក្សាឯកសារ certificate បានទេ។"
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "មិនអាចរក្សាឯកសារ certificate បានទេ។"
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "មិនអាចបើកឯកសារ certificate បាន។"
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "ពុំមានឯកសារនៅក្រោម 'certificate' ក្នុងការស្នើសុំ។"
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "ពុំមានឯកសារនៅក្រោម 'certificate' ក្នុងការស្នើសុំ។"
+  },
+  {
+    "id": "September",
+    "translation": "កញ្ញា​"
+  },
+  {
+    "id": "October",
+    "translation": "តុលា​"
+  },
+  {
+    "id": "November",
+    "translation": "វិច្ឆិកា​"
+  },
+  {
+    "id": "May",
+    "translation": "ឧសភា​"
+  },
+  {
+    "id": "March",
+    "translation": "មីនា​"
+  },
+  {
+    "id": "June",
+    "translation": "មិថុនា​"
+  },
+  {
+    "id": "July",
+    "translation": "កក្កដា​"
+  },
+  {
+    "id": "January",
+    "translation": "មករា​"
+  },
+  {
+    "id": "February",
+    "translation": "កុម្ភៈ​"
+  },
+  {
+    "id": "December",
+    "translation": "ធ្នូ​"
+  },
+  {
+    "id": "August",
+    "translation": "សីហា​"
+  },
+  {
+    "id": "April",
+    "translation": "មេសា​"
+  }
+]

@@ -4,14 +4,14 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import CustomImg from 'images/Customize-Your-Experience.gif';
-
 import {useMeasurePunchouts} from '@mattermost/components';
+
+import CustomImg from 'images/Customize-Your-Experience.gif';
 
 import OnboardingTourTip from './onboarding_tour_tip';
 
-const translate = {x: 20, y: -6};
-const offset: [number, number] = [18, 4];
+const translate = {x: -56, y: 4};
+const offset: [number, number] = [17, 0];
 
 export const CustomizeYourExperienceTour = () => {
     const title = (
@@ -29,7 +29,7 @@ export const CustomizeYourExperienceTour = () => {
         </p>
     );
 
-    const overlayPunchOut = useMeasurePunchouts(['RightControlsContainer'], [], {y: 6, height: -6, x: 64, width: 0});
+    const overlayPunchOut = useMeasurePunchouts(['CustomizeYourExperienceTour'], []);
 
     return (
         <OnboardingTourTip
@@ -37,7 +37,7 @@ export const CustomizeYourExperienceTour = () => {
             screen={screen}
             imageURL={CustomImg}
             placement='bottom-start'
-            pulsatingDotPlacement='bottom'
+            pulsatingDotPlacement='right-end'
             pulsatingDotTranslate={translate}
             offset={offset}
             width={352}

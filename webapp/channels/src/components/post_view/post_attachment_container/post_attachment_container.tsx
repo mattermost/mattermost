@@ -2,17 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-
+import {useDispatch, useSelector} from 'react-redux';
 import {matchPath, useHistory} from 'react-router-dom';
 
-import {useDispatch, useSelector} from 'react-redux';
-
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {isTeamSameWithCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {focusPost} from 'components/permalink_view/actions';
-import {GlobalState} from 'types/store';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isTeamSameWithCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
+import {focusPost} from 'components/permalink_view/actions';
+
+import type {GlobalState} from 'types/store';
 
 export type Props = {
     className?: string;

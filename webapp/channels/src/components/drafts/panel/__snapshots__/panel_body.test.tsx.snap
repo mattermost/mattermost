@@ -44,10 +44,9 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
           <OverlayTrigger
             defaultOverlayShown={false}
             overlay={
-              <Memo(Connect(injectIntl(ProfilePopover)))
+              <Memo(ProfilePopover)
                 channelId="channel_id"
                 className="user-profile-popover"
-                hasMention={false}
                 hide={[Function]}
                 src="/api/v4/users/user_id/image?_=0"
                 userId="user_id"
@@ -67,7 +66,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                 <OverlayWrapper
                   channelId="channel_id"
                   className="user-profile-popover"
-                  hasMention={false}
                   hide={[Function]}
                   intl={
                     Object {
@@ -153,9 +151,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                     </span>
                   </button>
                 </RoundButton>
-                <StatusIcon
-                  button={false}
-                  className=""
+                <Memo(StatusIcon)
                   status="status"
                 >
                   <StatusOfflineIcon
@@ -186,7 +182,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                       </svg>
                     </span>
                   </StatusOfflineIcon>
-                </StatusIcon>
+                </Memo(StatusIcon)>
               </span>
             </OverlayTrigger>
           </OverlayTrigger>
@@ -231,7 +227,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                 }
                 channelNamesMap={Object {}}
                 dispatch={[Function]}
-                editedAt={0}
                 emojiMap={
                   EmojiMap {
                     "customEmojis": Map {},
@@ -240,7 +235,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                 }
                 enableFormatting={true}
                 hasImageProxy={false}
-                imagesMetadata={Object {}}
                 managedResourcePaths={Array []}
                 mentionKeys={Array []}
                 message="message"
@@ -251,8 +245,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                     "mentionHighlight": false,
                   }
                 }
-                postId=""
-                proxyImages={true}
                 siteURL="http://localhost:8065"
                 team={
                   Object {
@@ -321,10 +313,9 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
           <OverlayTrigger
             defaultOverlayShown={false}
             overlay={
-              <Memo(Connect(injectIntl(ProfilePopover)))
+              <Memo(ProfilePopover)
                 channelId="channel_id"
                 className="user-profile-popover"
-                hasMention={false}
                 hide={[Function]}
                 src="/api/v4/users/user_id/image?_=0"
                 userId="user_id"
@@ -344,7 +335,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                 <OverlayWrapper
                   channelId="channel_id"
                   className="user-profile-popover"
-                  hasMention={false}
                   hide={[Function]}
                   intl={
                     Object {
@@ -430,9 +420,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                     </span>
                   </button>
                 </RoundButton>
-                <StatusIcon
-                  button={false}
-                  className=""
+                <Memo(StatusIcon)
                   status="status"
                 >
                   <StatusOfflineIcon
@@ -463,7 +451,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                       </svg>
                     </span>
                   </StatusOfflineIcon>
-                </StatusIcon>
+                </Memo(StatusIcon)>
               </span>
             </OverlayTrigger>
           </OverlayTrigger>
@@ -508,7 +496,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                 }
                 channelNamesMap={Object {}}
                 dispatch={[Function]}
-                editedAt={0}
                 emojiMap={
                   EmojiMap {
                     "customEmojis": Map {},
@@ -517,7 +504,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                 }
                 enableFormatting={true}
                 hasImageProxy={false}
-                imagesMetadata={Object {}}
                 managedResourcePaths={Array []}
                 mentionKeys={Array []}
                 message="message"
@@ -528,8 +514,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                     "mentionHighlight": false,
                   }
                 }
-                postId=""
-                proxyImages={true}
                 siteURL="http://localhost:8065"
                 team={
                   Object {
@@ -604,10 +588,9 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
           <OverlayTrigger
             defaultOverlayShown={false}
             overlay={
-              <Memo(Connect(injectIntl(ProfilePopover)))
+              <Memo(ProfilePopover)
                 channelId="channel_id"
                 className="user-profile-popover"
-                hasMention={false}
                 hide={[Function]}
                 src="/api/v4/users/user_id/image?_=0"
                 userId="user_id"
@@ -627,7 +610,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                 <OverlayWrapper
                   channelId="channel_id"
                   className="user-profile-popover"
-                  hasMention={false}
                   hide={[Function]}
                   intl={
                     Object {
@@ -713,9 +695,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                     </span>
                   </button>
                 </RoundButton>
-                <StatusIcon
-                  button={false}
-                  className=""
+                <Memo(StatusIcon)
                   status="status"
                 >
                   <StatusOfflineIcon
@@ -746,7 +726,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                       </svg>
                     </span>
                   </StatusOfflineIcon>
-                </StatusIcon>
+                </Memo(StatusIcon)>
               </span>
             </OverlayTrigger>
           </OverlayTrigger>
@@ -853,7 +833,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                 }
                 channelNamesMap={Object {}}
                 dispatch={[Function]}
-                editedAt={0}
                 emojiMap={
                   EmojiMap {
                     "customEmojis": Map {},
@@ -862,7 +841,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                 }
                 enableFormatting={true}
                 hasImageProxy={false}
-                imagesMetadata={Object {}}
                 managedResourcePaths={Array []}
                 mentionKeys={Array []}
                 message="message"
@@ -873,8 +851,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                     "mentionHighlight": false,
                   }
                 }
-                postId=""
-                proxyImages={true}
                 siteURL="http://localhost:8065"
                 team={
                   Object {
@@ -949,10 +925,9 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
           <OverlayTrigger
             defaultOverlayShown={false}
             overlay={
-              <Memo(Connect(injectIntl(ProfilePopover)))
+              <Memo(ProfilePopover)
                 channelId="channel_id"
                 className="user-profile-popover"
-                hasMention={false}
                 hide={[Function]}
                 src="/api/v4/users/user_id/image?_=0"
                 userId="user_id"
@@ -972,7 +947,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                 <OverlayWrapper
                   channelId="channel_id"
                   className="user-profile-popover"
-                  hasMention={false}
                   hide={[Function]}
                   intl={
                     Object {
@@ -1058,9 +1032,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                     </span>
                   </button>
                 </RoundButton>
-                <StatusIcon
-                  button={false}
-                  className=""
+                <Memo(StatusIcon)
                   status="status"
                 >
                   <StatusOfflineIcon
@@ -1091,7 +1063,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                       </svg>
                     </span>
                   </StatusOfflineIcon>
-                </StatusIcon>
+                </Memo(StatusIcon)>
               </span>
             </OverlayTrigger>
           </OverlayTrigger>
@@ -1277,7 +1249,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                 }
                 channelNamesMap={Object {}}
                 dispatch={[Function]}
-                editedAt={0}
                 emojiMap={
                   EmojiMap {
                     "customEmojis": Map {},
@@ -1286,7 +1257,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                 }
                 enableFormatting={true}
                 hasImageProxy={false}
-                imagesMetadata={Object {}}
                 managedResourcePaths={Array []}
                 mentionKeys={Array []}
                 message="message"
@@ -1297,8 +1267,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                     "mentionHighlight": false,
                   }
                 }
-                postId=""
-                proxyImages={true}
                 siteURL="http://localhost:8065"
                 team={
                   Object {

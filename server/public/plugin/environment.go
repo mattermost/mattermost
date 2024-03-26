@@ -48,16 +48,17 @@ type PrepackagedPlugin struct {
 // It is meant for use by the Mattermost server to manipulate, interact with and report on the set
 // of active plugins.
 type Environment struct {
-	registeredPlugins      sync.Map
-	pluginHealthCheckJob   *PluginHealthCheckJob
-	logger                 *mlog.Logger
-	metrics                metricsInterface
-	newAPIImpl             apiImplCreatorFunc
-	dbDriver               Driver
-	pluginDir              string
-	webappPluginDir        string
-	prepackagedPlugins     []*PrepackagedPlugin
-	prepackagedPluginsLock sync.RWMutex
+	registeredPlugins                sync.Map
+	pluginHealthCheckJob             *PluginHealthCheckJob
+	logger                           *mlog.Logger
+	metrics                          metricsInterface
+	newAPIImpl                       apiImplCreatorFunc
+	dbDriver                         Driver
+	pluginDir                        string
+	webappPluginDir                  string
+	prepackagedPlugins               []*PrepackagedPlugin
+	transitionallyPrepackagedPlugins []*PrepackagedPlugin
+	prepackagedPluginsLock           sync.RWMutex
 }
 
 func NewEnvironment(
@@ -108,13 +109,35 @@ func (env *Environment) Available() ([]*model.BundleInfo, error) {
 	return scanSearchPath(env.pluginDir)
 }
 
-// Returns a list of prepackaged plugins available in the local prepackaged_plugins folder.
+// Returns a list of prepackaged plugins available in the local prepackaged_plugins folder,
+// excluding those in transition out of being prepackaged.
+//
 // The list content is immutable and should not be modified.
 func (env *Environment) PrepackagedPlugins() []*PrepackagedPlugin {
 	env.prepackagedPluginsLock.RLock()
 	defer env.prepackagedPluginsLock.RUnlock()
 
 	return env.prepackagedPlugins
+}
+
+// TransitionallyPrepackagedPlugins returns a list of plugins transitionally prepackaged in the
+// local prepackaged_plugins folder.
+//
+// The list content is immutable and should not be modified.
+func (env *Environment) TransitionallyPrepackagedPlugins() []*PrepackagedPlugin {
+	env.prepackagedPluginsLock.RLock()
+	defer env.prepackagedPluginsLock.RUnlock()
+
+	return env.transitionallyPrepackagedPlugins
+}
+
+// ClearTransitionallyPrepackagedPlugins clears the list of plugins transitionally prepackaged
+// in the local prepackaged_plugins folder.
+func (env *Environment) ClearTransitionallyPrepackagedPlugins() {
+	env.prepackagedPluginsLock.RLock()
+	defer env.prepackagedPluginsLock.RUnlock()
+
+	env.transitionallyPrepackagedPlugins = nil
 }
 
 // Returns a list of all currently active plugins within the environment.
@@ -532,9 +555,10 @@ func (env *Environment) PerformHealthCheck(id string) error {
 }
 
 // SetPrepackagedPlugins saves prepackaged plugins in the environment.
-func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
+func (env *Environment) SetPrepackagedPlugins(plugins, transitionalPlugins []*PrepackagedPlugin) {
 	env.prepackagedPluginsLock.Lock()
 	env.prepackagedPlugins = plugins
+	env.transitionallyPrepackagedPlugins = transitionalPlugins
 	env.prepackagedPluginsLock.Unlock()
 }
 

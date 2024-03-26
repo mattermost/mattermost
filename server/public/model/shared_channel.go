@@ -4,8 +4,16 @@
 package model
 
 import (
+	"encoding/json"
 	"net/http"
 	"unicode/utf8"
+
+	"github.com/pkg/errors"
+)
+
+var (
+	ErrChannelAlreadyShared = errors.New("channel is already shared")
+	ErrChannelHomedOnRemote = errors.New("channel is homed on a remote cluster")
 )
 
 // SharedChannel represents a channel that can be synchronized with a remote cluster.
@@ -100,7 +108,9 @@ type SharedChannelRemote struct {
 	IsInviteConfirmed bool   `json:"is_invite_confirmed"`
 	RemoteId          string `json:"remote_id"`
 	LastPostUpdateAt  int64  `json:"last_post_update_at"`
-	LastPostId        string `json:"last_post_id"`
+	LastPostUpdateID  string `json:"last_post_id"`
+	LastPostCreateAt  int64  `json:"last_post_create_at"`
+	LastPostCreateID  string `json:"last_post_create_id"`
 }
 
 func (sc *SharedChannelRemote) IsValid() *AppError {
@@ -247,4 +257,72 @@ type SharedChannelRemoteFilterOpts struct {
 	ChannelId       string
 	RemoteId        string
 	InclUnconfirmed bool
+}
+
+// SyncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
+// It is sent to remote clusters as the payload of a `RemoteClusterMsg`.
+type SyncMsg struct {
+	Id        string           `json:"id"`
+	ChannelId string           `json:"channel_id"`
+	Users     map[string]*User `json:"users,omitempty"`
+	Posts     []*Post          `json:"posts,omitempty"`
+	Reactions []*Reaction      `json:"reactions,omitempty"`
+}
+
+func NewSyncMsg(channelID string) *SyncMsg {
+	return &SyncMsg{
+		Id:        NewId(),
+		ChannelId: channelID,
+	}
+}
+
+func (sm *SyncMsg) ToJSON() ([]byte, error) {
+	b, err := json.Marshal(sm)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func (sm *SyncMsg) String() string {
+	json, err := sm.ToJSON()
+	if err != nil {
+		return ""
+	}
+	return string(json)
+}
+
+// SyncResponse represents the response to a synchronization event
+type SyncResponse struct {
+	UsersLastUpdateAt int64    `json:"users_last_update_at"`
+	UserErrors        []string `json:"user_errors"`
+	UsersSyncd        []string `json:"users_syncd"`
+
+	PostsLastUpdateAt int64    `json:"posts_last_update_at"`
+	PostErrors        []string `json:"post_errors"`
+
+	ReactionsLastUpdateAt int64    `json:"reactions_last_update_at"`
+	ReactionErrors        []string `json:"reaction_errors"`
+}
+
+// RegisterPluginOpts is passed by plugins to the `RegisterPluginForSharedChannels` plugin API
+// to provide options for registering as a shared channels remote.
+type RegisterPluginOpts struct {
+	Displayname  string // a displayname used in status reports
+	PluginID     string // id of this plugin registering
+	CreatorID    string // id of the user/bot registering
+	AutoShareDMs bool   // when true, all DMs are automatically shared to this remote
+	AutoInvited  bool   // when true, the plugin is automatically invited and sync'd with all shared channels.
+}
+
+// GetOptionFlags returns a Bitmask of option flags as specified by the boolean options.
+func (po RegisterPluginOpts) GetOptionFlags() Bitmask {
+	var flags Bitmask
+	if po.AutoShareDMs {
+		flags |= BitflagOptionAutoShareDMs
+	}
+	if po.AutoInvited {
+		flags |= BitflagOptionAutoInvited
+	}
+	return flags
 }

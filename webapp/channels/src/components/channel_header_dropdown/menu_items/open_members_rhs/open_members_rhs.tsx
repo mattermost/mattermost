@@ -3,7 +3,8 @@
 
 import React from 'react';
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
+
 import Menu from 'components/widgets/menu/menu';
 
 type Action = {

@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Link} from 'react-router-dom';
 import {useSelector} from 'react-redux';
+import {Link} from 'react-router-dom';
+
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import BackButton from 'components/common/back_button';
 import Logo from 'components/common/svg_images_components/logo_dark_blue_svg';
-
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import './header.scss';
 

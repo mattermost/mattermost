@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -36,9 +35,6 @@ type ServiceConfig struct {
 	// Optional fields
 	Cluster einterfaces.ClusterInterface
 }
-
-// ensure the config wrapper implements `product.ConfigService`
-var _ product.ConfigService = (*PlatformService)(nil)
 
 func (ps *PlatformService) Config() *model.Config {
 	return ps.configStore.Get()
@@ -147,7 +143,7 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 		if err != nil {
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
-		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", string(dsn)))
+		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", dsn))
 	} else {
 		ps.logger.Debug("Advanced logging config not provided for " + name)
 	}
@@ -368,7 +364,6 @@ func (ps *PlatformService) IsFirstUserAccount() bool {
 	}
 
 	return true
-
 }
 
 func (ps *PlatformService) MaxPostSize() int {
@@ -402,5 +397,4 @@ func (ps *PlatformService) GetSystemInstallDate() (int64, *model.AppError) {
 
 func (ps *PlatformService) ClientConfig() map[string]string {
 	return ps.clientConfig.Load().(map[string]string)
-
 }

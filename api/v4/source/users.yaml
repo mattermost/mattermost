@@ -271,6 +271,8 @@
 
             When left blank, sorting is done by username.
 
+            Note that when "last_activity_at" is specified, an additional "last_activity_at" field will be returned in the response packet.
+
             __Minimum server version__: 4.0
 
             ##### `in_channel`
@@ -2937,7 +2939,7 @@
         "404":
           $ref: "#/components/responses/NotFound"
   "/api/v4/users/{user_id}/teams/{team_id}/threads/{thread_id}/set_unread/{post_id}":
-    put:
+    post:
       tags:
         - threads
       summary: Mark a thread that user is following as unread based on a post id
@@ -3213,12 +3215,12 @@
         - users
       summary: Get users with invalid emails
       description: >
-        Get users whose emails are considered invalid. 
+        Get users whose emails are considered invalid.
 
         It is an error to invoke this API if your team settings enable an open server.
 
         ##### Permissions
-        
+
         Requires `sysconsole_read_user_management_users`.
 
       operationId: GetUsersWithInvalidEmails

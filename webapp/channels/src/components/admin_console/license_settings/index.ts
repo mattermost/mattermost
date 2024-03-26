@@ -2,26 +2,20 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {getLicenseConfig} from 'mattermost-redux/actions/general';
-import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
 import {uploadLicense, removeLicense, getPrevTrialLicense} from 'mattermost-redux/actions/admin';
-
-import {StatusOK} from '@mattermost/types/client4';
-import {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
-import {ServerError} from '@mattermost/types/errors';
-
-import {Action, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import {getLicenseConfig} from 'mattermost-redux/actions/general';
+import {getUsersLimits} from 'mattermost-redux/actions/limits';
+import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getFilteredUsersStats as selectFilteredUserStats} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
-import {ModalData} from 'types/actions';
-
+import {requestTrialLicense, upgradeToE0Status, upgradeToE0, restartServer, ping} from 'actions/admin_actions';
 import {openModal} from 'actions/views/modals';
 
-import {requestTrialLicense, upgradeToE0Status, upgradeToE0, restartServer, ping} from 'actions/admin_actions';
+import type {GlobalState} from 'types/store';
 
 import LicenseSettings from './license_settings';
 
@@ -35,27 +29,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type StatusOKFunc = () => Promise<StatusOK>;
-type PromiseStatusFunc = () => Promise<{status: string}>;
-type ActionCreatorTypes = Action | PromiseStatusFunc | StatusOKFunc;
-
-type Actions = {
-    getLicenseConfig: () => void;
-    uploadLicense: (file: File) => Promise<ActionResult>;
-    removeLicense: () => Promise<ActionResult>;
-    getPrevTrialLicense: () => void;
-    upgradeToE0: StatusOKFunc;
-    upgradeToE0Status: () => Promise<{percentage: number; error: string | JSX.Element}>;
-    restartServer: StatusOKFunc;
-    ping: PromiseStatusFunc;
-    requestTrialLicense: (users: number, termsAccepted: boolean, receiveEmailsAccepted: boolean, featureName: string) => Promise<ActionResult>;
-    openModal: <P>(modalData: ModalData<P>) => void;
-    getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{ data?: UsersStats | undefined; error?: ServerError | undefined}>;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionCreatorTypes>, Actions>({
+        actions: bindActionCreators({
             getLicenseConfig,
             uploadLicense,
             removeLicense,
@@ -67,6 +43,7 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
             requestTrialLicense,
             openModal,
             getFilteredUsersStats,
+            getUsersLimits,
         }, dispatch),
     };
 }

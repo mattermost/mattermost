@@ -10,7 +10,8 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
@@ -80,7 +81,7 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 			},
 			wh: &mockWebHub{},
 		},
-		Context:     request.EmptyContext(nil),
+		Context:     request.EmptyContext(mlog.CreateConsoleTestLogger(tb)),
 		configStore: configStore,
 		dbStore:     s,
 		LogBuffer:   buffer,
@@ -112,7 +113,7 @@ func (th *TestHelper) UpdateConfig(f func(*model.Config)) {
 
 func (th *TestHelper) CreateUser(u *model.User) *model.User {
 	u.EmailVerified = true
-	user, err := th.dbStore.User().Save(u)
+	user, err := th.dbStore.User().Save(th.Context, u)
 	if err != nil {
 		panic(err)
 	}

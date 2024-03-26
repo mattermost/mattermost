@@ -1,36 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import debounce from 'lodash/debounce';
 import React, {useEffect, useCallback, useState, useRef} from 'react';
-import styled from 'styled-components';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {debounce} from 'lodash';
+import styled from 'styled-components';
 
-import {CloseIcon, MagnifyIcon} from '@mattermost/compass-icons/components';
+import {MagnifyIcon} from '@mattermost/compass-icons/components';
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {ModalData} from 'types/actions';
-import {UserProfile} from '@mattermost/types/users';
-import {Group} from '@mattermost/types/groups';
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import {shouldFocusMainTextbox} from 'utils/post_utils';
-import * as Keyboard from 'utils/keyboard';
-import Constants, {A11yClassNames, A11yCustomEventTypes, A11yFocusEventDetail, ModalIdentifiers} from 'utils/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {QuickInput} from 'components/quick_input/quick_input';
-import Popover from 'components/widgets/popover';
-import ViewUserGroupModal from 'components/view_user_group_modal';
-import UserGroupsModal from 'components/user_groups_modal';
 import GroupMemberList from 'components/user_group_popover/group_member_list';
+import UserGroupsModal from 'components/user_groups_modal';
+import ViewUserGroupModal from 'components/view_user_group_modal';
+import Popover from 'components/widgets/popover';
 
+import Constants, {A11yClassNames, A11yCustomEventTypes, ModalIdentifiers} from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import {shouldFocusMainTextbox} from 'utils/post_utils';
+
+import type {ModalData} from 'types/actions';
+
+import {Load} from './constants';
 import useShouldClose from './useShouldClose';
-import './user_group_popover.scss';
 
-export enum Load {
-    DONE,
-    LOADING,
-    FAILED,
-}
+import './user_group_popover.scss';
 
 export type Props = {
 
@@ -66,16 +64,14 @@ export type Props = {
     };
 }
 
-const UserGroupPopover = (props: Props) => {
-    const {
-        group,
-        actions,
-        hide,
-        returnFocus,
-        searchTerm,
-        showUserOverlay,
-    } = props;
-
+const UserGroupPopover = ({
+    actions,
+    group,
+    hide,
+    returnFocus,
+    searchTerm,
+    showUserOverlay,
+}: Props) => {
     const {formatMessage} = useIntl();
 
     const closeRef = useRef<HTMLButtonElement>(null);
@@ -185,7 +181,6 @@ const UserGroupPopover = (props: Props) => {
 
     return (
         <Popover
-            {...props}
             id='user-group-popover'
         >
             {tabCatcher}
@@ -204,17 +199,19 @@ const UserGroupPopover = (props: Props) => {
                             {group.display_name}
                         </Title>
                         <CloseButton
-                            className='btn-icon'
+                            className='btn btn-sm btn-compact btn-icon'
                             aria-label={formatMessage({id: 'user_group_popover.close', defaultMessage: 'Close'})}
                             onClick={handleClose}
                             ref={closeRef}
                         >
-                            <CloseIcon/>
+                            <i
+                                className='icon icon-close'
+                            />
                         </CloseButton>
                     </Heading>
                     <Subtitle>
                         <span className='overflow--ellipsis text-nowrap'>{'@'}{group.name}</span>
-                        <Dot>{' • '}</Dot>
+                        <Dot>{'•'}</Dot>
                         <FormattedMessage
                             id='user_group_popover.memberCount'
                             defaultMessage='{member_count} {member_count, plural, one {Member} other {Members}}'
@@ -316,7 +313,7 @@ const Heading = styled.div`
 
 const Subtitle = styled.div`
     font-size: 12px;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     display: flex;
 `;
 

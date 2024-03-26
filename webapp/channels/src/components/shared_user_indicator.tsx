@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
+
 import {Constants} from 'utils/constants';
 
 type Props = {
@@ -14,7 +15,14 @@ type Props = {
 };
 
 const SharedUserIndicator: React.FC<Props> = (props: Props): JSX.Element => {
-    const sharedIcon = (<i className={`${props.className || ''} icon-circle-multiple-outline`}/>);
+    const intl = useIntl();
+
+    const sharedIcon = (
+        <i
+            className={`${props.className || ''} icon-circle-multiple-outline`}
+            aria-label={intl.formatMessage({id: 'shared_user_indicator.aria_label', defaultMessage: 'shared user indicator'})}
+        />
+    );
 
     if (!props.withTooltip) {
         return sharedIcon;

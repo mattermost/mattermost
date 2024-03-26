@@ -36,7 +36,6 @@ type AuthorizeRequest struct {
 // IsValid validates the AuthData and returns an error if it isn't configured
 // correctly.
 func (ad *AuthData) IsValid() *AppError {
-
 	if !IsValidId(ad.ClientId) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.client_id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -75,7 +74,6 @@ func (ad *AuthData) IsValid() *AppError {
 // IsValid validates the AuthorizeRequest and returns an error if it isn't configured
 // correctly.
 func (ar *AuthorizeRequest) IsValid() *AppError {
-
 	if !IsValidId(ar.ClientId) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.client_id.app_error", nil, "", http.StatusBadRequest)
 	}

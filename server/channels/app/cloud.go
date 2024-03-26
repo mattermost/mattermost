@@ -8,39 +8,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
-	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
-
-// Ensure cloud service wrapper implements `product.CloudService`
-var _ product.CloudService = (*cloudWrapper)(nil)
-
-// cloudWrapper provides an implementation of `product.CloudService` for use by products.
-type cloudWrapper struct {
-	cloud einterfaces.CloudInterface
-}
-
-func (c *cloudWrapper) GetCloudLimits() (*model.ProductLimits, error) {
-	if c.cloud != nil {
-		return c.cloud.GetCloudLimits("")
-	}
-
-	return &model.ProductLimits{}, nil
-}
-
-func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
-	userOptions := &model.UserGetOptions{
-		Page:     0,
-		PerPage:  100,
-		Role:     model.SystemAdminRoleId,
-		Inactive: false,
-	}
-	return a.GetUsersFromProfiles(userOptions)
-}
 
 func getCurrentPlanName(a *App) (string, *model.AppError) {
 	subscription, err := a.Cloud().GetSubscription("")
@@ -64,7 +38,7 @@ func getCurrentPlanName(a *App) (string, *model.AppError) {
 }
 
 func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError {
-	sysAdmins, err := a.getSysAdminsEmailRecipients()
+	sysAdmins, err := a.getAllSystemAdmins()
 	if err != nil {
 		return err
 	}
@@ -93,7 +67,7 @@ func getCurrentProduct(subscriptionProductID string, products []*model.Product) 
 }
 
 func (a *App) SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.AppError {
-	sysAdmins, aErr := a.getSysAdminsEmailRecipients()
+	sysAdmins, aErr := a.getAllSystemAdmins()
 	if aErr != nil {
 		return aErr
 	}
@@ -177,7 +151,7 @@ func getNextBillingDateString() string {
 }
 
 func (a *App) SendUpgradeConfirmationEmail(isYearly bool) *model.AppError {
-	sysAdmins, e := a.getSysAdminsEmailRecipients()
+	sysAdmins, e := a.getAllSystemAdmins()
 	if e != nil {
 		return e
 	}
@@ -236,7 +210,7 @@ func (a *App) SendUpgradeConfirmationEmail(isYearly bool) *model.AppError {
 
 // SendNoCardPaymentFailedEmail
 func (a *App) SendNoCardPaymentFailedEmail() *model.AppError {
-	sysAdmins, err := a.getSysAdminsEmailRecipients()
+	sysAdmins, err := a.getAllSystemAdmins()
 	if err != nil {
 		return err
 	}
@@ -265,4 +239,107 @@ func (a *App) SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHi
 		return nil, err
 	}
 	return a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(userID, int(userCount))
+}
+
+func (a *App) DoSubscriptionRenewalCheck() {
+	if !a.License().IsCloud() || !a.Config().FeatureFlags.CloudAnnualRenewals {
+		return
+	}
+
+	subscription, err := a.Cloud().GetSubscription("")
+	if err != nil {
+		a.Log().Error("Error getting subscription", mlog.Err(err))
+		return
+	}
+
+	if subscription == nil {
+		a.Log().Error("Subscription not found")
+		return
+	}
+
+	if subscription.IsFreeTrial == "true" {
+		return // Don't send renewal emails for free trials
+	}
+
+	if model.BillingType(subscription.BillingType) == model.BillingTypeLicensed || model.BillingType(subscription.BillingType) == model.BillingTypeInternal {
+		return // Don't send renewal emails for licensed or internal billing
+	}
+
+	sysVar, err := a.Srv().Store().System().GetByName(model.CloudRenewalEmail)
+	if err != nil {
+		// We only care about the error if it wasn't a not found error
+		if _, ok := err.(*store.ErrNotFound); !ok {
+			a.Log().Error(err.Error())
+		}
+	}
+
+	prevSentEmail := int64(0)
+	if sysVar != nil {
+		// We don't care about parse errors because it's possible the value is empty, and we've already defaulted to 0
+		prevSentEmail, _ = strconv.ParseInt(sysVar.Value, 10, 64)
+	}
+
+	if subscription.WillRenew == "true" {
+		// They've already completed the renewal process so no need to email them.
+		// We can zero out the system variable so that this process will work again next year
+		if prevSentEmail != 0 {
+			sysVar.Value = "0"
+			err = a.Srv().Store().System().SaveOrUpdate(sysVar)
+			if err != nil {
+				a.Log().Error("Error saving system variable", mlog.Err(err))
+			}
+		}
+		return
+	}
+
+	var emailFunc func(email, locale, siteURL string) error
+
+	daysToExpiration := subscription.DaysToExpiration()
+
+	// Only send the email if within the period and it's not already been sent
+	// This allows the email to send on day 59 if for whatever reason it was unable to on day 60
+	if daysToExpiration <= 60 && daysToExpiration > 30 && prevSentEmail != 60 && !(prevSentEmail < 60) {
+		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail60
+		prevSentEmail = 60
+	} else if daysToExpiration <= 30 && daysToExpiration > 7 && prevSentEmail != 30 && !(prevSentEmail < 30) {
+		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail30
+		prevSentEmail = 30
+	} else if daysToExpiration <= 7 && daysToExpiration >= 0 && prevSentEmail != 7 {
+		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail7
+		prevSentEmail = 7
+	}
+
+	if emailFunc == nil {
+		return
+	}
+
+	sysAdmins, aErr := a.getAllSystemAdmins()
+	if aErr != nil {
+		a.Log().Error("Error getting sys admins", mlog.Err(aErr))
+		return
+	}
+
+	numFailed := 0
+	for _, admin := range sysAdmins {
+		err = emailFunc(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+		if err != nil {
+			a.Log().Error("Error sending renewal email", mlog.Err(err))
+			numFailed += 1
+		}
+	}
+
+	if numFailed == len(sysAdmins) {
+		// If all emails failed, we don't want to update the system variable
+		return
+	}
+
+	updatedSysVar := &model.System{
+		Name:  model.CloudRenewalEmail,
+		Value: strconv.FormatInt(prevSentEmail, 10),
+	}
+
+	err = a.Srv().Store().System().SaveOrUpdate(updatedSysVar)
+	if err != nil {
+		a.Log().Error("Error saving system variable", mlog.Err(err))
+	}
 }

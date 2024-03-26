@@ -1017,7 +1017,7 @@
 
 
         __Minimum server version__: 7.7
-      operationId: SaveAcknowledgementForPost
+      operationId: DeleteAcknowledgementForPost
       parameters:
         - name: user_id
           in: path
@@ -1046,3 +1046,58 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/posts/{post_id}/move":
+    post:
+      tags:
+        - posts
+      summary: Move a post (and any posts within that post's thread)
+      description: >
+        Move a post/thread to another channel. 
+
+        THIS IS A BETA FEATURE. The API is subject to change without notice.
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel the post is in.
+        Must have `write_post` permission for the channel the post is being moved to.
+
+
+        __Minimum server version__: 9.3
+      operationId: MoveThread
+      parameters:
+        - name: post_id
+          in: path
+          description: The identifier of the post to move
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel_id
+              properties:
+                channel_id:
+                  type: string
+                  description: The channel identifier of where the post/thread is to be moved
+        description: The channel identifier of where the post/thread is to be moved
+        required: true
+      responses:
+        "200":
+          description: Post moved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

@@ -1,19 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {MessageDescriptor} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
 import {t} from 'utils/i18n';
 
 export type KeyboardShortcutDescriptor =
 	| MessageDescriptor
 	| {default: MessageDescriptor; mac?: MessageDescriptor};
-
-export function isMessageDescriptor(
-    descriptor: KeyboardShortcutDescriptor,
-): descriptor is MessageDescriptor {
-    return Boolean((descriptor as MessageDescriptor).id);
-}
 
 const callsKBShortcuts = {
     global: {
@@ -169,16 +163,6 @@ export const KEYBOARD_SHORTCUTS = {
         mac: {
             id: t('shortcuts.team_nav.switcher.mac'),
             defaultMessage: 'Navigate to a specific team:\t⌘|⌥|[1-9]',
-        },
-    },
-    teamNavigation: {
-        default: {
-            id: t('team.button.tooltip'),
-            defaultMessage: 'Ctrl|Alt|{order}',
-        },
-        mac: {
-            id: t('team.button.tooltip.mac'),
-            defaultMessage: '⌘|⌥|{order}',
         },
     },
     navSwitcher: {

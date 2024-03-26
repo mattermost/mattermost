@@ -8,8 +8,7 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {isDevModeEnabled} from 'selectors/general';
-
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 const SUPPORTS_CLEAR_MARKS = isSupported([performance.clearMarks]);
 const SUPPORTS_MARK = isSupported([performance.mark]);
@@ -19,6 +18,8 @@ const SUPPORTS_MEASURE_METHODS = isSupported([
     performance.getEntriesByName,
     performance.clearMeasures,
 ]);
+
+const HEADER_X_PAGE_LOAD_CONTEXT = 'X-Page-Load-Context';
 
 export function isTelemetryEnabled(state) {
     const config = getConfig(state);
@@ -210,18 +211,19 @@ export function trackSelectorMetrics() {
         }
 
         const selectors = getSortedTrackedSelectors();
+        const filteredSelectors = selectors.filter((selector) => selector.calls > 5);
 
         trackEvent('performance', 'least_effective_selectors', {
             after: 'one_minute',
-            first: selectors[0]?.name || '',
-            first_effectiveness: selectors[0]?.effectiveness,
-            first_recomputations: selectors[0]?.recomputations,
-            second: selectors[1]?.name || '',
-            second_effectiveness: selectors[1]?.effectiveness,
-            second_recomputations: selectors[1]?.recomputations,
-            third: selectors[2]?.name || '',
-            third_effectiveness: selectors[2]?.effectiveness,
-            third_recomputations: selectors[2]?.recomputations,
+            first: filteredSelectors[0]?.name || '',
+            first_effectiveness: filteredSelectors[0]?.effectiveness,
+            first_recomputations: filteredSelectors[0]?.recomputations,
+            second: filteredSelectors[1]?.name || '',
+            second_effectiveness: filteredSelectors[1]?.effectiveness,
+            second_recomputations: filteredSelectors[1]?.recomputations,
+            third: filteredSelectors[2]?.name || '',
+            third_effectiveness: filteredSelectors[2]?.effectiveness,
+            third_recomputations: filteredSelectors[2]?.recomputations,
         });
     }, 60000);
 }
@@ -239,7 +241,7 @@ function initRequestCountingIfNecessary() {
         for (const entry of entries.getEntries()) {
             const url = entry.name;
 
-            if (!url.includes('/api/v4/') && !url.includes('/api/v5/')) {
+            if (!url.includes('/api/v4/')) {
                 // Don't count requests made outside of the MM server's API
                 continue;
             }
@@ -263,3 +265,16 @@ function updateRequestCountAtMark(name) {
 function getRequestCountAtMark(name) {
     return requestCountAtMark[name] ?? 0;
 }
+
+/**
+ * This allows the server to know that a given HTTP request occurred during page load or reconnect.
+ * The server then uses this information to store metrics fields based on the request context.
+ * The setTimeout approach is a "best effort" approach that will produce false positives.
+ * A more accurate approach will result in more obtrusive code, which would add risk and maintenance cost.
+ */
+export const temporarilySetPageLoadContext = (pageLoadContext) => {
+    Client4.setHeader(HEADER_X_PAGE_LOAD_CONTEXT, pageLoadContext);
+    setTimeout(() => {
+        Client4.removeHeader(HEADER_X_PAGE_LOAD_CONTEXT);
+    }, 5000);
+};

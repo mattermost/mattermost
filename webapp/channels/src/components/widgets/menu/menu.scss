@@ -3,7 +3,7 @@
 
     .dropdown-menu {
         display: block;
-        min-width: 220px;
+        min-width: 225px;
         max-width: 270px;
         max-height: 80vh;
         padding: 8px 0;
@@ -165,9 +165,23 @@
                 padding: 0 20px;
 
                 .icon {
-                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
                 }
             }
+        }
+    }
+}
+
+.Menu__content {
+    &.openLeft {
+        right: 0;
+        left: inherit;
+    }
+
+    &.openUp {
+        @media screen and (min-width: 768px) {
+            top: auto;
+            bottom: 100%;
         }
     }
 }

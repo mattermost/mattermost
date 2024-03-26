@@ -53,9 +53,9 @@ describe('Desktop notifications', () => {
 
         // # Set channel notifications to show on mention only
         cy.uiOpenChannelMenu('Notification Preferences');
-        cy.findByText('Desktop notifications').click();
-        cy.findByRole('radio', {name: 'Only for mentions'}).click();
-        cy.uiSaveAndClose();
+        cy.findByText('Desktop Notifications').should('be.visible');
+        cy.findByRole('radio', {name: 'Mentions, direct messages, and keywords only'}).click().should('be.checked');
+        cy.uiSave();
 
         // # Visit off-topic
         cy.uiClickSidebarItem('off-topic');

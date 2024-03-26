@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -30,25 +31,25 @@ func (_m *NotificationInterface) CheckLicense() *model.AppError {
 	return r0
 }
 
-// GetNotificationMessage provides a mock function with given fields: ack, userID
-func (_m *NotificationInterface) GetNotificationMessage(ack *model.PushNotificationAck, userID string) (*model.PushNotification, *model.AppError) {
-	ret := _m.Called(ack, userID)
+// GetNotificationMessage provides a mock function with given fields: c, ack, userID
+func (_m *NotificationInterface) GetNotificationMessage(c request.CTX, ack *model.PushNotificationAck, userID string) (*model.PushNotification, *model.AppError) {
+	ret := _m.Called(c, ack, userID)
 
 	var r0 *model.PushNotification
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.PushNotificationAck, string) (*model.PushNotification, *model.AppError)); ok {
-		return rf(ack, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.PushNotificationAck, string) (*model.PushNotification, *model.AppError)); ok {
+		return rf(c, ack, userID)
 	}
-	if rf, ok := ret.Get(0).(func(*model.PushNotificationAck, string) *model.PushNotification); ok {
-		r0 = rf(ack, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.PushNotificationAck, string) *model.PushNotification); ok {
+		r0 = rf(c, ack, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PushNotification)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.PushNotificationAck, string) *model.AppError); ok {
-		r1 = rf(ack, userID)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.PushNotificationAck, string) *model.AppError); ok {
+		r1 = rf(c, ack, userID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

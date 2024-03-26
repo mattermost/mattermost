@@ -2,3 +2,4 @@
 // See LICENSE.txt for license information.
 
 declare const COMMIT_HASH: string;
+

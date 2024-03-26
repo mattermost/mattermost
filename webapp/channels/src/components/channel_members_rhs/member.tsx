@@ -1,31 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import styled from 'styled-components';
 import classNames from 'classnames';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import styled from 'styled-components';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
-import ProfilePopover from 'components/profile_popover';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
-import ProfilePicture from 'components/profile_picture';
 import {Client4} from 'mattermost-redux/client';
-import ChannelMembersDropdown from 'components/channel_members_dropdown';
+import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import OverlayTrigger, {BaseOverlayTrigger} from 'components/overlay_trigger';
+import ChannelMembersDropdown from 'components/channel_members_dropdown';
+import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import OverlayTrigger from 'components/overlay_trigger';
+import type {BaseOverlayTrigger} from 'components/overlay_trigger';
+import ProfilePicture from 'components/profile_picture';
+import ProfilePopover from 'components/profile_popover';
 import Tooltip from 'components/tooltip';
+import GuestTag from 'components/widgets/tag/guest_tag';
 
 import Constants from 'utils/constants';
 
-import {isGuest} from 'mattermost-redux/utils/user_utils';
-
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-
-import {ChannelMember} from './channel_members_rhs';
+import type {ChannelMember} from './channel_members_rhs';
 
 const Avatar = styled.div`
     flex-basis: fit-content;
@@ -54,7 +52,7 @@ const DisplayName = styled.span`
 
 const Username = styled.span`
     margin-left: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
     line-height: 18px;
 `;
@@ -74,7 +72,7 @@ const SendMessage = styled.button`
     }
 
     .icon {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 14.4px;
     };
 `;
@@ -249,7 +247,7 @@ export default styled(Member)`
 
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
 
         ${SendMessage} {
             display: block;

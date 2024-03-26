@@ -2,23 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
-import {CSSTransition} from 'react-transition-group';
-import styled from 'styled-components';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
+import {CSSTransition} from 'react-transition-group';
+import styled from 'styled-components';
 
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
 
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
-
-import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
+import ExternalLink from 'components/external_link';
+import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
 import completedImg from 'images/completed.svg';
-import ExternalLink from 'components/external_link';
+import {AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
 
 const CompletedWrapper = styled.div`
     display: flex;
@@ -72,7 +71,7 @@ const CompletedWrapper = styled.div`
 
     .start-trial-text, .completed-subtitle {
         font-size: 14px !important;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         line-height: 20px;
     }
 
@@ -83,7 +82,7 @@ const CompletedWrapper = styled.div`
     .disclaimer, .download-apps {
         width: 90%;
         margin-top: 15px;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-family: "Open Sans";
         font-style: normal;
         font-weight: normal;

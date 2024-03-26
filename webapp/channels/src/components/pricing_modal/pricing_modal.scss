@@ -6,10 +6,6 @@
         width: 1440px;
         margin: auto;
         transform: translate(-50%, -50%) !important;
-
-        .modal-content {
-            background-color: var(--center-channel-bg);
-        }
     }
 
     .modal-header {
@@ -21,7 +17,6 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 28px 32px;
         border: none;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         font-size: 22px;
@@ -45,7 +40,7 @@
                 padding-left: 8px;
                 border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
                 margin-left: 8px;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-family: 'Open Sans';
                 font-size: 12px;
                 font-style: normal;
@@ -57,31 +52,6 @@
         &::before,
         &::after {
             display: none;
-        }
-
-        // beat regular modal-header in specificity
-        &.modal-header {
-            background-color: var(--center-channel-bg);
-            color: var(--center-channel-color);
-        }
-
-        .icon-close {
-            padding: 0;
-            border: none;
-            -moz-appearance: none;
-            -webkit-appearance: none;
-            appearance: none;
-            background: none;
-            color: rgb(var(--center-channel-color-rgb), 0.56);
-            cursor: pointer;
-            font: inherit;
-            outline: inherit;
-
-            &:hover,
-            &:active,
-            &:focus {
-                color: rgb(var(--center-channel-color-rgb), 0.56);
-            }
         }
     }
 
@@ -165,7 +135,7 @@
 
                 .content {
                     margin-bottom: 25px;
-                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
                     font-family: 'Open Sans';
                     font-size: 14px;
                     font-style: normal;
@@ -176,9 +146,9 @@
 
             .self-hosted-interest {
                 padding: 8px;
+                border-radius: 8px;
                 margin-top: 24px;
                 background: rgba(var(--denim-button-bg-rgb), 0.08);
-                border-radius: 8px;
                 font-family: 'Open Sans';
                 font-size: 14px;
                 font-style: normal;
@@ -211,9 +181,9 @@
                 align-items: center;
                 justify-content: center;
                 padding: 14px;
+                border-radius: 13px 13px 0 0;
                 margin-right: auto;
                 margin-left: auto;
-                border-radius: 13px 13px 0 0;
                 font-size: 12px;
                 font-style: normal;
                 font-weight: 600;
@@ -232,9 +202,9 @@
             .bottom {
                 height: auto;
                 border: 1px solid rgba(var(--center-channel-text-rgb), 0.08);
+                border-radius: 0 0 4px 4px;
                 border-top: 1px solid var(--center-channel-bg);
                 background-color: var(--center-channel-bg);
-                border-radius: 0 0 4px 4px;
                 box-shadow: var(--elevation-6);
 
                 .bottom_container {
@@ -272,7 +242,7 @@
                         span,
                         p {
                             margin-bottom: 32px;
-                            color: rgba(var(--center-channel-color-rgb), 0.72);
+                            color: rgba(var(--center-channel-color-rgb), 0.75);
                             font-family: 'Metropolis';
                             font-size: 16px;
                             font-style: normal;
@@ -334,8 +304,8 @@
                             height: 40px;
                             padding: 10px 24px;
                             border: none;
-                            background: none;
                             border-radius: 4px;
+                            background: none;
                             color: var(--denim-button-bg);
                             font-weight: 600;
 
@@ -400,7 +370,7 @@
 
                                 p {
                                     margin: 0;
-                                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                                    color: rgba(var(--center-channel-color-rgb), 0.75);
                                     font-family: 'Metropolis';
                                     font-size: 14px;
                                     font-style: normal;
@@ -421,8 +391,8 @@
                     position: relative;
                     height: auto;
                     padding: 37px 24px 24px 24px;
-                    background-color: rgba(var(--center-channel-text-rgb), 0.56);
                     border-radius: 0 0 4px 4px;
+                    background-color: rgba(var(--center-channel-text-rgb), 0.75);
                     color: var(--sidebar-text);
 
                     .illustration {

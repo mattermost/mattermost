@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import {Group} from '@mattermost/types/groups';
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
 
 import {ChannelGroups} from './channel_groups';
 
 describe('admin_console/team_channel_settings/channel/ChannelGroups', () => {
     test('should match snapshot', () => {
-        const groups: Array<Partial<Group>> = [{
+        const groups: Group[] = [{
             id: '123',
             display_name: 'DN',
             member_count: 3,
-        }];
+        } as Group];
 
         const testChannel: Partial<Channel> & {team_name: string} = {
             id: '123',

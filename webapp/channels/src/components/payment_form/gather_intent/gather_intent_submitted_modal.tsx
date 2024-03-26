@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
+
+import {CheckCircleIcon} from '@mattermost/compass-icons/components';
 
 import './gather_intent.scss';
-import {CheckCircleIcon} from '@mattermost/compass-icons/components';
 
 export interface GatherIntentModalProps {
     onClose: () => void;

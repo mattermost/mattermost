@@ -50,7 +50,7 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 type="radio"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Only for mentions and direct messages"
+                defaultMessage="Only for mentions, direct messages, and group messages"
                 id="user.settings.notifications.onlyMentions"
               />
             </label>
@@ -150,7 +150,12 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
   section=""
   serverError=""
   submit={[MockFunction]}
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -205,7 +210,7 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 type="radio"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Only for mentions and direct messages"
+                defaultMessage="Only for mentions, direct messages, and group messages"
                 id="user.settings.notifications.onlyMentions"
               />
             </label>
@@ -247,13 +252,18 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
   section=""
   serverError=""
   submit={[MockFunction]}
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
 
 exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on buildMinimizedSetting 1`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="For mentions and direct messages, without sound"
@@ -261,13 +271,18 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
     />
   }
   section="desktop"
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
 
 exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on buildMinimizedSetting 2`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Off"
@@ -275,7 +290,12 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
     />
   }
   section="desktop"
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -330,7 +350,7 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 type="radio"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Only for mentions and direct messages"
+                defaultMessage="Only for mentions, direct messages, and group messages"
                 id="user.settings.notifications.onlyMentions"
               />
             </label>
@@ -430,7 +450,12 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
   section=""
   serverError=""
   submit={[MockFunction]}
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -485,7 +510,7 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 type="radio"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Only for mentions and direct messages"
+                defaultMessage="Only for mentions, direct messages, and group messages"
                 id="user.settings.notifications.onlyMentions"
               />
             </label>
@@ -638,7 +663,12 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
   section=""
   serverError=""
   submit={[MockFunction]}
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -693,7 +723,7 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 type="radio"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Only for mentions and direct messages"
+                defaultMessage="Only for mentions, direct messages, and group messages"
                 id="user.settings.notifications.onlyMentions"
               />
             </label>
@@ -844,6 +874,11 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 className="react-select notification-sound-dropdown"
                 classNamePrefix="react-select"
                 clearable={false}
+                components={
+                  Object {
+                    "SingleValue": [Function],
+                  }
+                }
                 defaultInputValue=""
                 defaultMenuIsOpen={false}
                 defaultValue={null}
@@ -887,7 +922,12 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
   section=""
   serverError=""
   submit={[MockFunction]}
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -942,7 +982,7 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
                 type="radio"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Only for mentions and direct messages"
+                defaultMessage="Only for mentions, direct messages, and group messages"
                 id="user.settings.notifications.onlyMentions"
               />
             </label>
@@ -1033,6 +1073,11 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
               className="react-select notification-sound-dropdown"
               classNamePrefix="react-select"
               clearable={false}
+              components={
+                Object {
+                  "SingleValue": [Function],
+                }
+              }
               defaultInputValue=""
               defaultMenuIsOpen={false}
               defaultValue={null}
@@ -1091,13 +1136,18 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
   section=""
   serverError=""
   submit={[MockFunction]}
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
 
 exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on min setting 1`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="For mentions and direct messages, without sound"
@@ -1105,7 +1155,12 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
     />
   }
   section="desktop"
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;

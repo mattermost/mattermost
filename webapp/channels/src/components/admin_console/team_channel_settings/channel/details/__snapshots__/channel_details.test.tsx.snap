@@ -8,7 +8,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/channels"
       />
@@ -195,7 +195,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/channels"
       />
@@ -378,7 +378,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/channels"
       />
@@ -517,7 +517,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/channels"
       />
@@ -652,7 +652,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/channels"
       />
@@ -791,7 +791,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/channels"
       />

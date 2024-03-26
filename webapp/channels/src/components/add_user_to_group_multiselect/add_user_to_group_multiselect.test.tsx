@@ -3,14 +3,15 @@
 
 import React from 'react';
 
-import {shallow} from 'enzyme';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {Value} from 'components/multiselect/multiselect';
 
-import {Value} from 'components/multiselect/multiselect';
-import {RelationOneToOne} from '@mattermost/types/utilities';
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 import AddUserToGroupMultiSelect from './add_user_to_group_multiselect';
+import type {AddUserToGroupMultiSelect as AddUserToGroupMultiSelectClass} from './add_user_to_group_multiselect';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -51,7 +52,7 @@ describe('component/add_user_to_group_multiselect', () => {
     };
 
     test('should match snapshot without any profiles', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddUserToGroupMultiSelect
                 {...baseProps}
             />,
@@ -60,7 +61,7 @@ describe('component/add_user_to_group_multiselect', () => {
     });
 
     test('should match snapshot with profiles', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddUserToGroupMultiSelect
                 {...baseProps}
                 profiles={users}
@@ -70,7 +71,7 @@ describe('component/add_user_to_group_multiselect', () => {
     });
 
     test('should match snapshot with different submit button text', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddUserToGroupMultiSelect
                 {...baseProps}
                 profiles={users}
@@ -83,24 +84,25 @@ describe('component/add_user_to_group_multiselect', () => {
     });
 
     test('should trim the search term', () => {
-        const wrapper = shallow<AddUserToGroupMultiSelect>(
+        const wrapper = shallowWithIntl(
             <AddUserToGroupMultiSelect {...baseProps}/>,
         );
 
-        wrapper.instance().search(' something ');
+        (wrapper.instance() as AddUserToGroupMultiSelectClass).search(' something ');
         expect(wrapper.state('term')).toEqual('something');
     });
 
     test('should add users on handleSubmit', (done) => {
-        const wrapper = shallow<AddUserToGroupMultiSelect>(
+        const wrapper = shallowWithIntl(
             <AddUserToGroupMultiSelect
                 {...baseProps}
             />,
         );
+        const instance = wrapper.instance() as AddUserToGroupMultiSelectClass;
 
         wrapper.setState({values: users});
-        wrapper.instance().handleSubmit();
-        expect(wrapper.instance().props.onSubmitCallback).toHaveBeenCalledTimes(1);
+        instance.handleSubmit();
+        expect(instance.props.onSubmitCallback).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
             done();
         });

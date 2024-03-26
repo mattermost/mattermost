@@ -6,7 +6,7 @@ package commands
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"os"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -71,7 +71,7 @@ func uploadLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return errors.New("enter one license file to upload")
 	}
 
-	fileBytes, err := ioutil.ReadFile(args[0])
+	fileBytes, err := os.ReadFile(args[0])
 	if err != nil {
 		return err
 	}

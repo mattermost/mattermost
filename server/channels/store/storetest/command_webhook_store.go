@@ -11,14 +11,15 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestCommandWebhookStore(t *testing.T, ss store.Store) {
-	t.Run("", func(t *testing.T) { testCommandWebhookStore(t, ss) })
+func TestCommandWebhookStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("", func(t *testing.T) { testCommandWebhookStore(t, rctx, ss) })
 }
 
-func testCommandWebhookStore(t *testing.T, ss store.Store) {
+func testCommandWebhookStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	cws := ss.CommandWebhook()
 
 	h1 := &model.CommandWebhook{}

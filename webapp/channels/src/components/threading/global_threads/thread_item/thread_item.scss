@@ -59,7 +59,7 @@
     .activity {
         display: flex;
         align-items: center;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
         font-weight: 600;
         line-height: 15px;
@@ -75,9 +75,9 @@
         display: inline-block;
         width: 8px;
         height: 8px;
+        border-radius: 50%;
         margin: 0 8px;
         background: rgba(var(--sidebar-text-active-border-rgb), 1);
-        border-radius: 50%;
         text-align: center;
     }
 
@@ -85,8 +85,8 @@
         display: inline-block;
         width: 16px;
         height: 16px;
-        background: rgba(var(--button-bg-rgb), 1);
         border-radius: 50%;
+        background: rgba(var(--button-bg-rgb), 1);
         color: rgba(var(--button-color-rgb), 1);
         font-size: 10px;
         font-weight: 700;
@@ -130,7 +130,7 @@
     }
 
     time {
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
         font-weight: normal;
         grid-column: 3/4;

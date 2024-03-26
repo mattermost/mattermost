@@ -4,14 +4,16 @@
 import React, {memo, useEffect} from 'react';
 import {useDispatch} from 'react-redux';
 
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-import {FakePost, RhsState} from 'types/store/rhs';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
+
+import {closeRightHandSide} from 'actions/views/rhs';
 
 import RhsHeaderPost from 'components/rhs_header_post';
 import ThreadViewer from 'components/threading/thread_viewer';
-import {closeRightHandSide} from 'actions/views/rhs';
-import {Team} from '@mattermost/types/teams';
+
+import type {FakePost, RhsState} from 'types/store/rhs';
 
 type Props = {
     currentTeam: Team;
@@ -19,6 +21,7 @@ type Props = {
     channel: Channel | null;
     selected: Post | FakePost;
     previousRhsState?: RhsState;
+    fromSuppressed: boolean;
 }
 
 const RhsThread = ({
@@ -27,6 +30,7 @@ const RhsThread = ({
     posts,
     selected,
     previousRhsState,
+    fromSuppressed,
 }: Props) => {
     const dispatch = useDispatch();
 
@@ -57,6 +61,7 @@ const RhsThread = ({
                 rootPostId={selected.id}
                 useRelativeTimestamp={false}
                 isThreadView={false}
+                fromSuppressed={fromSuppressed}
             />
         </div>
     );

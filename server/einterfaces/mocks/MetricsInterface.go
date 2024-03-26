@@ -204,13 +204,18 @@ func (_m *MetricsInterface) IncrementRemoteClusterMsgSentCounter(remoteID string
 	_m.Called(remoteID)
 }
 
+// IncrementSharedChannelsSyncCounter provides a mock function with given fields: remoteID
+func (_m *MetricsInterface) IncrementSharedChannelsSyncCounter(remoteID string) {
+	_m.Called(remoteID)
+}
+
 // IncrementUserIndexCounter provides a mock function with given fields:
 func (_m *MetricsInterface) IncrementUserIndexCounter() {
 	_m.Called()
 }
 
 // IncrementWebSocketBroadcast provides a mock function with given fields: eventType
-func (_m *MetricsInterface) IncrementWebSocketBroadcast(eventType string) {
+func (_m *MetricsInterface) IncrementWebSocketBroadcast(eventType model.WebsocketEventType) {
 	_m.Called(eventType)
 }
 
@@ -230,7 +235,7 @@ func (_m *MetricsInterface) IncrementWebhookPost() {
 }
 
 // IncrementWebsocketEvent provides a mock function with given fields: eventType
-func (_m *MetricsInterface) IncrementWebsocketEvent(eventType string) {
+func (_m *MetricsInterface) IncrementWebsocketEvent(eventType model.WebsocketEventType) {
 	_m.Called(eventType)
 }
 
@@ -239,9 +244,9 @@ func (_m *MetricsInterface) IncrementWebsocketReconnectEvent(eventType string) {
 	_m.Called(eventType)
 }
 
-// ObserveAPIEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, elapsed
-func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method string, statusCode string, elapsed float64) {
-	_m.Called(endpoint, method, statusCode, elapsed)
+// ObserveAPIEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, originClient, pageLoadContext, elapsed
+func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method string, statusCode string, originClient string, pageLoadContext string, elapsed float64) {
+	_m.Called(endpoint, method, statusCode, originClient, pageLoadContext, elapsed)
 }
 
 // ObserveClusterRequestDuration provides a mock function with given fields: elapsed
@@ -292,6 +297,36 @@ func (_m *MetricsInterface) ObserveRemoteClusterClockSkew(remoteID string, skew 
 // ObserveRemoteClusterPingDuration provides a mock function with given fields: remoteID, elapsed
 func (_m *MetricsInterface) ObserveRemoteClusterPingDuration(remoteID string, elapsed float64) {
 	_m.Called(remoteID, elapsed)
+}
+
+// ObserveSharedChannelsQueueSize provides a mock function with given fields: size
+func (_m *MetricsInterface) ObserveSharedChannelsQueueSize(size int64) {
+	_m.Called(size)
+}
+
+// ObserveSharedChannelsSyncCollectionDuration provides a mock function with given fields: remoteID, elapsed
+func (_m *MetricsInterface) ObserveSharedChannelsSyncCollectionDuration(remoteID string, elapsed float64) {
+	_m.Called(remoteID, elapsed)
+}
+
+// ObserveSharedChannelsSyncCollectionStepDuration provides a mock function with given fields: remoteID, step, elapsed
+func (_m *MetricsInterface) ObserveSharedChannelsSyncCollectionStepDuration(remoteID string, step string, elapsed float64) {
+	_m.Called(remoteID, step, elapsed)
+}
+
+// ObserveSharedChannelsSyncSendDuration provides a mock function with given fields: remoteID, elapsed
+func (_m *MetricsInterface) ObserveSharedChannelsSyncSendDuration(remoteID string, elapsed float64) {
+	_m.Called(remoteID, elapsed)
+}
+
+// ObserveSharedChannelsSyncSendStepDuration provides a mock function with given fields: remoteID, step, elapsed
+func (_m *MetricsInterface) ObserveSharedChannelsSyncSendStepDuration(remoteID string, step string, elapsed float64) {
+	_m.Called(remoteID, step, elapsed)
+}
+
+// ObserveSharedChannelsTaskInQueueDuration provides a mock function with given fields: elapsed
+func (_m *MetricsInterface) ObserveSharedChannelsTaskInQueueDuration(elapsed float64) {
+	_m.Called(elapsed)
 }
 
 // ObserveStoreMethodDuration provides a mock function with given fields: method, success, elapsed

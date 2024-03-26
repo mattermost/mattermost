@@ -62,18 +62,18 @@ func makeInMemoryGzipTarFile(t *testing.T, files []testFile) *bytes.Reader {
 	return bytes.NewReader(buf.Bytes())
 }
 
-type byBundleInfoId []*model.BundleInfo
+type byBundleInfoID []*model.BundleInfo
 
-func (b byBundleInfoId) Len() int           { return len(b) }
-func (b byBundleInfoId) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
-func (b byBundleInfoId) Less(i, j int) bool { return b[i].Manifest.Id < b[j].Manifest.Id }
+func (b byBundleInfoID) Len() int           { return len(b) }
+func (b byBundleInfoID) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
+func (b byBundleInfoID) Less(i, j int) bool { return b[i].Manifest.Id < b[j].Manifest.Id }
 
 func TestInstallPluginLocally(t *testing.T) {
 	t.Run("invalid tar", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		actualManifest, appErr := th.App.ch.installPluginLocally(&nilReadSeeker{}, nil, installPluginLocallyOnlyIfNew)
+		actualManifest, appErr := th.App.ch.installPluginLocally(&nilReadSeeker{}, installPluginLocallyOnlyIfNew)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.plugin.extract.app_error", appErr.Id, appErr.Error())
 		require.Nil(t, actualManifest)
@@ -87,7 +87,7 @@ func TestInstallPluginLocally(t *testing.T) {
 			{"test", "test file"},
 		})
 
-		actualManifest, appErr := th.App.ch.installPluginLocally(reader, nil, installPluginLocallyOnlyIfNew)
+		actualManifest, appErr := th.App.ch.installPluginLocally(reader, installPluginLocallyOnlyIfNew)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.plugin.manifest.app_error", appErr.Id, appErr.Error())
 		require.Nil(t, actualManifest)
@@ -106,7 +106,7 @@ func TestInstallPluginLocally(t *testing.T) {
 			{"plugin.json", string(manifestJSON)},
 		})
 
-		actualManifest, appError := th.App.ch.installPluginLocally(reader, nil, installationStrategy)
+		actualManifest, appError := th.App.ch.installPluginLocally(reader, installationStrategy)
 		if actualManifest != nil {
 			require.Equal(t, manifest, actualManifest)
 		}
@@ -145,7 +145,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		bundleInfos, err := pluginsEnvironment.Available()
 		require.NoError(t, err)
 
-		sort.Sort(byBundleInfoId(bundleInfos))
+		sort.Sort(byBundleInfoID(bundleInfos))
 
 		actualManifests := make([]*model.Manifest, 0, len(bundleInfos))
 		for _, bundleInfo := range bundleInfos {

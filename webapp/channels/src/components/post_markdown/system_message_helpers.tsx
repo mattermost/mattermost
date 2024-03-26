@@ -1,23 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 
-import {General, Posts} from 'mattermost-redux/constants';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
 
-import * as Utils from 'utils/utils';
-import {TextFormattingOptions} from 'utils/text_formatting';
-import {getSiteURL} from 'utils/url';
+import {General, Posts} from 'mattermost-redux/constants';
+import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
+
 import Markdown from 'components/markdown';
 import CombinedSystemMessage from 'components/post_view/combined_system_message';
+import GMConversionMessage from 'components/post_view/gm_conversion_message/gm_conversion_message';
 import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-import {Team} from '@mattermost/types/teams';
+import {t} from 'utils/i18n';
+import type {TextFormattingOptions} from 'utils/text_formatting';
+import {getSiteURL} from 'utils/url';
 
-function renderUsername(value: string): ReactNode {
+export function renderUsername(value: string): ReactNode {
     const username = (value[0] === '@') ? value : `@${value}`;
 
     const options = {
@@ -186,7 +190,6 @@ function renderHeaderChangeMessage(post: Post): ReactNode {
     }
 
     const headerOptions = {
-        singleline: true,
         channelNamesMap: post.props && post.props.channel_mentions,
         mentionHighlight: true,
     };
@@ -387,7 +390,7 @@ const systemMessageRenderers = {
 };
 
 export function renderSystemMessage(post: Post, currentTeam: Team, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string): ReactNode {
-    const isEphemeral = Utils.isPostEphemeral(post);
+    const isEphemeral = isPostEphemeral(post);
     if (isEphemeral && post.props?.type === Posts.POST_TYPES.REMINDER) {
         return renderReminderACKMessage(post, currentTeam, Boolean(isMilitaryTime), timezone);
     }
@@ -423,6 +426,13 @@ export function renderSystemMessage(post: Post, currentTeam: Team, channel: Chan
                 allUsernames={allUsernames}
                 messageData={messageData}
             />
+        );
+    } else if (post.type === Posts.POST_TYPES.GM_CONVERTED_TO_CHANNEL) {
+        // This is rendered via a separate component instead of registering in
+        // systemMessageRenderers because we need to format a list with keeping i18n support
+        // which cannot be done outside a react component.
+        return (
+            <GMConversionMessage post={post}/>
         );
     }
 
@@ -480,3 +490,29 @@ export function renderReminderSystemBotMessage(post: Post, currentTeam: Team): R
         />
     );
 }
+
+t('app.post.move_thread_command.direct_or_group.multiple_messages');
+t('app.post.move_thread_command.direct_or_group.one_message');
+t('app.post.move_thread_command.channel.multiple_messages');
+t('app.post.move_thread_command.channel.one_message');
+t('app.post.move_thread.from_another_channel');
+export function renderWranglerSystemMessage(post: Post): ReactNode {
+    let values = {} as any;
+    const id = post.props.TranslationID;
+    if (post.props && post.props.MovedThreadPermalink) {
+        values = {
+            Link: post.props.MovedThreadPermalink,
+        };
+        if (post.props.NumMessages > 1) {
+            values.NumMessages = post.props.NumMessages;
+        }
+    }
+    return (
+        <FormattedMessage
+            id={id}
+            defaultMessage={post.message}
+            values={values}
+        />
+    );
+}
+

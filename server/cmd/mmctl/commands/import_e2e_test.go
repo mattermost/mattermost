@@ -27,7 +27,7 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 
 		err := importUploadCmdF(s.th.Client, &cobra.Command{}, []string{importFilePath})
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to create upload session: : You do not have the appropriate permissions.", err.Error())
+		s.Require().Equal("failed to create upload session: You do not have the appropriate permissions.", err.Error())
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -98,7 +98,7 @@ func (s *MmctlE2ETestSuite) TestImportProcessCmdF() {
 
 		err := importProcessCmdF(s.th.Client, &cobra.Command{}, []string{"importName"})
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to create import process job: : You do not have the appropriate permissions.", err.Error())
+		s.Require().Equal("failed to create import process job: You do not have the appropriate permissions.", err.Error())
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -138,7 +138,7 @@ func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
 
 		err := importListAvailableCmdF(s.th.Client, &cobra.Command{}, nil)
 		s.Require().NotNil(err)
-		s.Require().ErrorContains(err, "failed to list imports: : You do not have the appropriate permissions.")
+		s.Require().ErrorContains(err, "failed to list imports: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -251,7 +251,7 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
-	job, appErr := s.th.App.CreateJob(&model.Job{
+	job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 		Type: model.JobTypeImportProcess,
 		Data: map[string]string{"import_file": "import1.zip"},
 	})
@@ -260,7 +260,7 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		job1, appErr := s.th.App.CreateJob(&model.Job{
+		job1, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import1.zip"},
 		})
@@ -268,7 +268,7 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 
 		err := importJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job1.Id})
 		s.Require().NotNil(err)
-		s.Require().ErrorContains(err, "failed to get import job: : You do not have the appropriate permissions.")
+		s.Require().ErrorContains(err, "failed to get import job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -278,7 +278,7 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 
 		err := importJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
 		s.Require().NotNil(err)
-		s.Require().ErrorContains(err, "failed to get import job: : Unable to get the job.")
+		s.Require().ErrorContains(err, "failed to get import job: Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -307,7 +307,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 
 		err := importJobListCmdF(s.th.Client, cmd, nil)
 		s.Require().NotNil(err)
-		s.Require().ErrorContains(err, "failed to get jobs: : You do not have the appropriate permissions.")
+		s.Require().ErrorContains(err, "failed to get jobs: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -336,7 +336,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Bool("all", false, "")
 
-		_, appErr := s.th.App.CreateJob(&model.Job{
+		_, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import1.zip"},
 		})
@@ -344,7 +344,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 
 		time.Sleep(time.Millisecond)
 
-		job2, appErr := s.th.App.CreateJob(&model.Job{
+		job2, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import2.zip"},
 		})
@@ -352,7 +352,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 
 		time.Sleep(time.Millisecond)
 
-		job3, appErr := s.th.App.CreateJob(&model.Job{
+		job3, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import3.zip"},
 		})

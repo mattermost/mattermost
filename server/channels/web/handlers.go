@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/gziphandler"
+	"github.com/klauspost/compress/gzhttp"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
@@ -22,16 +22,17 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	app_opentracing "github.com/mattermost/mattermost/server/v8/channels/app/opentracing"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/opentracinglayer"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
 )
 
 const (
-	frameAncestors = "'self' teams.microsoft.com"
+	frameAncestors   = "'self' teams.microsoft.com"
+	maxURLCharacters = 2048
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -86,6 +87,7 @@ type Handler struct {
 	IsStatic                  bool
 	IsLocal                   bool
 	DisableWhenBusy           bool
+	FileAPI                   bool
 
 	cspShaDirective string
 }
@@ -142,11 +144,29 @@ func generateDevCSP(c Context) string {
 	return " " + strings.Join(devCSP, " ")
 }
 
+func (h Handler) basicSecurityChecks(w http.ResponseWriter, r *http.Request) *model.AppError {
+	if len(r.RequestURI) > maxURLCharacters {
+		return model.NewAppError("basicSecurityChecks", "basic_security_check.url.too_long_error", nil, "", http.StatusRequestURITooLong)
+	}
+
+	return nil
+}
+
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if appErr := h.basicSecurityChecks(w, r); appErr != nil {
+		http.Error(w, appErr.Error(), appErr.StatusCode)
+		return
+	}
+
 	w = newWrappedWriter(w)
 	now := time.Now()
 
 	appInstance := app.New(app.ServerConnector(h.Srv.Channels()))
+
+	c := &Context{
+		AppContext: &request.Context{},
+		App:        appInstance,
+	}
 
 	requestID := model.NewId()
 	var statusCode string
@@ -156,6 +176,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			mlog.String("url", r.URL.Path),
 			mlog.String("request_id", requestID),
 		}
+		// if there is a session then include the user_id
+		if c.AppContext.Session() != nil {
+			responseLogFields = append(responseLogFields, mlog.String("user_id", c.AppContext.Session().UserId))
+		}
 		// Websockets are returning status code 0 to requests after closing the socket
 		if statusCode != "0" {
 			responseLogFields = append(responseLogFields, mlog.String("status_code", statusCode))
@@ -163,19 +187,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.Debug("Received HTTP request", responseLogFields...)
 	}()
 
-	c := &Context{
-		AppContext: &request.Context{},
-		App:        appInstance,
-	}
-
 	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
-	c.AppContext.SetT(t)
-	c.AppContext.SetRequestId(requestID)
-	c.AppContext.SetIPAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
-	c.AppContext.SetUserAgent(r.UserAgent())
-	c.AppContext.SetAcceptLanguage(r.Header.Get("Accept-Language"))
-	c.AppContext.SetPath(r.URL.Path)
-	c.AppContext.SetContext(context.Background())
+	c.AppContext = request.NewContext(
+		context.Background(),
+		requestID,
+		utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader),
+		r.Header.Get("X-Forwarded-For"),
+		r.URL.Path,
+		r.UserAgent(),
+		r.Header.Get("Accept-Language"),
+		t,
+	)
+
 	c.Params = ParamsFromRequest(r)
 	c.Logger = c.App.Log()
 
@@ -197,7 +220,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			span.Finish()
 		}()
-		c.AppContext.SetContext(ctx)
+		c.AppContext = c.AppContext.WithContext(ctx)
 
 		tmpSrv := *c.App.Srv()
 		tmpSrv.SetStore(opentracinglayer.New(c.App.Srv().Store(), ctx))
@@ -205,13 +228,16 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
 	}
 
-	// Set the max request body size to be equal to MaxFileSize.
-	// Ideally, non-file request bodies should be smaller than file request bodies,
-	// but we don't have a clean way to identify all file upload handlers.
-	// So to keep it simple, we clamp it to the max file size.
-	// We add a buffer of bytes.MinRead so that file sizes close to max file size
-	// do not get cut off.
-	r.Body = http.MaxBytesReader(w, r.Body, *c.App.Config().FileSettings.MaxFileSize+bytes.MinRead)
+	var maxBytes int64
+	if h.FileAPI {
+		// We add a buffer of bytes.MinRead so that file sizes close to max file size
+		// do not get cut off.
+		maxBytes = *c.App.Config().FileSettings.MaxFileSize + bytes.MinRead
+	} else {
+		maxBytes = *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes + bytes.MinRead
+	}
+
+	r.Body = http.MaxBytesReader(w, r.Body, maxBytes)
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
@@ -277,7 +303,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
 			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
-			c.AppContext.SetSession(session)
+			c.AppContext = c.AppContext.WithSession(session)
 		}
 
 		// Rate limit by UserID
@@ -293,7 +319,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Logger.Warn("Invalid CWS token", mlog.Err(err))
 			c.Err = err
 		} else {
-			c.AppContext.SetSession(session)
+			c.AppContext = c.AppContext.WithSession(session)
 		}
 	} else if token != "" && c.App.Channels().License() != nil && c.App.Channels().License().HasRemoteClusterService() && tokenLocation == app.TokenLocationRemoteClusterHeader {
 		// Get the remote cluster
@@ -307,7 +333,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				c.Logger.Warn("Invalid remote cluster token", mlog.Err(err))
 				c.Err = err
 			} else {
-				c.AppContext.SetSession(session)
+				c.AppContext = c.AppContext.WithSession(session)
 			}
 		}
 	}
@@ -319,7 +345,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.String("user_id", c.AppContext.Session().UserId),
 		mlog.String("method", r.Method),
 	)
-	c.AppContext.SetLogger(c.Logger)
+	c.AppContext = c.AppContext.WithLogger(c.Logger)
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()
@@ -346,7 +372,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// shape IP:PORT (it will be "@" in Linux, for example)
 		isLocalOrigin := !strings.Contains(r.RemoteAddr, ":")
 		if *c.App.Config().ServiceSettings.EnableLocalMode && isLocalOrigin {
-			c.AppContext.SetSession(&model.Session{Local: true})
+			c.AppContext = c.AppContext.WithSession(&model.Session{Local: true})
 		} else if !isLocalOrigin {
 			c.Err = model.NewAppError("", "api.context.local_origin_required.app_error", nil, "LocalOriginRequired", http.StatusUnauthorized)
 		}
@@ -368,14 +394,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Block out detailed error when not in developer mode
 		if !*c.App.Config().ServiceSettings.EnableDeveloper {
-			c.Err.DetailedError = ""
+			c.Err.WipeDetailed()
 		}
 
 		// Sanitize all 5xx error messages in hardened mode
 		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err.StatusCode >= 500 {
 			c.Err.Id = ""
 			c.Err.Message = "Internal Server Error"
-			c.Err.DetailedError = ""
+			c.Err.WipeDetailed()
 			c.Err.StatusCode = 500
 			c.Err.Where = ""
 			c.Err.IsOAuth = false
@@ -399,16 +425,59 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if r.URL.Path != model.APIURLSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			var endpoint string
-			if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
-				// It's a graphQL query, so use the operation name.
-				endpoint = c.GraphQLOperationName
-			} else {
-				endpoint = h.HandlerName
+
+			pageLoadContext := r.Header.Get("X-Page-Load-Context")
+			if pageLoadContext != "page_load" && pageLoadContext != "reconnect" {
+				pageLoadContext = ""
 			}
-			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, elapsed)
+
+			originClient := string(originClient(r))
+
+			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, originClient, pageLoadContext, elapsed)
 		}
 	}
+}
+
+type OriginClient string
+
+const (
+	OriginClientUnknown OriginClient = "unknown"
+	OriginClientWeb     OriginClient = "web"
+	OriginClientMobile  OriginClient = "mobile"
+	OriginClientDesktop OriginClient = "desktop"
+)
+
+// originClient returns the device from which the provided request was issued. The algorithm roughly looks like:
+// - If the URL contains the query mobilev2=true, then it's mobile
+// - If the first field of the user agent starts with either "rnbeta" or "Mattermost", then it's mobile
+// - If the last field of the user agent starts with "Mattermost", then it's desktop
+// - Otherwise, it's web
+func originClient(r *http.Request) OriginClient {
+	userAgent := r.Header.Get("User-Agent")
+	fields := strings.Fields(userAgent)
+	if len(fields) < 1 {
+		return OriginClientUnknown
+	}
+
+	// Is mobile post v2?
+	queryParam := r.URL.Query().Get("mobilev2")
+	if queryParam == "true" {
+		return OriginClientMobile
+	}
+
+	// Is mobile pre v2?
+	clientAgent := fields[0]
+	if strings.HasPrefix(clientAgent, "rnbeta") || strings.HasPrefix(clientAgent, "Mattermost") {
+		return OriginClientMobile
+	}
+
+	// Is desktop?
+	if strings.HasPrefix(fields[len(fields)-1], "Mattermost") {
+		return OriginClientDesktop
+	}
+
+	// Default to web
+	return OriginClientWeb
 }
 
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
@@ -450,7 +519,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 		}
 
 		if !csrfCheckPassed {
-			c.AppContext.SetSession(&model.Session{})
+			c.AppContext = c.AppContext.WithSession(&model.Session{})
 			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
 		}
 	}
@@ -472,7 +541,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsLocal:        false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }
@@ -492,7 +561,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		IsLocal:        false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }
@@ -511,7 +580,7 @@ func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		IsLocal:        false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }

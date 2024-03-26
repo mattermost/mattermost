@@ -215,7 +215,6 @@ func TestImportImportScheme(t *testing.T) {
 	assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, "team", scheme.Scope)
-
 }
 
 func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
@@ -414,7 +413,7 @@ func TestImportImportRole(t *testing.T) {
 		Name: &rid1,
 	}
 
-	err := th.App.importRole(th.Context, &data, true, false)
+	err := th.App.importRole(th.Context, &data, true)
 	require.NotNil(t, err, "Should have failed to import.")
 
 	_, nErr := th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -423,7 +422,7 @@ func TestImportImportRole(t *testing.T) {
 	// Try importing the valid role in dryRun mode.
 	data.DisplayName = ptrStr("display name")
 
-	err = th.App.importRole(th.Context, &data, true, false)
+	err = th.App.importRole(th.Context, &data, true)
 	require.Nil(t, err, "Should have succeeded.")
 
 	_, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -432,7 +431,7 @@ func TestImportImportRole(t *testing.T) {
 	// Try importing an invalid role.
 	data.DisplayName = nil
 
-	err = th.App.importRole(th.Context, &data, false, false)
+	err = th.App.importRole(th.Context, &data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
 	_, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -443,7 +442,7 @@ func TestImportImportRole(t *testing.T) {
 	data.Description = ptrStr("description")
 	data.Permissions = &[]string{"invite_user", "add_user_to_team"}
 
-	err = th.App.importRole(th.Context, &data, false, false)
+	err = th.App.importRole(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded.")
 
 	role, nErr := th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -460,8 +459,9 @@ func TestImportImportRole(t *testing.T) {
 	data.DisplayName = ptrStr("new display name")
 	data.Description = ptrStr("description")
 	data.Permissions = &[]string{"manage_slash_commands"}
+	data.SchemeManaged = model.NewBool(true)
 
-	err = th.App.importRole(th.Context, &data, false, true)
+	err = th.App.importRole(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded. %v", err)
 
 	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -480,7 +480,7 @@ func TestImportImportRole(t *testing.T) {
 		DisplayName: ptrStr("new display name again"),
 	}
 
-	err = th.App.importRole(th.Context, &data2, false, false)
+	err = th.App.importRole(th.Context, &data2, false)
 	require.Nil(t, err, "Should have succeeded.")
 
 	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -491,7 +491,7 @@ func TestImportImportRole(t *testing.T) {
 	assert.Equal(t, *data.Description, role.Description)
 	assert.Equal(t, *data.Permissions, role.Permissions)
 	assert.False(t, role.BuiltIn)
-	assert.False(t, role.SchemeManaged)
+	assert.True(t, role.SchemeManaged)
 }
 
 func TestImportImportTeam(t *testing.T) {
@@ -704,10 +704,24 @@ func TestImportImportChannel(t *testing.T) {
 	assert.Equal(t, *data.Header, channel.Header)
 	assert.Equal(t, *data.Purpose, channel.Purpose)
 	assert.Equal(t, scheme2.Id, *channel.SchemeId)
+
+	// Do a valid archived channel.
+	now := model.GetMillis()
+	data.Name = ptrStr("archivedchannel")
+	data.DisplayName = ptrStr("Archived Channel")
+	data.Type = &chanOpen
+	data.Header = ptrStr("Archived Channel Header")
+	data.Purpose = ptrStr("Archived Channel Purpose")
+	data.Scheme = &scheme1.Name
+	data.DeletedAt = &now
+	err = th.App.importChannel(th.Context, &data, false)
+	require.Nil(t, err, "Expected success in apply mode")
+	aChan, err := th.App.GetChannelByName(th.Context, *data.Name, team.Id, true)
+	require.Nil(t, err, "Failed to get channel from database.")
+	assert.Equal(t, *data.Name, aChan.Name)
 }
 
 func TestImportImportUser(t *testing.T) {
-	t.Skip("MM-43341")
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1064,7 +1078,7 @@ func TestImportImportUser(t *testing.T) {
 	user, appErr = th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	teamMember, appErr := th.App.GetTeamMember(team.Id, user.Id)
+	teamMember, appErr := th.App.GetTeamMember(th.Context, team.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get team member from database.")
 	require.Equal(t, "team_user", teamMember.Roles)
 
@@ -1123,7 +1137,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.Nil(t, appErr)
 
 	// Check both member properties.
-	teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
+	teamMember, appErr = th.App.GetTeamMember(th.Context, team.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get team member from database.")
 	require.Equal(t, "team_user team_admin", teamMember.Roles)
 
@@ -1439,7 +1453,7 @@ func TestImportImportUser(t *testing.T) {
 	user, appErr = th.App.GetUserByUsername(*userData.Username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
+	teamMember, appErr = th.App.GetTeamMember(th.Context, team.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the team member")
 
 	assert.True(t, teamMember.SchemeAdmin)
@@ -1481,7 +1495,7 @@ func TestImportImportUser(t *testing.T) {
 	user, appErr = th.App.GetUserByUsername(*deletedUserData.Username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
+	teamMember, appErr = th.App.GetTeamMember(th.Context, team.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the team member")
 
 	assert.False(t, teamMember.SchemeAdmin)
@@ -1492,52 +1506,53 @@ func TestImportImportUser(t *testing.T) {
 	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the channel member")
 
-	assert.False(t, teamMember.SchemeAdmin)
+	assert.False(t, channelMember.SchemeAdmin)
 	assert.True(t, channelMember.SchemeUser)
-	assert.False(t, teamMember.SchemeGuest)
+	assert.False(t, channelMember.SchemeGuest)
 	assert.Equal(t, "", channelMember.ExplicitRoles)
 
+	// see https://mattermost.atlassian.net/browse/MM-56986
 	// Test importing deleted guest with a valid team & valid channel name in apply mode.
-	username = model.NewId()
-	deleteAt = model.GetMillis()
-	deletedGuestData := &imports.UserImportData{
-		Username: &username,
-		DeleteAt: &deleteAt,
-		Email:    ptrStr(model.NewId() + "@example.com"),
-		Teams: &[]imports.UserTeamImportData{
-			{
-				Name:  &team.Name,
-				Roles: ptrStr("team_guest"),
-				Channels: &[]imports.UserChannelImportData{
-					{
-						Name:  &channel.Name,
-						Roles: ptrStr("channel_guest"),
-					},
-				},
-			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, deletedGuestData, false)
-	assert.Nil(t, appErr)
+	// username = model.NewId()
+	// deleteAt = model.GetMillis()
+	// deletedGuestData := &imports.UserImportData{
+	// 	Username: &username,
+	// 	DeleteAt: &deleteAt,
+	// 	Email:    ptrStr(model.NewId() + "@example.com"),
+	// 	Teams: &[]imports.UserTeamImportData{
+	// 		{
+	// 			Name:  &team.Name,
+	// 			Roles: ptrStr("team_guest"),
+	// 			Channels: &[]imports.UserChannelImportData{
+	// 				{
+	// 					Name:  &channel.Name,
+	// 					Roles: ptrStr("channel_guest"),
+	// 				},
+	// 			},
+	// 		},
+	// 	},
+	// }
+	// appErr = th.App.importUser(th.Context, deletedGuestData, false)
+	// assert.Nil(t, appErr)
 
-	user, appErr = th.App.GetUserByUsername(*deletedGuestData.Username)
-	require.Nil(t, appErr, "Failed to get user from database.")
+	// user, appErr = th.App.GetUserByUsername(*deletedGuestData.Username)
+	// require.Nil(t, appErr, "Failed to get user from database.")
 
-	teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
-	require.Nil(t, appErr, "Failed to get the team member")
+	// teamMember, appErr = th.App.GetTeamMember(th.Context, team.Id, user.Id)
+	// require.Nil(t, appErr, "Failed to get the team member")
 
-	assert.False(t, teamMember.SchemeAdmin)
-	assert.False(t, teamMember.SchemeUser)
-	assert.True(t, teamMember.SchemeGuest)
-	assert.Equal(t, "", teamMember.ExplicitRoles)
+	// assert.False(t, teamMember.SchemeAdmin)
+	// assert.False(t, teamMember.SchemeUser)
+	// assert.True(t, teamMember.SchemeGuest)
+	// assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
-	require.Nil(t, appErr, "Failed to get the channel member")
+	// channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
+	// require.Nil(t, appErr, "Failed to get the channel member")
 
-	assert.False(t, teamMember.SchemeAdmin)
-	assert.False(t, channelMember.SchemeUser)
-	assert.True(t, teamMember.SchemeGuest)
-	assert.Equal(t, "", channelMember.ExplicitRoles)
+	// assert.False(t, teamMember.SchemeAdmin)
+	// assert.False(t, channelMember.SchemeUser)
+	// assert.True(t, teamMember.SchemeGuest)
+	// assert.Equal(t, "", channelMember.ExplicitRoles)
 }
 
 func TestImportUserTeams(t *testing.T) {
@@ -1575,7 +1590,7 @@ func TestImportUserTeams(t *testing.T) {
 			expectedUserChannels: 0,
 		},
 		{
-			name: "Should fail if one of the roles doesn't exists",
+			name: "Should fail if one of the roles doesn't exist",
 			data: &[]imports.UserTeamImportData{
 				{
 					Name:  &th.BasicTeam.Name,
@@ -1724,7 +1739,7 @@ func TestImportUserTeams(t *testing.T) {
 				} else {
 					require.Nil(t, err)
 				}
-				teamMembers, nErr := th.App.Srv().Store().Team().GetTeamsForUser(context.Background(), user.Id, "", true)
+				teamMembers, nErr := th.App.Srv().Store().Team().GetTeamsForUser(th.Context, user.Id, "", true)
 				require.NoError(t, nErr)
 				require.Len(t, teamMembers, tc.expectedUserTeams)
 				if tc.expectedUserTeams == 1 {
@@ -1797,7 +1812,7 @@ func TestImportUserChannels(t *testing.T) {
 			expectedUserChannels: 0,
 		},
 		{
-			name: "Should fail if one of the roles doesn't exists",
+			name: "Should fail if one of the roles doesn't exist",
 			data: &[]imports.UserChannelImportData{
 				{
 					Name:  &th.BasicChannel.Name,
@@ -1867,7 +1882,7 @@ func TestImportUserChannels(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			user := th.CreateUser()
-			_, _, err := th.App.ch.srv.teamService.JoinUserToTeam(th.BasicTeam, user)
+			_, _, err := th.App.ch.srv.teamService.JoinUserToTeam(th.Context, th.BasicTeam, user)
 			require.NoError(t, err)
 
 			// Two times import must end with the same results
@@ -4154,7 +4169,7 @@ func TestImportImportEmoji(t *testing.T) {
 	appErr := th.App.importEmoji(th.Context, &data, true)
 	assert.NotNil(t, appErr, "Invalid emoji should have failed dry run")
 
-	emoji, nErr := th.App.Srv().Store().Emoji().GetByName(context.Background(), *data.Name, true)
+	emoji, nErr := th.App.Srv().Store().Emoji().GetByName(th.Context, *data.Name, true)
 	assert.Nil(t, emoji, "Emoji should not have been imported")
 	assert.Error(t, nErr)
 
@@ -4174,7 +4189,7 @@ func TestImportImportEmoji(t *testing.T) {
 	appErr = th.App.importEmoji(th.Context, &data, false)
 	assert.Nil(t, appErr, "Valid emoji should have succeeded apply mode")
 
-	emoji, nErr = th.App.Srv().Store().Emoji().GetByName(context.Background(), *data.Name, true)
+	emoji, nErr = th.App.Srv().Store().Emoji().GetByName(th.Context, *data.Name, true)
 	assert.NotNil(t, emoji, "Emoji should have been imported")
 	assert.NoError(t, nErr, "Emoji should have been imported without any error")
 
@@ -4189,7 +4204,7 @@ func TestImportImportEmoji(t *testing.T) {
 	data = imports.EmojiImportData{Name: ptrStr(model.NewId()), Image: ptrStr(largeImage)}
 	appErr = th.App.importEmoji(th.Context, &data, false)
 	require.NotNil(t, appErr)
-	require.ErrorIs(t, appErr.Unwrap(), utils.SizeLimitExceeded)
+	require.ErrorIs(t, appErr.Unwrap(), utils.ErrSizeLimitExceeded)
 }
 
 func TestImportAttachment(t *testing.T) {

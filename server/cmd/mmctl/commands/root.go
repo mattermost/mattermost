@@ -73,6 +73,9 @@ var RootCmd = &cobra.Command{
 	Long:              `Mattermost offers workplace messaging across web, PC and phones with archiving, search and integration with your existing systems. Documentation available at https://docs.mattermost.com`,
 	DisableAutoGenTag: true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		for i, arg := range args {
+			args[i] = strings.TrimSpace(arg)
+		}
 		format := viper.GetString("format")
 		if viper.GetBool("disable-pager") {
 			printer.OverrideEnablePager(false)

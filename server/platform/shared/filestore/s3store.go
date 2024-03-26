@@ -124,6 +124,14 @@ func newS3FileBackend(settings FileBackendSettings, isCloud bool) (*S3FileBacken
 	return backend, nil
 }
 
+type s3Trace struct {
+}
+
+func (*s3Trace) Write(in []byte) (int, error) {
+	mlog.Debug(string(in))
+	return len(in), nil
+}
+
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
 // If signV2 input is false, function always returns signature v4.
 //
@@ -178,10 +186,14 @@ func (b *S3FileBackend) s3New(isCloud bool) (*s3.Client, error) {
 	}
 
 	if b.trace {
-		s3Clnt.TraceOn(os.Stdout)
+		s3Clnt.TraceOn(&s3Trace{})
 	}
 
 	return s3Clnt, nil
+}
+
+func (b *S3FileBackend) DriverName() string {
+	return driverS3
 }
 
 func (b *S3FileBackend) TestConnection() error {
@@ -573,7 +585,6 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 		return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
 	}
 	return info.Size, nil
-
 }
 
 func (b *S3FileBackend) RemoveFile(path string) error {

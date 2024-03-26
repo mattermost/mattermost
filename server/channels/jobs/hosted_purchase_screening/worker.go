@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
 const (
-	JobName = "HostedPurchaseScreening"
 	// 3 days matches the expecation given in portal purchase flow.
 	waitForScreeningDuration = 3 * 24 * time.Hour
 )
@@ -22,12 +22,14 @@ type ScreenTimeStore interface {
 	PermanentDeleteByName(name string) (*model.System, error)
 }
 
-func MakeWorker(jobServer *jobs.JobServer, license *model.License, screenTimeStore ScreenTimeStore) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, license *model.License, screenTimeStore ScreenTimeStore) *jobs.SimpleWorker {
+	const workerName = "HostedPurchaseScreening"
+
 	isEnabled := func(_ *model.Config) bool {
 		return !license.IsCloud()
 	}
-	execute := func(job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+		defer jobServer.HandleJobPanic(logger, job)
 
 		now := time.Now()
 		screenTimeValue, err := screenTimeStore.GetByName(model.SystemHostedPurchaseNeedsScreening)
@@ -44,6 +46,6 @@ func MakeWorker(jobServer *jobs.JobServer, license *model.License, screenTimeSto
 		}
 		return nil
 	}
-	worker := jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }

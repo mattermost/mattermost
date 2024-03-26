@@ -1,26 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment-timezone';
 import React from 'react';
 
-import {GlobalState} from 'types/store';
+import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
+import type {SelfHostedSignupForm} from '@mattermost/types/hosted_customer';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {SelfHostedSignupForm, SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
-
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {
     fireEvent,
-    renderWithIntlAndStore,
+    renderWithContext,
     screen,
     waitFor,
 } from 'tests/react_testing_utils';
-import {TestHelper as TH} from 'utils/test_helper';
 import {SelfHostedProducts, ModalIdentifiers, RecurringIntervals} from 'utils/constants';
+import {TestHelper as TH} from 'utils/test_helper';
 
-import {DeepPartial} from '@mattermost/types/utilities';
+import type {GlobalState} from 'types/store';
 
-import SelfHostedExpansionModal, {makeInitialState, canSubmit, FormState} from './';
-import moment from 'moment-timezone';
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import SelfHostedExpansionModal, {makeInitialState, canSubmit} from './';
+import type {FormState} from './';
 
 interface MockCardInputProps {
     onCardInputChange: (event: {complete: boolean}) => void;
@@ -269,7 +270,7 @@ function fillForm(form: PurchaseForm) {
 
 describe('SelfHostedExpansionModal Open', () => {
     it('renders the form', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
 
         screen.getByText('Provide your payment details');
         screen.getByText('Add new seats');
@@ -282,13 +283,13 @@ describe('SelfHostedExpansionModal Open', () => {
     });
 
     it('filling the form enables expansion', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
         expect(screen.getByText('Complete purchase')).toBeDisabled();
         fillForm(defaultSuccessForm);
     });
 
     it('happy path submit shows success screen when confirmation succeeds', async () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
         expect(screen.getByText('Complete purchase')).toBeDisabled();
 
         const upgradeButton = fillForm(defaultSuccessForm);
@@ -298,7 +299,7 @@ describe('SelfHostedExpansionModal Open', () => {
     });
 
     it('happy path submit shows submitting screen while requesting confirmation', async () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
         expect(screen.getByText('Complete purchase')).toBeDisabled();
 
         const upgradeButton = fillForm(defaultSuccessForm);
@@ -308,7 +309,7 @@ describe('SelfHostedExpansionModal Open', () => {
     });
 
     it('sad path submit shows error screen', async () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
         expect(screen.getByText('Complete purchase')).toBeDisabled();
         fillForm(defaultSuccessForm);
         changeByPlaceholder('Organization Name', failOrg);
@@ -322,7 +323,7 @@ describe('SelfHostedExpansionModal Open', () => {
 
 describe('SelfHostedExpansionModal RHS Card', () => {
     it('New seats input should be pre-populated with the difference from the active users and licensed seats', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
 
         const expectedPrePopulatedSeats = (initialState.entities?.users?.filteredStats?.total_users_count || 1) - parseInt(initialState.entities?.general?.license?.Users || '1', 10);
 
@@ -334,7 +335,7 @@ describe('SelfHostedExpansionModal RHS Card', () => {
     it('Seat input only allows users to fill input with the licensed seats and active users difference if it is not 0', () => {
         const expectedUserOverage = '50';
 
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
         fillForm(defaultSuccessForm);
 
         // The seat input should already have the expected value.
@@ -361,7 +362,7 @@ describe('SelfHostedExpansionModal RHS Card', () => {
 
         const expectedAddNewSeats = '1';
 
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, state);
+        renderWithContext(<div id='root-portal'><SelfHostedExpansionModal/></div>, state);
         fillForm(defaultSuccessForm);
 
         // Try to set a negative value.
@@ -374,7 +375,7 @@ describe('SelfHostedExpansionModal RHS Card', () => {
     });
 
     it('Cost per User should be represented as the current subscription price multiplied by the remaining months', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
 
         const expectedCostPerUser = monthsUntilLicenseExpiry * mockProfessionalProduct.price_per_seat;
 
@@ -388,7 +389,7 @@ describe('SelfHostedExpansionModal RHS Card', () => {
     });
 
     it('Total cost User should be represented as the current subscription price multiplied by the remaining months multiplied by the number of users', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
         const seatsInputValue = 100;
         changeByTestId('seatsInput', seatsInputValue.toString());
 

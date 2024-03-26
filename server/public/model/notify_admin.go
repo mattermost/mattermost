@@ -13,17 +13,18 @@ import (
 type MattermostFeature string
 
 const (
-	PaidFeatureGuestAccounts           = MattermostFeature("mattermost.feature.guest_accounts")
-	PaidFeatureCustomUsergroups        = MattermostFeature("mattermost.feature.custom_user_groups")
-	PaidFeatureCreateMultipleTeams     = MattermostFeature("mattermost.feature.create_multiple_teams")
-	PaidFeatureStartcall               = MattermostFeature("mattermost.feature.start_call")
-	PaidFeaturePlaybooksRetrospective  = MattermostFeature("mattermost.feature.playbooks_retro")
-	PaidFeatureUnlimitedMessages       = MattermostFeature("mattermost.feature.unlimited_messages")
-	PaidFeatureUnlimitedFileStorage    = MattermostFeature("mattermost.feature.unlimited_file_storage")
-	PaidFeatureAllProfessionalfeatures = MattermostFeature("mattermost.feature.all_professional")
-	PaidFeatureAllEnterprisefeatures   = MattermostFeature("mattermost.feature.all_enterprise")
-	UpgradeDowngradedWorkspace         = MattermostFeature("mattermost.feature.upgrade_downgraded_workspace")
-	PluginFeature                      = MattermostFeature("mattermost.feature.plugin")
+	PaidFeatureGuestAccounts                = MattermostFeature("mattermost.feature.guest_accounts")
+	PaidFeatureCustomUsergroups             = MattermostFeature("mattermost.feature.custom_user_groups")
+	PaidFeatureCreateMultipleTeams          = MattermostFeature("mattermost.feature.create_multiple_teams")
+	PaidFeatureStartcall                    = MattermostFeature("mattermost.feature.start_call")
+	PaidFeaturePlaybooksRetrospective       = MattermostFeature("mattermost.feature.playbooks_retro")
+	PaidFeatureUnlimitedMessages            = MattermostFeature("mattermost.feature.unlimited_messages")
+	PaidFeatureUnlimitedFileStorage         = MattermostFeature("mattermost.feature.unlimited_file_storage")
+	PaidFeatureAllProfessionalfeatures      = MattermostFeature("mattermost.feature.all_professional")
+	PaidFeatureAllEnterprisefeatures        = MattermostFeature("mattermost.feature.all_enterprise")
+	UpgradeDowngradedWorkspace              = MattermostFeature("mattermost.feature.upgrade_downgraded_workspace")
+	PluginFeature                           = MattermostFeature("mattermost.feature.plugin")
+	PaidFeatureHighlightWithoutNotification = MattermostFeature("mattermost.feature.highlight_without_notification")
 )
 
 var validSKUs = map[string]struct{}{
@@ -33,16 +34,17 @@ var validSKUs = map[string]struct{}{
 
 // These are the features a non admin would typically ping an admin about
 var paidFeatures = map[MattermostFeature]struct{}{
-	PaidFeatureGuestAccounts:           {},
-	PaidFeatureCustomUsergroups:        {},
-	PaidFeatureCreateMultipleTeams:     {},
-	PaidFeatureStartcall:               {},
-	PaidFeaturePlaybooksRetrospective:  {},
-	PaidFeatureUnlimitedMessages:       {},
-	PaidFeatureUnlimitedFileStorage:    {},
-	PaidFeatureAllProfessionalfeatures: {},
-	PaidFeatureAllEnterprisefeatures:   {},
-	UpgradeDowngradedWorkspace:         {},
+	PaidFeatureGuestAccounts:                {},
+	PaidFeatureCustomUsergroups:             {},
+	PaidFeatureCreateMultipleTeams:          {},
+	PaidFeatureStartcall:                    {},
+	PaidFeaturePlaybooksRetrospective:       {},
+	PaidFeatureUnlimitedMessages:            {},
+	PaidFeatureUnlimitedFileStorage:         {},
+	PaidFeatureAllProfessionalfeatures:      {},
+	PaidFeatureAllEnterprisefeatures:        {},
+	UpgradeDowngradedWorkspace:              {},
+	PaidFeatureHighlightWithoutNotification: {},
 }
 
 type NotifyAdminToUpgradeRequest struct {

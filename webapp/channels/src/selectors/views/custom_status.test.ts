@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as UserSelectors from 'mattermost-redux/selectors/entities/users';
+import {CustomStatusDuration} from '@mattermost/types/users';
+
+import {Preferences} from 'mattermost-redux/constants';
 import * as GeneralSelectors from 'mattermost-redux/selectors/entities/general';
 import * as PreferenceSelectors from 'mattermost-redux/selectors/entities/preferences';
-import {Preferences} from 'mattermost-redux/constants';
+import * as UserSelectors from 'mattermost-redux/selectors/entities/users';
 
-import configureStore from 'store';
 import {makeGetCustomStatus, getRecentCustomStatuses, isCustomStatusEnabled, showStatusDropdownPulsatingDot, showPostHeaderUpdateStatusButton} from 'selectors/views/custom_status';
+import configureStore from 'store';
 
 import {TestHelper} from 'utils/test_helper';
-import {CustomStatusDuration} from '@mattermost/types/users';
 import {addTimeToTimestamp, TimeInformation} from 'utils/utils';
 
 jest.mock('mattermost-redux/selectors/entities/users');
@@ -35,6 +36,15 @@ describe('getCustomStatus', () => {
 
     it('should return undefined when user with given id has no custom status set', async () => {
         const store = await configureStore();
+        (UserSelectors.getUser as jest.Mock).mockReturnValue(user);
+        expect(getCustomStatus(store.getState(), user.id)).toBeUndefined();
+    });
+
+    it('should return undefined when user with invalid json for custom status set', async () => {
+        const store = await configureStore();
+        const newUser = {...user};
+        newUser.props.customStatus = 'not a JSON string';
+
         (UserSelectors.getUser as jest.Mock).mockReturnValue(user);
         expect(getCustomStatus(store.getState(), user.id)).toBeUndefined();
     });

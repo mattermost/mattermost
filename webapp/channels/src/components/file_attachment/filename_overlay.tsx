@@ -3,15 +3,17 @@
 
 import React from 'react';
 
-import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
-import {FileInfo} from '@mattermost/types/files';
+import type {FileInfo} from '@mattermost/types/files';
 
+import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
+
+import ExternalLink from 'components/external_link';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import AttachmentIcon from 'components/widgets/icons/attachment_icon';
+
 import {trimFilename} from 'utils/file_utils';
 import {localizeMessage} from 'utils/utils';
-import ExternalLink from 'components/external_link';
 
 type Props = {
 

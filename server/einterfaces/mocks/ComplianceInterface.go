@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -14,13 +15,13 @@ type ComplianceInterface struct {
 	mock.Mock
 }
 
-// RunComplianceJob provides a mock function with given fields: job
-func (_m *ComplianceInterface) RunComplianceJob(job *model.Compliance) *model.AppError {
-	ret := _m.Called(job)
+// RunComplianceJob provides a mock function with given fields: rctx, job
+func (_m *ComplianceInterface) RunComplianceJob(rctx request.CTX, job *model.Compliance) *model.AppError {
+	ret := _m.Called(rctx, job)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Compliance) *model.AppError); ok {
-		r0 = rf(job)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Compliance) *model.AppError); ok {
+		r0 = rf(rctx, job)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

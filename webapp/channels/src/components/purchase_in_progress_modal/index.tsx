@@ -2,20 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 
-import {GenericModal, GenericModalProps} from '@mattermost/components';
+import type {GenericModalProps} from '@mattermost/components';
+import {GenericModal} from '@mattermost/components';
+import type {GlobalState} from '@mattermost/types/store';
 
+import {Client4} from 'mattermost-redux/client';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getUserByEmail} from 'mattermost-redux/selectors/entities/users';
-import {Client4} from 'mattermost-redux/client';
 
-import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
 import {useControlPurchaseInProgressModal} from 'components/common/hooks/useControlModal';
+import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
 
 import './index.scss';
-import {GlobalState} from '@mattermost/types/store';
 
 interface Props {
     purchaserEmail: string;

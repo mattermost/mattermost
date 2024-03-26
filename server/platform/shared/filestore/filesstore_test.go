@@ -36,8 +36,7 @@ type FileBackendTestSuite struct {
 func TestLocalFileBackendTestSuite(t *testing.T) {
 	// Setup a global logger to catch tests logging outside of app context
 	// The global logger will be stomped by apps initializing but that's fine for testing. Ideally this won't happen.
-	logger := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
-	defer logger.Shutdown()
+	logger := mlog.CreateConsoleTestLogger(t)
 
 	mlog.InitGlobalLogger(logger)
 
@@ -392,7 +391,7 @@ func (s *FileBackendTestSuite) TestListDirectoryRecursively() {
 	b := []byte("test")
 	path1 := "19700101/" + randomString()
 	path2 := "19800101/" + randomString()
-	longPath := "19800102/this/is/a/way/too/long/path/for/this/function/to/handle" + randomString()
+	longPath := "19800102" + strings.Repeat("/toomuch", MaxRecursionDepth+1) + randomString()
 
 	paths, err := s.backend.ListDirectoryRecursively("19700101")
 	s.Nil(err)

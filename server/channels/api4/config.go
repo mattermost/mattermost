@@ -167,6 +167,15 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// if ES autocomplete was enabled, we need to make sure that index has been checked.
+	// we need to stop enabling ES autocomplete otherwise.
+	if !*appCfg.ElasticsearchSettings.EnableAutocomplete && *cfg.ElasticsearchSettings.EnableAutocomplete {
+		if !c.App.SearchEngine().ElasticsearchEngine.IsAutocompletionEnabled() {
+			c.Err = model.NewAppError("updateConfig", "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error", nil, "", http.StatusBadRequest)
+			return
+		}
+	}
+
 	c.App.HandleMessageExportConfig(cfg, appCfg)
 
 	if appErr := cfg.IsValid(); appErr != nil {
@@ -428,7 +437,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 					return true
 				}
 			} else {
-				mlog.Warn("Unrecognized config permissions tag value.", mlog.String("tag_value", permissionID))
+				c.Logger.Warn("Unrecognized config permissions tag value.", mlog.String("tag_value", permissionID))
 			}
 		}
 

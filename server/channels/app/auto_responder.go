@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // check if there is any auto_response type post in channel by the user in a calender day
@@ -21,7 +21,7 @@ func (a *App) checkIfRespondedToday(createdAt int64, channelId, userId string) (
 	)
 }
 
-func (a *App) SendAutoResponseIfNecessary(c request.CTX, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
+func (a *App) SendAutoResponseIfNecessary(rctx request.CTX, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
 	if channel.Type != model.ChannelTypeDirect {
 		return false, nil
 	}
@@ -49,10 +49,10 @@ func (a *App) SendAutoResponseIfNecessary(c request.CTX, channel *model.Channel,
 		return false, nil
 	}
 
-	return a.SendAutoResponse(c, channel, receiver, post)
+	return a.SendAutoResponse(rctx, channel, receiver, post)
 }
 
-func (a *App) SendAutoResponse(c request.CTX, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
+func (a *App) SendAutoResponse(rctx request.CTX, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
 	if receiver == nil || receiver.NotifyProps == nil {
 		return false, nil
 	}
@@ -77,14 +77,14 @@ func (a *App) SendAutoResponse(c request.CTX, channel *model.Channel, receiver *
 		UserId:    receiver.Id,
 	}
 
-	if _, err := a.CreatePost(c, autoResponderPost, channel, false, false); err != nil {
+	if _, err := a.CreatePost(rctx, autoResponderPost, channel, false, false); err != nil {
 		return false, err
 	}
 
 	return true, nil
 }
 
-func (a *App) SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap) {
+func (a *App) SetAutoResponderStatus(rctx request.CTX, user *model.User, oldNotifyProps model.StringMap) {
 	active := user.NotifyProps[model.AutoResponderActiveNotifyProp] == "true"
 	oldActive := oldNotifyProps[model.AutoResponderActiveNotifyProp] == "true"
 
@@ -98,7 +98,7 @@ func (a *App) SetAutoResponderStatus(user *model.User, oldNotifyProps model.Stri
 	}
 }
 
-func (a *App) DisableAutoResponder(c request.CTX, userID string, asAdmin bool) *model.AppError {
+func (a *App) DisableAutoResponder(rctx request.CTX, userID string, asAdmin bool) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (a *App) DisableAutoResponder(c request.CTX, userID string, asAdmin bool) *
 		patch.NotifyProps = user.NotifyProps
 		patch.NotifyProps[model.AutoResponderActiveNotifyProp] = "false"
 
-		_, err := a.PatchUser(c, userID, patch, asAdmin)
+		_, err := a.PatchUser(rctx, userID, patch, asAdmin)
 		if err != nil {
 			return err
 		}

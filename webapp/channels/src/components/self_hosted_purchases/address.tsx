@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {useIntl} from 'react-intl';
-import classNames from 'classnames';
 
-import {COUNTRIES} from 'utils/countries';
-
-import DropdownInput from 'components/dropdown_input';
-import Input from 'components/widgets/inputs/input/input';
+import CountrySelector from 'components/payment_form/country_selector';
 import StateSelector from 'components/payment_form/state_selector';
+import Input from 'components/widgets/inputs/input/input';
 
 interface Props {
     type: 'shipping' | 'billing';
@@ -45,25 +43,10 @@ export default function Address(props: Props) {
     return (
         <>
             <div className={classNames({'third-dropdown-sibling-wrapper': props.type === 'shipping'})}>
-                <DropdownInput
+                <CountrySelector
                     testId={countrySelectorId}
                     onChange={props.changeCountry}
-                    value={
-                        props.country ? {value: props.country, label: props.country} : undefined
-                    }
-                    options={COUNTRIES.map((country) => ({
-                        value: country.name,
-                        label: country.name,
-                    }))}
-                    legend={intl.formatMessage({
-                        id: 'payment_form.country',
-                        defaultMessage: 'Country',
-                    })}
-                    placeholder={intl.formatMessage({
-                        id: 'payment_form.country',
-                        defaultMessage: 'Country',
-                    })}
-                    name={'billing_dropdown'}
+                    value={props.country}
                 />
             </div>
             <div className='form-row'>

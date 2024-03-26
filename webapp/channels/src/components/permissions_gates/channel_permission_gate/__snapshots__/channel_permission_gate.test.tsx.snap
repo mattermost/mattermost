@@ -13,7 +13,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
   }
 >
-  <Connect(ChannelPermissionGate)
+  <Connect(Component)
     channelId="invalid_id"
     permissions={
       Array [
@@ -22,7 +22,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
     teamId="team_id"
   >
-    <ChannelPermissionGate
+    <Memo(ChannelPermissionGate)
       channelId="invalid_id"
       dispatch={[Function]}
       hasPermission={false}
@@ -32,8 +32,10 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
         ]
       }
       teamId="team_id"
-    />
-  </Connect(ChannelPermissionGate)>
+    >
+      <p />
+    </Memo(ChannelPermissionGate)>
+  </Connect(Component)>
 </Provider>
 `;
 
@@ -50,7 +52,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
   }
 >
-  <Connect(ChannelPermissionGate)
+  <Connect(Component)
     channelId="channel_id"
     permissions={
       Array [
@@ -59,7 +61,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
     teamId=""
   >
-    <ChannelPermissionGate
+    <Memo(ChannelPermissionGate)
       channelId="channel_id"
       dispatch={[Function]}
       hasPermission={false}
@@ -69,8 +71,10 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
         ]
       }
       teamId=""
-    />
-  </Connect(ChannelPermissionGate)>
+    >
+      <p />
+    </Memo(ChannelPermissionGate)>
+  </Connect(Component)>
 </Provider>
 `;
 
@@ -129,7 +133,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
   }
 >
-  <Connect(ChannelPermissionGate)
+  <Connect(Component)
     channelId="channel_id"
     permissions={
       Array [
@@ -138,7 +142,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
     teamId="team_id"
   >
-    <ChannelPermissionGate
+    <Memo(ChannelPermissionGate)
       channelId="channel_id"
       dispatch={[Function]}
       hasPermission={true}
@@ -152,8 +156,8 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
       <p>
         Valid permission (shown)
       </p>
-    </ChannelPermissionGate>
-  </Connect(ChannelPermissionGate)>
+    </Memo(ChannelPermissionGate)>
+  </Connect(Component)>
 </Provider>
 `;
 
@@ -170,7 +174,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
   }
 >
-  <Connect(ChannelPermissionGate)
+  <Connect(Component)
     channelId="channel_id"
     invert={true}
     permissions={
@@ -180,7 +184,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
     teamId="team_id"
   >
-    <ChannelPermissionGate
+    <Memo(ChannelPermissionGate)
       channelId="channel_id"
       dispatch={[Function]}
       hasPermission={true}
@@ -191,8 +195,10 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
         ]
       }
       teamId="team_id"
-    />
-  </Connect(ChannelPermissionGate)>
+    >
+      <p />
+    </Memo(ChannelPermissionGate)>
+  </Connect(Component)>
 </Provider>
 `;
 
@@ -209,7 +215,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
   }
 >
-  <Connect(ChannelPermissionGate)
+  <Connect(Component)
     channelId="channel_id"
     permissions={
       Array [
@@ -218,7 +224,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
     teamId="team_id"
   >
-    <ChannelPermissionGate
+    <Memo(ChannelPermissionGate)
       channelId="channel_id"
       dispatch={[Function]}
       hasPermission={true}
@@ -232,8 +238,8 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
       <p>
         Valid permission (shown)
       </p>
-    </ChannelPermissionGate>
-  </Connect(ChannelPermissionGate)>
+    </Memo(ChannelPermissionGate)>
+  </Connect(Component)>
 </Provider>
 `;
 
@@ -250,7 +256,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
   }
 >
-  <Connect(ChannelPermissionGate)
+  <Connect(Component)
     channelId="channel_id"
     permissions={
       Array [
@@ -259,7 +265,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
     teamId="team_id"
   >
-    <ChannelPermissionGate
+    <Memo(ChannelPermissionGate)
       channelId="channel_id"
       dispatch={[Function]}
       hasPermission={true}
@@ -273,8 +279,8 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
       <p>
         Valid permission (shown)
       </p>
-    </ChannelPermissionGate>
-  </Connect(ChannelPermissionGate)>
+    </Memo(ChannelPermissionGate)>
+  </Connect(Component)>
 </Provider>
 `;
 
@@ -291,7 +297,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
   }
 >
-  <Connect(ChannelPermissionGate)
+  <Connect(Component)
     channelId="channel_id"
     permissions={
       Array [
@@ -300,7 +306,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
     teamId=""
   >
-    <ChannelPermissionGate
+    <Memo(ChannelPermissionGate)
       channelId="channel_id"
       dispatch={[Function]}
       hasPermission={true}
@@ -314,8 +320,8 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
       <p>
         Valid permission (shown)
       </p>
-    </ChannelPermissionGate>
-  </Connect(ChannelPermissionGate)>
+    </Memo(ChannelPermissionGate)>
+  </Connect(Component)>
 </Provider>
 `;
 
@@ -332,7 +338,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
   }
 >
-  <Connect(ChannelPermissionGate)
+  <Connect(Component)
     channelId="channel_id"
     permissions={
       Array [
@@ -341,7 +347,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
     teamId="team_id"
   >
-    <ChannelPermissionGate
+    <Memo(ChannelPermissionGate)
       channelId="channel_id"
       dispatch={[Function]}
       hasPermission={false}
@@ -351,8 +357,10 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
         ]
       }
       teamId="team_id"
-    />
-  </Connect(ChannelPermissionGate)>
+    >
+      <p />
+    </Memo(ChannelPermissionGate)>
+  </Connect(Component)>
 </Provider>
 `;
 
@@ -369,7 +377,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
   }
 >
-  <Connect(ChannelPermissionGate)
+  <Connect(Component)
     channelId="channel_id"
     invert={true}
     permissions={
@@ -379,7 +387,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
     }
     teamId="team_id"
   >
-    <ChannelPermissionGate
+    <Memo(ChannelPermissionGate)
       channelId="channel_id"
       dispatch={[Function]}
       hasPermission={false}
@@ -394,7 +402,7 @@ exports[`components/permissions_gates ChannelPermissionGate should match snapsho
       <p>
         Invalid permission but inverted (shown)
       </p>
-    </ChannelPermissionGate>
-  </Connect(ChannelPermissionGate)>
+    </Memo(ChannelPermissionGate)>
+  </Connect(Component)>
 </Provider>
 `;

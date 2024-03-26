@@ -15,7 +15,7 @@ exports[`components/integrations/EditOutgoingWebhook should have match renderExt
       id="update_outgoing_webhook.question"
     />
   }
-  modalClass=""
+  modalClass="integrations-backstage-modal"
   onCancel={[Function]}
   onConfirm={[Function]}
   show={false}
@@ -92,7 +92,7 @@ exports[`components/integrations/EditOutgoingWebhook should match snapshot 1`] =
           id="update_outgoing_webhook.question"
         />
       }
-      modalClass=""
+      modalClass="integrations-backstage-modal"
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}
@@ -191,7 +191,7 @@ exports[`components/integrations/EditOutgoingWebhook should match snapshot when 
           id="update_outgoing_webhook.question"
         />
       }
-      modalClass=""
+      modalClass="integrations-backstage-modal"
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}

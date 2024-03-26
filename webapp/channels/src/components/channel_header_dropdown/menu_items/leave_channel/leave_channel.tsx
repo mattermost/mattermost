@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
+
+import LeaveChannelModal from 'components/leave_channel_modal';
+import Menu from 'components/widgets/menu/menu';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
-
-import Menu from 'components/widgets/menu/menu';
-import LeaveChannelModal from 'components/leave_channel_modal';
 
 import type {PropsFromRedux} from './index';
 

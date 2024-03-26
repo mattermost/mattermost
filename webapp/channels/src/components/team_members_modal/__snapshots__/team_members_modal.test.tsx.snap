@@ -61,7 +61,7 @@ exports[`components/TeamMembersModal should match snapshot 1`] = `
       teamId="id"
     >
       <button
-        className="btn btn-primary invite-people-btn"
+        className="btn btn-primary btn-sm invite-people-btn"
         id="invitePeople"
         onClick={[Function]}
         type="button"

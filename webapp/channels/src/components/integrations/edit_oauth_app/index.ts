@@ -5,21 +5,15 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
+
 import {getOAuthApp, editOAuthApp} from 'mattermost-redux/actions/integrations';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-import {OAuthApp} from '@mattermost/types/integrations';
-
 import EditOAuthApp from './edit_oauth_app';
-
-type Actions = {
-    getOAuthApp: (id: string) => OAuthApp;
-    editOAuthApp: (app: OAuthApp) => Promise<ActionResult>;
-};
 
 type Props = {
     location: Location;
@@ -39,7 +33,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             getOAuthApp,
             editOAuthApp,
         }, dispatch),

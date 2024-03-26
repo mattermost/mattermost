@@ -1,25 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent, RefObject} from 'react';
+import {DynamicSizeList} from 'dynamic-virtualized-list';
+import type {OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
+import React, {PureComponent, useMemo} from 'react';
+import type {RefObject} from 'react';
+import {useSelector} from 'react-redux';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import {DynamicSizeList, OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 
-import {Channel} from '@mattermost/types/channels';
-import {Post} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {isDateLine, isStartOfNewMessages, isCreateComment} from 'mattermost-redux/utils/post_list';
-
-import DelayedAction from 'utils/delayed_action';
-import * as Utils from 'utils/utils';
-import Constants from 'utils/constants';
-import {FakePost} from 'types/store/rhs';
-import {getNewMessageIndex, getPreviousPostId, getLatestPostId} from 'utils/post_utils';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
+import {getNewMessagesIndex, isDateLine, isStartOfNewMessages, isCreateComment} from 'mattermost-redux/utils/post_list';
 
 import NewRepliesBanner from 'components/new_replies_banner';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import {THREADING_TIME as BASE_THREADING_TIME} from 'components/threading/common/options';
+
+import Constants from 'utils/constants';
+import DelayedAction from 'utils/delayed_action';
+import {getPreviousPostId, getLatestPostId} from 'utils/post_utils';
+import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
+import type {PluginComponent} from 'types/store/plugins';
+import type {FakePost} from 'types/store/rhs';
 
 import CreateComment from './create_comment';
 import Row from './thread_viewer_row';
@@ -35,12 +43,15 @@ type Props = {
     replyListIds: string[];
     selected: Post | FakePost;
     useRelativeTimestamp: boolean;
+    isMobileView: boolean;
     isThreadView: boolean;
+    newMessagesSeparatorActions: PluginComponent[];
+    inputPlaceholder?: string;
+    fromSuppressed?: boolean;
 }
 
 type State = {
     createCommentHeight: number;
-    isMobile: boolean;
     isScrolling: boolean;
     topRhsPostId?: string;
     userScrolled: boolean;
@@ -93,7 +104,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         super(props);
 
         const postIndex = this.getInitialPostIndex();
-        const isMobile = Utils.isMobile();
 
         this.initRangeToRender = [
             Math.max(postIndex - 30, 0),
@@ -107,7 +117,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
         this.state = {
             createCommentHeight: 0,
-            isMobile,
             isScrolling: false,
             userScrolled: false,
             userScrolledToBottom: false,
@@ -122,12 +131,10 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
     componentDidMount() {
         this.mounted = true;
-        window.addEventListener('resize', this.handleWindowResize);
     }
 
     componentWillUnmount() {
         this.mounted = false;
-        window.removeEventListener('resize', this.handleWindowResize);
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -153,15 +160,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         return Promise.resolve();
     }
 
-    handleWindowResize = () => {
-        const isMobile = Utils.isMobile();
-        if (isMobile !== this.state.isMobile) {
-            this.setState({
-                isMobile,
-            });
-        }
-    };
-
     initScrollToIndex = (): {index: number; position: string; offset?: number} => {
         const {highlightedPostId, replyListIds} = this.props;
 
@@ -173,7 +171,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             };
         }
 
-        const newMessagesSeparatorIndex = getNewMessageIndex(replyListIds);
+        const newMessagesSeparatorIndex = getNewMessagesIndex(replyListIds);
         if (newMessagesSeparatorIndex > 0) {
             return {
                 index: newMessagesSeparatorIndex,
@@ -204,7 +202,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             updatedState.userScrolled = true;
             updatedState.userScrolledToBottom = userScrolledToBottom;
 
-            if (this.state.isMobile) {
+            if (this.props.isMobileView) {
                 if (!this.state.isScrolling) {
                     updatedState.isScrolling = true;
                 }
@@ -238,7 +236,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         overscanStartIndex,
         overscanStopIndex,
     }: OnItemsRenderedArgs) => {
-        if (this.state.isMobile) {
+        if (this.props.isMobileView) {
             this.updateFloatingTimestamp(visibleStartIndex);
         }
         this.setState({
@@ -255,7 +253,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         if (this.props.highlightedPostId) {
             postIndex = this.props.replyListIds.findIndex((postId) => postId === this.props.highlightedPostId);
         } else {
-            postIndex = getNewMessageIndex(this.props.replyListIds);
+            postIndex = getNewMessagesIndex(this.props.replyListIds);
         }
 
         return postIndex === -1 ? 0 : postIndex;
@@ -308,7 +306,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
     };
 
     handleToastClick = () => {
-        const index = getNewMessageIndex(this.props.replyListIds);
+        const index = getNewMessagesIndex(this.props.replyListIds);
         if (index >= 0) {
             this.scrollToItem(index, 'start', OFFSET_TO_SHOW_TOAST);
         } else {
@@ -355,6 +353,19 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         const isLastPost = itemId === this.props.lastPost.id;
         const isRootPost = itemId === this.props.selected.id;
 
+        /* eslint-disable react-hooks/rules-of-hooks */
+
+        // Temporarily allow these while MM-56831 is fixed
+        const post = useSelector((state: GlobalState) => getPost(state, this.props.selected.id));
+        const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, []);
+
+        const totalReplies = useSelector((state: GlobalState) => {
+            const thread = getThreadOrSynthetic(state, post);
+            return thread.reply_count || 0;
+        });
+
+        /* eslint-enable react-hooks/rules-of-hooks */
+
         if (!isDateLine(itemId) && !isStartOfNewMessages(itemId) && !isCreateComment(itemId) && !isRootPost) {
             a11yIndex++;
         }
@@ -362,7 +373,8 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         if (isCreateComment(itemId)) {
             return (
                 <CreateComment
-                    focusOnMount={!this.props.isThreadView && (this.state.userScrolledToBottom || (!this.state.userScrolled && this.getInitialPostIndex() === 0))}
+                    placeholder={this.props.inputPlaceholder}
+                    focusOnMount={!this.props.fromSuppressed && !this.props.isThreadView && (this.state.userScrolledToBottom || (!this.state.userScrolled && this.getInitialPostIndex() === 0))}
                     isThreadView={this.props.isThreadView}
                     latestPostId={this.props.lastPost.id}
                     ref={this.postCreateContainerRef}
@@ -383,9 +395,12 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     isRootPost={isRootPost}
                     isLastPost={isLastPost}
                     listId={itemId}
+                    replyCount={totalReplies}
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}
                     timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
+                    threadId={this.props.selected.id}
+                    newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
                 />
             </div>
         );
@@ -401,7 +416,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
     isNewMessagesVisible = (): boolean => {
         const {visibleStopIndex} = this.state;
-        const newMessagesSeparatorIndex = getNewMessageIndex(this.props.replyListIds);
+        const newMessagesSeparatorIndex = getNewMessagesIndex(this.props.replyListIds);
         if (visibleStopIndex != null) {
             return visibleStopIndex < newMessagesSeparatorIndex;
         }
@@ -428,11 +443,11 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
     };
 
     render() {
-        const {isMobile, topRhsPostId} = this.state;
+        const {topRhsPostId} = this.state;
 
         return (
             <>
-                {isMobile && topRhsPostId && !this.props.useRelativeTimestamp && (
+                {this.props.isMobileView && topRhsPostId && !this.props.useRelativeTimestamp && (
                     <FloatingTimestamp
                         isRhsPost={true}
                         isScrolling={this.state.isScrolling}

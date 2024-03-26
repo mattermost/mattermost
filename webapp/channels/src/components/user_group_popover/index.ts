@@ -2,26 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from 'types/store';
-import {ModalData} from 'types/actions';
+import {searchProfiles} from 'mattermost-redux/actions/users';
 
 import {openModal} from 'actions/views/modals';
 import {setPopoverSearchTerm} from 'actions/views/search';
-import {searchProfiles} from 'mattermost-redux/actions/users';
-
 import {getIsMobileView} from 'selectors/views/browser';
 
-import UserGroupPopover from './user_group_popover';
+import type {GlobalState} from 'types/store';
 
-type Actions = {
-    setPopoverSearchTerm: (term: string) => void;
-    openModal: <P>(modalData: ModalData<P>) => void;
-    searchProfiles: (term: string, options: any) => Promise<ActionResult>;
-};
+import UserGroupPopover from './user_group_popover';
 
 function mapStateToProps(state: GlobalState) {
     return {
@@ -32,7 +24,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             setPopoverSearchTerm,
             openModal,
             searchProfiles,

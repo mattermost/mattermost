@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {sendMembersInvites, sendGuestsInvites} from 'actions/invite_actions';
+
 import mockStore from 'tests/test_store';
-import {ConsolePages} from '../utils/constants';
+import {ConsolePages} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 jest.mock('actions/team_actions', () => ({
     addUsersToTeam: () => ({ // since we are using addUsersToTeamGracefully, this call will always succeed
@@ -77,18 +77,18 @@ describe('actions/invite_actions', () => {
                 },
                 membersInTeam: {
                     correct: {
-                        user1: {id: 'user1'},
-                        user2: {id: 'user2'},
-                        guest1: {id: 'guest1'},
-                        guest2: {id: 'guest2'},
-                        guest3: {id: 'guest3'},
+                        user1: TestHelper.getTeamMembershipMock({user_id: 'user1', team_id: 'correct'}),
+                        user2: TestHelper.getTeamMembershipMock({user_id: 'user2', team_id: 'correct'}),
+                        guest1: TestHelper.getTeamMembershipMock({user_id: 'guest1', team_id: 'correct'}),
+                        guest2: TestHelper.getTeamMembershipMock({user_id: 'guest2', team_id: 'correct'}),
+                        guest3: TestHelper.getTeamMembershipMock({user_id: 'guest3', team_id: 'correct'}),
                     },
                     error: {
-                        user1: {id: 'user1'},
-                        user2: {id: 'user2'},
-                        guest1: {id: 'guest1'},
-                        guest2: {id: 'guest2'},
-                        guest3: {id: 'guest3'},
+                        user1: TestHelper.getTeamMembershipMock({user_id: 'user1', team_id: 'error'}),
+                        user2: TestHelper.getTeamMembershipMock({user_id: 'user2', team_id: 'error'}),
+                        guest1: TestHelper.getTeamMembershipMock({user_id: 'guest1', team_id: 'error'}),
+                        guest2: TestHelper.getTeamMembershipMock({user_id: 'guest2', team_id: 'error'}),
+                        guest3: TestHelper.getTeamMembershipMock({user_id: 'guest3', team_id: 'error'}),
                     },
                 },
                 myMembers: {},
@@ -98,15 +98,15 @@ describe('actions/invite_actions', () => {
                 channels: {},
                 membersInChannel: {
                     correct: {
-                        guest2: {id: 'guest2'},
-                        guest3: {id: 'guest3'},
+                        guest2: TestHelper.getChannelMembershipMock({user_id: 'guest2', channel_id: 'correct'}),
+                        guest3: TestHelper.getChannelMembershipMock({user_id: 'guest3', channel_id: 'correct'}),
                     },
                     correct2: {
-                        guest2: {id: 'guest2'},
+                        guest2: TestHelper.getChannelMembershipMock({user_id: 'guest2', channel_id: 'correct2'}),
                     },
                     error: {
-                        guest2: {id: 'guest2'},
-                        guest3: {id: 'guest3'},
+                        guest2: TestHelper.getChannelMembershipMock({user_id: 'guest2', channel_id: 'error'}),
+                        guest3: TestHelper.getChannelMembershipMock({user_id: 'guest3', channel_id: 'error'}),
                     },
                 },
             },
@@ -123,7 +123,7 @@ describe('actions/invite_actions', () => {
 
     describe('sendMembersInvites', () => {
         it('should generate and empty list if nothing is passed', async () => {
-            const response = await sendMembersInvites('correct', [], [])(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendMembersInvites('correct', [], []));
             expect(response).toEqual({
                 data: {
                     sent: [],
@@ -134,7 +134,7 @@ describe('actions/invite_actions', () => {
 
         it('should generate list of success for emails', async () => {
             const emails = ['email-one@email-one.com', 'email-two@email-two.com', 'email-three@email-three.com'];
-            const response = await sendMembersInvites('correct', [], emails)(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendMembersInvites('correct', [], emails));
             expect(response).toEqual({
                 data: {
                     notSent: [],
@@ -158,7 +158,7 @@ describe('actions/invite_actions', () => {
 
         it('should generate list of failures for emails on invite fails', async () => {
             const emails = ['email-one@email-one.com', 'email-two@email-two.com', 'email-three@email-three.com'];
-            const response = await sendMembersInvites('error', [], emails)(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendMembersInvites('error', [], emails));
             expect(response).toEqual({
                 data: {
                     sent: [],
@@ -187,7 +187,7 @@ describe('actions/invite_actions', () => {
                 {id: 'other-user', roles: 'system_user'},
                 {id: 'other-guest', roles: 'system_guest'},
             ] as UserProfile[];
-            const response = await sendMembersInvites('correct', users, [])(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendMembersInvites('correct', users, []));
             expect(response).toEqual({
                 data: {
                     sent: [
@@ -233,7 +233,7 @@ describe('actions/invite_actions', () => {
                 {id: 'other-user', roles: 'system_user'},
                 {id: 'other-guest', roles: 'system_guest'},
             ] as UserProfile[];
-            const response = await sendMembersInvites('error', users, [])(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendMembersInvites('error', users, []));
             expect(response).toEqual({
                 data: {
                     sent: [{user: {id: 'other-user', roles: 'system_user'}, reason: 'This member has been added to the team.'}],
@@ -274,7 +274,7 @@ describe('actions/invite_actions', () => {
                     reason: 'Invite emails rate limit exceeded.',
                 });
             }
-            const response = await sendMembersInvites('correct', [], emails)(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendMembersInvites('correct', [], emails));
             expect(response).toEqual({
                 data: {
                     notSent: expectedNotSent,
@@ -285,7 +285,7 @@ describe('actions/invite_actions', () => {
 
         it('should generate a failure for smtp config', async () => {
             const emails = ['email-one@email-one.com'];
-            const response = await sendMembersInvites('incorrect-default-smtp', [], emails)(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendMembersInvites('incorrect-default-smtp', [], emails));
             expect(response).toEqual({
                 data: {
                     notSent: [
@@ -305,7 +305,7 @@ describe('actions/invite_actions', () => {
 
     describe('sendGuestsInvites', () => {
         it('should generate and empty list if nothing is passed', async () => {
-            const response = await sendGuestsInvites('correct', [], [], [], '')(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendGuestsInvites('correct', [], [], [], ''));
             expect(response).toEqual({
                 data: {
                     sent: [],
@@ -317,7 +317,7 @@ describe('actions/invite_actions', () => {
         it('should generate list of success for emails', async () => {
             const channels = [{id: 'correct'}] as Channel[];
             const emails = ['email-one@email-one.com', 'email-two@email-two.com', 'email-three@email-three.com'];
-            const response = await sendGuestsInvites('correct', channels, [], emails, 'message')(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendGuestsInvites('correct', channels, [], emails, 'message'));
             expect(response).toEqual({
                 data: {
                     notSent: [],
@@ -342,7 +342,7 @@ describe('actions/invite_actions', () => {
         it('should generate list of failures for emails on invite fails', async () => {
             const channels = [{id: 'correct'}] as Channel[];
             const emails = ['email-one@email-one.com', 'email-two@email-two.com', 'email-three@email-three.com'];
-            const response = await sendGuestsInvites('error', channels, [], emails, 'message')(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendGuestsInvites('error', channels, [], emails, 'message'));
             expect(response).toEqual({
                 data: {
                     sent: [],
@@ -372,7 +372,7 @@ describe('actions/invite_actions', () => {
                 {id: 'other-user', roles: 'system_user'},
                 {id: 'other-guest', roles: 'system_guest'},
             ] as UserProfile[];
-            const response = await sendGuestsInvites('correct', channels, users, [], 'message')(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendGuestsInvites('correct', channels, users, [], 'message'));
             expect(response).toEqual({
                 data: {
                     sent: [
@@ -424,7 +424,7 @@ describe('actions/invite_actions', () => {
                 {id: 'guest2', roles: 'system_guest'},
                 {id: 'guest3', roles: 'system_guest'},
             ] as UserProfile[];
-            const response = await sendGuestsInvites('correct', [{id: 'correct'}, {id: 'correct2'}] as Channel[], users, [], 'message')(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendGuestsInvites('correct', [{id: 'correct'}, {id: 'correct2'}] as Channel[], users, [], 'message'));
             expect(response).toEqual({
                 data: {
                     sent: [],
@@ -455,7 +455,7 @@ describe('actions/invite_actions', () => {
                 {id: 'other-user', roles: 'system_user'},
                 {id: 'other-guest', roles: 'system_guest'},
             ] as UserProfile[];
-            const response = await sendGuestsInvites('error', [{id: 'correct'}] as Channel[], users, [], 'message')(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendGuestsInvites('error', [{id: 'correct'}] as Channel[], users, [], 'message'));
 
             expect(response).toEqual({
                 data: {
@@ -514,7 +514,7 @@ describe('actions/invite_actions', () => {
                 {id: 'other-user', roles: 'system_user'},
                 {id: 'other-guest', roles: 'system_guest'},
             ] as UserProfile[];
-            const response = await sendGuestsInvites('correct', [{id: 'error'}] as Channel[], users, [], 'message')(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendGuestsInvites('correct', [{id: 'error'}] as Channel[], users, [], 'message'));
             expect(response).toEqual({
                 data: {
                     sent: [],
@@ -563,7 +563,7 @@ describe('actions/invite_actions', () => {
                 });
             }
 
-            const response = await sendGuestsInvites('correct', [{id: 'correct'}] as Channel[], [], emails, 'message')(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendGuestsInvites('correct', [{id: 'correct'}] as Channel[], [], emails, 'message'));
             expect(response).toEqual({
                 data: {
                     notSent: expectedNotSent,
@@ -574,7 +574,7 @@ describe('actions/invite_actions', () => {
 
         it('should generate a failure for smtp config', async () => {
             const emails = ['email-one@email-one.com'];
-            const response = await sendGuestsInvites('incorrect-default-smtp', [{id: 'error'}] as Channel[], [], emails, 'message')(store.dispatch as DispatchFunc, store.getState as GetStateFunc);
+            const response = await store.dispatch(sendGuestsInvites('incorrect-default-smtp', [{id: 'error'}] as Channel[], [], emails, 'message'));
             expect(response).toEqual({
                 data: {
                     notSent: [

@@ -4,19 +4,20 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
 import type {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import {isGuest, isAdmin, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+
+import ConfirmModal from 'components/confirm_modal';
+import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {getHistory} from 'utils/browser_history';
 import * as Utils from 'utils/utils';
-import {isGuest, isAdmin, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
-import ConfirmModal from 'components/confirm_modal';
-import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
-
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 const ROWS_FROM_BOTTOM_TO_OPEN_UP = 3;
 
@@ -34,11 +35,11 @@ type Props = {
         getMyTeamUnreads: (collapsedThreads: boolean) => void;
         getUser: (id: string) => void;
         getTeamMember: (teamId: string, userId: string) => void;
-        getTeamStats: (teamId: string) => ActionFunc;
+        getTeamStats: (teamId: string) => void;
         getChannelStats: (channelId: string) => void;
-        updateTeamMemberSchemeRoles: (teamId: string, userId: string, b1: boolean, b2: boolean) => ActionFunc & Partial<{error: Error}>;
-        updateUserActive: (userId: string, active: boolean) => ActionFunc;
-        removeUserFromTeamAndGetStats: (teamId: string, userId: string) => ActionFunc & Partial<{error: Error}>;
+        updateTeamMemberSchemeRoles: (teamId: string, userId: string, b1: boolean, b2: boolean) => Promise<ActionResult>;
+        updateUserActive: (userId: string, active: boolean) => Promise<ActionResult>;
+        removeUserFromTeamAndGetStats: (teamId: string, userId: string) => Promise<ActionResult>;
     };
 };
 

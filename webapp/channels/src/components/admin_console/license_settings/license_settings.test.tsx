@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
-import expect from 'expect';
 import moment from 'moment';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
 import {fakeDate} from 'tests/helpers/date';
-
 import {LicenseSkus} from 'utils/constants';
 
 import LicenseSettings from './license_settings';
@@ -55,6 +54,7 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             upgradeToE0Status: jest.fn().mockImplementation(() => Promise.resolve({percentage: 0, error: null})),
             openModal: jest.fn(),
             getFilteredUsersStats: jest.fn(),
+            getUsersLimits: jest.fn(),
         },
     };
 

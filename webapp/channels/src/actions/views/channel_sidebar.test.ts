@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
 import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 
@@ -212,7 +212,7 @@ describe('multiSelectChannelTo', () => {
                     }, {}),
                 },
                 channelsInTeam: {
-                    team1: channelIds.map((id) => `category1_${id}`).concat(channelIds.map((id) => `category2_${id}`)),
+                    team1: new Set(channelIds.map((id) => `category1_${id}`).concat(channelIds.map((id) => `category2_${id}`))),
                 },
             },
             teams: {

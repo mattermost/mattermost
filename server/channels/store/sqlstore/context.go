@@ -5,6 +5,8 @@ package sqlstore
 
 import (
 	"context"
+
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // storeContextKey is the base type for all context keys for the store.
@@ -19,12 +21,22 @@ const (
 )
 
 // WithMaster adds the context value that master DB should be selected for this request.
+//
+// Deprecated: This method is deprecated and there's ongoing change to use `request.CTX` across
+// instead of `context.Context`. Please use `RequestContextWithMaster` instead.
 func WithMaster(ctx context.Context) context.Context {
 	return context.WithValue(ctx, storeContextKey(useMaster), true)
 }
 
-// hasMaster is a helper function to check whether master DB should be selected or not.
-func hasMaster(ctx context.Context) bool {
+// RequestContextWithMaster adds the context value that master DB should be selected for this request.
+func RequestContextWithMaster(c request.CTX) request.CTX {
+	ctx := WithMaster(c.Context())
+	c = c.WithContext(ctx)
+	return c
+}
+
+// HasMaster is a helper function to check whether master DB should be selected or not.
+func HasMaster(ctx context.Context) bool {
 	if v := ctx.Value(storeContextKey(useMaster)); v != nil {
 		if res, ok := v.(bool); ok && res {
 			return true
@@ -35,7 +47,7 @@ func hasMaster(ctx context.Context) bool {
 
 // DBXFromContext is a helper utility that returns the sqlx DB handle from a given context.
 func (ss *SqlStore) DBXFromContext(ctx context.Context) *sqlxDBWrapper {
-	if hasMaster(ctx) {
+	if HasMaster(ctx) {
 		return ss.GetMasterX()
 	}
 	return ss.GetReplicaX()

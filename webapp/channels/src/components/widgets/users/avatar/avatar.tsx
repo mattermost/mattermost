@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, HTMLAttributes} from 'react';
 import classNames from 'classnames';
+import React, {memo} from 'react';
+import type {HTMLAttributes} from 'react';
+
+import {Client4} from 'mattermost-redux/client';
+
+import BotDefaultIcon from 'images/bot_default_icon.png';
 
 import './avatar.scss';
 
-import {Client4} from 'mattermost-redux/client';
-import BotDefaultIcon from 'images/bot_default_icon.png';
-
-export type TAvatarSizeToken = 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
+export type TAvatarSizeToken = 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xl-custom-GM' | 'xl-custom-DM' | 'xxl';
 
 export const getAvatarWidth = (size: TAvatarSizeToken) => {
     switch (size) {
@@ -25,6 +27,10 @@ export const getAvatarWidth = (size: TAvatarSizeToken) => {
         return 36;
     case 'xl':
         return 50;
+    case 'xl-custom-GM':
+        return 72;
+    case 'xl-custom-DM':
+        return 96;
     case 'xxl':
         return 128;
     }

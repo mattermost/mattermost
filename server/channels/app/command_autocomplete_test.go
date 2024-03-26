@@ -11,7 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func TestParseStaticListArgument(t *testing.T) {
@@ -198,7 +198,6 @@ func TestParseNamedArguments(t *testing.T) {
 	assert.False(t, found)
 	assert.Equal(t, "bla", parsed)
 	assert.Equal(t, "", toBeParsed)
-
 }
 
 func TestSuggestions(t *testing.T) {
@@ -666,7 +665,7 @@ func (p *testCommandProvider) DoCommand(a *App, c request.CTX, args *model.Comma
 	}
 }
 
-func (p *testCommandProvider) GetAutoCompleteListItems(a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+func (p *testCommandProvider) GetAutoCompleteListItems(c request.CTX, a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
 	if arg.Name == "dynaArg" {
 		return []model.AutocompleteListItem{
 			{Item: "item1", Hint: "this is hint 1", HelpText: "This is help text 1."},
@@ -676,3 +675,6 @@ func (p *testCommandProvider) GetAutoCompleteListItems(a *App, commandArgs *mode
 	}
 	return nil, fmt.Errorf("%s not a dynamic argument", arg.Name)
 }
+
+// ensure testCommandProvider implements AutocompleteDynamicArgProvider
+var _ AutocompleteDynamicArgProvider = (*testCommandProvider)(nil)

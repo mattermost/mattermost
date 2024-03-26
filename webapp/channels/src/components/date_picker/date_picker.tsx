@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
-
-import {DayPicker, DayPickerProps} from 'react-day-picker';
 import {
     useFloating,
     autoUpdate,
@@ -13,8 +10,11 @@ import {
     useInteractions,
     FloatingFocusManager,
     useDismiss,
-} from '@floating-ui/react-dom-interactions';
+} from '@floating-ui/react';
 import type {Locale} from 'date-fns';
+import React, {useCallback, useEffect, useState} from 'react';
+import {DayPicker} from 'react-day-picker';
+import type {DayPickerProps} from 'react-day-picker';
 
 import {getDatePickerLocalesForDateFns} from 'utils/utils';
 
@@ -31,7 +31,7 @@ type Props = {
 
 const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenState, locale}: Props) => {
     const [loadedLocales, setLoadedLocales] = useState<Record<string, Locale>>({});
-    const {x, y, reference, floating, strategy, context} = useFloating({
+    const {x, y, strategy, context, refs: {setReference, setFloating}} = useFloating({
         open: isPopperOpen,
         onOpenChange: () => handlePopperOpenState(false),
         placement: 'bottom-start',
@@ -69,7 +69,7 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
     return (
         <div>
             <div
-                ref={reference}
+                ref={setReference}
                 {...getReferenceProps()}
             >
                 {children}
@@ -81,7 +81,7 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                     initialFocus={-1}
                 >
                     <div
-                        ref={floating}
+                        ref={setFloating}
                         style={{
                             position: strategy,
                             top: y ?? 0,
