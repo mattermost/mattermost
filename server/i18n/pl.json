@@ -4949,7 +4949,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Przekroczono limit rozmiaru. Spróbuj sprawdzić [maksymalny rozmiar strony](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Przekroczono limit rozmiaru. Spróbuj zwiększyć maksymalny rozmiar strony. Więcej informacji znajdziesz na stronie https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded."
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
@@ -10162,5 +10162,149 @@
   {
     "id": "api.server.cws.disabled",
     "translation": "Interakcje z portalem klienta Mattermost zostały wyłączone przez administratora systemu."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Twoja licencja nie obsługuje zakładek kanałów."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Użytkownik nie może utworzyć zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Nie udało się utworzyć zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Nie udało się utworzyć zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Nie udało się usunąć zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Nie udało się usunąć zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Nie udało się usunąć zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Nie udało się zaktualizować zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Nie udało się zaktualizować zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Nie udało się zaktualizować zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Nie udało się zaktualizować kolejności sortowania zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Nie udało się zaktualizować kolejności sortowania zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Nie udało się zaktualizować kolejności sortowania zakładki kanału."
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "Nie można usunąć zakładki."
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "Nie można uzyskać zakładki."
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "Nie udało się zaktualizować istniejącej zakładki."
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "Nie można zapisać zakładki."
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "Nie można zaktualizować zakładki."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "Nie można posortować zakładki."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "Nie można posortować zakładki. Nieprawidłowe dane wejściowe."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "Nie można posortować zakładki. Nie znaleziono."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "Nieprawidłowy identyfikator kanału."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "Utworzono musi być prawidłowym czasem."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "Brak wyświetlanej nazwy."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "Brak identyfikatora pliku lub jest on nieprawidłowy."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Nieprawidłowe Id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "Nieprawidłowy adres URL obrazu."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Nie można ustawić łącza i pliku w tej samej zakładce."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "Brak adresu URL linku lub jest on nieprawidłowy."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "Nieprawidłowe id oryginału."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "Nieprawidłowy identyfikator właściciela."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "Nieprawidłowe id nadrzędne."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "Niepoprawny typ."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "Aktualizacja w musi być prawidłowym czasem."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Nieprawidłowa aktualizacja członka kanału: Gość nie może zostać członkiem zespołu ani administratorem zespołu, najpierw awansuj go jako użytkownika."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Nieprawidłowa aktualizacja członka kanału: Gość nie może być ustawiony dla pojedynczego kanału, administrator systemu musi promować lub degradować użytkowników do/z gości."
   }
 ]

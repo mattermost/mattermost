@@ -1836,8 +1836,6 @@
   "admin.security.password": "کلمه عبور",
   "admin.server_logs.CopyLog": "رونوشت ردپا",
   "admin.server_logs.DataCopied": "داده رونوشت شد",
-  "admin.server_logs.Export": "خروجی",
-  "admin.server_logs.Exported": "خروجی گرفته شد",
   "admin.server_logs.LogEvent": "رویداد ردپا",
   "admin.service.CorsDebugLabel": "اشکال زدایی CORS:",
   "admin.service.attemptDescription": "تعداد تلاش‌های ورود به سیستم قبل از قفل شدن کاربر و نیاز به تنظیم مجدد رمز عبور از طریق ایمیل مجاز است.",
