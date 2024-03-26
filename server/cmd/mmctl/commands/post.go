@@ -96,11 +96,13 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if user != nil {
 		// create a direct channel
 		directChannel, _, err := c.CreateChannel(ctx, &model.Channel{
-			Type: "direct",
+			Type: model.ChannelTypeDirect,
+			Name: user.Username,
 		})
 		if err != nil {
 			return fmt.Errorf("could not create direct channel: %w", err)
 		}
+		c.AddChannelMember(ctx, directChannel.Id, user.Id)
 		post.ChannelId = directChannel.Id
 		url = url + "/direct?set_online=false"
 	} else {
