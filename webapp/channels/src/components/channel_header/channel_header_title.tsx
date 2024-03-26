@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import type {ReactNode} from 'react';
-import React, {memo, useState} from 'react';
+import React, {memo, useState, useRef, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -13,8 +13,10 @@ import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import {ChannelHeaderDropdown} from 'components/channel_header_dropdown';
+import WithTooltip from 'components/with_tooltip';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
+import Tooltip from 'components/tooltip';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import BotTag from 'components/widgets/tag/bot_tag';
@@ -35,12 +37,31 @@ const ChannelHeaderTitle = ({
     gmMembers,
 }: Props) => {
     const [titleMenuOpen, setTitleMenuOpen] = useState(false);
+    const [showTooltip, setShowTooltip] = useState(false);
     const intl = useIntl();
     const channel = useSelector(getCurrentChannel);
+
+    const headerItemRef = useRef<HTMLElement | null>(null);
+
+    useEffect(() => {
+        enableToolTipIfNeeded();
+
+        // Optional: Re-check on window resize
+        const handleResize = () => enableToolTipIfNeeded();
+        window.addEventListener('resize', handleResize);
+
+        return () => window.removeEventListener('resize', handleResize);
+    }, [channel, gmMembers, dmUser]);
 
     if (!channel) {
         return null;
     }
+
+    const enableToolTipIfNeeded = () => {
+        const element = headerItemRef.current;
+        const isTooltip = element && element.offsetWidth < element.scrollWidth;
+        setShowTooltip(isTooltip as boolean);
+    };
 
     const isDirect = (channel.type === Constants.DM_CHANNEL);
     const isGroup = (channel.type === Constants.GM_CHANNEL);
@@ -69,6 +90,12 @@ const ChannelHeaderTitle = ({
         channelTitle = <ChannelHeaderTitleGroup gmMembers={gmMembers}/>;
     }
 
+    const displayNameToolTip = (
+        <Tooltip id='channel-displayname__tooltip'>
+            {channelTitle}
+        </Tooltip>
+    );
+
     if (isDirect && dmUser?.is_bot) {
         return (
             <div
@@ -95,6 +122,7 @@ const ChannelHeaderTitle = ({
             </div>
         );
     }
+
     return (
         <div className='channel-header__top'>
             <ChannelHeaderTitleFavorite/>
@@ -113,18 +141,41 @@ const ChannelHeaderTitle = ({
                         className={classNames('channel-header__trigger style--none', {active: titleMenuOpen})}
                         aria-label={intl.formatMessage({id: 'channel_header.menuAriaLabel', defaultMessage: 'Channel Menu'}).toLowerCase()}
                     >
-                        <strong
-                            role='heading'
-                            aria-level={2}
-                            id='channelHeaderTitle'
-                            className='heading'
-                        >
-                            <span>
-                                {archivedIcon}
-                                {channelTitle}
-                                {sharedIcon}
-                            </span>
-                        </strong>
+                        {showTooltip ? (
+                            <WithTooltip
+                                id='channelHeaderTooltip'
+                                placement='bottom'
+                                title={channelTitle as string}
+                            >
+                                <strong
+                                    role='heading'
+                                    aria-level={2}
+                                    id='channelHeaderTitle'
+                                    className='heading'
+                                    ref={headerItemRef}
+                                >
+                                    <span>
+                                        {archivedIcon}
+                                        {channelTitle}
+                                        {sharedIcon}
+                                    </span>
+                                </strong>
+                            </WithTooltip>
+                        ) : (
+                            <strong
+                                role='heading'
+                                aria-level={2}
+                                id='channelHeaderTitle'
+                                className='heading'
+                                ref={headerItemRef}
+                            >
+                                <span>
+                                    {archivedIcon}
+                                    {channelTitle}
+                                    {sharedIcon}
+                                </span>
+                            </strong>
+                        )}
                         <span
                             id='channelHeaderDropdownIcon'
                             className='icon icon-chevron-down header-dropdown-chevron-icon'
