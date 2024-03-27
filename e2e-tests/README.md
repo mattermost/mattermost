@@ -17,7 +17,7 @@ Instructions, tl;dr: create a local branch with your E2E test changes, then open
 Instructions, detailed:
 1. (optional, undefined variables are set to sane defaults) Create the `.ci/env` file, and populate it with the variables you need out of the following list:
   * `SERVER`: either `self-hosted` (default) or `cloud`.
-  * `CWS_URL` (mandatory when `SERVER=cloud`, only used in such caase): when spinning up a cloud-like test server that communicates with a test instance of customer web server.
+  * `CWS_URL` (mandatory when `SERVER=cloud`, only used in such case): when spinning up a cloud-like test server that communicates with a test instance of customer web server.
   * `TEST`: either `cypress` (default), `playwright`, or `none` (to avoid creating the cypress/playwright sidecar containers, e.g. if you only want to launch a server instance)
   * `ENABLED_DOCKER_SERVICES`: a space-separated list of services to start alongside the server. Default to `postgres inbucket`, for smoke tests purposes and for lightweight and faster start up time. Depending on the test requirement being worked on, you may want to override as needed, as such:
     - Cypress full tests require all services to be running: `postgres inbucket minio openldap elasticsearch keycloak`.
@@ -40,7 +40,7 @@ Instructions, detailed:
   * If you just want to run a local server instance, without any further testing, you can run `TEST=none make`
   * If you're using the automation dashboard, you have the option of sharding the E2E test run: you can launch the `make` command in parallel on different machiness (NB: you must use the same `BUILD_ID` and `BRANCH` values that you used for `make generate-test-cycle`) to distribute running the test cases across them. When doing this, you should also set on each machine the `CI_BASE_URL` variable to a value that uniquely identifies the instance where `make` is running.
 4. `make stop`: tears down the server (and the dashboard, if running)
-  * `make clean` will also remove any generated environment or docker-compose files, in addition to stopping the containers.
+  * This also implicitly runs `make clean`, which also remove any generated environment or docker-compose files.
 
 Notes:
 - Setting a variable in `.ci/env` is functionally equivalent to exporting variables in your current shell's environment, before invoking the makefile.
