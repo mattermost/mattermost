@@ -150,10 +150,9 @@ exports[`components/AtMention should match snapshot when mentioning current user
       show={false}
     >
       <Memo(ProfilePopover)
-        className="user-profile-popover"
         hide={[Function]}
-        src="/api/v4/users/abc1/image"
         userId="abc1"
+        userProfileSrc="/api/v4/users/abc1/image"
       />
     </Overlay>
     <Overlay
@@ -190,10 +189,9 @@ exports[`components/AtMention should match snapshot when mentioning user 1`] = `
       show={false}
     >
       <Memo(ProfilePopover)
-        className="user-profile-popover"
         hide={[Function]}
-        src="/api/v4/users/abc2/image"
         userId="abc2"
+        userProfileSrc="/api/v4/users/abc2/image"
       />
     </Overlay>
     <Overlay
@@ -230,10 +228,9 @@ exports[`components/AtMention should match snapshot when mentioning user contain
       show={false}
     >
       <Memo(ProfilePopover)
-        className="user-profile-popover"
         hide={[Function]}
-        src="/api/v4/users/abc3/image"
         userId="abc3"
+        userProfileSrc="/api/v4/users/abc3/image"
       />
     </Overlay>
     <Overlay
@@ -271,10 +268,9 @@ exports[`components/AtMention should match snapshot when mentioning user contain
       show={false}
     >
       <Memo(ProfilePopover)
-        className="user-profile-popover"
         hide={[Function]}
-        src="/api/v4/users/abc3/image"
         userId="abc3"
+        userProfileSrc="/api/v4/users/abc3/image"
       />
     </Overlay>
     <Overlay
@@ -311,10 +307,9 @@ exports[`components/AtMention should match snapshot when mentioning user followe
       show={false}
     >
       <Memo(ProfilePopover)
-        className="user-profile-popover"
         hide={[Function]}
-        src="/api/v4/users/abc2/image"
         userId="abc2"
+        userProfileSrc="/api/v4/users/abc2/image"
       />
     </Overlay>
     <Overlay
@@ -352,10 +347,9 @@ exports[`components/AtMention should match snapshot when mentioning user with di
       show={false}
     >
       <Memo(ProfilePopover)
-        className="user-profile-popover"
         hide={[Function]}
-        src="/api/v4/users/abc2/image"
         userId="abc2"
+        userProfileSrc="/api/v4/users/abc2/image"
       />
     </Overlay>
     <Overlay
@@ -392,10 +386,9 @@ exports[`components/AtMention should match snapshot when mentioning user with mi
       show={false}
     >
       <Memo(ProfilePopover)
-        className="user-profile-popover"
         hide={[Function]}
-        src="/api/v4/users/abc2/image"
         userId="abc2"
+        userProfileSrc="/api/v4/users/abc2/image"
       />
     </Overlay>
     <Overlay

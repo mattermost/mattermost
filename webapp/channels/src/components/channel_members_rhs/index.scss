@@ -1,0 +1,11 @@
+@import "sass/utils/_mixins";
+
+.ProfileSpan {
+    .profileSpan_userInfo {
+        display: flex;
+        flex-grow: 1;
+        cursor: pointer;
+
+        @include textEllipsis;
+    }
+}

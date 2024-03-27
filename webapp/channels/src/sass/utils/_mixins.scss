@@ -414,3 +414,9 @@
         transform: translate3d(4px, 0, 0);
     }
 }
+
+@mixin textEllipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -5,7 +5,6 @@ import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
 import type {UserProfile} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
@@ -32,8 +31,9 @@ type Props = {
 }
 
 const emojiStyles: React.CSSProperties = {
-    marginRight: 4,
-    marginTop: 1,
+    marginRight: 8,
+    width: 16,
+    height: 16,
 };
 const ProfilePopoverCustomStatus = ({
     currentUserId,
@@ -72,7 +72,7 @@ const ProfilePopoverCustomStatus = ({
     let customStatusContent;
     if (customStatusSet) {
         customStatusContent = (
-            <div className='d-flex align-items-center'>
+            <div className='user-popover__custom-status'>
                 <CustomStatusEmoji
                     userID={user.id}
                     showTooltip={false}
@@ -81,17 +81,16 @@ const ProfilePopoverCustomStatus = ({
                 <CustomStatusText
                     tooltipDirection='top'
                     text={customStatus.text || ''}
-                    className='user-popover__email'
                 />
             </div>
         );
     } else if (canSetCustomStatus) {
         customStatusContent = (
             <button
-                className='user-popover__set-custom-status-btn'
+                className='btn btn-sm btn-quaternary user-popover__set-status'
                 onClick={showCustomStatusModal}
             >
-                <EmoticonHappyOutlineIcon size={14}/>
+                <i className='icon icon-emoticon-plus-outline'/>
                 <FormattedMessage
                     id='user_profile.custom_status.set_status'
                     defaultMessage='Set a status'

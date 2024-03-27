@@ -159,7 +159,7 @@ describe('channel_info_rhs/about_area_gm', () => {
             initialState,
         );
 
-        expect(screen.getByLabelText('my username')).toBeInTheDocument();
+        expect(screen.getByText('my username')).toBeInTheDocument();
     });
 
     test('should display channel header', () => {
