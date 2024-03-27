@@ -404,7 +404,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Err.WipeDetailed()
 			c.Err.StatusCode = 500
 			c.Err.Where = ""
-			c.Err.IsOAuth = false
 		}
 
 		if IsAPICall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthAPICall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {

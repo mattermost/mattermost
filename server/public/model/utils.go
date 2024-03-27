@@ -235,7 +235,6 @@ type AppError struct {
 	RequestId       string `json:"request_id,omitempty"`  // The RequestId that's also set in the header
 	StatusCode      int    `json:"status_code,omitempty"` // The http status code
 	Where           string `json:"-"`                     // The function where it happened in the form of Struct.Func
-	IsOAuth         bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
 	SkipTranslation bool   `json:"-"`                     // Whether translation for the error should be skipped.
 	params          map[string]any
 	wrapped         error
@@ -370,7 +369,6 @@ func NewAppError(where string, id string, params map[string]any, details string,
 		Where:         where,
 		DetailedError: details,
 		StatusCode:    status,
-		IsOAuth:       false,
 	}
 	ap.Translate(translateFunc)
 	return ap
