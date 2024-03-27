@@ -13,11 +13,9 @@ $app-bar-width: 48px;
     }
 
     position: relative;
-    left: -8px;
     display: flex;
     min-height: 0;
     flex-flow: column;
-    margin-right: -8px;
 
     &__top {
         position: relative;
