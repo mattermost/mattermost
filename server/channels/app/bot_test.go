@@ -119,7 +119,7 @@ func TestEnsureBot(t *testing.T) {
 		pluginId := "pluginId"
 
 		PluginErr := th.App.SetPluginKey(pluginId, "key", []byte("test"))
-		assert.NoError(t, PluginErr)
+		assert.Nil(t, PluginErr)
 
 		botID1, err1 := th.App.EnsureBot(th.Context, pluginId, &model.Bot{
 			Username:    "username",
@@ -129,7 +129,7 @@ func TestEnsureBot(t *testing.T) {
 		require.NoError(t, err1)
 
 		getBot, getBotErr := th.App.GetBot(th.Context, botID1, true)
-		require.NoError(t, getBotErr)
+		require.Nil(t, getBotErr)
 		assert.Equal(t, "username", getBot.Username)
 		assert.Equal(t, "a bot", getBot.Description)
 
@@ -142,7 +142,7 @@ func TestEnsureBot(t *testing.T) {
 		require.True(t, botID1 == botID2)
 
 		getBot, getBotErr = th.App.GetBot(th.Context, botID2, true)
-		require.NoError(t, getBotErr)
+		require.Nil(t, getBotErr)
 		assert.Equal(t, "another_username", getBot.Username)
 		assert.Equal(t, "another bot", getBot.Description)
 
@@ -154,7 +154,7 @@ func TestEnsureBot(t *testing.T) {
 		pluginId := "pluginId"
 
 		PluginErr := th.App.SetPluginKey(pluginId, "key", []byte("test"))
-		assert.NoError(t, PluginErr)
+		assert.Nil(t, PluginErr)
 
 		bot := model.Bot{
 			Username:    "username",
@@ -166,7 +166,7 @@ func TestEnsureBot(t *testing.T) {
 		require.NoError(t, err1)
 
 		getBot, getBotErr := th.App.GetBot(th.Context, botID1, true)
-		require.NoError(t, getBotErr)
+		require.Nil(t, getBotErr)
 		assert.Equal(t, "username", getBot.Username)
 		assert.Equal(t, "a bot", getBot.Description)
 
@@ -181,7 +181,7 @@ func TestEnsureBot(t *testing.T) {
 		require.False(t, botID1 == botID2)
 
 		getBot, getBotErr = th.App.GetBot(th.Context, botID2, true)
-		require.NoError(t, getBotErr)
+		require.Nil(t, getBotErr)
 		assert.Equal(t, "another_username", getBot.Username)
 		assert.Equal(t, "another bot", getBot.Description)
 
