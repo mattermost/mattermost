@@ -176,13 +176,11 @@ jobs:
         working-directory: e2e-tests
     steps:
       - name: ci/checkout-repo
-        if: '${{ inputs.AUTOMATION_DASHBOARD_URL != "" }}'
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        if: '${{ inputs.AUTOMATION_DASHBOARD_URL != "" }}'
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         id: setup_node
         with:
@@ -190,7 +188,6 @@ jobs:
           cache: npm
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
       - name: ci/e2e-test-gencycle
-        if: '${{ inputs.AUTOMATION_DASHBOARD_URL != "" }}'
         env:
           AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
           AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
