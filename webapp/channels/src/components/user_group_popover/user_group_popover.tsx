@@ -71,6 +71,7 @@ const UserGroupPopover = ({
     returnFocus,
     searchTerm,
     showUserOverlay,
+    ...popoverProps // Props are not passed explictly to this component, but they exist.
 }: Props) => {
     const {formatMessage} = useIntl();
 
@@ -182,6 +183,7 @@ const UserGroupPopover = ({
     return (
         <Popover
             id='user-group-popover'
+            {...popoverProps}
         >
             {tabCatcher}
             <Body
