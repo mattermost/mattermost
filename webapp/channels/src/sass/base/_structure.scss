@@ -165,6 +165,8 @@ body.app__body #root {
         &:has(.backstage-body){
             background: inherit;
             padding: 0;
+            margin:0;
+            border-radius: 0;
             grid-template:
                 'header' min-content
                 'main'
