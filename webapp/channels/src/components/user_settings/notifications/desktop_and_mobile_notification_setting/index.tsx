@@ -458,7 +458,7 @@ const optionsOfSendMobileNotificationsWhenSelect: OptionsType<SelectOption> = [
         label: (
             <FormattedMessage
                 id='user.settings.notifications.desktopAndMobile.online'
-                defaultMessage='Online, away or offline'
+                defaultMessage='Online, away, or offline'
             />
         ),
         value: Constants.UserStatuses.ONLINE,

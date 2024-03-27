@@ -971,7 +971,7 @@ export const UserSettingsNotificationSections = {
     DESKTOP_NOTIFICATION_SOUND: 'desktopNotificationSound',
     EMAIL: 'email',
     KEYWORDS_MENTIONS: 'keywordsAndMentions',
-    KEYWORDS_HIGHTLIGHT: 'keywordsAndHighlight',
+    KEYWORDS_HIGHLIGHT: 'keywordsAndHighlight',
     AUTO_RESPONDER: 'autoResponder',
 };
 

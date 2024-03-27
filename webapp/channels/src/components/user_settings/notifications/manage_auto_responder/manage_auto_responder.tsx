@@ -106,7 +106,7 @@ export default class ManageAutoResponder extends React.PureComponent<Props> {
                 title={
                     <FormattedMessage
                         id='user.settings.notifications.autoResponder'
-                        defaultMessage='Automatic Direct Message Replies'
+                        defaultMessage='Automatic direct message replies'
                     />
                 }
                 shiftEnter={true}

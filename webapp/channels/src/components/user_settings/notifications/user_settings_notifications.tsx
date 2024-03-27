@@ -596,7 +596,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
             expandedSection = (
                 <SettingItemMax
-                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords That Trigger Notifications'})}
+                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords that trigger notifications'})}
                     inputs={inputs}
                     submit={this.handleSubmit}
                     saving={this.state.isSaving}
@@ -627,7 +627,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
         return (
             <SettingItem
-                title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords That Trigger Notifications'})}
+                title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords that trigger notifications'})}
                 section={UserSettingsNotificationSections.KEYWORDS_MENTIONS}
                 active={isSectionExpanded}
                 areAllSectionsInactive={this.props.activeSection === ''}
@@ -638,7 +638,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     };
 
     createKeywordsWithHighlightSection = () => {
-        const isSectionExpanded = this.props.activeSection === UserSettingsNotificationSections.KEYWORDS_HIGHTLIGHT;
+        const isSectionExpanded = this.props.activeSection === UserSettingsNotificationSections.KEYWORDS_HIGHLIGHT;
 
         let expandedSection = null;
         if (isSectionExpanded) {
@@ -685,7 +685,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
             expandedSection = (
                 <SettingItemMax
-                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords That Get Highlighted (Without Notifications)'})}
+                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords that get highlighted (without notifications)'})}
                     inputs={inputs}
                     submit={this.handleSubmit}
                     saving={this.state.isSaving}
@@ -758,8 +758,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
         return (
             <SettingItem
-                title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords That Get Highlighted (Without Notifications)'})}
-                section={UserSettingsNotificationSections.KEYWORDS_HIGHTLIGHT}
+                title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords that get highlighted (without notifications)'})}
+                section={UserSettingsNotificationSections.KEYWORDS_HIGHLIGHT}
                 active={isSectionExpanded}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 describe={collapsedDescription}
@@ -856,7 +856,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
             max = (
                 <SettingItemMax
-                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.comments', defaultMessage: 'Reply Notifications'})}
+                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.comments', defaultMessage: 'Reply notifications'})}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     submit={this.handleSubmit}
@@ -924,7 +924,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 title={
                     <FormattedMessage
                         id='user.settings.notifications.autoResponder'
-                        defaultMessage='Automatic Direct Message Replies'
+                        defaultMessage='Automatic direct message replies'
                     />
                 }
                 describe={describe}

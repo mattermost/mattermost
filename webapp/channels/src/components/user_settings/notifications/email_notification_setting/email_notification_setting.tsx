@@ -237,8 +237,8 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                 ref={this.editButtonRef}
                 title={
                     <FormattedMessage
-                        id={'user.settings.notifications.emailNotifications'}
-                        defaultMessage={'Email Notifications'}
+                        id='user.settings.notifications.emailNotifications'
+                        defaultMessage='Email notifications'
                     />
                 }
                 describe={description}
@@ -254,8 +254,8 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                 <SettingItemMax
                     title={
                         <FormattedMessage
-                            id={'user.settings.notifications.emailNotifications'}
-                            defaultMessage={'Email Notifications'}
+                            id='user.settings.notifications.emailNotifications'
+                            defaultMessage='Email notifications'
                         />
                     }
                     inputs={[
@@ -358,8 +358,8 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
             <SettingItemMax
                 title={
                     <FormattedMessage
-                        id={'user.settings.notifications.emailNotifications'}
-                        defaultMessage={'Email Notifications'}
+                        id='user.settings.notifications.emailNotifications'
+                        defaultMessage='Email notifications'
                     />
                 }
                 inputs={[

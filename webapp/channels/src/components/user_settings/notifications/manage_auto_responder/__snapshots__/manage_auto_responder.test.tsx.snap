@@ -48,7 +48,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
     submit={[MockFunction]}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Automatic Direct Message Replies"
+        defaultMessage="Automatic direct message replies"
         id="user.settings.notifications.autoResponder"
       />
     }
@@ -62,11 +62,11 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         id="settingTitle"
       >
         <FormattedMessage
-          defaultMessage="Automatic Direct Message Replies"
+          defaultMessage="Automatic direct message replies"
           id="user.settings.notifications.autoResponder"
         >
           <span>
-            Automatic Direct Message Replies
+            Automatic direct message replies
           </span>
         </FormattedMessage>
       </h4>
@@ -261,7 +261,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
     submit={[MockFunction]}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Automatic Direct Message Replies"
+        defaultMessage="Automatic direct message replies"
         id="user.settings.notifications.autoResponder"
       />
     }
@@ -275,11 +275,11 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         id="settingTitle"
       >
         <FormattedMessage
-          defaultMessage="Automatic Direct Message Replies"
+          defaultMessage="Automatic direct message replies"
           id="user.settings.notifications.autoResponder"
         >
           <span>
-            Automatic Direct Message Replies
+            Automatic direct message replies
           </span>
         </FormattedMessage>
       </h4>

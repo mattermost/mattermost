@@ -160,7 +160,7 @@ Object {
                 class="section-min__title"
                 id="emailTitle"
               >
-                Email Notifications
+                Email notifications
               </h4>
               <button
                 aria-expanded="false"
@@ -195,7 +195,7 @@ Object {
                 class="section-min__title"
                 id="keywordsAndMentionsTitle"
               >
-                Keywords That Trigger Notifications
+                Keywords that trigger notifications
               </h4>
               <button
                 aria-expanded="false"
@@ -230,7 +230,7 @@ Object {
                 class="section-min__title"
                 id="keywordsAndHighlightTitle"
               >
-                Keywords That Get Highlighted (Without Notifications)
+                Keywords that get highlighted (without notifications)
               </h4>
               <button
                 aria-expanded="false"
@@ -418,7 +418,7 @@ Object {
               class="section-min__title"
               id="emailTitle"
             >
-              Email Notifications
+              Email notifications
             </h4>
             <button
               aria-expanded="false"
@@ -453,7 +453,7 @@ Object {
               class="section-min__title"
               id="keywordsAndMentionsTitle"
             >
-              Keywords That Trigger Notifications
+              Keywords that trigger notifications
             </h4>
             <button
               aria-expanded="false"
@@ -488,7 +488,7 @@ Object {
               class="section-min__title"
               id="keywordsAndHighlightTitle"
             >
-              Keywords That Get Highlighted (Without Notifications)
+              Keywords that get highlighted (without notifications)
             </h4>
             <button
               aria-expanded="false"
@@ -735,7 +735,7 @@ Object {
                 class="section-min__title"
                 id="emailTitle"
               >
-                Email Notifications
+                Email notifications
               </h4>
               <button
                 aria-expanded="false"
@@ -770,7 +770,7 @@ Object {
                 class="section-min__title"
                 id="keywordsAndMentionsTitle"
               >
-                Keywords That Trigger Notifications
+                Keywords that trigger notifications
               </h4>
               <button
                 aria-expanded="false"
@@ -808,7 +808,7 @@ Object {
                 class="section-min__title isDisabled"
                 id="keywordsAndHighlightTitle"
               >
-                Keywords That Get Highlighted (Without Notifications)
+                Keywords that get highlighted (without notifications)
               </h4>
               <span
                 class="RestrictedIndicator__icon-tooltip-container"
@@ -996,7 +996,7 @@ Object {
               class="section-min__title"
               id="emailTitle"
             >
-              Email Notifications
+              Email notifications
             </h4>
             <button
               aria-expanded="false"
@@ -1031,7 +1031,7 @@ Object {
               class="section-min__title"
               id="keywordsAndMentionsTitle"
             >
-              Keywords That Trigger Notifications
+              Keywords that trigger notifications
             </h4>
             <button
               aria-expanded="false"
@@ -1069,7 +1069,7 @@ Object {
               class="section-min__title isDisabled"
               id="keywordsAndHighlightTitle"
             >
-              Keywords That Get Highlighted (Without Notifications)
+              Keywords that get highlighted (without notifications)
             </h4>
             <span
               class="RestrictedIndicator__icon-tooltip-container"
@@ -1316,7 +1316,7 @@ Object {
                 class="section-min__title"
                 id="emailTitle"
               >
-                Email Notifications
+                Email notifications
               </h4>
               <button
                 aria-expanded="false"
@@ -1351,7 +1351,7 @@ Object {
                 class="section-min__title"
                 id="keywordsAndMentionsTitle"
               >
-                Keywords That Trigger Notifications
+                Keywords that trigger notifications
               </h4>
               <button
                 aria-expanded="false"
@@ -1539,7 +1539,7 @@ Object {
               class="section-min__title"
               id="emailTitle"
             >
-              Email Notifications
+              Email notifications
             </h4>
             <button
               aria-expanded="false"
@@ -1574,7 +1574,7 @@ Object {
               class="section-min__title"
               id="keywordsAndMentionsTitle"
             >
-              Keywords That Trigger Notifications
+              Keywords that trigger notifications
             </h4>
             <button
               aria-expanded="false"

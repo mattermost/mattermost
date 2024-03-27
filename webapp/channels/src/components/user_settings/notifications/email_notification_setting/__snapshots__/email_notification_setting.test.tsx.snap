@@ -95,7 +95,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     submit={[Function]}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Email Notifications"
+        defaultMessage="Email notifications"
         id="user.settings.notifications.emailNotifications"
       />
     }
@@ -109,11 +109,11 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         id="settingTitle"
       >
         <FormattedMessage
-          defaultMessage="Email Notifications"
+          defaultMessage="Email notifications"
           id="user.settings.notifications.emailNotifications"
         >
           <span>
-            Email Notifications
+            Email notifications
           </span>
         </FormattedMessage>
       </h4>
@@ -289,7 +289,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   section="email"
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }
@@ -308,7 +308,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   section="email"
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }
@@ -327,7 +327,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   section="email"
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }
@@ -479,7 +479,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     submit={[Function]}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Email Notifications"
+        defaultMessage="Email notifications"
         id="user.settings.notifications.emailNotifications"
       />
     }
@@ -493,11 +493,11 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         id="settingTitle"
       >
         <FormattedMessage
-          defaultMessage="Email Notifications"
+          defaultMessage="Email notifications"
           id="user.settings.notifications.emailNotifications"
         >
           <span>
-            Email Notifications
+            Email notifications
           </span>
         </FormattedMessage>
       </h4>
@@ -744,7 +744,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   serverError=""
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }
@@ -824,7 +824,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   submit={[Function]}
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }
@@ -925,7 +925,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   submit={[Function]}
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }
@@ -1005,7 +1005,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   submit={[Function]}
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }
