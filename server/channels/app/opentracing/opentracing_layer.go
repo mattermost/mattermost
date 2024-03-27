@@ -2147,7 +2147,7 @@ func (a *OpenTracingAppLayer) CreateCommandWebhook(commandID string, args *model
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateDefaultMemberships(c request.CTX, params model.CreateDefaultMembershipParams) error {
+func (a *OpenTracingAppLayer) CreateDefaultMemberships(rctx request.CTX, params model.CreateDefaultMembershipParams) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateDefaultMemberships")
 
@@ -2159,7 +2159,7 @@ func (a *OpenTracingAppLayer) CreateDefaultMemberships(c request.CTX, params mod
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CreateDefaultMemberships(c, params)
+	resultVar0 := a.app.CreateDefaultMemberships(rctx, params)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -3301,7 +3301,7 @@ func (a *OpenTracingAppLayer) DeleteGroup(groupID string) (*model.Group, *model.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DeleteGroupConstrainedMemberships(c request.CTX) error {
+func (a *OpenTracingAppLayer) DeleteGroupConstrainedMemberships(rctx request.CTX) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteGroupConstrainedMemberships")
 
@@ -3313,7 +3313,7 @@ func (a *OpenTracingAppLayer) DeleteGroupConstrainedMemberships(c request.CTX) e
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeleteGroupConstrainedMemberships(c)
+	resultVar0 := a.app.DeleteGroupConstrainedMemberships(rctx)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -17192,7 +17192,7 @@ func (a *OpenTracingAppLayer) SyncPlugins() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SyncRolesAndMembership(c request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
+func (a *OpenTracingAppLayer) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncRolesAndMembership")
 
@@ -17204,7 +17204,7 @@ func (a *OpenTracingAppLayer) SyncRolesAndMembership(c request.CTX, syncableID s
 	}()
 
 	defer span.Finish()
-	a.app.SyncRolesAndMembership(c, syncableID, syncableType, includeRemovedMembers)
+	a.app.SyncRolesAndMembership(rctx, syncableID, syncableType, includeRemovedMembers)
 }
 
 func (a *OpenTracingAppLayer) SyncSharedChannel(channelID string) error {
@@ -17229,7 +17229,7 @@ func (a *OpenTracingAppLayer) SyncSharedChannel(channelID string) error {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError {
+func (a *OpenTracingAppLayer) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncSyncableRoles")
 
@@ -17241,7 +17241,7 @@ func (a *OpenTracingAppLayer) SyncSyncableRoles(syncableID string, syncableType 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SyncSyncableRoles(syncableID, syncableType)
+	resultVar0 := a.app.SyncSyncableRoles(rctx, syncableID, syncableType)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
