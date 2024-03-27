@@ -195,9 +195,7 @@ export default function TeamButton({
                         tabIndex={-1}
                     >
                         <div
-
                             className={classNames([`team-container ${teamClass}`, {isDragging: snapshot.isDragging}])}
-                            tabIndex={-1}
                         >
                             {teamButton}
                             {orderIndicator}
@@ -209,7 +207,6 @@ export default function TeamButton({
     ) : (
         <div
             className={`team-container ${teamClass}`}
-            tabIndex={-1}
         >
             {teamButton}
             {orderIndicator}
