@@ -336,6 +336,8 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("must specify one of --private or --public")
 	}
 
+	var errs error
+
 	// I = invite only (private)
 	// O = open (public)
 	privacy := model.TeamInvite
@@ -346,14 +348,22 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
-			printer.PrintError("Unable to find team '" + args[i] + "'")
+			errText := "Unable to find team '" + args[i] + "'"
+			printer.PrintError(errText)
+			errs = multierror.Append(errs, errors.New(errText))
 			continue
 		}
 		if updatedTeam, _, err := c.UpdateTeamPrivacy(context.TODO(), team.Id, privacy); err != nil {
-			printer.PrintError("Unable to modify team '" + team.Name + "' error: " + err.Error())
+			errText := "Unable to modify team '" + team.Name + "' error: " + err.Error()
+			printer.PrintError(errText)
+			errs = multierror.Append(errs, errors.New(errText))
 		} else {
 			printer.PrintT("Modified team '{{.Name}}'", updatedTeam)
 		}
+	}
+
+	if errs != nil {
+		return errs
 	}
 
 	return nil
