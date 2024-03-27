@@ -263,7 +263,7 @@ func TestEnsureBot(t *testing.T) {
 			assert.Equal(t, expectedBotID, botID)
 		})
 
-		t.Run("should set the bot profile image when specified", func(t *testing.T) {
+		t.Run("should set the bot profile image when specified from a file", func(t *testing.T) {
 			api := &plugintest.API{}
 			defer api.AssertExpectations(t)
 			client := NewClient(api, &plugintest.Driver{})
@@ -283,6 +283,42 @@ func TestEnsureBot(t *testing.T) {
 			api.On("GetServerVersion").Return("5.10.0")
 
 			botID, err := client.Bot.ensureBot(m, testbot, ProfileImagePath(profileImageFile.Name()))
+			require.NoError(t, err)
+			assert.Equal(t, expectedBotID, botID)
+		})
+
+		t.Run("should set the bot profile image when specified from bytes", func(t *testing.T) {
+			api := &plugintest.API{}
+			defer api.AssertExpectations(t)
+			client := NewClient(api, &plugintest.Driver{})
+
+			expectedBotID := model.NewId()
+
+			profileImageBytes := []byte("profile image")
+
+			api.On("EnsureBotUser", testbot).Return(expectedBotID, nil)
+			api.On("SetProfileImage", expectedBotID, profileImageBytes).Return(nil)
+			api.On("GetServerVersion").Return("5.10.0")
+
+			botID, err := client.Bot.ensureBot(m, testbot, ProfileImageBytes(profileImageBytes))
+			require.NoError(t, err)
+			assert.Equal(t, expectedBotID, botID)
+		})
+
+		t.Run("the last bot profile image configuration should take precedence", func(t *testing.T) {
+			api := &plugintest.API{}
+			defer api.AssertExpectations(t)
+			client := NewClient(api, &plugintest.Driver{})
+
+			expectedBotID := model.NewId()
+
+			profileImageBytes := []byte("profile image")
+
+			api.On("EnsureBotUser", testbot).Return(expectedBotID, nil)
+			api.On("SetProfileImage", expectedBotID, profileImageBytes).Return(nil)
+			api.On("GetServerVersion").Return("5.10.0")
+
+			botID, err := client.Bot.ensureBot(m, testbot, ProfileImagePath("does not exist"), ProfileImageBytes(profileImageBytes))
 			require.NoError(t, err)
 			assert.Equal(t, expectedBotID, botID)
 		})
