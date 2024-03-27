@@ -185,7 +185,6 @@ func TestListBot(t *testing.T) {
 				require.NoError(t, err, test.name)
 			}
 			require.Equal(t, test.bots, bots, test.name)
-
 		})
 	}
 }
