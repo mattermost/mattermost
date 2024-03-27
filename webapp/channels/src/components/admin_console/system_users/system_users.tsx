@@ -18,6 +18,7 @@ import {AdminConsoleListTable, ElapsedDurationCell, PAGE_SIZES, LoadingStates} f
 import type {TableMeta} from 'components/admin_console/list_table';
 import AlertBanner from 'components/alert_banner';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import Tag from 'components/widgets/tag/tag';
 
 import {getDisplayName, imageURLForUser} from 'utils/utils';
 
@@ -258,6 +259,7 @@ function SystemUsers(props: Props) {
                     defaultMessage: 'User details',
                 }),
                 cell: (info: CellContext<UserReportWithError, null>) => {
+                    const isRemoteUser = Boolean(info.row.original?.remote_id?.length);
                     return (
                         <div>
                             <div className='profilePictureContainer'>
@@ -272,6 +274,16 @@ function SystemUsers(props: Props) {
                                 title={getDisplayName(info.row.original)}
                             >
                                 {getDisplayName(info.row.original) || ''}
+                                {' '}
+                                {isRemoteUser && (
+                                    <Tag
+                                        size='xs'
+                                        text={formatMessage({
+                                            id: 'admin.system_users.list.userIsRemote',
+                                            defaultMessage: 'Remote',
+                                        })}
+                                    />
+                                )}
                             </div>
                             <div
                                 className='userName'
