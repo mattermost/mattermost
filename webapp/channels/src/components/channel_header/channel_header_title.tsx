@@ -12,14 +12,15 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
+import {getIsRhsOpen} from 'selectors/rhs';
+
 import {ChannelHeaderDropdown} from 'components/channel_header_dropdown';
-import WithTooltip from 'components/with_tooltip';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
-import Tooltip from 'components/tooltip';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import BotTag from 'components/widgets/tag/bot_tag';
+import WithTooltip from 'components/with_tooltip';
 
 import {Constants} from 'utils/constants';
 
@@ -42,16 +43,17 @@ const ChannelHeaderTitle = ({
     const channel = useSelector(getCurrentChannel);
 
     const headerItemRef = useRef<HTMLElement | null>(null);
+    const isRHSOpen = useSelector(getIsRhsOpen);
 
     useEffect(() => {
         enableToolTipIfNeeded();
 
-        // Optional: Re-check on window resize
+        // Re-check on window resize
         const handleResize = () => enableToolTipIfNeeded();
         window.addEventListener('resize', handleResize);
 
         return () => window.removeEventListener('resize', handleResize);
-    }, [channel, gmMembers, dmUser]);
+    }, [channel, gmMembers, dmUser, isRHSOpen]);
 
     if (!channel) {
         return null;
@@ -89,12 +91,6 @@ const ChannelHeaderTitle = ({
     } else if (isGroup) {
         channelTitle = <ChannelHeaderTitleGroup gmMembers={gmMembers}/>;
     }
-
-    const displayNameToolTip = (
-        <Tooltip id='channel-displayname__tooltip'>
-            {channelTitle}
-        </Tooltip>
-    );
 
     if (isDirect && dmUser?.is_bot) {
         return (
