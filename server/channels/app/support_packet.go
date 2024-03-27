@@ -50,7 +50,9 @@ func (a *App) GenerateSupportPacket(c request.CTX) []model.FileData {
 		if err != nil {
 			c.Logger().Error("Failed to generate file for support package", mlog.Err(err), mlog.String("file", name))
 			warnings = append(warnings, err.Error())
-		} else if fileData != nil {
+		}
+
+		if fileData != nil {
 			fileDatas = append(fileDatas, *fileData)
 		}
 	}
