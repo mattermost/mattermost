@@ -28,7 +28,7 @@ var PostCreateCmd = &cobra.Command{
 	Use:     "create",
 	Short:   "Create a post",
 	Example: `  post create myteam:mychannel --message "some text for the post"`,
-	Args:    cobra.ExactArgs(1),
+	Args:    cobra.ExactArgs(2),
 	RunE:    withClient(postCreateCmdF),
 }
 
@@ -69,12 +69,6 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("message cannot be empty")
 	}
 
-	user := getUserFromUserArg(c, args[0])
-	channel := getChannelFromChannelArg(c, args[0])
-	if user == nil && channel == nil {
-		return errors.New("unable to find user or channel '" + args[0] + "'")
-	}
-
 	replyTo, _ := cmd.Flags().GetString("reply-to")
 	if replyTo != "" {
 		replyToPost, _, err := c.GetPost(context.TODO(), replyTo, "")
@@ -86,14 +80,17 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	ctx := context.TODO()
 	post := &model.Post{
 		Message: message,
 		RootId:  replyTo,
 	}
-
-	ctx := context.TODO()
 	url := "/posts"
-	if user != nil {
+
+	if ch := getChannelFromChannelArg(c, args[0]); ch != nil {
+		post.ChannelId = ch.Id
+		url = url + "?set_online=false"
+	} else if user := getUserFromUserArg(c, args[0]); user != nil {
 		// create a direct channel
 		directChannel, _, err := c.CreateChannel(ctx, &model.Channel{
 			Type: model.ChannelTypeDirect,
@@ -104,10 +101,10 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 		c.AddChannelMember(ctx, directChannel.Id, user.Id)
 		post.ChannelId = directChannel.Id
+		post.UserId = user.Id
 		url = url + "/direct?set_online=false"
 	} else {
-		post.ChannelId = channel.Id
-		url = url + "?set_online=false"
+		return errors.New("unable to find user or channel '" + args[0] + "'")
 	}
 
 	data, err := post.ToJSON()
