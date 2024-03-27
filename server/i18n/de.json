@@ -10304,5 +10304,25 @@
   {
     "id": "api.channel.update_channel_member_roles.guest.app_error",
     "translation": "Ungültige Aktualisierung des Kanal-Mitglieds: Ein Gast kann nicht zum Teammitglied oder Admin gemacht werden, bitte befördere ihn zuerst zum Benutzer."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Die automatische Vervollständigung von Kanälen kann nicht aktiviert werden, da das Schema des Kanal-Index veraltet ist. Es wird empfohlen, den Kanal-Index neu zu erstellen. Weitere Informationen findest du im Mattermost Changelog"
+  },
+  {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "Dein Elasticsearch-Kanal-Indexschema ist veraltet. Es wird empfohlen, deinen Kanal-Index neu zu erstellen.\nKlicke auf die Schaltfläche \"Kanal Index neu erstellen\" im [Elasticsearch-Abschnitt in der Systemkonsole] ({{.ElasticsearchSection}}), um das Problem zu beheben.\nWeitere Informationen findest du im Mattermost Changelog."
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "Die Funktion Bereinigungsliste ist für Bleve nicht verfügbar."
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "Fehler beim Löschen eines Elasticsearch-Index"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "Der angegebene unbekannte Index konnte nicht gelöscht werden"
   }
 ]
