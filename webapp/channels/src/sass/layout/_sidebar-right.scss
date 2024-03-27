@@ -143,13 +143,9 @@
         font-family: Metropolis, sans-serif;
         font-size: 1.6rem;
         font-weight: 600;
+        line-height: 1;
 
         @include clearfix;
-
-        span {
-            position: relative;
-            top: 1px;
-        }
     }
 
     .sidebar--right__title__channel {
