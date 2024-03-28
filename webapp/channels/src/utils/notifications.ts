@@ -53,7 +53,7 @@ export async function showNotification(
 
     if (Notification.permission !== 'granted' && requestedNotificationPermission) {
         // User didn't allow notifications
-        return () => {};
+        return {result: 'not_sent', reason: 'notifications_permission_disallowed', data: Notification.permission, callback: () => {}};
     }
 
     requestedNotificationPermission = true;
@@ -68,7 +68,7 @@ export async function showNotification(
 
     if (permission !== 'granted') {
         // User has denied notification for the site
-        return () => {};
+        return {result: 'not_sent', reason: 'notifications_permission_denied', data: permission, callback: () => {}};
     }
 
     const notification = new Notification(title, {
@@ -94,7 +94,10 @@ export async function showNotification(
         }, Constants.DEFAULT_NOTIFICATION_DURATION);
     }
 
-    return () => {
-        notification.close();
+    return {
+        result: 'success',
+        callback: () => {
+            notification.close();
+        },
     };
 }
