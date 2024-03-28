@@ -18,8 +18,8 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
             onClick={[Function]}
           >
             <Memo(MemoizedFormattedMessage)
-              defaultMessage="All your threads"
-              id="threading.filters.allThreads"
+              defaultMessage="Followed threads"
+              id="globalThreads.heading"
             />
           </Memo(Button)>
         </div>

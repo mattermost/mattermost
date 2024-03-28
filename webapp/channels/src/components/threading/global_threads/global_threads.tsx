@@ -29,7 +29,6 @@ import LocalStorageStore from 'stores/local_storage_store';
 
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
-import Header from 'components/widgets/header';
 
 import {Constants, PreviousViewedTypes} from 'utils/constants';
 
@@ -153,19 +152,6 @@ const GlobalThreads = () => {
             id='app-content'
             className={classNames('GlobalThreads app__content', {'thread-selected': Boolean(selectedThread)})}
         >
-            <Header
-                level={2}
-                className={'GlobalThreads___header'}
-                heading={formatMessage({
-                    id: 'globalThreads.heading',
-                    defaultMessage: 'Followed threads',
-                })}
-                subtitle={formatMessage({
-                    id: 'globalThreads.subtitle',
-                    defaultMessage: 'Threads you’re participating in will automatically show here',
-                })}
-            />
-
             {isLoading || isEmptyList ? (
                 <div className='no-results__holder'>
                     {isLoading ? (
