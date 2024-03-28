@@ -33,15 +33,15 @@ func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (stri
 		return "", errors.New("passed a bot with no username")
 	}
 
-	botIDBytes, err := a.GetPluginKey(pluginID, botUserKey)
-	if err != nil {
-		return "", err
+	botIDBytes, appErr := a.GetPluginKey(pluginID, botUserKey)
+	if appErr != nil {
+		return "", appErr
 	}
 
 	// If the bot has already been created, check whether it still exists and use it
 	if botIDBytes != nil {
 		botID := string(botIDBytes)
-		if _, appErr := a.GetBot(rctx, botID, true); appErr != nil {
+		if _, appErr = a.GetBot(rctx, botID, true); appErr != nil {
 			rctx.Logger().Debug("Unable to get bot.", mlog.String("bot_id", botID), mlog.Err(appErr))
 		} else {
 			// ensure existing bot is synced with what is being created
@@ -51,8 +51,8 @@ func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (stri
 				Description: &bot.Description,
 			}
 
-			if _, err = a.PatchBot(rctx, botID, botPatch); err != nil {
-				return "", fmt.Errorf("failed to patch bot: %w", err)
+			if _, appErr = a.PatchBot(rctx, botID, botPatch); appErr != nil {
+				return "", fmt.Errorf("failed to patch bot: %w", appErr)
 			}
 
 			return botID, nil
