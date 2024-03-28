@@ -40,7 +40,7 @@ const SidebarHeaderContainer = styled(Flex).attrs(() => ({
     justify: 'space-between',
     alignment: 'center',
 }))<SidebarHeaderContainerProps>`
-    height: 52px;
+    height: 55px;
     padding: 0 16px;
     gap: 8px;
 
