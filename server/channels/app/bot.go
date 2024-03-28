@@ -41,8 +41,8 @@ func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (stri
 	// If the bot has already been created, check whether it still exists and use it
 	if botIDBytes != nil {
 		botID := string(botIDBytes)
-		if _, err := a.GetBot(rctx, botID, true); err != nil {
-			rctx.Logger().Debug("Unable to get bot.", mlog.String("bot_id", botID), mlog.Err(err))
+		if _, appErr := a.GetBot(rctx, botID, true); appErr != nil {
+			rctx.Logger().Debug("Unable to get bot.", mlog.String("bot_id", botID), mlog.Err(appErr))
 		} else {
 			// ensure existing bot is synced with what is being created
 			botPatch := &model.BotPatch{
