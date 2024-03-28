@@ -175,7 +175,7 @@ jobs:
         shell: bash
         working-directory: e2e-tests
     outputs:
-      cycle_url: "${{ steps.e2e-test-gencycle.outputs.cycle_url }}"
+      status_check_url: "${{ steps.e2e-test-gencycle.outputs.status_check_url }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -203,9 +203,9 @@ jobs:
           # Extract cycle's dashboard URL, if present
           TEST_CYCLE_ID=$(sed -nE "s/^.*id: '([^']+)'.*$/\1/p"  <generate-test-cycle.out)
           if [ -n "$TEST_CYCLE_ID" ]; then
-            echo "cycle_url=https://automation-dashboard.vercel.app/cycles/${TEST_CYCLE_ID}" >> $GITHUB_OUTPUT
+            echo "status_check_url=https://automation-dashboard.vercel.app/cycles/${TEST_CYCLE_ID}" >> $GITHUB_OUTPUT
           else
-            echo "cycle_url=No dashboard URL" >> $GITHUB_OUTPUT
+            echo "status_check_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
           fi
 
   test:
@@ -347,8 +347,9 @@ jobs:
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
           description: |
-            Failures: ${{ needs.report.outputs.failures }} - ${{ needs.generate-test-cycle.outputs.cycle_url || 'No dashboard URL' }}
+            Completed with ${{ needs.report.outputs.failures }} failures
           status: failure
+          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
 
   update-success-final-status:
     runs-on: ubuntu-22.04
@@ -366,5 +367,6 @@ jobs:
           commit_sha: ${{ inputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
           description: |
-            Failures: ${{ needs.report.outputs.failures }} - ${{ needs.generate-test-cycle.outputs.cycle_url || 'No dashboard URL' }}
+            Completed with ${{ needs.report.outputs.failures }} failures
           status: success
+          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
