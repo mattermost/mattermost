@@ -35,7 +35,7 @@ import SidebarCategory from '../sidebar_category';
 import UnreadChannelIndicator from '../unread_channel_indicator';
 import UnreadChannels from '../unread_channels';
 
-export function renderView(props: any) {
+export function renderView(props: React.HTMLProps<HTMLDivElement>) {
     return (
         <div
             {...props}
@@ -44,7 +44,7 @@ export function renderView(props: any) {
     );
 }
 
-export function renderThumbHorizontal(props: any) {
+export function renderThumbHorizontal(props: React.HTMLProps<HTMLDivElement>) {
     return (
         <div
             {...props}
@@ -53,7 +53,7 @@ export function renderThumbHorizontal(props: any) {
     );
 }
 
-export function renderTrackVertical(props: any) {
+export function renderTrackVertical(props: React.HTMLProps<HTMLDivElement>) {
     return (
         <div
             {...props}
@@ -62,7 +62,7 @@ export function renderTrackVertical(props: any) {
     );
 }
 
-export function renderThumbVertical(props: any) {
+export function renderThumbVertical(props: React.HTMLProps<HTMLDivElement>) {
     return (
         <div
             {...props}

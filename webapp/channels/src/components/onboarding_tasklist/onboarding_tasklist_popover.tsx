@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Placement} from 'popper.js';
-import React from 'react';
+import React, {useRef} from 'react';
 import type {RefObject} from 'react';
 import {usePopper} from 'react-popper';
 import {CSSTransition} from 'react-transition-group';
@@ -65,13 +65,12 @@ export const TaskListPopover = ({
     children,
     onClick,
 }: TaskListPopoverProps): JSX.Element | null => {
-    const [popperElement, setPopperElement] =
-        React.useState<HTMLDivElement | null>(null);
+    const popperElement = useRef<HTMLDivElement>(null);
 
     const {
         styles: {popper},
         attributes,
-    } = usePopper(trigger.current, popperElement, {
+    } = usePopper(trigger.current, popperElement.current, {
         placement,
         modifiers: [
             {
@@ -100,7 +99,7 @@ export const TaskListPopover = ({
                 />
             </CSSTransition>
             <div
-                ref={setPopperElement}
+                ref={popperElement}
                 style={style}
                 {...attributes.popper}
             >
