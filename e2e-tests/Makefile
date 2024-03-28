@@ -1,7 +1,3 @@
-# Load environment variables from .env file
--include .ci/.env
-export
-
 SHELL := /bin/bash
 
 .PHONY: all run stop clean
