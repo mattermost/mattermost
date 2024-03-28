@@ -184,7 +184,7 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
 
 		expectedError := fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name)
-		s.Require().Equal(expectedError, err.(*multierror.Error).Unwrap().Error())
+		s.Require().ErrorContains(err, expectedError)
 		s.Require().Contains(
 			printer.GetErrorLines()[0],
 			expectedError,
@@ -203,7 +203,7 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
 
 		expectedError := fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name)
-		s.Require().Equal(expectedError, err.(*multierror.Error).Unwrap().Error())
+		s.Require().ErrorContains(err, expectedError)
 		s.Require().Contains(
 			printer.GetErrorLines()[0],
 			expectedError,

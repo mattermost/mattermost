@@ -336,7 +336,7 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("must specify one of --private or --public")
 	}
 
-	var errs error
+	var errs *multierror.Error
 
 	// I = invite only (private)
 	// O = open (public)
@@ -362,11 +362,7 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if errs != nil {
-		return errs
-	}
-
-	return nil
+	return errs.ErrorOrNil()
 }
 
 func restoreTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {

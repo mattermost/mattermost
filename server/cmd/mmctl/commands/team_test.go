@@ -736,7 +736,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
 
 		expectedError := "Unable to find team 'team1'"
-		s.Require().Equal(expectedError, err.(*multierror.Error).Unwrap().Error())
+		s.Require().ErrorContains(err, expectedError)
 		s.Require().Equal(expectedError, printer.GetErrorLines()[0])
 	})
 
@@ -827,7 +827,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
 
 		expectedError := "Unable to modify team 'team1' error: an error occurred modifying a team"
-		s.Require().Equal(expectedError, err.(*multierror.Error).Unwrap().Error())
+		s.Require().ErrorContains(err, expectedError)
 		s.Require().Equal(expectedError,
 			printer.GetErrorLines()[0])
 	})
