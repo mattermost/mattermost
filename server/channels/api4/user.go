@@ -20,7 +20,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
-	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 func (api *API) InitUser() {
@@ -875,7 +874,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, appErr = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inGroupId != "" {
-		if gErr := requireGroupAccess(c, inGroupId); gErr != nil {
+		if gErr := hasPermissionToReadGroupMembers(c, inGroupId); gErr != nil {
 			gErr.Where = "Api.getUsers"
 			c.Err = gErr
 			return
@@ -895,7 +894,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, _, appErr = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions)
 		}
 	} else if notInGroupId != "" {
-		appErr = requireGroupAccess(c, notInGroupId)
+		appErr = hasPermissionToReadGroupMembers(c, notInGroupId)
 		if appErr != nil {
 			appErr.Where = "Api.getUsers"
 			c.Err = appErr
@@ -933,25 +932,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(js)
-}
-
-func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
-	group, err := c.App.GetGroup(groupID, nil, nil)
-	if err != nil {
-		return err
-	}
-
-	if lcErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); lcErr != nil {
-		return lcErr
-	}
-
-	if group.Source == model.GroupSourceLdap {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
-		}
-	}
-
-	return nil
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1067,7 +1047,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if props.InGroupId != "" {
-		if appErr := requireGroupAccess(c, props.InGroupId); appErr != nil {
+		if appErr := hasPermissionToReadGroupMembers(c, props.InGroupId); appErr != nil {
 			appErr.Where = "Api.searchUsers"
 			c.Err = appErr
 			return
@@ -1075,7 +1055,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if props.NotInGroupId != "" {
-		if appErr := requireGroupAccess(c, props.NotInGroupId); appErr != nil {
+		if appErr := hasPermissionToReadGroupMembers(c, props.NotInGroupId); appErr != nil {
 			appErr.Where = "Api.searchUsers"
 			c.Err = appErr
 			return
