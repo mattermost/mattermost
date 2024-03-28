@@ -5,10 +5,10 @@ package commands
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -18,9 +18,10 @@ import (
 
 func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 	s.SetupTestHelper().InitBasic()
-	serverPath := os.Getenv("MM_SERVER_PATH")
+	testsPath, found := fileutils.FindDir("tests")
+	s.Require().True(found, "failed to find tests/ dir")
 	importName := "import_test.zip"
-	importFilePath := filepath.Join(serverPath, "tests", importName)
+	importFilePath := filepath.Join(testsPath, importName)
 
 	s.Run("no permissions", func() {
 		printer.Clean()
@@ -89,9 +90,10 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 
 func (s *MmctlE2ETestSuite) TestImportProcessCmdF() {
 	s.SetupTestHelper().InitBasic()
-	serverPath := os.Getenv("MM_SERVER_PATH")
+	testsPath, found := fileutils.FindDir("tests")
+	s.Require().True(found, "failed to find tests/ dir")
 	importName := "import_test.zip"
-	importFilePath := filepath.Join(serverPath, "tests", importName)
+	importFilePath := filepath.Join(testsPath, "import_test.zip")
 
 	s.Run("no permissions", func() {
 		printer.Clean()
@@ -129,9 +131,10 @@ func (s *MmctlE2ETestSuite) TestImportProcessCmdF() {
 
 func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
 	s.SetupTestHelper().InitBasic()
-	serverPath := os.Getenv("MM_SERVER_PATH")
+	testsPath, found := fileutils.FindDir("tests")
+	s.Require().True(found, "failed to find tests/ dir")
 	importName := "import_test.zip"
-	importFilePath := filepath.Join(serverPath, "tests", importName)
+	importFilePath := filepath.Join(testsPath, importName)
 
 	s.Run("no permissions", func() {
 		printer.Clean()

@@ -5,7 +5,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -22,7 +22,9 @@ import (
 func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	pluginPath := filepath.Join(os.Getenv("MM_SERVER_PATH"), "tests", "testplugin.tar.gz")
+	testsPath, found := fileutils.FindDir("tests")
+	s.Require().True(found, "failed to find tests/ dir")
+	pluginPath := filepath.Join(testsPath, "testplugin.tar.gz")
 
 	s.RunForSystemAdminAndLocal("add an already installed plugin without force", func(c client.Client) {
 		printer.Clean()

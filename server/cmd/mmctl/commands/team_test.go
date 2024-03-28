@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"runtime"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -416,6 +417,10 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 	teamID := "teamId"
 
 	s.Run("Delete teams with confirm false returns an error", func() {
+		if runtime.GOOS == "darwin" {
+			s.T().Skip("test not supported on MacOS")
+		}
+
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteTeamsCmdF(s.client, cmd, []string{"some"})

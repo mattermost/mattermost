@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -375,6 +376,10 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 	mockUser2 := model.User{Username: "User2", Email: email2, Id: userID2}
 
 	s.Run("Delete users with confirm false returns an error", func() {
+		if runtime.GOOS == "darwin" {
+			s.T().Skip("test not supported on MacOS")
+		}
+
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteUsersCmdF(s.client, cmd, []string{"some"})

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -18,9 +19,10 @@ import (
 
 func (s *MmctlE2ETestSuite) TestExtractRunCmdF() {
 	s.SetupTestHelper().InitBasic()
-	serverPath := os.Getenv("MM_SERVER_PATH")
+	testsPath, found := fileutils.FindDir("tests")
+	s.Require().True(found, "failed to find tests/ dir")
 	docName := "sample-doc.pdf"
-	docFilePath := filepath.Join(serverPath, "tests", docName)
+	docFilePath := filepath.Join(testsPath, docName)
 
 	s.Run("no permissions", func() {
 		printer.Clean()

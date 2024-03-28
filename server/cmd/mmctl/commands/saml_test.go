@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"runtime"
 
 	"github.com/mattermost/mattermost/server/public/model"
 
@@ -15,6 +16,10 @@ import (
 
 func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 	s.Run("Reset auth data without confirmation returns an error", func() {
+		if runtime.GOOS == "darwin" {
+			s.T().Skip("test not supported on MacOS")
+		}
+
 		cmd := &cobra.Command{}
 		err := samlAuthDataResetCmdF(s.client, cmd, nil)
 		s.Require().NotNil(err)

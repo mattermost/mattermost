@@ -4,11 +4,11 @@
 package testlib
 
 import (
+	_ "embed"
 	"flag"
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -178,6 +178,12 @@ func (h *MainHelper) setupResources() {
 	}
 }
 
+//go:embed testdata/postgres_migration_warmup.sql
+var postgresMigrationWarmup []byte
+
+//go:embed testdata/mysql_migration_warmup.sql
+var mysqlMigrationWarmup []byte
+
 // PreloadMigrations preloads the migrations and roles into the database
 // so that they are not run again when the migrations happen every time
 // the server is started.
@@ -193,34 +199,15 @@ func (h *MainHelper) setupResources() {
 // And keep only the permission related rows in the systems table output.
 func (h *MainHelper) PreloadMigrations() {
 	var buf []byte
-	var err error
 
-	basePath := os.Getenv("MM_SERVER_PATH")
-	if basePath == "" {
-		_, errFile := os.Stat("mattermost-server/server")
-		if os.IsNotExist(errFile) {
-			basePath = "mattermost/server"
-		} else {
-			basePath = "mattermost-server/server"
-		}
-	}
-	relPath := "channels/testlib/testdata"
 	switch *h.Settings.DriverName {
 	case model.DatabaseDriverPostgres:
-		finalPath := filepath.Join(basePath, relPath, "postgres_migration_warmup.sql")
-		buf, err = os.ReadFile(finalPath)
-		if err != nil {
-			panic(fmt.Errorf("cannot read file: %v", err))
-		}
+		buf = postgresMigrationWarmup
 	case model.DatabaseDriverMysql:
-		finalPath := filepath.Join(basePath, relPath, "mysql_migration_warmup.sql")
-		buf, err = os.ReadFile(finalPath)
-		if err != nil {
-			panic(fmt.Errorf("cannot read file: %v", err))
-		}
+		buf = mysqlMigrationWarmup
 	}
 	handle := h.SQLStore.GetMasterX()
-	_, err = handle.Exec(string(buf))
+	_, err := handle.Exec(string(buf))
 	if err != nil {
 		panic(errors.Wrap(err, "Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly"))
 	}

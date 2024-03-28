@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"runtime"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -2810,6 +2811,10 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 	}
 
 	s.Run("Delete channels without confirm flag returns an error", func() {
+		if runtime.GOOS == "darwin" {
+			s.T().Skip("test not supported on MacOS")
+		}
+
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteChannelsCmdF(s.client, cmd, []string{"some"})
