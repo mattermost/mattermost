@@ -62,3 +62,14 @@ type Driver interface {
 	// ResetSession(ctx context.Context) error
 	// IsValid() bool
 }
+
+// AppDriver is an extension of the Driver interface to capture non-RPC APIs.
+type AppDriver interface {
+	Driver
+
+	// ConnWithPluginID is only used by the server, and isn't exposed via the RPC API.
+	ConnWithPluginID(isMaster bool, pluginID string) (string, error)
+	// This is an extra method needed to shutdown connections
+	// after a plugin shuts down.
+	ShutdownConns(pluginID string)
+}

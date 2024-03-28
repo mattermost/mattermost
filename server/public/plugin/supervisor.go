@@ -24,6 +24,8 @@ import (
 
 type supervisor struct {
 	lock        sync.RWMutex
+	pluginID    string
+	appDriver   AppDriver
 	client      *plugin.Client
 	hooks       Hooks
 	implemented [TotalHooksID]bool
@@ -31,8 +33,23 @@ type supervisor struct {
 	hooksClient *hooksRPCClient
 }
 
-func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics metricsInterface) (retSupervisor *supervisor, retErr error) {
-	sup := supervisor{}
+type driverForPlugin struct {
+	AppDriver
+	pluginID string
+}
+
+func (d *driverForPlugin) Conn(isMaster bool) (string, error) {
+	return d.AppDriver.ConnWithPluginID(isMaster, d.pluginID)
+}
+
+func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver AppDriver, parentLogger *mlog.Logger, metrics metricsInterface) (retSupervisor *supervisor, retErr error) {
+	sup := supervisor{
+		pluginID: pluginInfo.Manifest.Id,
+	}
+	if driver != nil {
+		sup.appDriver = &driverForPlugin{AppDriver: driver, pluginID: pluginInfo.Manifest.Id}
+	}
+
 	defer func() {
 		if retErr != nil {
 			sup.Shutdown()
@@ -49,7 +66,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 	pluginMap := map[string]plugin.Plugin{
 		"hooks": &hooksPlugin{
 			log:        wrappedLogger,
-			driverImpl: driver,
+			driverImpl: sup.appDriver,
 			apiImpl:    &apiTimerLayer{pluginInfo.Manifest.Id, apiImpl, metrics},
 		},
 	}
@@ -130,8 +147,12 @@ func (sup *supervisor) Shutdown() {
 	}
 
 	// Wait for API RPC server and DB RPC server to exit.
+	// And then shutdown conns.
 	if sup.hooksClient != nil {
 		sup.hooksClient.doneWg.Wait()
+		if sup.appDriver != nil {
+			sup.appDriver.ShutdownConns(sup.pluginID)
+		}
 	}
 }
 

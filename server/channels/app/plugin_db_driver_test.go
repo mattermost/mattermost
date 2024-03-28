@@ -19,3 +19,22 @@ func TestConnCreateTimeout(t *testing.T) {
 	_, err := d.Conn(true)
 	require.Error(t, err)
 }
+
+func TestShutdownPluginConns(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	d := NewDriverImpl(th.Server)
+	_, err := d.ConnWithPluginID(true, "plugin1")
+	require.NoError(t, err)
+	_, err = d.ConnWithPluginID(true, "plugin2")
+	require.NoError(t, err)
+	_, err = d.ConnWithPluginID(true, "plugin1")
+	require.NoError(t, err)
+
+	require.Len(t, d.connMap, 3)
+	d.ShutdownConns("plugin1")
+	require.Len(t, d.connMap, 1)
+	d.ShutdownConns("plugin2")
+	require.Len(t, d.connMap, 0)
+}
