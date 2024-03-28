@@ -11640,6 +11640,27 @@ func (s *RetryLayerTeamStore) InvalidateAllTeamIdsForUser(userID string) {
 
 }
 
+func (s *RetryLayerTeamStore) IsUserAdminOfTeam(userEmail string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.IsUserAdminOfTeam(userEmail)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerTeamStore) MigrateTeamMembers(fromTeamID string, fromUserID string) (map[string]string, error) {
 
 	tries := 0

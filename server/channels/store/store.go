@@ -179,6 +179,8 @@ type TeamStore interface {
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
 
 	GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error)
+
+	IsUserAdminOfTeam(userEmail string) (bool, error)
 }
 
 type ChannelStore interface {

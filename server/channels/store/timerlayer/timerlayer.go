@@ -9169,6 +9169,22 @@ func (s *TimerLayerTeamStore) InvalidateAllTeamIdsForUser(userID string) {
 	}
 }
 
+func (s *TimerLayerTeamStore) IsUserAdminOfTeam(userEmail string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.TeamStore.IsUserAdminOfTeam(userEmail)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.IsUserAdminOfTeam", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTeamStore) MigrateTeamMembers(fromTeamID string, fromUserID string) (map[string]string, error) {
 	start := time.Now()
 

@@ -1724,6 +1724,14 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		c.Logger().Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
 	}
 
+	isUserAdminOfTeam, isUserAdminOfTeamErr := a.Srv().Store().Team().IsUserAdminOfTeam(user.Email)
+	if isUserAdminOfTeamErr != nil {
+		return model.NewAppError("PermanentDeleteUser", "app.permanent_delete_user.user_is_admin_of_team.internal_server_error.app_error", nil, "", http.StatusInternalServerError).Wrap(isUserAdminOfTeamErr)
+	}
+	if isUserAdminOfTeam {
+		return model.NewAppError("PermanentDeleteUser", "app.permanent_delete_user.user_is_admin_of_team.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if _, err := a.UpdateActive(c, user, false); err != nil {
 		return err
 	}

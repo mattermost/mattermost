@@ -6159,6 +6159,14 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.permanent_delete_user.user_is_admin_of_team.app_error",
+    "translation": "Can not delete a user who is admin of a team."
+  },
+  {
+    "id": "app.permanent_delete_user.user_is_admin_of_team.internal_server_error.app_error",
+    "translation": "Unable to check if user is an admin of a team."
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
