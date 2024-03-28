@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -44,7 +45,7 @@ type Props = {
     submitExtra?: ReactNode;
     saving?: boolean;
     title?: ReactNode;
-    width?: string;
+    isFullWidth?: boolean;
     cancelButtonText?: ReactNode;
     shiftEnter?: boolean;
     saveButtonText?: string;
@@ -177,14 +178,6 @@ export default class SettingItemMax extends React.PureComponent<Props> {
         }
 
         const inputs = this.props.inputs;
-        let widthClass;
-        if (this.props.width === 'full') {
-            widthClass = 'col-sm-12';
-        } else if (this.props.width === 'medium') {
-            widthClass = 'col-sm-10 col-sm-offset-2';
-        } else {
-            widthClass = 'col-sm-9 col-sm-offset-3';
-        }
 
         let title;
         if (this.props.title) {
@@ -231,7 +224,12 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                 className={`section-max form-horizontal ${this.props.containerStyle}`}
             >
                 {title}
-                <div className={widthClass}>
+                <div
+                    className={classNames('sectionContent', {
+                        'col-sm-12': this.props.isFullWidth,
+                        'col-sm-10 col-sm-offset-2': !this.props.isFullWidth,
+                    })}
+                >
                     <div
                         tabIndex={-1}
                         ref={this.settingList}

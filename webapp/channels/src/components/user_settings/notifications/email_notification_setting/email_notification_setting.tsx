@@ -237,8 +237,8 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                 ref={this.editButtonRef}
                 title={
                     <FormattedMessage
-                        id={'user.settings.notifications.emailNotifications'}
-                        defaultMessage={'Email Notifications'}
+                        id='user.settings.notifications.emailNotifications'
+                        defaultMessage='Email notifications'
                     />
                 }
                 describe={description}
@@ -254,8 +254,8 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                 <SettingItemMax
                     title={
                         <FormattedMessage
-                            id={'user.settings.notifications.emailNotifications'}
-                            defaultMessage={'Email Notifications'}
+                            id='user.settings.notifications.emailNotifications'
+                            defaultMessage='Email notifications'
                         />
                     }
                     inputs={[
@@ -334,13 +334,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                 <React.Fragment key='userNotificationEmailThreadsOptions'>
                     <hr/>
                     <fieldset>
-                        <legend className='form-legend'>
-                            <FormattedMessage
-                                id='user.settings.notifications.threads.desktop'
-                                defaultMessage='Thread reply notifications'
-                            />
-                        </legend>
-                        <div className='checkbox'>
+                        <div className='checkbox single-checkbox'>
                             <label>
                                 <input
                                     id='desktopThreadsNotificationAllActivity'
@@ -350,17 +344,10 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                                     onChange={this.handleThreadsOnChange}
                                 />
                                 <FormattedMessage
-                                    id='user.settings.notifications.threads.allActivity'
-                                    defaultMessage={'Notify me about threads I\'m following'}
+                                    id='user.settings.notifications.email.notifyForthreads'
+                                    defaultMessage={'Notify me about replies to threads I’m following'}
                                 />
                             </label>
-                            <br/>
-                        </div>
-                        <div className='mt-5'>
-                            <FormattedMessage
-                                id='user.settings.notifications.email_threads'
-                                defaultMessage={'When enabled, any reply to a thread you\'re following will send an email notification.'}
-                            />
                         </div>
                     </fieldset>
                 </React.Fragment>
@@ -371,8 +358,8 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
             <SettingItemMax
                 title={
                     <FormattedMessage
-                        id={'user.settings.notifications.emailNotifications'}
-                        defaultMessage={'Email Notifications'}
+                        id='user.settings.notifications.emailNotifications'
+                        defaultMessage='Email notifications'
                     />
                 }
                 inputs={[
