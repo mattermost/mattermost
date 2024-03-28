@@ -407,13 +407,14 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
             memberListButton = (
                 <HeaderIconWrapper
-                    iconComponent={membersIcon}
                     ariaLabel={true}
                     buttonClass={membersIconClass}
                     buttonId={'member_rhs'}
                     onClick={this.toggleChannelMembersRHS}
                     tooltipKey={'channelMembers'}
-                />
+                >
+                    {membersIcon}
+                </HeaderIconWrapper>
             );
         }
 
@@ -455,22 +456,24 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     {memberListButton}
 
                     <HeaderIconWrapper
-                        iconComponent={pinnedIcon}
                         ariaLabel={true}
                         buttonClass={pinnedIconClass}
                         buttonId={'channelHeaderPinButton'}
                         onClick={this.showPinnedPosts}
                         tooltipKey={'pinnedPosts'}
-                    />
+                    >
+                        {pinnedIcon}
+                    </HeaderIconWrapper>
                     {this.props.isFileAttachmentsEnabled &&
                         <HeaderIconWrapper
-                            iconComponent={channelFilesIcon}
                             ariaLabel={true}
                             buttonClass={channelFilesIconClass}
                             buttonId={'channelHeaderFilesButton'}
                             onClick={this.showChannelFiles}
                             tooltipKey={'channelFiles'}
-                        />
+                        >
+                            {channelFilesIcon}
+                        </HeaderIconWrapper>
                     }
                     {hasGuestsText}
                     <div
@@ -564,22 +567,24 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     {memberListButton}
 
                     <HeaderIconWrapper
-                        iconComponent={pinnedIcon}
                         ariaLabel={true}
                         buttonClass={pinnedIconClass}
                         buttonId={'channelHeaderPinButton'}
                         onClick={this.showPinnedPosts}
                         tooltipKey={'pinnedPosts'}
-                    />
+                    >
+                        {pinnedIcon}
+                    </HeaderIconWrapper>
                     {this.props.isFileAttachmentsEnabled &&
                         <HeaderIconWrapper
-                            iconComponent={channelFilesIcon}
                             ariaLabel={true}
                             buttonClass={channelFilesIconClass}
                             buttonId={'channelHeaderFilesButton'}
                             onClick={this.showChannelFiles}
                             tooltipKey={'channelFiles'}
-                        />
+                        >
+                            {channelFilesIcon}
+                        </HeaderIconWrapper>
                     }
                     {hasGuestsText}
                     {editMessage}
