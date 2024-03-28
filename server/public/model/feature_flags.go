@@ -55,6 +55,7 @@ type FeatureFlags struct {
 	ChannelBookmarks bool
 
 	WebSocketEventScope bool
+	UserSettingsModalRevamp bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -77,6 +78,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudDedicatedExportUI = false
 	f.ChannelBookmarks = false
 	f.WebSocketEventScope = false
+	f.UserSettingsModalRevamp = false
 }
 
 // ToMap returns the feature flags as a map[string]string
