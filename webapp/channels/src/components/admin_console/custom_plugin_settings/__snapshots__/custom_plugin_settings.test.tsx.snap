@@ -216,17 +216,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         errors={Array []}
       />
     </div>
-    <Overlay
-      animation={[Function]}
-      placement="top"
-      rootClose={false}
-      show={false}
-      target={null}
-    >
-      <Tooltip
-        id="error-tooltip"
-      />
-    </Overlay>
   </div>
 </div>
 `;
@@ -285,17 +274,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         errors={Array []}
       />
     </div>
-    <Overlay
-      animation={[Function]}
-      placement="top"
-      rootClose={false}
-      show={false}
-      target={null}
-    >
-      <Tooltip
-        id="error-tooltip"
-      />
-    </Overlay>
   </div>
 </div>
 `;
@@ -516,17 +494,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         errors={Array []}
       />
     </div>
-    <Overlay
-      animation={[Function]}
-      placement="top"
-      rootClose={false}
-      show={false}
-      target={null}
-    >
-      <Tooltip
-        id="error-tooltip"
-      />
-    </Overlay>
   </div>
 </div>
 `;

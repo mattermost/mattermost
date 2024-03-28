@@ -3,7 +3,6 @@
 
 import React from 'react';
 import type {CSSProperties} from 'react';
-import {Tooltip as RBTooltip} from 'react-bootstrap';
 
 type Props = {
     id?: string;
@@ -19,14 +18,8 @@ type Props = {
  */
 export default function Tooltip(props: Props) {
     return (
-        <RBTooltip
-            id={props.id}
-            className={props.className}
-            positionLeft={props.positionLeft}
-            style={props.style}
-            placement={props.placement}
-        >
+        <>
             {props.children}
-        </RBTooltip>
+        </>
     );
 }

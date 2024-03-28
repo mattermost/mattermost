@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, {useRef, useState, useMemo, type ComponentProps} from 'react';
-import {Overlay} from 'react-bootstrap';
 
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -41,7 +41,7 @@ export const AtMention = (props: Props) => {
     const [show, setShow] = useState(false);
     const [groupUser, setGroupUser] = useState<UserProfile | undefined>();
     const [target, setTarget] = useState<HTMLAnchorElement | undefined>();
-    const [placement, setPlacement] = useState<ComponentProps<typeof Overlay>['placement']>('right');
+    const [placement, setPlacement] = useState('right');
 
     const [user, group] = useMemo(
         () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight),
@@ -163,7 +163,7 @@ export const AtMention = (props: Props) => {
             <span
                 className={highlightMention ? 'mention--highlight' : undefined}
             >
-                <Overlay
+                {/* <Overlay
                     placement={placement}
                     show={show}
                     target={target}
@@ -171,8 +171,8 @@ export const AtMention = (props: Props) => {
                     onHide={hideOverlay}
                 >
                     {getPopOver(user, group)}
-                </Overlay>
-                <Overlay
+                </Overlay> */}
+                {/* <Overlay
                     placement={placement}
                     show={groupUser !== undefined}
                     target={target}
@@ -190,7 +190,7 @@ export const AtMention = (props: Props) => {
                         />
                     ) : <span/> // prevents blank-screen crash when closing groupUser ProfilePopover
                     }
-                </Overlay>
+                </Overlay> */}
                 <a
                     onClick={handleClick}
                     onKeyDown={handleKeyDown}

@@ -11,19 +11,6 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
     className="hidden-xs"
     defaultOverlayShown={false}
     delayShow={500}
-    overlay={
-      <Tooltip
-        bsClass="tooltip"
-        className="hidden-xs"
-        id="actions-menu-icon-tooltip"
-        placement="right"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Message actions"
-          id="post_info.tooltip.actions"
-        />
-      </Tooltip>
-    }
     placement="top"
     rootClose={true}
     trigger={
@@ -78,19 +65,6 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
     className="hidden-xs"
     defaultOverlayShown={false}
     delayShow={500}
-    overlay={
-      <Tooltip
-        bsClass="tooltip"
-        className="hidden-xs"
-        id="actions-menu-icon-tooltip"
-        placement="right"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Message actions"
-          id="post_info.tooltip.actions"
-        />
-      </Tooltip>
-    }
     placement="top"
     rootClose={true}
     trigger={
@@ -164,19 +138,6 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
     className="hidden-xs"
     defaultOverlayShown={false}
     delayShow={500}
-    overlay={
-      <Tooltip
-        bsClass="tooltip"
-        className="hidden-xs"
-        id="actions-menu-icon-tooltip"
-        placement="right"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Message actions"
-          id="post_info.tooltip.actions"
-        />
-      </Tooltip>
-    }
     placement="top"
     rootClose={true}
     trigger={

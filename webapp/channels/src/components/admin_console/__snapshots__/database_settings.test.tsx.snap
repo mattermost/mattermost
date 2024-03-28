@@ -450,17 +450,6 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>

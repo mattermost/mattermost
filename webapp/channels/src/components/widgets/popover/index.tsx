@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import {Popover as BSPopover} from 'react-bootstrap';
-import type {Sizes as BSSizes} from 'react-bootstrap';
+import type {Popover as BSPopover, Sizes as BSSizes} from 'react-bootstrap';
 
 const SizeMap = {xs: 'xsmall', sm: 'small', md: 'medium', lg: 'large'};
 export type Sizes = 'xs' | 'sm' | 'md' | 'lg';
@@ -34,22 +34,26 @@ const Popover = React.forwardRef<BSPopover, Props>(({
     style,
 }, ref?) => {
     return (
-        <BSPopover
-            id={id}
-            style={style}
-            className={className}
-            bsStyle={popoverStyle}
-            placement={placement}
-            bsClass='popover'
-            title={title}
-            bsSize={popoverSize && SizeMap[popoverSize] as BSSizes} // map our sizes to bootstrap
-            onMouseOut={onMouseOut}
-            onMouseOver={onMouseOver}
-            ref={ref}
-        >
-            {children}
-        </BSPopover>
+        <>{children}</>
     );
+
+    // return (
+    //     <BSPopover
+    //         id={id}
+    //         style={style}
+    //         className={className}
+    //         bsStyle={popoverStyle}
+    //         placement={placement}
+    //         bsClass='popover'
+    //         title={title}
+    //         bsSize={popoverSize && SizeMap[popoverSize] as BSSizes} // map our sizes to bootstrap
+    //         onMouseOut={onMouseOut}
+    //         onMouseOver={onMouseOver}
+    //         ref={ref}
+    //     >
+    //         {children}
+    //     </BSPopover>
+    // );
 });
 
 Popover.displayName = 'Popover';

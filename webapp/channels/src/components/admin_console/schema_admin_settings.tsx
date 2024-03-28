@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Overlay} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {Link} from 'react-router-dom';
@@ -31,7 +30,6 @@ import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_
 import FormError from 'components/form_error';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
-import Tooltip from 'components/tooltip';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
@@ -1352,15 +1350,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
 
                         <FormError error={this.state.serverError}/>
                     </div>
-                    <Overlay
-                        show={this.state.errorTooltip}
-                        placement='top'
-                        target={this.errorMessageRef.current!}
-                    >
-                        <Tooltip id='error-tooltip' >
-                            {this.state.serverError}
-                        </Tooltip>
-                    </Overlay>
                 </div>
             </div>
         );

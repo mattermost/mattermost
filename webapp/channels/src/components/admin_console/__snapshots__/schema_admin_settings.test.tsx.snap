@@ -735,17 +735,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
         errors={Array []}
       />
     </div>
-    <Overlay
-      animation={[Function]}
-      placement="top"
-      rootClose={false}
-      show={false}
-      target={null}
-    >
-      <Tooltip
-        id="error-tooltip"
-      />
-    </Overlay>
   </div>
 </div>
 `;

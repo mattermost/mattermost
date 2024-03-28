@@ -4,8 +4,8 @@
 /* eslint-disable react/no-multi-comp */
 
 import React from 'react';
-import {Dropdown, Tooltip} from 'react-bootstrap';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {Dropdown} from 'react-bootstrap';
+import {injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {RootCloseWrapper} from 'react-overlays';
 
@@ -303,16 +303,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                         <OverlayTrigger
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             placement='bottom'
-                            overlay={this.state.dropdownOpen ? <></> : (
-                                <Tooltip id='removeIcon'>
-                                    <div aria-hidden={true}>
-                                        <FormattedMessage
-                                            id='generic_icons.plugins'
-                                            defaultMessage='Plugins'
-                                        />
-                                    </div>
-                                </Tooltip>
-                            )}
+                            overlay={null}
                         >
                             <React.Fragment>
                                 <PluginChannelHeaderIcon

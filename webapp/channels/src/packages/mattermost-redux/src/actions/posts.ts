@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable max-lines */
+/* eslint-disable no-console */
+
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
@@ -995,6 +998,8 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
 
     const postsArray: Post[] = Array.isArray(postsArrayOrMap) ? postsArrayOrMap : Object.values(postsArrayOrMap);
 
+    console.log('getMentionsAndStatusesForPosts - posts', postsArray);
+
     if (postsArray.length === 0) {
         return Promise.resolve();
     }
@@ -1053,11 +1058,21 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
 
     const promises: any[] = [];
     if (userIdsToLoad.size > 0) {
-        promises.push(dispatch(getProfilesByIds(Array.from(userIdsToLoad))));
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if (window.loadStatusesAndProfiles === true) {
+            console.log('getMentionsAndStatusesForPosts - userIdsToLoad', userIdsToLoad);
+            promises.push(dispatch(getProfilesByIds(Array.from(userIdsToLoad))));
+        }
     }
 
     if (statusesToLoad.size > 0 && enabledUserStatuses) {
-        promises.push(dispatch(getStatusesByIds(Array.from(statusesToLoad))));
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if (window.loadStatusesAndProfiles === true) {
+            console.log('getMentionsAndStatusesForPosts - statusesToLoad', statusesToLoad);
+            promises.push(dispatch(getStatusesByIds(Array.from(statusesToLoad))));
+        }
     }
 
     // Profiles of users mentioned in the posts

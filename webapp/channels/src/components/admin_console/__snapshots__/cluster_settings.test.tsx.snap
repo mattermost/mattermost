@@ -254,17 +254,6 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -524,17 +513,6 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -794,17 +772,6 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>
@@ -1064,17 +1031,6 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
           errors={Array []}
         />
       </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
     </div>
   </div>
 </form>

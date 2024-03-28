@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Tooltip} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -84,11 +83,7 @@ const AppBarBinding = (props: BindingComponentProps) => {
     const id = `app-bar-icon-${binding.app_id}`;
     const label = binding.label || binding.app_id;
 
-    const tooltip = (
-        <Tooltip id={'tooltip-' + id}>
-            <span>{label}</span>
-        </Tooltip>
-    );
+    const tooltip = null;
 
     return (
         <OverlayTrigger
