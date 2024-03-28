@@ -27,7 +27,6 @@ type supervisor struct {
 	client      *plugin.Client
 	hooks       Hooks
 	implemented [TotalHooksID]bool
-	pid         int
 	hooksClient *hooksRPCClient
 }
 
@@ -116,10 +115,6 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 	rpcClient, err := sup.client.Client()
 	if err != nil {
 		return nil, err
-	}
-
-	if clientConfig.Cmd != nil {
-		sup.pid = clientConfig.Cmd.Process.Pid
 	}
 
 	raw, err := rpcClient.Dispense("hooks")
