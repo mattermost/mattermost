@@ -15,11 +15,14 @@ exports[`FilePreview should match snapshot 1`] = `
         className="post-image normal"
         style={
           Object {
-            "backgroundImage": "url(/api/v4/files/file_id_1/thumbnail)",
             "backgroundSize": "cover",
           }
         }
-      />
+      >
+        <img
+          src="/api/v4/files/file_id_1"
+        />
+      </div>
     </div>
     <div
       className="post-image__details"
@@ -119,11 +122,14 @@ exports[`FilePreview should match snapshot when props are changed 1`] = `
         className="post-image normal"
         style={
           Object {
-            "backgroundImage": "url(/api/v4/files/file_id_1/thumbnail)",
             "backgroundSize": "cover",
           }
         }
-      />
+      >
+        <img
+          src="/api/v4/files/file_id_1"
+        />
+      </div>
     </div>
     <div
       className="post-image__details"
@@ -223,11 +229,14 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
         className="post-image normal"
         style={
           Object {
-            "backgroundImage": "url(/api/v4/files/file_id_1/thumbnail)",
             "backgroundSize": "cover",
           }
         }
-      />
+      >
+        <img
+          src="/api/v4/files/file_id_1"
+        />
+      </div>
     </div>
     <div
       className="post-image__details"
@@ -296,11 +305,14 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
         className="post-image normal"
         style={
           Object {
-            "backgroundImage": "url(/api/v4/files/file_id_2/thumbnail)",
             "backgroundSize": "cover",
           }
         }
-      />
+      >
+        <img
+          src="/api/v4/files/file_id_2"
+        />
+      </div>
     </div>
     <div
       className="post-image__details"
