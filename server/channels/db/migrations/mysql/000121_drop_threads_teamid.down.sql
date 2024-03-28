@@ -1,0 +1,1 @@
+-- This migration fixes an error on 000096_threads_threadteamid.up.sql hence there is no need for down script
