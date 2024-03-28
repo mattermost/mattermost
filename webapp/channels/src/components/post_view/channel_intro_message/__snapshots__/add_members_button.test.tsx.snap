@@ -33,7 +33,7 @@ exports[`components/post_view/AddMembersButton should match snapshot, less than 
     totalUsers={10}
     usersLimit={100}
   >
-    <Connect(TeamPermissionGate)
+    <Connect(Component)
       permissions={
         Array [
           "add_user_to_team",
@@ -42,10 +42,9 @@ exports[`components/post_view/AddMembersButton should match snapshot, less than 
       }
       teamId="team-id"
     >
-      <TeamPermissionGate
+      <Memo(TeamPermissionGate)
         dispatch={[Function]}
         hasPermission={false}
-        invert={false}
         permissions={
           Array [
             "add_user_to_team",
@@ -53,8 +52,10 @@ exports[`components/post_view/AddMembersButton should match snapshot, less than 
           ]
         }
         teamId="team-id"
-      />
-    </Connect(TeamPermissionGate)>
+      >
+        <LessThanMaxFreeUsers />
+      </Memo(TeamPermissionGate)>
+    </Connect(Component)>
   </Memo(AddMembersButton)>
 </Provider>
 `;
@@ -92,7 +93,7 @@ exports[`components/post_view/AddMembersButton should match snapshot, more than 
     totalUsers={100}
     usersLimit={10}
   >
-    <Connect(TeamPermissionGate)
+    <Connect(Component)
       permissions={
         Array [
           "add_user_to_team",
@@ -101,10 +102,9 @@ exports[`components/post_view/AddMembersButton should match snapshot, more than 
       }
       teamId="team-id"
     >
-      <TeamPermissionGate
+      <Memo(TeamPermissionGate)
         dispatch={[Function]}
         hasPermission={false}
-        invert={false}
         permissions={
           Array [
             "add_user_to_team",
@@ -112,8 +112,27 @@ exports[`components/post_view/AddMembersButton should match snapshot, more than 
           ]
         }
         teamId="team-id"
-      />
-    </Connect(TeamPermissionGate)>
+      >
+        <MoreThanMaxFreeUsers
+          channel={
+            Object {
+              "create_at": 1508265709607,
+              "creator_id": "creator_id",
+              "delete_at": 0,
+              "display_name": "test channel",
+              "header": "test",
+              "id": "channel_id",
+              "last_post_at": 1508265709635,
+              "name": "testing",
+              "purpose": "test",
+              "team_id": "team-id",
+              "type": "O",
+              "update_at": 1508265709607,
+            }
+          }
+        />
+      </Memo(TeamPermissionGate)>
+    </Connect(Component)>
   </Memo(AddMembersButton)>
 </Provider>
 `;
@@ -161,7 +180,7 @@ exports[`components/post_view/AddMembersButton should match snapshot, setHeader 
     totalUsers={100}
     usersLimit={10}
   >
-    <Connect(TeamPermissionGate)
+    <Connect(Component)
       permissions={
         Array [
           "add_user_to_team",
@@ -170,10 +189,9 @@ exports[`components/post_view/AddMembersButton should match snapshot, setHeader 
       }
       teamId="team-id"
     >
-      <TeamPermissionGate
+      <Memo(TeamPermissionGate)
         dispatch={[Function]}
         hasPermission={false}
-        invert={false}
         permissions={
           Array [
             "add_user_to_team",
@@ -181,8 +199,37 @@ exports[`components/post_view/AddMembersButton should match snapshot, setHeader 
           ]
         }
         teamId="team-id"
-      />
-    </Connect(TeamPermissionGate)>
+      >
+        <MoreThanMaxFreeUsers
+          channel={
+            Object {
+              "create_at": 1508265709607,
+              "creator_id": "creator_id",
+              "delete_at": 0,
+              "display_name": "test channel",
+              "header": "test",
+              "id": "channel_id",
+              "last_post_at": 1508265709635,
+              "name": "testing",
+              "purpose": "test",
+              "team_id": "team-id",
+              "type": "O",
+              "update_at": 1508265709607,
+            }
+          }
+          pluginButtons={
+            <button>
+              Create a board
+            </button>
+          }
+          setHeader={
+            <button>
+              Create a board
+            </button>
+          }
+        />
+      </Memo(TeamPermissionGate)>
+    </Connect(Component)>
   </Memo(AddMembersButton)>
 </Provider>
 `;
