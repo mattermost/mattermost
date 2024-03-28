@@ -13,28 +13,28 @@ import (
 )
 
 func TestDesktopTokensStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	t.Run("GetUserId", func(t *testing.T) { testGetUserId(t, rctx, ss) })
+	t.Run("GetUserId", func(t *testing.T) { testGetUserID(t, rctx, ss) })
 	t.Run("Insert", func(t *testing.T) { testInsert(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testDeleteToken(t, rctx, ss) })
-	t.Run("DeleteByUserId", func(t *testing.T) { testDeleteByUserId(t, rctx, ss) })
+	t.Run("DeleteByUserId", func(t *testing.T) { testDeleteByUserID(t, rctx, ss) })
 	t.Run("DeleteOlderThan", func(t *testing.T) { testDeleteOlderThan(t, rctx, ss) })
 }
 
-func testGetUserId(t *testing.T, rctx request.CTX, ss store.Store) {
+func testGetUserID(t *testing.T, rctx request.CTX, ss store.Store) {
 	err := ss.DesktopTokens().Insert("token_with_id", 1000, "user_id")
 	require.NoError(t, err)
 
 	t.Run("get user id", func(t *testing.T) {
-		userId, err := ss.DesktopTokens().GetUserId("token_with_id", 1000)
+		userID, err := ss.DesktopTokens().GetUserId("token_with_id", 1000)
 		assert.NoError(t, err)
-		assert.Equal(t, "user_id", *userId)
+		assert.Equal(t, "user_id", *userID)
 	})
 
 	t.Run("get user id - expired", func(t *testing.T) {
-		userId, err := ss.DesktopTokens().GetUserId("token_with_id", 10000)
+		userID, err := ss.DesktopTokens().GetUserId("token_with_id", 10000)
 		assert.Error(t, err)
 		assert.IsType(t, &store.ErrNotFound{}, err)
-		assert.Nil(t, userId)
+		assert.Nil(t, userID)
 	})
 }
 
@@ -59,9 +59,9 @@ func testDeleteToken(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("delete", func(t *testing.T) {
-		userId, err := ss.DesktopTokens().GetUserId("deleteable_token", 3000)
+		userID, err := ss.DesktopTokens().GetUserId("deleteable_token", 3000)
 		assert.NoError(t, err)
-		assert.Equal(t, "user_id", *userId)
+		assert.Equal(t, "user_id", *userID)
 
 		err = ss.DesktopTokens().Delete("deleteable_token")
 		assert.NoError(t, err)
@@ -71,14 +71,14 @@ func testDeleteToken(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testDeleteByUserId(t *testing.T, rctx request.CTX, ss store.Store) {
+func testDeleteByUserID(t *testing.T, rctx request.CTX, ss store.Store) {
 	err := ss.DesktopTokens().Insert("deleteable_token_2", 4000, "deleteable_user_id")
 	require.NoError(t, err)
 
 	t.Run("delete by user id", func(t *testing.T) {
-		userId, err := ss.DesktopTokens().GetUserId("deleteable_token_2", 3000)
+		userID, err := ss.DesktopTokens().GetUserId("deleteable_token_2", 3000)
 		assert.NoError(t, err)
-		assert.Equal(t, "deleteable_user_id", *userId)
+		assert.Equal(t, "deleteable_user_id", *userID)
 
 		err = ss.DesktopTokens().DeleteByUserId("deleteable_user_id")
 		assert.NoError(t, err)
