@@ -1,50 +1,98 @@
 [
-    {
-        "id": "September",
-        "translation": "กันยายน"
-    },
-    {
-        "id": "October",
-        "translation": "ตุลาคม"
-    },
-    {
-        "id": "November",
-        "translation": "พฤศจิกายน"
-    },
-    {
-        "id": "May",
-        "translation": "พฤษภาคม"
-    },
-    {
-        "id": "March",
-        "translation": "มีนาคม"
-    },
-    {
-        "id": "June",
-        "translation": "มิถุนายน"
-    },
-    {
-        "id": "July",
-        "translation": "กรกฎาคม"
-    },
-    {
-        "id": "January",
-        "translation": "มกราคม"
-    },
-    {
-        "id": "February",
-        "translation": "กุมภาพันธ์"
-    },
-    {
-        "id": "December",
-        "translation": "ธันวาคม"
-    },
-    {
-        "id": "August",
-        "translation": "สิงหาคม"
-    },
-    {
-        "id": "April",
-        "translation": "เมษายน"
-    }
+  {
+    "id": "September",
+    "translation": "กันยายน"
+  },
+  {
+    "id": "October",
+    "translation": "ตุลาคม"
+  },
+  {
+    "id": "November",
+    "translation": "พฤศจิกายน"
+  },
+  {
+    "id": "May",
+    "translation": "พฤษภาคม"
+  },
+  {
+    "id": "March",
+    "translation": "มีนาคม"
+  },
+  {
+    "id": "June",
+    "translation": "มิถุนายน"
+  },
+  {
+    "id": "July",
+    "translation": "กรกฎาคม"
+  },
+  {
+    "id": "January",
+    "translation": "มกราคม"
+  },
+  {
+    "id": "February",
+    "translation": "กุมภาพันธ์"
+  },
+  {
+    "id": "December",
+    "translation": "ธันวาคม"
+  },
+  {
+    "id": "August",
+    "translation": "สิงหาคม"
+  },
+  {
+    "id": "April",
+    "translation": "เมษายน"
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP ไม่สามารถใช้ได้"
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "ไม่พบ, ไม่สามารถลบ brand iamge ได้"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "คุณไม่สามารถลบการรับทราบในห้องถาวรได้"
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "คุณไม่สามารถลบการตอบรับหลังจากผ่านไป 5 นาทีแล้ว"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "คุณไม่สามารถตอบรับในห้องถาวรได้"
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "ไม่มีไฟล์ภายใต้ 'certificate' ในคำขอ"
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "ไม่มีไฟล์ภายใต้ 'certificate' ในคำขอ"
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "ไม่สามารถเปิดไฟล์ certificate ได้"
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "เกิดข้อผิดพลาดในการแยกวิเคราะห์คำขอหลายรูปแบบ"
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "ไม่สามารถบันทึกไฟล์ certificate ได้"
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "ข้อผิดพลาดการอ่านไฟล์ log"
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "พื้นที่การเก็บรูปภาพไม่ได้ถูกต้องค่าไว้"
+  }
 ]

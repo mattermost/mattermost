@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React from 'react';
-import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage} from 'react-intl';
 
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
@@ -11,7 +10,7 @@ import BaseSettingItem from './base_setting_item';
 export type FieldsetRadio = {
     options: Array<{
         dataTestId?: string;
-        title: MessageDescriptor;
+        title: ReactNode;
         name: string;
         key: string;
         value: string;
@@ -20,13 +19,16 @@ export type FieldsetRadio = {
 }
 
 type Props = BaseSettingItemProps & {
+    className?: string;
     inputFieldData: FieldsetRadio;
     inputFieldValue: string;
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
+
 function RadioSettingItem({
     title,
     description,
+    className,
     inputFieldData,
     inputFieldValue,
     handleChange,
@@ -46,10 +48,7 @@ function RadioSettingItem({
                     value={option.value}
                     onChange={handleChange}
                 />
-                <FormattedMessage
-                    id={option.title.id}
-                    defaultMessage={option.title.defaultMessage}
-                />
+                {option.title}
                 {option.suffix}
             </label>
         );
@@ -62,6 +61,7 @@ function RadioSettingItem({
     );
     return (
         <BaseSettingItem
+            className={className}
             content={content}
             title={title}
             description={description}
