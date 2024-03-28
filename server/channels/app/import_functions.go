@@ -1338,7 +1338,7 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 
 	rctx.Logger().Info("Uploading file with name", mlog.String("file_name", name))
 
-	fileInfo, appErr := a.DoUploadFile(rctx, timestamp, teamID, post.ChannelId, post.UserId, name, fileData)
+	fileInfo, appErr := a.DoUploadFile(rctx, timestamp, teamID, post.ChannelId, post.UserId, name, fileData, false)
 	if appErr != nil {
 		rctx.Logger().Error("Failed to upload file", mlog.Err(appErr), mlog.String("file_name", name))
 		return nil, appErr

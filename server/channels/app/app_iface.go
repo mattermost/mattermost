@@ -590,8 +590,8 @@ type AppIface interface {
 	DoPostActionWithCookie(c request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
 	DoSubscriptionRenewalCheck()
 	DoSystemConsoleRolesCreationMigration()
-	DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError)
-	DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError)
+	DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, *model.AppError)
+	DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, []byte, *model.AppError)
 	DownloadFromURL(downloadURL string) ([]byte, error)
 	EnableUserAccessToken(c request.CTX, token *model.UserAccessToken) *model.AppError
 	EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any
