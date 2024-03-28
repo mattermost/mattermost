@@ -55,9 +55,6 @@ context('LDAP SAML - Automated Tests (SAML TESTS)', () => {
             UsernameAttribute: 'Username',
             LoginButtonText: loginButtonText,
         },
-        ExperimentalSettings: {
-            UseNewSAMLLibrary: false,
-        },
         GuestAccountsSettings: {
             Enable: true,
         },
