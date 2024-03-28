@@ -245,6 +245,21 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+	// Parse all hashtags in both the text & pretext of the post attachments then add them to `post.Hashtags`
+	if attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment); ok {
+		for _, attachment := range attachments {
+			textHashtags, _ := model.ParseHashtags(attachment.Text)
+			pretextHashtags, _ := model.ParseHashtags(attachment.Pretext)
+			if textHashtags != "" {
+				post.Hashtags = fmt.Sprint(post.Hashtags, " ", textHashtags)
+			}
+			if pretextHashtags != "" {
+				post.Hashtags = fmt.Sprint(post.Hashtags, " ", pretextHashtags)
+			}
+		}
+		post.Hashtags = strings.TrimSpace(post.Hashtags)
+	}
+
 	if err = a.FillInPostProps(c, post, channel); err != nil {
 		return nil, err
 	}
