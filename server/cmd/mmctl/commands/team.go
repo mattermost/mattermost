@@ -348,18 +348,21 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
-			errText := "Unable to find team '" + args[i] + "'"
-			printer.PrintError(errText)
-			errs = multierror.Append(errs, errors.New(errText))
+			errs = multierror.Append(errs, errors.New("Unable to find team '"+args[i]+"'"))
 			continue
 		}
-		if updatedTeam, _, err := c.UpdateTeamPrivacy(context.TODO(), team.Id, privacy); err != nil {
-			errText := "Unable to modify team '" + team.Name + "' error: " + err.Error()
-			printer.PrintError(errText)
-			errs = multierror.Append(errs, errors.New(errText))
-		} else {
-			printer.PrintT("Modified team '{{.Name}}'", updatedTeam)
+
+		updatedTeam, _, err := c.UpdateTeamPrivacy(context.TODO(), team.Id, privacy)
+		if err != nil {
+			errs = multierror.Append(errs, errors.New("Unable to modify team '"+team.Name+"' error: "+err.Error()))
+			continue
 		}
+
+		printer.PrintT("Modified team '{{.Name}}'", updatedTeam)
+	}
+
+	for _, err := range errs.WrappedErrors() {
+		printer.PrintError(err.Error())
 	}
 
 	return errs.ErrorOrNil()
