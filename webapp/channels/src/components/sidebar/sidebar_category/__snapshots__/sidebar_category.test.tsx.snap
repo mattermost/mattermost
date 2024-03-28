@@ -24,6 +24,21 @@ exports[`components/sidebar/sidebar_category should match snapshot 2`] = `
 <div
   className=""
 >
+  <div
+    aria-atomic="true"
+    aria-live="polite"
+    className="sr-only"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="{count, number} {count, plural, one {channel} other {channels}}"
+      id="sidebar_left.sidebar_channel_menu.channel_count_aria_live"
+      values={
+        Object {
+          "count": 1,
+        }
+      }
+    />
+  </div>
   <SidebarCategoryHeader
     displayName="custom_category_1"
     isCollapsed={false}
@@ -55,6 +70,7 @@ exports[`components/sidebar/sidebar_category should match snapshot 2`] = `
     className="SidebarChannelGroup_content"
   >
     <ul
+      aria-label="custom_category_1"
       className="NavGroupContent"
       role="list"
     >
@@ -97,6 +113,11 @@ exports[`components/sidebar/sidebar_category should match snapshot when collapse
 <div
   className=""
 >
+  <div
+    aria-atomic="true"
+    aria-live="polite"
+    className="sr-only"
+  />
   <SidebarCategoryHeader
     displayName="custom_category_1"
     isCollapsed={true}
@@ -128,6 +149,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when collapse
     className="SidebarChannelGroup_content"
   >
     <ul
+      aria-label="custom_category_1"
       className="NavGroupContent"
       role="list"
     >
@@ -170,6 +192,21 @@ exports[`components/sidebar/sidebar_category should match snapshot when isNewCat
 <div
   className=""
 >
+  <div
+    aria-atomic="true"
+    aria-live="polite"
+    className="sr-only"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="{count, number} {count, plural, one {channel} other {channels}}"
+      id="sidebar_left.sidebar_channel_menu.channel_count_aria_live"
+      values={
+        Object {
+          "count": 0,
+        }
+      }
+    />
+  </div>
   <SidebarCategoryHeader
     displayName="custom_category_1"
     isCollapsed={false}
@@ -207,6 +244,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when isNewCat
     className="SidebarChannelGroup_content"
   >
     <ul
+      aria-label="custom_category_1"
       className="NavGroupContent"
       role="list"
     >
@@ -270,6 +308,21 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
 <div
   className=""
 >
+  <div
+    aria-atomic="true"
+    aria-live="polite"
+    className="sr-only"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="{count, number} {count, plural, one {channel} other {channels}}"
+      id="sidebar_left.sidebar_channel_menu.channel_count_aria_live"
+      values={
+        Object {
+          "count": 1,
+        }
+      }
+    />
+  </div>
   <SidebarCategoryHeader
     displayName="custom_category_1"
     isCollapsed={false}
@@ -347,6 +400,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
     className="SidebarChannelGroup_content"
   >
     <ul
+      aria-label="custom_category_1"
       className="NavGroupContent"
       role="list"
     >
@@ -393,6 +447,21 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
 <div
   className=""
 >
+  <div
+    aria-atomic="true"
+    aria-live="polite"
+    className="sr-only"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="{count, number} {count, plural, one {channel} other {channels}}"
+      id="sidebar_left.sidebar_channel_menu.channel_count_aria_live"
+      values={
+        Object {
+          "count": 1,
+        }
+      }
+    />
+  </div>
   <SidebarCategoryHeader
     displayName="custom_category_1"
     isCollapsed={false}
@@ -470,6 +539,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
     className="SidebarChannelGroup_content"
   >
     <ul
+      aria-label="custom_category_1"
       className="NavGroupContent"
       role="list"
     />

@@ -22,9 +22,8 @@ import KeyboardShortcutSequence, {
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
-import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates} from 'utils/constants';
+import {DraggingStateTypes, DraggingStates} from 'utils/constants';
 import {t} from 'utils/i18n';
-import {isKeyPressed} from 'utils/keyboard';
 
 import type {DraggingState} from 'types/store';
 
@@ -81,38 +80,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
             this.newDropBoxRef.current.classList.add('animating');
         }
     }
-
-    componentDidMount() {
-        this.categoryTitleRef.current?.addEventListener(A11yCustomEventTypes.ACTIVATE, this.handleA11yActivateEvent);
-        this.categoryTitleRef.current?.addEventListener(A11yCustomEventTypes.DEACTIVATE, this.handleA11yDeactivateEvent);
-    }
-
-    componentWillUnmount() {
-        this.categoryTitleRef.current?.removeEventListener(A11yCustomEventTypes.ACTIVATE, this.handleA11yActivateEvent);
-        this.categoryTitleRef.current?.removeEventListener(A11yCustomEventTypes.DEACTIVATE, this.handleA11yDeactivateEvent);
-
-        if (this.a11yKeyDownRegistered) {
-            this.handleA11yDeactivateEvent();
-        }
-    }
-
-    handleA11yActivateEvent = () => {
-        this.categoryTitleRef.current?.addEventListener('keydown', this.handleA11yKeyDown);
-
-        this.a11yKeyDownRegistered = true;
-    };
-
-    handleA11yDeactivateEvent = () => {
-        this.categoryTitleRef.current?.removeEventListener('keydown', this.handleA11yKeyDown);
-
-        this.a11yKeyDownRegistered = false;
-    };
-
-    handleA11yKeyDown = (e: KeyboardEvent<HTMLButtonElement>['nativeEvent']) => {
-        if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
-            this.handleCollapse();
-        }
-    };
 
     renderChannel = (channelId: string, index: number) => {
         const {setChannelRef, category, draggingState} = this.props;
@@ -368,6 +335,19 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                                 draggingOver: droppableSnapshot.isDraggingOver,
                                             })}
                                         >
+                                            <div
+                                                className='sr-only'
+                                                aria-live='polite'
+                                                aria-atomic='true'
+                                            >
+                                                {(!category.collapsed) && (
+                                                    <FormattedMessage
+                                                        id='sidebar_left.sidebar_channel_menu.channel_count_aria_live'
+                                                        defaultMessage='{count, number} {count, plural, one {channel} other {channels}}'
+                                                        values={{count: category.channel_ids.length}}
+                                                    />
+                                                )}
+                                            </div>
                                             <SidebarCategoryHeader
                                                 ref={this.categoryTitleRef}
                                                 displayName={displayName}
@@ -389,6 +369,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                                 <ul
                                                     role='list'
                                                     className='NavGroupContent'
+                                                    aria-label={displayName}
                                                 >
                                                     {this.renderNewDropBox(droppableSnapshot.isDraggingOver)}
                                                     {renderedChannels}
