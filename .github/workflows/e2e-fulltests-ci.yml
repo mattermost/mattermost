@@ -40,7 +40,6 @@ jobs:
       BRANCH: "${{ steps.resolve-ref.outputs.BRANCH }}"
     steps:
       - name: ci/checkout-repo
-        if: '${{ inputs.PR_NUMBER == "" }}'
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: "${{ inputs.ref || github.sha }}"
