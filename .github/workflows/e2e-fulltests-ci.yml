@@ -84,7 +84,7 @@ jobs:
         id: generate
         run: |
           COMMIT_SHA="${{needs.resolve-ref.outputs.commit_sha}}"
-          # BUILD_ID format: $pipelineID-$imageTag-$buildSuffix-$serverEdition
+          # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
           # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
           BUILD_ID_PREFIX="${{ github.run_id }}_${{ github.run_attempt }}-${COMMIT_SHA::7}"
           case "${{ inputs.REPORT_TYPE }}" in
@@ -93,7 +93,7 @@ jobs:
               echo "workers_number=20" >> $GITHUB_OUTPUT
               echo "ENABLED_DOCKER_SERVICES=postgres inbucket minio openldap elasticsearch keycloak" >> $GITHUB_OUTPUT
               echo "TEST_FILTER=$TEST_FILTER_PR" >> $GITHUB_OUTPUT
-              echo "BUILD_ID=${BUILD_ID_PREFIX}-onprem-ent" >> $GITHUB_OUTPUT
+              echo "BUILD_ID=${BUILD_ID_PREFIX}-pr-onprem-ent" >> $GITHUB_OUTPUT
               ;;
             *)
               # TODO implement other test types, in the future

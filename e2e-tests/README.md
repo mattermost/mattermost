@@ -29,6 +29,7 @@ Instructions, detailed:
   * The `TEST_FILTER` variable can also be set, to customize which tests you want cypress to run. If not specified, only the smoke tests will run. Please check the `e2e-tests/cypress/run_tests.js` file for details about its format.
 2. (optional) `make start-dashboard && make generate-test-cycle`: start the automation-dashboard in the background, and initiate a test cycle on it, for the given `BUILD_ID`
   * NB: the `BUILD_ID` value should stay the same across the `make generate-test-cycle` command, and the subsequent `make` (see next step). If you need to initiate a new test cycle on the same dashboard, you'll need to change the `BUILD_ID` value and rerun both `make generate-test-cycle` and `make`.
+  * Note that part of the dashboard functionality assumes the `BUILD_ID` to have a certain format (see [here](https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23) for details). This is not relevant for local running, but it's important to note in the testing pipelines.
   * This also automatically sets the `AUTOMATION_DASHBOARD_URL` and `AUTOMATION_DASHBOARD_TOKEN` variables for the cypress container
   * Note that if you run the dashboard locally, but also specify other `AUTOMATION_DASHBOARD_*` variables in your `.ci/env` file, the latter variables will take precedence.
   * The dashboard is used for orchestrating specs with parallel test run and is typically used in CI.
