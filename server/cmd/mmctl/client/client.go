@@ -63,6 +63,7 @@ type Client interface {
 	GetUser(ctx context.Context, userID, etag string) (*model.User, *model.Response, error)
 	GetUserByUsername(ctx context.Context, userName, etag string) (*model.User, *model.Response, error)
 	GetUserByEmail(ctx context.Context, email, etag string) (*model.User, *model.Response, error)
+	GetUsersWithCustomQueryParameters(ctx context.Context, page int, perPage int, queryParameters, etag string) ([]*model.User, *model.Response, error)
 	PermanentDeleteUser(ctx context.Context, userID string) (*model.Response, error)
 	PermanentDeleteAllUsers(ctx context.Context) (*model.Response, error)
 	CreateUser(ctx context.Context, user *model.User) (*model.User, *model.Response, error)

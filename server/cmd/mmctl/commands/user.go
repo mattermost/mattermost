@@ -32,8 +32,9 @@ var UserActivateCmd = &cobra.Command{
 	Long:  "Activate users that have been deactivated.",
 	Example: `  user activate user@example.com
   user activate username`,
-	RunE: withClient(userActivateCmdF),
-	Args: cobra.MinimumNArgs(1),
+	ValidArgsFunction: validateArgsWithClient(userActivateCompletionF),
+	Args:              cobra.MinimumNArgs(1),
+	RunE:              withClient(userActivateCmdF),
 }
 
 var UserDeactivateCmd = &cobra.Command{
@@ -42,8 +43,9 @@ var UserDeactivateCmd = &cobra.Command{
 	Long:  "Deactivate users. Deactivated users are immediately logged out of all sessions and are unable to log back in.",
 	Example: `  user deactivate user@example.com
   user deactivate username`,
-	RunE: withClient(userDeactivateCmdF),
-	Args: cobra.MinimumNArgs(1),
+	ValidArgsFunction: validateArgsWithClient(userDeactivateCompletionF),
+	Args:              cobra.MinimumNArgs(1),
+	RunE:              withClient(userDeactivateCmdF),
 }
 
 var UserCreateCmd = &cobra.Command{
@@ -427,6 +429,15 @@ func userActivateCmdF(c client.Client, command *cobra.Command, args []string) er
 	return changeUsersActiveStatus(c, args, true)
 }
 
+func userActivateCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return fetchAndComplete(
+		func(ctx context.Context, c client.Client, page, perPage int) ([]*model.User, *model.Response, error) {
+			return c.GetUsersWithCustomQueryParameters(ctx, page, perPage, "inactive=true", "")
+		},
+		func(u *model.User) []string { return []string{u.Id, u.Username, u.Email} },
+	)(ctx, c, cmd, args, toComplete)
+}
+
 func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) error {
 	var multiErr *multierror.Error
 	users, err := getUsersFromArgs(c, userArgs)
@@ -456,6 +467,15 @@ func changeUserActiveStatus(c client.Client, user *model.User, activate bool) er
 
 func userDeactivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return changeUsersActiveStatus(c, args, false)
+}
+
+func userDeactivateCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return fetchAndComplete(
+		func(ctx context.Context, c client.Client, page, perPage int) ([]*model.User, *model.Response, error) {
+			return c.GetUsersWithCustomQueryParameters(ctx, page, perPage, "active=true", "")
+		},
+		func(u *model.User) []string { return []string{u.Id, u.Username, u.Email} },
+	)(ctx, c, cmd, args, toComplete)
 }
 
 func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
