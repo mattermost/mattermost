@@ -26,6 +26,23 @@ func (a *App) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (re
 		}
 	}
 
+	var rcPing *model.RemoteCluster
+	defer func() {
+		// Always ping a remote/plugin on registration.
+		if rcPing == nil {
+			return
+		}
+		rcService, err := a.GetRemoteClusterService()
+		if err != nil {
+			a.Log().Debug("Cannot get service for ping on registration",
+				mlog.String("plugin_id", opts.PluginID),
+				mlog.Err(err),
+			)
+			return
+		}
+		rcService.PingNow(rcPing)
+	}()
+
 	// if plugin is already registered then treat this as an update.
 	if rc != nil {
 		a.Log().Debug("Plugin already registered for Shared Channels",
@@ -39,6 +56,7 @@ func (a *App) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (re
 		if _, err = a.Srv().Store().RemoteCluster().Update(rc); err != nil {
 			return "", err
 		}
+		rcPing = rc
 		return rc.RemoteId, nil
 	}
 
@@ -56,6 +74,7 @@ func (a *App) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (re
 	if err != nil {
 		return "", err
 	}
+	rcPing = rcSaved
 
 	a.Log().Debug("Registered new plugin for Shared Channels",
 		mlog.String("plugin_id", opts.PluginID),
