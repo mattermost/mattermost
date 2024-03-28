@@ -68,7 +68,7 @@ func (a *App) GenerateSupportPacket(c request.CTX) []model.FileData {
 }
 
 func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) {
-	var rErr error
+	var rErr *multierror.Error
 
 	/* DB */
 
@@ -141,7 +141,7 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		monthlyActiveUsers   int
 		inactiveUserCount    int
 	)
-	analytics, appErr := a.GetAnalytics(c, "standard", "")
+	analytics, appErr := a.GetAnalyticsForSupportPacket(c)
 	if appErr != nil {
 		rErr = multierror.Append(errors.Wrap(appErr, "error while getting analytics"))
 	}
@@ -255,7 +255,7 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		Filename: "support_packet.yaml",
 		Body:     supportPacketYaml,
 	}
-	return fileData, rErr
+	return fileData, rErr.ErrorOrNil()
 }
 
 func (a *App) createPluginsFile(_ request.CTX) (*model.FileData, error) {

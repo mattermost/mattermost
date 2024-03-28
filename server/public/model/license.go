@@ -398,8 +398,13 @@ func (l *License) HasSharedChannels() bool {
 func NewTestLicense(features ...string) *License {
 	ret := &License{
 		ExpiresAt: GetMillis() + 90*DayInMilliseconds,
-		Customer:  &Customer{},
-		Features:  &Features{},
+		Customer: &Customer{
+			Id:      "some ID",
+			Email:   "admin@example.com",
+			Name:    "Main Contact Person",
+			Company: "My awesome Company",
+		},
+		Features: &Features{},
 	}
 	ret.Features.SetDefaults()
 
