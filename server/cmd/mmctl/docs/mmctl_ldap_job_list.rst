@@ -1,22 +1,36 @@
-.. _mmctl_ldap:
+.. _mmctl_ldap_job_list:
 
-mmctl ldap
-----------
+mmctl ldap job list
+-------------------
 
-LDAP related utilities
+List LDAP sync jobs
 
 Synopsis
 ~~~~~~~~
 
 
-LDAP related utilities
+List LDAP sync jobs
+
+::
+
+  mmctl ldap job list [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    ldap job list
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for ldap
+      --all            Fetch all import jobs. --page flag will be ignore if provided
+  -h, --help           help for list
+      --page int       Page number to fetch for the list of import jobs
+      --per-page int   Number of import jobs to be fetched (default 200)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,8 +50,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl ldap idmigrate <mmctl_ldap_idmigrate.rst>`_ 	 - Migrate LDAP IdAttribute to new value
 * `mmctl ldap job <mmctl_ldap_job.rst>`_ 	 - List and show LDAP sync jobs
-* `mmctl ldap sync <mmctl_ldap_sync.rst>`_ 	 - Synchronize now
 

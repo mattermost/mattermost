@@ -1,22 +1,22 @@
-.. _mmctl_ldap:
+.. _mmctl_ldap_job:
 
-mmctl ldap
-----------
+mmctl ldap job
+--------------
 
-LDAP related utilities
+List and show LDAP sync jobs
 
 Synopsis
 ~~~~~~~~
 
 
-LDAP related utilities
+List and show LDAP sync jobs
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for ldap
+  -h, --help   help for job
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,8 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl ldap idmigrate <mmctl_ldap_idmigrate.rst>`_ 	 - Migrate LDAP IdAttribute to new value
-* `mmctl ldap job <mmctl_ldap_job.rst>`_ 	 - List and show LDAP sync jobs
-* `mmctl ldap sync <mmctl_ldap_sync.rst>`_ 	 - Synchronize now
+* `mmctl ldap <mmctl_ldap.rst>`_ 	 - LDAP related utilities
+* `mmctl ldap job list <mmctl_ldap_job_list.rst>`_ 	 - List LDAP sync jobs
+* `mmctl ldap job show <mmctl_ldap_job_show.rst>`_ 	 - Show LDAP sync job
 
