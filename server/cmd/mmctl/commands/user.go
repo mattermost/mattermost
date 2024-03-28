@@ -317,7 +317,9 @@ func init() {
 	ListUsersCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
 	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
+	ListUsersCmd.Flags().Bool("roles", false, "Display the roles held by each user")
 	ListUsersCmd.Flags().String("team", "", "If supplied, only users belonging to this team will be listed")
+	ListUsersCmd.Flags().String("role", "", "If supplied, only users who have this role will be listed")
 
 	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots")
 	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user")
@@ -791,9 +793,21 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	if err != nil {
 		return err
 	}
+	roles, err := command.Flags().GetBool("roles")
+	if err != nil {
+		return err
+	}
 	teamName, err := command.Flags().GetString("team")
 	if err != nil {
 		return err
+	}
+	role, err := command.Flags().GetString("role")
+	if err != nil {
+		return err
+	}
+
+	if role != "" && teamName != "" {
+		return fmt.Errorf("role and team flag should not both be provided")
 	}
 
 	if showAll {
@@ -810,6 +824,9 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	}
 
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
+	if roles {
+		tpl += ` {{.Roles}}`
+	}
 	for {
 		var users []*model.User
 		var err error
@@ -817,6 +834,11 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 			users, _, err = c.GetUsersInTeam(context.TODO(), team.Id, page, perPage, "")
 			if err != nil {
 				return errors.Wrap(err, fmt.Sprintf("Failed to fetch users for team %s", teamName))
+			}
+		} else if role != "" {
+			users, _, err = c.GetUsersByRole(context.TODO(), page, perPage, role, "")
+			if err != nil {
+				return errors.Wrap(err, fmt.Sprintf("Failed to fetch user for role %s", role))
 			}
 		} else {
 			users, _, err = c.GetUsers(context.TODO(), page, perPage, "")
