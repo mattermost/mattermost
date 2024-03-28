@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path"
 	"reflect"
 	"runtime"
@@ -129,7 +130,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	reqs := c.App.Config().ClientRequirements
 
-	s := make(map[string]string)
+	s := make(map[string]interface{})
 	s[model.STATUS] = model.StatusOk
 	s["AndroidLatestVersion"] = reqs.AndroidLatestVersion
 	s["AndroidMinVersion"] = reqs.AndroidMinVersion
@@ -181,9 +182,9 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 			s[model.STATUS] = model.StatusUnhealthy
 		}
 
-		w.Header().Set(model.STATUS, s[model.STATUS])
-		w.Header().Set(dbStatusKey, s[dbStatusKey])
-		w.Header().Set(filestoreStatusKey, s[filestoreStatusKey])
+		w.Header().Set(model.STATUS, s[model.STATUS].(string))
+		w.Header().Set(dbStatusKey, s[dbStatusKey].(string))
+		w.Header().Set(filestoreStatusKey, s[filestoreStatusKey].(string))
 	}
 
 	if deviceID := r.FormValue("device_id"); deviceID != "" {
@@ -192,10 +193,14 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	s["ActiveSearchBackend"] = c.App.ActiveSearchBackend()
 
+	// Checking if mattermost is running as root
+	s["root_status"] = os.Geteuid() == 0
+
 	if s[model.STATUS] != model.StatusOk && r.FormValue("use_rest_semantics") != "true" {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-	w.Write([]byte(model.MapToJSON(s)))
+
+	w.Write(model.ToJSON(s))
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
