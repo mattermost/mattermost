@@ -576,7 +576,7 @@ func (a *App) UploadFileForUserAndTeam(c request.CTX, data []byte, channelID str
 		teamId = "noteam"
 	}
 
-	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), teamId, channelID, userId, filename, data)
+	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), teamId, channelID, userId, filename, data, true)
 	if appError != nil {
 		return nil, appError
 	}
@@ -592,8 +592,8 @@ func (a *App) UploadFileForUserAndTeam(c request.CTX, data []byte, channelID str
 	return info, nil
 }
 
-func (a *App) DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
-	info, _, err := a.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+func (a *App) DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, *model.AppError) {
+	info, _, err := a.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data, extractContent)
 	return info, err
 }
 
@@ -985,7 +985,7 @@ func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...any) *mo
 	return model.NewAppError("uploadFileTask", id, params, "", httpStatus)
 }
 
-func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
+func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, []byte, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 	teamID := filepath.Base(rawTeamId)
 	channelID := filepath.Base(rawChannelId)
@@ -1063,7 +1063,10 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent {
+	// The extra boolean extractContent is used to turn off extraction
+	// during the import process. It is unnecessary overhead during the import,
+	// and something we can do without.
+	if *a.Config().FileSettings.ExtractContent && extractContent {
 		infoCopy := *info
 		a.Srv().GoBuffered(func() {
 			err := a.ExtractContentFromFileInfo(c, &infoCopy)
