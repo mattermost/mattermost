@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"slices"
 	"testing"
 	"time"
 
@@ -419,7 +420,7 @@ func TestSessionsLimit(t *testing.T) {
 	require.Equal(t, maxSessionsLimit, len(gotSessions), "should have maxSessionsLimit number of sessions")
 
 	// Ensure we are retrieving the same sessions.
-	reverse(gotSessions)
+	slices.Reverse(gotSessions)
 	for i, sess := range gotSessions {
 		require.Equal(t, sessions[i].Id, sess.Id)
 	}
@@ -440,15 +441,8 @@ func TestSessionsLimit(t *testing.T) {
 	require.Equal(t, maxSessionsLimit, len(gotSessions), "should have maxSessionsLimit number of sessions")
 
 	// Ensure the the oldest sessions were removed first.
-	reverse(gotSessions)
+	slices.Reverse(gotSessions)
 	for i, sess := range gotSessions {
 		require.Equal(t, sessions[i].Id, sess.Id)
-	}
-}
-
-// reverse can be replaced by the slices version when we move to 1.21+
-func reverse[S ~[]E, E any](s S) {
-	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
-		s[i], s[j] = s[j], s[i]
 	}
 }

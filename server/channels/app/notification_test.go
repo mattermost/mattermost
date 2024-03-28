@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 	"time"
 
@@ -17,7 +18,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -56,7 +56,7 @@ func TestSendNotifications(t *testing.T) {
 		mentions, err := th.App.SendNotifications(th.Context, post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 		require.NoError(t, err)
 		require.NotNil(t, mentions)
-		require.True(t, pUtils.Contains(mentions, th.BasicUser2.Id), "mentions", mentions)
+		require.True(t, slices.Contains(mentions, th.BasicUser2.Id), "mentions", mentions)
 	})
 
 	t.Run("license is required for group mention", func(t *testing.T) {
@@ -197,7 +197,7 @@ func TestSendNotifications(t *testing.T) {
 			}
 			mentions, err := th.App.SendNotifications(th.Context, childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
 			require.NoError(t, err)
-			require.False(t, pUtils.Contains(mentions, user.Id))
+			require.False(t, slices.Contains(mentions, user.Id))
 		}
 
 		var appErr *model.AppError
@@ -2831,7 +2831,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		}
 		mentions, err := th.App.SendNotifications(th.Context, childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
 		require.NoError(t, err)
-		assert.False(t, pUtils.Contains(mentions, user.Id))
+		assert.False(t, slices.Contains(mentions, user.Id))
 
 		membership, err := th.App.GetThreadMembershipForUser(user.Id, rootPost.Id)
 		assert.Error(t, err)

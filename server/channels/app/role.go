@@ -9,10 +9,10 @@ import (
 	"errors"
 	"net/http"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -189,13 +189,13 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 
 	builtInRolesMinusChannelRoles := append(utils.RemoveStringsFromSlice(model.BuiltInSchemeManagedRoleIDs, builtInChannelRoles...), model.NewSystemRoleIDs...)
 
-	if pUtils.Contains(builtInRolesMinusChannelRoles, savedRole.Name) {
+	if slices.Contains(builtInRolesMinusChannelRoles, savedRole.Name) {
 		return savedRole, nil
 	}
 
 	var roleRetrievalFunc func() ([]*model.Role, *model.AppError)
 
-	if pUtils.Contains(builtInChannelRoles, savedRole.Name) {
+	if slices.Contains(builtInChannelRoles, savedRole.Name) {
 		roleRetrievalFunc = func() ([]*model.Role, *model.AppError) {
 			roles, nErr := a.Srv().Store().Role().AllChannelSchemeRoles()
 			if nErr != nil {

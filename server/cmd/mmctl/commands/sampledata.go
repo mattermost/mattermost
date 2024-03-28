@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"time"
 
@@ -360,7 +361,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !pUtils.Contains(users, user) {
+			if !slices.Contains(users, user) {
 				users = append(users, user)
 			}
 		}
@@ -375,7 +376,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !pUtils.Contains(users, user) {
+			if !slices.Contains(users, user) {
 				users = append(users, user)
 			}
 		}
