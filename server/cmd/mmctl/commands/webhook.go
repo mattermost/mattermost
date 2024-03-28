@@ -92,7 +92,9 @@ func listWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 	if len(args) < 1 {
 		var err error
 		// If no team is specified, list all teams
-		teams, _, err = c.GetAllTeams(context.TODO(), "", 0, 100000000)
+		teams, err = getPages(func(page, numPerPage int, etag string) ([]*model.Team, *model.Response, error) {
+			return c.GetAllTeams(context.TODO(), etag, page, numPerPage)
+		}, DefaultPageSize)
 		if err != nil {
 			return err
 		}

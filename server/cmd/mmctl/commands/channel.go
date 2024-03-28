@@ -497,7 +497,9 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 			return errors.Errorf("channel %s was not found in team %s", args[0], teamArg)
 		}
 	} else {
-		teams, _, err := c.GetAllTeams(context.TODO(), "", 0, 9999)
+		teams, err := getPages(func(page, numPerPage int, etag string) ([]*model.Team, *model.Response, error) {
+			return c.GetAllTeams(context.TODO(), etag, page, numPerPage)
+		}, DefaultPageSize)
 		if err != nil {
 			return err
 		}
