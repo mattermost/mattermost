@@ -4,12 +4,12 @@
 package filestore
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
@@ -116,15 +116,36 @@ func TestTimeout(t *testing.T) {
 		AmazonS3RequestTimeoutMilliseconds: 0,
 	}
 
-	fileBackend, err := NewS3FileBackend(cfg)
-	require.NoError(t, err)
+	t.Run("MakeBucket", func(t *testing.T) {
+		fileBackend, err := NewS3FileBackend(cfg)
+		require.NoError(t, err)
 
-	err = fileBackend.MakeBucket()
-	require.True(t, errors.Is(err, context.DeadlineExceeded))
+		err = fileBackend.MakeBucket()
+		require.True(t, errors.Is(err, context.DeadlineExceeded))
+	})
 
-	path := "tests/" + randomString() + ".png"
-	_, err = fileBackend.WriteFile(bytes.NewReader([]byte("testimage")), path)
-	require.True(t, errors.Is(err, context.DeadlineExceeded))
+	t.Run("WriteFile", func(t *testing.T) {
+		cfg.AmazonS3RequestTimeoutMilliseconds = 1000
+
+		fileBackend, err := NewS3FileBackend(cfg)
+		require.NoError(t, err)
+
+		err = fileBackend.MakeBucket()
+		require.NoError(t, err)
+
+		r, w := io.Pipe()
+		go func() {
+			defer w.Close()
+			for i := 0; i < 10; i++ {
+				_, writeErr := w.Write([]byte("data"))
+				require.NoError(t, writeErr)
+				time.Sleep(time.Millisecond * 200)
+			}
+		}()
+
+		_, err = fileBackend.WriteFile(r, "tests/"+randomString()+".png")
+		require.True(t, errors.Is(err, context.DeadlineExceeded))
+	})
 }
 
 func TestInsecureMakeBucket(t *testing.T) {

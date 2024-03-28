@@ -42,6 +42,7 @@ type S3FileBackend struct {
 	timeout        time.Duration
 	presignExpires time.Duration
 	isCloud        bool // field to indicate whether this is running under Mattermost cloud or not.
+	uploadPartSize int64
 }
 
 type S3FileBackendAuthError struct {
@@ -114,6 +115,7 @@ func newS3FileBackend(settings FileBackendSettings, isCloud bool) (*S3FileBacken
 		skipVerify:     settings.SkipVerify,
 		timeout:        timeout,
 		presignExpires: time.Duration(settings.AmazonS3PresignExpiresSeconds) * time.Second,
+		uploadPartSize: settings.AmazonS3UploadPartSizeBytes,
 	}
 	cli, err := backend.s3New(isCloud)
 	if err != nil {
@@ -497,7 +499,7 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 		contentType = "binary/octet-stream"
 	}
 
-	options := s3PutOptions(b.encrypt, contentType)
+	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize)
 
 	objSize := int64(-1)
 	if b.isCloud {
@@ -541,7 +543,7 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 		contentType = "binary/octet-stream"
 	}
 
-	options := s3PutOptions(b.encrypt, contentType)
+	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize)
 	sse := options.ServerSideEncryption
 	partName := fp + ".part"
 	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
@@ -745,15 +747,13 @@ func (b *S3FileBackend) prefixedPath(s string) (string, error) {
 	return filepath.Join(b.pathPrefix, s), nil
 }
 
-func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
+func s3PutOptions(encrypted bool, contentType string, uploadPartSize int64) s3.PutObjectOptions {
 	options := s3.PutObjectOptions{}
 	if encrypted {
 		options.ServerSideEncryption = encrypt.NewSSE()
 	}
 	options.ContentType = contentType
-	// We set the part size to the minimum allowed value of 5MBs
-	// to avoid an excessive allocation in minio.PutObject implementation.
-	options.PartSize = 1024 * 1024 * 5
+	options.PartSize = uint64(uploadPartSize)
 
 	return options
 }
