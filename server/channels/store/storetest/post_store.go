@@ -5005,14 +5005,14 @@ func testGetPostReminderMetadata(t *testing.T, rctx request.CTX, ss store.Store,
 
 	meta, err := ss.Post().GetPostReminderMetadata(p1.Id)
 	require.NoError(t, err)
-	assert.Equal(t, meta.ChannelId, ch.Id)
+	assert.Equal(t, meta.ChannelID, ch.Id)
 	assert.Equal(t, meta.TeamName, team.Name)
 	assert.Equal(t, meta.Username, u1.Username)
 	assert.Equal(t, meta.UserLocale, u1.Locale)
 
 	meta, err = ss.Post().GetPostReminderMetadata(p2.Id)
 	require.NoError(t, err)
-	assert.Equal(t, meta.ChannelId, ch2.Id)
+	assert.Equal(t, meta.ChannelID, ch2.Id)
 	assert.Equal(t, meta.TeamName, "")
 	assert.Equal(t, meta.Username, u1.Username)
 	assert.Equal(t, meta.UserLocale, u1.Locale)
