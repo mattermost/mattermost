@@ -993,6 +993,10 @@ func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId stri
 	return api.app.RolesGrantPermission(roleNames, permissionId)
 }
 
+func (api *PluginAPI) UpdateUserRoles(userID string, newRoles string) (*model.User, *model.AppError) {
+	return api.app.UpdateUserRoles(api.ctx, userID, newRoles, true)
+}
+
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...any) {
 	api.logger.Debugw(msg, keyValuePairs...)
 }

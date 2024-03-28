@@ -6535,3 +6535,33 @@ func (s *apiRPCServer) UninviteRemoteFromChannel(args *Z_UninviteRemoteFromChann
 	}
 	return nil
 }
+
+type Z_UpdateUserRolesArgs struct {
+	A string
+	B string
+}
+
+type Z_UpdateUserRolesReturns struct {
+	A *model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError) {
+	_args := &Z_UpdateUserRolesArgs{userID, newRoles}
+	_returns := &Z_UpdateUserRolesReturns{}
+	if err := g.client.Call("Plugin.UpdateUserRoles", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateUserRoles API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdateUserRoles(args *Z_UpdateUserRolesArgs, returns *Z_UpdateUserRolesReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdateUserRoles(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateUserRoles called but not implemented."))
+	}
+	return nil
+}
