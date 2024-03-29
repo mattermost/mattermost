@@ -118,6 +118,9 @@ type ensureBotOptions struct {
 
 type EnsureBotOption func(*ensureBotOptions)
 
+// ProfileImagePath configures EnsureBot to set a profile image from the given path.
+//
+// Using this option overrides any previously set ProfileImageBytes option.
 func ProfileImagePath(path string) EnsureBotOption {
 	return func(args *ensureBotOptions) {
 		args.ProfileImagePath = path
@@ -125,6 +128,9 @@ func ProfileImagePath(path string) EnsureBotOption {
 	}
 }
 
+// ProfileImageBytes configures EnsureBot to set a profile image from the given bytes.
+//
+// Using this option overrides any previously set ProfileImagePath option.
 func ProfileImageBytes(bytes []byte) EnsureBotOption {
 	return func(args *ensureBotOptions) {
 		args.ProfileImageBytes = bytes
