@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {logError} from 'mattermost-redux/actions/errors';
-import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannel, getMyChannelMember, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
@@ -67,14 +66,6 @@ export function sendDesktopNotification(post, msgProps) {
 
         if (isSystemMessage(post) && !isUserAddedInChannel(post, currentUserId)) {
             return;
-        }
-
-        let userFromPost = getUser(state, post.user_id);
-        if (!userFromPost) {
-            const missingProfileResponse = await dispatch(getProfilesByIds([post.user_id]));
-            if (missingProfileResponse.data && missingProfileResponse.data.length) {
-                userFromPost = missingProfileResponse.data[0];
-            }
         }
 
         let mentions = [];
@@ -196,11 +187,15 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         const config = getConfig(state);
+        const userFromPost = getUser(state, post.user_id);
+
         let username = '';
         if (post.props.override_username && config.EnablePostUsernameOverride === 'true') {
             username = post.props.override_username;
         } else if (userFromPost) {
             username = displayUsername(userFromPost, getTeammateNameDisplaySetting(state), false);
+        } else if (msgProps.sender_name) {
+            username = msgProps.sender_name;
         } else {
             username = Utils.localizeMessage('channel_loader.someone', 'Someone');
         }
@@ -232,6 +227,7 @@ export function sendDesktopNotification(post, msgProps) {
 
         let notifyText = post.message;
 
+        // TODO: Why are we again parsing the post props? Can we not use the post directly?
         const msgPropsPost = JSON.parse(msgProps.post);
         const attachments = msgPropsPost && msgPropsPost.props && msgPropsPost.props.attachments ? msgPropsPost.props.attachments : [];
         let image = false;

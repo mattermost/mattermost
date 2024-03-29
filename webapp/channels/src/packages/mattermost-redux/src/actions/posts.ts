@@ -1058,21 +1058,11 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
 
     const promises: any[] = [];
     if (userIdsToLoad.size > 0) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        if (window.loadStatusesAndProfiles === true) {
-            console.log('getMentionsAndStatusesForPosts - userIdsToLoad', userIdsToLoad);
-            promises.push(dispatch(getProfilesByIds(Array.from(userIdsToLoad))));
-        }
+        promises.push(dispatch(getProfilesByIds(Array.from(userIdsToLoad))));
     }
 
     if (statusesToLoad.size > 0 && enabledUserStatuses) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        if (window.loadStatusesAndProfiles === true) {
-            console.log('getMentionsAndStatusesForPosts - statusesToLoad', statusesToLoad);
-            promises.push(dispatch(getStatusesByIds(Array.from(statusesToLoad))));
-        }
+        promises.push(dispatch(getStatusesByIds(Array.from(statusesToLoad))));
     }
 
     // Profiles of users mentioned in the posts
