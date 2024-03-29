@@ -369,18 +369,24 @@ func unarchiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 		return errors.New("enter at least one channel")
 	}
 
+	var errs *multierror.Error
+
 	channels := getChannelsFromChannelArgs(c, args)
 	for i, channel := range channels {
 		if channel == nil {
-			printer.PrintError("Unable to find channel '" + args[i] + "'")
+			errs = multierror.Append(errs, errors.New("Unable to find channel '"+args[i]+"'"))
 			continue
 		}
 		if _, _, err := c.RestoreChannel(context.TODO(), channel.Id); err != nil {
-			printer.PrintError("Unable to unarchive channel '" + args[i] + "'. Error: " + err.Error())
+			errs = multierror.Append(errs, errors.New("Unable to unarchive channel '"+args[i]+"'. Error: "+err.Error()))
 		}
 	}
 
-	return nil
+	for _, err := range errs.WrappedErrors() {
+		printer.PrintError(err.Error())
+	}
+
+	return errs.ErrorOrNil()
 }
 
 func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
