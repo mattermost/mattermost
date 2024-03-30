@@ -117,7 +117,6 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 		} else {
 			body = strings.NewReader(payload.ToFormValues())
 		}
-		
 		wg.Add(1)
 
 		// Get the callback URL by index to properly capture it for the go func

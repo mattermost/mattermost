@@ -821,7 +821,6 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 			})
@@ -836,15 +835,17 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 				require.Equal(t, "webhook received!", webhookResponse)
 
 			case <-time.After(5 * time.Second):
-				require.Fail(t, "Timeout, webhook response not received")
+				require.Fail(t, "Timeout, webhook URL 1 response not received")
 			}
 
-			select {
-			case webhookResponse := <-chanTs2:
-				require.Equal(t, "webhook received!", webhookResponse)
+			if len(testCase.CallBackURLs) > 1 {
+				select {
+				case webhookResponse := <-chanTs2:
+					require.Equal(t, "webhook received!", webhookResponse)
 
-			case <-time.After(5 * time.Second):
-				require.Fail(t, "Timeout, webhook response not received")
+				case <-time.After(5 * time.Second):
+					require.Fail(t, "Timeout, webhook URL 2 response not received")
+				}
 			}
 		})
 	}
