@@ -1261,15 +1261,6 @@ func (a *App) SetFileSearchableContent(rctx request.CTX, fileID string, data str
 	return nil
 }
 
-func (a *App) getFileInfoIgnoreCloudLimit(rctx request.CTX, fileID string) (*model.FileInfo, *model.AppError) {
-	fileInfo, appErr := a.Srv().getFileInfo(fileID)
-	if appErr == nil {
-		a.generateMiniPreview(rctx, fileInfo)
-	}
-
-	return fileInfo, appErr
-}
-
 func (a *App) GetFileInfos(rctx request.CTX, page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	fileInfos, err := a.Srv().Store().FileInfo().GetWithOptions(page, perPage, opt)
 	if err != nil {
@@ -1302,20 +1293,6 @@ func (a *App) GetFileInfos(rctx request.CTX, page, perPage int, opt *model.GetFi
 
 func (a *App) GetFile(rctx request.CTX, fileID string) ([]byte, *model.AppError) {
 	info, err := a.GetFileInfo(rctx, fileID)
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := a.ReadFile(info.Path)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
-
-func (a *App) getFileIgnoreCloudLimit(rctx request.CTX, fileID string) ([]byte, *model.AppError) {
-	info, err := a.getFileInfoIgnoreCloudLimit(rctx, fileID)
 	if err != nil {
 		return nil, err
 	}
