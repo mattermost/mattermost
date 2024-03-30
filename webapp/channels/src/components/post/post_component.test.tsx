@@ -7,6 +7,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {getHistory} from 'utils/browser_history';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -251,19 +252,81 @@ describe('PostComponent', () => {
         });
     });
 
-    describe('date seperator', () => {
-        // const baseState: DeepPartial<GlobalState> = {
-        //     entities: {
-        //         posts: {
-        //             reactions: {
-        //                 [baseProps.post.id]: {
-        //                     [`${baseProps.currentUserId}-taco`]: TestHelper.getReactionMock({emoji_name: 'taco'}),
-        //                 },
-        //             },
-        //         },
-        //     },
-        // };
+    describe('reply/X replies link', () => {
+        const rootPost = TestHelper.getPostMock({
+            id: 'rootPost',
+            channel_id: channel.id,
+            reply_count: 1,
+        });
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                posts: {
+                    posts: {
+                        rootPost,
+                    },
+                },
+            },
+        };
 
+        const propsForRootPost = {
+            ...baseProps,
+            hasReplies: true,
+            post: rootPost,
+            replyCount: 1,
+        };
+
+        test('should select post in RHS when clicked in center channel', () => {
+            renderWithContext(<PostComponent {...propsForRootPost}/>, state);
+
+            userEvent.click(screen.getByText('1 reply'));
+
+            // Yes, this action has a different name than the one you'd expect
+            expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
+        });
+
+        test('should select post in RHS when clicked in center channel in a DM/GM', () => {
+            const props = {
+                ...propsForRootPost,
+                team: undefined,
+            };
+            renderWithContext(<PostComponent {...props}/>, state);
+
+            userEvent.click(screen.getByText('1 reply'));
+
+            // Yes, this action has a different name than the one you'd expect
+            expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
+            expect(getHistory().push).not.toHaveBeenCalled();
+        });
+
+        test('should select post in RHS when clicked in a search result on the current team', () => {
+            const props = {
+                ...propsForRootPost,
+                location: Locations.SEARCH,
+            };
+            renderWithContext(<PostComponent {...props}/>, state);
+
+            userEvent.click(screen.getByText('1 reply'));
+
+            expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
+            expect(getHistory().push).not.toHaveBeenCalled();
+        });
+
+        test('should jump to post when clicked in a search result on another team', () => {
+            const props = {
+                ...propsForRootPost,
+                location: Locations.SEARCH,
+                team: TestHelper.getTeamMock({id: 'another_team'}),
+            };
+            renderWithContext(<PostComponent {...props}/>, state);
+
+            userEvent.click(screen.getByText('1 reply'));
+
+            expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).not.toHaveBeenCalled();
+            expect(getHistory().push).toHaveBeenCalled();
+        });
+    });
+
+    describe('date seperator', () => {
         test('should not show date seperator on consecutive posts when RHS is open.', () => {
             const props = {
                 ...baseProps,
