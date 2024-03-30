@@ -130,9 +130,10 @@ type Server struct {
 	userService      *users.UserService
 	teamService      *teams.TeamService
 
-	serviceMux           sync.RWMutex
-	remoteClusterService remotecluster.RemoteClusterServiceIFace
-	sharedChannelService SharedChannelServiceIFace // TODO: platform: move to platform package
+	serviceMux               sync.RWMutex
+	interClusterServiceReady chan struct{}
+	remoteClusterService     remotecluster.RemoteClusterServiceIFace
+	sharedChannelService     SharedChannelServiceIFace // TODO: platform: move to platform package
 
 	phase2PermissionsMigrationComplete bool
 
@@ -169,9 +170,10 @@ func NewServer(options ...Option) (*Server, error) {
 	localRouter := mux.NewRouter()
 
 	s := &Server{
-		RootRouter:  rootRouter,
-		LocalRouter: localRouter,
-		timezones:   timezones.New(),
+		RootRouter:               rootRouter,
+		LocalRouter:              localRouter,
+		timezones:                timezones.New(),
+		interClusterServiceReady: make(chan struct{}),
 	}
 
 	for _, option := range options {
@@ -568,6 +570,10 @@ func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
 }
 
 func (s *Server) startInterClusterServices(license *model.License) error {
+	defer func() {
+		close(s.interClusterServiceReady)
+	}()
+
 	if license == nil {
 		mlog.Debug("No license provided; Remote Cluster services disabled")
 		return nil
@@ -630,6 +636,18 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	s.sharedChannelService = scs
 	s.serviceMux.Unlock()
 
+	return nil
+}
+
+// WaitForInterClusterServices blocks until RemoteCluster and Shared Channel services are initialized (or disabled).
+// If the context is cancelled this method returns error.  This allows plugins and other services that are intialized
+// before inter-cluster services to know when the services are ready.
+func (s *Server) WaitForInterClusterServices(ctx context.Context) error {
+	select {
+	case <-s.interClusterServiceReady:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 	return nil
 }
 
