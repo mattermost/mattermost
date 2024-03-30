@@ -250,79 +250,79 @@ describe('PostComponent', () => {
 
             expect(screen.queryByText(/Follow|Following/)).not.toBeInTheDocument();
         });
-    });
 
-    describe('reply/X replies link', () => {
-        const rootPost = TestHelper.getPostMock({
-            id: 'rootPost',
-            channel_id: channel.id,
-            reply_count: 1,
-        });
-        const state: DeepPartial<GlobalState> = {
-            entities: {
-                posts: {
+        describe('reply/X replies link', () => {
+            const rootPost = TestHelper.getPostMock({
+                id: 'rootPost',
+                channel_id: channel.id,
+                reply_count: 1,
+            });
+            const state: DeepPartial<GlobalState> = {
+                entities: {
                     posts: {
-                        rootPost,
+                        posts: {
+                            rootPost,
+                        },
                     },
                 },
-            },
-        };
-
-        const propsForRootPost = {
-            ...baseProps,
-            hasReplies: true,
-            post: rootPost,
-            replyCount: 1,
-        };
-
-        test('should select post in RHS when clicked in center channel', () => {
-            renderWithContext(<PostComponent {...propsForRootPost}/>, state);
-
-            userEvent.click(screen.getByText('1 reply'));
-
-            // Yes, this action has a different name than the one you'd expect
-            expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
-        });
-
-        test('should select post in RHS when clicked in center channel in a DM/GM', () => {
-            const props = {
-                ...propsForRootPost,
-                team: undefined,
             };
-            renderWithContext(<PostComponent {...props}/>, state);
 
-            userEvent.click(screen.getByText('1 reply'));
-
-            // Yes, this action has a different name than the one you'd expect
-            expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
-            expect(getHistory().push).not.toHaveBeenCalled();
-        });
-
-        test('should select post in RHS when clicked in a search result on the current team', () => {
-            const props = {
-                ...propsForRootPost,
-                location: Locations.SEARCH,
+            const propsForRootPost = {
+                ...baseProps,
+                hasReplies: true,
+                post: rootPost,
+                replyCount: 1,
             };
-            renderWithContext(<PostComponent {...props}/>, state);
 
-            userEvent.click(screen.getByText('1 reply'));
+            test('should select post in RHS when clicked in center channel', () => {
+                renderWithContext(<PostComponent {...propsForRootPost}/>, state);
 
-            expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
-            expect(getHistory().push).not.toHaveBeenCalled();
-        });
+                userEvent.click(screen.getByText('1 reply'));
 
-        test('should jump to post when clicked in a search result on another team', () => {
-            const props = {
-                ...propsForRootPost,
-                location: Locations.SEARCH,
-                team: TestHelper.getTeamMock({id: 'another_team'}),
-            };
-            renderWithContext(<PostComponent {...props}/>, state);
+                // Yes, this action has a different name than the one you'd expect
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
+            });
 
-            userEvent.click(screen.getByText('1 reply'));
+            test('should select post in RHS when clicked in center channel in a DM/GM', () => {
+                const props = {
+                    ...propsForRootPost,
+                    team: undefined,
+                };
+                renderWithContext(<PostComponent {...props}/>, state);
 
-            expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).not.toHaveBeenCalled();
-            expect(getHistory().push).toHaveBeenCalled();
+                userEvent.click(screen.getByText('1 reply'));
+
+                // Yes, this action has a different name than the one you'd expect
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
+                expect(getHistory().push).not.toHaveBeenCalled();
+            });
+
+            test('should select post in RHS when clicked in a search result on the current team', () => {
+                const props = {
+                    ...propsForRootPost,
+                    location: Locations.SEARCH,
+                };
+                renderWithContext(<PostComponent {...props}/>, state);
+
+                userEvent.click(screen.getByText('1 reply'));
+
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
+                expect(getHistory().push).not.toHaveBeenCalled();
+            });
+
+            test('should jump to post when clicked in a search result on another team', () => {
+                const props = {
+                    ...propsForRootPost,
+                    location: Locations.SEARCH,
+                    team: TestHelper.getTeamMock({id: 'another_team'}),
+                };
+                renderWithContext(<PostComponent {...props}/>, state);
+
+                userEvent.click(screen.getByText('1 reply'));
+
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).not.toHaveBeenCalled();
+                expect(getHistory().push).toHaveBeenCalled();
+            });
         });
     });
 
