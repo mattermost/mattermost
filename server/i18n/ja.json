@@ -10332,5 +10332,13 @@
   {
     "id": "api.channel.update_channel_member_roles.guest.app_error",
     "translation": "チャンネルメンバーの不正な更新: ゲストをチームメンバーやチーム管理者にすることはできません。先にユーザーへ昇格してください。"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "チームメンバーの不正な更新: ゲストを単一のチャンネルに設定することはできません。システム管理者がユーザーをゲストに設定する必要があります。"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "チャンネルメンバーの不正な更新: ゲストを単一のチャンネルに設定することはできません。システム管理者がユーザーをゲストに設定する必要があります。"
   }
 ]
