@@ -86,7 +86,7 @@ const rootUserCheck = async (
     options: Options,
 ) => {
     const fetchRootStatus = async () => {
-        const result = await Client4.ping(false);
+        const result = await Client4.ping(true);
 
         return result.root_status ? ItemStatus.WARNING : ItemStatus.OK;
     };
