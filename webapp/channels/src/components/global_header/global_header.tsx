@@ -22,9 +22,9 @@ const GlobalHeaderContainer = styled.header`
     flex-shrink: 0;
     align-items: center;
     justify-content: space-between;
-    height: 40px;
+    height: 44px;
     color: rgba(var(--sidebar-text-rgb), 0.64);
-    padding: 0 5px 0 12px;
+    padding: 0 6px 0 18px;
     z-index: 99;
 
     > * + * {
