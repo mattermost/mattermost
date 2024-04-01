@@ -67,10 +67,10 @@ func (u *UserService) ListByUsernames(usernames []string) ([]*model.User, error)
 	return users, normalizeAppErr(appErr)
 }
 
-// ListByUsernames gets users by their usernames.
+// ListByIDs gets users by their ids.
 //
 // Minimum server version: 9.X TODO
-func (u *UserService) ListByIds(ids []string) ([]*model.User, error) {
+func (u *UserService) ListByIDs(ids []string) ([]*model.User, error) {
 	users, appErr := u.api.GetUsersByIds(ids)
 
 	return users, normalizeAppErr(appErr)
