@@ -6,7 +6,7 @@ package app
 import (
 	"bytes"
 	"context"
-	"crypto/sha1"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io"
@@ -1274,8 +1274,8 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 }
 
 func compareFilesContent(fileA, fileB io.Reader, bufSize int64) (bool, error) {
-	aHash := sha1.New()
-	bHash := sha1.New()
+	aHash := sha256.New()
+	bHash := sha256.New()
 
 	if bufSize == 0 {
 		// This buffer size was selected after some extensive benchmarking
