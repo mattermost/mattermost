@@ -202,6 +202,13 @@ func (api *apiTimerLayer) GetUsersInTeam(teamID string, page int, perPage int) (
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetUsersByIds(ids []string) ([]*model.User, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetUsersByIds(ids)
+	api.recordTime(startTime, "GetUsersByIds", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetPreferenceForUser(userID, category, name)

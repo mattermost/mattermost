@@ -270,6 +270,10 @@ func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *m
 	return api.app.GetUsersByUsernames(usernames, true, nil)
 }
 
+func (api *PluginAPI) GetUsersByIds(ids []string) ([]*model.User, *model.AppError) {
+	return api.app.GetUsersByIds(ids, nil)
+}
+
 func (api *PluginAPI) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError) {
 	options := &model.UserGetOptions{InTeamId: teamID, Page: page, PerPage: perPage}
 	return api.app.GetUsersInTeam(options)

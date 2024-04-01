@@ -172,6 +172,12 @@ type API interface {
 	// Minimum server version: 5.6
 	GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError)
 
+	// GetUsersByIds gets users by their ids.
+	//
+	// @tag User
+	// Minimum server version: 9.X TODO
+	GetUsersByIds(ids []string) ([]*model.User, *model.AppError)
+
 	// GetPreferenceForUser gets a single preference for a user. An error is returned if the user has no preference
 	// set with the given category and name, an error is returned.
 	//

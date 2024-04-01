@@ -2182,6 +2182,34 @@ func (_m *API) GetPostsBefore(channelId string, postId string, page int, perPage
 	return r0, r1
 }
 
+// GetPostsById provides a mock function with given fields: postIDs
+func (_m *API) GetPostsById(postIDs []string) ([]*model.Post, *model.AppError) {
+	ret := _m.Called(postIDs)
+
+	var r0 []*model.Post
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func([]string) ([]*model.Post, *model.AppError)); ok {
+		return rf(postIDs)
+	}
+	if rf, ok := ret.Get(0).(func([]string) []*model.Post); ok {
+		r0 = rf(postIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+		r1 = rf(postIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPostsForChannel provides a mock function with given fields: channelId, page, perPage
 func (_m *API) GetPostsForChannel(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
 	ret := _m.Called(channelId, page, perPage)
