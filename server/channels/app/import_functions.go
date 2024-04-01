@@ -1393,12 +1393,12 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 			// Since compareFilesContent needs to read the whole file we need to
 			// either seek back (local file) or re-open it (zip file).
 			if f, ok := file.(*os.File); ok {
-				rctx.Logger().Info("File is *os.File, can seek")
+				rctx.Logger().Info("File is *os.File, can seek", mlog.String("file_name", name))
 				if _, err := f.Seek(0, io.SeekStart); err != nil {
 					return nil, model.NewAppError("BulkImport", "app.import.attachment.seek_file.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest).Wrap(err)
 				}
 			} else if data.Data != nil {
-				rctx.Logger().Info("File is from ZIP, can't seek, opening again")
+				rctx.Logger().Info("File is from ZIP, can't seek, opening again", mlog.String("file_name", name))
 				file.Close()
 
 				f, err := data.Data.Open()
