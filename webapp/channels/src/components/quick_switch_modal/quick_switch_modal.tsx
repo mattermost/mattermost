@@ -19,7 +19,6 @@ import SwitchChannelProvider from 'components/suggestion/switch_channel_provider
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {RHSStates} from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import type {RhsState} from 'types/store/rhs';
@@ -96,23 +95,15 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
         this.focusTextbox();
     };
 
-    private onHide = (): void => {
-        this.focusPostTextbox();
-        this.setState({
-            text: '',
+    // TODO: Have diff event handlers on exit VS on selection
+    private onHide = () => {
+        this.props.onExited?.();
+        setTimeout(() => {
+            const textbox = document.querySelector('.SidebarChannelNavigator_jumpToButton') as HTMLElement;
+            if (textbox) {
+                textbox.focus();
+            }
         });
-        this.props.onExited();
-    };
-
-    private focusPostTextbox = (): void => {
-        if (!UserAgent.isMobile()) {
-            setTimeout(() => {
-                const textbox = document.querySelector('#post_textbox') as HTMLElement;
-                if (textbox) {
-                    textbox.focus();
-                }
-            });
-        }
     };
 
     private onChange = (e: React.ChangeEvent<HTMLInputElement>): void => {

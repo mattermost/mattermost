@@ -93,6 +93,7 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
                     className={'SidebarChannelNavigator_jumpToButton'}
                     onClick={this.openQuickSwitcher}
                     aria-label={Utils.localizeMessage('sidebar_left.channel_navigator.channelSwitcherLabel', 'Channel Switcher')}
+                    aria-haspopup='dialog'
                 >
                     <i className='icon icon-magnify'/>
                     <FormattedMessage
