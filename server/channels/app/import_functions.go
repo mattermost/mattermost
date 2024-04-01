@@ -1278,6 +1278,11 @@ func compareFilesContent(fileA, fileB io.Reader, bufSize int64) (bool, error) {
 	bHash := sha1.New()
 
 	if bufSize == 0 {
+		// This buffer size was selected after some extensive benchmarking
+		// (BenchmarkCompareFilesContent) and it showed to provide
+		// a good compromise between processing speed and allocated memory,
+		// especially in the common case of the readers being part of an S3 stored ZIP file.
+		// See https://github.com/mattermost/mattermost/pull/26629 for full context.
 		bufSize = 1024 * 1024 * 2 // 2MB
 	}
 
