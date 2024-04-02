@@ -131,7 +131,7 @@ export const TourTip = ({
                     {title}
                 </h4>
                 <button
-                    className='tour-tip__header__close'
+                    className='btn btn-sm btn-icon'
                     onClick={handleDismiss}
                     data-testid={'close_tutorial_tip'}
                 >
@@ -156,7 +156,7 @@ export const TourTip = ({
                         {step !== 0 && prevBtn && (
                             <button
                                 id='tipPreviousButton'
-                                className='tour-tip__btn tour-tip__cancel-btn'
+                                className='btn btn-sm btn-tertiary'
                                 onClick={handlePrevious}
                             >
                                 {prevBtn}
@@ -165,7 +165,7 @@ export const TourTip = ({
                         {nextBtn && (
                             <button
                                 id='tipNextButton'
-                                className='tour-tip__btn tour-tip__confirm-btn'
+                                className='btn btn-sm btn-primary'
                                 onClick={handleNext}
                             >
                                 {nextBtn}

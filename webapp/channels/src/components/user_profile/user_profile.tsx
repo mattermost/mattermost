@@ -118,6 +118,7 @@ export default class UserProfile extends PureComponent<Props> {
         if (isShared) {
             sharedIcon = (
                 <SharedUserIndicator
+                    id={`sharedUserIndicator-${userId}`}
                     className='shared-user-icon'
                     withTooltip={true}
                 />
