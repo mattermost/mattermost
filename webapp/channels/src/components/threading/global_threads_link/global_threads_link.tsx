@@ -68,7 +68,9 @@ const GlobalThreadsLink = () => {
     const openThreads = useCallback((e) => {
         e.stopPropagation();
         trackEvent('crt', 'go_to_global_threads');
-        dispatch(openModal({modalId: ModalIdentifiers.COLLAPSED_REPLY_THREADS_MODAL, dialogType: CollapsedReplyThreadsModal, dialogProps: {}}));
+        if (showTutorialTrigger) {
+            dispatch(openModal({modalId: ModalIdentifiers.COLLAPSED_REPLY_THREADS_MODAL, dialogType: CollapsedReplyThreadsModal, dialogProps: {}}));
+        }
         if (rhsOpen && rhsState === RHSStates.EDIT_HISTORY) {
             dispatch(closeRightHandSide());
         }
