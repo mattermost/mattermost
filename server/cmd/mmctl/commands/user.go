@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 
@@ -815,27 +816,22 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		}
 	}
 
+	params := []string{}
+	if inactive {
+		params = append(params, "inactive=true")
+	}
+	if team != nil {
+		params = append(params, "in_team="+team.Id)
+	}
+	strParam := strings.Join(params, "&")
+
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
 	for {
-		var users []*model.User
-		var err error
-		if team != nil {
-			users, _, err = c.GetUsersInTeam(context.TODO(), team.Id, page, perPage, "")
-			if err != nil {
-				return errors.Wrap(err, fmt.Sprintf("Failed to fetch users for team %s", teamName))
-			}
-		} else {
-
-			params := ""
-			if inactive {
-				params = "inactive=true"
-			}
-
-			users, _, err = c.GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, params, "")
-			if err != nil {
-				return errors.Wrap(err, "Failed to fetch users")
-			}
+		users, _, err := c.GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, strParam, "")
+		if err != nil {
+			return errors.Wrap(err, "Failed to fetch users")
 		}
+
 		if len(users) == 0 {
 			break
 		}
