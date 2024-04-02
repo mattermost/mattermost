@@ -57,41 +57,41 @@ func TestDeepMergeMaps(t *testing.T) {
 
 func TestMergePluginConfigs(t *testing.T) {
 	basePluginConfig := map[string]map[string]any{
-		"plugin.1": map[string]any{
+		"plugin.1": {
 			"First": "key",
 			"Second": map[string]any{
 				"nested": "key",
 			},
 		},
-		"plugin.2": map[string]any{
+		"plugin.2": {
 			"Name": "John",
 		},
 	}
 
 	patchPluginConfig := map[string]map[string]any{
-		"plugin.1": map[string]any{
+		"plugin.1": {
 			"Second": map[string]any{
 				"nested": false,
 				"new":    1,
 			},
 		},
-		"plugin.3": map[string]any{
+		"plugin.3": {
 			"New": "plugin",
 		},
 	}
 
 	expectedPluginConfig := map[string]map[string]any{
-		"plugin.1": map[string]any{
+		"plugin.1": {
 			"First": "key",
 			"Second": map[string]any{
 				"nested": false,
 				"new":    1,
 			},
 		},
-		"plugin.2": map[string]any{
+		"plugin.2": {
 			"Name": "John",
 		},
-		"plugin.3": map[string]any{
+		"plugin.3": {
 			"New": "plugin",
 		},
 	}
