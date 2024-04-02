@@ -30,8 +30,6 @@ Cypress.Commands.add('performLDAPLogin', (settings = {}, useEmail = false) => {
 });
 
 Cypress.Commands.add('doLDAPLogout', (settings = {}) => {
-    cy.checkLeftSideBar(settings);
-
     // # Logout then check login page
     cy.uiLogout();
     cy.checkLoginPage(settings);

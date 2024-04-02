@@ -159,12 +159,15 @@ describe('Profile > Profile Settings > Email', () => {
             assert(matched.length > 0);
 
             const permalink = matched[0];
+            cy.wrap(permalink).should('include', 'do_verify_email');
 
             // # Click on the link
             cy.visit(permalink);
 
-            // * Verify announcement bar
-            cy.get('.announcement-bar').should('be.visible').should('contain.text', 'Email verified');
+            // * User should be redirected to the previously visited channel after verification
+            // with announcement banner hidden
+            cy.url().should('include', '/channels/off-topic');
+            cy.get('.announcement-bar').should('not.exist');
 
             // # Wait for one second for the mail to be sent out.
             cy.wait(TIMEOUTS.FIVE_SEC);

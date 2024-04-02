@@ -42,7 +42,7 @@ describe('LDAP guest', () => {
         });
 
         // # Get user1 data
-        cy.apiLogin(user1 as unknown as UserProfile).then((user) => {
+        cy.apiLogin(user1 as unknown as UserProfile).then(({user}) => {
             user1Data = user;
 
             // # Remove user1 from all the teams
@@ -50,7 +50,7 @@ describe('LDAP guest', () => {
         });
 
         // # Get user2 data
-        cy.apiLogin(user2 as unknown as UserProfile).then((user) => {
+        cy.apiLogin(user2 as unknown as UserProfile).then(({user}) => {
             user2Data = user;
 
             // # Remove user2 fromm all the teams
@@ -265,7 +265,7 @@ function demoteUserToGuest(user) {
 
 function removeUserFromAllTeams(user: { id: string }) {
     // # Get all teams of a user
-    cy.apiGetTeamsForUser(user.id).then((teams) => {
+    cy.apiGetTeamsForUser(user.id).then(({teams}) => {
         // # Remove user from all the teams
         if (teams.length > 0) {
             teams.forEach((team: { id: string }) => {

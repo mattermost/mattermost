@@ -437,7 +437,7 @@ describe('Integrations page', () => {
         });
 
         // # Confirm Delete
-        cy.contains('#confirmModalButton', 'Delete').click();
+        cy.contains('#confirmModalButton', 'Yes, delete it').click();
 
         // # Go back to channels
         cy.visit(testChannelUrl1);
