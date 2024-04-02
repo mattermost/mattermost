@@ -20,7 +20,7 @@ import SwitchChannelProvider from 'components/suggestion/switch_channel_provider
 import {getHistory} from 'utils/browser_history';
 import Constants, {RHSStates} from 'utils/constants';
 import * as Utils from 'utils/utils';
-
+import * as UserAgent from 'utils/user_agent';
 import type {RhsState} from 'types/store/rhs';
 
 const CHANNEL_MODE = 'channel';
@@ -95,7 +95,26 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
         this.focusTextbox();
     };
 
-    // TODO: Have diff event handlers on exit VS on selection
+
+    private onSelect = (): void => {
+        this.focusPostTextbox();
+        this.setState({
+            text: '',
+        });
+        this.props.onExited();
+    };
+
+    private focusPostTextbox = (): void => {
+        if (!UserAgent.isMobile()) {
+            setTimeout(() => {
+                const textbox = document.querySelector('#post_textbox') as HTMLElement;
+                if (textbox) {
+                    textbox.focus();
+                }
+            });
+        }
+    };
+
     private onHide = () => {
         this.props.onExited?.();
         setTimeout(() => {
@@ -128,7 +147,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
             }
             switchToChannel(selectedChannel).then((result: ActionResult) => {
                 if ('data' in result) {
-                    this.onHide();
+                    this.onSelect();
                 }
             });
         } else {
