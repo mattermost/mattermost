@@ -285,12 +285,12 @@ func TestSchedule(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, job)
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		err = job.Close()
 		require.NoError(t, err)
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		// Shouldn't have hit 20 in this time frame
 		assert.Less(t, *count, int32(20))
@@ -321,7 +321,7 @@ func TestSchedule(t *testing.T) {
 			jobs = append(jobs, job)
 		}
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		var wg sync.WaitGroup
 		for i := 0; i < 3; i++ {
@@ -335,7 +335,7 @@ func TestSchedule(t *testing.T) {
 		}
 		wg.Wait()
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		// Shouldn't have hit 20 in this time frame
 		assert.Less(t, *count, int32(20))
@@ -381,7 +381,7 @@ func TestSchedule(t *testing.T) {
 			jobs = append(jobs, job)
 		}
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		var wg sync.WaitGroup
 		for i := 0; i < 3; i++ {
@@ -395,7 +395,7 @@ func TestSchedule(t *testing.T) {
 		}
 		wg.Wait()
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		// Shouldn't have hit 20 in this time frame
 		assert.Less(t, *countA, int32(20))

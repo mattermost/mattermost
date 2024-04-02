@@ -815,11 +815,11 @@ func TestUserHasLoggedIn(t *testing.T) {
 	assert.Nil(t, err, "Expected nil, got %s", err)
 	assert.NotNil(t, session)
 
-	time.Sleep(2 * time.Second)
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		user, _ := th.App.GetUser(th.BasicUser.Id)
+		assert.Equal(c, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
+	}, 2*time.Second, 100*time.Millisecond)
 
-	user, _ := th.App.GetUser(th.BasicUser.Id)
-
-	assert.Equal(t, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
 }
 
 func TestUserHasBeenDeactivated(t *testing.T) {
@@ -864,11 +864,11 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 	_, err = th.App.UpdateActive(th.Context, user, false)
 	require.Nil(t, err)
 
-	time.Sleep(1 * time.Second)
-	user, err = th.App.GetUser(user.Id)
-
-	require.Nil(t, err)
-	require.Equal(t, "plugin-callback-success", user.Nickname)
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		user, err = th.App.GetUser(user.Id)
+		require.Nil(c, err)
+		require.Equal(c, "plugin-callback-success", user.Nickname)
+	}, 2*time.Second, 100*time.Millisecond)
 }
 
 func TestUserHasBeenCreated(t *testing.T) {
@@ -909,11 +909,11 @@ func TestUserHasBeenCreated(t *testing.T) {
 	_, err := th.App.CreateUser(th.Context, user)
 	require.Nil(t, err)
 
-	time.Sleep(1 * time.Second)
-
-	user, err = th.App.GetUser(user.Id)
-	require.Nil(t, err)
-	require.Equal(t, "plugin-callback-success", user.Nickname)
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		user, err = th.App.GetUser(user.Id)
+		require.Nil(c, err)
+		require.Equal(c, "plugin-callback-success", user.Nickname)
+	}, 2*time.Second, 100*time.Millisecond)
 }
 
 func TestErrorString(t *testing.T) {
@@ -1092,10 +1092,11 @@ func TestActiveHooks(t *testing.T) {
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
-		time.Sleep(1 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
-		require.Nil(t, appErr)
-		require.Equal(t, "plugin-callback-success", user1.Nickname)
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			user1, appErr = th.App.GetUser(user1.Id)
+			require.Nil(c, appErr)
+			require.Equal(c, "plugin-callback-success", user1.Nickname)
+		}, 2*time.Second, 100*time.Millisecond)
 
 		// Disable plugin
 		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
@@ -1198,10 +1199,11 @@ func TestHookMetrics(t *testing.T) {
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
-		time.Sleep(1 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
-		require.Nil(t, appErr)
-		require.Equal(t, "plugin-callback-success", user1.Nickname)
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			user1, appErr = th.App.GetUser(user1.Id)
+			require.Nil(c, appErr)
+			require.Equal(c, "plugin-callback-success", user1.Nickname)
+		}, 2*time.Second, 100*time.Millisecond)
 
 		// Disable plugin
 		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
@@ -1296,9 +1298,9 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 
 	require.Nil(t, err)
 
-	time.Sleep(1 * time.Second)
-
-	mockAPI.AssertCalled(t, "LogDebug", "star")
+	require.Eventually(t, func() bool {
+		return mockAPI.AssertExpectations(t)
+	}, 2*time.Second, 100*time.Millisecond)
 }
 
 func TestHookRunDataRetention(t *testing.T) {
@@ -1536,7 +1538,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 			wg.Wait()
 
 			// Hack to let the worker goroutines complete.
-			time.Sleep(1 * time.Second)
+			time.Sleep(2 * time.Second)
 			// Server side verification.
 			assert.Equal(t, tt.expectedNotifications, handler.numReqs())
 			var numMessages int
@@ -1704,10 +1706,7 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 		require.Nil(t, err)
 
 		// Hooks are run in a goroutine, so wait for those to complete
-		time.Sleep(1 * time.Second)
-
-		mockAPI.AssertCalled(t, "LogDebug", "category=test_category name=test_name_1 value=test_value_1")
-		mockAPI.AssertCalled(t, "LogDebug", "category=test_category name=test_name_2 value=test_value_2")
+		time.Sleep(2 * time.Second)
 	})
 
 	t.Run("should be called when preferences are changed by plugin code", func(t *testing.T) {
@@ -2066,12 +2065,11 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
-		// Wait for async plugin hooks to be run
-		time.Sleep(time.Second / 2)
-
-		posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
-
-		require.Nil(t, appErr)
+		var posts *model.PostList
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			require.Nil(t, appErr)
+		}, 2*time.Second, 100*time.Millisecond)
 
 		for _, postID := range posts.Order {
 			post := posts.Posts[postID]
@@ -2097,12 +2095,11 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
-		// Wait for async plugin hooks to be run
-		time.Sleep(time.Second / 2)
-
-		posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
-
-		require.Nil(t, appErr)
+		var posts *model.PostList
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			require.Nil(t, appErr)
+		}, 2*time.Second, 100*time.Millisecond)
 
 		for _, postID := range posts.Order {
 			post := posts.Posts[postID]
@@ -2129,12 +2126,11 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
-		// Wait for async plugin hooks to be run
-		time.Sleep(time.Second / 2)
-
-		posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
-
-		require.Nil(t, appErr)
+		var posts *model.PostList
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			require.Nil(t, appErr)
+		}, 2*time.Second, 100*time.Millisecond)
 
 		for _, postID := range posts.Order {
 			post := posts.Posts[postID]

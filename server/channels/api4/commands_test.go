@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/mattermost/mattermost/server/v8/channels/app/slashcommands"
@@ -33,11 +34,12 @@ func TestEchoCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, r1, "Echo command failed to execute")
 
-	time.Sleep(100 * time.Millisecond)
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		p1, _, err := client.GetPostsForChannel(context.Background(), channel1.Id, 0, 2, "", false, false)
+		require.NoError(c, err)
+		require.Len(c, p1.Order, 2, "Echo command failed to send")
+	}, time.Second, 100*time.Millisecond)
 
-	p1, _, err := client.GetPostsForChannel(context.Background(), channel1.Id, 0, 2, "", false, false)
-	require.NoError(t, err)
-	require.Len(t, p1.Order, 2, "Echo command failed to send")
 }
 
 func TestGroupmsgCommands(t *testing.T) {
@@ -187,8 +189,6 @@ func TestLoadTestHelpCommands(t *testing.T) {
 	rs, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/test help")
 	require.NoError(t, err)
 	require.True(t, strings.Contains(rs.Text, "Mattermost testing commands to help"), rs.Text)
-
-	time.Sleep(2 * time.Second)
 }
 
 func TestLoadTestSetupCommands(t *testing.T) {
@@ -208,8 +208,6 @@ func TestLoadTestSetupCommands(t *testing.T) {
 	rs, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/test setup fuzz 1 1 1")
 	require.NoError(t, err)
 	require.Equal(t, "Created environment", rs.Text, rs.Text)
-
-	time.Sleep(2 * time.Second)
 }
 
 func TestLoadTestUsersCommands(t *testing.T) {
@@ -229,8 +227,6 @@ func TestLoadTestUsersCommands(t *testing.T) {
 	rs, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/test users fuzz 1 2")
 	require.NoError(t, err)
 	require.Equal(t, "Added users", rs.Text, rs.Text)
-
-	time.Sleep(2 * time.Second)
 }
 
 func TestLoadTestChannelsCommands(t *testing.T) {
@@ -250,8 +246,6 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 	rs, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/test channels fuzz 1 2")
 	require.NoError(t, err)
 	require.Equal(t, "Added channels", rs.Text, rs.Text)
-
-	time.Sleep(2 * time.Second)
 }
 
 func TestLoadTestPostsCommands(t *testing.T) {
@@ -271,8 +265,6 @@ func TestLoadTestPostsCommands(t *testing.T) {
 	rs, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/test posts fuzz 2 3 2")
 	require.NoError(t, err)
 	require.Equal(t, "Added posts", rs.Text, rs.Text)
-
-	time.Sleep(2 * time.Second)
 }
 
 func TestLeaveCommands(t *testing.T) {
@@ -352,18 +344,19 @@ func TestMeCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, r1, "Command failed to execute")
 
-	time.Sleep(100 * time.Millisecond)
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		p1, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 2, "", false, false)
+		require.NoError(c, err)
+		require.Len(c, p1.Order, 2, "Command failed to send")
 
-	p1, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 2, "", false, false)
-	require.NoError(t, err)
-	require.Len(t, p1.Order, 2, "Command failed to send")
+		pt := p1.Posts[p1.Order[0]].Type
+		require.Equal(c, model.PostTypeMe, pt, "invalid post type")
 
-	pt := p1.Posts[p1.Order[0]].Type
-	require.Equal(t, model.PostTypeMe, pt, "invalid post type")
+		msg := p1.Posts[p1.Order[0]].Message
+		want := "*hello*"
+		require.Equal(c, want, msg, "invalid me response")
+	}, time.Second, 100*time.Millisecond)
 
-	msg := p1.Posts[p1.Order[0]].Message
-	want := "*hello*"
-	require.Equal(t, want, msg, "invalid me response")
 }
 
 func TestMsgCommands(t *testing.T) {
@@ -454,12 +447,13 @@ func TestShrugCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, r1, "Command failed to execute")
 
-	time.Sleep(100 * time.Millisecond)
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		p1, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 2, "", false, false)
+		require.NoError(c, err)
+		require.Len(c, p1.Order, 2, "Command failed to send")
+		require.Equal(c, `¯\\\_(ツ)\_/¯`, p1.Posts[p1.Order[0]].Message, "invalid shrug response")
+	}, time.Second, 100*time.Millisecond)
 
-	p1, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 2, "", false, false)
-	require.NoError(t, err)
-	require.Len(t, p1.Order, 2, "Command failed to send")
-	require.Equal(t, `¯\\\_(ツ)\_/¯`, p1.Posts[p1.Order[0]].Message, "invalid shrug response")
 }
 
 func TestStatusCommands(t *testing.T) {
@@ -480,9 +474,9 @@ func commandAndTest(t *testing.T, th *TestHelper, status string) {
 	require.NoError(t, err)
 	require.NotEqual(t, "Command failed to execute", r1)
 
-	time.Sleep(1000 * time.Millisecond)
-
-	rstatus, _, err := client.GetUserStatus(context.Background(), user.Id, "")
-	require.NoError(t, err)
-	require.Equal(t, status, rstatus.Status, "Error setting status")
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		rstatus, _, err := client.GetUserStatus(context.Background(), user.Id, "")
+		require.NoError(c, err)
+		require.Equal(c, status, rstatus.Status, "Error setting status")
+	}, 2*time.Second, 100*time.Millisecond)
 }
