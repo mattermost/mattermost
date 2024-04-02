@@ -505,9 +505,17 @@ function dndEndTimes(state: RelationOneToOne<UserProfile, number> = {}, action: 
         return addToState(state, userId, endTime);
     }
     case UserTypes.RECEIVED_STATUSES: {
-        const userStatuses: UserStatus[] = action.data;
+        const nextState = Object.assign({}, state);
 
-        return userStatuses.reduce((nextState, userStatus) => addToState(nextState, userStatus.user_id, userStatus.dnd_end_time || 0), state);
+        for (const userStatus of action.data as UserStatus[]) {
+            const userId = userStatus.user_id;
+            const endTime = userStatus.dnd_end_time || 0;
+            if (nextState[userId] !== endTime) {
+                nextState[userId] = endTime;
+            }
+        }
+
+        return nextState;
     }
     case UserTypes.PROFILE_NO_LONGER_VISIBLE: {
         if (state[action.data.user_id]) {
@@ -534,9 +542,17 @@ function statuses(state: RelationOneToOne<UserProfile, string> = {}, action: Any
         return addToState(state, userId, status);
     }
     case UserTypes.RECEIVED_STATUSES: {
-        const userStatuses: UserStatus[] = action.data;
+        const nextState = Object.assign({}, state);
 
-        return userStatuses.reduce((nextState, userStatus) => addToState(nextState, userStatus.user_id, userStatus.status), state);
+        for (const userStatus of action.data as UserStatus[]) {
+            const userId = userStatus.user_id;
+            const status = userStatus.status;
+            if (nextState[userId] !== status) {
+                nextState[userId] = status;
+            }
+        }
+
+        return nextState;
     }
 
     case UserTypes.PROFILE_NO_LONGER_VISIBLE: {
@@ -564,9 +580,17 @@ function isManualStatus(state: RelationOneToOne<UserProfile, boolean> = {}, acti
         return addToState(state, userId, manual);
     }
     case UserTypes.RECEIVED_STATUSES: {
-        const userStatuses: UserStatus[] = action.data;
+        const nextState = Object.assign({}, state);
 
-        return userStatuses.reduce((nextState, userStatus) => addToState(nextState, userStatus.user_id, userStatus.manual || false), state);
+        for (const userStatus of action.data as UserStatus[]) {
+            const userId = userStatus.user_id;
+            const manual = userStatus.manual || false;
+            if (nextState[userId] !== manual) {
+                nextState[userId] = manual;
+            }
+        }
+
+        return nextState;
     }
 
     case UserTypes.PROFILE_NO_LONGER_VISIBLE: {
