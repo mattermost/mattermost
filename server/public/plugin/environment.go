@@ -254,6 +254,22 @@ func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
 	return nil, ErrNotFound
 }
 
+func checkMinServerVersion(pluginInfo *model.BundleInfo) error {
+	if pluginInfo.Manifest.MinServerVersion == "" {
+		return nil
+	}
+
+	fulfilled, err := pluginInfo.Manifest.MeetMinServerVersion(model.CurrentVersion)
+	if err != nil {
+		return fmt.Errorf("%v: %v", err.Error(), pluginInfo.Manifest.Id)
+	}
+	if !fulfilled {
+		return fmt.Errorf("plugin requires Mattermost %v: %v", pluginInfo.Manifest.MinServerVersion, pluginInfo.Manifest.Id)
+	}
+
+	return nil
+}
+
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
 	defer func() {
 		if reterr != nil {
@@ -296,20 +312,16 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		}
 	}()
 
-	if pluginInfo.Manifest.MinServerVersion != "" {
-		fulfilled, err := pluginInfo.Manifest.MeetMinServerVersion(model.CurrentVersion)
-		if err != nil {
-			return nil, false, fmt.Errorf("%v: %v", err.Error(), id)
-		}
-		if !fulfilled {
-			return nil, false, fmt.Errorf("plugin requires Mattermost %v: %v", pluginInfo.Manifest.MinServerVersion, id)
-		}
+	err = checkMinServerVersion(pluginInfo)
+	if err != nil {
+		return nil, false, err
 	}
 
 	componentActivated := false
 
 	if pluginInfo.Manifest.HasWebapp() {
-		updatedManifest, err := env.UnpackWebappBundle(id)
+		var updatedManifest *model.Manifest
+		updatedManifest, err = env.UnpackWebappBundle(id)
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "unable to generate webapp bundle: %v", id)
 		}
@@ -379,14 +391,9 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 	rp := newRegisteredPlugin(pluginInfo)
 	env.registeredPlugins.Store(id, rp)
 
-	if pluginInfo.Manifest.MinServerVersion != "" {
-		fulfilled, err := pluginInfo.Manifest.MeetMinServerVersion(model.CurrentVersion)
-		if err != nil {
-			return fmt.Errorf("%v: %v", err.Error(), id)
-		}
-		if !fulfilled {
-			return fmt.Errorf("plugin requires Mattermost %v: %v", pluginInfo.Manifest.MinServerVersion, id)
-		}
+	err := checkMinServerVersion(pluginInfo)
+	if err != nil {
+		return nil
 	}
 
 	if !pluginInfo.Manifest.HasServer() {
