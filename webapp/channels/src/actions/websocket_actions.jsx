@@ -703,7 +703,7 @@ export function handleNewPostEvent(msg) {
 
         myDispatch(handleNewPost(post, msg));
 
-        // getMentionsAndStatusesForPosts([post], myDispatch, myGetState);
+        getMentionsAndStatusesForPosts([post], myDispatch, myGetState);
 
         // Since status updates aren't real time, assume another user is online if they have posted and:
         // 1. The user hasn't set their status manually to something that isn't online
@@ -742,7 +742,7 @@ export function handleNewPostEvents(queue) {
         myDispatch(getThreadsForPosts(posts));
 
         // And any other data needed for them
-        // getMentionsAndStatusesForPosts(posts, myDispatch, myGetState);
+        getMentionsAndStatusesForPosts(posts, myDispatch, myGetState);
     };
 }
 

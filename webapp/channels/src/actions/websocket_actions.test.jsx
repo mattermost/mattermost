@@ -3,6 +3,11 @@
 
 import {UserTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {getGroup} from 'mattermost-redux/actions/groups';
+import {
+    getMentionsAndStatusesForPosts,
+    getThreadsForPosts,
+    receivedNewPost,
+} from 'mattermost-redux/actions/posts';
 import {getUser} from 'mattermost-redux/actions/users';
 
 import {handleNewPost} from 'actions/post_actions';
@@ -19,6 +24,7 @@ import {
     handleChannelUpdatedEvent,
     handleEvent,
     handleNewPostEvent,
+    handleNewPostEvents,
     handlePluginEnabled,
     handlePluginDisabled,
     handlePostEditEvent,
@@ -482,8 +488,7 @@ describe('handleNewPostEvent', () => {
         };
 
         testStore.dispatch(handleNewPostEvent(msg));
-
-        // expect(getMentionsAndStatusesForPosts).toHaveBeenCalledWith([post], expect.anything(), expect.anything());
+        expect(getMentionsAndStatusesForPosts).toHaveBeenCalledWith([post], expect.anything(), expect.anything());
         expect(handleNewPost).toHaveBeenCalledWith(post, msg);
     });
 
@@ -572,6 +577,50 @@ describe('handleNewPostEvent', () => {
             type: UserTypes.RECEIVED_STATUSES,
             data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
         });
+    });
+});
+
+describe('handleNewPostEvents', () => {
+    const initialState = {
+        entities: {
+            general: {},
+            preferences: {
+                myPreferences: {},
+            },
+        },
+    };
+
+    test('should receive multiple posts correctly', () => {
+        const testStore = configureStore(initialState);
+
+        const posts = [
+            {id: 'post1', channel_id: 'channel1'},
+            {id: 'post2', channel_id: 'channel1'},
+            {id: 'post3', channel_id: 'channel2'},
+            {id: 'post4', channel_id: 'channel2'},
+            {id: 'post5', channel_id: 'channel1'},
+        ];
+
+        const queue = posts.map((post) => {
+            return {
+                data: {post: JSON.stringify(post)},
+            };
+        });
+
+        testStore.dispatch(handleNewPostEvents(queue));
+
+        expect(testStore.getActions()).toEqual([
+            {
+                meta: {batch: true},
+                payload: posts.map((post) => receivedNewPost(post, false)),
+                type: 'BATCHING_REDUCER.BATCH',
+            },
+            {
+                type: 'GET_THREADS_FOR_POSTS',
+            },
+        ]);
+        expect(getThreadsForPosts).toHaveBeenCalledWith(posts);
+        expect(getMentionsAndStatusesForPosts).toHaveBeenCalledWith(posts, expect.anything(), expect.anything());
     });
 });
 
