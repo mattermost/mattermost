@@ -413,7 +413,7 @@ func TestImportImportRole(t *testing.T) {
 		Name: &rid1,
 	}
 
-	err := th.App.importRole(th.Context, &data, true, false)
+	err := th.App.importRole(th.Context, &data, true)
 	require.NotNil(t, err, "Should have failed to import.")
 
 	_, nErr := th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -422,7 +422,7 @@ func TestImportImportRole(t *testing.T) {
 	// Try importing the valid role in dryRun mode.
 	data.DisplayName = ptrStr("display name")
 
-	err = th.App.importRole(th.Context, &data, true, false)
+	err = th.App.importRole(th.Context, &data, true)
 	require.Nil(t, err, "Should have succeeded.")
 
 	_, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -431,7 +431,7 @@ func TestImportImportRole(t *testing.T) {
 	// Try importing an invalid role.
 	data.DisplayName = nil
 
-	err = th.App.importRole(th.Context, &data, false, false)
+	err = th.App.importRole(th.Context, &data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
 	_, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -442,7 +442,7 @@ func TestImportImportRole(t *testing.T) {
 	data.Description = ptrStr("description")
 	data.Permissions = &[]string{"invite_user", "add_user_to_team"}
 
-	err = th.App.importRole(th.Context, &data, false, false)
+	err = th.App.importRole(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded.")
 
 	role, nErr := th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -459,8 +459,9 @@ func TestImportImportRole(t *testing.T) {
 	data.DisplayName = ptrStr("new display name")
 	data.Description = ptrStr("description")
 	data.Permissions = &[]string{"manage_slash_commands"}
+	data.SchemeManaged = model.NewBool(true)
 
-	err = th.App.importRole(th.Context, &data, false, true)
+	err = th.App.importRole(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded. %v", err)
 
 	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -479,7 +480,7 @@ func TestImportImportRole(t *testing.T) {
 		DisplayName: ptrStr("new display name again"),
 	}
 
-	err = th.App.importRole(th.Context, &data2, false, false)
+	err = th.App.importRole(th.Context, &data2, false)
 	require.Nil(t, err, "Should have succeeded.")
 
 	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
@@ -490,7 +491,7 @@ func TestImportImportRole(t *testing.T) {
 	assert.Equal(t, *data.Description, role.Description)
 	assert.Equal(t, *data.Permissions, role.Permissions)
 	assert.False(t, role.BuiltIn)
-	assert.False(t, role.SchemeManaged)
+	assert.True(t, role.SchemeManaged)
 }
 
 func TestImportImportTeam(t *testing.T) {
