@@ -284,7 +284,6 @@
   "interactive_dialog.cancel": "Ακύρωση",
   "interactive_dialog.element.optional": "(προαιρετικό)",
   "intro_messages.anyMember": " Οποιοδήποτε μέλος μπορεί να συμμετάσχει και να διαβάσει αυτό το κανάλι.",
-  "intro_messages.beginning": "Έναρξη {name}",
   "intro_messages.creator": "Αυτή είναι η έναρξη του καναλιού {name}, που δημιουργήθηκε από {creator} στις {date}.",
   "intro_messages.creatorPrivate": "Αυτή είναι η έναρξη του ιδιωτικού καναλιού {name}, που δημιουργήθηκε από {creator} στις {date}.",
   "intro_messages.group_message": "Αυτή είναι η αρχή των ομαδικών σας μηνυμάτων με αυτά τα μέλη. Τα μηνύματα και τα αρχεία που κοινοποιούνται εδώ δεν εμφανίζονται σε άτομα εκτός αυτής της περιοχής.",
