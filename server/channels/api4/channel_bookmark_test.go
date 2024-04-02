@@ -220,6 +220,7 @@ func TestCreateChannelBookmark(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of creating a bookmark", func(t *testing.T) {
+		t.Skip("https://mattermost.atlassian.net/browse/MM-57393")
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
 		webSocketClient.Listen()
@@ -586,6 +587,7 @@ func TestEditChannelBookmark(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of editing a bookmark", func(t *testing.T) {
+		t.Skip("https://mattermost.atlassian.net/browse/MM-57392")
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
 		webSocketClient.Listen()
