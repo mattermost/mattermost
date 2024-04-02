@@ -271,13 +271,13 @@ const SidebarChannelMenu = (props: Props) => {
             menuButton={{
                 id: `SidebarChannelMenu-Button-${props.channel.id}`,
                 class: 'SidebarMenu_menuButton',
-                'aria-label': formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'}),
+                'aria-label': `${formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'})} for ${props.channel.name}`,
                 children: <DotsVerticalIcon size={16}/>,
             }}
             menuButtonTooltip={{
                 id: `SidebarChannelMenu-ButtonTooltip-${props.channel.id}`,
                 class: 'hidden-xs',
-                text: formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'}),
+                text: `${formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'})} for ${props.channel.name}`,
             }}
             menu={{
                 id: `SidebarChannelMenu-MenuList-${props.channel.id}`,
