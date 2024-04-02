@@ -804,3 +804,412 @@ func TestExportArchivedChannels(t *testing.T) {
 	}
 	require.True(t, found, "archived channel not found after import")
 }
+
+func TestExportRoles(t *testing.T) {
+	t.Run("defaults", func(t *testing.T) {
+		th1 := Setup(t).InitBasic()
+		defer th1.TearDown()
+
+		var b bytes.Buffer
+		appErr := th1.App.BulkExport(th1.Context, &b, "", nil, model.BulkExportOpts{})
+		require.Nil(t, appErr)
+
+		exportedRoles, appErr := th1.App.GetAllRoles()
+		assert.Nil(t, appErr)
+		assert.NotEmpty(t, exportedRoles)
+
+		th2 := Setup(t)
+		defer th2.TearDown()
+		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		assert.Nil(t, appErr)
+		assert.Equal(t, 0, i)
+
+		importedRoles, appErr := th2.App.GetAllRoles()
+		assert.Nil(t, appErr)
+		assert.NotEmpty(t, importedRoles)
+
+		require.Equal(t, len(exportedRoles), len(importedRoles))
+	})
+
+	t.Run("modified roles", func(t *testing.T) {
+		th1 := Setup(t).InitBasic()
+		defer th1.TearDown()
+
+		exportedRole, appErr := th1.App.GetRoleByName(th1.Context.Context(), model.TeamUserRoleId)
+		require.Nil(t, appErr)
+
+		exportedRole.Permissions = exportedRole.Permissions[1:]
+
+		_, appErr = th1.App.UpdateRole(exportedRole)
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th1.App.BulkExport(th1.Context, &b, "", nil, model.BulkExportOpts{
+			IncludeRolesAndSchemes: true,
+		})
+		require.Nil(t, appErr)
+
+		th2 := Setup(t)
+		defer th2.TearDown()
+		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, i)
+
+		importedRole, appErr := th2.App.GetRoleByName(th2.Context.Context(), model.TeamUserRoleId)
+		require.Nil(t, appErr)
+
+		require.Equal(t, exportedRole.DisplayName, importedRole.DisplayName)
+		require.Equal(t, exportedRole.Description, importedRole.Description)
+		require.Equal(t, exportedRole.SchemeManaged, importedRole.SchemeManaged)
+		require.Equal(t, exportedRole.BuiltIn, importedRole.BuiltIn)
+		require.ElementsMatch(t, exportedRole.Permissions, importedRole.Permissions)
+	})
+
+	t.Run("custom roles", func(t *testing.T) {
+		th1 := Setup(t).InitBasic()
+		defer th1.TearDown()
+
+		exportedRoles, appErr := th1.App.GetAllRoles()
+		require.Nil(t, appErr)
+		require.NotEmpty(t, exportedRoles)
+
+		customRole, appErr := th1.App.CreateRole(&model.Role{
+			Name:        "custom_role",
+			DisplayName: "custom_role",
+			Permissions: exportedRoles[0].Permissions,
+		})
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th1.App.BulkExport(th1.Context, &b, "", nil, model.BulkExportOpts{
+			IncludeRolesAndSchemes: true,
+		})
+		require.Nil(t, appErr)
+
+		th2 := Setup(t)
+		defer th2.TearDown()
+		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, i)
+
+		importedCustomRole, appErr := th2.App.GetRoleByName(th2.Context.Context(), customRole.Name)
+		require.Nil(t, appErr)
+
+		require.Equal(t, customRole.DisplayName, importedCustomRole.DisplayName)
+		require.Equal(t, customRole.Description, importedCustomRole.Description)
+		require.Equal(t, customRole.SchemeManaged, importedCustomRole.SchemeManaged)
+		require.Equal(t, customRole.BuiltIn, importedCustomRole.BuiltIn)
+		require.ElementsMatch(t, customRole.Permissions, importedCustomRole.Permissions)
+	})
+}
+
+func TestExportSchemes(t *testing.T) {
+	t.Run("no schemes", func(t *testing.T) {
+		th1 := Setup(t).InitBasic()
+		defer th1.TearDown()
+
+		// Need to set this or working with schemes won't work until the job is
+		// completed which is unnecessary for the purpose of this test.
+		err := th1.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		schemes, err := th1.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeChannel, 0, 1)
+		require.NoError(t, err)
+		require.Empty(t, schemes)
+
+		schemes, err = th1.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeTeam, 0, 1)
+		require.NoError(t, err)
+		require.Empty(t, schemes)
+
+		var b bytes.Buffer
+		appErr := th1.App.BulkExport(th1.Context, &b, "", nil, model.BulkExportOpts{
+			IncludeRolesAndSchemes: true,
+		})
+		require.Nil(t, appErr)
+
+		// The following causes the original store to be wiped so from here on we are targeting the
+		// second instance where the import will be loaded.
+		th2 := Setup(t)
+		defer th2.TearDown()
+		err = th2.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, i)
+
+		schemes, err = th2.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeChannel, 0, 1)
+		require.NoError(t, err)
+		require.Empty(t, schemes)
+
+		schemes, err = th2.App.Srv().Store().Scheme().GetAllPage(model.SchemeScopeTeam, 0, 1)
+		require.NoError(t, err)
+		require.Empty(t, schemes)
+	})
+
+	t.Run("skip export", func(t *testing.T) {
+		th1 := Setup(t).InitBasic()
+		defer th1.TearDown()
+
+		// Need to set this or working with schemes won't work until the job is
+		// completed which is unnecessary for the purpose of this test.
+		err := th1.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		customScheme, appErr := th1.App.CreateScheme(&model.Scheme{
+			Name:        "custom_scheme",
+			DisplayName: "Custom Scheme",
+			Scope:       model.SchemeScopeChannel,
+		})
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th1.App.BulkExport(th1.Context, &b, "", nil, model.BulkExportOpts{})
+		require.Nil(t, appErr)
+
+		// The following causes the original store to be wiped so from here on we are targeting the
+		// second instance where the import will be loaded.
+		th2 := Setup(t)
+		defer th2.TearDown()
+		err = th2.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, i)
+
+		// Verify the scheme doesn't exist which is the expectation as it wasn't exported.
+		_, appErr = th2.App.GetScheme(customScheme.Name)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("export channel scheme", func(t *testing.T) {
+		th1 := Setup(t).InitBasic()
+		defer th1.TearDown()
+
+		// Need to set this or working with schemes won't work until the job is
+		// completed which is unnecessary for the purpose of this test.
+		err := th1.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		builtInRoles := 23
+		defaultChannelSchemeRoles := 3
+
+		// Verify the roles count is expected prior to scheme creation.
+		roles, appErr := th1.App.GetAllRoles()
+		require.Nil(t, appErr)
+		require.Len(t, roles, builtInRoles)
+
+		customScheme, appErr := th1.App.CreateScheme(&model.Scheme{
+			Name:        "custom_channel_scheme",
+			DisplayName: "Custom Channel Scheme",
+			Scope:       model.SchemeScopeChannel,
+		})
+		require.Nil(t, appErr)
+
+		// Verify the roles count is expected after scheme creation.
+		roles, appErr = th1.App.GetAllRoles()
+		require.Nil(t, appErr)
+		require.Len(t, roles, builtInRoles+defaultChannelSchemeRoles)
+
+		// Fetch the scheme roles for later comparison
+		customChannelAdminRole, appErr := th1.App.GetRoleByName(th1.Context.Context(), customScheme.DefaultChannelAdminRole)
+		require.Nil(t, appErr)
+		customChannelUserRole, appErr := th1.App.GetRoleByName(th1.Context.Context(), customScheme.DefaultChannelUserRole)
+		require.Nil(t, appErr)
+		customChannelGuestRole, appErr := th1.App.GetRoleByName(th1.Context.Context(), customScheme.DefaultChannelGuestRole)
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th1.App.BulkExport(th1.Context, &b, "", nil, model.BulkExportOpts{
+			IncludeRolesAndSchemes: true,
+		})
+		require.Nil(t, appErr)
+
+		// The following causes the original store to be wiped so from here on we are targeting the
+		// second instance where the import will be loaded.
+		th2 := Setup(t)
+		defer th2.TearDown()
+		err = th2.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		// Verify roles count before importing is as expected.
+		roles, appErr = th2.App.GetAllRoles()
+		require.Nil(t, appErr)
+		require.Len(t, roles, builtInRoles)
+
+		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, i)
+
+		// Verify roles count after importing is as expected.
+		roles, appErr = th2.App.GetAllRoles()
+		require.Nil(t, appErr)
+		require.Len(t, roles, builtInRoles+defaultChannelSchemeRoles)
+
+		// Verify schemes match
+		importedScheme, appErr := th2.App.GetSchemeByName(customScheme.Name)
+		require.Nil(t, appErr)
+		require.Equal(t, customScheme.Name, importedScheme.Name)
+		require.Equal(t, customScheme.DisplayName, importedScheme.DisplayName)
+		require.Equal(t, customScheme.Description, importedScheme.Description)
+		require.Equal(t, customScheme.Scope, importedScheme.Scope)
+
+		// Verify scheme roles match
+		importedChannelAdminRole, appErr := th2.App.GetRoleByName(th2.Context.Context(), importedScheme.DefaultChannelAdminRole)
+		require.Nil(t, appErr)
+		require.Equal(t, customChannelAdminRole.DisplayName, importedChannelAdminRole.DisplayName)
+		require.Equal(t, customChannelAdminRole.Description, importedChannelAdminRole.Description)
+		require.Equal(t, customChannelAdminRole.Permissions, importedChannelAdminRole.Permissions)
+		require.Equal(t, customChannelAdminRole.SchemeManaged, importedChannelAdminRole.SchemeManaged)
+		require.Equal(t, customChannelAdminRole.BuiltIn, importedChannelAdminRole.BuiltIn)
+
+		importedChannelUserRole, appErr := th2.App.GetRoleByName(th2.Context.Context(), importedScheme.DefaultChannelUserRole)
+		require.Nil(t, appErr)
+		require.Equal(t, customChannelUserRole.DisplayName, importedChannelUserRole.DisplayName)
+		require.Equal(t, customChannelUserRole.Description, importedChannelUserRole.Description)
+		require.Equal(t, customChannelUserRole.Permissions, importedChannelUserRole.Permissions)
+		require.Equal(t, customChannelUserRole.SchemeManaged, importedChannelUserRole.SchemeManaged)
+		require.Equal(t, customChannelUserRole.BuiltIn, importedChannelUserRole.BuiltIn)
+
+		importedChannelGuestRole, appErr := th2.App.GetRoleByName(th2.Context.Context(), importedScheme.DefaultChannelGuestRole)
+		require.Nil(t, appErr)
+		require.Equal(t, customChannelGuestRole.DisplayName, importedChannelGuestRole.DisplayName)
+		require.Equal(t, customChannelGuestRole.Description, importedChannelGuestRole.Description)
+		require.Equal(t, customChannelGuestRole.Permissions, importedChannelGuestRole.Permissions)
+		require.Equal(t, customChannelGuestRole.SchemeManaged, importedChannelGuestRole.SchemeManaged)
+		require.Equal(t, customChannelGuestRole.BuiltIn, importedChannelGuestRole.BuiltIn)
+	})
+
+	t.Run("export team scheme", func(t *testing.T) {
+		th1 := Setup(t).InitBasic()
+		defer th1.TearDown()
+
+		// Need to set this or working with schemes won't work until the job is
+		// completed which is unnecessary for the purpose of this test.
+		err := th1.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		builtInRoles := 23
+		defaultTeamSchemeRoles := 10
+
+		// Verify the roles count is expected prior to scheme creation.
+		roles, appErr := th1.App.GetAllRoles()
+		require.Nil(t, appErr)
+		require.Len(t, roles, builtInRoles)
+
+		customScheme, appErr := th1.App.CreateScheme(&model.Scheme{
+			Name:        "custom_team_scheme",
+			DisplayName: "Custom Team Scheme",
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.Nil(t, appErr)
+
+		// Verify the roles count is expected after scheme creation.
+		roles, appErr = th1.App.GetAllRoles()
+		require.Nil(t, appErr)
+		require.Len(t, roles, builtInRoles+defaultTeamSchemeRoles)
+
+		customChannelAdminRole, appErr := th1.App.GetRoleByName(th1.Context.Context(), customScheme.DefaultChannelAdminRole)
+		require.Nil(t, appErr)
+
+		customChannelUserRole, appErr := th1.App.GetRoleByName(th1.Context.Context(), customScheme.DefaultChannelUserRole)
+		require.Nil(t, appErr)
+
+		customChannelGuestRole, appErr := th1.App.GetRoleByName(th1.Context.Context(), customScheme.DefaultChannelGuestRole)
+		require.Nil(t, appErr)
+
+		customTeamAdminRole, appErr := th1.App.GetRoleByName(th1.Context.Context(), customScheme.DefaultTeamAdminRole)
+		require.Nil(t, appErr)
+
+		customTeamUserRole, appErr := th1.App.GetRoleByName(th1.Context.Context(), customScheme.DefaultTeamUserRole)
+		require.Nil(t, appErr)
+
+		customTeamGuestRole, appErr := th1.App.GetRoleByName(th1.Context.Context(), customScheme.DefaultTeamGuestRole)
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th1.App.BulkExport(th1.Context, &b, "", nil, model.BulkExportOpts{
+			IncludeRolesAndSchemes: true,
+		})
+		require.Nil(t, appErr)
+
+		// The following causes the original store to be wiped so from here on we are targeting the
+		// second instance where the import will be loaded.
+		th2 := Setup(t)
+		defer th2.TearDown()
+		err = th2.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		require.NoError(t, err)
+
+		// Verify roles count before importing is as expected.
+		roles, appErr = th2.App.GetAllRoles()
+		require.Nil(t, appErr)
+		require.Len(t, roles, builtInRoles)
+
+		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, i)
+
+		// Verify roles count after importing is as expected.
+		roles, appErr = th2.App.GetAllRoles()
+		require.Nil(t, appErr)
+		require.Len(t, roles, builtInRoles+defaultTeamSchemeRoles)
+
+		// Verify schemes match
+		importedScheme, appErr := th2.App.GetSchemeByName(customScheme.Name)
+		require.Nil(t, appErr)
+		require.Equal(t, customScheme.Name, importedScheme.Name)
+		require.Equal(t, customScheme.DisplayName, importedScheme.DisplayName)
+		require.Equal(t, customScheme.Description, importedScheme.Description)
+		require.Equal(t, customScheme.Scope, importedScheme.Scope)
+
+		// Verify scheme roles match
+		importedChannelAdminRole, appErr := th2.App.GetRoleByName(th2.Context.Context(), importedScheme.DefaultChannelAdminRole)
+		require.Nil(t, appErr)
+		require.Equal(t, customChannelAdminRole.DisplayName, importedChannelAdminRole.DisplayName)
+		require.Equal(t, customChannelAdminRole.Description, importedChannelAdminRole.Description)
+		require.Equal(t, customChannelAdminRole.Permissions, importedChannelAdminRole.Permissions)
+		require.Equal(t, customChannelAdminRole.SchemeManaged, importedChannelAdminRole.SchemeManaged)
+		require.Equal(t, customChannelAdminRole.BuiltIn, importedChannelAdminRole.BuiltIn)
+
+		importedChannelUserRole, appErr := th2.App.GetRoleByName(th2.Context.Context(), importedScheme.DefaultChannelUserRole)
+		require.Nil(t, appErr)
+		require.Equal(t, customChannelUserRole.DisplayName, importedChannelUserRole.DisplayName)
+		require.Equal(t, customChannelUserRole.Description, importedChannelUserRole.Description)
+		require.Equal(t, customChannelUserRole.Permissions, importedChannelUserRole.Permissions)
+		require.Equal(t, customChannelUserRole.SchemeManaged, importedChannelUserRole.SchemeManaged)
+		require.Equal(t, customChannelUserRole.BuiltIn, importedChannelUserRole.BuiltIn)
+
+		importedChannelGuestRole, appErr := th2.App.GetRoleByName(th2.Context.Context(), importedScheme.DefaultChannelGuestRole)
+		require.Nil(t, appErr)
+		require.Equal(t, customChannelGuestRole.DisplayName, importedChannelGuestRole.DisplayName)
+		require.Equal(t, customChannelGuestRole.Description, importedChannelGuestRole.Description)
+		require.Equal(t, customChannelGuestRole.Permissions, importedChannelGuestRole.Permissions)
+		require.Equal(t, customChannelGuestRole.SchemeManaged, importedChannelGuestRole.SchemeManaged)
+		require.Equal(t, customChannelGuestRole.BuiltIn, importedChannelGuestRole.BuiltIn)
+
+		importedTeamAdminRole, appErr := th2.App.GetRoleByName(th2.Context.Context(), importedScheme.DefaultTeamAdminRole)
+		require.Nil(t, appErr)
+		require.Equal(t, customTeamAdminRole.DisplayName, importedTeamAdminRole.DisplayName)
+		require.Equal(t, customTeamAdminRole.Description, importedTeamAdminRole.Description)
+		require.Equal(t, customTeamAdminRole.Permissions, importedTeamAdminRole.Permissions)
+		require.Equal(t, customTeamAdminRole.SchemeManaged, importedTeamAdminRole.SchemeManaged)
+		require.Equal(t, customTeamAdminRole.BuiltIn, importedTeamAdminRole.BuiltIn)
+
+		importedTeamUserRole, appErr := th2.App.GetRoleByName(th2.Context.Context(), importedScheme.DefaultTeamUserRole)
+		require.Nil(t, appErr)
+		require.Equal(t, customTeamUserRole.DisplayName, importedTeamUserRole.DisplayName)
+		require.Equal(t, customTeamUserRole.Description, importedTeamUserRole.Description)
+		require.Equal(t, customTeamUserRole.Permissions, importedTeamUserRole.Permissions)
+		require.Equal(t, customTeamUserRole.SchemeManaged, importedTeamUserRole.SchemeManaged)
+		require.Equal(t, customTeamUserRole.BuiltIn, importedTeamUserRole.BuiltIn)
+
+		importedTeamGuestRole, appErr := th2.App.GetRoleByName(th2.Context.Context(), importedScheme.DefaultTeamGuestRole)
+		require.Nil(t, appErr)
+		require.Equal(t, customTeamGuestRole.DisplayName, importedTeamGuestRole.DisplayName)
+		require.Equal(t, customTeamGuestRole.Description, importedTeamGuestRole.Description)
+		require.Equal(t, customTeamGuestRole.Permissions, importedTeamGuestRole.Permissions)
+		require.Equal(t, customTeamGuestRole.SchemeManaged, importedTeamGuestRole.SchemeManaged)
+		require.Equal(t, customTeamGuestRole.BuiltIn, importedTeamGuestRole.BuiltIn)
+	})
+}
