@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	plugin "github.com/hashicorp/go-plugin"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -270,6 +271,31 @@ func checkMinServerVersion(pluginInfo *model.BundleInfo) error {
 	return nil
 }
 
+func (env *Environment) startPluginServer(rp registeredPlugin, opts ...func(*plugin.ClientConfig) error) error {
+	sup, err := newSupervisor(rp.BundleInfo, env.newAPIImpl(rp.BundleInfo.Manifest), env.dbDriver, env.logger, env.metrics, opts...)
+	if err != nil {
+		return errors.Wrapf(err, "unable to start plugin: %v", rp.BundleInfo.Manifest.Id)
+	}
+
+	// We pre-emptively set the state to running to prevent re-entrancy issues.
+	// The plugin's OnActivate hook can in-turn call UpdateConfiguration
+	// which again calls this method. This method is guarded against multiple calls,
+	// but fails if it is called recursively.
+	//
+	// Therefore, setting the state to running prevents this from happening,
+	// and in case there is an error, the defer clause will set the proper state anyways.
+	env.setPluginState(rp.BundleInfo.Manifest.Id, model.PluginStateRunning)
+
+	if err := sup.Hooks().OnActivate(); err != nil {
+		sup.Shutdown()
+		return err
+	}
+	rp.supervisor = sup
+	env.registeredPlugins.Store(rp.BundleInfo.Manifest.Id, rp)
+
+	return nil
+}
+
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
 	defer func() {
 		if reterr != nil {
@@ -331,27 +357,10 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	}
 
 	if pluginInfo.Manifest.HasServer() {
-		sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics, WithExecutableFromManifest(pluginInfo))
+		err = env.startPluginServer(rp, WithExecutableFromManifest(pluginInfo))
 		if err != nil {
-			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
-		}
-
-		// We pre-emptively set the state to running to prevent re-entrancy issues.
-		// The plugin's OnActivate hook can in-turn call UpdateConfiguration
-		// which again calls this method. This method is guarded against multiple calls,
-		// but fails if it is called recursively.
-		//
-		// Therefore, setting the state to running prevents this from happening,
-		// and in case there is an error, the defer clause will set the proper state anyways.
-		env.setPluginState(id, model.PluginStateRunning)
-
-		if err := sup.Hooks().OnActivate(); err != nil {
-			sup.Shutdown()
 			return nil, false, err
 		}
-		rp.supervisor = sup
-		env.registeredPlugins.Store(id, rp)
-
 		componentActivated = true
 	}
 
@@ -404,20 +413,10 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 		env.logger.Warn("Ignoring webapp for reattached plugin", mlog.String("plugin_id", id))
 	}
 
-	sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics, WithReattachConfig(pluginReattachConfig))
+	err = env.startPluginServer(rp, WithReattachConfig(pluginReattachConfig))
 	if err != nil {
-		return errors.Wrapf(err, "unable to start plugin: %v", id)
+		return nil
 	}
-
-	env.setPluginState(id, model.PluginStateRunning)
-
-	if err := sup.Hooks().OnActivate(); err != nil {
-		env.setPluginState(id, model.PluginStateFailedToStart)
-		sup.Shutdown()
-		return err
-	}
-	rp.supervisor = sup
-	env.registeredPlugins.Store(id, rp)
 
 	mlog.Debug("Plugin reattached", mlog.String("plugin_id", pluginInfo.Manifest.Id), mlog.String("version", pluginInfo.Manifest.Version))
 
