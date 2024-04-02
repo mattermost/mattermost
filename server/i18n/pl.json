@@ -10306,5 +10306,25 @@
   {
     "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
     "translation": "Nieprawidłowa aktualizacja członka kanału: Gość nie może być ustawiony dla pojedynczego kanału, administrator systemu musi promować lub degradować użytkowników do/z gości."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Nie można włączyć autouzupełniania kanałów, ponieważ schemat indeksu kanałów jest nieaktualny. Zaleca się regenerację indeksu kanałów. Zobacz dziennik zmian Mattermost, aby uzyskać więcej informacji"
+  },
+  {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "Twój schemat indeksu kanałów Elasticsearch jest nieaktualny. Zaleca się regenerację indeksu kanałów.\nKliknij przycisk `Rebuild Channels Index` w [sekcji Elasticsearch w konsoli systemowej] ({{.ElasticsearchSection}}), aby naprawić błąd.\nZobacz dziennik zmian Mattermost, aby uzyskać więcej informacji."
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "Funkcja listy czyszczenia nie jest dostępna dla Bleve."
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "Nie udało się usunąć indeksu Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "Nie udało się usunąć nieznanego indeksu"
   }
 ]
