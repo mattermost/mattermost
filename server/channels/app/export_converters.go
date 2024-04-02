@@ -226,3 +226,46 @@ func ImportLineFromEmoji(emoji *model.Emoji, filePath string) *imports.LineImpor
 		},
 	}
 }
+
+func ImportRoleDataFromRole(role *model.Role) *imports.RoleImportData {
+	return &imports.RoleImportData{
+		Name:          &role.Name,
+		DisplayName:   &role.DisplayName,
+		Description:   &role.Description,
+		Permissions:   &role.Permissions,
+		SchemeManaged: &role.SchemeManaged,
+	}
+}
+
+func ImportLineFromRole(role *model.Role) *imports.LineImportData {
+	return &imports.LineImportData{
+		Type: "role",
+		Role: ImportRoleDataFromRole(role),
+	}
+}
+
+func ImportLineFromScheme(scheme *model.Scheme, rolesMap map[string]*model.Role) *imports.LineImportData {
+	data := &imports.SchemeImportData{
+		Name:        &scheme.Name,
+		DisplayName: &scheme.DisplayName,
+		Description: &scheme.Description,
+		Scope:       &scheme.Scope,
+	}
+
+	if scheme.Scope == model.SchemeScopeTeam {
+		data.DefaultTeamAdminRole = ImportRoleDataFromRole(rolesMap[scheme.DefaultTeamAdminRole])
+		data.DefaultTeamUserRole = ImportRoleDataFromRole(rolesMap[scheme.DefaultTeamUserRole])
+		data.DefaultTeamGuestRole = ImportRoleDataFromRole(rolesMap[scheme.DefaultTeamGuestRole])
+	}
+
+	if scheme.Scope == model.SchemeScopeTeam || scheme.Scope == model.SchemeScopeChannel {
+		data.DefaultChannelAdminRole = ImportRoleDataFromRole(rolesMap[scheme.DefaultChannelAdminRole])
+		data.DefaultChannelUserRole = ImportRoleDataFromRole(rolesMap[scheme.DefaultChannelUserRole])
+		data.DefaultChannelGuestRole = ImportRoleDataFromRole(rolesMap[scheme.DefaultChannelGuestRole])
+	}
+
+	return &imports.LineImportData{
+		Type:   "scheme",
+		Scheme: data,
+	}
+}

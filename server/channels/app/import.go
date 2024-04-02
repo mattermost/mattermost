@@ -314,6 +314,11 @@ func processImportDataFileVersionLine(line imports.LineImportData) (int, *model.
 
 func (a *App) importLine(c request.CTX, line imports.LineImportData, dryRun bool) *model.AppError {
 	switch {
+	case line.Type == "role":
+		if line.Role == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_role.error", nil, "", http.StatusBadRequest)
+		}
+		return a.importRole(c, line.Role, dryRun)
 	case line.Type == "scheme":
 		if line.Scheme == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_scheme.error", nil, "", http.StatusBadRequest)
