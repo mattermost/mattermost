@@ -1364,3 +1364,10 @@ func (api *apiTimerLayer) UninviteRemoteFromChannel(channelID string, remoteID s
 	api.recordTime(startTime, "UninviteRemoteFromChannel", _returnsA == nil)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateUserRoles(userID, newRoles)
+	api.recordTime(startTime, "UpdateUserRoles", _returnsB == nil)
+	return _returnsA, _returnsB
+}
