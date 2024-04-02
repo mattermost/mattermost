@@ -1,4 +1,6 @@
 .image_preview {
+    height: 100%;
+    width: 100%;
     &__image {
         max-height: calc(100vh - 216px);
         border-radius: 8px;
@@ -19,6 +21,11 @@
             padding: 0;
             background: rgb(0, 0, 0);
         }
+    }
+    &__transform-wrapper {
+        height: 100%;
+        width: 100%;
+
     }
 }
 

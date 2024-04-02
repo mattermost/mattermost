@@ -33,25 +33,43 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
     const imageRef = React.useRef<HTMLImageElement>(null);
     const transformWrapperRef = React.useRef<ReactZoomPanPinchRef | null>(null);
 
-    const selectZoomLevel = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newScale = parseFloat(e.target.value);
+    const selectZoomLevel = (newScale: number) => {
         if (transformWrapperRef.current) {
-            const {wrapperComponent} = transformWrapperRef.current.instance;
+            const {wrapperComponent, contentComponent} = transformWrapperRef.current.instance;
 
-            if (wrapperComponent) {
-                const originalWidth = wrapperComponent.offsetWidth;
-                const originalHeight = wrapperComponent.offsetHeight;
+            if (wrapperComponent && contentComponent) {
+                const bounds = calculateBoundsForNewScale(newScale, wrapperComponent, contentComponent);
 
-                const scaledWidth = originalWidth * newScale;
-                const scaledHeight = originalHeight * newScale;
+                const newPositionX = (bounds.maxPositionX + bounds.minPositionX) / 2;
+                const newPositionY = (bounds.maxPositionY + bounds.minPositionY) / 2;
 
-                const newX = (originalWidth - scaledWidth) / 2;
-                const newY = (originalHeight - scaledHeight) / 2;
-
-                transformWrapperRef.current?.setTransform(newX, newY, newScale);
+                transformWrapperRef.current?.setTransform(newPositionX, newPositionY, newScale);
             }
         }
     };
+
+    function calculateBoundsForNewScale(newScale: number, wrapperComponent: HTMLDivElement, contentComponent: HTMLDivElement) {
+        const wrapperWidth = wrapperComponent.offsetWidth;
+        const wrapperHeight = wrapperComponent.offsetHeight;
+
+        const contentWidth = contentComponent.offsetWidth;
+        const contentHeight = contentComponent.offsetHeight;
+
+        const newContentWidth = contentWidth * newScale;
+        const newContentHeight = contentHeight * newScale;
+        const newDiffWidth = wrapperWidth - newContentWidth;
+        const newDiffHeight = wrapperHeight - newContentHeight;
+
+        const scaleWidthFactor = wrapperWidth > newContentWidth ? newDiffWidth : 0;
+        const scaleHeightFactor = wrapperHeight > newContentHeight ? newDiffHeight : 0;
+
+        const minPositionX = wrapperWidth - newContentWidth - scaleWidthFactor;
+        const maxPositionX = scaleWidthFactor;
+        const minPositionY = wrapperHeight - newContentHeight - scaleHeightFactor;
+        const maxPositionY = scaleHeightFactor;
+
+        return {minPositionX, maxPositionX, minPositionY, maxPositionY};
+    }
 
     const toggleFullscreen = () => {
         if (document.fullscreenElement) {
@@ -124,14 +142,20 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
         };
     }, [computeScaleOptions]);
 
+    const handleTransformed = React.useCallback(
+        (e) => setScale(e.state.scale),
+        [],
+    );
+
     if (!canDownloadFiles) {
         return <img src={previewUrl}/>;
     }
 
     return (
         <TransformWrapper
-            onTransformed={(e) => setScale(e.state.scale)}
+            onTransformed={handleTransformed}
             ref={transformWrapperRef}
+            centerOnInit={true}
         >
             {({zoomIn, zoomOut}) => (
                 <div className='image_preview_wrapper'>
@@ -169,7 +193,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
                             <select
                                 className='image_preview_zoom_actions__select-item'
                                 value={scale}
-                                onChange={selectZoomLevel}
+                                onChange={(e) => selectZoomLevel(parseFloat(e.target.value))}
                             >
                                 {scaleOptions.map((o) => o.value).includes(scale) ? null : (
                                     <option
@@ -209,7 +233,9 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
                             className='image_preview'
                             href='#'
                         >
-                            <TransformComponent>
+                            <TransformComponent
+                                wrapperClass='image_preview__transform-wrapper'
+                            >
                                 <img
                                     className='image_preview__image'
                                     loading='lazy'
