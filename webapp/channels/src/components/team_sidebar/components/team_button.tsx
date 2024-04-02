@@ -192,9 +192,9 @@ export default function TeamButton({
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
+                        tabIndex={-1}
                     >
                         <div
-
                             className={classNames([`team-container ${teamClass}`, {isDragging: snapshot.isDragging}])}
                         >
                             {teamButton}
@@ -205,7 +205,9 @@ export default function TeamButton({
             }}
         </Draggable>
     ) : (
-        <div className={`team-container ${teamClass}`}>
+        <div
+            className={`team-container ${teamClass}`}
+        >
             {teamButton}
             {orderIndicator}
         </div>
