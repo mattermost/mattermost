@@ -400,6 +400,14 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 	rp := newRegisteredPlugin(pluginInfo)
 	env.registeredPlugins.Store(id, rp)
 
+	defer func() {
+		if reterr == nil {
+			env.setPluginState(id, model.PluginStateRunning)
+		} else {
+			env.setPluginState(id, model.PluginStateFailedToStart)
+		}
+	}()
+
 	err := checkMinServerVersion(pluginInfo)
 	if err != nil {
 		return nil
