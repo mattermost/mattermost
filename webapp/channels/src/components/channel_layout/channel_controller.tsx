@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {cleanupUserProfilesInterval, cleanupUserStatusesInterval} from 'mattermost-redux/actions/profiles_statuses_groups';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
@@ -40,6 +41,8 @@ export default function ChannelController(props: Props) {
 
         return () => {
             document.body.classList.remove(...BODY_CLASS_FOR_CHANNEL);
+            cleanupUserProfilesInterval();
+            cleanupUserStatusesInterval();
         };
     }, []);
 
