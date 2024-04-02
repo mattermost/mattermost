@@ -5475,6 +5475,10 @@
     "translation": "Import data line has type \"post\" but the post object is null."
   },
   {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Import data line has type \"role\" but the role object is null."
+  },
+  {
     "id": "app.import.import_line.null_scheme.error",
     "translation": "Import data line has type \"scheme\" but the scheme object is null."
   },
@@ -6661,6 +6665,10 @@
   {
     "id": "app.scheme.get.app_error",
     "translation": "Unable to get the scheme."
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Unable to get page of schemes."
   },
   {
     "id": "app.scheme.permanent_delete_all.app_error",
@@ -9789,6 +9797,10 @@
   {
     "id": "model.reporting_base_options.is_valid.bad_date_range",
     "translation": "Date range provided is invalid."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Invalid scheme."
   },
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",

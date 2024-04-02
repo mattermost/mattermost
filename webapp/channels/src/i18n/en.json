@@ -2557,6 +2557,8 @@
   "admin.system_users.list.memberSince.yesterday": "Yesterday",
   "admin.system_users.list.totalPosts": "Messages posted",
   "admin.system_users.list.userDetails": "User details",
+  "admin.system_users.list.userIsRemote": "Remote user",
+  "admin.system_users.list.userIsRemoteAriaLabel": "This is a remote user",
   "admin.system_users.mysql_stats.desc": "Use of MySQL may limit the availability of some statistics features. We recommend transitioning from MySQL to PostgreSQL to fully leverage improved performance and comprehensive analytics. While you’re still using MySQL, please use the export functionality to view all user statistics.",
   "admin.system_users.mysql_stats.dismiss": "Dismiss",
   "admin.system_users.mysql_stats.learn_more": "Learn more",

@@ -5,14 +5,15 @@ import merge from 'deepmerge';
 
 import {
     AdminConfig,
-    ExperimentalSettings,
-    PasswordSettings,
-    ServiceSettings,
-    TeamSettings,
-    PluginSettings,
     ClusterSettings,
     CollapsedThreads,
     EmailSettings,
+    ExperimentalSettings,
+    LogSettings,
+    PasswordSettings,
+    PluginSettings,
+    ServiceSettings,
+    TeamSettings,
 } from '@mattermost/types/config';
 import testConfig from '@e2e-test.config';
 
@@ -24,6 +25,7 @@ type TestAdminConfig = {
     ClusterSettings: Partial<ClusterSettings>;
     EmailSettings: Partial<EmailSettings>;
     ExperimentalSettings: Partial<ExperimentalSettings>;
+    LogSettings: Partial<LogSettings>;
     PasswordSettings: Partial<PasswordSettings>;
     PluginSettings: Partial<PluginSettings>;
     ServiceSettings: Partial<ServiceSettings>;
@@ -39,6 +41,9 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
         },
         EmailSettings: {
             PushNotificationServer: testConfig.pushNotificationServer,
+        },
+        LogSettings: {
+            EnableDiagnostics: false,
         },
         PasswordSettings: {
             MinimumLength: 5,
@@ -65,6 +70,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
         ServiceSettings: {
             SiteURL: testConfig.baseURL,
             EnableOnboardingFlow: false,
+            EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
         },
         TeamSettings: {
