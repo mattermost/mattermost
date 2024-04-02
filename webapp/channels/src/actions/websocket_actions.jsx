@@ -39,12 +39,12 @@ import {
     getCustomEmojiForReaction,
     getPosts,
     getPostThread,
-    getMentionsAndStatusesForPosts,
     getThreadsForPosts,
     postDeleted,
     receivedNewPost,
     receivedPost,
 } from 'mattermost-redux/actions/posts';
+import {getBatchedUserProfilesStatusesAndGroupsFromPosts} from 'mattermost-redux/actions/profiles_statuses_groups';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
@@ -702,8 +702,7 @@ export function handleNewPostEvent(msg) {
         }
 
         myDispatch(handleNewPost(post, msg));
-
-        getMentionsAndStatusesForPosts([post], myDispatch, myGetState);
+        myDispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts([post]));
 
         // Since status updates aren't real time, assume another user is online if they have posted and:
         // 1. The user hasn't set their status manually to something that isn't online
@@ -740,9 +739,7 @@ export function handleNewPostEvents(queue) {
 
         // Load the posts' threads
         myDispatch(getThreadsForPosts(posts));
-
-        // And any other data needed for them
-        getMentionsAndStatusesForPosts(posts, myDispatch, myGetState);
+        myDispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts(posts));
     };
 }
 
@@ -758,7 +755,7 @@ export function handlePostEditEvent(msg) {
     const crtEnabled = isCollapsedThreadsEnabled(getState());
     dispatch(receivedPost(post, crtEnabled));
 
-    getMentionsAndStatusesForPosts([post], dispatch, getState);
+    dispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts([post]));
 }
 
 async function handlePostDeleteEvent(msg) {
@@ -1135,7 +1132,7 @@ export async function handleUserUpdatedEvent(msg) {
 
     if (currentUser.id === user.id) {
         if (user.update_at > currentUser.update_at) {
-            // update user to unsanitized user data recieved from websocket message
+            // update user to unsanitized user data received from websocket message
             dispatch({
                 type: UserTypes.RECEIVED_ME,
                 data: user,
