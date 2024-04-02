@@ -318,6 +318,7 @@ func init() {
 	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
 	ListUsersCmd.Flags().String("team", "", "If supplied, only users belonging to this team will be listed")
+	ListUsersCmd.Flags().Bool("inactive", false, "If supplied, only users which are inactive will be fetch")
 
 	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots")
 	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user")
@@ -795,6 +796,11 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	if err != nil {
 		return err
 	}
+	// if inactive, DeletedAt != 0
+	inactive, err := command.Flags().GetBool("inactive")
+	if err != nil {
+		return err
+	}
 
 	if showAll {
 		page = 0
@@ -819,7 +825,13 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 				return errors.Wrap(err, fmt.Sprintf("Failed to fetch users for team %s", teamName))
 			}
 		} else {
-			users, _, err = c.GetUsers(context.TODO(), page, perPage, "")
+
+			params := ""
+			if inactive {
+				params = "inactive=true"
+			}
+
+			users, _, err = c.GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, params, "")
 			if err != nil {
 				return errors.Wrap(err, "Failed to fetch users")
 			}
