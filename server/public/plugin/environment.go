@@ -197,6 +197,15 @@ func (env *Environment) setPluginState(id string, state int) {
 	}
 }
 
+// setPluginSupervisor records the supervisor for a registered plugin.
+func (env *Environment) setPluginSupervisor(id string, supervisor *supervisor) {
+	if rp, ok := env.registeredPlugins.Load(id); ok {
+		p := rp.(registeredPlugin)
+		p.supervisor = supervisor
+		env.registeredPlugins.Store(id, p)
+	}
+}
+
 // PublicFilesPath returns a path and true if the plugin with the given id is active.
 // It returns an empty string and false if the path is not set or invalid
 func (env *Environment) PublicFilesPath(id string) (string, error) {
@@ -271,10 +280,10 @@ func checkMinServerVersion(pluginInfo *model.BundleInfo) error {
 	return nil
 }
 
-func (env *Environment) startPluginServer(rp registeredPlugin, opts ...func(*plugin.ClientConfig) error) error {
-	sup, err := newSupervisor(rp.BundleInfo, env.newAPIImpl(rp.BundleInfo.Manifest), env.dbDriver, env.logger, env.metrics, opts...)
+func (env *Environment) startPluginServer(pluginInfo *model.BundleInfo, opts ...func(*plugin.ClientConfig) error) error {
+	sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics, opts...)
 	if err != nil {
-		return errors.Wrapf(err, "unable to start plugin: %v", rp.BundleInfo.Manifest.Id)
+		return errors.Wrapf(err, "unable to start plugin: %v", pluginInfo.Manifest.Id)
 	}
 
 	// We pre-emptively set the state to running to prevent re-entrancy issues.
@@ -284,14 +293,13 @@ func (env *Environment) startPluginServer(rp registeredPlugin, opts ...func(*plu
 	//
 	// Therefore, setting the state to running prevents this from happening,
 	// and in case there is an error, the defer clause will set the proper state anyways.
-	env.setPluginState(rp.BundleInfo.Manifest.Id, model.PluginStateRunning)
+	env.setPluginState(pluginInfo.Manifest.Id, model.PluginStateRunning)
 
 	if err := sup.Hooks().OnActivate(); err != nil {
 		sup.Shutdown()
 		return err
 	}
-	rp.supervisor = sup
-	env.registeredPlugins.Store(rp.BundleInfo.Manifest.Id, rp)
+	env.setPluginSupervisor(pluginInfo.Manifest.Id, sup)
 
 	return nil
 }
@@ -357,7 +365,7 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	}
 
 	if pluginInfo.Manifest.HasServer() {
-		err = env.startPluginServer(rp, WithExecutableFromManifest(pluginInfo))
+		err = env.startPluginServer(pluginInfo, WithExecutableFromManifest(pluginInfo))
 		if err != nil {
 			return nil, false, err
 		}
@@ -421,7 +429,7 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 		env.logger.Warn("Ignoring webapp for reattached plugin", mlog.String("plugin_id", id))
 	}
 
-	err = env.startPluginServer(rp, WithReattachConfig(pluginReattachConfig))
+	err = env.startPluginServer(pluginInfo, WithReattachConfig(pluginReattachConfig))
 	if err != nil {
 		return nil
 	}
