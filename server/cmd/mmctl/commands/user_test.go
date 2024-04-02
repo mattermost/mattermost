@@ -1839,6 +1839,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 	cmd.Flags().Int("per-page", 200, "")
 	cmd.Flags().Bool("all", false, "")
 	cmd.Flags().String("team", "", "")
+	cmd.Flags().Bool("inactive", false, "")
 
 	s.Run("Listing users with paging", func() {
 		printer.Clean()
@@ -1849,13 +1850,15 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		page := 0
 		perPage := 1
 		showAll := false
+		inactive := false
 		_ = cmd.Flags().Set("page", strconv.Itoa(page))
 		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
 		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
 
 		s.client.
 			EXPECT().
-			GetUsers(context.TODO(), page, perPage, "").
+			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "", "").
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
@@ -1876,25 +1879,27 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		page := 0
 		perPage := 1
 		showAll := true
+		inactive := false
 		_ = cmd.Flags().Set("page", strconv.Itoa(page))
 		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
 		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
 
 		s.client.
 			EXPECT().
-			GetUsers(context.TODO(), 0, perPage, "").
+			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "", "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsers(context.TODO(), 1, perPage, "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 1, perPage, "", "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsers(context.TODO(), 2, perPage, "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 2, perPage, "", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
@@ -1905,19 +1910,134 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().Equal(&mockUser2, printer.GetLines()[1])
 	})
 
+	s.Run("Listing all users including inactive", func() {
+		printer.Clean()
+
+		email1 := "example1@example.com"
+		mockUser1 := model.User{Username: "ExampleUser1", Email: email1}
+		email2 := "example2@example.com"
+		mockUser2 := model.User{Username: "ExampleUser2", Email: email2, DeleteAt: model.GetMillis()}
+
+		page := 0
+		perPage := 1
+		showAll := true
+		inactive := false
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "", "").
+			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 1, perPage, "", "").
+			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 2, perPage, "", "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(&mockUser1, printer.GetLines()[0])
+		s.Require().Equal(&mockUser2, printer.GetLines()[1])
+	})
+
+	s.Run("Listing all inactive users", func() {
+		printer.Clean()
+
+		email2 := "example2@example.com"
+		mockUser2 := model.User{Username: "ExampleUser2", Email: email2, DeleteAt: model.GetMillis()}
+		email3 := "example3@example.com"
+		mockUser3 := model.User{Username: "ExampleUser3", Email: email3, DeleteAt: model.GetMillis()}
+
+		page := 0
+		perPage := 1
+		showAll := true
+		inactive := true
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "inactive=true", "").
+			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 1, perPage, "inactive=true", "").
+			Return([]*model.User{&mockUser3}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 2, perPage, "inactive=true", "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(&mockUser2, printer.GetLines()[0])
+		s.Require().Equal(&mockUser3, printer.GetLines()[1])
+	})
+
+	s.Run("Listing inactive users with paging skipping 1 page", func() {
+		printer.Clean()
+
+		email := "del@example.com"
+		_ = model.User{Username: "ExampleUser", Email: email, DeleteAt: model.GetMillis()}
+		email1 := "del1@example.com"
+		mockUser1 := model.User{Username: "ExampleUser1", Email: email1, DeleteAt: model.GetMillis()}
+
+		page := 1
+		perPage := 1
+		showAll := false
+		inactive := true
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "inactive=true", "").
+			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser1, printer.GetLines()[0])
+	})
+
 	s.Run("Try to list all the users when there are no uses in store", func() {
 		printer.Clean()
 
 		page := 0
 		perPage := 1
 		showAll := false
+		inactive := false
 		_ = cmd.Flags().Set("page", strconv.Itoa(page))
 		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
 		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
 
 		s.client.
 			EXPECT().
-			GetUsers(context.TODO(), page, perPage, "").
+			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
@@ -1926,22 +2046,24 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Return an error from GetUsers call and verify that error is properly returned", func() {
+	s.Run("Return an error from GetUsersWithCustomQueryParameters call and verify that error is properly returned", func() {
 		printer.Clean()
 
 		page := 0
 		perPage := 1
 		showAll := false
+		inactive := false
 		_ = cmd.Flags().Set("page", strconv.Itoa(page))
 		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
 		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
 
 		mockError := errors.New("mock error")
 		mockErrorW := errors.Wrap(mockError, "Failed to fetch users")
 
 		s.client.
 			EXPECT().
-			GetUsers(context.TODO(), page, perPage, "").
+			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "", "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -1959,13 +2081,15 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		page := 2
 		perPage := 1
 		showAll := false
+		inactive := false
 		_ = cmd.Flags().Set("page", strconv.Itoa(page))
 		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
 		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
 
 		s.client.
 			EXPECT().
-			GetUsers(context.TODO(), page, perPage, "").
+			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "", "").
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 

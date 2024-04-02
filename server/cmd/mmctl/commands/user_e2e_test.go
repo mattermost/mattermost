@@ -164,6 +164,21 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		userPool = append(userPool, usr.Username)
 	}
 
+	inactivePool := []string{}
+	// create inactive users
+	for i := 0; i < 2; i++ {
+		userData := model.User{
+			Username: "fakeuser" + model.NewRandomString(10),
+			Password: "Pa$$word11",
+			Email:    s.th.GenerateTestEmail(),
+			DeleteAt: model.GetMillis(),
+		}
+		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
+		s.Require().Nil(err)
+		userPool = append(userPool, usr.Username)
+		inactivePool = append(inactivePool, usr.Username)
+	}
+
 	s.RunForAllClients("Get some random user", func(c client.Client) {
 		printer.Clean()
 
@@ -171,11 +186,13 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		var all bool
 		perpage := 5
 		team := ""
+		var inactive bool
 		cmd := &cobra.Command{}
 		cmd.Flags().IntVar(&page, "page", page, "page")
 		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
 		cmd.Flags().BoolVar(&all, "all", all, "all")
 		cmd.Flags().StringVar(&team, "team", team, "team")
+		cmd.Flags().BoolVar(&inactive, "inactive", inactive, "inactive")
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -192,22 +209,49 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		printer.Clean()
 
 		var page int
-		perpage := 10
+		perpage := 12
 		all := true
 		team := ""
+		var inactive bool
 		cmd := &cobra.Command{}
 		cmd.Flags().IntVar(&page, "page", page, "page")
 		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
 		cmd.Flags().BoolVar(&all, "all", all, "all")
 		cmd.Flags().StringVar(&team, "team", team, "team")
+		cmd.Flags().BoolVar(&inactive, "inactive", inactive, "inactive")
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
-		s.Require().GreaterOrEqual(len(printer.GetLines()), 14)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 16)
 		s.Len(printer.GetErrorLines(), 0)
 		for _, each := range printer.GetLines() {
 			user := each.(*model.User)
 			s.Require().Contains(userPool, user.Username)
+		}
+	})
+
+	s.RunForAllClients("Get list of inactive users", func(c client.Client) {
+		printer.Clean()
+
+		var page int
+		perpage := 12
+		all := true
+		team := ""
+		inactive := true
+		cmd := &cobra.Command{}
+		cmd.Flags().IntVar(&page, "page", page, "page")
+		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
+		cmd.Flags().BoolVar(&all, "all", all, "all")
+		cmd.Flags().StringVar(&team, "team", team, "team")
+		cmd.Flags().BoolVar(&inactive, "inactive", inactive, "inactive")
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 2)
+		s.Len(printer.GetErrorLines(), 0)
+		for _, each := range printer.GetLines() {
+			user := each.(*model.User)
+			s.Require().Contains(inactivePool, user.Username)
 		}
 	})
 }
