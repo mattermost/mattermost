@@ -238,7 +238,7 @@
   "add_outgoing_webhook.triggerWordsTriggerWhenFullWord": "Pierwsze słowo dokładnie pasuje do słowa wyzwalającego",
   "add_outgoing_webhook.triggerWordsTriggerWhenStartsWith": "Pierwsze słowo zaczyna się słowem wyzwalającym",
   "add_outgoing_webhook.username": "Nazwa użytkownika",
-  "add_outgoing_webhook.username.help": "Określ nazwę użytkownika, pod którą ta integracja będzie publikować. Nazwa użytkownika może składać się z maksymalnie 22 znaków i zawierać małe litery, cyfry oraz symbole \"-\", \"_\" i \".\". Jeśli pozostawi się puste, używana jest nazwa określona przez twórcę webhooka.",
+  "add_outgoing_webhook.username.help": "Określ nazwę użytkownika, pod którą ta integracja będzie publikować posty. Nazwa użytkownika może składać się z maksymalnie 22 znaków i zawierać małe litery, cyfry oraz symbole \"-\", \"_\" i \".\". Jeśli pozostanie puste, używana jest nazwa określona przez twórcę webhooka.",
   "add_teams_to_scheme.confirmation.accept": "Tak, Przenieś Zespół",
   "add_teams_to_scheme.confirmation.message": "Ta drużyna jest już wybrana w innym schemacie zespołu, czy na pewno chcesz przenieść ją do tego schematu zespołu?",
   "add_teams_to_scheme.confirmation.title": "Nadpisać zmianę schematu zespołu?",
