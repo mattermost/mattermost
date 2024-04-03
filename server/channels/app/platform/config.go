@@ -145,7 +145,7 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 		if err != nil {
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
-		resultMsg = fmt.Sprintf("Loaded advanced logging configuration for %s: %s", name, string(dsn))
+		resultMsg = fmt.Sprintf("Loaded Advanced Logging configuration for %s: %s", name, string(dsn))
 	} else {
 		resultLevel = mlog.LvlDebug
 		resultMsg = fmt.Sprintf("Advanced logging config not provided for %s", name)
