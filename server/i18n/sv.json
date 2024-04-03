@@ -10324,5 +10324,29 @@
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
     "translation": "Misslyckades att radera ett okänt index"
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Kan inte få fram sidan med scheman."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Ogiltigt schema."
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Importdataraden är av typen \"roll\" men rollobjektet är tomt."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Kan inte aktivera användare. Servern överskrider gränsen för säkra användare. Kontakta din administratör med: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Kan inte skapa användare. Servern överskrider gränsen för säkra användare. Kontakta din administratör med: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Kan inte hämta senast använda sessioner."
   }
 ]

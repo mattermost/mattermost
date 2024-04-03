@@ -14,8 +14,7 @@ import (
 
 func TestCreateBot(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
+		api := plugintest.NewAPI(t)
 		client := NewClient(api, &plugintest.Driver{})
 
 		api.On("CreateBot", &model.Bot{Username: "1"}).Return(&model.Bot{Username: "1", UserId: "2"}, nil)
@@ -27,8 +26,7 @@ func TestCreateBot(t *testing.T) {
 	})
 
 	t.Run("failure", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
+		api := plugintest.NewAPI(t)
 		client := NewClient(api, &plugintest.Driver{})
 
 		appErr := newAppError()
@@ -44,8 +42,7 @@ func TestCreateBot(t *testing.T) {
 
 func TestUpdateBotStatus(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
+		api := plugintest.NewAPI(t)
 		client := NewClient(api, &plugintest.Driver{})
 
 		api.On("UpdateBotActive", "1", true).Return(&model.Bot{UserId: "2"}, nil)
@@ -56,8 +53,7 @@ func TestUpdateBotStatus(t *testing.T) {
 	})
 
 	t.Run("failure", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
+		api := plugintest.NewAPI(t)
 		client := NewClient(api, &plugintest.Driver{})
 
 		appErr := newAppError()
@@ -72,8 +68,7 @@ func TestUpdateBotStatus(t *testing.T) {
 
 func TestGetBot(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
+		api := plugintest.NewAPI(t)
 		client := NewClient(api, &plugintest.Driver{})
 
 		api.On("GetBot", "1", true).Return(&model.Bot{UserId: "2"}, nil)
@@ -84,8 +79,7 @@ func TestGetBot(t *testing.T) {
 	})
 
 	t.Run("failure", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
+		api := plugintest.NewAPI(t)
 		client := NewClient(api, &plugintest.Driver{})
 
 		appErr := newAppError()
@@ -179,7 +173,7 @@ func TestListBot(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			api := &plugintest.API{}
+			api := plugintest.NewAPI(t)
 			client := NewClient(api, &plugintest.Driver{})
 
 			api.On("GetBots", test.expectedOptions).Return(test.bots, test.err)
@@ -191,16 +185,13 @@ func TestListBot(t *testing.T) {
 				require.NoError(t, err, test.name)
 			}
 			require.Equal(t, test.bots, bots, test.name)
-
-			api.AssertExpectations(t)
 		})
 	}
 }
 
 func TestDeleteBotPermanently(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
+		api := plugintest.NewAPI(t)
 		client := NewClient(api, &plugintest.Driver{})
 
 		api.On("PermanentDeleteBot", "1").Return(nil)
@@ -210,8 +201,7 @@ func TestDeleteBotPermanently(t *testing.T) {
 	})
 
 	t.Run("failure", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
+		api := plugintest.NewAPI(t)
 		client := NewClient(api, &plugintest.Driver{})
 
 		appErr := newAppError()
@@ -233,8 +223,7 @@ func TestEnsureBot(t *testing.T) {
 	m := testMutex{}
 
 	t.Run("server version incompatible", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
+		api := plugintest.NewAPI(t)
 		client := NewClient(api, &plugintest.Driver{})
 
 		api.On("GetServerVersion").Return("5.9.0")
@@ -249,8 +238,7 @@ func TestEnsureBot(t *testing.T) {
 
 	t.Run("if bot already exists", func(t *testing.T) {
 		t.Run("should find and return the existing bot ID", func(t *testing.T) {
-			api := &plugintest.API{}
-			defer api.AssertExpectations(t)
+			api := plugintest.NewAPI(t)
 			client := NewClient(api, &plugintest.Driver{})
 
 			expectedBotID := model.NewId()
@@ -263,9 +251,8 @@ func TestEnsureBot(t *testing.T) {
 			assert.Equal(t, expectedBotID, botID)
 		})
 
-		t.Run("should set the bot profile image when specified", func(t *testing.T) {
-			api := &plugintest.API{}
-			defer api.AssertExpectations(t)
+		t.Run("should set the bot profile image when specified from a file", func(t *testing.T) {
+			api := plugintest.NewAPI(t)
 			client := NewClient(api, &plugintest.Driver{})
 
 			expectedBotID := model.NewId()
@@ -287,9 +274,42 @@ func TestEnsureBot(t *testing.T) {
 			assert.Equal(t, expectedBotID, botID)
 		})
 
+		t.Run("should set the bot profile image when specified from bytes", func(t *testing.T) {
+			api := plugintest.NewAPI(t)
+			client := NewClient(api, &plugintest.Driver{})
+
+			expectedBotID := model.NewId()
+
+			profileImageBytes := []byte("profile image")
+
+			api.On("EnsureBotUser", testbot).Return(expectedBotID, nil)
+			api.On("SetProfileImage", expectedBotID, profileImageBytes).Return(nil)
+			api.On("GetServerVersion").Return("5.10.0")
+
+			botID, err := client.Bot.ensureBot(m, testbot, ProfileImageBytes(profileImageBytes))
+			require.NoError(t, err)
+			assert.Equal(t, expectedBotID, botID)
+		})
+
+		t.Run("the last bot profile image configuration should take precedence", func(t *testing.T) {
+			api := plugintest.NewAPI(t)
+			client := NewClient(api, &plugintest.Driver{})
+
+			expectedBotID := model.NewId()
+
+			profileImageBytes := []byte("profile image")
+
+			api.On("EnsureBotUser", testbot).Return(expectedBotID, nil)
+			api.On("SetProfileImage", expectedBotID, profileImageBytes).Return(nil)
+			api.On("GetServerVersion").Return("5.10.0")
+
+			botID, err := client.Bot.ensureBot(m, testbot, ProfileImagePath("does not exist"), ProfileImageBytes(profileImageBytes))
+			require.NoError(t, err)
+			assert.Equal(t, expectedBotID, botID)
+		})
+
 		t.Run("should find and update the bot with new bot details", func(t *testing.T) {
-			api := &plugintest.API{}
-			defer api.AssertExpectations(t)
+			api := plugintest.NewAPI(t)
 			client := NewClient(api, &plugintest.Driver{})
 
 			expectedBotID := model.NewId()
@@ -332,8 +352,7 @@ func TestEnsureBot(t *testing.T) {
 
 	t.Run("if bot doesn't exist", func(t *testing.T) {
 		t.Run("should create bot and set the bot profile image when specified", func(t *testing.T) {
-			api := &plugintest.API{}
-			defer api.AssertExpectations(t)
+			api := plugintest.NewAPI(t)
 			client := NewClient(api, &plugintest.Driver{})
 
 			expectedBotID := model.NewId()

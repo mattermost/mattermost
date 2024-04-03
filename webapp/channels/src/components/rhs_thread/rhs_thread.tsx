@@ -59,7 +59,7 @@ const RhsThread = ({
             />
             <ThreadViewer
                 rootPostId={selected.id}
-                useRelativeTimestamp={false}
+                useRelativeTimestamp={true}
                 isThreadView={false}
                 fromSuppressed={fromSuppressed}
             />
