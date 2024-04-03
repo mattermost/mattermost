@@ -1169,7 +1169,7 @@ func (a *App) importReaction(data *imports.ReactionImportData, post *model.Post)
 	return nil
 }
 
-func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, post *model.Post, teamID string) *model.AppError {
+func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, post *model.Post, teamID string, extractContent bool) *model.AppError {
 	var err *model.AppError
 	usernames := []string{}
 	for _, replyData := range data {
@@ -1228,7 +1228,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 			reply.EditAt = *replyData.EditAt
 		}
 
-		fileIDs := a.uploadAttachments(rctx, replyData.Attachments, reply, teamID)
+		fileIDs := a.uploadAttachments(rctx, replyData.Attachments, reply, teamID, extractContent)
 		for _, fileID := range reply.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
@@ -1327,7 +1327,7 @@ func compareFilesContent(fileA, fileB io.Reader, bufSize int64) (bool, error) {
 	return bytes.Equal(aHash.Sum(nil), bHash.Sum(nil)), nil
 }
 
-func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportData, post *model.Post, teamID string) (*model.FileInfo, *model.AppError) {
+func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportData, post *model.Post, teamID string, extractContent bool) (*model.FileInfo, *model.AppError) {
 	var (
 		name     string
 		file     io.ReadCloser
@@ -1421,6 +1421,7 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 		UploadFileSetUserId(post.UserId),
 		UploadFileSetTimestamp(timestamp),
 		UploadFileSetContentLength(fileSize),
+		UploadFileSetExtractContent(extractContent),
 	)
 	if appErr != nil {
 		rctx.Logger().Error("Failed to upload file", mlog.Err(appErr), mlog.String("file_name", name))
@@ -1512,7 +1513,7 @@ func getPostStrID(post *model.Post) string {
 
 // importMultiplePostLines will return an error and the line that
 // caused it whenever possible
-func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (int, *model.AppError) {
+func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun, extractContent bool) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
@@ -1609,7 +1610,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 			post.IsPinned = *line.Post.IsPinned
 		}
 
-		fileIDs := a.uploadAttachments(rctx, line.Post.Attachments, post, team.Id)
+		fileIDs := a.uploadAttachments(rctx, line.Post.Attachments, post, team.Id, extractContent)
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
@@ -1697,7 +1698,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		}
 
 		if postWithData.postData.Replies != nil && len(*postWithData.postData.Replies) > 0 {
-			err := a.importReplies(rctx, *postWithData.postData.Replies, postWithData.post, postWithData.team.Id)
+			err := a.importReplies(rctx, *postWithData.postData.Replies, postWithData.post, postWithData.team.Id, extractContent)
 			if err != nil {
 				return postWithData.lineNumber, err
 			}
@@ -1708,14 +1709,14 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 }
 
 // uploadAttachments imports new attachments and returns current attachments of the post as a map
-func (a *App) uploadAttachments(rctx request.CTX, attachments *[]imports.AttachmentImportData, post *model.Post, teamID string) map[string]bool {
+func (a *App) uploadAttachments(rctx request.CTX, attachments *[]imports.AttachmentImportData, post *model.Post, teamID string, extractContent bool) map[string]bool {
 	if attachments == nil {
 		return nil
 	}
 	fileIDs := make(map[string]bool)
 	for _, attachment := range *attachments {
 		attachment := attachment
-		fileInfo, err := a.importAttachment(rctx, &attachment, post, teamID)
+		fileInfo, err := a.importAttachment(rctx, &attachment, post, teamID, extractContent)
 		if err != nil {
 			if attachment.Path != nil {
 				rctx.Logger().Warn(
@@ -1821,7 +1822,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 // importMultipleDirectPostLines will return an error and the line
 // that caused it whenever possible
-func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (int, *model.AppError) {
+func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun, extractContent bool) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
@@ -1922,7 +1923,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 			post.IsPinned = *line.DirectPost.IsPinned
 		}
 
-		fileIDs := a.uploadAttachments(rctx, line.DirectPost.Attachments, post, "noteam")
+		fileIDs := a.uploadAttachments(rctx, line.DirectPost.Attachments, post, "noteam", extractContent)
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
@@ -2008,7 +2009,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		}
 
 		if postWithData.directPostData.Replies != nil {
-			if err := a.importReplies(rctx, *postWithData.directPostData.Replies, postWithData.post, "noteam"); err != nil {
+			if err := a.importReplies(rctx, *postWithData.directPostData.Replies, postWithData.post, "noteam", extractContent); err != nil {
 				return postWithData.lineNumber, err
 			}
 		}
