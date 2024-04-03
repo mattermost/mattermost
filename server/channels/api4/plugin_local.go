@@ -32,8 +32,8 @@ func reattachPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !pluginReattachRequest.IsValid() {
-		c.Err = model.NewAppError("reattachPlugin", "api4.plugin.reattachPlugin.invalid_request", nil, "", http.StatusBadRequest)
+	if err := pluginReattachRequest.IsValid(); err != nil {
+		c.Err = err
 		return
 	}
 

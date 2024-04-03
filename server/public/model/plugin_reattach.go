@@ -2,6 +2,7 @@ package model
 
 import (
 	"net"
+	"net/http"
 
 	"github.com/hashicorp/go-plugin"
 )
@@ -46,13 +47,13 @@ type PluginReattachRequest struct {
 	PluginReattachConfig *PluginReattachConfig
 }
 
-func (prr *PluginReattachRequest) IsValid() bool {
+func (prr *PluginReattachRequest) IsValid() *AppError {
 	if prr.Manifest == nil {
-		return false
+		return NewAppError("PluginReattachRequest.IsValid", "plugin_reattach_request.is_valid.manifest.app_error", nil, "", http.StatusBadRequest)
 	}
 	if prr.PluginReattachConfig == nil {
-		return false
+		return NewAppError("PluginReattachRequest.IsValid", "plugin_reattach_request.is_valid.plugin_reattach_config.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	return true
+	return nil
 }
