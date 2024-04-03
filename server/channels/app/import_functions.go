@@ -31,9 +31,9 @@ import (
 func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dryRun bool) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Name != nil {
-		fields = append(fields, mlog.String("schema_name", *data.Name))
+		fields = append(fields, mlog.String("scheme_name", *data.Name))
 	}
-	rctx.Logger().Info("Validating schema", fields...)
+	rctx.Logger().Info("Validating scheme", fields...)
 
 	if err := imports.ValidateSchemeImportData(data); err != nil {
 		return err
@@ -44,7 +44,7 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 		return nil
 	}
 
-	rctx.Logger().Info("Importing schema", fields...)
+	rctx.Logger().Info("Importing scheme", fields...)
 
 	scheme, err := a.GetSchemeByName(*data.Name)
 	if err != nil {
@@ -73,44 +73,46 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 
 	if scheme.Scope == model.SchemeScopeTeam {
 		data.DefaultTeamAdminRole.Name = &scheme.DefaultTeamAdminRole
-		if err := a.importRole(rctx, data.DefaultTeamAdminRole, dryRun, true); err != nil {
+		if err := a.importRole(rctx, data.DefaultTeamAdminRole, dryRun); err != nil {
 			return err
 		}
 
 		data.DefaultTeamUserRole.Name = &scheme.DefaultTeamUserRole
-		if err := a.importRole(rctx, data.DefaultTeamUserRole, dryRun, true); err != nil {
+		if err := a.importRole(rctx, data.DefaultTeamUserRole, dryRun); err != nil {
 			return err
 		}
 
 		if data.DefaultTeamGuestRole == nil {
 			data.DefaultTeamGuestRole = &imports.RoleImportData{
-				DisplayName: model.NewString("Team Guest Role for Scheme"),
+				DisplayName:   model.NewString("Team Guest Role for Scheme"),
+				SchemeManaged: model.NewBool(true),
 			}
 		}
 		data.DefaultTeamGuestRole.Name = &scheme.DefaultTeamGuestRole
-		if err := a.importRole(rctx, data.DefaultTeamGuestRole, dryRun, true); err != nil {
+		if err := a.importRole(rctx, data.DefaultTeamGuestRole, dryRun); err != nil {
 			return err
 		}
 	}
 
 	if scheme.Scope == model.SchemeScopeTeam || scheme.Scope == model.SchemeScopeChannel {
 		data.DefaultChannelAdminRole.Name = &scheme.DefaultChannelAdminRole
-		if err := a.importRole(rctx, data.DefaultChannelAdminRole, dryRun, true); err != nil {
+		if err := a.importRole(rctx, data.DefaultChannelAdminRole, dryRun); err != nil {
 			return err
 		}
 
 		data.DefaultChannelUserRole.Name = &scheme.DefaultChannelUserRole
-		if err := a.importRole(rctx, data.DefaultChannelUserRole, dryRun, true); err != nil {
+		if err := a.importRole(rctx, data.DefaultChannelUserRole, dryRun); err != nil {
 			return err
 		}
 
 		if data.DefaultChannelGuestRole == nil {
 			data.DefaultChannelGuestRole = &imports.RoleImportData{
-				DisplayName: model.NewString("Channel Guest Role for Scheme"),
+				DisplayName:   model.NewString("Channel Guest Role for Scheme"),
+				SchemeManaged: model.NewBool(true),
 			}
 		}
 		data.DefaultChannelGuestRole.Name = &scheme.DefaultChannelGuestRole
-		if err := a.importRole(rctx, data.DefaultChannelGuestRole, dryRun, true); err != nil {
+		if err := a.importRole(rctx, data.DefaultChannelGuestRole, dryRun); err != nil {
 			return err
 		}
 	}
@@ -118,18 +120,16 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 	return nil
 }
 
-func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
+func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun bool) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("role_name", *data.Name))
 	}
 
-	if !isSchemeRole {
-		rctx.Logger().Info("Validating role", fields...)
+	rctx.Logger().Info("Validating role", fields...)
 
-		if err := imports.ValidateRoleImportData(data); err != nil {
-			return err
-		}
+	if err := imports.ValidateRoleImportData(data); err != nil {
+		return err
 	}
 
 	// If this is a Dry Run, do not continue any further.
@@ -158,10 +158,8 @@ func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun 
 		role.Permissions = *data.Permissions
 	}
 
-	if isSchemeRole {
-		role.SchemeManaged = true
-	} else {
-		role.SchemeManaged = false
+	if data.SchemeManaged != nil {
+		role.SchemeManaged = *data.SchemeManaged
 	}
 
 	if role.Id == "" {
@@ -1170,7 +1168,7 @@ func (a *App) importReaction(data *imports.ReactionImportData, post *model.Post)
 	return nil
 }
 
-func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, post *model.Post, teamID string) *model.AppError {
+func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, post *model.Post, teamID string, extractContent bool) *model.AppError {
 	var err *model.AppError
 	usernames := []string{}
 	for _, replyData := range data {
@@ -1229,7 +1227,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 			reply.EditAt = *replyData.EditAt
 		}
 
-		fileIDs := a.uploadAttachments(rctx, replyData.Attachments, reply, teamID)
+		fileIDs := a.uploadAttachments(rctx, replyData.Attachments, reply, teamID, extractContent)
 		for _, fileID := range reply.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
@@ -1274,7 +1272,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 	return nil
 }
 
-func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportData, post *model.Post, teamID string) (*model.FileInfo, *model.AppError) {
+func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportData, post *model.Post, teamID string, extractContent bool) (*model.FileInfo, *model.AppError) {
 	var (
 		name string
 		file io.Reader
@@ -1340,7 +1338,7 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 
 	rctx.Logger().Info("Uploading file with name", mlog.String("file_name", name))
 
-	fileInfo, appErr := a.DoUploadFile(rctx, timestamp, teamID, post.ChannelId, post.UserId, name, fileData)
+	fileInfo, appErr := a.DoUploadFile(rctx, timestamp, teamID, post.ChannelId, post.UserId, name, fileData, extractContent)
 	if appErr != nil {
 		rctx.Logger().Error("Failed to upload file", mlog.Err(appErr), mlog.String("file_name", name))
 		return nil, appErr
@@ -1435,7 +1433,7 @@ func getPostStrID(post *model.Post) string {
 
 // importMultiplePostLines will return an error and the line that
 // caused it whenever possible
-func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (int, *model.AppError) {
+func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun, extractContent bool) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
@@ -1532,7 +1530,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 			post.IsPinned = *line.Post.IsPinned
 		}
 
-		fileIDs := a.uploadAttachments(rctx, line.Post.Attachments, post, team.Id)
+		fileIDs := a.uploadAttachments(rctx, line.Post.Attachments, post, team.Id, extractContent)
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
@@ -1620,7 +1618,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		}
 
 		if postWithData.postData.Replies != nil && len(*postWithData.postData.Replies) > 0 {
-			err := a.importReplies(rctx, *postWithData.postData.Replies, postWithData.post, postWithData.team.Id)
+			err := a.importReplies(rctx, *postWithData.postData.Replies, postWithData.post, postWithData.team.Id, extractContent)
 			if err != nil {
 				return postWithData.lineNumber, err
 			}
@@ -1631,14 +1629,14 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 }
 
 // uploadAttachments imports new attachments and returns current attachments of the post as a map
-func (a *App) uploadAttachments(rctx request.CTX, attachments *[]imports.AttachmentImportData, post *model.Post, teamID string) map[string]bool {
+func (a *App) uploadAttachments(rctx request.CTX, attachments *[]imports.AttachmentImportData, post *model.Post, teamID string, extractContent bool) map[string]bool {
 	if attachments == nil {
 		return nil
 	}
 	fileIDs := make(map[string]bool)
 	for _, attachment := range *attachments {
 		attachment := attachment
-		fileInfo, err := a.importAttachment(rctx, &attachment, post, teamID)
+		fileInfo, err := a.importAttachment(rctx, &attachment, post, teamID, extractContent)
 		if err != nil {
 			if attachment.Path != nil {
 				rctx.Logger().Warn(
@@ -1744,7 +1742,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 // importMultipleDirectPostLines will return an error and the line
 // that caused it whenever possible
-func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (int, *model.AppError) {
+func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun, extractContent bool) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
@@ -1845,7 +1843,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 			post.IsPinned = *line.DirectPost.IsPinned
 		}
 
-		fileIDs := a.uploadAttachments(rctx, line.DirectPost.Attachments, post, "noteam")
+		fileIDs := a.uploadAttachments(rctx, line.DirectPost.Attachments, post, "noteam", extractContent)
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
@@ -1931,7 +1929,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		}
 
 		if postWithData.directPostData.Replies != nil {
-			if err := a.importReplies(rctx, *postWithData.directPostData.Replies, postWithData.post, "noteam"); err != nil {
+			if err := a.importReplies(rctx, *postWithData.directPostData.Replies, postWithData.post, "noteam", extractContent); err != nil {
 				return postWithData.lineNumber, err
 			}
 		}

@@ -2194,9 +2194,10 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 }
 
 func (a *App) CheckPostReminders(rctx request.CTX) {
+	rctx = rctx.WithLogger(rctx.Logger().With(mlog.String("component", "post_reminders")))
 	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
-		mlog.Error("Failed to get system bot", mlog.Err(appErr))
+		rctx.Logger().Error("Failed to get system bot", mlog.Err(appErr))
 		return
 	}
 
@@ -2207,7 +2208,7 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 	// MM-45595.
 	reminders, err := a.Srv().Store().Post().GetPostReminders(time.Now().UTC().Unix())
 	if err != nil {
-		mlog.Error("Failed to get post reminders", mlog.Err(err))
+		rctx.Logger().Error("Failed to get post reminders", mlog.Err(err))
 		return
 	}
 
@@ -2225,14 +2226,14 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 	for userID, postIDs := range groupedReminders {
 		ch, appErr := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), userID, systemBot.UserId)
 		if appErr != nil {
-			mlog.Error("Failed to get direct channel", mlog.Err(appErr))
+			rctx.Logger().Error("Failed to get direct channel", mlog.Err(appErr))
 			return
 		}
 
 		for _, postID := range postIDs {
 			metadata, err := a.Srv().Store().Post().GetPostReminderMetadata(postID)
 			if err != nil {
-				mlog.Error("Failed to get post reminder metadata", mlog.Err(err), mlog.String("post_id", postID))
+				rctx.Logger().Error("Failed to get post reminder metadata", mlog.Err(err), mlog.String("post_id", postID))
 				continue
 			}
 
@@ -2255,7 +2256,7 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 			}
 
 			if _, err := a.CreatePost(request.EmptyContext(a.Log()), dm, ch, false, true); err != nil {
-				mlog.Error("Failed to post reminder message", mlog.Err(err))
+				rctx.Logger().Error("Failed to post reminder message", mlog.Err(err))
 			}
 		}
 	}
