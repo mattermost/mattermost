@@ -8,7 +8,7 @@ import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {Job, JobType} from '@mattermost/types/jobs';
 
-import {elasticsearchPurgeIndexes, elasticsearchTest} from 'actions/admin_actions.jsx';
+import {elasticsearchPurgeIndexes, elasticsearchTest, rebuildChannelsIndex} from 'actions/admin_actions.jsx';
 
 import ExternalLink from 'components/external_link';
 
@@ -62,6 +62,9 @@ export const messages = defineMessages({
     elasticsearch_test_button: {id: 'admin.elasticsearch.elasticsearch_test_button', defaultMessage: 'Test Connection'},
     bulkIndexingTitle: {id: 'admin.elasticsearch.bulkIndexingTitle', defaultMessage: 'Bulk Indexing:'},
     help: {id: 'admin.elasticsearch.createJob.help', defaultMessage: 'All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.'},
+    rebuildChannelsIndexTitle: {id: 'admin.elasticsearch.rebuildChannelsIndexTitle', defaultMessage: 'Rebuild Channels Index'},
+    rebuildChannelIndexHelpText: {id: 'admin.elasticsearch.rebuildChannelsIndex.helpText', defaultMessage: 'This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.\n<b>Note- Please ensure no other indexing job is in progress in the table above.</b>'},
+    rebuildChannelsIndexButtonText: {id: 'admin.elasticsearch.rebuildChannelsIndex.title', defaultMessage: 'Rebuild Channels Index'},
     purgeIndexesHelpText: {id: 'admin.elasticsearch.purgeIndexesHelpText', defaultMessage: 'Purging will entirely remove the indexes on the Elasticsearch server. Search results may be incomplete until a bulk index of the existing database is rebuilt.'},
     purgeIndexesButton: {id: 'admin.elasticsearch.purgeIndexesButton', defaultMessage: 'Purge Index'},
     label: {id: 'admin.elasticsearch.purgeIndexesButton.label', defaultMessage: 'Purge Indexes:'},
@@ -197,8 +200,22 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
     };
 
     getExtraInfo(job: Job) {
+        let jobSubType = null;
+        if (job.data?.sub_type === 'channels_index_rebuild') {
+            jobSubType = (
+                <span>
+                    {'. '}
+                    <FormattedMessage
+                        id='admin.elasticsearch.channelIndexRebuildJobTitle'
+                        defaultMessage='Channels index rebuild job.'
+                    />
+                </span>
+            );
+        }
+
+        let jobProgress = null;
         if (job.status === JobStatuses.IN_PROGRESS) {
-            return (
+            jobProgress = (
                 <FormattedMessage
                     id='admin.elasticsearch.percentComplete'
                     defaultMessage='{percent}% Complete'
@@ -207,7 +224,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
             );
         }
 
-        return null;
+        return (<span>{jobProgress}{jobSubType}</span>);
     }
 
     renderTitle() {
@@ -400,6 +417,29 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                         </div>
                     </div>
                 </div>
+                <RequestButton
+                    id='rebuildChannelsIndexButton'
+                    requestAction={rebuildChannelsIndex}
+                    helpText={
+                        <FormattedMessage
+                            {...messages.rebuildChannelIndexHelpText}
+                            values={{
+                                b: (chunks: React.ReactNode) => (<b>{chunks}</b>),
+                            }}
+                        />
+                    }
+                    buttonText={<FormattedMessage {...messages.rebuildChannelsIndexButtonText}/>}
+                    successMessage={defineMessage({
+                        id: 'admin.elasticsearch.rebuildIndexSuccessfully.success',
+                        defaultMessage: 'Channels index rebuild job triggered successfully.',
+                    })}
+                    errorMessage={defineMessage({
+                        id: 'admin.elasticsearch.rebuildIndexSuccessfully.error',
+                        defaultMessage: 'Failed to trigger channels index rebuild job: {error}',
+                    })}
+                    disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
+                    label={<FormattedMessage {...messages.rebuildChannelsIndexButtonText}/>}
+                />
                 <RequestButton
                     id='purgeIndexesSection'
                     requestAction={elasticsearchPurgeIndexes}

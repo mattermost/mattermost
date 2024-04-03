@@ -93,14 +93,14 @@
                 background-color: unset;
 
                 &[aria-expanded='true'] {
-                    background-color: rgba(var(--button-bg-rgb), 0.12);
                     border-radius: 4px;
+                    background-color: rgba(var(--button-bg-rgb), 0.12);
                 }
             }
 
             #menuWrapper:hover {
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
                 border-radius: 4px;
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
             }
         }
     }
@@ -143,8 +143,8 @@
                         width: 3px;
                         height: 3px;
                         flex-shrink: 0;
-                        background-color: rgba(var(--center-channel-color-rgb), 0.75);
                         border-radius: 50%;
+                        background-color: rgba(var(--center-channel-color-rgb), 0.75);
                     }
 
                     .more-modal__description {

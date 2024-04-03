@@ -5,14 +5,15 @@ import merge from 'deepmerge';
 
 import {
     AdminConfig,
-    ExperimentalSettings,
-    PasswordSettings,
-    ServiceSettings,
-    TeamSettings,
-    PluginSettings,
     ClusterSettings,
     CollapsedThreads,
     EmailSettings,
+    ExperimentalSettings,
+    LogSettings,
+    PasswordSettings,
+    PluginSettings,
+    ServiceSettings,
+    TeamSettings,
 } from '@mattermost/types/config';
 import testConfig from '@e2e-test.config';
 
@@ -24,6 +25,7 @@ type TestAdminConfig = {
     ClusterSettings: Partial<ClusterSettings>;
     EmailSettings: Partial<EmailSettings>;
     ExperimentalSettings: Partial<ExperimentalSettings>;
+    LogSettings: Partial<LogSettings>;
     PasswordSettings: Partial<PasswordSettings>;
     PluginSettings: Partial<PluginSettings>;
     ServiceSettings: Partial<ServiceSettings>;
@@ -39,6 +41,9 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
         },
         EmailSettings: {
             PushNotificationServer: testConfig.pushNotificationServer,
+        },
+        LogSettings: {
+            EnableDiagnostics: false,
         },
         PasswordSettings: {
             MinimumLength: 5,
@@ -65,6 +70,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
         ServiceSettings: {
             SiteURL: testConfig.baseURL,
             EnableOnboardingFlow: false,
+            EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
         },
         TeamSettings: {
@@ -75,7 +81,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v9.5 server
+// Based on v9.7 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -101,6 +107,7 @@ const defaultServerConfig: AdminConfig = {
         EnableOAuthServiceProvider: true,
         EnableIncomingWebhooks: true,
         EnableOutgoingWebhooks: true,
+        EnableOutgoingOAuthConnections: false,
         EnableCommands: true,
         OutgoingIntegrationRequestsTimeout: 30,
         EnablePostUsernameOverride: false,
@@ -555,10 +562,6 @@ const defaultServerConfig: AdminConfig = {
         EnableExperimentalGossipEncryption: false,
         ReadOnlyConfig: true,
         GossipPort: 8074,
-        StreamingPort: 8075,
-        MaxIdleConns: 100,
-        MaxIdleConnsPerHost: 128,
-        IdleConnTimeoutMilliseconds: 90000,
     },
     MetricsSettings: {
         Enable: false,
@@ -700,6 +703,7 @@ const defaultServerConfig: AdminConfig = {
         CWSURL: 'https://customers.mattermost.com',
         CWSAPIURL: 'https://portal.internal.prod.cloud.mattermost.com',
         CWSMock: false,
+        Disable: false,
     },
     FeatureFlags: {
         TestFeature: 'off',
@@ -720,7 +724,8 @@ const defaultServerConfig: AdminConfig = {
         CloudIPFiltering: false,
         ConsumePostHook: false,
         CloudAnnualRenewals: false,
-        OutgoingOAuthConnections: false,
+        CloudDedicatedExportUI: false,
+        WebSocketEventScope: false,
     },
     ImportSettings: {
         Directory: './import',

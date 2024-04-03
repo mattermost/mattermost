@@ -64,16 +64,19 @@ export type Props = {
     };
 }
 
-const UserGroupPopover = (props: Props) => {
-    const {
-        group,
-        actions,
-        hide,
-        returnFocus,
-        searchTerm,
-        showUserOverlay,
-    } = props;
+const UserGroupPopover = ({
+    actions,
+    group,
+    hide,
+    returnFocus,
+    searchTerm,
+    showUserOverlay,
 
+    // These props are not passed explictly to this component, but
+    // they are added when this component is passed as a child to Overlay.
+    // They are not typed in the component because they will cause more confusion.
+    ...popoverProps
+}: Props) => {
     const {formatMessage} = useIntl();
 
     const closeRef = useRef<HTMLButtonElement>(null);
@@ -183,8 +186,8 @@ const UserGroupPopover = (props: Props) => {
 
     return (
         <Popover
-            {...props}
             id='user-group-popover'
+            {...popoverProps}
         >
             {tabCatcher}
             <Body
