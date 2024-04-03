@@ -7,166 +7,151 @@ import type {PostList, Post} from '@mattermost/types/posts';
 
 import {getProfilesByIds, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentUserId, getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 const pendingUserIdsForProfiles = new Set<string>();
-const MAX_USER_PROFILES_BATCH = 50;
-const USER_PROFILES_TIMEOUT = 10 * 1000; // 10 seconds
+const MAX_USER_PROFILES_BATCH = 100;
+const USER_PROFILES_DURATION = 5 * 1000;
 
-let userProfilesTimeoutId: NodeJS.Timeout | null = null;
-let userProfilesLastExecutionTimeout = 0;
+let userProfilesIntervalId: NodeJS.Timeout | null = null;
 
 const pendingUserIdsForStatuses = new Set<string>();
-const MAX_USER_STATUSES_BATCH = 50;
-const USER_STATUSES_TIMEOUT = 30 * 1000; // 10 seconds
+const MAX_USER_STATUSES_BUFFER = 100;
+const USER_STATUSES_DURATION = 12 * 1000;
 
-let userStatusesTimeoutId: NodeJS.Timeout | null = null;
-let userStatusesLastExecutionTimeout = 0;
+let userStatusesIntervalId: NodeJS.Timeout | null = null;
 
-/**
- * This action since it uses the global variables to store the pending user ids
- * it should be used only in the context of the posts list and not called directly
- */
-function getBatchedUserProfileByIds(): ActionFunc<null> {
+function addUserIdForProfiles(userId: string): ActionFunc<boolean> {
     return (dispatch) => {
-        console.log('getBatchedUserProfileByIds:begins');
-
-        // This means this is the first time we are executing this function
-        if (userProfilesLastExecutionTimeout === 0) {
-            userProfilesLastExecutionTimeout = Date.now();
-        }
-
         function getPendingProfilesById() {
-            console.log('getBatchedUserProfileByIdsFromPosts process start', pendingUserIdsForProfiles);
+            console.log('addUserIdForProfiles start', pendingUserIdsForProfiles);
+
             dispatch(getProfilesByIds(Array.from(pendingUserIdsForProfiles)));
-
-            // Clearouts the set of pending user ids along with the timeouts
             pendingUserIdsForProfiles.clear();
-            userProfilesLastExecutionTimeout = Date.now();
-            userProfilesTimeoutId = null;
         }
 
-        // Calculate the delay for the next execution
-        const timeSinceLastExecution = Date.now() - userProfilesLastExecutionTimeout;
-        const clampedTimeout = Math.max(0, USER_PROFILES_TIMEOUT - timeSinceLastExecution);
+        // Process immediately if the pending user ids exceeds the limit
+        if (pendingUserIdsForProfiles.size >= MAX_USER_PROFILES_BATCH) {
+            console.log('addUserIdForProfiles', 'executing immediately for', pendingUserIdsForProfiles.size);
 
-        // Clear the previous timeout
-        if (userProfilesTimeoutId !== null) {
-            clearTimeout(userProfilesTimeoutId);
-        }
-
-        // Check if we have to execute the function immediately
-        // because of the overflow of the pending user ids or the timeout exceeded
-        if (pendingUserIdsForProfiles.size >= MAX_USER_PROFILES_BATCH || clampedTimeout === 0) {
-            console.log('getBatchedUserProfileByIdsFromPosts', 'executing immediately for', pendingUserIdsForProfiles.size);
             getPendingProfilesById();
-        } else {
-            console.log('getBatchedUserProfileByIdsFromPosts', 'executing with timeout', clampedTimeout, 'for pending', pendingUserIdsForProfiles.size);
-            userProfilesTimeoutId = setTimeout(getPendingProfilesById, clampedTimeout);
         }
 
-        return {data: null};
+        pendingUserIdsForProfiles.add(userId);
+
+        // Start the interval if it is not already running
+        if (userProfilesIntervalId === null) {
+            userProfilesIntervalId = setInterval(() => {
+                if (pendingUserIdsForProfiles.size > 0) {
+                    console.log('addUserIdForProfiles', 'executing with interval for pending', pendingUserIdsForProfiles.size);
+
+                    getPendingProfilesById();
+                } else {
+                    console.log('addUserIdForProfiles', 'no pending user ids');
+                }
+            }, USER_PROFILES_DURATION);
+        }
+
+        return {data: true};
     };
 }
 
-/**
- * This action since it uses the global variables to store the pending user ids
- * it should be used only in the context of the posts list and not called directly
- */
-function getBatchedUserStatusByIds(): ActionFuncAsync<null> {
-    return async (dispatch) => {
-        console.log('getBatchedUserProfileByIds:begins');
+export function cleanupUserProfilesInterval() {
+    if (userProfilesIntervalId !== null) {
+        clearInterval(userProfilesIntervalId);
+        userProfilesIntervalId = null;
+    }
+}
 
-        if (userStatusesLastExecutionTimeout === 0) {
-            userStatusesLastExecutionTimeout = Date.now();
-        }
-
+function addUserIdForStatuses(userId: string): ActionFunc<boolean> {
+    return (dispatch) => {
         function getPendingStatusesById() {
-            console.log('getBatchedUserStatusByIdsFromPosts process start', pendingUserIdsForStatuses);
-            dispatch(getStatusesByIds(Array.from(pendingUserIdsForStatuses)));
+            console.log('addUserIdForStatuses start', pendingUserIdsForStatuses);
 
-            pendingUserIdsForStatuses.clear();
-            userStatusesLastExecutionTimeout = Date.now();
-            userStatusesTimeoutId = null;
+            // Since we can only fetch 100 user statuses at a time, we need to batch the requests
+            if (pendingUserIdsForStatuses.size >= MAX_USER_STATUSES_BUFFER) {
+                // We use temp buffer here to store up until max buffer size
+                // and clear out processed user ids
+                const userIds: string[] = [];
+
+                let counter = 0;
+                for (const pendingUserId of pendingUserIdsForStatuses) {
+                    userIds.push(pendingUserId);
+                    pendingUserIdsForStatuses.delete(pendingUserId);
+
+                    counter++;
+
+                    if (counter >= MAX_USER_STATUSES_BUFFER) {
+                        break;
+                    }
+                }
+
+                console.log('addUserIdForStatuses', 'executing for', userIds.length, '>');
+                dispatch(getStatusesByIds(userIds));
+            } else {
+                // If we have less than max buffer size, we can directly fetch the statuses
+                console.log('addUserIdForStatuses', 'executing for', pendingUserIdsForStatuses.size, '<');
+                dispatch(getStatusesByIds(Array.from(pendingUserIdsForStatuses)));
+                pendingUserIdsForStatuses.clear();
+            }
         }
 
-        const timeSinceLastExecution = Date.now() - userStatusesLastExecutionTimeout;
-        const clampedTimeout = Math.max(0, USER_STATUSES_TIMEOUT - timeSinceLastExecution);
+        pendingUserIdsForStatuses.add(userId);
 
-        if (userStatusesTimeoutId !== null) {
-            clearTimeout(userStatusesTimeoutId);
+        // Start the interval if it is not already running
+        if (userStatusesIntervalId === null) {
+            userStatusesIntervalId = setInterval(() => {
+                if (pendingUserIdsForStatuses.size > 0) {
+                    getPendingStatusesById();
+                } else {
+                    console.log('addUserIdForStatuses', 'no pending user ids');
+                }
+            }, USER_STATUSES_DURATION);
         }
 
-        if (pendingUserIdsForStatuses.size >= MAX_USER_STATUSES_BATCH || clampedTimeout === 0) {
-            console.log('getBatchedUserStatusByIdsFromPosts', 'executing immediately for', pendingUserIdsForStatuses.size);
-            getPendingStatusesById();
-        } else {
-            console.log('getBatchedUserStatusByIdsFromPosts', 'executing with timeout', clampedTimeout, 'for pending', pendingUserIdsForStatuses.size);
-            userStatusesTimeoutId = setTimeout(getPendingStatusesById, clampedTimeout);
-        }
-
-        return {data: null};
+        return {data: true};
     };
+}
+
+export function cleanupUserStatusesInterval() {
+    if (userStatusesIntervalId !== null) {
+        clearInterval(userStatusesIntervalId);
+        userStatusesIntervalId = null;
+    }
 }
 
 /**
  * Gets in batch the user profiles, user statuses and user groups for the users in the posts list
  */
-export function getBatchedUserProfilesStatusesAndGroupsFromPosts(postsArrayOrMap: Post[]|PostList['posts']): ThunkActionFunc<boolean> {
+export function getBatchedUserProfilesStatusesAndGroupsFromPosts(postsArrayOrMap: Post[]|PostList['posts']): ActionFunc<boolean> {
     return (dispatch, getState) => {
         if (!postsArrayOrMap) {
-            return false;
+            return {data: false};
         }
 
         const posts = Array.isArray(postsArrayOrMap) ? postsArrayOrMap : Object.values(postsArrayOrMap);
         if (posts.length === 0) {
-            return false;
+            return {data: false};
         }
 
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const isUserStatusesConfigEnabled = getIsUserStatusesConfigEnabled(state);
-        const profiles = state.entities.users.profiles;
-
-        let shouldFetchProfiles = false;
-        let shouldFetchStatuses = false;
-        let shouldFetchGroups = false;
 
         posts.forEach((post) => {
             // This is sufficient to check if the profile is already fetched
             // as we recieve the websocket events for the profiles changes
-            if (post.user_id !== currentUserId && !profiles[post.user_id]) {
-                pendingUserIdsForProfiles.add(post.user_id);
-
-                shouldFetchProfiles = true;
+            if (post.user_id !== currentUserId && !state.entities.users.profiles[post.user_id]) {
+                dispatch(addUserIdForProfiles(post.user_id));
             }
 
-            // We need to fetch the statuses as we dont have websockets for the status changes of other users
-            if (post.user_id !== currentUserId && isUserStatusesConfigEnabled) {
-                pendingUserIdsForStatuses.add(post.user_id);
-
-                shouldFetchStatuses = true;
+            if (post.user_id !== currentUserId && isUserStatusesConfigEnabled && !state.entities.users.statuses[post.user_id]) {
+                dispatch(addUserIdForStatuses(post.user_id));
             }
 
             // TODO: We need to handle the groups as well
-            shouldFetchGroups = false;
         });
 
-        if (shouldFetchProfiles || shouldFetchStatuses) {
-            if (shouldFetchProfiles) {
-                dispatch(getBatchedUserProfileByIds());
-            }
-
-            if (shouldFetchStatuses) {
-                dispatch(getBatchedUserStatusByIds());
-            }
-
-            if (shouldFetchGroups) {
-                // dispatch(getBatchedUserGroupsByIdsFromPosts(postsArrayOrMap));
-            }
-
-            return true;
-        }
-        return false;
+        return {data: true};
     };
 }
