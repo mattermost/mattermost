@@ -445,12 +445,11 @@ func TestShrugCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, r1, "Command failed to execute")
 
-	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		p1, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 2, "", false, false)
-		require.NoError(c, err)
-		require.Len(c, p1.Order, 2, "Command failed to send")
-		require.Equal(c, `¯\\\_(ツ)\_/¯`, p1.Posts[p1.Order[0]].Message, "invalid shrug response")
-	}, time.Second, 100*time.Millisecond)
+	time.Sleep(time.Second)
+	p1, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 2, "", false, false)
+	require.NoError(t, err)
+	require.Len(t, p1.Order, 2, "Command failed to send")
+	require.Equal(t, `¯\\\_(ツ)\_/¯`, p1.Posts[p1.Order[0]].Message, "invalid shrug response")
 }
 
 func TestStatusCommands(t *testing.T) {
