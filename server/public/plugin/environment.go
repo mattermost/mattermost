@@ -280,7 +280,7 @@ func checkMinServerVersion(pluginInfo *model.BundleInfo) error {
 	return nil
 }
 
-func (env *Environment) startPluginServer(pluginInfo *model.BundleInfo, opts ...func(*plugin.ClientConfig) error) error {
+func (env *Environment) startPluginServer(pluginInfo *model.BundleInfo, opts ...func(*supervisor, *plugin.ClientConfig) error) error {
 	sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics, opts...)
 	if err != nil {
 		return errors.Wrapf(err, "unable to start plugin: %v", pluginInfo.Manifest.Id)

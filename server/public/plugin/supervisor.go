@@ -23,15 +23,16 @@ import (
 )
 
 type supervisor struct {
-	lock        sync.RWMutex
-	client      *plugin.Client
-	hooks       Hooks
-	implemented [TotalHooksID]bool
-	hooksClient *hooksRPCClient
+	lock         sync.RWMutex
+	client       *plugin.Client
+	hooks        Hooks
+	implemented  [TotalHooksID]bool
+	hooksClient  *hooksRPCClient
+	isReattached bool
 }
 
-func WithExecutableFromManifest(pluginInfo *model.BundleInfo) func(*plugin.ClientConfig) error {
-	return func(clientConfig *plugin.ClientConfig) error {
+func WithExecutableFromManifest(pluginInfo *model.BundleInfo) func(*supervisor, *plugin.ClientConfig) error {
+	return func(_ *supervisor, clientConfig *plugin.ClientConfig) error {
 		executable := pluginInfo.Manifest.GetExecutableForRuntime(runtime.GOOS, runtime.GOARCH)
 		if executable == "" {
 			return fmt.Errorf("backend executable not found for environment: %s/%s", runtime.GOOS, runtime.GOARCH)
@@ -64,15 +65,16 @@ func WithExecutableFromManifest(pluginInfo *model.BundleInfo) func(*plugin.Clien
 	}
 }
 
-func WithReattachConfig(pluginReattachConfig *model.PluginReattachConfig) func(*plugin.ClientConfig) error {
-	return func(clientConfig *plugin.ClientConfig) error {
+func WithReattachConfig(pluginReattachConfig *model.PluginReattachConfig) func(*supervisor, *plugin.ClientConfig) error {
+	return func(sup *supervisor, clientConfig *plugin.ClientConfig) error {
 		clientConfig.Reattach = pluginReattachConfig.ToHashicorpPluginReattachmentConfig()
+		sup.isReattached = true
 
 		return nil
 	}
 }
 
-func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics metricsInterface, opts ...func(*plugin.ClientConfig) error) (retSupervisor *supervisor, retErr error) {
+func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics metricsInterface, opts ...func(*supervisor, *plugin.ClientConfig) error) (retSupervisor *supervisor, retErr error) {
 	sup := supervisor{}
 	defer func() {
 		if retErr != nil {
@@ -104,7 +106,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		StartTimeout:    time.Second * 3,
 	}
 	for _, opt := range opts {
-		err := opt(clientConfig)
+		err := opt(&sup, clientConfig)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to apply option")
 		}
@@ -146,6 +148,20 @@ func (sup *supervisor) Shutdown() {
 	sup.lock.RLock()
 	defer sup.lock.RUnlock()
 	if sup.client != nil {
+		// For reattached plugins, Kill() is mostly a no-op, so manually clean up the
+		// underlying rpcClient. This might be something to upstream unless we're doing
+		// something else wrong.
+		if sup.isReattached {
+			rpcClient, err := sup.client.Client()
+			if err != nil {
+				mlog.Warn("Failed to obtain rpcClient on Shutdown")
+			} else {
+				if err = rpcClient.Close(); err != nil {
+					mlog.Warn("Failed to close rpcClient on Shutdown")
+				}
+			}
+		}
+
 		sup.client.Kill()
 	}
 
