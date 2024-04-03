@@ -16,9 +16,10 @@ import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions'
 import type {GlobalState} from 'types/store';
 
 export function loadStatusesForChannelAndSidebar(): ActionFunc<boolean, GlobalState> {
+    const userIds = new Set<string>();
+
     return (dispatch, getState) => {
         const state = getState();
-        const statusesToLoad: Record<string, true> = {};
 
         const channelId = getCurrentChannelId(state);
         const postsInChannel = getPostsInCurrentChannel(state);
@@ -27,23 +28,25 @@ export function loadStatusesForChannelAndSidebar(): ActionFunc<boolean, GlobalSt
             const posts = postsInChannel.slice(0, state.views.channel.postVisibility[channelId] || 0);
             for (const post of posts) {
                 if (post.user_id) {
-                    statusesToLoad[post.user_id] = true;
+                    userIds.add(post.user_id);
                 }
             }
         }
 
-        const dmPrefs = getDirectShowPreferences(state);
-
-        for (const pref of dmPrefs) {
-            if (pref.value === 'true') {
-                statusesToLoad[pref.name] = true;
+        const directShowPreferences = getDirectShowPreferences(state);
+        for (const directShowPreference of directShowPreferences) {
+            if (directShowPreference.value === 'true') {
+                // This is the other user's id in the DM
+                userIds.add(directShowPreference.name);
             }
         }
 
         const currentUserId = getCurrentUserId(state);
-        statusesToLoad[currentUserId] = true;
+        userIds.add(currentUserId);
 
-        dispatch(loadStatusesByIds(Object.keys(statusesToLoad)));
+        dispatch(loadStatusesByIds(Array.from(userIds)));
+        userIds.clear();
+
         return {data: true};
     };
 }
