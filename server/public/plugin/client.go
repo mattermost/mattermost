@@ -14,22 +14,6 @@ const (
 	BotUserKey        = InternalKeyPrefix + "botid"
 )
 
-func initializePluginImplementation(pluginImplementation any) map[string]plugin.Plugin {
-	impl, ok := pluginImplementation.(interface {
-		SetAPI(api API)
-		SetDriver(driver Driver)
-	})
-	if !ok {
-		panic("Plugin implementation given must embed plugin.MattermostPlugin")
-	}
-	impl.SetAPI(nil)
-	impl.SetDriver(nil)
-
-	return map[string]plugin.Plugin{
-		"hooks": &hooksPlugin{hooks: pluginImplementation},
-	}
-}
-
 // WithTestContext provides a context typically used to terminate a plugin from a unit test.
 func WithTestContext(ctx context.Context) func(*plugin.ServeConfig) error {
 	return func(config *plugin.ServeConfig) error {
@@ -75,9 +59,23 @@ func WithTestCloseCh(closeCh chan<- struct{}) func(*plugin.ServeConfig) error {
 // Call this when your plugin is ready to start. Options allow configuring plugins for testing
 // scenarios.
 func ClientMain(pluginImplementation any, opts ...func(config *plugin.ServeConfig) error) {
+	impl, ok := pluginImplementation.(interface {
+		SetAPI(api API)
+		SetDriver(driver Driver)
+	})
+	if !ok {
+		panic("Plugin implementation given must embed plugin.MattermostPlugin")
+	}
+	impl.SetAPI(nil)
+	impl.SetDriver(nil)
+
+	pluginMap := map[string]plugin.Plugin{
+		"hooks": &hooksPlugin{hooks: pluginImplementation},
+	}
+
 	serveConfig := &plugin.ServeConfig{
 		HandshakeConfig: handshake,
-		Plugins:         initializePluginImplementation(pluginImplementation),
+		Plugins:         pluginMap,
 	}
 
 	for _, opt := range opts {
