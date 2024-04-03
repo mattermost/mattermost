@@ -1671,15 +1671,15 @@ describe('getPostThreads', () => {
 
         await testStore.dispatch(Actions.getPostThreads([comment]));
 
-        expect(testStore.getActions()[1].payload[0].type).toEqual('RECEIVED_POSTS');
-        expect(testStore.getActions()[1].payload[0].data.posts).toEqual({
+        expect(testStore.getActions()[0].payload[0].type).toEqual('RECEIVED_POSTS');
+        expect(testStore.getActions()[0].payload[0].data.posts).toEqual({
             [post1.id]: post1,
             [comment.id]: comment,
         });
 
-        expect(testStore.getActions()[1].payload[1].type).toEqual('RECEIVED_POSTS_IN_THREAD');
-        expect(testStore.getActions()[1].payload[1].rootId).toEqual(post1.id);
-        expect(testStore.getActions()[1].payload[1].data.posts).toEqual({
+        expect(testStore.getActions()[0].payload[1].type).toEqual('RECEIVED_POSTS_IN_THREAD');
+        expect(testStore.getActions()[0].payload[1].rootId).toEqual(post1.id);
+        expect(testStore.getActions()[0].payload[1].data.posts).toEqual({
             [post1.id]: post1,
             [comment.id]: comment,
         });

@@ -994,8 +994,6 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
 
     const postsArray: Post[] = Array.isArray(postsArrayOrMap) ? postsArrayOrMap : Object.values(postsArrayOrMap);
 
-    console.log('getMentionsAndStatusesForPosts - posts', postsArray);
-
     if (postsArray.length === 0) {
         return Promise.resolve();
     }
