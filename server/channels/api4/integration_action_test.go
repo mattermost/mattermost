@@ -226,12 +226,11 @@ func TestOpenDialog(t *testing.T) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
 		})
 
-		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			_, err := client.OpenInteractiveDialog(context.Background(), request)
-			require.Error(c, err)
-			assert.Contains(c, err.Error(), "Trigger ID for interactive dialog is expired.")
-		}, 2*time.Second, 100*time.Millisecond)
+		time.Sleep(2 * time.Second)
 
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Trigger ID for interactive dialog is expired.")
 	})
 }
 

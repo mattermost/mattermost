@@ -34,12 +34,11 @@ func TestEchoCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, r1, "Echo command failed to execute")
 
-	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		p1, _, err := client.GetPostsForChannel(context.Background(), channel1.Id, 0, 2, "", false, false)
-		require.NoError(c, err)
-		require.Len(c, p1.Order, 2, "Echo command failed to send")
-	}, time.Second, 100*time.Millisecond)
+	time.Sleep(time.Second)
 
+	p1, _, err := client.GetPostsForChannel(context.Background(), channel1.Id, 0, 2, "", false, false)
+	require.NoError(t, err)
+	require.Len(t, p1.Order, 2, "Echo command failed to send")
 }
 
 func TestGroupmsgCommands(t *testing.T) {
@@ -344,19 +343,18 @@ func TestMeCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, r1, "Command failed to execute")
 
-	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		p1, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 2, "", false, false)
-		require.NoError(c, err)
-		require.Len(c, p1.Order, 2, "Command failed to send")
+	time.Sleep(time.Second)
 
-		pt := p1.Posts[p1.Order[0]].Type
-		require.Equal(c, model.PostTypeMe, pt, "invalid post type")
+	p1, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 2, "", false, false)
+	require.NoError(t, err)
+	require.Len(t, p1.Order, 2, "Command failed to send")
 
-		msg := p1.Posts[p1.Order[0]].Message
-		want := "*hello*"
-		require.Equal(c, want, msg, "invalid me response")
-	}, time.Second, 100*time.Millisecond)
+	pt := p1.Posts[p1.Order[0]].Type
+	require.Equal(t, model.PostTypeMe, pt, "invalid post type")
 
+	msg := p1.Posts[p1.Order[0]].Message
+	want := "*hello*"
+	require.Equal(t, want, msg, "invalid me response")
 }
 
 func TestMsgCommands(t *testing.T) {
@@ -453,7 +451,6 @@ func TestShrugCommand(t *testing.T) {
 		require.Len(c, p1.Order, 2, "Command failed to send")
 		require.Equal(c, `¯\\\_(ツ)\_/¯`, p1.Posts[p1.Order[0]].Message, "invalid shrug response")
 	}, time.Second, 100*time.Millisecond)
-
 }
 
 func TestStatusCommands(t *testing.T) {
@@ -474,9 +471,8 @@ func commandAndTest(t *testing.T, th *TestHelper, status string) {
 	require.NoError(t, err)
 	require.NotEqual(t, "Command failed to execute", r1)
 
-	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		rstatus, _, err := client.GetUserStatus(context.Background(), user.Id, "")
-		require.NoError(c, err)
-		require.Equal(c, status, rstatus.Status, "Error setting status")
-	}, 2*time.Second, 100*time.Millisecond)
+	time.Sleep(2 * time.Second)
+	rstatus, _, err := client.GetUserStatus(context.Background(), user.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, status, rstatus.Status, "Error setting status")
 }
