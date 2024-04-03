@@ -129,6 +129,8 @@ type AppIface interface {
 	// DemoteUserToGuest Convert user's roles and all his membership's roles from
 	// regular user roles to guest roles.
 	DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
+	// DetachPlugin allows the server to bind to an existing plugin instance launched elsewhere.
+	DetachPlugin(pluginId string) *model.AppError
 	// DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 	// Notifies cluster peers through config change.
 	DisablePlugin(id string) *model.AppError

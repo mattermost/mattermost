@@ -20,14 +20,31 @@ func (ch *Channels) ReattachPlugin(manifest *model.Manifest, pluginReattachConfi
 		return model.NewAppError("ReattachPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	// Deactivate and remove any existing plugin, if present.
-	pluginsEnvironment.Deactivate(manifest.Id)
-	pluginsEnvironment.RemovePlugin(manifest.Id)
+	ch.DetachPlugin(manifest.Id)
 
 	// Reattach to the plugin
 	if err := pluginsEnvironment.Reattach(manifest, pluginReattachConfig); err != nil {
 		return model.NewAppError("ReattachPlugin", "app.plugin.reattach.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	return nil
+}
+
+// DetachPlugin allows the server to bind to an existing plugin instance launched elsewhere.
+func (a *App) DetachPlugin(pluginId string) *model.AppError {
+	return a.ch.DetachPlugin(pluginId)
+}
+
+// DetachPlugin allows the server to bind to an existing plugin instance launched elsewhere.
+func (ch *Channels) DetachPlugin(pluginID string) *model.AppError {
+	pluginsEnvironment := ch.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return model.NewAppError("DetachPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	// Deactivate and remove any existing plugin, if present.
+	pluginsEnvironment.Deactivate(pluginID)
+	pluginsEnvironment.RemovePlugin(pluginID)
 
 	return nil
 }

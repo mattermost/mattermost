@@ -7369,6 +7369,19 @@ func (c *Client4) ReattachPlugin(ctx context.Context, request *PluginReattachReq
 	return BuildResponse(r), nil
 }
 
+// DetachPlugin detaches a previously reattached plugin.
+//
+// Only available in local mode, and currently only used for testing.
+func (c *Client4) DetachPlugin(ctx context.Context, pluginID string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.pluginRoute(pluginID)+"/detach", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
 // GetPlugins will return a list of plugin manifests for currently active plugins.
 func (c *Client4) GetPlugins(ctx context.Context) (*PluginsResponse, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.pluginsRoute(), "")

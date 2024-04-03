@@ -20,6 +20,7 @@ func (api *API) InitPluginLocal() {
 	api.BaseRoutes.Plugins.Handle("/marketplace", api.APILocal(installMarketplacePlugin)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("/marketplace", api.APILocal(getMarketplacePlugins)).Methods("GET")
 	api.BaseRoutes.Plugins.Handle("/reattach", api.APILocal(reattachPlugin)).Methods("POST")
+	api.BaseRoutes.Plugin.Handle("/detach", api.APILocal(detachPlugin)).Methods("POST")
 }
 
 // reattachPlugin allows the server to bind to an existing plugin instance launched elsewhere.
@@ -38,6 +39,22 @@ func reattachPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := c.App.ReattachPlugin(pluginReattachRequest.Manifest, pluginReattachRequest.PluginReattachConfig)
+	if err != nil {
+		c.Err = err
+		return
+	}
+}
+
+// detachPlugin detaches a previously reattached plugin.
+//
+// This API is only exposed over a local socket.
+func detachPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePluginId()
+	if c.Err != nil {
+		return
+	}
+
+	err := c.App.DetachPlugin(c.Params.PluginId)
 	if err != nil {
 		c.Err = err
 		return
