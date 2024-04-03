@@ -40,7 +40,6 @@ func (h *addMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, w
 		msg.Add("mentions", model.ArrayToJSON([]string{webConn.UserId}))
 		if msg.Get("should_ack") != true {
 			msg.Add("should_ack", true)
-			webConn.Platform.Metrics().IncrementWebsocketEvent(model.WebsocketPostedNotify)
 		}
 	}
 
@@ -66,7 +65,6 @@ func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, 
 		msg.Add("followers", model.ArrayToJSON([]string{webConn.UserId}))
 		if msg.Get("should_ack") != true {
 			msg.Add("should_ack", true)
-			webConn.Platform.Metrics().IncrementWebsocketEvent(model.WebsocketPostedNotify)
 		}
 	}
 
@@ -105,7 +103,6 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	// Always ACK direct channels
 	if channelType == model.ChannelTypeDirect {
 		msg.Add("should_ack", true)
-		webConn.Platform.Metrics().IncrementWebsocketEvent(model.WebsocketPostedNotify)
 		return nil
 	}
 
@@ -116,7 +113,6 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 
 	if len(users) > 0 && pUtils.Contains[string](users, webConn.UserId) {
 		msg.Add("should_ack", true)
-		webConn.Platform.Metrics().IncrementWebsocketEvent(model.WebsocketPostedNotify)
 	}
 
 	return nil
