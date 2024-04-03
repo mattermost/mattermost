@@ -162,7 +162,7 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 	}
 
 	if resultMsg != "" {
-		ps.logger.Log(resultLevel, resultMsg)
+		ps.Log().Log(resultLevel, resultMsg)
 	}
 
 	return nil
