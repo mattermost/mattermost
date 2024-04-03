@@ -11,13 +11,13 @@ import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 const pendingUserIdsForProfiles = new Set<string>();
 const MAX_USER_PROFILES_BATCH = 100;
-const USER_PROFILES_DURATION = 10 * 1000;
+const USER_PROFILES_DURATION = 5 * 1000;
 
 let userProfilesIntervalId: NodeJS.Timeout | null = null;
 
 const pendingUserIdsForStatuses = new Set<string>();
-const MAX_USER_STATUSES_BATCH = 100;
-const USER_STATUSES_DURATION = 20 * 1000;
+const MAX_USER_STATUSES_BUFFER = 100;
+const USER_STATUSES_DURATION = 12 * 1000;
 
 let userStatusesIntervalId: NodeJS.Timeout | null = null;
 
@@ -68,15 +68,32 @@ function addUserIdForStatuses(userId: string): ActionFunc<boolean> {
         function getPendingStatusesById() {
             console.log('addUserIdForStatuses start', pendingUserIdsForStatuses);
 
-            dispatch(getStatusesByIds(Array.from(pendingUserIdsForStatuses)));
-            pendingUserIdsForStatuses.clear();
-        }
+            // Since we can only fetch 100 user statuses at a time, we need to batch the requests
+            if (pendingUserIdsForStatuses.size >= MAX_USER_STATUSES_BUFFER) {
+                // We use temp buffer here to store up until max buffer size
+                // and clear out processed user ids
+                const userIds: string[] = [];
 
-        // Process immediately if the pending user ids exceeds the limit
-        if (pendingUserIdsForStatuses.size >= MAX_USER_STATUSES_BATCH) {
-            getPendingStatusesById();
+                let counter = 0;
+                for (const pendingUserId of pendingUserIdsForStatuses) {
+                    userIds.push(pendingUserId);
+                    pendingUserIdsForStatuses.delete(pendingUserId);
 
-            console.log('addUserIdForStatuses', 'executing immediately for', pendingUserIdsForStatuses.size);
+                    counter++;
+
+                    if (counter >= MAX_USER_STATUSES_BUFFER) {
+                        break;
+                    }
+                }
+
+                console.log('addUserIdForStatuses', 'executing for', userIds.length, '>');
+                dispatch(getStatusesByIds(userIds));
+            } else {
+                // If we have less than max buffer size, we can directly fetch the statuses
+                console.log('addUserIdForStatuses', 'executing for', pendingUserIdsForStatuses.size, '<');
+                dispatch(getStatusesByIds(Array.from(pendingUserIdsForStatuses)));
+                pendingUserIdsForStatuses.clear();
+            }
         }
 
         pendingUserIdsForStatuses.add(userId);
@@ -85,8 +102,6 @@ function addUserIdForStatuses(userId: string): ActionFunc<boolean> {
         if (userStatusesIntervalId === null) {
             userStatusesIntervalId = setInterval(() => {
                 if (pendingUserIdsForStatuses.size > 0) {
-                    console.log('addUserIdForStatuses', 'executing with timeout for pending', pendingUserIdsForStatuses.size);
-
                     getPendingStatusesById();
                 } else {
                     console.log('addUserIdForStatuses', 'no pending user ids');
@@ -122,17 +137,15 @@ export function getBatchedUserProfilesStatusesAndGroupsFromPosts(postsArrayOrMap
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const isUserStatusesConfigEnabled = getIsUserStatusesConfigEnabled(state);
-        const profiles = state.entities.users.profiles;
 
         posts.forEach((post) => {
             // This is sufficient to check if the profile is already fetched
             // as we recieve the websocket events for the profiles changes
-            if (post.user_id !== currentUserId && !profiles[post.user_id]) {
+            if (post.user_id !== currentUserId && !state.entities.users.profiles[post.user_id]) {
                 dispatch(addUserIdForProfiles(post.user_id));
             }
 
-            // We need to fetch the statuses as we dont have websockets for the status changes of other users
-            if (post.user_id !== currentUserId && isUserStatusesConfigEnabled) {
+            if (post.user_id !== currentUserId && isUserStatusesConfigEnabled && !state.entities.users.statuses[post.user_id]) {
                 dispatch(addUserIdForStatuses(post.user_id));
             }
 
