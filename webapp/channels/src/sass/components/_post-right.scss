@@ -67,7 +67,8 @@
     }
 
     .post {
-        &.post--root {
+        &.post--root,
+        &.other--root {
             padding-top: 16px;
 
             .post__body {
