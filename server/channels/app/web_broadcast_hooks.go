@@ -16,12 +16,14 @@ import (
 const (
 	broadcastAddMentions  = "add_mentions"
 	broadcastAddFollowers = "add_followers"
+	broadcastPostedAck    = "posted_ack"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 	return map[string]platform.BroadcastHook{
 		broadcastAddMentions:  &addMentionsBroadcastHook{},
 		broadcastAddFollowers: &addFollowersBroadcastHook{},
+		broadcastPostedAck:    &postedAckBroadcastHook{},
 	}
 }
 
@@ -36,6 +38,10 @@ func (h *addMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, w
 	if len(mentions) > 0 && pUtils.Contains[string](mentions, webConn.UserId) {
 		// Note that the client expects this field to be stringified
 		msg.Add("mentions", model.ArrayToJSON([]string{webConn.UserId}))
+		if msg.Get("should_ack") != true {
+			msg.Add("should_ack", true)
+			webConn.Platform.Metrics().IncrementWebsocketEvent(model.WebsocketPostedNotify)
+		}
 	}
 
 	return nil
@@ -58,6 +64,10 @@ func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, 
 	if len(followers) > 0 && pUtils.Contains[string](followers, webConn.UserId) {
 		// Note that the client expects this field to be stringified
 		msg.Add("followers", model.ArrayToJSON([]string{webConn.UserId}))
+		if msg.Get("should_ack") != true {
+			msg.Add("should_ack", true)
+			webConn.Platform.Metrics().IncrementWebsocketEvent(model.WebsocketPostedNotify)
+		}
 	}
 
 	return nil
@@ -66,6 +76,57 @@ func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, 
 func useAddFollowersHook(message *model.WebSocketEvent, followers model.StringArray) {
 	message.GetBroadcast().AddHook(broadcastAddFollowers, map[string]any{
 		"followers": followers,
+	})
+}
+
+type postedAckBroadcastHook struct{}
+
+func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	// Nothing to do
+	if msg.Get("should_ack") == true {
+		return nil
+	}
+
+	postedUserId, err := getTypedArg[string](args, "posted_user_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid posted_user_id value passed to postedAckBroadcastHook")
+	}
+
+	// Don't ACK your own posts
+	if postedUserId == webConn.UserId {
+		return nil
+	}
+
+	channelType, err := getTypedArg[model.ChannelType](args, "channel_type")
+	if err != nil {
+		return errors.Wrap(err, "Invalid channel_type value passed to postedAckBroadcastHook")
+	}
+
+	// Always ACK direct channels
+	if channelType == model.ChannelTypeDirect {
+		msg.Add("should_ack", true)
+		webConn.Platform.Metrics().IncrementWebsocketEvent(model.WebsocketPostedNotify)
+		return nil
+	}
+
+	users, err := getTypedArg[model.StringArray](args, "users")
+	if err != nil {
+		return errors.Wrap(err, "Invalid users value passed to addFollowersBroadcastHook")
+	}
+
+	if len(users) > 0 && pUtils.Contains[string](users, webConn.UserId) {
+		msg.Add("should_ack", true)
+		webConn.Platform.Metrics().IncrementWebsocketEvent(model.WebsocketPostedNotify)
+	}
+
+	return nil
+}
+
+func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channelType model.ChannelType, usersToNotify []string) {
+	message.GetBroadcast().AddHook(broadcastPostedAck, map[string]any{
+		"posted_user_id": postedUserId,
+		"channel_type":   channelType,
+		"users":          usersToNotify,
 	})
 }
 

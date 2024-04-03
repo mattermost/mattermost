@@ -54,7 +54,7 @@ const getNotificationSoundFromChannelMemberAndUser = (member, user) => {
 };
 
 /**
- * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<void>}
+ * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<Promise<NotificationResult>, GlobalState>}
  */
 export function sendDesktopNotification(post, msgProps) {
     return async (dispatch, getState) => {
@@ -62,11 +62,11 @@ export function sendDesktopNotification(post, msgProps) {
         const currentUserId = getCurrentUserId(state);
 
         if ((currentUserId === post.user_id && post.props.from_webhook !== 'true')) {
-            return;
+            return {result: 'not_sent', reason: 'own_post'};
         }
 
         if (isSystemMessage(post) && !isUserAddedInChannel(post, currentUserId)) {
-            return;
+            return {result: 'not_sent', reason: 'system_message'};
         }
 
         let userFromPost = getUser(state, post.user_id);
@@ -96,8 +96,16 @@ export function sendDesktopNotification(post, msgProps) {
         const member = getMyChannelMember(state, post.channel_id);
         const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
 
-        if (!member || isChannelMuted(member) || userStatus === UserStatuses.DND || userStatus === UserStatuses.OUT_OF_OFFICE) {
-            return;
+        if (!member) {
+            return {result: 'not_sent', reason: 'no_member'};
+        }
+
+        if (isChannelMuted(member)) {
+            return {result: 'not_sent', reason: 'channel_muted'};
+        }
+
+        if (userStatus === UserStatuses.DND || userStatus === UserStatuses.OUT_OF_OFFICE) {
+            return {result: 'not_sent', reason: 'user_status', data: userStatus};
         }
 
         const channelNotifyProp = member?.notify_props?.desktop || NotificationLevels.DEFAULT;
@@ -112,7 +120,7 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         if (notifyLevel === NotificationLevels.NONE) {
-            return;
+            return {result: 'not_sent', reason: 'notify_level', data: notifyLevel};
         } else if (channel.type === 'G' && notifyLevel === NotificationLevels.MENTION) {
             // Compose the whole text in the message, including interactive messages.
             let text = post.message;
@@ -186,13 +194,13 @@ export function sendDesktopNotification(post, msgProps) {
             }
 
             if (!isExplicitlyMentioned) {
-                return;
+                return {result: 'not_sent', reason: 'not_explicitly_mentioned', data: mentionableText};
             }
         } else if (notifyLevel === NotificationLevels.MENTION && mentions.indexOf(user.id) === -1 && msgProps.channel_type !== Constants.DM_CHANNEL) {
-            return;
+            return {result: 'not_sent', reason: 'not_mentioned'};
         } else if (isCrtReply && notifyLevel === NotificationLevels.ALL && followers.indexOf(currentUserId) === -1) {
             // if user is not following the thread don't notify
-            return;
+            return {result: 'not_sent', reason: 'not_following_thread'};
         }
 
         const config = getConfig(state);
@@ -275,12 +283,22 @@ export function sendDesktopNotification(post, msgProps) {
         const channelId = channel ? channel.id : null;
 
         let notify = false;
+        let notifyResult = {result: 'not_sent', reason: 'unknown'};
         if (isCrtReply) {
             notify = !isThreadOpen(state, post.root_id);
+            if (!notify) {
+                notifyResult = {result: 'not_sent', reason: 'thread_is_open', data: post.root_id};
+            }
         } else {
             notify = activeChannel && activeChannel.id !== channelId;
+            if (!notify) {
+                notifyResult = {result: 'not_sent', reason: 'channel_is_open', data: activeChannel?.id};
+            }
         }
         notify = notify || !state.views.browser.focused;
+        if (!notify) {
+            notifyResult = {result: 'not_sent', reason: 'window_is_focused'};
+        }
 
         let soundName = getNotificationSoundFromChannelMemberAndUser(member, user);
 
@@ -296,29 +314,40 @@ export function sendDesktopNotification(post, msgProps) {
         const hookResult = await dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
         if (hookResult.error) {
             dispatch(logError(hookResult.error));
-            return;
+            return {result: 'error', reason: 'desktop_notification_hook', data: String(hookResult.error)};
         }
 
         let silent = false;
         ({title, body, silent, soundName, url, notify} = hookResult.args);
 
         if (notify) {
-            dispatch(notifyMe(title, body, channel, teamId, silent, soundName, url));
+            const result = dispatch(notifyMe(title, body, channel, teamId, silent, soundName, url));
 
             //Don't add extra sounds on native desktop clients
             if (sound && !isDesktopApp() && !isMobileApp()) {
                 NotificationSounds.ding(soundName);
             }
+
+            return result;
         }
+
+        if (args.notify && !notify) {
+            notifyResult = {result: 'not_sent', reason: 'desktop_notification_hook', data: String(hookResult)};
+        }
+
+        return notifyResult;
     };
 }
 
-export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
+export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => async (dispatch) => {
     // handle notifications in desktop app
     if (isDesktopApp()) {
         DesktopApp.dispatchNotification(title, body, channel.id, teamId, silent, soundName, url);
-    } else {
-        showNotification({
+        return {result: 'success'}; // TODO: assume success from Desktop App until relay is set up
+    }
+
+    try {
+        return await showNotification({
             title,
             body,
             requireInteraction: false,
@@ -327,8 +356,9 @@ export const notifyMe = (title, body, channel, teamId, silent, soundName, url) =
                 window.focus();
                 getHistory().push(url);
             },
-        }).catch((error) => {
-            dispatch(logError(error));
         });
+    } catch (error) {
+        dispatch(logError(error));
+        return {result: 'error', reason: 'notification_api', data: String(error)};
     }
 };

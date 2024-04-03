@@ -676,6 +676,24 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		useAddFollowersHook(message, notificationsForCRT.Desktop)
 	}
 
+	usersToNotify := []string{}
+	for id, profile := range profileMap {
+		userNotificationLevel := profile.NotifyProps[model.DesktopNotifyProp]
+		channelNotificationLevel := channelMemberNotifyPropsMap[id][model.DesktopNotifyProp]
+
+		if channelNotificationLevel == model.ChannelNotifyAll {
+			// Should ACK on if we notify for all messages in the channel
+			usersToNotify = append(usersToNotify, id)
+		} else if channelNotificationLevel == model.ChannelNotifyDefault && userNotificationLevel == model.UserNotifyAll {
+			// Should ACK on if we notify for all messages and the channel settings are unchanged
+			usersToNotify = append(usersToNotify, id)
+		} else if channel.Type == model.ChannelTypeGroup && ((channelNotificationLevel == model.ChannelNotifyDefault && userNotificationLevel == model.UserNotifyMention) || channelNotificationLevel == model.ChannelNotifyMention) {
+			// Should ACK for group channels where default settings are in place (should be notified)
+			usersToNotify = append(usersToNotify, id)
+		}
+	}
+	usePostedAckHook(message, post.UserId, channel.Type, usersToNotify)
+
 	published, err := a.publishWebsocketEventForPermalinkPost(c, post, message)
 	if err != nil {
 		a.NotificationsLog().Error("Couldn't send websocket notification for permalink post",
