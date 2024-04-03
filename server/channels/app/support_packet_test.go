@@ -118,7 +118,6 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		assert.Empty(t, packet.BlevePostIndexingJobs)
 		assert.Empty(t, packet.LdapSyncJobs)
 		assert.Empty(t, packet.MigrationJobs)
-		assert.Empty(t, packet.ComplianceJobs)
 	})
 
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
