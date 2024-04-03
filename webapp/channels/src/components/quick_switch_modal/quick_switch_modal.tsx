@@ -95,7 +95,6 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
         this.focusTextbox();
     };
 
-
     private onSelect = (): void => {
         this.focusPostTextbox();
         this.setState({
