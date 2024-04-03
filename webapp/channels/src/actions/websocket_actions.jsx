@@ -39,7 +39,7 @@ import {
     getCustomEmojiForReaction,
     getPosts,
     getPostThread,
-    getThreadsForPosts,
+    getPostThreads,
     postDeleted,
     receivedNewPost,
     receivedPost,
@@ -738,7 +738,7 @@ export function handleNewPostEvents(queue) {
         myDispatch(batchActions(actions));
 
         // Load the posts' threads
-        myDispatch(getThreadsForPosts(posts));
+        myDispatch(getPostThreads(posts));
         myDispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts(posts));
     };
 }

@@ -112,6 +112,7 @@ func init() {
 	ImportValidateCmd.Flags().Bool("check-server-duplicates", true, "Set to false to ignore teams, channels, and users already present on the server")
 
 	ImportProcessCmd.Flags().Bool("bypass-upload", false, "If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.")
+	ImportProcessCmd.Flags().Bool("extract-content", true, "If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance.")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
@@ -271,11 +272,14 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 		}
 	}
 
+	extractContent, _ := command.Flags().GetBool("extract-content")
+
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{
 		Type: model.JobTypeImportProcess,
 		Data: map[string]string{
-			"import_file": importFile,
-			"local_mode":  strconv.FormatBool(isLocal && bypassUpload),
+			"import_file":     importFile,
+			"local_mode":      strconv.FormatBool(isLocal && bypassUpload),
+			"extract_content": strconv.FormatBool(extractContent),
 		},
 	})
 	if err != nil {
