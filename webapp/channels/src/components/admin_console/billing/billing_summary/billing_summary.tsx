@@ -66,8 +66,12 @@ export const noBillingHistory = (
     </div>
 );
 
-export const freeTrial = (daysLeftOnTrial: number) => {
-    const [openSalesLink, ] = useOpenSalesLink();
+type FreeTrialProps = {
+    daysLeftOnTrial: number;
+}
+
+export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
+    const [openSalesLink] = useOpenSalesLink();
     return (
         <div className='UpgradeMattermostCloud'>
             <div className='UpgradeMattermostCloud__image'>

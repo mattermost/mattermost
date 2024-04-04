@@ -5,7 +5,7 @@ import React from 'react';
 
 import {
     noBillingHistory,
-    freeTrial,
+    FreeTrial,
 } from './billing_summary';
 
 import './billing_summary.scss';
@@ -19,7 +19,7 @@ const BillingSummary = ({isFreeTrial, daysLeftOnTrial}: BillingSummaryProps) => 
     let body = noBillingHistory;
 
     if (isFreeTrial) {
-        body = freeTrial(daysLeftOnTrial);
+        body = FreeTrial({daysLeftOnTrial});
     }
     return (
         <div className='BillingSummary'>
