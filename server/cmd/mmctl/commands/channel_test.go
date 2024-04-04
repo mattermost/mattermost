@@ -1784,7 +1784,6 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-
 	})
 
 	s.Run("Fail to unarchive a non-existing channel on an existent team", func() {
