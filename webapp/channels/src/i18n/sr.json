@@ -299,7 +299,6 @@
   "admin.channel_settings.channel_list.nameHeader": "Име",
   "admin.channel_settings.channel_moderation.manageMembers": "Управљај члановима",
   "admin.cluster.GossipPortEx": "Нпр.: \":8075\"",
-  "admin.cluster.StreamingPortEx": "Нпр.: \":8075\"",
   "admin.cluster.enableDescription": "Када је тачно, Маттермост ће радити у режиму високе доступности. Погледајте<link>документацију</link> да бисте сазнали више о конфигурисању високе доступности за Маттермост.",
   "admin.cluster.enableTitle": "Омогући режим високе доступности:",
   "admin.cluster.loadedFrom": "Ова конфигурациона датотека је учитана са ИД-а чвора {clusterId}. Погледајте Водич за решавање проблема у нашој <link>документацији</link> ако приступате системској конзоли преко балансера оптерећења и ако имате проблема.",

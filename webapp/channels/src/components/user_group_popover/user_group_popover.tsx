@@ -71,6 +71,11 @@ const UserGroupPopover = ({
     returnFocus,
     searchTerm,
     showUserOverlay,
+
+    // These props are not passed explictly to this component, but
+    // they are added when this component is passed as a child to Overlay.
+    // They are not typed in the component because they will cause more confusion.
+    ...popoverProps
 }: Props) => {
     const {formatMessage} = useIntl();
 
@@ -182,6 +187,7 @@ const UserGroupPopover = ({
     return (
         <Popover
             id='user-group-popover'
+            {...popoverProps}
         >
             {tabCatcher}
             <Body
