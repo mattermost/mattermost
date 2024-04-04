@@ -43,10 +43,10 @@ const CopyButton: React.FC<Props> = (props: Props) => {
         tooltip,
     } = useTooltip({
         message: intl.formatMessage({
-                    id: getId(),
-                    defaultMessage: getDefaultMessage(),
-                 }),
-        placement: props.placement,
+            id: getId(),
+            defaultMessage: getDefaultMessage(),
+        }),
+        placement: props.placement ?? 'top',
     });
 
     const copyText = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>): void => {
@@ -95,7 +95,6 @@ const CopyButton: React.FC<Props> = (props: Props) => {
 
 CopyButton.defaultProps = {
     afterCopyText: 'Copied',
-    placement: 'top',
 };
 
 export default CopyButton;
