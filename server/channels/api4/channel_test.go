@@ -159,7 +159,6 @@ func TestCreateChannel(t *testing.T) {
 		_, resp, err := client.CreateChannel(context.Background(), channel)
 		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
 		CheckBadRequestStatus(t, resp)
-
 	})
 }
 
