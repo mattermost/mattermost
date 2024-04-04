@@ -129,8 +129,6 @@
   "admin.cluster.ClusterNameEx": "Npr .: \"Production\" ali \"Staging\"",
   "admin.cluster.GossipPortEx": "Npr.: \"8074\"",
   "admin.cluster.OverrideHostnameEx": "Npr.: \"app-server-01\"",
-  "admin.cluster.StreamingPortDesc": "Port, ki se uporablja za pretakanje podatkov med strežniki.",
-  "admin.cluster.StreamingPortEx": "Npr.: \"8075\"",
   "admin.cluster.enableDescription": "Ko je true, bo Mattermost potekal v načinu visoke razpoložljivosti. Oglejte si [documentation] (! Http: //docs.mattermost.com/deployment/cluster.html), če želite izvedeti več o konfiguriranju visoke razpoložljivosti za Mattermost.",
   "admin.cluster.enableTitle": "Omogoči način visoke razpoložljivosti:",
   "admin.cluster.should_not_change": "OPOZORILO: Te nastavitve se morda ne bodo sinhronizirale z drugimi strežniki v gruči. Visoka razpoložljivost komunikacije med vozlišči se ne bo začela, dokler ne spremenite config.json, da bo enak na vseh strežnikih in ponovno zaženite Mattermost. Oglejte si [documentation] (! Http: //docs.mattermost.com/deployment/cluster.html), kako lahko dodate ali odstranite strežnik iz gruče. Če dostopate do sistemske konzole prek naprave za uravnavanje obremenitve in imate težave, si oglejte Vodnik za odpravljanje težav v naši dokumentaciji (! Http: //docs.mattermost.com/deployment/cluster.html).",
