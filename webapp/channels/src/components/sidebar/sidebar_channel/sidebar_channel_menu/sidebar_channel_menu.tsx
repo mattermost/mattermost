@@ -277,7 +277,7 @@ const SidebarChannelMenu = (props: Props) => {
             menuButtonTooltip={{
                 id: `SidebarChannelMenu-ButtonTooltip-${props.channel.id}`,
                 class: 'hidden-xs',
-                text: `${formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'})} for ${props.channel.name}`,
+                text: formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'}),
             }}
             menu={{
                 id: `SidebarChannelMenu-MenuList-${props.channel.id}`,
