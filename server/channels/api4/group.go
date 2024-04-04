@@ -632,6 +632,9 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 		return model.NewAppError("Api4.linkGroupSyncable", "app.group.crud_permission", nil, "", http.StatusBadRequest)
 	}
 
+	// If AllowReference is disabled, limit who can link the group.
+	// This voids leaking the list of group members.
+	// See https://mattermost.atlassian.net/browse/MM-55314 for more details.
 	if !group.AllowReference {
 		if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleReadUserManagementGroups) {
 			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
