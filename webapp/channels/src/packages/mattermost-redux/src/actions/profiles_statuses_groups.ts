@@ -6,20 +6,20 @@
 import type {PostList, Post} from '@mattermost/types/posts';
 
 import {getProfilesByIds, getStatusesByIds} from 'mattermost-redux/actions/users';
-import {getCurrentUserId, getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
+import {getCurrentChannelId, getCurrentUserId, getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 const pendingUserIdsForProfiles = new Set<string>();
 const MAX_USER_PROFILES_BATCH = 100;
 const USER_PROFILES_DURATION = 5 * 1000;
-
 let userProfilesIntervalId: NodeJS.Timeout | null = null;
 
 const pendingUserIdsForStatuses = new Set<string>();
-const MAX_USER_STATUSES_BUFFER = 100;
-const USER_STATUSES_DURATION = 12 * 1000;
-
+const MAX_USER_STATUSES_BUFFER = 200;
+const USER_STATUSES_DURATION = 5 * 1000;
+const USER_STATUSES_REQUEST_SURGE_THRESHOLD = 1000;
 let userStatusesIntervalId: NodeJS.Timeout | null = null;
+let haveUserStatusRequestsSurged = false;
 
 function addUserIdForProfiles(userId: string): ActionFunc<boolean> {
     return (dispatch) => {
@@ -94,6 +94,12 @@ function addUserIdForStatuses(userId: string): ActionFunc<boolean> {
                 dispatch(getStatusesByIds(Array.from(pendingUserIdsForStatuses)));
                 pendingUserIdsForStatuses.clear();
             }
+
+            if (pendingUserIdsForStatuses.size >= USER_STATUSES_REQUEST_SURGE_THRESHOLD) {
+                haveUserStatusRequestsSurged = true;
+            } else {
+                haveUserStatusRequestsSurged = false;
+            }
         }
 
         pendingUserIdsForStatuses.add(userId);
@@ -136,6 +142,7 @@ export function getBatchedUserProfilesStatusesAndGroupsFromPosts(postsArrayOrMap
 
         const state = getState();
         const currentUserId = getCurrentUserId(state);
+        const currentChannelId = getCurrentChannelId(state);
         const isUserStatusesConfigEnabled = getIsUserStatusesConfigEnabled(state);
 
         posts.forEach((post) => {
@@ -146,7 +153,13 @@ export function getBatchedUserProfilesStatusesAndGroupsFromPosts(postsArrayOrMap
             }
 
             if (post.user_id !== currentUserId && isUserStatusesConfigEnabled && !state.entities.users.statuses[post.user_id]) {
-                dispatch(addUserIdForStatuses(post.user_id));
+                if (haveUserStatusRequestsSurged) {
+                    if (post.channel_id === currentChannelId) {
+                        dispatch(addUserIdForStatuses(post.user_id));
+                    }
+                } else {
+                    dispatch(addUserIdForStatuses(post.user_id));
+                }
             }
 
             // TODO: We need to handle the groups as well
