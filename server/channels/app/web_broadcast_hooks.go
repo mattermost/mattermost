@@ -111,7 +111,7 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		return errors.Wrap(err, "Invalid users value passed to addFollowersBroadcastHook")
 	}
 
-	if len(users) > 0 && pUtils.Contains[string](users, webConn.UserId) {
+	if len(users) > 0 && slices.Contains(users, webConn.UserId) {
 		msg.Add("should_ack", true)
 	}
 
