@@ -54,7 +54,7 @@ func WithTestCloseCh(closeCh chan<- struct{}) func(*plugin.ServeConfig) error {
 	}
 }
 
-// Starts the serving of a Mattermost plugin over net/rpc. gRPC is not yet supported.
+// Starts the serving of a Mattermost plugin over net/rpc. gRPC is not supported.
 //
 // Call this when your plugin is ready to start. Options allow configuring plugins for testing
 // scenarios.
