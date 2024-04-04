@@ -96,8 +96,10 @@ function addUserIdForStatuses(userId: string): ActionFunc<boolean> {
             }
 
             if (pendingUserIdsForStatuses.size >= USER_STATUSES_REQUEST_SURGE_THRESHOLD) {
+                console.log('addUserIdForStatuses', 'surge is on');
                 haveUserStatusRequestsSurged = true;
             } else {
+                console.log('addUserIdForStatuses', 'surge is off');
                 haveUserStatusRequestsSurged = false;
             }
         }
