@@ -13,11 +13,9 @@ import {
     useControlAirGappedSelfHostedPurchaseModal,
     useControlScreeningInProgressModal,
 } from 'components/common/hooks/useControlModal';
-import useControlSelfHostedPurchaseModal from 'components/common/hooks/useControlSelfHostedPurchaseModal';
-import useGetSelfHostedProducts from 'components/common/hooks/useGetSelfHostedProducts';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
-import {CloudLinks, SelfHostedProducts} from 'utils/constants';
-import {findSelfHostedProductBySku} from 'utils/hosted_customer';
+import {CloudLinks} from 'utils/constants';
 
 import './purchase_link.scss';
 
@@ -30,9 +28,7 @@ const PurchaseLink: React.FC<Props> = (props: Props) => {
     const controlAirgappedModal = useControlAirGappedSelfHostedPurchaseModal();
     const controlScreeningInProgressModal = useControlScreeningInProgressModal();
     const selfHostedSignupAvailable = useCanSelfHostedSignup();
-    const [products, productsLoaded] = useGetSelfHostedProducts();
-    const professionalProductId = findSelfHostedProductBySku(products, SelfHostedProducts.PROFESSIONAL)?.id || '';
-    const controlSelfHostedPurchaseModal = useControlSelfHostedPurchaseModal({productId: professionalProductId});
+    const [openSalesLink] = useOpenSalesLink();
 
     const isSelfHostedPurchaseEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedPurchase;
 
@@ -53,9 +49,7 @@ const PurchaseLink: React.FC<Props> = (props: Props) => {
             return;
         }
 
-        if (productsLoaded && professionalProductId) {
-            controlSelfHostedPurchaseModal.open();
-        }
+        openSalesLink();
     };
 
     return (

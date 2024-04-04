@@ -10,18 +10,15 @@ import {useSelector} from 'react-redux';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
-import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {getExpandSeatsLink} from 'selectors/cloud';
 
 import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
-import useControlSelfHostedExpansionModal from 'components/common/hooks/useControlSelfHostedExpansionModal';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import Tag from 'components/widgets/tag/tag';
 
 import {FileTypes, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {useQuery} from 'utils/http_utils';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 import {getSkuDisplayName} from 'utils/subscription';
 import {getRemainingDaysFromFutureTimestamp, toTitleCase} from 'utils/utils';
@@ -64,19 +61,7 @@ const EnterpriseEditionLeftPanel = ({
     const [unsanitizedLicense, setUnsanitizedLicense] = useState(license);
     const openPricingModal = useOpenPricingModal();
     const canExpand = useCanSelfHostedExpand();
-    const selfHostedExpansionModal = useControlSelfHostedExpansionModal({trackingLocation: 'license_settings_add_seats'});
     const expandableLink = useSelector(getExpandSeatsLink);
-    const isSelfHostedPurchaseEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedPurchase;
-
-    const query = useQuery();
-    const actionQueryParam = query.get('action');
-
-    useEffect(() => {
-        if (actionQueryParam === 'show_expansion_modal' && canExpand && isSelfHostedPurchaseEnabled) {
-            selfHostedExpansionModal.open();
-            query.set('action', '');
-        }
-    }, []);
 
     useEffect(() => {
         async function fetchUnSanitizedLicense() {
@@ -108,11 +93,7 @@ const EnterpriseEditionLeftPanel = ({
 
     const handleClickAddSeats = () => {
         trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'add_seats_clicked');
-        if (!isSelfHostedPurchaseEnabled || !canExpand) {
-            window.open(expandableLink(unsanitizedLicense.Id), '_blank');
-        } else {
-            selfHostedExpansionModal.open();
-        }
+        window.open(expandableLink(unsanitizedLicense.Id), '_blank');
     };
 
     return (

@@ -18,11 +18,10 @@ import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_tria
 import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
-import PurchaseModal from 'components/purchase_modal';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
-import {ModalIdentifiers, TELEMETRY_CATEGORIES, AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
+import {TELEMETRY_CATEGORIES, AboutLinks, LicenseLinks, LicenseSkus} from 'utils/constants';
 import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 import * as Utils from 'utils/utils';
 
@@ -81,23 +80,6 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
     componentDidMount() {
         this.props.actions.getPrevTrialLicense();
     }
-
-    openUpgradeModal = (e: React.MouseEvent) => {
-        e.preventDefault();
-
-        trackEvent(
-            TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-            'click_subscribe_from_feature_discovery',
-        );
-
-        this.props.actions.openModal({
-            modalId: ModalIdentifiers.CLOUD_PURCHASE,
-            dialogType: PurchaseModal,
-            dialogProps: {
-                callerCTA: 'feature_discovery_subscribe_button',
-            },
-        });
-    };
 
     contactSalesFunc = () => {
         const {customer, isCloud} = this.props;
@@ -172,7 +154,6 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             isCloudTrial,
             hadPrevCloudTrial,
             isPaidSubscription,
-            minimumSKURequiredForFeature,
         } = this.props;
 
         const canRequestCloudFreeTrial = isCloud && !isCloudTrial && !hadPrevCloudTrial && !isPaidSubscription;
@@ -207,42 +188,6 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                             data-testid='featureDiscovery_primaryCallToAction'
                             onClick={() => {
                                 trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_ADMIN, 'click_enterprise_contact_sales_feature_discovery');
-                                this.contactSalesFunc();
-                            }}
-                        >
-                            <FormattedMessage
-                                id='admin.ldap_feature_discovery_cloud.call_to_action.primary_sales'
-                                defaultMessage='Contact sales'
-                            />
-                        </button>
-                    );
-                }
-            } else if (hadPrevCloudTrial) {
-                // if it is cloud, but this account already had a free trial, then the cta button must be Upgrade now
-                ctaPrimaryButton = (
-                    <button
-                        className='btn btn-primary'
-                        data-testid='featureDiscovery_primaryCallToAction'
-                        onClick={this.openUpgradeModal}
-                    >
-                        <FormattedMessage
-                            id='admin.ldap_feature_discovery_cloud.call_to_action.primary'
-                            defaultMessage='Upgrade now'
-                        />
-                    </button>
-                );
-
-                if (minimumSKURequiredForFeature === LicenseSkus.Enterprise) {
-                    ctaPrimaryButton = (
-                        <button
-                            className='btn btn-primary'
-                            data-testid='featureDiscovery_primaryCallToAction'
-                            onClick={() => {
-                                if (isCloud) {
-                                    trackEvent(TELEMETRY_CATEGORIES.CLOUD_ADMIN, 'click_enterprise_contact_sales_feature_discovery');
-                                } else {
-                                    trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_ADMIN, 'click_enterprise_contact_sales_feature_discovery');
-                                }
                                 this.contactSalesFunc();
                             }}
                         >
