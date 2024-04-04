@@ -4272,7 +4272,7 @@ func TestSwitchAccount(t *testing.T) {
 	_, appErr := th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
 	require.NoError(t, appErr)
 
-	t.Run("To email", func(t *testing.T) {
+	t.Run("From GitLab to Email", func(t *testing.T) {
 		sr = &model.SwitchRequest{
 			CurrentService: model.UserAuthServiceGitlab,
 			NewService:     model.UserAuthServiceEmail,
@@ -4311,7 +4311,7 @@ func TestSwitchAccount(t *testing.T) {
 		})
 	})
 
-	t.Run("To LDAP", func(t *testing.T) {
+	t.Run("From LDAP to Email", func(t *testing.T) {
 		_, err = th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceLdap, &fakeAuthData, th.BasicUser.Email, true)
 		require.NoError(t, err)
 
