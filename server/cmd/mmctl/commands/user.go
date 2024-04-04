@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"sort"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 
@@ -816,18 +816,17 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		}
 	}
 
-	params := []string{}
+	params := url.Values{}
 	if inactive {
-		params = append(params, "inactive=true")
+		params.Add("inactive", "true")
 	}
 	if team != nil {
-		params = append(params, "in_team="+team.Id)
+		params.Add("in_team", team.Id)
 	}
-	strParam := strings.Join(params, "&")
 
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
 	for {
-		users, _, err := c.GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, strParam, "")
+		users, _, err := c.GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, params.Encode(), "")
 		if err != nil {
 			return errors.Wrap(err, "Failed to fetch users")
 		}
