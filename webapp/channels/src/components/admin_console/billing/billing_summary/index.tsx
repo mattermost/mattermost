@@ -15,10 +15,11 @@ type BillingSummaryProps = {
     daysLeftOnTrial: number;
 }
 
-const BillingSummary = ({isFreeTrial, daysLeftOnTrial}: BillingSummaryProps) => {
+export default function BillingSummary({isFreeTrial, daysLeftOnTrial}: BillingSummaryProps) {
     let body = noBillingHistory;
 
     if (isFreeTrial) {
+        // eslint-disable-next-line new-cap
         body = FreeTrial({daysLeftOnTrial});
     }
     return (
@@ -26,6 +27,5 @@ const BillingSummary = ({isFreeTrial, daysLeftOnTrial}: BillingSummaryProps) => 
             {body}
         </div>
     );
-};
+}
 
-export default BillingSummary;
