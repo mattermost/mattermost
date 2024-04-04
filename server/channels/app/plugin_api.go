@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type PluginAPI struct {
@@ -271,7 +272,7 @@ func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *m
 }
 
 func (api *PluginAPI) GetUsersByIds(ids []string) ([]*model.User, *model.AppError) {
-	return api.app.GetUsersByIds(ids, nil)
+	return api.app.GetUsersByIds(ids, &store.UserGetByIdsOpts{})
 }
 
 func (api *PluginAPI) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError) {
