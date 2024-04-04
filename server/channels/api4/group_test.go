@@ -631,7 +631,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 		CheckForbiddenStatus(t, response)
 	})
 
-	time.Sleep(2 * time.Second) // A hack to let "go c.App.SyncRolesAndMembership" finish before moving on.
+	time.Sleep(4 * time.Second) // A hack to let "go c.App.SyncRolesAndMembership" finish before moving on.
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	response, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
