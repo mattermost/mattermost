@@ -342,8 +342,7 @@ export function sendDesktopNotification(post, msgProps) {
 export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => async (dispatch) => {
     // handle notifications in desktop app
     if (isDesktopApp()) {
-        DesktopApp.dispatchNotification(title, body, channel.id, teamId, silent, soundName, url);
-        return {result: 'success'}; // TODO: assume success from Desktop App until relay is set up
+        return DesktopApp.dispatchNotification(title, body, channel.id, teamId, silent, soundName, url);
     }
 
     try {
