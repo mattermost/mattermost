@@ -47,6 +47,8 @@ type SearchEngineInterface interface {
 	DeleteFilesBatch(rctx request.CTX, endTime, limit int64) *model.AppError
 	TestConfig(rctx request.CTX, cfg *model.Config) *model.AppError
 	PurgeIndexes(rctx request.CTX) *model.AppError
+	PurgeIndexList(rctx request.CTX, indexes []string) *model.AppError
 	RefreshIndexes(rctx request.CTX) *model.AppError
 	DataRetentionDeleteIndexes(rctx request.CTX, cutoff time.Time) *model.AppError
+	IsChannelsIndexVerified() bool
 }

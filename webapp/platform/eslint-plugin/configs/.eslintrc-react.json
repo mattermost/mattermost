@@ -1,10 +1,17 @@
 {
   "extends": [
-    "plugin:react/recommended"
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
   ],
   "plugins": [
     "react"
   ],
+  "settings": {
+    "react": {
+        "pragma": "React",
+        "version": "detect"
+    }
+  },
   "rules": {
     "react/display-name": [
       0,
@@ -39,7 +46,15 @@
       2,
       "never"
     ],
-    "react/jsx-filename-extension": 2,
+    "react/jsx-filename-extension": [
+      2,
+      {
+        "extensions": [
+          ".jsx",
+          ".tsx"
+        ]
+      }
+    ],
     "react/jsx-first-prop-new-line": [
       2,
       "multiline"
@@ -101,7 +116,7 @@
     ],
     "react/no-render-return-value": 2,
     "react/no-set-state": 0,
-    "react/no-string-refs": 0,
+    "react/no-string-refs": 2,
     "react/no-unescaped-entities": 2,
     "react/no-unknown-property": 2,
     "react/no-unused-prop-types": [

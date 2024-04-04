@@ -463,7 +463,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, appErr := c.App.GetAnalytics(name, teamId)
+	rows, appErr := c.App.GetAnalytics(c.AppContext, name, teamId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -532,11 +532,6 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
 		c.SetPermissionError(model.PermissionTestS3)
-		return
-	}
-
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("testS3", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -636,15 +631,19 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	err := c.App.SendAckToPushProxy(&ack)
 	if ack.IsIdLoaded {
 		if err != nil {
-			// Log the error only, then continue to fetch notification message
 			c.App.NotificationsLog().Error("Notification ack not sent to push proxy",
-				mlog.String("ackId", ack.Id),
-				mlog.String("type", ack.NotificationType),
-				mlog.String("postId", ack.PostId),
-				mlog.String("status", err.Error()),
+				mlog.String("type", model.TypePush),
+				mlog.String("status", model.StatusServerError),
+				mlog.String("reason", model.ReasonServerError),
+				mlog.String("ack_id", ack.Id),
+				mlog.String("push_type", ack.NotificationType),
+				mlog.String("post_id", ack.PostId),
+				mlog.String("ack_type", ack.NotificationType),
+				mlog.String("device_type", ack.ClientPlatform),
+				mlog.Int("received_at", ack.ClientReceivedAt),
+				mlog.Err(err),
 			)
 		}
-
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
 			if _, appErr := c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
