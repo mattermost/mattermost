@@ -139,7 +139,6 @@ type SupportPacket struct {
 	BlevePostIndexingJobs      []*Job `yaml:"bleve_post_indexin_jobs"`
 	LdapSyncJobs               []*Job `yaml:"ldap_sync_jobs"`
 	MigrationJobs              []*Job `yaml:"migration_jobs"`
-	ComplianceJobs             []*Job `yaml:"compliance_jobs"`
 }
 
 type FileData struct {
