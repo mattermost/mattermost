@@ -514,14 +514,14 @@ func TestLinkGroupChannel(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
-	t.Run("Team admins are not allowed to link", func(t *testing.T) {
+	t.Run("Channel admins are not allowed to link", func(t *testing.T) {
 		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 		assert.Nil(t, groupSyncable)
 	})
 
-	t.Run("Team admins are allowed to link if AllowReference is enabled", func(t *testing.T) {
+	t.Run("Channel admins are allowed to link if AllowReference is enabled", func(t *testing.T) {
 		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
