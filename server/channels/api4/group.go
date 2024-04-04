@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (api *API) InitGroup() {
@@ -647,9 +649,23 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeam})
 		}
 	case model.GroupSyncableTypeChannel:
-		channel, err := c.App.GetChannel(c.AppContext, syncableID)
-		if err != nil {
-			return err
+		channel, appErr := c.App.GetChannel(c.AppContext, syncableID)
+		if appErr != nil {
+			return appErr
+		}
+
+		// If this is the first syncable of the team, check that the user has the permission to manage the team.
+		_, appErr = c.App.GetGroupSyncable(c.Params.GroupId, channel.TeamId, model.GroupSyncableTypeTeam)
+		if appErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(appErr, &nfErr):
+				if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionManageTeam) {
+					return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeam})
+				}
+			default:
+				return appErr
+			}
 		}
 
 		var permission *model.Permission

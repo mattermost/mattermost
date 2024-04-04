@@ -521,7 +521,19 @@ func TestLinkGroupChannel(t *testing.T) {
 		assert.Nil(t, groupSyncable)
 	})
 
-	t.Run("Channel admins are allowed to link if AllowReference is enabled", func(t *testing.T) {
+	t.Run("Channel admins are not allowed to link if AllowReference is enabled, but not team syncable exists", func(t *testing.T) {
+		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		assert.Nil(t, groupSyncable)
+	})
+
+	groupSyncable, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+	assert.NotNil(t, groupSyncable)
+
+	t.Run("Channel admins are allowed to link if AllowReference is enabled and a team syncable exists", func(t *testing.T) {
 		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
