@@ -210,7 +210,11 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 	importFile := "import.zip"
 	mockJob := &model.Job{
 		Type: model.JobTypeImportProcess,
-		Data: map[string]string{"import_file": importFile, "local_mode": "false"},
+		Data: map[string]string{
+			"import_file":     importFile,
+			"local_mode":      "false",
+			"extract_content": "false",
+		},
 	}
 
 	s.client.
