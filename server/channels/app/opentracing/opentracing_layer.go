@@ -1052,7 +1052,7 @@ func (a *OpenTracingAppLayer) BulkImport(c request.CTX, jsonlReader io.Reader, a
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+func (a *OpenTracingAppLayer) BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, extractContent bool, workers int, importPath string) (*model.AppError, int) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkImportWithPath")
 
@@ -1064,7 +1064,7 @@ func (a *OpenTracingAppLayer) BulkImportWithPath(c request.CTX, jsonlReader io.R
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.BulkImportWithPath(c, jsonlReader, attachmentsReader, dryRun, workers, importPath)
+	resultVar0, resultVar1 := a.app.BulkImportWithPath(c, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -4051,7 +4051,7 @@ func (a *OpenTracingAppLayer) DoSystemConsoleRolesCreationMigration() {
 	a.app.DoSystemConsoleRolesCreationMigration()
 }
 
-func (a *OpenTracingAppLayer) DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+func (a *OpenTracingAppLayer) DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoUploadFile")
 
@@ -4063,7 +4063,7 @@ func (a *OpenTracingAppLayer) DoUploadFile(c request.CTX, now time.Time, rawTeam
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.DoUploadFile(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+	resultVar0, resultVar1 := a.app.DoUploadFile(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data, extractContent)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4073,7 +4073,7 @@ func (a *OpenTracingAppLayer) DoUploadFile(c request.CTX, now time.Time, rawTeam
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
+func (a *OpenTracingAppLayer) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, []byte, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoUploadFileExpectModification")
 
@@ -4085,7 +4085,7 @@ func (a *OpenTracingAppLayer) DoUploadFileExpectModification(c request.CTX, now 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := a.app.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+	resultVar0, resultVar1, resultVar2 := a.app.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data, extractContent)
 
 	if resultVar2 != nil {
 		span.LogFields(spanlog.Error(resultVar2))
