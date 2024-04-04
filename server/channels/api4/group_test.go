@@ -411,15 +411,16 @@ func TestLinkGroupTeam(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
+	var groupSyncable *model.GroupSyncable
 	t.Run("Team admins are not allowed to link", func(t *testing.T) {
-		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 		assert.Nil(t, groupSyncable)
 	})
 
 	t.Run("Team admins are allowed to link if AllowReference is enabled", func(t *testing.T) {
-		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
 		assert.NotNil(t, groupSyncable)
@@ -432,7 +433,7 @@ func TestLinkGroupTeam(t *testing.T) {
 	})
 
 	t.Run("System admins are allowed to link", func(t *testing.T) {
-		groupSyncable, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+		groupSyncable, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
 		assert.NotNil(t, groupSyncable)
@@ -449,7 +450,7 @@ func TestLinkGroupTeam(t *testing.T) {
 		})
 		assert.Nil(t, appErr)
 
-		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), gCustom.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), gCustom.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, response)
 		assert.Nil(t, groupSyncable)
@@ -514,27 +515,28 @@ func TestLinkGroupChannel(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
+	var groupSyncable *model.GroupSyncable
 	t.Run("Channel admins are not allowed to link", func(t *testing.T) {
-		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 		assert.Nil(t, groupSyncable)
 	})
 
 	t.Run("Channel admins are not allowed to link if AllowReference is enabled, but not team syncable exists", func(t *testing.T) {
-		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 		assert.Nil(t, groupSyncable)
 	})
 
-	groupSyncable, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	groupSyncable, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, response)
 	assert.NotNil(t, groupSyncable)
 
 	t.Run("Channel admins are allowed to link if AllowReference is enabled and a team syncable exists", func(t *testing.T) {
-		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
 		assert.NotNil(t, groupSyncable)
@@ -547,7 +549,7 @@ func TestLinkGroupChannel(t *testing.T) {
 	})
 
 	t.Run("System admins are allowed to link", func(t *testing.T) {
-		groupSyncable, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		groupSyncable, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
 		assert.NotNil(t, groupSyncable)
@@ -564,7 +566,7 @@ func TestLinkGroupChannel(t *testing.T) {
 		})
 		assert.Nil(t, appErr)
 
-		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g2.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), g2.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, response)
 		assert.Nil(t, groupSyncable)
