@@ -334,7 +334,7 @@ describe('PostComponent', () => {
                 location: Locations.RHS_ROOT,
             };
 
-            renderWithContext(<PostComponent {...props} />);
+            renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.queryByTestId('basicSeparator')).not.toBeInTheDocument();
         });
