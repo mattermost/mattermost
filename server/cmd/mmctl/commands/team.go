@@ -203,10 +203,7 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		}
 	}
 
-	if errorString.Len() > 0 {
-		return &errorString
-	}
-	return nil
+	return result.ErrorOrNil()
 }
 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
