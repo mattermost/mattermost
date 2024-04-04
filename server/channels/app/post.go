@@ -777,12 +777,6 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	if val, ok := post.GetProp(model.PostPropsPreviewedPost).(string); ok {
 		previewedPostID = val
 	} else {
-		a.NotificationsLog().Warn("Failed to get permalink post prop",
-			mlog.String("type", model.TypeWebsocket),
-			mlog.String("post_id", post.Id),
-			mlog.String("status", model.StatusServerError),
-			mlog.String("reason", model.ReasonServerError),
-		)
 		return false, nil
 	}
 
