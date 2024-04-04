@@ -27,15 +27,10 @@ import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import * as NotificationSounds from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
-import {isDesktopApp, isMobileApp, isWindowsApp} from 'utils/user_agent';
+import {isDesktopApp, isMobileApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import {runDesktopNotificationHooks} from './hooks';
-
-const NOTIFY_TEXT_MAX_LENGTH = 50;
-
-// windows notification length is based windows chrome which supports 128 characters and is the lowest length of windows browsers
-const WINDOWS_NOTIFY_TEXT_MAX_LENGTH = 120;
 
 const getSoundFromChannelMemberAndUser = (member, user) => {
     if (member?.notify_props?.desktop_sound) {
@@ -252,12 +247,7 @@ export function sendDesktopNotification(post, msgProps) {
             image |= attachment.image_url.length > 0;
         });
 
-        let strippedMarkdownNotifyText = stripMarkdown(notifyText);
-
-        const notifyTextMaxLength = isWindowsApp() ? WINDOWS_NOTIFY_TEXT_MAX_LENGTH : NOTIFY_TEXT_MAX_LENGTH;
-        if (strippedMarkdownNotifyText.length > notifyTextMaxLength) {
-            strippedMarkdownNotifyText = strippedMarkdownNotifyText.substring(0, notifyTextMaxLength - 1) + '...';
-        }
+        const strippedMarkdownNotifyText = stripMarkdown(notifyText);
 
         let body = `@${username}`;
         if (strippedMarkdownNotifyText.length === 0) {

@@ -6,9 +6,9 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/pkg/errors"
 )
@@ -35,7 +35,7 @@ func (h *addMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, w
 		return errors.Wrap(err, "Invalid mentions value passed to addMentionsBroadcastHook")
 	}
 
-	if len(mentions) > 0 && pUtils.Contains[string](mentions, webConn.UserId) {
+	if len(mentions) > 0 && slices.Contains(mentions, webConn.UserId) {
 		// Note that the client expects this field to be stringified
 		msg.Add("mentions", model.ArrayToJSON([]string{webConn.UserId}))
 		if msg.Get("should_ack") != true {
@@ -60,7 +60,7 @@ func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, 
 		return errors.Wrap(err, "Invalid followers value passed to addFollowersBroadcastHook")
 	}
 
-	if len(followers) > 0 && pUtils.Contains[string](followers, webConn.UserId) {
+	if len(followers) > 0 && slices.Contains(followers, webConn.UserId) {
 		// Note that the client expects this field to be stringified
 		msg.Add("followers", model.ArrayToJSON([]string{webConn.UserId}))
 		if msg.Get("should_ack") != true {
