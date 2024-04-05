@@ -62,7 +62,7 @@ import * as Utils from 'utils/utils';
 
 import type {ProductComponent, PluginComponent} from 'types/store/plugins';
 
-import {applyLuxonDefaults} from './effects';
+import LuxonController from './luxon_controller';
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
 
@@ -208,8 +208,6 @@ export default class Root extends React.PureComponent<Props, State> {
         };
 
         this.a11yController = new A11yController();
-
-        store.subscribe(() => applyLuxonDefaults(store.getState()));
     }
 
     onConfigLoaded = (config: Partial<ClientConfig>) => {
@@ -520,6 +518,7 @@ export default class Root extends React.PureComponent<Props, State> {
         return (
             <RootProvider>
                 <MobileViewWatcher/>
+                <LuxonController/>
                 <Switch>
                     <Route
                         path={'/error'}
