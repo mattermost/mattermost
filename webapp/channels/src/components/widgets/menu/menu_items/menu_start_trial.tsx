@@ -7,8 +7,10 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
+import {Permissions} from 'mattermost-redux/constants';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
@@ -30,6 +32,7 @@ type Props = {
 const MenuStartTrial = (props: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const canIStartTrial = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE}));
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
@@ -63,19 +66,13 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
     const isCurrentLicensed = license?.IsLicensed;
     const isCurrentLicenseTrial = isTrialLicense(license);
 
-    // Show this CTA if the instance is currently not licensed and has never had a trial license loaded before
-    const show = (isCurrentLicensed === 'false' && isPrevLicensed === 'false') || isCurrentLicenseTrial;
-    if (!show) {
-        return null;
-    }
-
-    return (
-        <li
-            className={'MenuStartTrial'}
-            role='menuitem'
-            id={props.id}
-        >
-            {isCurrentLicenseTrial ? <>
+    if (isCurrentLicenseTrial && canIStartTrial) {
+        return (
+            <li
+                className={'MenuStartTrial'}
+                role='menuitem'
+                id={props.id}
+            >
                 <div style={{display: 'inline'}}>
                     <span>
                         {formatMessage({id: 'navbar_dropdown.reviewTrialBenefits', defaultMessage: 'Review the features you get with Enterprise. '})}
@@ -84,15 +81,38 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
                         {formatMessage({id: 'navbar_dropdown.learnMoreTrialBenefits', defaultMessage: 'Learn More'})}
                     </button>
                 </div>
-            </> : <>
+            </li>
+        )
+    }
+
+    if (isCurrentLicensed === 'true') {
+        return null;
+    }
+
+    // Show this CTA if the instance is currently not licensed and has never had a trial license loaded before
+    const showTrial = (isCurrentLicensed === 'false' && isPrevLicensed === 'false') && canIStartTrial;
+
+    return (
+        <li
+            className={'MenuStartTrial'}
+            role='menuitem'
+            id={props.id}
+        >
+            <div className='free_version_badge'>
+                {formatMessage({id: 'navbar_dropdown.freeVersionBadge', defaultMessage: 'FREE VERSION'})}
+            </div>
+            {!showTrial && (
+                <div className='start_trial_content'>
+                    {formatMessage({id: 'navbar_dropdown.freeVersionText', defaultMessage: 'This server is currently on the free version of Mattermost'})}
+                </div>)}
+            {showTrial && (<>
                 <div className='start_trial_content'>
                     {formatMessage({id: 'navbar_dropdown.tryTrialNow', defaultMessage: 'Try Enterprise for free now!'})}
                 </div>
                 <button onClick={openLearnMoreTrialModal}>
                     {formatMessage({id: 'navbar_dropdown.learnMore', defaultMessage: 'Learn More'})}
                 </button>
-            </>
-            }
+            </>)}
         </li>
     );
 };

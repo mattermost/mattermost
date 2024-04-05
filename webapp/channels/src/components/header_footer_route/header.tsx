@@ -5,7 +5,7 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import BackButton from 'components/common/back_button';
 import Logo from 'components/common/svg_images_components/logo_dark_blue_svg';
@@ -20,8 +20,14 @@ export type HeaderProps = {
 
 const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) => {
     const {EnableCustomBrand, SiteName} = useSelector(getConfig);
+    const license = useSelector(getLicense);
 
     const ariaLabel = EnableCustomBrand === 'true' && SiteName ? SiteName : 'Mattermost';
+
+    let title = EnableCustomBrand === 'true' || SiteName !== 'Mattermost' ? SiteName : <Logo/>;
+    if (license.IsLicensed === 'false') {
+        title = <><Logo /><span className='freeBadge'>{'FREE EDITION'}</span></>
+    }
 
     return (
         <div className='hfroute-header'>
@@ -31,7 +37,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
                     to='/'
                     aria-label={ariaLabel}
                 >
-                    {EnableCustomBrand === 'true' || SiteName !== 'Mattermost' ? SiteName : <Logo/>}
+                    {title}
                 </Link>
                 {alternateLink}
             </div>

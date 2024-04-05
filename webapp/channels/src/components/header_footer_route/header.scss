@@ -31,9 +31,27 @@
             line-height: 28px;
             text-decoration: none;
 
+            &:hover, &:active, &:visited, &:link {
+                text-decoration: none;
+            }
+
             svg {
                 width: 170px;
                 fill: var(--center-channel-color);
+            }
+
+            .freeBadge {
+                display: flex;
+                color: var(--center-channel-color-75, rgba(63, 67, 80, 0.75)); 
+                font-size: 10px;
+                font-weight: 600;
+                padding: 2px 6px 2px 6px;
+                justify-content: center;
+                align-items: center;
+                border-radius: 4px;
+                margin-left: 12px;
+                background: var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
+                line-height: 10px;
             }
         }
     }

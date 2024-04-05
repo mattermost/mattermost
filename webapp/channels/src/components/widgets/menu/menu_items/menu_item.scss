@@ -313,12 +313,10 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        padding: 8px;
+        padding: 8px 20px;
         padding-left: 16px;
         border-radius: 4px;
-        margin: 8px;
         margin-top: 0;
-        background-color: rgba(var(--button-bg-rgb), 0.04);
 
         button {
             padding: 3px 0;
@@ -336,6 +334,16 @@
         .start_trial_content {
             position: relative;
             width: 100%;
+        }
+
+        .free_version_badge {
+            display: flex;
+            padding: 2px 4px 2px 6px;
+            justify-content: center;
+            align-items: center;
+            border-radius: 4px;
+            background: var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
+            margin-bottom: 8px;
         }
     }
 }

@@ -7,6 +7,8 @@ import * as reactRedux from 'react-redux';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
+import {Permissions} from 'mattermost-redux/constants';
+
 import MenuStartTrial from './menu_start_trial';
 
 describe('components/widgets/menu/menu_items/menu_start_trial', () => {
@@ -21,6 +23,12 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
             entities: {
                 users: {
                     currentUserId: 'test_id',
+                    profiles: {
+                        'test_id': {
+                            id: 'test_id',
+                            roles: 'system_user',
+                        }
+                    },
                 },
                 general: {
                     config: {
@@ -33,6 +41,13 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 admin: {
                     prevTrialLicense: {
                         IsLicensed: 'false',
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_user: {
+                            permissions: [Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE],
+                        }
                     },
                 },
                 preferences: {
@@ -59,6 +74,12 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
             entities: {
                 users: {
                     currentUserId: 'test_id',
+                    profiles: {
+                        'test_id': {
+                            id: 'test_id',
+                            roles: 'system_user',
+                        }
+                    },
                 },
                 general: {
                     config: {
@@ -72,6 +93,13 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 admin: {
                     prevTrialLicense: {
                         IsLicensed: 'true',
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_user: {
+                            permissions: [Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE],
+                        }
                     },
                 },
                 preferences: {
@@ -98,6 +126,12 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
             entities: {
                 users: {
                     currentUserId: 'test_id',
+                    profiles: {
+                        'test_id': {
+                            id: 'test_id',
+                            roles: 'system_user',
+                        }
+                    },
                 },
                 general: {
                     config: {
@@ -111,6 +145,13 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 admin: {
                     prevTrialLicense: {
                         IsLicensed: 'false',
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_user: {
+                            permissions: [Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE],
+                        }
                     },
                 },
                 preferences: {
@@ -132,11 +173,17 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
         expect(wrapper.find('button').exists()).toEqual(false);
     });
 
-    test('should render menu option that open the start trial benefits modal when is current licensed but is trial', () => {
+    test('should render menu option that open the start trial benefits modal when is current licensed but is trial and you have permissions to load the trial', () => {
         const state = {
             entities: {
                 users: {
                     currentUserId: 'test_id',
+                    profiles: {
+                        'test_id': {
+                            id: 'test_id',
+                            roles: 'system_user',
+                        }
+                    },
                 },
                 general: {
                     config: {
@@ -150,6 +197,13 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 admin: {
                     prevTrialLicense: {
                         IsLicensed: 'false',
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_user: {
+                            permissions: [Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE],
+                        }
                     },
                 },
                 preferences: {
@@ -172,11 +226,69 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
         expect(wrapper.find('button').text()).toEqual('Learn More');
     });
 
-    test('should render menu option that open the start trial modal when has no license and no previous license', () => {
+    test('should render null when is current licensed but is trial and you have no permissions to load the trial', () => {
         const state = {
             entities: {
                 users: {
                     currentUserId: 'test_id',
+                    profiles: {
+                        'test_id': {
+                            id: 'test_id',
+                            roles: 'system_user',
+                        }
+                    },
+                },
+                general: {
+                    config: {
+                        EnableTutorial: 'true',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                        IsTrial: 'true',
+                    },
+                },
+                admin: {
+                    prevTrialLicense: {
+                        IsLicensed: 'false',
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_user: {
+                            permissions: [],
+                        }
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        'tutorial_step-test_id': {
+                            user_id: 'test_id',
+                            category: 'tutorial_step',
+                            name: 'test_id',
+                            value: '6',
+                        },
+                    },
+                },
+            },
+        };
+        const store = mockStore(state);
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+        const wrapper = mountWithIntl(<reactRedux.Provider store={store}><MenuStartTrial id='startTrial'/></reactRedux.Provider>);
+        expect(wrapper.find('button').exists()).toEqual(false);
+    });
+
+    test('should render menu option that open the start trial modal when has no license and no previous license and you have permissions to load the trial', () => {
+        const state = {
+            entities: {
+                users: {
+                    currentUserId: 'test_id',
+                    profiles: {
+                        'test_id': {
+                            id: 'test_id',
+                            roles: 'system_user',
+                        }
+                    },
                 },
                 general: {
                     config: {
@@ -190,6 +302,13 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 admin: {
                     prevTrialLicense: {
                         IsLicensed: 'false',
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_user: {
+                            permissions: [Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE],
+                        }
                     },
                 },
                 preferences: {
