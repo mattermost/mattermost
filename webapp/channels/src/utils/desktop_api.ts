@@ -206,6 +206,8 @@ class DesktopAppAPI {
     updateUnreadsAndMentions = (isUnread: boolean, mentionCount: number) =>
         window.desktopAPI?.setUnreadsAndMentions && window.desktopAPI.setUnreadsAndMentions(isUnread, mentionCount);
     setSessionExpired = (expired: boolean) => window.desktopAPI?.setSessionExpired && window.desktopAPI.setSessionExpired(expired);
+    signalLogin = () => window.desktopAPI?.onLogin && window.desktopAPI?.onLogin();
+    signalLogout = () => window.desktopAPI?.onLogout && window.desktopAPI?.onLogout();
 
     /*********************************************************************
      * Helper functions for legacy code
