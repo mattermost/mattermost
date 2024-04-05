@@ -41,11 +41,11 @@
             }
 
             .freeBadge {
+                position: relative;
+                top: 1px;
                 display: flex;
                 align-self: center;
                 padding: 2px 6px;
-                position: relative;
-                top: 1px;
                 border-radius: var(--radius-s);
                 margin-left: 12px;
                 background: rgba(var(--center-channel-color-rgb), 0.08);

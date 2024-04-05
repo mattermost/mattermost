@@ -314,9 +314,10 @@
         flex-direction: column;
         align-items: flex-start;
         padding: 8px 20px;
-        padding-left: 16px;
         border-radius: 4px;
         margin-top: 0;
+        font-size: 12px;
+        line-height: 16px;
 
         button {
             padding: 3px 0;
@@ -325,10 +326,11 @@
             color: var(--link-color);
             font-style: normal;
             font-weight: 600;
-        }
 
-        button:hover {
-            background-color: transparent;
+            &:hover {
+                text-decoration: underline;
+                background: transparent;
+            }
         }
 
         .start_trial_content {
@@ -337,13 +339,18 @@
         }
 
         .free_version_badge {
+            position: relative;
+            top: 1px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2px 4px 2px 6px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            background: var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
+            padding: 2px 6px;
+            border-radius: var(--radius-s);
+            margin-bottom: 6px;
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-family: 'Open Sans', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 16px;
         }
     }
 }
