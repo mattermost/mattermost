@@ -43,7 +43,7 @@ const (
 	MinioSecretKey = "miniosecretkey"
 	MinioBucket    = "mattermost-test"
 
-	PasswordMaximumLength = 64
+	PasswordMaximumLength = 72
 	PasswordMinimumLength = 5
 
 	ServiceGitlab    = "gitlab"

@@ -87,7 +87,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               createMode={true}
               disabled={false}
               error=""
-              info="Must be 5-64 characters long."
+              info="Must be 5-72 characters long."
               inputSize="large"
               onBlur={[Function]}
               onChange={[Function]}
@@ -104,7 +104,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               <span
                 className="link"
               >
-                Sign up at 
+                Sign up at
                 <ExternalLink
                   href="https://mattermost.com/security-updates/"
                   key=".1"
@@ -261,7 +261,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               createMode={true}
               disabled={false}
               error=""
-              info="Must be 5-64 characters long."
+              info="Must be 5-72 characters long."
               inputSize="large"
               onBlur={[Function]}
               onChange={[Function]}
@@ -278,7 +278,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               <span
                 className="link"
               >
-                Sign up at 
+                Sign up at
                 <ExternalLink
                   href="https://mattermost.com/security-updates/"
                   key=".1"

@@ -9987,8 +9987,12 @@
     "translation": "Invalid position: must not be longer than 128 characters."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
+    "id": "model.user.is_valid.pwd_min_length.app_error",
     "translation": "Your password must contain at least {{.Min}} characters."
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Your password must contain no more than 72 characters."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
