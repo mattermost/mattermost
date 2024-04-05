@@ -43,11 +43,11 @@ describe('components/widgets/links/UpgradeLink', () => {
             entities: {
                 general: {},
                 cloud: {
-                    customer: {}
+                    customer: {},
                 },
                 users: {
                     profiles: {},
-                }
+                },
             },
         });
         const wrapper = mountWithIntl(
