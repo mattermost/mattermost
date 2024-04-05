@@ -9,9 +9,6 @@ import (
 	"html"
 	"html/template"
 	"io"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -133,7 +130,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 
 	a.Srv().Go(func() {
 		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(subjectText), bodyText, embeddedFiles, messageID, inReplyTo, references, "Notification"); nErr != nil {
-			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
+			c.Logger().Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
 		}
 	})
 
@@ -148,7 +145,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
  * Computes the subject line for direct notification email messages
  */
 func getDirectMessageNotificationEmailSubject(user *model.User, post *model.Post, translateFunc i18n.TranslateFunc, siteName string, senderName string, useMilitaryTime bool) string {
-	t := getFormattedPostTime(user, post, useMilitaryTime, translateFunc)
+	t := utils.GetFormattedPostTime(user, post, useMilitaryTime, translateFunc)
 	var subjectParameters = map[string]any{
 		"SiteName":          siteName,
 		"SenderDisplayName": senderName,
@@ -163,7 +160,7 @@ func getDirectMessageNotificationEmailSubject(user *model.User, post *model.Post
  * Computes the subject line for group, public, and private email messages
  */
 func getNotificationEmailSubject(user *model.User, post *model.Post, translateFunc i18n.TranslateFunc, siteName string, teamName string, useMilitaryTime bool) string {
-	t := getFormattedPostTime(user, post, useMilitaryTime, translateFunc)
+	t := utils.GetFormattedPostTime(user, post, useMilitaryTime, translateFunc)
 	var subjectParameters = map[string]any{
 		"SiteName": siteName,
 		"TeamName": teamName,
@@ -178,7 +175,7 @@ func getNotificationEmailSubject(user *model.User, post *model.Post, translateFu
  * Computes the subject line for group email messages
  */
 func getGroupMessageNotificationEmailSubject(user *model.User, post *model.Post, translateFunc i18n.TranslateFunc, siteName string, channelName string, emailNotificationContentsType string, useMilitaryTime bool) string {
-	t := getFormattedPostTime(user, post, useMilitaryTime, translateFunc)
+	t := utils.GetFormattedPostTime(user, post, useMilitaryTime, translateFunc)
 	var subjectParameters = map[string]any{
 		"SiteName": siteName,
 		"Month":    t.Month,
@@ -226,7 +223,7 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 		SenderPhoto: senderPhoto,
 	}
 
-	t := getFormattedPostTime(recipient, post, useMilitaryTime, translateFunc)
+	t := utils.GetFormattedPostTime(recipient, post, useMilitaryTime, translateFunc)
 	messageTime := map[string]any{
 		"Hour":     t.Hour,
 		"Minute":   t.Minute,
@@ -234,20 +231,8 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 	}
 
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
-		postMessage := a.GetMessageForNotification(post, translateFunc)
-		postMessage = html.EscapeString(postMessage)
-		mdPostMessage, mdErr := utils.MarkdownToHTML(postMessage, a.GetSiteURL())
-		if mdErr != nil {
-			mlog.Warn("Encountered error while converting markdown to HTML", mlog.Err(mdErr))
-			mdPostMessage = postMessage
-		}
-
-		normalizedPostMessage, err := a.generateHyperlinkForChannels(c, mdPostMessage, teamName, landingURL)
-		if err != nil {
-			mlog.Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
-			normalizedPostMessage = mdPostMessage
-		}
-		pData.Message = template.HTML(normalizedPostMessage)
+		postMessage := a.GetMessageForNotification(post, teamName, a.GetSiteURL(), translateFunc)
+		pData.Message = template.HTML(postMessage)
 		pData.Time = translateFunc("app.notification.body.dm.time", messageTime)
 		pData.MessageAttachments = email.ProcessMessageAttachments(post, a.GetSiteURL())
 	}
@@ -311,76 +296,6 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 	return a.Srv().TemplatesContainer().RenderToString("messages_notification", data)
 }
 
-type formattedPostTime struct {
-	Time     time.Time
-	Year     string
-	Month    string
-	Day      string
-	Hour     string
-	Minute   string
-	TimeZone string
-}
-
-func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bool, translateFunc i18n.TranslateFunc) formattedPostTime {
-	preferredTimezone := user.GetPreferredTimezone()
-	postTime := time.Unix(post.CreateAt/1000, 0)
-	zone, _ := postTime.Zone()
-
-	localTime := postTime
-	if preferredTimezone != "" {
-		loc, _ := time.LoadLocation(preferredTimezone)
-		if loc != nil {
-			localTime = postTime.In(loc)
-			zone, _ = localTime.Zone()
-		}
-	}
-
-	hour := localTime.Format("15")
-	period := ""
-	if !useMilitaryTime {
-		hour = localTime.Format("3")
-		period = " " + localTime.Format("PM")
-	}
-
-	return formattedPostTime{
-		Time:     localTime,
-		Year:     strconv.Itoa(localTime.Year()),
-		Month:    translateFunc(localTime.Month().String()),
-		Day:      strconv.Itoa(localTime.Day()),
-		Hour:     hour,
-		Minute:   fmt.Sprintf("%02d"+period, localTime.Minute()),
-		TimeZone: zone,
-	}
-}
-
-func (a *App) generateHyperlinkForChannels(c request.CTX, postMessage, teamName, teamURL string) (string, *model.AppError) {
-	team, err := a.GetTeamByName(teamName)
-	if err != nil {
-		return "", err
-	}
-
-	channelNames := model.ChannelMentions(postMessage)
-	if len(channelNames) == 0 {
-		return postMessage, nil
-	}
-
-	channels, err := a.GetChannelsByNames(c, channelNames, team.Id)
-	if err != nil {
-		return "", err
-	}
-
-	visited := make(map[string]bool)
-	for _, ch := range channels {
-		if !visited[ch.Id] && ch.Type == model.ChannelTypeOpen {
-			channelURL := teamURL + "/channels/" + ch.Name
-			channelHyperLink := fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.Name)
-			postMessage = strings.Replace(postMessage, "~"+ch.Name, channelHyperLink, -1)
-			visited[ch.Id] = true
-		}
-	}
-	return postMessage, nil
-}
-
-func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
-	return a.Srv().EmailService.GetMessageForNotification(post, translateFunc)
+func (a *App) GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string {
+	return a.Srv().EmailService.GetMessageForNotification(post, teamName, siteUrl, translateFunc)
 }

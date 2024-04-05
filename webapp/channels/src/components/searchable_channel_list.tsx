@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, MagnifyIcon, AccountOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
+import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -15,6 +15,7 @@ import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifyi
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 import QuickInput from 'components/quick_input';
+import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
@@ -129,6 +130,14 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
         if (isArchivedChannel(channel)) {
             channelTypeIcon = <ArchiveOutlineIcon size={18}/>;
+        } else if (channel.shared) {
+            channelTypeIcon = (
+                <SharedChannelIndicator
+                    className='shared-channel-icon'
+                    channelType={channel.type}
+                    withTooltip={true}
+                />
+            );
         } else if (isPrivateChannel(channel)) {
             channelTypeIcon = <LockOutlineIcon size={18}/>;
         } else {
@@ -368,7 +377,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             if (channelsToDisplay.length >= this.props.channelsPerPage && pageEnd < this.props.channels.length) {
                 nextButton = (
                     <button
-                        className='btn filter-control filter-control__next outlineButton'
+                        className='btn btn-sm filter-control filter-control__next outlineButton'
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
                         aria-label={localizeMessage('more_channels.next', 'Next')}
@@ -384,7 +393,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             if (this.state.page > 0) {
                 previousButton = (
                     <button
-                        className='btn filter-control filter-control__prev outlineButton'
+                        className='btn btn-sm filter-control filter-control__prev outlineButton'
                         onClick={this.previousPage}
                         aria-label={localizeMessage('more_channels.prev', 'Previous')}
                     >
@@ -403,7 +412,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     id='searchIcon'
                     aria-hidden='true'
                 >
-                    <MagnifyIcon size={18}/>
+                    <i className='icon icon-magnify'/>
                 </span>
                 <QuickInput
                     id='searchChannelsTextbox'

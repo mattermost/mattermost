@@ -5,12 +5,34 @@ package remotecluster
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
+
+// PingNow emits a ping immediately without waiting for next ping loop.
+func (rcs *Service) PingNow(rc *model.RemoteCluster) {
+	online := rc.IsOnline()
+
+	if err := rcs.pingRemote(rc); err != nil {
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+			mlog.String("pluginId", rc.PluginID),
+			mlog.Err(err),
+		)
+	}
+
+	if online != rc.IsOnline() {
+		if metrics := rcs.server.GetMetrics(); metrics != nil {
+			metrics.IncrementRemoteClusterConnStateChangeCounter(rc.RemoteId, rc.IsOnline())
+		}
+		rcs.fireConnectionStateChgEvent(rc)
+	}
+}
 
 // pingLoop periodically sends a ping to all remote clusters.
 func (rcs *Service) pingLoop(done <-chan struct{}) {
@@ -28,6 +50,7 @@ func (rcs *Service) pingGenerator(pingChan chan *model.RemoteCluster, done <-cha
 	defer close(pingChan)
 
 	for {
+		pingFreq := rcs.GetPingFreq()
 		start := time.Now()
 
 		// get all remotes, including any previously offline.
@@ -35,7 +58,7 @@ func (rcs *Service) pingGenerator(pingChan chan *model.RemoteCluster, done <-cha
 		if err != nil {
 			rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Ping remote cluster failed (could not get list of remotes)", mlog.Err(err))
 			select {
-			case <-time.After(PingFreq):
+			case <-time.After(pingFreq):
 				continue
 			case <-done:
 				return
@@ -43,15 +66,16 @@ func (rcs *Service) pingGenerator(pingChan chan *model.RemoteCluster, done <-cha
 		}
 
 		for _, rc := range remotes {
-			if rc.SiteURL != "" { // filter out unconfirmed invites
+			// filter out unconfirmed invites so we don't ping them without permission
+			if rc.IsConfirmed() {
 				pingChan <- rc
 			}
 		}
 
 		// try to maintain frequency
 		elapsed := time.Since(start)
-		if elapsed < PingFreq {
-			sleep := time.Until(start.Add(PingFreq))
+		if elapsed < pingFreq {
+			sleep := time.Until(start.Add(pingFreq))
 			select {
 			case <-time.After(sleep):
 			case <-done:
@@ -70,47 +94,43 @@ func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-cha
 			if rc == nil {
 				return
 			}
-
-			online := rc.IsOnline()
-
-			if err := rcs.pingRemote(rc); err != nil {
-				rcs.server.Log().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed",
-					mlog.String("remote", rc.DisplayName),
-					mlog.String("remoteId", rc.RemoteId),
-					mlog.Err(err),
-				)
-			}
-
-			if online != rc.IsOnline() {
-				if metrics := rcs.server.GetMetrics(); metrics != nil {
-					metrics.IncrementRemoteClusterConnStateChangeCounter(rc.RemoteId, rc.IsOnline())
-				}
-				rcs.fireConnectionStateChgEvent(rc)
-			}
+			rcs.PingNow(rc)
 		case <-done:
 			return
 		}
 	}
 }
 
+var ErrPluginPingFail = errors.New("plugin ping failed")
+
 // pingRemote make a synchronous ping to a remote cluster. Return is error if ping is
 // unsuccessful and nil on success.
 func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
-	frame, err := makePingFrame(rc)
-	if err != nil {
-		return err
-	}
-	url := fmt.Sprintf("%s/%s", rc.SiteURL, PingURL)
-
-	resp, err := rcs.sendFrameToRemote(PingTimeout, rc, frame, url)
-	if err != nil {
-		return err
-	}
-
 	ping := model.RemoteClusterPing{}
-	err = json.Unmarshal(resp, &ping)
-	if err != nil {
-		return err
+
+	if rc.IsPlugin() {
+		ping.SentAt = model.GetMillis()
+		if ok := rcs.app.OnSharedChannelsPing(rc); !ok {
+			return ErrPluginPingFail
+		}
+		ping.RecvAt = model.GetMillis()
+	} else {
+		frame, err := makePingFrame(rc)
+		if err != nil {
+			return err
+		}
+		url := fmt.Sprintf("%s/%s", rc.SiteURL, PingURL)
+
+		resp, err := rcs.sendFrameToRemote(PingTimeout, rc, frame, url)
+		if err != nil {
+			return err
+		}
+		rc.LastPingAt = model.GetMillis()
+
+		err = json.Unmarshal(resp, &ping)
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := rcs.server.GetStore().RemoteCluster().SetLastPingAt(rc.RemoteId); err != nil {
@@ -120,7 +140,6 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 			mlog.Err(err),
 		)
 	}
-	rc.LastPingAt = model.GetMillis()
 
 	if metrics := rcs.server.GetMetrics(); metrics != nil {
 		sentAt := time.Unix(0, ping.SentAt*int64(time.Millisecond))
@@ -135,6 +154,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "Remote cluster ping",
 		mlog.String("remote", rc.DisplayName),
 		mlog.String("remoteId", rc.RemoteId),
+		mlog.String("pluginId", rc.PluginID),
 		mlog.Int("SentAt", ping.SentAt),
 		mlog.Int("RecvAt", ping.RecvAt),
 		mlog.Int("Diff", ping.RecvAt-ping.SentAt),

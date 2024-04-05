@@ -417,6 +417,21 @@ func (mr *MockClientMockRecorder) DeleteOutgoingWebhook(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOutgoingWebhook", reflect.TypeOf((*MockClient)(nil).DeleteOutgoingWebhook), arg0, arg1)
 }
 
+// DeletePreferences mocks base method.
+func (m *MockClient) DeletePreferences(arg0 context.Context, arg1 string, arg2 model.Preferences) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePreferences", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeletePreferences indicates an expected call of DeletePreferences.
+func (mr *MockClientMockRecorder) DeletePreferences(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePreferences", reflect.TypeOf((*MockClient)(nil).DeletePreferences), arg0, arg1, arg2)
+}
+
 // DemoteUserToGuest mocks base method.
 func (m *MockClient) DemoteUserToGuest(arg0 context.Context, arg1 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
@@ -927,6 +942,22 @@ func (mr *MockClientMockRecorder) GetMarketplacePlugins(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMarketplacePlugins", reflect.TypeOf((*MockClient)(nil).GetMarketplacePlugins), arg0, arg1)
 }
 
+// GetOAuthApps mocks base method.
+func (m *MockClient) GetOAuthApps(arg0 context.Context, arg1, arg2 int) ([]*model.OAuthApp, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOAuthApps", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*model.OAuthApp)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetOAuthApps indicates an expected call of GetOAuthApps.
+func (mr *MockClientMockRecorder) GetOAuthApps(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOAuthApps", reflect.TypeOf((*MockClient)(nil).GetOAuthApps), arg0, arg1, arg2)
+}
+
 // GetOutgoingWebhook mocks base method.
 func (m *MockClient) GetOutgoingWebhook(arg0 context.Context, arg1 string) (*model.OutgoingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -1023,6 +1054,22 @@ func (mr *MockClientMockRecorder) GetPingWithFullServerStatus(arg0 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPingWithFullServerStatus", reflect.TypeOf((*MockClient)(nil).GetPingWithFullServerStatus), arg0)
 }
 
+// GetPingWithOptions mocks base method.
+func (m *MockClient) GetPingWithOptions(arg0 context.Context, arg1 model.SystemPingOptions) (map[string]string, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPingWithOptions", arg0, arg1)
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPingWithOptions indicates an expected call of GetPingWithOptions.
+func (mr *MockClientMockRecorder) GetPingWithOptions(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPingWithOptions", reflect.TypeOf((*MockClient)(nil).GetPingWithOptions), arg0, arg1)
+}
+
 // GetPlugins mocks base method.
 func (m *MockClient) GetPlugins(arg0 context.Context) (*model.PluginsResponse, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -1085,6 +1132,54 @@ func (m *MockClient) GetPostsSince(arg0 context.Context, arg1 string, arg2 int64
 func (mr *MockClientMockRecorder) GetPostsSince(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsSince", reflect.TypeOf((*MockClient)(nil).GetPostsSince), arg0, arg1, arg2, arg3)
+}
+
+// GetPreferenceByCategoryAndName mocks base method.
+func (m *MockClient) GetPreferenceByCategoryAndName(arg0 context.Context, arg1, arg2, arg3 string) (*model.Preference, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPreferenceByCategoryAndName", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*model.Preference)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPreferenceByCategoryAndName indicates an expected call of GetPreferenceByCategoryAndName.
+func (mr *MockClientMockRecorder) GetPreferenceByCategoryAndName(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPreferenceByCategoryAndName", reflect.TypeOf((*MockClient)(nil).GetPreferenceByCategoryAndName), arg0, arg1, arg2, arg3)
+}
+
+// GetPreferences mocks base method.
+func (m *MockClient) GetPreferences(arg0 context.Context, arg1 string) (model.Preferences, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPreferences", arg0, arg1)
+	ret0, _ := ret[0].(model.Preferences)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPreferences indicates an expected call of GetPreferences.
+func (mr *MockClientMockRecorder) GetPreferences(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPreferences", reflect.TypeOf((*MockClient)(nil).GetPreferences), arg0, arg1)
+}
+
+// GetPreferencesByCategory mocks base method.
+func (m *MockClient) GetPreferencesByCategory(arg0 context.Context, arg1, arg2 string) (model.Preferences, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPreferencesByCategory", arg0, arg1, arg2)
+	ret0, _ := ret[0].(model.Preferences)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPreferencesByCategory indicates an expected call of GetPreferencesByCategory.
+func (mr *MockClientMockRecorder) GetPreferencesByCategory(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPreferencesByCategory", reflect.TypeOf((*MockClient)(nil).GetPreferencesByCategory), arg0, arg1, arg2)
 }
 
 // GetPrivateChannelsForTeam mocks base method.
@@ -1992,6 +2087,21 @@ func (m *MockClient) UpdateOutgoingWebhook(arg0 context.Context, arg1 *model.Out
 func (mr *MockClientMockRecorder) UpdateOutgoingWebhook(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOutgoingWebhook", reflect.TypeOf((*MockClient)(nil).UpdateOutgoingWebhook), arg0, arg1)
+}
+
+// UpdatePreferences mocks base method.
+func (m *MockClient) UpdatePreferences(arg0 context.Context, arg1 string, arg2 model.Preferences) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePreferences", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdatePreferences indicates an expected call of UpdatePreferences.
+func (mr *MockClientMockRecorder) UpdatePreferences(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePreferences", reflect.TypeOf((*MockClient)(nil).UpdatePreferences), arg0, arg1, arg2)
 }
 
 // UpdateTeam mocks base method.

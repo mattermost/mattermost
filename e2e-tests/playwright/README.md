@@ -45,7 +45,7 @@ npm run test
 Change to root directory, run docker container
 
 ```
-docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.38.1-jammy /bin/bash
+docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.42.1-jammy /bin/bash
 ```
 
 #### 2. Inside the docker container
@@ -57,7 +57,7 @@ export PW_HEADLESS=true
 cd mattermost/e2e-tests/playwright
 
 # Install npm packages. Use "npm ci" to match the automated environment
-npm ci
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci
 
 # Run specific test. See https://playwright.dev/docs/test-cli.
 npm run test -- login --project=chrome

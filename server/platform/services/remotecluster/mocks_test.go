@@ -5,6 +5,7 @@ package remotecluster
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -47,10 +48,12 @@ func (ms *mockServer) GetStore() store.Store {
 		return true
 	})
 	anyUserId := mock.AnythingOfType("string")
+	anyId := mock.AnythingOfType("string")
 
 	remoteClusterStoreMock := &mocks.RemoteClusterStore{}
 	remoteClusterStoreMock.On("GetByTopic", "share").Return(ms.remotes, nil)
 	remoteClusterStoreMock.On("GetAll", anyQueryFilter).Return(ms.remotes, nil)
+	remoteClusterStoreMock.On("SetLastPingAt", anyId).Return(nil)
 
 	userStoreMock := &mocks.UserStore{}
 	userStoreMock.On("Get", context.Background(), anyUserId).Return(ms.user, nil)
@@ -59,4 +62,58 @@ func (ms *mockServer) GetStore() store.Store {
 	storeMock.On("RemoteCluster").Return(remoteClusterStoreMock)
 	storeMock.On("User").Return(userStoreMock)
 	return storeMock
+}
+
+type mockApp struct {
+	offlinePluginIDs []string
+
+	mux             sync.Mutex
+	totalPingCount  int
+	totalPingErrors int
+	pingCounts      map[string]int
+}
+
+func newMockApp(t *testing.T, offlinePluginIDs []string) *mockApp {
+	return &mockApp{
+		offlinePluginIDs: offlinePluginIDs,
+		pingCounts:       make(map[string]int),
+	}
+}
+
+func (ma *mockApp) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
+	ma.mux.Lock()
+	defer ma.mux.Unlock()
+
+	for _, id := range ma.offlinePluginIDs {
+		if rc.PluginID == id {
+			ma.totalPingErrors++
+			return false
+		}
+	}
+
+	ma.totalPingCount++
+
+	count := ma.pingCounts[rc.PluginID]
+	ma.pingCounts[rc.PluginID] = count + 1
+
+	return true
+}
+
+func (ma *mockApp) GetTotalPingCount() int {
+	ma.mux.Lock()
+	defer ma.mux.Unlock()
+	return ma.totalPingCount
+}
+
+func (ma *mockApp) GetTotalPingErrorCount() int {
+	ma.mux.Lock()
+	defer ma.mux.Unlock()
+	return ma.totalPingErrors
+}
+
+func (ma *mockApp) GetPingCount(pluginID string) int {
+	ma.mux.Lock()
+	defer ma.mux.Unlock()
+
+	return ma.pingCounts[pluginID]
 }

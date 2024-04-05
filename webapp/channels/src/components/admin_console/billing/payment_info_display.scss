@@ -1,7 +1,7 @@
 .PaymentInfoDisplay {
     border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
-    background-color: var(--sys-center-channel-bg);
     border-radius: 4px;
+    background-color: var(--sys-center-channel-bg);
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
     color: var(--sys-center-channel-color);
 }
@@ -32,8 +32,8 @@
     display: flex;
     align-items: center;
     padding: 8px 16px;
-    background: var(--sys-button-bg);
     border-radius: 4px;
+    background: var(--sys-button-bg);
     color: var(--sys-button-color);
 
     &:hover:not(.disabled) {
@@ -131,15 +131,15 @@
 
 .PaymentInfoDisplay__paymentInfo-editButton {
     padding: 2px;
-    margin-left: 12px;
     border-radius: 4px;
-    color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+    margin-left: 12px;
+    color: rgba(var(--sys-center-channel-color-rgb), 0.75);
     font-size: 18px;
 
     &:hover,
     &:focus {
         background: rgba(var(--sys-center-channel-color-rgb), 0.08);
-        color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.75);
         text-decoration: none;
     }
 }

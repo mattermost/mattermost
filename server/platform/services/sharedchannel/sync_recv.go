@@ -33,7 +33,7 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 		)
 	}
 
-	var sm syncMsg
+	var sm model.SyncMsg
 
 	if err := json.Unmarshal(msg.Payload, &sm); err != nil {
 		return fmt.Errorf("invalid sync message: %w", err)
@@ -41,12 +41,12 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 	return scs.processSyncMessage(request.EmptyContext(scs.server.Log()), &sm, rc, response)
 }
 
-func (scs *Service) processSyncMessage(c request.CTX, syncMsg *syncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	var channel *model.Channel
 	var team *model.Team
 
 	var err error
-	syncResp := SyncResponse{
+	syncResp := model.SyncResponse{
 		UserErrors:     make([]string, 0),
 		UsersSyncd:     make([]string, 0),
 		PostErrors:     make([]string, 0),
@@ -181,7 +181,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 
 	var userSaved *model.User
 	if euser == nil {
-		if userSaved, err = scs.insertSyncUser(user, channel, rc); err != nil {
+		if userSaved, err = scs.insertSyncUser(c, user, channel, rc); err != nil {
 			return nil, err
 		}
 	} else {
@@ -197,7 +197,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 			Timezone:  user.Timezone,
 			RemoteId:  user.RemoteId,
 		}
-		if userSaved, err = scs.updateSyncUser(patch, euser, channel, rc); err != nil {
+		if userSaved, err = scs.updateSyncUser(c, patch, euser, channel, rc); err != nil {
 			return nil, err
 		}
 	}
@@ -219,7 +219,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 	return userSaved, nil
 }
 
-func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
+func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
 	var userSaved *model.User
 	var suffix string
@@ -247,7 +247,7 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
 		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
 
-		if userSaved, err = scs.server.GetStore().User().Save(user); err != nil {
+		if userSaved, err = scs.server.GetStore().User().Save(rctx, user); err != nil {
 			field, ok := isConflictError(err)
 			if !ok {
 				break
@@ -270,7 +270,7 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 	return nil, fmt.Errorf("error inserting sync user %s: %w", user.Id, err)
 }
 
-func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
+func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
 	var update *model.UserUpdate
 	var suffix string
@@ -301,7 +301,7 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
 		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
 
-		if update, err = scs.server.GetStore().User().Update(user, false); err != nil {
+		if update, err = scs.server.GetStore().User().Update(rctx, user, false); err != nil {
 			field, ok := isConflictError(err)
 			if !ok {
 				break
@@ -317,7 +317,7 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 				)
 			}
 		} else {
-			scs.app.InvalidateCacheForUser(update.New.Id)
+			scs.platform.InvalidateCacheForUser(update.New.Id)
 			scs.app.NotifySharedChannelUserUpdate(update.New)
 			return update.New, nil
 		}

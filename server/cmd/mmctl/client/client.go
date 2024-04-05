@@ -119,6 +119,7 @@ type Client interface {
 	MigrateAuthToSaml(ctx context.Context, fromAuthService string, usersMap map[string]string, auto bool) (*model.Response, error)
 	GetPing(ctx context.Context) (string, *model.Response, error)
 	GetPingWithFullServerStatus(ctx context.Context) (map[string]string, *model.Response, error)
+	GetPingWithOptions(ctx context.Context, options model.SystemPingOptions) (map[string]string, *model.Response, error)
 	CreateUpload(ctx context.Context, us *model.UploadSession) (*model.UploadSession, *model.Response, error)
 	GetUpload(ctx context.Context, uploadID string) (*model.UploadSession, *model.Response, error)
 	GetUploadsForUser(ctx context.Context, userID string) ([]*model.UploadSession, *model.Response, error)
@@ -149,4 +150,10 @@ type Client interface {
 	GeneratePresignedURL(ctx context.Context, name string) (*model.PresignURLResponse, *model.Response, error)
 	ResetSamlAuthDataToEmail(ctx context.Context, includeDeleted bool, dryRun bool, userIDs []string) (int64, *model.Response, error)
 	GenerateSupportPacket(ctx context.Context) ([]byte, *model.Response, error)
+	GetOAuthApps(ctx context.Context, page, perPage int) ([]*model.OAuthApp, *model.Response, error)
+	GetPreferences(ctx context.Context, userId string) (model.Preferences, *model.Response, error)
+	GetPreferencesByCategory(ctx context.Context, userId, category string) (model.Preferences, *model.Response, error)
+	GetPreferenceByCategoryAndName(ctx context.Context, userId, category, preferenceName string) (*model.Preference, *model.Response, error)
+	UpdatePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
+	DeletePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 }

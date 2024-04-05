@@ -12,7 +12,7 @@ import Markdown from 'components/markdown';
 
 import type {TextFormattingOptions} from 'utils/text_formatting';
 
-import {renderReminderSystemBotMessage, renderSystemMessage} from './system_message_helpers';
+import {renderReminderSystemBotMessage, renderSystemMessage, renderWranglerSystemMessage} from './system_message_helpers';
 
 import {type PropsFromRedux} from './index';
 
@@ -80,6 +80,11 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         if (this.props.post && this.props.post.type === Posts.POST_TYPES.REMINDER) {
             const renderedSystemBotMessage = renderReminderSystemBotMessage(this.props.post, this.props.currentTeam);
             return <div>{renderedSystemBotMessage}</div>;
+        }
+
+        if (this.props.post && this.props.post.type === Posts.POST_TYPES.WRANGLER) {
+            const renderedWranglerMessage = renderWranglerSystemMessage(this.props.post);
+            return <div>{renderedWranglerMessage}</div>;
         }
 
         // Proxy images if we have an image proxy and the server hasn't already rewritten the this.props.post's image URLs.

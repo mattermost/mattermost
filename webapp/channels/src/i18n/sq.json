@@ -124,7 +124,6 @@
   "get_link.close": "Mbyll",
   "integrations.add": "Shto",
   "intro_messages.anyMember": " Çdo anëtar mund të bashkohet dhe të lexojë këtë kanal.",
-  "intro_messages.beginning": "Fillimi i {emri}",
   "intro_messages.creator": "Ky është fillimi i {emri} kanalit, krijuar nga {krijuesi} në {datë}.",
   "intro_messages.creatorPrivate": "Ky është fillimi i {emri} kanal privat, krijuar nga {krijuesi} në {datë}.",
   "intro_messages.group_message": "Ky është fillimi i historisë së mesazheve tuaja në grup me këta shokë të ekipit. Mesazhet dhe skedarët e shpërndarë këtu nuk u tregohen njerëzve jashtë kësaj zone.",

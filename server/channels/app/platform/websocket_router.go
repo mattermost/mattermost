@@ -73,6 +73,33 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
+	if r.Action == string(model.WebsocketPresenceIndicator) {
+		if chID, ok := r.Data["channel_id"].(string); ok {
+			// Set active channel
+			conn.SetActiveChannelID(chID)
+		}
+		if teamID, ok := r.Data["team_id"].(string); ok {
+			// Set active team
+			conn.SetActiveTeamID(teamID)
+		}
+		if thChannelID, ok := r.Data["thread_channel_id"].(string); ok {
+			// Set the channelID of the active thread.
+			if isThreadView, ok := r.Data["is_thread_view"].(bool); ok && isThreadView {
+				conn.SetActiveThreadViewThreadChannelID(thChannelID)
+			} else {
+				conn.SetActiveRHSThreadChannelID(thChannelID)
+			}
+		}
+
+		resp := model.NewWebSocketResponse(model.StatusOk, r.Seq, nil)
+		hub := conn.Platform.GetHubForUserId(conn.UserId)
+		if hub == nil {
+			return
+		}
+		hub.SendMessage(conn, resp)
+		return
+	}
+
 	if !conn.IsAuthenticated() {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "", http.StatusUnauthorized)
 		returnWebSocketError(conn.Platform, conn, r, err)
@@ -107,7 +134,7 @@ func returnWebSocketError(ps *PlatformService, conn *WebConn, r *model.WebSocket
 		return
 	}
 
-	err.DetailedError = ""
+	err.WipeDetailed()
 	errorResp := model.NewWebSocketError(r.Seq, err)
 	hub.SendMessage(conn, errorResp)
 }

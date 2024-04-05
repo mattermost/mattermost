@@ -65,14 +65,13 @@ type SubmissionState = typeof SubmissionStates[keyof typeof SubmissionStates];
 const WAIT_FOR_REDIRECT_TIME = 2000 - START_TRANSITIONING_OUT;
 
 export type Actions = {
-    createTeam: (team: Team) => ActionResult;
-    updateTeam: (team: Team) => ActionResult;
-    checkIfTeamExists: (teamName: string) => ActionResult;
-    getProfiles: (page: number, perPage: number, options: Record<string, any>) => ActionResult;
+    createTeam: (team: Team) => Promise<ActionResult>;
+    updateTeam: (team: Team) => Promise<ActionResult>;
+    checkIfTeamExists: (teamName: string) => Promise<ActionResult<boolean>>;
+    getProfiles: (page: number, perPage: number, options: Record<string, any>) => Promise<ActionResult>;
 }
 
 type Props = RouterProps & {
-    handleForm(form: Form): void;
     background?: JSX.Element | string;
     actions: Actions;
 }
@@ -103,7 +102,11 @@ const onPageViews = {
     [WizardSteps.LaunchingWorkspace]: makeOnPageView(WizardSteps.LaunchingWorkspace),
 };
 
-const PreparingWorkspace = (props: Props) => {
+const PreparingWorkspace = ({
+    actions,
+    history,
+    background,
+}: Props) => {
     const dispatch = useDispatch();
     const intl = useIntl();
     const genericSubmitError = intl.formatMessage({
@@ -168,7 +171,7 @@ const PreparingWorkspace = (props: Props) => {
 
     useEffect(() => {
         showOnMountTimeout.current = setTimeout(() => setShowFirstPage(true), 40);
-        props.actions.getProfiles(0, General.PROFILE_CHUNK_SIZE, {roles: General.SYSTEM_ADMIN_ROLE});
+        actions.getProfiles(0, General.PROFILE_CHUNK_SIZE, {roles: General.SYSTEM_ADMIN_ROLE});
         dispatch(getFirstAdminSetupCompleteAction());
         document.body.classList.add('admin-onboarding');
         return () => {
@@ -210,8 +213,8 @@ const PreparingWorkspace = (props: Props) => {
         trackSubmitFail[redirectTo]();
     }, []);
 
-    const createTeam = async (OrganizationName: string): Promise<{error: string | null; newTeam: Team | null}> => {
-        const data = await props.actions.createTeam(makeNewTeam(OrganizationName, teamNameToUrl(OrganizationName || '').url));
+    const createTeam = async (OrganizationName: string): Promise<{error: string | null; newTeam: Team | undefined | null}> => {
+        const data = await actions.createTeam(makeNewTeam(OrganizationName, teamNameToUrl(OrganizationName || '').url));
         if (data.error) {
             return {error: genericSubmitError, newTeam: null};
         }
@@ -219,7 +222,7 @@ const PreparingWorkspace = (props: Props) => {
     };
 
     const updateTeam = async (teamToUpdate: Team): Promise<{error: string | null; updatedTeam: Team | null}> => {
-        const data = await props.actions.updateTeam(teamToUpdate);
+        const data = await actions.updateTeam(teamToUpdate);
         if (data.error) {
             return {error: genericSubmitError, updatedTeam: null};
         }
@@ -270,7 +273,7 @@ const PreparingWorkspace = (props: Props) => {
 
         const goToChannels = () => {
             dispatch({type: GeneralTypes.SHOW_LAUNCHING_WORKSPACE, open: true});
-            props.history.push(`/${team.name}/channels/${Constants.DEFAULT_CHANNEL}`);
+            history.push(`/${team.name}/channels/${Constants.DEFAULT_CHANNEL}`);
             trackEvent('first_admin_setup', 'admin_setup_complete');
         };
 
@@ -296,7 +299,7 @@ const PreparingWorkspace = (props: Props) => {
 
     useEffect(() => {
         if (shouldRedirect) {
-            props.history.push('/');
+            history.push('/');
         }
     }, [shouldRedirect]);
 
@@ -396,7 +399,7 @@ const PreparingWorkspace = (props: Props) => {
                     />
                 </div>
             )}
-            {props.background}
+            {background}
             <div className='PreparingWorkspace__logo'>
                 <LogoSvg/>
             </div>

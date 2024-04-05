@@ -15,6 +15,7 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {NewPostMessageProps} from 'actions/new_post';
 
+import type {PluginConfiguration} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;
@@ -62,6 +63,10 @@ export type PluginsState = {
     };
     siteStatsHandlers: {
         [pluginId: string]: PluginSiteStatsHandler;
+    };
+
+    userSettings: {
+        [pluginId: string]: PluginConfiguration;
     };
 };
 

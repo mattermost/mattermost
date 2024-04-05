@@ -25,7 +25,7 @@ import type {ModalData} from 'types/actions';
 
 const ROWS_FROM_BOTTOM_TO_OPEN_UP = 2;
 
-interface Props {
+export interface Props {
     channel: Channel;
     user: UserProfile;
     currentUserId: string;

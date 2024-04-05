@@ -47,6 +47,11 @@
 
         __Minimum server version__: 6.5
 
+        If "use_rest_semantics" is set to true in the query, the endpoint will not return
+        an error status code in the header if the request is somehow completed successfully.
+
+        __Minimum server version__: 9.6
+
         ##### Permissions
 
         None.
@@ -64,6 +69,12 @@
           required: false
           schema:
             type: string
+        - name: use_rest_semantics
+          in: query
+          description: Returns 200 status code even if the server status is unhealthy.
+          required: false
+          schema:
+            type: boolean
       responses:
         "200":
           description: Status of the system
@@ -1073,122 +1084,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/StatusOK"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-
-  /api/v4/warn_metrics/status:
-    get:
-      tags:
-        - system
-      summary: Get the warn metrics status (enabled or disabled)
-      description: |
-        Get the status of a set of metrics (enabled or disabled) from the Systems table.
-
-        The returned JSON contains the metrics that we need to warn the admin on with regard
-        to their status (we return the ones whose status is "true", which means that they are
-        in a "warnable" state - e.g. a threshold has been crossed or some other condition has
-        been fulfilled).
-
-        __Minimum server version__: 5.26
-
-        ##### Permissions
-
-        Must have `manage_system` permission.
-      operationId: GetWarnMetricsStatus
-      responses:
-        "200":
-          description: Warn metrics retrieval was successful.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusOK"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-
-  /api/v4/warn_metrics/ack/{warn_metric_id}:
-    post:
-      tags:
-        - system
-      summary: Acknowledge a warning of a metric status
-      description: |
-        Acknowledge a warning for the warn_metric_id metric crossing a threshold (or some
-        similar condition being fulfilled) - attempts to send an ack email to
-        acknowledge@mattermost.com and sets the "ack" status for all the warn metrics in the system.
-
-        __Minimum server version__: 5.26
-
-        ##### Permissions
-
-        Must have `manage_system` permission.
-      operationId: SendWarnMetricAck
-      parameters:
-        - name: warn_metric_id
-          in: path
-          description: Warn Metric Id.
-          required: true
-          schema:
-            type: string
-      requestBody:
-        description: payload that contains the ack flag
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                forceAck:
-                  type: boolean
-                  description: Flag which determines if the ack for the metric warning should be directly stored (without trying to send email first) or not
-      responses:
-        "200":
-          description: The acknowledgement of the warning for the metric has been successful.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusOK"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-  /api/v4/warn_metrics/trial-license-ack/{warn_metric_id}:
-    post:
-      tags:
-        - system
-      summary: Request trial license and acknowledge a warning of a metric status
-      description: |
-        Request a trial license and acknowledge a warning for the warn_metric_id metric crossing a threshold (or some
-        similar condition being fulfilled) - sets the "ack" status for all the warn metrics in the system.
-
-        __Minimum server version__: 5.28
-
-        ##### Permissions
-
-        Must have `manage_system` permission.
-      operationId: SendTrialLicenseWarnMetricAck
-      parameters:
-        - name: warn_metric_id
-          in: path
-          description: Warn Metric Id.
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: The trial license request and the subsequent acknowledgement of the warning for the metric have been successful.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusOK"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
   /api/v4/integrity:

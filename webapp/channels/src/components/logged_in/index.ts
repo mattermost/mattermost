@@ -5,14 +5,12 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {Channel} from '@mattermost/types/channels';
-
 import {markChannelAsViewedOnServer, updateApproximateViewTime} from 'mattermost-redux/actions/channels';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
-import {getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, shouldShowTermsOfService} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getChannelURL} from 'selectors/urls';
 
@@ -46,17 +44,18 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 }
 
 // NOTE: suggestions where to keep this welcomed
-const getChannelURLAction = (channel: Channel, teamId: string, url: string) => (dispatch: DispatchFunc, getState: () => GlobalState) => {
+const getChannelURLAction = (channelId: string, teamId: string, url: string): ThunkActionFunc<void, GlobalState> => (dispatch, getState) => {
     const state = getState();
 
     if (url && isPermalinkURL(url)) {
         return getHistory().push(url);
     }
 
+    const channel = getChannel(state, channelId);
     return getHistory().push(getChannelURL(state, channel, teamId));
 };
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             autoUpdateTimezone,

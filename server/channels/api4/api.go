@@ -49,6 +49,8 @@ type Routes struct {
 	ChannelMembersForUser    *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/members'
 	ChannelModerations       *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/moderations'
 	ChannelCategories        *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/categories'
+	ChannelBookmarks         *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/bookmarks'
+	ChannelBookmark          *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/bookmarks/{bookmark_id:[A-Za-z0-9]+}'
 
 	Posts           *mux.Router // 'api/v4/posts'
 	Post            *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'
@@ -139,6 +141,13 @@ type Routes struct {
 	Drafts *mux.Router // 'api/v4/drafts'
 
 	IPFiltering *mux.Router // 'api/v4/ip_filtering'
+
+	Reports *mux.Router // 'api/v4/reports'
+
+	Limits *mux.Router // 'api/v4/limits'
+
+	OutgoingOAuthConnections *mux.Router // 'api/v4/oauth/outgoing_connections'
+	OutgoingOAuthConnection  *mux.Router // 'api/v4/oauth/outgoing_connections/{outgoing_oauth_connection_id:[A-Za-z0-9]+}'
 }
 
 type API struct {
@@ -186,6 +195,8 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.ChannelMembersForUser = api.BaseRoutes.User.PathPrefix("/teams/{team_id:[A-Za-z0-9]+}/channels/members").Subrouter()
 	api.BaseRoutes.ChannelModerations = api.BaseRoutes.Channel.PathPrefix("/moderations").Subrouter()
 	api.BaseRoutes.ChannelCategories = api.BaseRoutes.User.PathPrefix("/teams/{team_id:[A-Za-z0-9]+}/channels/categories").Subrouter()
+	api.BaseRoutes.ChannelBookmarks = api.BaseRoutes.Channel.PathPrefix("/bookmarks").Subrouter()
+	api.BaseRoutes.ChannelBookmark = api.BaseRoutes.ChannelBookmarks.PathPrefix("/{bookmark_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.BaseRoutes.Posts = api.BaseRoutes.APIRoot.PathPrefix("/posts").Subrouter()
 	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
@@ -265,6 +276,13 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.IPFiltering = api.BaseRoutes.APIRoot.PathPrefix("/ip_filtering").Subrouter()
 
+	api.BaseRoutes.Reports = api.BaseRoutes.APIRoot.PathPrefix("/reports").Subrouter()
+
+	api.BaseRoutes.Limits = api.BaseRoutes.APIRoot.PathPrefix("/limits").Subrouter()
+
+	api.BaseRoutes.OutgoingOAuthConnections = api.BaseRoutes.APIRoot.PathPrefix("/oauth/outgoing_connections").Subrouter()
+	api.BaseRoutes.OutgoingOAuthConnection = api.BaseRoutes.OutgoingOAuthConnections.PathPrefix("/{outgoing_oauth_connection_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -309,6 +327,10 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitHostedCustomer()
 	api.InitDrafts()
 	api.InitIPFiltering()
+	api.InitChannelBookmarks()
+	api.InitReports()
+	api.InitLimits()
+	api.InitOutgoingOAuthConnection()
 
 	srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

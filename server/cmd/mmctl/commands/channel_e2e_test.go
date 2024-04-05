@@ -144,7 +144,7 @@ func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 
 		err := searchChannelCmdF(c, cmd, []string{s.th.BasicChannel.Name})
 		s.Require().NotNil(err)
-		s.Require().ErrorContains(err, `: Channel does not exist.`)
+		s.Require().ErrorContains(err, `Channel does not exist.`)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -475,7 +475,7 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(fmt.Sprintf("cannot rename channel \"%s\", error: : You do not have the appropriate permissions.", channelInit.Name), err.Error())
+		s.Require().Equal(fmt.Sprintf("cannot rename channel \"%s\", error: You do not have the appropriate permissions.", channelInit.Name), err.Error())
 
 		rchannel, err := s.th.App.GetChannel(s.th.Context, channel.Id)
 		s.Require().Nil(err)

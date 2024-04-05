@@ -6,12 +6,12 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -87,7 +87,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam("role")
 			return
 		}
-		roleValid := pUtils.Contains(roleNamesAll, role)
+		roleValid := slices.Contains(roleNamesAll, role)
 		if !roleValid {
 			c.SetInvalidParam("role")
 			return
@@ -194,9 +194,9 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 	} else if inTeamId != "" {
 		if sort == "last_activity_at" {
-			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(c.AppContext, c.Params.TeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 		} else if sort == "create_at" {
-			profiles, appErr = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+			profiles, appErr = c.App.GetNewUsersForTeamPage(c.AppContext, c.Params.TeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 		} else {
 			etag = c.App.GetUsersInTeamEtag(inTeamId, "")
 			if c.HandleEtag(etag, "Get Users in Team", w, r) {
@@ -233,16 +233,14 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIDs := model.ArrayFromJSON(r.Body)
-
-	if len(userIDs) == 0 {
+	userIDs, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("localGetUsersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(userIDs) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
-
-	// we remove the duplicate IDs as it can bring a significant load to the
-	// database.
-	userIDs = model.RemoveDuplicateStrings(userIDs)
 
 	sinceString := r.URL.Query().Get("since")
 
@@ -251,9 +249,9 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sinceString != "" {
-		since, err := strconv.ParseInt(sinceString, 10, 64)
-		if err != nil {
-			c.SetInvalidParamWithErr("since", err)
+		since, parseErr := strconv.ParseInt(sinceString, 10, 64)
+		if parseErr != nil {
+			c.SetInvalidParamWithErr("since", parseErr)
 			return
 		}
 		options.Since = since

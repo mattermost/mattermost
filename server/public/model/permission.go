@@ -3,6 +3,10 @@
 
 package model
 
+import (
+	"net/http"
+)
+
 const (
 	PermissionScopeSystem   = "system_scope"
 	PermissionScopeTeam     = "team_scope"
@@ -105,6 +109,14 @@ var PermissionPromoteGuest *Permission
 var PermissionDemoteToGuest *Permission
 var PermissionUseChannelMentions *Permission
 var PermissionUseGroupMentions *Permission
+var PermissionAddBookmarkPublicChannel *Permission
+var PermissionEditBookmarkPublicChannel *Permission
+var PermissionDeleteBookmarkPublicChannel *Permission
+var PermissionOrderBookmarkPublicChannel *Permission
+var PermissionAddBookmarkPrivateChannel *Permission
+var PermissionEditBookmarkPrivateChannel *Permission
+var PermissionDeleteBookmarkPrivateChannel *Permission
+var PermissionOrderBookmarkPrivateChannel *Permission
 var PermissionReadOtherUsersTeams *Permission
 var PermissionEditBrand *Permission
 var PermissionManageSharedChannels *Permission
@@ -383,6 +395,9 @@ var ChannelModeratedPermissionsMap map[string]string
 
 var SysconsoleReadPermissions []*Permission
 var SysconsoleWritePermissions []*Permission
+
+var PermissionManageOutgoingOAuthConnections *Permission
+var ModeratedBookmarkPermissions []*Permission
 
 func initializePermissions() {
 	PermissionInviteUser = &Permission{
@@ -1171,6 +1186,57 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeChannel,
 	}
+
+	// Channel bookmarks
+	PermissionAddBookmarkPublicChannel = &Permission{
+		"add_bookmark_public_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionEditBookmarkPublicChannel = &Permission{
+		"edit_bookmark_public_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionDeleteBookmarkPublicChannel = &Permission{
+		"delete_bookmark_public_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionOrderBookmarkPublicChannel = &Permission{
+		"order_bookmark_public_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionAddBookmarkPrivateChannel = &Permission{
+		"add_bookmark_private_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionEditBookmarkPrivateChannel = &Permission{
+		"edit_bookmark_private_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionDeleteBookmarkPrivateChannel = &Permission{
+		"delete_bookmark_private_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionOrderBookmarkPrivateChannel = &Permission{
+		"order_bookmark_private_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
 	PermissionReadOtherUsersTeams = &Permission{
 		"read_other_users_teams",
 		"authentication.permissions.read_other_users_teams.name",
@@ -2121,6 +2187,13 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionManageOutgoingOAuthConnections = &Permission{
+		"manage_outgoing_oauth_connections",
+		"authentication.permissions.manage_outgoing_oauth_connections.name",
+		"authentication.permissions.manage_outgoing_oauth_connections.description",
+		PermissionScopeSystem,
+	}
+
 	SysconsoleReadPermissions = []*Permission{
 		PermissionSysconsoleReadAboutEditionAndLicense,
 		PermissionSysconsoleReadBilling,
@@ -2313,6 +2386,7 @@ func initializePermissions() {
 		PermissionReadLicenseInformation,
 		PermissionManageLicenseInformation,
 		PermissionCreateCustomGroup,
+		PermissionManageOutgoingOAuthConnections,
 	}
 
 	TeamScopedPermissions := []*Permission{
@@ -2372,6 +2446,14 @@ func initializePermissions() {
 		PermissionDeleteOthersPosts,
 		PermissionUseChannelMentions,
 		PermissionUseGroupMentions,
+		PermissionAddBookmarkPublicChannel,
+		PermissionEditBookmarkPublicChannel,
+		PermissionDeleteBookmarkPublicChannel,
+		PermissionOrderBookmarkPublicChannel,
+		PermissionAddBookmarkPrivateChannel,
+		PermissionEditBookmarkPrivateChannel,
+		PermissionDeleteBookmarkPrivateChannel,
+		PermissionOrderBookmarkPrivateChannel,
 	}
 
 	GroupScopedPermissions := []*Permission{
@@ -2440,6 +2522,7 @@ func initializePermissions() {
 		"create_reactions",
 		"manage_members",
 		PermissionUseChannelMentions.Id,
+		"manage_bookmarks",
 	}
 
 	ChannelModeratedPermissionsMap = map[string]string{
@@ -2450,8 +2533,34 @@ func initializePermissions() {
 		PermissionManagePrivateChannelMembers.Id: ChannelModeratedPermissions[2],
 		PermissionUseChannelMentions.Id:          ChannelModeratedPermissions[3],
 	}
+
+	ModeratedBookmarkPermissions = []*Permission{
+		PermissionAddBookmarkPublicChannel,
+		PermissionEditBookmarkPublicChannel,
+		PermissionDeleteBookmarkPublicChannel,
+		PermissionOrderBookmarkPublicChannel,
+		PermissionAddBookmarkPrivateChannel,
+		PermissionEditBookmarkPrivateChannel,
+		PermissionDeleteBookmarkPrivateChannel,
+		PermissionOrderBookmarkPrivateChannel,
+	}
+
+	for _, mbp := range ModeratedBookmarkPermissions {
+		ChannelModeratedPermissionsMap[mbp.Id] = ChannelModeratedPermissions[4]
+	}
 }
 
 func init() {
 	initializePermissions()
+}
+
+func MakePermissionError(s *Session, permissions []*Permission) *AppError {
+	permissionsStr := "permission="
+	for i, permission := range permissions {
+		permissionsStr += permission.Id
+		if i != len(permissions)-1 {
+			permissionsStr += ","
+		}
+	}
+	return NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+s.UserId+", "+permissionsStr, http.StatusForbidden)
 }

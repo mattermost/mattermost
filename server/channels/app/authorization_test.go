@@ -27,7 +27,7 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 
 	cases := []struct {
 		roles        []string
-		permissionId string
+		permissionID string
 		shouldGrant  bool
 	}{
 		{[]string{model.SystemAdminRoleId}, model.PermissionManageSystem.Id, true},
@@ -43,7 +43,7 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 	}
 
 	for _, testcase := range cases {
-		require.Equal(t, th.App.RolesGrantPermission(testcase.roles, testcase.permissionId), testcase.shouldGrant)
+		require.Equal(t, th.App.RolesGrantPermission(testcase.roles, testcase.permissionID), testcase.shouldGrant)
 	}
 }
 
@@ -256,7 +256,7 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 	assert.NotNil(t, bot)
 
 	t.Run("test my bot", func(t *testing.T) {
@@ -264,19 +264,19 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 			UserId: th.BasicUser.Id,
 			Roles:  model.SystemUserRoleId,
 		}
-		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.NotNil(t, err)
 		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
 		assert.NoError(t, err.Unwrap())
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
-		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.NotNil(t, err)
 		assert.Equal(t, "api.context.permissions.app_error", err.Id)
 		assert.NoError(t, err.Unwrap())
 
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.SystemUserRoleId)
-		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.Nil(t, err)
 
 		th.RemovePermissionFromRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
@@ -288,19 +288,19 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 			UserId: th.BasicUser2.Id,
 			Roles:  model.SystemUserRoleId,
 		}
-		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.NotNil(t, err)
 		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
 		assert.NoError(t, err.Unwrap())
 
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.SystemUserRoleId)
-		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.NotNil(t, err)
 		assert.Equal(t, "api.context.permissions.app_error", err.Id)
 		assert.NoError(t, err.Unwrap())
 
 		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
-		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.Nil(t, err)
 
 		th.RemovePermissionFromRole(model.PermissionReadOthersBots.Id, model.SystemUserRoleId)
@@ -314,20 +314,20 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		}
 
 		// test non bot, contains wrapped error
-		err = th.App.SessionHasPermissionToManageBot(session, "12345")
+		err = th.App.SessionHasPermissionToManageBot(th.Context, session, "12345")
 		assert.NotNil(t, err)
 		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
 		assert.Error(t, err.Unwrap())
 
 		// test existing bot, without PermissionManageOthersBots - no wrapped error
-		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.NotNil(t, err)
 		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
 		assert.NoError(t, err.Unwrap())
 
 		// test with correct permissions
 		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
-		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.Nil(t, err)
 
 		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
@@ -338,7 +338,7 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 			UserId: th.SystemAdminUser.Id,
 			Roles:  model.SystemAdminRoleId,
 		}
-		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.Nil(t, err)
 	})
 
@@ -347,7 +347,7 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 			UserId: th.SystemAdminUser.Id,
 			Roles:  model.SystemUserRoleId,
 		}
-		err = th.App.SessionHasPermissionToManageBot(session, "12345")
+		err = th.App.SessionHasPermissionToManageBot(th.Context, session, "12345")
 		assert.NotNil(t, err)
 		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
 		assert.Error(t, err.Unwrap())
@@ -385,7 +385,7 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 		})
 		require.Nil(t, err)
 		assert.NotNil(t, bot)
-		defer th.App.PermanentDeleteBot(bot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 		assert.False(t, th.App.SessionHasPermissionToUser(session, bot.UserId))
 	})
@@ -410,16 +410,16 @@ func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 	t.Run("test basic user access", func(t *testing.T) {
 		session := model.Session{
 			UserId: th.BasicUser.Id,
 			Roles:  model.SystemUserRoleId,
 		}
-		assert.True(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser.Id))
-		assert.False(t, th.App.SessionHasPermissionToUserOrBot(session, bot.UserId))
-		assert.False(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser2.Id))
+		assert.True(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, th.BasicUser.Id))
+		assert.False(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, bot.UserId))
+		assert.False(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, th.BasicUser2.Id))
 	})
 
 	t.Run("test user manager access", func(t *testing.T) {
@@ -427,18 +427,18 @@ func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
 			UserId: th.BasicUser2.Id,
 			Roles:  model.SystemUserManagerRoleId,
 		}
-		assert.False(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser.Id))
-		assert.True(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser2.Id))
-		assert.False(t, th.App.SessionHasPermissionToUserOrBot(session, bot.UserId))
+		assert.False(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, th.BasicUser.Id))
+		assert.True(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, th.BasicUser2.Id))
+		assert.False(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, bot.UserId))
 
 		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
-		assert.True(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser.Id))
-		assert.False(t, th.App.SessionHasPermissionToUserOrBot(session, bot.UserId))
+		assert.True(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, th.BasicUser.Id))
+		assert.False(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, bot.UserId))
 		th.RemovePermissionFromRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 
 		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
-		assert.False(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser.Id))
-		assert.True(t, th.App.SessionHasPermissionToUserOrBot(session, bot.UserId))
+		assert.False(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, th.BasicUser.Id))
+		assert.True(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, bot.UserId))
 		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
 	})
 
@@ -447,8 +447,8 @@ func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
 			UserId: th.SystemAdminUser.Id,
 			Roles:  model.SystemAdminRoleId,
 		}
-		assert.True(t, th.App.SessionHasPermissionToUserOrBot(session, bot.UserId))
-		assert.True(t, th.App.SessionHasPermissionToUserOrBot(session, th.BasicUser.Id))
+		assert.True(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, bot.UserId))
+		assert.True(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, th.BasicUser.Id))
 	})
 }
 
@@ -666,4 +666,108 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			require.Equal(t, tc.expected, result)
 		})
 	}
+}
+
+func TestSessionHasPermissionToChannelByPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	session, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+	})
+	require.Nil(t, err)
+
+	session2, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser2.Id,
+		Roles:  model.SystemUserRoleId,
+	})
+	require.Nil(t, err)
+
+	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+	post := th.CreatePost(channel)
+
+	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
+	archivedPost := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
+
+	t.Run("read channel", func(t *testing.T) {
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session, post.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(*session2, post.Id, model.PermissionReadChannel))
+	})
+
+	t.Run("read archived channel - setting off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewBool(false)
+		})
+		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(*session, archivedPost.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(*session2, archivedPost.Id, model.PermissionReadChannel))
+	})
+
+	t.Run("read archived channel - setting on", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewBool(true)
+		})
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session, archivedPost.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(*session2, archivedPost.Id, model.PermissionReadChannel))
+	})
+
+	t.Run("read public channel", func(t *testing.T) {
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session, post.Id, model.PermissionReadPublicChannel))
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session2, post.Id, model.PermissionReadPublicChannel))
+	})
+
+	t.Run("read channel - user is admin", func(t *testing.T) {
+		adminSession, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemAdminRoleId,
+		})
+		require.Nil(t, err)
+
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*adminSession, post.Id, model.PermissionReadChannel))
+	})
+}
+
+func TestHasPermissionToChannelByPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+	post := th.CreatePost(channel)
+
+	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
+	archivedPost := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
+
+	t.Run("read channel", func(t *testing.T) {
+		require.Equal(t, true, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser.Id, post.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser2.Id, post.Id, model.PermissionReadChannel))
+	})
+
+	t.Run("read archived channel - setting off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewBool(false)
+		})
+		require.Equal(t, false, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser.Id, archivedPost.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser2.Id, archivedPost.Id, model.PermissionReadChannel))
+	})
+
+	t.Run("read archived channel - setting on", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewBool(true)
+		})
+		require.Equal(t, true, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser.Id, archivedPost.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser2.Id, archivedPost.Id, model.PermissionReadChannel))
+	})
+
+	t.Run("read public channel", func(t *testing.T) {
+		require.Equal(t, true, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser.Id, post.Id, model.PermissionReadPublicChannel))
+		require.Equal(t, true, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser2.Id, post.Id, model.PermissionReadPublicChannel))
+	})
+
+	t.Run("read channel - user is admin", func(t *testing.T) {
+		require.Equal(t, true, th.App.HasPermissionToChannelByPost(th.Context, th.SystemAdminUser.Id, post.Id, model.PermissionReadChannel))
+	})
 }

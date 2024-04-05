@@ -101,6 +101,8 @@ func init() {
 
 	ExportCreateCmd.Flags().Bool("no-attachments", false, "Exclude file attachments from the export file.")
 	ExportCreateCmd.Flags().Bool("include-archived-channels", false, "Include archived channels in the export file.")
+	ExportCreateCmd.Flags().Bool("include-profile-pictures", false, "Include profile pictures in the export file.")
+	ExportCreateCmd.Flags().Bool("no-roles-and-schemes", false, "Exclude roles and custom permission schemes from the export file.")
 
 	ExportDownloadCmd.Flags().Bool("resume", false, "Set to true to resume an export download.")
 	_ = ExportDownloadCmd.Flags().MarkHidden("resume")
@@ -137,9 +139,19 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 		data["include_attachments"] = "true"
 	}
 
+	excludeRolesAndSchemes, _ := command.Flags().GetBool("no-roles-and-schemes")
+	if !excludeRolesAndSchemes {
+		data["include_roles_and_schemes"] = "true"
+	}
+
 	includeArchivedChannels, _ := command.Flags().GetBool("include-archived-channels")
 	if includeArchivedChannels {
 		data["include_archived_channels"] = "true"
+	}
+
+	includeProfilePictures, _ := command.Flags().GetBool("include-profile-pictures")
+	if includeProfilePictures {
+		data["include_profile_pictures"] = "true"
 	}
 
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{

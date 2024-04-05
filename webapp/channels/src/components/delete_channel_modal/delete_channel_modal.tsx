@@ -19,7 +19,7 @@ export type Props = {
     canViewArchivedChannels?: boolean;
     penultimateViewedChannelName: string;
     actions: {
-        deleteChannel: (channelId: string) => {data: boolean};
+        deleteChannel: (channelId: string) => void;
     };
 }
 

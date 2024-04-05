@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sort"
 
 	"github.com/mattermost/mattermost/server/public/model"
 
@@ -251,6 +252,45 @@ var MigrateAuthCmd = &cobra.Command{
 	RunE: withClient(migrateAuthCmdF),
 }
 
+var PreferenceCmd = &cobra.Command{
+	Use:     "preference",
+	Aliases: []string{"pref"},
+	Short:   "Manage user preferences",
+}
+
+var PreferenceListCmd = &cobra.Command{
+	Use:     "list [--category category] [users]",
+	Short:   "List user preferences",
+	Example: "preference list user@example.com",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(preferencesListCmdF),
+}
+
+var PreferenceGetCmd = &cobra.Command{
+	Use:     "get --category [category] --name [name] [users]",
+	Short:   "Get a specific user preference",
+	Example: "preference get --category display_settings --name use_military_time user@example.com",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(preferencesGetCmdF),
+}
+
+var PreferenceUpdateCmd = &cobra.Command{
+	Use:     "set --category [category] --name [name] --value [value] [users]",
+	Aliases: []string{"update"},
+	Short:   "Set a specific user preference",
+	Example: "preference set --category display_settings --name use_military_time --value true user@example.com",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(preferencesUpdateCmdF),
+}
+
+var PreferenceDeleteCmd = &cobra.Command{
+	Use:     "delete --category [category] --name [name] [users]",
+	Short:   "Delete a specific user preference",
+	Example: "preference delete --category display_settings --name use_military_time user@example.com",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(preferencesDeleteCmdF),
+}
+
 func init() {
 	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account")
 	_ = UserCreateCmd.MarkFlagRequired("username")
@@ -336,6 +376,22 @@ Global Flags:
 {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}
 `)
 
+	PreferenceListCmd.Flags().StringP("category", "c", "", "The optional category by which to filter")
+	PreferenceGetCmd.Flags().StringP("category", "c", "", "The category of the preference")
+	PreferenceGetCmd.Flags().StringP("name", "n", "", "The name of the preference")
+	_ = PreferenceGetCmd.MarkFlagRequired("category")
+	_ = PreferenceGetCmd.MarkFlagRequired("name")
+	PreferenceUpdateCmd.Flags().StringP("category", "c", "", "The category of the preference")
+	PreferenceUpdateCmd.Flags().StringP("name", "n", "", "The name of the preference")
+	PreferenceUpdateCmd.Flags().StringP("value", "v", "", "The value of the preference")
+	_ = PreferenceUpdateCmd.MarkFlagRequired("category")
+	_ = PreferenceUpdateCmd.MarkFlagRequired("name")
+	_ = PreferenceUpdateCmd.MarkFlagRequired("value")
+	PreferenceDeleteCmd.Flags().StringP("category", "c", "", "The category of the preference")
+	PreferenceDeleteCmd.Flags().StringP("name", "n", "", "The name of the preference")
+	_ = PreferenceDeleteCmd.MarkFlagRequired("category")
+	_ = PreferenceDeleteCmd.MarkFlagRequired("name")
+
 	UserCmd.AddCommand(
 		UserActivateCmd,
 		UserDeactivateCmd,
@@ -355,6 +411,13 @@ Global Flags:
 		MigrateAuthCmd,
 		PromoteGuestToUserCmd,
 		DemoteUserToGuestCmd,
+		PreferenceCmd,
+	)
+	PreferenceCmd.AddCommand(
+		PreferenceListCmd,
+		PreferenceGetCmd,
+		PreferenceUpdateCmd,
+		PreferenceDeleteCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -961,21 +1024,26 @@ func migrateAuthToLdapCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 }
 
 func promoteGuestToUserCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
+	var errs *multierror.Error
 	for i, user := range getUsersFromUserArgs(c, userArgs) {
 		if user == nil {
-			printer.PrintError(fmt.Sprintf("can't find guest '%v'", userArgs[i]))
+			err := fmt.Errorf("can't find guest '%s'", userArgs[i])
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
 			continue
 		}
 
 		if _, err := c.PromoteGuestToUser(context.TODO(), user.Id); err != nil {
-			printer.PrintError(fmt.Sprintf("unable to promote guest %s: %s", userArgs[i], err))
+			err = fmt.Errorf("unable to promote guest %s: %w", userArgs[i], err)
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
 			continue
 		}
 
 		printer.PrintT("User {{.Username}} promoted.", user)
 	}
 
-	return nil
+	return errs.ErrorOrNil()
 }
 
 func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
@@ -996,6 +1064,182 @@ func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string)
 		}
 
 		printer.PrintT("User {{.Username}} demoted.", user)
+	}
+
+	return errs.ErrorOrNil()
+}
+
+type ByPreference model.Preferences
+
+func (p ByPreference) Len() int      { return len(p) }
+func (p ByPreference) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+func (p ByPreference) Less(i, j int) bool {
+	if p[i].UserId < p[j].UserId {
+		return true
+	}
+
+	if p[i].Category < p[j].Category {
+		return true
+	}
+
+	if p[i].Name < p[j].Name {
+		return true
+	}
+
+	return p[i].Value < p[j].Value
+}
+
+func preferencesListCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	category, _ := cmd.Flags().GetString("category")
+
+	var errs *multierror.Error
+	for i, user := range getUsersFromUserArgs(c, userArgs) {
+		if user == nil {
+			err := fmt.Errorf("can't find user '%s'", userArgs[i])
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
+			continue
+		}
+
+		var preferences model.Preferences
+		var err error
+		if category == "" {
+			preferences, _, err = c.GetPreferences(context.TODO(), user.Id)
+
+			if err != nil {
+				err = fmt.Errorf("unable to list user preferences %s: %w", userArgs[i], err)
+				errs = multierror.Append(errs, err)
+				printer.PrintError(err.Error())
+				continue
+			}
+		} else {
+			preferences, _, err = c.GetPreferencesByCategory(context.TODO(), user.Id, category)
+
+			if err != nil {
+				err = fmt.Errorf("unable to list user preferences by category %s for %s: %w", category, userArgs[i], err)
+				errs = multierror.Append(errs, err)
+				printer.PrintError(err.Error())
+				continue
+			}
+		}
+
+		sort.Sort(ByPreference(preferences))
+
+		for j, preference := range preferences {
+			tpl := `user_id: {{.UserId}}
+category: {{.Category}}
+name: {{.Name}}
+value: {{.Value}}`
+			if j > 0 {
+				tpl = "------------------------------\n" + tpl
+			}
+
+			printer.PrintT(tpl, preference)
+		}
+	}
+
+	return errs.ErrorOrNil()
+}
+
+func preferencesGetCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	category, _ := cmd.Flags().GetString("category")
+	preferenceName, _ := cmd.Flags().GetString("name")
+
+	var errs *multierror.Error
+	for i, user := range getUsersFromUserArgs(c, userArgs) {
+		if user == nil {
+			err := fmt.Errorf("can't find user '%s'", userArgs[i])
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
+			continue
+		}
+
+		preference, _, err := c.GetPreferenceByCategoryAndName(context.TODO(), user.Id, category, preferenceName)
+		if err != nil {
+			err = fmt.Errorf("unable to get user preference %s %s for %s: %w", category, preferenceName, userArgs[i], err)
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
+			continue
+		}
+
+		tpl := `user_id: {{.UserId}}
+category: {{.Category}}
+name: {{.Name}}
+value: {{.Value}}`
+
+		printer.PrintT(tpl, preference)
+	}
+
+	return errs.ErrorOrNil()
+}
+
+func preferencesUpdateCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	category, _ := cmd.Flags().GetString("category")
+	preferenceName, _ := cmd.Flags().GetString("name")
+	value, _ := cmd.Flags().GetString("value")
+
+	var errs *multierror.Error
+	for i, user := range getUsersFromUserArgs(c, userArgs) {
+		if user == nil {
+			err := fmt.Errorf("can't find user '%s'", userArgs[i])
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
+			continue
+		}
+
+		preferences := model.Preferences{
+			model.Preference{
+				UserId:   user.Id,
+				Category: category,
+				Name:     preferenceName,
+				Value:    value,
+			},
+		}
+
+		_, err := c.UpdatePreferences(context.TODO(), user.Id, preferences)
+		if err != nil {
+			err = fmt.Errorf("unable to update user preference %s %s for %s: %w", category, preferenceName, userArgs[i], err)
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
+			continue
+		}
+
+		printer.Print(fmt.Sprintf("Preference %s %s for %s updated successfully", category, preferenceName, userArgs[i]))
+	}
+
+	return errs.ErrorOrNil()
+}
+
+func preferencesDeleteCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	category, _ := cmd.Flags().GetString("category")
+	preferenceName, _ := cmd.Flags().GetString("name")
+
+	var errs *multierror.Error
+	for i, user := range getUsersFromUserArgs(c, userArgs) {
+		if user == nil {
+			err := fmt.Errorf("can't find user '%s'", userArgs[i])
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
+			continue
+		}
+
+		preferences := model.Preferences{
+			model.Preference{
+				UserId:   user.Id,
+				Category: category,
+				Name:     preferenceName,
+			},
+		}
+
+		_, err := c.DeletePreferences(context.TODO(), user.Id, preferences)
+		if err != nil {
+			err = fmt.Errorf("unable to delete user preference %s %s for %s: %w", category, preferenceName, userArgs[i], err)
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
+			continue
+		}
+
+		printer.Print(fmt.Sprintf("Preference %s %s for %s deleted successfully", category, preferenceName, userArgs[i]))
 	}
 
 	return errs.ErrorOrNil()

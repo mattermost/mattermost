@@ -9,7 +9,7 @@ import type InfiniteLoader from 'react-window-infinite-loader';
 
 import type {Emoji, EmojiCategory} from '@mattermost/types/emojis';
 
-import {isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import EmojiPickerCategories from 'components/emoji_picker/components/emoji_picker_categories';
 import EmojiPickerCurrentResults from 'components/emoji_picker/components/emoji_picker_current_results';
@@ -34,7 +34,7 @@ import {NoResultsVariant} from 'components/no_results_indicator/types';
 
 import type {PropsFromRedux} from './index';
 
-interface Props extends PropsFromRedux {
+export interface Props extends PropsFromRedux {
     filter: string;
     onEmojiClick: (emoji: Emoji) => void;
     handleFilterChange: (filter: string) => void;
@@ -120,6 +120,7 @@ const EmojiPicker = ({
 
         const [updatedCategoryOrEmojisRows, updatedEmojiPositions] = createCategoryAndEmojiRows(allEmojis, categories, filter, userSkinTone);
 
+        selectFirstEmoji(updatedEmojiPositions);
         setCategoryOrEmojisRows(updatedCategoryOrEmojisRows);
         setEmojiPositionsArray(updatedEmojiPositions);
         throttledSearchCustomEmoji.current(filter, customEmojisEnabled);
@@ -157,6 +158,22 @@ const EmojiPicker = ({
         }
         const emoji = allEmojis[emojiId] || allEmojis[emojiId.toUpperCase()] || allEmojis[emojiId.toLowerCase()];
         return emoji;
+    };
+
+    const selectFirstEmoji = (emojiPositions: EmojiPosition[]) => {
+        if (!emojiPositions[0]) {
+            return;
+        }
+
+        const {rowIndex, emojiId} = emojiPositions[0];
+        const cursorEmoji = getEmojiById(emojiId);
+        if (cursorEmoji) {
+            setCursor({
+                rowIndex,
+                emojiId,
+                emoji: cursorEmoji,
+            });
+        }
     };
 
     const handleCategoryClick = useCallback((categoryRowIndex: CategoryOrEmojiRow['index'], categoryName: EmojiCategory, emojiId: string) => {
@@ -341,7 +358,7 @@ const EmojiPicker = ({
             return '';
         }
 
-        const name = isSystemEmoji(emoji) ? emoji.short_name : emoji.name;
+        const name = getEmojiName(emoji);
         return name.replace(/_/g, ' ');
     }, [cursor.emojiId]);
 

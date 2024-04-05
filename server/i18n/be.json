@@ -8,22 +8,6 @@
     "translation": "\nДададзеныя каналы:\n"
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Павышэнне Прадукцыйнасці"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Напішыце нам"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Электронная пошта: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Кантакт: {{.Contact}}"
-  },
-  {
     "id": "api.remote_cluster.invalid_topic.app_error",
     "translation": "Няправільная тэма."
   },
@@ -50,10 +34,6 @@
   {
     "id": "api.email_batching.send_batched_email_notification.time",
     "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Электронная пошта: "
   },
   {
     "id": "api.slackimport.slack_import.notes",
@@ -320,10 +300,6 @@
     "translation": "Спампаваць"
   },
   {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Кантакт: "
-  },
-  {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
     "translation": "Немагчыма захаваць файл сертыфiката."
   },
@@ -410,14 +386,6 @@
   {
     "id": "api.templates.welcome_body.button",
     "translation": "Пацвердзіць электронную пошту"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL сайта: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Дыягнастычны ідэнтыфікатар: "
   },
   {
     "id": "api.templates.verify_body.button",
@@ -558,10 +526,6 @@
   {
     "id": "app.update_error",
     "translation": "памылка абнаўлення"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermost Дарадца"
   },
   {
     "id": "app.select_error",
@@ -872,10 +836,6 @@
     "translation": "{{ .ServerURL }}."
   },
   {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Агульная Колькасць Карыстальнікаў: "
-  },
-  {
     "id": "api.templates.verify_body.subTitle1",
     "translation": "Дзякуй што далучыліся "
   },
@@ -910,18 +870,6 @@
   {
     "id": "api.status.user_not_found.app_error",
     "translation": "Карыстальнік ня знойдзены."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Стварэнне Гасцявых Аккаунтаў"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Дашліце нам электронную паштоўку, калі ласка."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "URL сайта: {{.SiteUrl}}"
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
@@ -1018,10 +966,6 @@
   {
     "id": "api.web_socket_router.no_action.app_error",
     "translation": "Няма websocket дзеяння."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Забяспечыць шматфактарную аўтэнтыфікацыю"
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
@@ -1122,34 +1066,6 @@
   {
     "id": "api.templates.email_info3",
     "translation": "Каманда {{.SiteName}}"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Выкарыстоўваюцца дадатковыя дазволы"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Выкарыстоўваюцца дадатковыя дазволы"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Маштабаванне з Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Маштабаванне з Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Маштабаванне з Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Каналы аб'яваў толькі для чытання"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Дыягнастычны Id: {{.DiagnosticId}}"
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -2744,10 +2660,6 @@
     "translation": "Ваша ліцэнзія не падтрымлівае SAML аўтэнтыфікацыю."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Узнікла памылка падчас праверкі адказу ад пастаўшчыка уліковых запісаў. Калі ласка, звяжыцеся з сістэмным адміністратарам."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Узнікла памылка падчас разбору адказу ад пастаўшчыка уліковых запісаў. Калі ласка, звяжыцеся з сістэмным адміністратарам."
   },
@@ -2764,10 +2676,6 @@
     "translation": "Атрыманы пусты адказ ад пастаўшчыка уліковых запісаў."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Спроба ўваходу з выкарыстаннем SAML не ўдалася з-за ўзнікнення памылкі пры расшыфроўцы адказу ад пастаўшчыка уліковых запісаў. Калі ласка, звяжыцеся з сістэмным адміністратарам."
-  },
-  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "Спроба ўваходу з выкарыстаннем SAML не атрымалася, бо адказ пастаўшчыка уліковых запісаў не зашыфраваны. Калі ласка, звяжыцеся з сістэмным адміністратарам."
   },
@@ -2776,16 +2684,8 @@
     "translation": "Спроба ўваходу з выкарыстаннем SAML не ўдалася з-за таго, што не быў знойдзены прыватны ключ пастаўшчыка службы. Калі ласка, звяжыцеся з сістэмным адміністратарам."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Публічны сертыфікат правайдэра ідэнтыфікацыі не знойдзены. Калі ласка, звярніцеся да сістэмнага адміністратара."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Спроба ўваходу з выкарыстаннем SAML не атрымалася з прычыны адключанага шыфравання. Калі ласка, звяжыцеся з сістэмным адміністратарам."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Падчас кадавання запыту да правайдэра ідэнтыфікацыі адбылася памылка. Калі ласка, звярніцеся да сістэмнага адміністратара."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -3472,10 +3372,6 @@
     "translation": "Не ўдалося разабраць дату ўстаноўкі."
   },
   {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Не ўдалося захаваць значэнне для {{.WarnMetricName}}"
-  },
-  {
     "id": "app.system.save.app_error",
     "translation": "Узнікла памылка пры захаванні ўласцівасці сістэмы."
   },
@@ -3486,10 +3382,6 @@
   {
     "id": "app.system.get_by_name.app_error",
     "translation": "Немагчыма знайсці сістэмную зменную."
-  },
-  {
-    "id": "app.system.get.app_error",
-    "translation": "Узнікла памылка пры пошуку ўласцівасцей сістэмы."
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
@@ -5256,10 +5148,6 @@
     "translation": "Не ўдалося атрымаць бота."
   },
   {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "Спіс адміністратараў пусты."
-  },
-  {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "Спіс адміністратараў пусты."
   },
@@ -5868,14 +5756,6 @@
     "translation": "Для зручнасці, Вы можаце спампаваць прыкладанні для PC, Mac, iOS and Android."
   },
   {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Запыт Mattermost Звяжыцеся з намі"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Калі ў вас ёсць якія-небудзь дадатковыя пытанні, калі ласка, звяжыцеся з support@mattermost.com"
-  },
-  {
     "id": "api.templates.verify_subject",
     "translation": "[{{ .SiteName }}] Пацвярджэнне email"
   },
@@ -6312,138 +6192,6 @@
     "translation": "Калі гэтая змена не была ініцыяваная вамі ці вы жадаеце паўторна актываваць свой уліковы запіс, звярніцеся да сістэмнага адміністратара."
   },
   {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Каналы дапамагаюць палепшыць камунікацыю, але па меры далучэння да Mattermost новых карыстальнікаў і стварэння імі каналаў, задача падтрымання арганізаванасці сістэмы ўскладняецца. Пашыраныя правы дазваляюць устанавіць, якія карыстальнікі або ролі могуць выконваць пэўныя дзеянні, у тым ліку кіраванне настройкамі каналаў і падпісчыкаў, выкарыстоўваючы тэгі @channel або @here для шырокіх груп карыстальнікаў, а таксама для стварэння новых падзей webhook.\n\n[Больш падрабязна аб выкарыстанні пашыраных правоў] (https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions).\n\nНаціснуўшы кнопку \"Пачаць выкарыстоўваць пробную версію\", я згаджаюся з [Пагадненнем аб ацэнцы праграмнага забеспячэння Mattermost](https://mattermost.com/software-evaluation-agreement/), [Палітыкай прыватнасці](https://mattermost.com/ privacy-policy/) і атрымліваю паведамленні аб прадукце па email."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Каналы дапамагаюць палепшыць камунікацыю, але па меры далучэння да Mattermost новых карыстальнікаў і стварэння імі каналаў, задача падтрымання арганізаванасці сістэмы ўскладняецца. Пашыраныя правы дазваляюць устанавіць, якія карыстальнікі або ролі могуць выконваць пэўныя дзеянні, у тым ліку кіраванне настройкамі каналаў і падпісчыкаў, выкарыстоўваючы тэгі @channel або @here для шырокіх груп карыстальнікаў, а таксама для стварэння новых падзей webhook.\n\n[Больш падрабязна аб выкарыстанні пашыраных правоў] (https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions).\n\nНаціснуўшы кнопку \"Звязацца з намі\", вы падзяліцеся сваёй інфармацыяй з кампаніяй Mattermost, Inc. [Больш падрабязна] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Запыт кантакту з Mattermost. Мне цікава даведацца больш аб выкарыстанні пашыраных дазволаў з сістэмнымі схемамі.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Ваша пробная версія Enterprise зараз актыўная. Перайдзіце ў Сістэмную кансоль, каб уключыць пашыраныя функцыі."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Пры разгортванні Mattermost больш, чым на 500 карыстальнікаў, мы настойліва раім выкарыстоўваць такія функцыі, як кіраванне карыстальнікамі, кластарызацыя сервераў і маніторынг прадукцыйнасці. Звяжыцеся з намі, каб пазнаць больш і дайце ведаць, чым мы можам дапамагчы.\n\nНаціснуўшы кнопку \"Пачаць выкарыстоўваць пробную версію\", я згаджаюся з [Пагадненнем аб ацэнцы праграмнага забеспячэння Mattermost](https://mattermost.com/software-evaluation-agreement/), [Палітыкай прыватнасці](https://mattermost.com/ privacy-policy/) і атрымліваю паведамленні аб прадукце па email."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost настойліва рэкамендуе, каб пры разгортванні больш, чым на 500 карыстальнікаў было зроблена абнаўленне да Карпаратыўнай рэдакцыі Mattermost, якая прапануе такія функцыі, як кіраванне карыстальнікамі, кластарызацыя сервераў і маніторынг прадукцыйнасці. Звяжыцеся з намі, каб пазнаць больш і дайце ведаць, чым мы можам дапамагчы.\n\nНаціснуўшы кнопку Звязацца з намі, вы падзяліцеся сваёй інфармацыяй з Mattermost, Inc. [Больш падрабязна] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "запыт Mattermost Звяжыцеся з намі. У маёй каманды зараз {{.Limit}} карыстальнікаў, і я разглядаю Mattermost Карпаратыўная рэдакцыя.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Ваша пробная версія Enterprise зараз актыўная. Стварыце канал і перайдзіце да **Сістэмная кансоль > Упраўленне карыстальнікамі > Каналы**, каб усталяваць ліміты публікацый для адміністратараў каналаў."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "У Mattermost шмат перамоваў, таму можа быць складана зразумець, дзе шукаць важную інфармацыю. Калі вы жадаеце трансляваць паведамленне для вялікай аўдыторыі, вы можаце наладзіць каналы аб'яваў для чытання, да якіх можа далучыцца любы ахвочы, але толькі адміністратары каналаў могуць размяшчаць паведамленні.\n\n[Больш падрабязна аб стварэнні каналаў аб'яваў толькі для чытання] (https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation).\n\nНаціснуўшы кнопку \"Пачаць выкарыстоўваць пробную версію\", я згаджаюся з [Пагадненнем аб ацэнцы праграмнага забеспячэння Mattermost](https://mattermost.com/software-evaluation-agreement/), [Палітыкай прыватнасці](https://mattermost.com/ privacy-policy/) і атрымліваю паведамленні аб прадукце па email."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "У Mattermost шмат перамоваў, таму можа быць складана зразумець, дзе шукаць важную інфармацыю. Калі вы жадаеце трансляваць паведамленне для вялікай аўдыторыі, вы можаце наладзіць каналы аб'яваў для чытання, да якіх можа далучыцца любы ахвочы, але толькі адміністратары каналаў могуць размяшчаць паведамленні.\n\n[Больш падрабязна аб стварэнні каналаў аб'яваў толькі для чытання] (https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation).\n\nНаціснуўшы кнопку \"Звязацца з намі\", вы падзяліцеся сваёй інфармацыяй з кампаніяй Mattermost, Inc. [Даведацца больш] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Запыт кантакту з Mattermost. Мне цікава даведацца больш аб стварэнні каналаў аб'яваў толькі для.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Ваша пробная версія Enterprise зараз актыўная. Перайдзіце ў **Сістэмная кансоль > Аўтэнтыфікацыя > SAML 2.0** для інтэграцыі з правайдэрам SAML 2.0."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "У вашай сістэме Mattermost зараз 200 карыстальнікаў. Калі вы падключаеце Mattermost да пастаўшчыка сістэмы адзінага ўваходу ў вашай арганізацыі, карыстачы могуць атрымаць доступ да Mattermost без неабходнасці паўторна ўводзіць свае ўліковыя дадзеныя. Мы раім вам інтэграваць свайго правайдэра SAML 2.0 з серверам Mattermost. [Больш падрабязна аб інтэграцыі з SAML 2.0] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nНаціскаючы \"Паспрабаваць\", я прымаю [Пагадненне аб ацэнцы праграмнага забеспячэння Mattermost](https://mattermost.com/software-evaluation-agreement/), [Палітыку прыватнасці](https://mattermost.com/privacy-policy/) і гатовы атрымліваць электронныя лісты аб прадуктах."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "У вашай сістэме Mattermost зараз 200 карыстальнікаў. Калі вы падключаеце Mattermost да пастаўшчыка сістэмы адзінага ўваходу ў вашай арганізацыі, карыстачы могуць атрымаць доступ да Mattermost без неабходнасці паўторна ўводзіць свае ўліковыя дадзеныя. Мы раім вам інтэграваць свайго пастаўшчыка SAML 2.0 з вашым серверам Mattermost. [Больш падрабязна аб інтэграцыі з SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml) .\n\nНаціснуўшы «Звязацца з намі», вы падзяліцеся сваёй інфармацыяй з Mattermost, Inc. [Больш падрабязна](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "запыт Mattermost Звяжыцеся з намі. У маёй каманды зараз {{.Limit}} карыстальнікаў, і я разглядаю Mattermost Карпаратыўная рэдакцыя.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Ваша пробная версія Enterprise зараз актыўная. Перайдзіце ў **Сістэмная кансоль > Аўтэнтыфікацыя > AD/LDAP** для інтэграцыі службы AD/LDAP."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "У вашай сістэмы Mattermost больш за 100 карыстальнікаў. Па меры росту вашай базы карыстальнікаў, стварэнне новых уліковых запісаў можа забіраць шмат часу. Мы рэкамендуем інтэграваць Active Directory/LDAP вашай арганізацыі, што дазволіць любому, у каго ёсць уліковы запіс, атрымаць доступ да Mattermost.\n\n[Больш падрабязна аб інтэграцыі з AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nНаціснуўшы кнопку \"Пачаць выкарыстоўваць пробную версію\", я згаджаюся з [Пагадненнем аб ацэнцы праграмнага забеспячэння Mattermost](https://mattermost.com/software-evaluation-agreement/), [Палітыкай прыватнасці](https://mattermost.com/ privacy-policy/) і атрымліваю паведамленні аб прадукце па email."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "У вашай сістэме Mattermost зараз 200 карыстальнікаў. Па меры росту вашай карыстацкай базы стварэнне новых уліковых запісаў можа заняць шмат часу. Мы рэкамендуем вам інтэграваць Active Directory/LDAP вашай арганізацыі, што дазволіць любому, у каго ёсць уліковы запіс, атрымаць доступ да Mattermost.\n\n[Больш падрабязна аб інтэграцыі з AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nНаціснуўшы «Пацвердзіць», вы падзяліцеся сваёй інфармацыяй з Mattermost Inc., каб даведацца больш аб абнаўленні. [Больш падрабязна…](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Запыт кантакту з Mattermost. У маёй каманды зараз 100 карыстальнікаў, і я разглядаю Карпаратыўную рэдакцыю Mattermost.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Ваша пробная Карпаратыўная версія зараз актыўная. Перайдзіце ў **Сістэмная кансоль > Аўтэнтыфікацыя > МФА**, каб уключыць шматфактарную аўтэнтыфікацыю."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "У вашай сістэме Mattermost уключана шматфактарная аўтэнтыфікацыя, што дае карыстальнікам магчымасць абараніць свае ўліковыя запісы з дапамогай дадатковых сродкаў аўтэнтыфікацыі акрамя пароля. Для павышэння бяспекі ўсёй сістэмы вы можаце запатрабаваць, каб усе ўліковыя запісы Mattermost выкарыстоўвалі шматфактарную аўтэнтыфікацыю.\n\n[Больш падрабязна аб прымяненні Шматфактарнай аўтэнтыфікацыі](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nНаціскаючы Пачаць пробную версію, я прымаю [Пагадненне аб ацэнцы праграмнага забеспячэння Mattermost](https://mattermost.com/software-evaluation-agreement/), [Палітыку прыватнасці](https://mattermost.com/privacy-policy/) і гатовы атрымліваць электронныя лісты аб прадуктах."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "У вашай сістэме Mattermost уключана шматфактарная аўтэнтыфікацыя, што дае карыстальнікам магчымасць абараніць свае ўліковыя запісы з дапамогай дадатковых сродкаў аўтэнтыфікацыі акрамя пароля. Для павышэння бяспекі ўсёй сістэмы вы можаце запатрабаваць, каб усе ўліковыя запісы Mattermost выкарыстоўвалі шматфактарную аўтэнтыфікацыю.\n\n[Больш падрабязна аб прымусовай шматфактарнай аўтэнтыфікацыі](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nНаціснуўшы «Звязацца з намі», вы падзяліцеся сваёй інфармацыяй з Mattermost, Inc. [Больш падрабязна](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Просьба да Mattermost звязацца з намі. Мне цікава даведацца больш аб уключэнні шматфактарнай аўтэнтыфікацыі.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Ваша пробная Карпаратыўная версія зараз актыўная. Перайдзіце ў **Сістэмная кансоль > Аўтэнтыфікацыя > Гасцявы доступ**, каб уключыць гасцявыя ўліковыя запісы."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "У праектах часта ўдзельнічаюць людзі як унутры, так і за межамі арганізацыі. З дапамогай гасцявых уліковых запісаў вы можаце прыцягваць вонкавых партнёраў да сваёй сістэмы Mattermost і паказваць, з кім яны могуць працаваць і што яны могуць бачыць.\n\n[Больш падрабязна аб уключэнні гасцявых уліковых запісаў](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nНаціскаючы \"Паспрабаваць\", я прымаю [Пагадненне аб ацэнцы праграмнага забеспячэння Mattermost](https://mattermost.com/software-evaluation-agreement/), [Палітыку прыватнасці](https://mattermost.com/privacy-policy/) і буду атрымліваць электронныя лісты аб прадуктах."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "У праектах часта ўдзельнічаюць людзі як унутры, так і за межамі арганізацыі. З дапамогай гасцявых уліковых запісаў вы можаце прыцягваць вонкавых партнёраў да сваёй сістэмы Mattermost і паказваць, з кім яны могуць працаваць і што яны могуць бачыць.\n\n[Больш падрабязна аб уключэнні гасцявых уліковых запісаў](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nНаціснуўшы «Звязацца з намі», вы падзяліцеся сваёй інфармацыяй з Mattermost, Inc. [Больш падрабязна](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Просьба да Mattermost звязацца з намі. Мне цікава даведацца больш аб выкарыстанні гасцявых уліковых запісаў.\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Не ўдалося атрымаць пробную ліцэнзію. Наведайце https://mattermost.com/trial/, каб запытаць ліцэнзію."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Дзякуй, што звязаліся з Mattermost. Мы звяжамся з вамі ў бліжэйшы час."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Паведамленне не можа быць адпраўлена."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Запыт Mattermost Звяжыцеся з намі"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Усяго актыўных карыстальнікаў: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Калі ў вас ёсць якія-небудзь дадатковыя пытанні, калі ласка, звяжыцеся з support@mattermost.com"
-  },
-  {
     "id": "api.server.start_server.starting.critical",
     "translation": "Памылка запуску сервера, err:%v"
   },
@@ -6838,10 +6586,6 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Для гэтай функцыі патрабуецца абнаўленне да Enterprise Edition."
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Не ўдалося атрымаць пробную ліцэнзію, паспрабуйце яшчэ раз ці зьвяжыцеся з support@mattermost.com. Немагчыма атрымаць колькасць зарэгістраваных карыстальнікаў."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -8400,42 +8144,6 @@
     "translation": "Slack карыстальнік з email {{.Email}} і паролем {{.Password}} імпартаваны.\n"
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Ваша пробная версія Enterprise зараз актыўная. Перайдзіце ў **Сістэмная кансоль > Упраўленне карыстальнікамі > Правы доступу**, каб уключыць дадатковыя правы доступу."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "У вашай сістэме Mattermost зараз ёсць некалькі каманд. У многіх каманд ёсць свой упадабаны спосаб каардынацыі і супрацоўніцтва, у тым ліку тое, як ствараюцца каналы, хто можа запрашаць новых удзельнікаў каманды і як ажыццяўляецца інтэграцыя. Схемы групавога кіравання дазваляюць вам настройваць правы карыстальнікаў у кожнай камандзе ў адпаведнасці з іх канкрэтнымі патрэбамі.\n\n[Больш падрабязна аб выкарыстанні пашыраных правоў] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nНаціснуўшы кнопку \"Пачаць выкарыстоўваць пробную версію\", я згаджаюся з [Пагадненнем аб ацэнцы праграмнага забеспячэння Mattermost](https://mattermost.com/software-evaluation-agreement/), [Палітыкай прыватнасці](https://mattermost.com/ privacy-policy/) і атрымліваю паведамленні аб прадукце па email."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "У вашай сістэме Mattermost зараз ёсць некалькі каманд. У шматлікіх каманд ёсць свой упадабаны спосаб каардынацыі і супрацоўніцтва, у тым ліку тое, як ствараюцца каналы, хто можа запрашаць новых удзельнікаў каманды і як ажыццяўляецца інтэграцыя. Схемы групавога кіравання дазваляюць вам настройваць правы карыстальнікаў у кожнай камандзе ў адпаведнасці з іх канкрэтнымі патрэбамі.\n\n[Больш падрабязна аб выкарыстанні пашыраных правоў] (https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nНаціснуўшы кнопку \"Звязацца з намі\", вы падзяліцеся сваёй інфармацыяй з кампаніяй Mattermost, Inc. [Больш падрабязна](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Запыт кантакту з Mattermost. Мне цікава даведацца больш аб пашыраных правах са схемамі для каманд.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Ваша пробная версія Enterprise зараз актыўная. Калі ў вас ёсць сервер Elasticsearch, перайдзіце ў **Сістэмная кансоль > Серада > Elasticsearch** для наладкі Elasticsearch."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "У вашай сістэме Mattermost ёсць вялікая колькасць паведамленняў. Пошук у базе дадзеных Mattermost па змаўчанні пачынае паказваць зніжэнне прадукцыйнасці прыкладна пры 2,5 мільёнах паведамленняў. Калі паведамленняў больш за 5 мільёнаў, Elasticsearch можа дапамагчы пазбегнуць значных праблем з прадукцыйнасцю, такіх як таймаўты пры пошуку і апрацоўцы згадак. Звяжыцеся з намі, каб пазнаць больш і дайце ведаць, чым мы можам дапамагчы.\n\n[Больш падрабязна аб паляпшэнні прадукцыйнасці] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch).\n\nНаціснуўшы кнопку \"Пачаць выкарыстоўваць пробную версію\", я згаджаюся з [Пагадненнем аб ацэнцы праграмнага забеспячэння Mattermost](https://mattermost.com/software-evaluation-agreement/), [Палітыкай прыватнасці](https://mattermost.com/ privacy-policy/) і атрымліваю паведамленні аб прадукце па email."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "У вашай сістэме Mattermost ёсць вялікая колькасць паведамленняў. Пошук у базе дадзеных Mattermost па змаўчанні пачынае паказваць зніжэнне прадукцыйнасці прыкладна пры 2,5 мільёнах паведамленняў. Калі паведамленняў больш за 5 мільёнаў, Elasticsearch можа дапамагчы пазбегнуць значных праблем з прадукцыйнасцю, такіх як таймаўты пры пошуку і апрацоўцы згадак. Звяжыцеся з намі, каб пазнаць больш і дайце ведаць, чым мы можам дапамагчы.\n\n[Больш падрабязна аб паляпшэнні прадукцыйнасці] (https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch).\n\nНаціснуўшы кнопку \"Звязацца з намі\", вы падзяліцеся сваёй інфармацыяй з кампаніяй Mattermost, Inc. [Больш падрабязна] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Запыт кантакту з Mattermost. Мне цікава даведацца больш аб паляпшэнні прадукцыйнасці з дапамогай Elasticsearch.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Ваша пробная версія Enterprise зараз актыўная. Перайдзіце ў **Сістэмная кансоль > Упраўленне карыстальнікамі > Правы доступу**, каб уключыць дадатковыя правы доступу."
-  },
-  {
     "id": "api.admin.test_email.reenter_password",
     "translation": "SMTP сервер, порт ці імя карыстальніка зменены. Калі ласка, паўторна ўвядзіце пароль SMTP для праверкі злучэння."
   },
@@ -8510,18 +8218,6 @@
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
     "translation": "Канал-атрымальнік паштовага аб'яднання быў поўны. Калі ласка, павялічце значэнне EmailBatchingBufferSize."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Патрабуецца SMTP сервер"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Немагчыма знайсці метрыку папяраджання."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Не ўдалося адправіць адміністратару ліст з пацверджаннем"
   },
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
@@ -9082,10 +8778,6 @@
   {
     "id": "api.templates.invite_team_and_channel_body.title",
     "translation": "{{ .SenderName }} запрасіў вас далучыцца да {{ .ChannelName }} у камандзе {{ .TeamDisplayName }}"
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Памылка пры аналізе даных цела."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",

@@ -1,5 +1,7 @@
 @charset "utf-8";
 
+@use 'sass:color';
+
 .browser--ie {
     .modal {
         .modal-dialog {
@@ -17,7 +19,7 @@
 .modal-body {
     overflow: auto;
     max-height: calc(90vh - 80px);
-    padding: 20px 15px;
+    padding: 2px 32px;
 
     &.overflow--visible {
         overflow: visible;
@@ -41,19 +43,12 @@
 
 .app__body {
     .modal {
+        color: rgb(var(--center-channel-color-rgb));
+
         .modal-content {
-            border-color: rgba(var(--center-channel-color-rgb), 0.16);
-            background: v(center-channel-bg);
-            color: v(center-channel-color);
-        }
-
-        .modal-header {
-            border-color: rgba(var(--center-channel-color-rgb), 0.16);
-            background: var(--sidebar-header-bg);
-
-            .close {
-                color: var(--sidebar-header-text-color);
-            }
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: 12px;
+            background: var(--center-channel-bg);
         }
     }
 
@@ -77,6 +72,16 @@
             }
         }
 
+        .textarea-wrapper-preview {
+            .custom-textarea.textbox-preview-area {
+                display: block;
+            }
+
+            .textbox-edit-area {
+                display: none;
+            }
+        }
+
         .edit-post-footer {
             position: relative;
             display: inline-block;
@@ -88,7 +93,7 @@
                 margin-bottom: 0;
                 font-size: 0.85em;
                 font-weight: normal;
-                opacity: 0.55;
+                opacity: 0.75;
             }
         }
     }
@@ -124,7 +129,7 @@
 
 .modal {
     width: 100%;
-    color: alpha-color($black, 0.9);
+    color: v(center-channel-color);
 
     .modal--overflow {
         .modal-body {
@@ -140,8 +145,13 @@
         display: flex;
         flex-wrap: wrap;
         justify-content: end;
-        background: var(--center-channel-bg);
+        padding: 24px 32px;
+        border: none;
         grid-row-gap: 8px;
+
+        &.divider {
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
 
         &.modal-footer--invisible {
             overflow: hidden;
@@ -175,7 +185,7 @@
         margin-bottom: 3px;
         font-size: 0.9em;
         font-weight: 600;
-        opacity: 0.5;
+        opacity: 0.75;
     }
 
     .info__value {
@@ -242,76 +252,68 @@
 
     .modal-header {
         display: flex;
-        min-height: 56px;
-        padding: 14px 48px 11px 15px;
-        border-bottom: 1px solid $light-gray;
-        background: #333;
-        border-radius: 0;
-        border-radius: 3px 3px 0 0;
-        color: $white;
+        min-height: 76px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 64px 16px 32px;
+        border: none;
+        background: transparent;
 
-        @include clearfix;
-
-        .modal-title {
-            overflow: hidden;
-            max-width: calc(100% - 80px);
-            flex: 1;
-            color: var(--sidebar-header-text-color);
-            font-size: 17px;
-            line-height: 27px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-
-            .name {
-                font-weight: 600;
-            }
-
-            .shared-channel-icon {
-                width: 16px;
-                height: 16px;
-                margin: 0 8px;
-                color: #3d3c40;
-                font-size: 16px;
-                line-height: 16px;
-
-                &::before {
-                    margin: 0;
-                }
-            }
+        &.divider {
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         }
 
-        .modal-action {
-            padding: 0;
-            margin: 0;
+        &::before,
+        &::after {
+            content: none;
+        }
+
+        .btn {
+            position: relative;
+            top: -2px;
         }
 
         .close {
             position: absolute;
-            z-index: 5;
-            right: 10px;
-            width: 30px;
-            height: 30px;
-            color: white;
-            font-size: 24px;
-            line-height: 30px;
-            opacity: 0.7;
+            top: 18px;
+            right: 18px;
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 30px;
+            font-weight: 400;
+            opacity: 1;
             text-shadow: none;
-            transition: all 0.1s ease-in;
+
+            &.icon-close {
+                font-size: 24px;
+            }
 
             &:hover {
-                opacity: 1;
-
-                @include alpha-property(background, $black, 0.1);
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.8);
             }
 
-            .sr-only {
-                display: none;
+            &:active {
+                background: rgba(var(--button-bg-rgb), 0.08);
+                color: v(button-bg);
             }
 
-            span {
-                font-family: 'Open Sans', sans-serif;
-                line-height: 10px;
+            .modal-title {
+                width: 100%;
+                background: transparent;
+                color: v(center-channel-color);
+                font-size: 22px;
+                line-height: 28px;
             }
+        }
+
+        .modal-title {
+            background: transparent;
+            color: v(center-channel-color);
+            font-size: 22px;
+            line-height: 28px;
         }
     }
 
@@ -326,10 +328,9 @@
     }
 
     .modal-content {
-        border: 1px solid #777;
-        background: #fff;
-        border-radius: 4px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+        border-radius: 12px;
+        background: var(--sys-center-channel-bg);
     }
 
     .modal-chevron-icon {
@@ -436,7 +437,7 @@
 
             .code-preview {
                 display: flex;
-                height: calc(100vh - 168px);
+                max-height: calc(100vh - 168px);
                 flex-direction: column;
                 border-radius: 8px;
 
@@ -462,8 +463,8 @@
                 width: auto;
                 height: auto;
                 max-height: 85vh;
-                margin: 0 auto;
                 border-radius: 8px;
+                margin: 0 auto;
             }
 
             video {
@@ -644,8 +645,8 @@
         flex: 32px 0 0;
         align-items: center;
         justify-content: center;
-        background: rgba(var(--center-channel-color-rgb), 0.2);
         border-radius: 50%;
+        background: rgba(var(--center-channel-color-rgb), 0.2);
     }
 
     .user-list {
@@ -656,13 +657,18 @@
     }
 
     .modal-body {
-        padding: 10px 0 15px;
+        padding: 0;
         overflow-x: hidden;
     }
 
     .filter-row {
-        width: 300px;
+        padding: 0 16px;
         margin: 5px 0 10px;
+
+        .form-control {
+            height: 40px;
+            padding: 0 16px;
+        }
 
         &.filter-row--full {
             width: 100%;
@@ -750,8 +756,8 @@
         max-width: none;
         flex-grow: 0;
         flex-shrink: 0;
-        margin-top: 2px;
         border-radius: 60px;
+        margin-top: 2px;
     }
 
     .more-modal__details {
@@ -767,7 +773,7 @@
             height: 16px;
             margin-top: 0;
             margin-left: 8px;
-            color: rgba(61, 60, 64, 0.72);
+            color: rgba(61, 60, 64, 0.75);
             font-size: 16px;
             line-height: 16px;
 
@@ -788,12 +794,12 @@
 
             .more-modal__name_sub {
                 font-weight: 500;
-                opacity: 0.5;
+                opacity: 0.75;
             }
 
             .more-modal__name_count {
                 font-weight: 400;
-                opacity: 0.6;
+                opacity: 0.75;
             }
 
             svg {
@@ -847,8 +853,8 @@
         display: flex;
         min-height: 65px;
         align-items: center;
-        padding: 10px 15px;
-        border-bottom: 1px solid $light-gray;
+        padding: 10px 32px;
+        border-top: 1px solid $light-gray;
 
         &.clickable {
             cursor: pointer;
@@ -877,7 +883,7 @@
         }
 
         .more-modal__shared-actions {
-            color: rgba(61, 60, 64, 0.72);
+            color: rgba(61, 60, 64, 0.75);
 
             .shared-user-icon {
                 width: 16px;
@@ -917,7 +923,7 @@
         width: 32px;
         height: 32px;
         line-height: 32px;
-        opacity: 0.5;
+        opacity: 0.75;
         text-align: center;
     }
 
@@ -985,7 +991,8 @@
     }
 
     .filter-controls {
-        padding: 1em 1.5em 0;
+        padding: 24px 32px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
 
         .filter-control__next {
             float: right;
@@ -1021,7 +1028,7 @@
         }
 
         .more-modal__row--selected {
-            background-color: lighten($primary-color, 40%);
+            background-color: color.adjust($primary-color, $lightness: 40%);
 
             .more-modal__actions--round {
                 display: block;
@@ -1066,84 +1073,5 @@
 .more-public-direct-channels {
     .filtered-user-list {
         height: calc(90vh - 180px);
-    }
-}
-
-.user-groups-modal-create,
-.user-groups-modal-update,
-.view-user-groups-modal,
-.user-groups-modal {
-    .modal-content {
-        border-radius: 8px;
-
-        .modal-header {
-            display: flex;
-            min-height: 0;
-            align-items: center;
-            padding: 24px 24px;
-            border: none;
-            background: transparent;
-            color: inherit;
-
-            button.modal-header-back-button {
-                position: absolute;
-                left: 18px;
-                display: flex;
-                width: 4rem;
-                height: 4rem;
-                align-items: center;
-                justify-content: center;
-                border: none;
-                background: transparent;
-                border-radius: 4px;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
-                float: left;
-
-                &:hover {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                    color: rgba(var(--center-channel-color-rgb), 0.72);
-                }
-
-                &:active {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.12);
-                    background-color: rgba(var(--button-bg-rgb), 0.08);
-                    color: var(--button-bg);
-                }
-
-                i {
-                    font-size: 24px;
-                    line-height: 24px;
-                }
-            }
-
-            .close {
-                right: 18px;
-                width: 4rem;
-                height: 4rem;
-                margin-top: 0;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
-                font-size: 32px;
-                font-weight: normal;
-                line-height: 30px;
-
-                &:hover {
-                    background: rgba(var(--center-channel-color-rgb), 0.08);
-                    border-radius: 4px;
-                    color: rgba(var(--center-channel-color-rgb), 0.72);
-                    fill: rgba(var(--center-channel-color-rgb), 0.72);
-                }
-
-                &:active {
-                    background-color: rgba(var(--button-bg-rgb), 0.08);
-                    color: var(--button-bg);
-                }
-            }
-
-            .modal-title {
-                color: inherit;
-                font-size: 22px;
-                line-height: 28px;
-            }
-        }
     }
 }

@@ -200,8 +200,6 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
         let position = {};
         if (this.state.position === 'top') {
             position = {bottom: this.state.modalBounds.bottom - this.state.inputBounds.top};
-        } else {
-            position = {top: this.state.inputBounds.bottom - this.state.modalBounds.top};
         }
 
         return (

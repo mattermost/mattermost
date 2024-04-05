@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {Role} from '@mattermost/types/roles';
 
@@ -11,7 +12,6 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import SystemRolePermission from './system_role_permission';
 import type {PermissionsToUpdate, PermissionToUpdate, SystemSection} from './types';
@@ -267,10 +267,8 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
         return (
             <AdminPanel
                 id='SystemRolePermissions'
-                titleId={t('admin.permissions.system_role_permissions.title')}
-                titleDefault='Privileges'
-                subtitleId={t('admin.permissions.system_role_permissions.description')}
-                subtitleDefault='Level of access to the system console.'
+                title={defineMessage({id: 'admin.permissions.system_role_permissions.title', defaultMessage: 'Privileges'})}
+                subtitle={defineMessage({id: 'admin.permissions.system_role_permissions.description', defaultMessage: 'Level of access to the system console.'})}
             >
                 <div className='SystemRolePermissions'>
                     {this.getRows(permissionsMap, permissionsToUpdate, visibleSections)}
@@ -279,79 +277,3 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
         );
     }
 }
-
-t('admin.permissions.sysconsole_section_about.name');
-t('admin.permissions.sysconsole_section_about.description');
-t('admin.permissions.sysconsole_section_about_edition_and_license.name');
-t('admin.permissions.sysconsole_section_billing.name');
-t('admin.permissions.sysconsole_section_billing.description');
-t('admin.permissions.sysconsole_section_reporting.name');
-t('admin.permissions.sysconsole_section_reporting.description');
-t('admin.permissions.sysconsole_section_reporting_site_statistics.name');
-t('admin.permissions.sysconsole_section_reporting_team_statistics.name');
-t('admin.permissions.sysconsole_section_reporting_server_logs.name');
-t('admin.permissions.sysconsole_section_user_management.name');
-t('admin.permissions.sysconsole_section_user_management.description');
-t('admin.permissions.sysconsole_section_user_management_users.name');
-t('admin.permissions.sysconsole_section_user_management_users.description');
-t('admin.permissions.sysconsole_section_user_management_groups.name');
-t('admin.permissions.sysconsole_section_user_management_teams.name');
-t('admin.permissions.sysconsole_section_user_management_channels.name');
-t('admin.permissions.sysconsole_section_user_management_permissions.name');
-t('admin.permissions.sysconsole_section_user_management_system_roles.name');
-t('admin.permissions.sysconsole_section_environment.name');
-t('admin.permissions.sysconsole_section_environment.description');
-t('admin.permissions.sysconsole_section_environment_web_server.name');
-t('admin.permissions.sysconsole_section_environment_database.name');
-t('admin.permissions.sysconsole_section_environment_elasticsearch.name');
-t('admin.permissions.sysconsole_section_environment_file_storage.name');
-t('admin.permissions.sysconsole_section_environment_image_proxy.name');
-t('admin.permissions.sysconsole_section_environment_smtp.name');
-t('admin.permissions.sysconsole_section_environment_push_notification_server.name');
-t('admin.permissions.sysconsole_section_environment_high_availability.name');
-t('admin.permissions.sysconsole_section_environment_rate_limiting.name');
-t('admin.permissions.sysconsole_section_environment_logging.name');
-t('admin.permissions.sysconsole_section_environment_session_lengths.name');
-t('admin.permissions.sysconsole_section_environment_performance_monitoring.name');
-t('admin.permissions.sysconsole_section_environment_developer.name');
-t('admin.permissions.sysconsole_section_site.name');
-t('admin.permissions.sysconsole_section_site.description');
-t('admin.permissions.sysconsole_section_site_customization.name');
-t('admin.permissions.sysconsole_section_site_localization.name');
-t('admin.permissions.sysconsole_section_site_users_and_teams.name');
-t('admin.permissions.sysconsole_section_site_notifications.name');
-t('admin.permissions.sysconsole_section_site_announcement_banner.name');
-t('admin.permissions.sysconsole_section_site_emoji.name');
-t('admin.permissions.sysconsole_section_site_posts.name');
-t('admin.permissions.sysconsole_section_site_file_sharing_and_downloads.name');
-t('admin.permissions.sysconsole_section_site_public_links.name');
-t('admin.permissions.sysconsole_section_site_notices.name');
-t('admin.permissions.sysconsole_section_authentication.name');
-t('admin.permissions.sysconsole_section_authentication.description');
-t('admin.permissions.sysconsole_section_authentication_signup.name');
-t('admin.permissions.sysconsole_section_authentication_email.name');
-t('admin.permissions.sysconsole_section_authentication_password.name');
-t('admin.permissions.sysconsole_section_authentication_mfa.name');
-t('admin.permissions.sysconsole_section_authentication_ldap.name');
-t('admin.permissions.sysconsole_section_authentication_saml.name');
-t('admin.permissions.sysconsole_section_authentication_openid.name');
-t('admin.permissions.sysconsole_section_authentication_guest_access.name');
-t('admin.permissions.sysconsole_section_plugins.name');
-t('admin.permissions.sysconsole_section_plugins.description');
-t('admin.permissions.sysconsole_section_integrations.name');
-t('admin.permissions.sysconsole_section_integrations.description');
-t('admin.permissions.sysconsole_section_integrations_integration_management.name');
-t('admin.permissions.sysconsole_section_integrations_bot_accounts.name');
-t('admin.permissions.sysconsole_section_integrations_gif.name');
-t('admin.permissions.sysconsole_section_integrations_cors.name');
-t('admin.permissions.sysconsole_section_compliance.name');
-t('admin.permissions.sysconsole_section_compliance.description');
-t('admin.permissions.sysconsole_section_compliance_data_retention_policy.name');
-t('admin.permissions.sysconsole_section_compliance_compliance_export.name');
-t('admin.permissions.sysconsole_section_compliance_compliance_monitoring.name');
-t('admin.permissions.sysconsole_section_compliance_custom_terms_of_service.name');
-t('admin.permissions.sysconsole_section_experimental.name');
-t('admin.permissions.sysconsole_section_experimental.description');
-t('admin.permissions.sysconsole_section_experimental_features.name');
-t('admin.permissions.sysconsole_section_experimental_feature_flags.name');
-t('admin.permissions.sysconsole_section_experimental_bleve.name');

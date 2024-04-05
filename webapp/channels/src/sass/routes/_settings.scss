@@ -68,7 +68,8 @@
         }
 
         .modal-body {
-            min-height: calc(100% - 62px);
+            display: flex;
+            flex-direction: column;
             padding: 0;
             margin: 0 auto;
         }
@@ -102,9 +103,9 @@
         .profile-img-preview {
             width: 128px;
             height: 128px;
+            border-radius: 100%;
             background-position: 50% 50%;
             background-size: cover;
-            border-radius: 100%;
         }
 
         .profile-img__container {
@@ -124,8 +125,8 @@
             justify-content: center;
             padding: 0;
             border: none;
-            background: $black;
             border-radius: 50%;
+            background: $black;
             color: $white;
             text-decoration: none;
             transition: all 0.15s ease;
@@ -150,8 +151,8 @@
             .img-preview__image {
                 overflow: hidden;
                 border: 1px solid alpha-color($black, 0.15);
-                background-color: $white;
                 border-radius: 6px;
+                background-color: $white;
             }
 
             div {
@@ -172,8 +173,8 @@
             height: 24px;
             padding: 0;
             border: none;
-            background: $black;
             border-radius: 50%;
+            background: $black;
             color: $white;
             line-height: 23px;
             text-align: center;
@@ -187,26 +188,12 @@
         }
 
         .settings-table {
-            display: table;
+            display: flex;
             width: 100%;
             max-width: 1000px;
+            min-height: 0;
+            flex: 1;
             margin: 0 auto;
-            table-layout: fixed;
-
-            > div {
-                display: table-cell;
-                vertical-align: top;
-            }
-
-            .nav {
-                position: fixed;
-                width: 179px;
-                margin: 0;
-
-                &.position--top {
-                    top: 57px;
-                }
-            }
 
             .security-links {
                 margin-right: 20px;
@@ -217,12 +204,15 @@
             }
 
             .settings-links {
+                overflow: auto;
                 width: 180px;
                 background: var(--sidebar-bg);
             }
 
             .settings-content {
-                padding: 0 20px 30px;
+                overflow: auto;
+                flex: 1;
+                padding: 20px 30px;
 
                 .modal-header {
                     display: none;
@@ -365,9 +355,9 @@
                     .theme-elements__body {
                         max-height: 0;
                         padding: 0 0 0 24px;
+                        border-radius: 0 0 3px 3px;
                         margin: 0 20px 0 0;
                         background-color: rgba(255, 255, 255, 0.05);
-                        border-radius: 0 0 3px 3px;
                         overflow-y: hidden;
                         transition: all 0.4s ease-out;
 
@@ -425,6 +415,13 @@
                 .setting-list {
                     padding: 0;
                     list-style-type: none;
+
+                    .radio {
+                        p {
+                            padding-top: 5px;
+                            padding-left: 20px;
+                        }
+                    }
                 }
 
                 .setting-box__item {
@@ -491,8 +488,13 @@
         }
 
         .nav-pills > li button {
-            color: rgba(var(--sidebar-text-rgb), 0.6);
+            color: rgba(var(--sidebar-text-rgb), 0.75);
         }
+    }
+
+    .nav {
+        position: fixed;
+        margin: 0;
     }
 
     .nav-pills {
@@ -508,6 +510,13 @@
                 text-align: left;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+            }
+
+            img {
+                &.icon {
+                    height: 18px;
+                    vertical-align: top;
+                }
             }
 
             .icon {
@@ -566,6 +575,7 @@
 }
 
 .tab-header {
+    margin-top: 0;
     margin-bottom: 1em;
     font-weight: 600;
 }
@@ -587,8 +597,8 @@
     }
 
     .post-profile-img {
-        margin-right: 8px;
         border-radius: 50px;
+        margin-right: 8px;
     }
 }
 
@@ -682,8 +692,8 @@
                 align-items: center;
                 justify-content: center;
                 padding: 0 6px;
-                background-color: rgba(var(--button-bg-rgb), 0.08);
                 border-radius: 12px;
+                background-color: rgba(var(--button-bg-rgb), 0.08);
                 color: var(--button-bg);
                 font-size: 12px;
                 font-weight: 600;

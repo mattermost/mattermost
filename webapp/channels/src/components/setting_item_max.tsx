@@ -48,6 +48,7 @@ type Props = {
     cancelButtonText?: ReactNode;
     shiftEnter?: boolean;
     saveButtonText?: string;
+    saveButtonClassName?: string;
 }
 export default class SettingItemMax extends React.PureComponent<Props> {
     settingList: React.RefObject<HTMLDivElement>;
@@ -170,6 +171,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                     saving={this.props.saving}
                     disabled={this.props.saving}
                     onClick={this.handleSubmit}
+                    btnClass={this.props.saveButtonClassName}
                 />
             );
         }

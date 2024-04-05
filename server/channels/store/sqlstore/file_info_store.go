@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -110,7 +111,7 @@ func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterfac
 	return s
 }
 
-func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
+func (fs SqlFileInfoStore) Save(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 	info.PreSave()
 	if err := info.IsValid(); err != nil {
 		return nil, err
@@ -159,7 +160,7 @@ func (fs SqlFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
 	return infos, nil
 }
 
-func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error) {
+func (fs SqlFileInfoStore) Upsert(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 	info.PreSave()
 	if err := info.IsValid(); err != nil {
 		return nil, err
@@ -202,7 +203,7 @@ func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error)
 		return nil, errors.Wrap(err, "unable to retrieve rows affected")
 	}
 	if count == 0 {
-		return fs.Save(info)
+		return fs.Save(rctx, info)
 	}
 	return info, nil
 }
@@ -388,7 +389,7 @@ func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) 
 	return infos, nil
 }
 
-func (fs SqlFileInfoStore) AttachToPost(fileId, postId, channelId, creatorId string) error {
+func (fs SqlFileInfoStore) AttachToPost(rctx request.CTX, fileId, postId, channelId, creatorId string) error {
 	query := fs.getQueryBuilder().
 		Update("FileInfo").
 		Set("PostId", postId).
@@ -422,7 +423,7 @@ func (fs SqlFileInfoStore) AttachToPost(fileId, postId, channelId, creatorId str
 	return nil
 }
 
-func (fs SqlFileInfoStore) SetContent(fileId, content string) error {
+func (fs SqlFileInfoStore) SetContent(rctx request.CTX, fileId, content string) error {
 	query := fs.getQueryBuilder().
 		Update("FileInfo").
 		Set("Content", content).
@@ -441,7 +442,7 @@ func (fs SqlFileInfoStore) SetContent(fileId, content string) error {
 	return nil
 }
 
-func (fs SqlFileInfoStore) DeleteForPost(postId string) (string, error) {
+func (fs SqlFileInfoStore) DeleteForPost(rctx request.CTX, postId string) (string, error) {
 	if _, err := fs.GetMasterX().Exec(
 		`UPDATE
 				FileInfo
@@ -454,22 +455,22 @@ func (fs SqlFileInfoStore) DeleteForPost(postId string) (string, error) {
 	return postId, nil
 }
 
-func (fs SqlFileInfoStore) PermanentDelete(fileId string) error {
+func (fs SqlFileInfoStore) PermanentDelete(rctx request.CTX, fileId string) error {
 	if _, err := fs.GetMasterX().Exec(`DELETE FROM FileInfo WHERE Id = ?`, fileId); err != nil {
 		return errors.Wrapf(err, "failed to delete FileInfo with id=%s", fileId)
 	}
 	return nil
 }
 
-func (fs SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+func (fs SqlFileInfoStore) PermanentDeleteBatch(rctx request.CTX, endTime int64, limit int64) (int64, error) {
 	var query string
 	if fs.DriverName() == "postgres" {
-		query = "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < ? LIMIT ?))"
+		query = "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < ? AND CreatorId != ? LIMIT ?))"
 	} else {
-		query = "DELETE from FileInfo WHERE CreateAt < ? LIMIT ?"
+		query = "DELETE from FileInfo WHERE CreateAt < ? AND CreatorId != ? LIMIT ?"
 	}
 
-	sqlResult, err := fs.GetMasterX().Exec(query, endTime, limit)
+	sqlResult, err := fs.GetMasterX().Exec(query, endTime, model.BookmarkFileOwner, limit)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to delete FileInfos in batch")
 	}
@@ -482,7 +483,7 @@ func (fs SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 	return rowsAffected, nil
 }
 
-func (fs SqlFileInfoStore) PermanentDeleteByUser(userId string) (int64, error) {
+func (fs SqlFileInfoStore) PermanentDeleteByUser(rctx request.CTX, userId string) (int64, error) {
 	query := "DELETE from FileInfo WHERE CreatorId = ?"
 
 	sqlResult, err := fs.GetMasterX().Exec(query, userId)
@@ -498,7 +499,7 @@ func (fs SqlFileInfoStore) PermanentDeleteByUser(userId string) (int64, error) {
 	return rowsAffected, nil
 }
 
-func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.FileInfoList, error) {
+func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.FileInfoList, error) {
 	// Since we don't support paging for DB search, we just return nothing for later pages
 	if page > 0 {
 		return model.NewFileInfoList(), nil
@@ -659,7 +660,7 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 	items := []fileInfoWithChannelID{}
 	err = fs.GetSearchReplicaX().Select(&items, queryString, args...)
 	if err != nil {
-		mlog.Warn("Query error searching files.", mlog.String("error", trimInput(err.Error())))
+		rctx.Logger().Warn("Query error searching files.", mlog.String("error", trimInput(err.Error())))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
 		for _, item := range items {

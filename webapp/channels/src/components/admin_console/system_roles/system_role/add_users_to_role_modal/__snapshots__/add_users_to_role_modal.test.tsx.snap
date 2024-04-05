@@ -44,10 +44,7 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -68,6 +65,44 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
       handleInput={[Function]}
       handlePageChange={[Function]}
       handleSubmit={[Function]}
+      intl={
+        Object {
+          "$t": [Function],
+          "defaultFormats": Object {},
+          "defaultLocale": "en",
+          "defaultRichTextElements": undefined,
+          "fallbackOnEmptyString": true,
+          "formatDate": [Function],
+          "formatDateTimeRange": [Function],
+          "formatDateToParts": [Function],
+          "formatDisplayName": [Function],
+          "formatList": [Function],
+          "formatListToParts": [Function],
+          "formatMessage": [Function],
+          "formatNumber": [Function],
+          "formatNumberToParts": [Function],
+          "formatPlural": [Function],
+          "formatRelativeTime": [Function],
+          "formatTime": [Function],
+          "formatTimeToParts": [Function],
+          "formats": Object {},
+          "formatters": Object {
+            "getDateTimeFormat": [Function],
+            "getDisplayNames": [Function],
+            "getListFormat": [Function],
+            "getMessageFormat": [Function],
+            "getNumberFormat": [Function],
+            "getPluralRules": [Function],
+            "getRelativeTimeFormat": [Function],
+          },
+          "locale": "en",
+          "messages": Object {},
+          "onError": [Function],
+          "onWarn": [Function],
+          "textComponent": "span",
+          "timeZone": "Etc/UTC",
+        }
+      }
       key="addUsersToRoleKey"
       loading={true}
       maxValues={20}
@@ -189,10 +224,7 @@ exports[`admin_console/add_users_to_role_modal should exclude user 1`] = `
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -213,6 +245,44 @@ exports[`admin_console/add_users_to_role_modal should exclude user 1`] = `
       handleInput={[Function]}
       handlePageChange={[Function]}
       handleSubmit={[Function]}
+      intl={
+        Object {
+          "$t": [Function],
+          "defaultFormats": Object {},
+          "defaultLocale": "en",
+          "defaultRichTextElements": undefined,
+          "fallbackOnEmptyString": true,
+          "formatDate": [Function],
+          "formatDateTimeRange": [Function],
+          "formatDateToParts": [Function],
+          "formatDisplayName": [Function],
+          "formatList": [Function],
+          "formatListToParts": [Function],
+          "formatMessage": [Function],
+          "formatNumber": [Function],
+          "formatNumberToParts": [Function],
+          "formatPlural": [Function],
+          "formatRelativeTime": [Function],
+          "formatTime": [Function],
+          "formatTimeToParts": [Function],
+          "formats": Object {},
+          "formatters": Object {
+            "getDateTimeFormat": [Function],
+            "getDisplayNames": [Function],
+            "getListFormat": [Function],
+            "getMessageFormat": [Function],
+            "getNumberFormat": [Function],
+            "getPluralRules": [Function],
+            "getRelativeTimeFormat": [Function],
+          },
+          "locale": "en",
+          "messages": Object {},
+          "onError": [Function],
+          "onWarn": [Function],
+          "textComponent": "span",
+          "timeZone": "Etc/UTC",
+        }
+      }
       key="addUsersToRoleKey"
       loading={true}
       maxValues={20}
@@ -290,10 +360,7 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -314,6 +381,44 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
       handleInput={[Function]}
       handlePageChange={[Function]}
       handleSubmit={[Function]}
+      intl={
+        Object {
+          "$t": [Function],
+          "defaultFormats": Object {},
+          "defaultLocale": "en",
+          "defaultRichTextElements": undefined,
+          "fallbackOnEmptyString": true,
+          "formatDate": [Function],
+          "formatDateTimeRange": [Function],
+          "formatDateToParts": [Function],
+          "formatDisplayName": [Function],
+          "formatList": [Function],
+          "formatListToParts": [Function],
+          "formatMessage": [Function],
+          "formatNumber": [Function],
+          "formatNumberToParts": [Function],
+          "formatPlural": [Function],
+          "formatRelativeTime": [Function],
+          "formatTime": [Function],
+          "formatTimeToParts": [Function],
+          "formats": Object {},
+          "formatters": Object {
+            "getDateTimeFormat": [Function],
+            "getDisplayNames": [Function],
+            "getListFormat": [Function],
+            "getMessageFormat": [Function],
+            "getNumberFormat": [Function],
+            "getPluralRules": [Function],
+            "getRelativeTimeFormat": [Function],
+          },
+          "locale": "en",
+          "messages": Object {},
+          "onError": [Function],
+          "onWarn": [Function],
+          "textComponent": "span",
+          "timeZone": "Etc/UTC",
+        }
+      }
       key="addUsersToRoleKey"
       loading={true}
       maxValues={20}
@@ -435,10 +540,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -459,6 +561,44 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
       handleInput={[Function]}
       handlePageChange={[Function]}
       handleSubmit={[Function]}
+      intl={
+        Object {
+          "$t": [Function],
+          "defaultFormats": Object {},
+          "defaultLocale": "en",
+          "defaultRichTextElements": undefined,
+          "fallbackOnEmptyString": true,
+          "formatDate": [Function],
+          "formatDateTimeRange": [Function],
+          "formatDateToParts": [Function],
+          "formatDisplayName": [Function],
+          "formatList": [Function],
+          "formatListToParts": [Function],
+          "formatMessage": [Function],
+          "formatNumber": [Function],
+          "formatNumberToParts": [Function],
+          "formatPlural": [Function],
+          "formatRelativeTime": [Function],
+          "formatTime": [Function],
+          "formatTimeToParts": [Function],
+          "formats": Object {},
+          "formatters": Object {
+            "getDateTimeFormat": [Function],
+            "getDisplayNames": [Function],
+            "getListFormat": [Function],
+            "getMessageFormat": [Function],
+            "getNumberFormat": [Function],
+            "getPluralRules": [Function],
+            "getRelativeTimeFormat": [Function],
+          },
+          "locale": "en",
+          "messages": Object {},
+          "onError": [Function],
+          "onWarn": [Function],
+          "textComponent": "span",
+          "timeZone": "Etc/UTC",
+        }
+      }
       key="addUsersToRoleKey"
       loading={true}
       maxValues={20}
@@ -621,10 +761,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 2`
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -645,6 +782,44 @@ exports[`admin_console/add_users_to_role_modal should include additional user 2`
       handleInput={[Function]}
       handlePageChange={[Function]}
       handleSubmit={[Function]}
+      intl={
+        Object {
+          "$t": [Function],
+          "defaultFormats": Object {},
+          "defaultLocale": "en",
+          "defaultRichTextElements": undefined,
+          "fallbackOnEmptyString": true,
+          "formatDate": [Function],
+          "formatDateTimeRange": [Function],
+          "formatDateToParts": [Function],
+          "formatDisplayName": [Function],
+          "formatList": [Function],
+          "formatListToParts": [Function],
+          "formatMessage": [Function],
+          "formatNumber": [Function],
+          "formatNumberToParts": [Function],
+          "formatPlural": [Function],
+          "formatRelativeTime": [Function],
+          "formatTime": [Function],
+          "formatTimeToParts": [Function],
+          "formats": Object {},
+          "formatters": Object {
+            "getDateTimeFormat": [Function],
+            "getDisplayNames": [Function],
+            "getListFormat": [Function],
+            "getMessageFormat": [Function],
+            "getNumberFormat": [Function],
+            "getPluralRules": [Function],
+            "getRelativeTimeFormat": [Function],
+          },
+          "locale": "en",
+          "messages": Object {},
+          "onError": [Function],
+          "onWarn": [Function],
+          "textComponent": "span",
+          "timeZone": "Etc/UTC",
+        }
+      }
       key="addUsersToRoleKey"
       loading={true}
       maxValues={20}
@@ -807,10 +982,7 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -831,6 +1003,44 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
       handleInput={[Function]}
       handlePageChange={[Function]}
       handleSubmit={[Function]}
+      intl={
+        Object {
+          "$t": [Function],
+          "defaultFormats": Object {},
+          "defaultLocale": "en",
+          "defaultRichTextElements": undefined,
+          "fallbackOnEmptyString": true,
+          "formatDate": [Function],
+          "formatDateTimeRange": [Function],
+          "formatDateToParts": [Function],
+          "formatDisplayName": [Function],
+          "formatList": [Function],
+          "formatListToParts": [Function],
+          "formatMessage": [Function],
+          "formatNumber": [Function],
+          "formatNumberToParts": [Function],
+          "formatPlural": [Function],
+          "formatRelativeTime": [Function],
+          "formatTime": [Function],
+          "formatTimeToParts": [Function],
+          "formats": Object {},
+          "formatters": Object {
+            "getDateTimeFormat": [Function],
+            "getDisplayNames": [Function],
+            "getListFormat": [Function],
+            "getMessageFormat": [Function],
+            "getNumberFormat": [Function],
+            "getPluralRules": [Function],
+            "getRelativeTimeFormat": [Function],
+          },
+          "locale": "en",
+          "messages": Object {},
+          "onError": [Function],
+          "onWarn": [Function],
+          "textComponent": "span",
+          "timeZone": "Etc/UTC",
+        }
+      }
       key="addUsersToRoleKey"
       loading={true}
       maxValues={20}

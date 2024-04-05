@@ -26,9 +26,9 @@ button {
         display: inline-block;
         width: 8px;
         height: 8px;
+        border-radius: var(--radius-full);
         margin: 0 0 0 40px;
         background: #f74343;
-        border-radius: 50%;
     }
 }
 
@@ -40,7 +40,7 @@ button {
     justify-content: center;
     padding: 0 20px;
     border: none;
-    border-radius: $border-rad * 2;
+    border-radius: var(--radius-s);
     font-size: 14px;
     font-weight: 600;
     gap: 8px;
@@ -51,11 +51,11 @@ button {
         width: 40px;
         padding: 0;
         background-color: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
         }
 
         &:focus,
@@ -212,7 +212,7 @@ button {
         &:disabled:hover,
         &:disabled:active {
             background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.32);
+            color: rgba(var(--center-channel-color-rgb), 0.32) !important;
             opacity: 1;
         }
     }
@@ -269,6 +269,22 @@ button {
             background: rgba(var(--center-channel-color-rgb), 0.08);
             color: rgba(var(--center-channel-color-rgb), 0.32);
             opacity: 1;
+        }
+
+        &.btn-danger {
+            background-color: rgba(var(--error-text-color-rgb), 0.08);
+            color: var(--error-text);
+
+            &:hover {
+                background-color: rgba(var(--error-text-color-rgb), 0.12);
+                color: var(--error-text);
+            }
+
+            &:active,
+            &:focus {
+                background-color: rgba(var(--error-text-color-rgb), 0.16);
+                color: var(--error-text);
+            }
         }
     }
 

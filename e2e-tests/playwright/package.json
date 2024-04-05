@@ -12,29 +12,29 @@
         "playwright-ui": "cross-env NODE_OPTIONS='--no-experimental-fetch' playwright test --ui",
         "test-slomo": "cross-env NODE_OPTIONS='--no-experimental-fetch' PW_SNAPSHOT_ENABLE=true PW_SLOWMO=1000 playwright test",
         "show-report": "npx playwright show-report",
-        "postinstall": "npx playwright install"
+        "postinstall": "script/post_install.sh"
     },
     "dependencies": {
-        "@axe-core/playwright": "4.7.3",
-        "@percy/cli": "1.27.1",
+        "@axe-core/playwright": "4.8.5",
+        "@percy/cli": "1.28.1",
         "@percy/playwright": "1.0.4",
-        "@playwright/test": "1.38.1",
+        "@playwright/test": "1.42.1",
         "async-wait-until": "2.0.12",
-        "axe-core": "4.8.1",
+        "axe-core": "4.8.4",
         "chalk": "4.1.2",
         "deepmerge": "4.3.1",
-        "dotenv": "16.3.1",
+        "dotenv": "16.4.5",
         "form-data": "4.0.0",
         "isomorphic-unfetch": "4.0.2",
         "uuid": "9.0.1"
     },
     "devDependencies": {
-        "@types/uuid": "9.0.4",
-        "@typescript-eslint/eslint-plugin": "6.7.0",
-        "@typescript-eslint/parser": "6.7.0",
+        "@types/uuid": "9.0.8",
+        "@typescript-eslint/eslint-plugin": "7.2.0",
+        "@typescript-eslint/parser": "7.2.0",
         "cross-env": "7.0.3",
-        "eslint": "8.49.0",
-        "prettier": "3.0.3",
-        "typescript": "5.2.2"
+        "eslint": "8.57.0",
+        "prettier": "3.2.5",
+        "typescript": "5.4.2"
     }
 }

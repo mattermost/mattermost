@@ -17,7 +17,8 @@ import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {Session} from '@mattermost/types/sessions';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
+import {CustomStatusDuration} from '@mattermost/types/users';
+import type {UserProfile, UserAccessToken, UserCustomStatus} from '@mattermost/types/users';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
@@ -79,6 +80,16 @@ export class TestHelper {
             bot_description: '',
         };
         return Object.assign({}, defaultUser, override);
+    }
+
+    public static getCustomStatusMock(override?: Partial<UserCustomStatus>): UserCustomStatus {
+        const defaultCustomStatus: UserCustomStatus = {
+            emoji: 'neutral_face',
+            text: 'text',
+            duration: CustomStatusDuration.DONT_CLEAR,
+        };
+
+        return Object.assign({}, defaultCustomStatus, override);
     }
 
     public static getUserAccessTokenMock(override?: Partial<UserAccessToken>): UserAccessToken {
@@ -308,7 +319,7 @@ export class TestHelper {
         return Object.assign({}, defaultOutgoingWebhook, override);
     }
 
-    public static getPostMock(override: Partial<Post> = {}): Post {
+    public static getPostMock(override: Omit<Partial<Post>, 'metadata'> & {metadata?: Partial<Post['metadata']>} = {}): Post {
         const defaultPost: Post = {
             edit_at: 0,
             original_id: '',
@@ -334,7 +345,15 @@ export class TestHelper {
             update_at: 0,
             user_id: 'user_id',
         };
-        return Object.assign({}, defaultPost, override);
+
+        return {
+            ...defaultPost,
+            ...override,
+            metadata: {
+                ...defaultPost.metadata,
+                ...override.metadata,
+            },
+        };
     }
 
     public static getFileInfoMock(override: Partial<FileInfo> = {}): FileInfo {

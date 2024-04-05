@@ -167,14 +167,16 @@ function SelfHostedContent(props: ContentProps) {
                 </div>
                 <button
                     id='closeIcon'
-                    className='icon icon-close'
+                    className='close'
                     aria-label='Close'
                     title='Close'
                     onClick={() => {
                         trackEvent('self_hosted_pricing', 'close_pricing_modal');
                         props.onHide();
                     }}
-                />
+                >
+                    <span aria-hidden='true'>{'×'}</span>
+                </button>
             </Modal.Header>
             <Modal.Body>
                 {renderAlert()}
@@ -185,7 +187,6 @@ function SelfHostedContent(props: ContentProps) {
                         plan='Free'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.free', defaultMessage: 'Increased productivity for small teams'})}
                         price='$0'
-                        rate={formatMessage({id: 'pricing_modal.price.freeForever', defaultMessage: 'Free forever'})}
                         isCloud={false}
                         cloudFreeDeprecated={false}
                         planLabel={

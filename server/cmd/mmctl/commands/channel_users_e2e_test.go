@@ -67,10 +67,10 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 
 		nonexistentUserName := "nonexistent"
 		err := channelUsersAddCmdF(c, &cobra.Command{}, []string{channel.Id, nonexistentUserName})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find user")
+		s.Require().ErrorContains(err, nonexistentUserName)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Can't find user '%s'", nonexistentUserName), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Add nonexistent user to channel/Client", func() {
@@ -85,20 +85,23 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 
 		nonexistentUserName := "nonexistent"
 		err := channelUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{channel.Id, nonexistentUserName})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find user")
+		s.Require().ErrorContains(err, nonexistentUserName)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Can't find user '%s'", nonexistentUserName), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Add user to channel without permission/Client", func() {
 		printer.Clean()
 
 		err := channelUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{channel.Id, user.Id})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to add")
+		s.Require().ErrorContains(err, user.Id)
+		s.Require().ErrorContains(err, channelName)
+		s.Require().ErrorContains(err, "You do not have the appropriate permissions")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to add '%s' to %s. Error: : You do not have the appropriate permissions.", user.Id, channelName), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("unable to add %q to %q. Error: You do not have the appropriate permissions.", user.Id, channelName), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Add user to channel/Client", func() {
@@ -197,10 +200,11 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 
 		nonexistentUserName := "nonexistent"
 		err := channelUsersRemoveCmdF(c, &cobra.Command{}, []string{channel.Id, nonexistentUserName})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find user")
+		s.Require().ErrorContains(err, nonexistentUserName)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Can't find user '%s'", nonexistentUserName), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("unable to find user %q", nonexistentUserName), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Remove nonexistent user from channel/Client", func() {
@@ -215,10 +219,11 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 
 		nonexistentUserName := "nonexistent"
 		err := channelUsersRemoveCmdF(s.th.Client, &cobra.Command{}, []string{channel.Id, nonexistentUserName})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find user")
+		s.Require().ErrorContains(err, nonexistentUserName)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Can't find user '%s'", nonexistentUserName), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("unable to find user %q", nonexistentUserName), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Remove user from channel without permission/Client", func() {
@@ -233,10 +238,12 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		s.Require().Equal(user.Id, (members)[0].UserId)
 
 		err := channelUsersRemoveCmdF(s.th.Client, &cobra.Command{}, []string{channel.Id, user.Id})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to remove")
+		s.Require().ErrorContains(err, user.Id)
+		s.Require().ErrorContains(err, channelName)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to remove '%s' from %s", user.Id, channelName))
+		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("unable to remove %q from %q", user.Id, channelName))
 		s.Require().Contains(printer.GetErrorLines()[0], "You do not have the appropriate permissions")
 	})
 

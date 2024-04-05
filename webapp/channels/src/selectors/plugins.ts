@@ -12,6 +12,14 @@ import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 import type {GlobalState} from 'types/store';
 import type {FileDropdownPluginComponent, PluginComponent} from 'types/store/plugins';
 
+export const getPluginUserSettings = createSelector(
+    'getPluginUserSettings',
+    (state: GlobalState) => state.plugins.userSettings,
+    (settings) => {
+        return settings || {};
+    },
+);
+
 export const getFilesDropdownPluginMenuItems = createSelector(
     'getFilesDropdownPluginMenuItems',
     (state: GlobalState) => state.plugins.components.FilesDropdown,

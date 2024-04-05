@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 const (
@@ -231,7 +232,7 @@ func (b *BleveEngine) IsIndexingSync() bool {
 	return b.indexSync
 }
 
-func (b *BleveEngine) RefreshIndexes() *model.AppError {
+func (b *BleveEngine) RefreshIndexes(_ request.CTX) *model.AppError {
 	return nil
 }
 
@@ -251,7 +252,7 @@ func (b *BleveEngine) GetName() string {
 	return EngineName
 }
 
-func (b *BleveEngine) TestConfig(cfg *model.Config) *model.AppError {
+func (b *BleveEngine) TestConfig(rctx request.CTX, cfg *model.Config) *model.AppError {
 	return nil
 }
 
@@ -271,7 +272,7 @@ func (b *BleveEngine) deleteIndexes() *model.AppError {
 	return nil
 }
 
-func (b *BleveEngine) PurgeIndexes() *model.AppError {
+func (b *BleveEngine) PurgeIndexes(rctx request.CTX) *model.AppError {
 	if *b.cfg.BleveSettings.IndexDir == "" {
 		return nil
 	}
@@ -279,7 +280,7 @@ func (b *BleveEngine) PurgeIndexes() *model.AppError {
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
 
-	mlog.Info("PurgeIndexes Bleve")
+	rctx.Logger().Info("PurgeIndexes Bleve")
 	if err := b.closeIndexes(); err != nil {
 		return err
 	}
@@ -291,7 +292,11 @@ func (b *BleveEngine) PurgeIndexes() *model.AppError {
 	return b.openIndexes()
 }
 
-func (b *BleveEngine) DataRetentionDeleteIndexes(cutoff time.Time) *model.AppError {
+func (b *BleveEngine) PurgeIndexList(rctx request.CTX, indexes []string) *model.AppError {
+	return model.NewAppError("Bleve.PurgeIndex", "bleveengine.purge_list.not_implemented", nil, "not implemented", http.StatusNotFound)
+}
+
+func (b *BleveEngine) DataRetentionDeleteIndexes(rctx request.CTX, cutoff time.Time) *model.AppError {
 	return nil
 }
 
@@ -329,4 +334,8 @@ func (b *BleveEngine) UpdateConfig(cfg *model.Config) {
 		return
 	}
 	b.cfg = cfg
+}
+
+func (b *BleveEngine) IsChannelsIndexVerified() bool {
+	return true
 }

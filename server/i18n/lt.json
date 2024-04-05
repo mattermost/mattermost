@@ -1,1 +1,770 @@
-{}
+[
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Negalima pašalinti patvirtinimo archyvuotame kanale."
+  },
+  {
+    "id": "June",
+    "translation": "Birželis"
+  },
+  {
+    "id": "March",
+    "translation": "Kovas"
+  },
+  {
+    "id": "May",
+    "translation": "Gegužė"
+  },
+  {
+    "id": "November",
+    "translation": "Lapkritis"
+  },
+  {
+    "id": "October",
+    "translation": "Spalis"
+  },
+  {
+    "id": "September",
+    "translation": "Rugsėjis"
+  },
+  {
+    "id": "July",
+    "translation": "Liepa"
+  },
+  {
+    "id": "April",
+    "translation": "Balandis"
+  },
+  {
+    "id": "August",
+    "translation": "Rugpjūtis"
+  },
+  {
+    "id": "December",
+    "translation": "Gruodis"
+  },
+  {
+    "id": "February",
+    "translation": "Vasaris"
+  },
+  {
+    "id": "January",
+    "translation": "Sausis"
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Praėjus 5 min. patvirtinimo ištrinti nebegalima."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Negalima patvirtinti archyvuotame kanale."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Užklausoje nėra failo 'certificate' dalyje."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Klaida konvertuojant Tapatybės teikėjo pateiktus metaduomenis į sertifikatą."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Šis kanalas paverstas viešuoju kanalu, prie kurio gali prisijungti bet kuris komandos narys."
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Nepavyksta sukurti daugiau nei {{.MaxChannelsPerTeam}} kanalų dabartinei komandai."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Netinkamas turinio tipas."
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "Pasikeitė SMTP serveris, prievadas arba vartotojo vardas. Norėdami išbandyti ryšį, dar kartą įveskite SMTP slaptažodį."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Nepavyksta įkelti paveikslėlio. Vaizdų saugykla nesukonfigūruota."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Pridėkite mane prie komandų ir kanalų, kuriuose norite, kad dalyvaučiau. Tam naudokite naršyklę arba \"Mattermost Desktop\" programėlę."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Šiems naudotojams narystė kanale neleidžiama dėl grupės apribojimų: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "Kanalas buvo archyvuotas arba ištrintas."
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Naudotojui neleidžiama konvertuoti grupės žinutės į privatų kanalą"
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "Esate vienintelis likęs narys, pabandykite pašalinti privatų kanalą, o ne išeiti."
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Nepavyko gauti naudotojo atnaujinant kanalo lauką DisplayName"
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Jums neleidžiama atnaujinti tiesioginių ar grupinių pranešimų vardo, rodomo vardo ir tikslo."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Užklausoje nėra failo 'certificate' dalyje."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Nepavyko atidaryti sertifikato failo."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Klaida analizuojant daugiaformatę užklausą"
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Nepavyko išsaugoti sertifikato failo."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Nepavyksta ištrinti prekės ženklo atvaizdo, nerastas."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Klaida skaitant žurnalo failą."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Vaizdų saugykla nesukonfigūruota."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP neprieinamas."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Trinant sertifikatą įvyko klaida."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Nepavyko gauti metaduomenų iš tapatybės teikėjo URL."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Nepavyko iš naujo nustatyti AuthData lauko į El. paštas."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Nepavyko išsaugoti sertifikato failo."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "XML nėra tapatybės teikėjo SSO aprašų mazgo."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "XML nėra tapatybės teikėjo SSO aprašų mazgo."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "XML nėra tapatybės teikėjo SSO paslaugų mazgo."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "Kuriant paslaugų teikėjo metaduomenis įvyko klaida."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "Šiame serveryje SAML 2.0 nesukonfigūruotas ir nepalaikomas."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Netinkamas sertifikato tekstas."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Trūksta turinio tipo."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "nepavyko pridėti naudotojo prie grupių-komandų ir grupių-kanalų"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Atrodo, kad jūsų \"Mattermost\" el. paštas nustatytas teisingai!"
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "Reikalingas SMTP serveris"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "\"Mattermost\" - El. pašto nustatymų testavimas"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "Reikalingas \"S3 Bucket\" kibiras"
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "Tuščias masyvas pagal 'image' užklausoje."
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Užklausoje nėra failo pagal 'image'."
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "Nepavyko išnarplioti kelių dalių formos."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Nepavyksta įkelti failo. Failas yra per didelis."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Grįžti į {{.SiteName}}"
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Botų kūrimas buvo išjungtas."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v pridėta prie kanalo kaip svečias pagal %v."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v į kanalą pridėta %v."
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Klaida pridedant kanalo narį (-ius)."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Nepavyko pridėti naudotojo prie kanalo."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Nepavyko įtraukti naudotojo į kanalą, nes jis buvo pašalintas iš komandos."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Negalima pridėti naudotojo prie šio tipo kanalo."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Šis kanalas buvo pakeistas į privatų kanalą."
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Jūsų licencija nepalaiko grupių"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "Tiesioginių pranešimų kanalui sukurti turi būti naudojama API paslauga createDirectChannel."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Tarp šių naudotojų negalima sukurti tiesioginio kanalo, nes jie neturi bendros komandos."
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "Ne į temą"
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "Pagrindinis kanalas"
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "Netinkamas tiesioginio kanalo kūrimo naudotojo ID."
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Grupės pranešimų kanaluose turi būti ne mažiau kaip 3 ir ne daugiau kaip 8 naudotojai."
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "Vienas iš pateiktų naudotojų neegzistuoja."
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v suarchyvavo kanalą."
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "Nepavyksta ištrinti numatytojo kanalo {{.Channel}}."
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Negalima ištrinti tiesioginių arba grupinių pranešimų kanalų"
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "Jūsų licencija nepalaiko kanalo moderavimo"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} sukūrė šį kanalą iš grupės žinutės su {{.GMMembers}}."
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v prisijungė prie kanalo kaip svečias."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "Neturite tinkamų leidimų."
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v prisijungė prie kanalo."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Nepavyksta palikti numatytojo kanalo {{.Channel}}."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Nepavyksta palikti tiesioginės žinutės kanalo."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v paliko kanalą."
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Negalima perkelti tiesioginių arba grupinių pranešimų kanalų"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Klaida, panaikinanti talpyklos galiojimą"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Jūsų licencija nepalaiko kanalo moderavimo"
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Nepavyko atnaujinti kanalo."
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "Nepavyko paskelbti kanalo privatumo atnaujinimo pranešimo."
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Nepavyko paskelbti rodomo pavadinimo atnaujinimo pranešimo"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s atnaujino kanalo rodomą pavadinimą iš: %s į: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Nepavyko paskelbti atnaujinimo kanalo antraštės pranešimo"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s pašalino kanalo antraštę (buvo: %s)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "Nepavyko gauti naudotojo atnaujinant kanalo antraštę"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s atnaujino kanalo antraštę iš %s į %s"
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Jūsų licencija nepalaiko debesų užklausų."
+  },
+  {
+    "id": "api.command.admin_only.app_error",
+    "translation": "Integracijos buvo skirtos tik administratoriams."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook įvykis nebuvo apdorotas. Arba jo nėra, arba jis negalioja."
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "Komandai '{{.Trigger}}' nepavyko paskelbti atsakymo. Kreipkitės į sistemos administratorių."
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "Komanda su trigeriu '{{.Trigger}}' nerasta. Norėdami išsiųsti pranešimą, prasidedantį raide \"/\", pabandykite pranešimo pradžioje pridėti tuščią tarpą."
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "Vartotojo kūrimas šiame serveryje buvo išjungtas, kvietimai nebuvo išsiųsti"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s atnaujino kanalo antraštę į: %s"
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "Nepavyko paskelbti prisijungimo / atsijungimo pranešimo"
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Nepavyksta pašalinti naudotojo iš numatytojo kanalo {{.Channel}}."
+  },
+  {
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Nepavyksta pašalinti naudotojo iš kanalo."
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Nepavyksta pašalinti naudotojo iš grupės apriboto kanalo."
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v pašalintas iš kanalo."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Kanalo narystės pašalinimas uždraustas šiems naudotojams dėl grupės apribojimų: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Negalima pašalinti naudotojo iš šio tipo kanalo."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Tiesioginių pranešimų kanalo pavadinimo pakeisti negalima."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Grupės pranešimų kanalo pavadinimo pakeisti negalima."
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "Nepavyksta išarchyvuoti kanalo. Kanalas nėra archyvuotas."
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} išarchyvavo kanalą."
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "Kanalas buvo archyvuotas arba ištrintas."
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "Bandyta neleistinai atnaujinti numatytąjį kanalą {{.Channel}}."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Kanalo tipo negalima atnaujinti."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Jums neleidžiama atnaujinti tiesioginių ar grupinių pranešimų vardo, rodomo vardo ir tikslo."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Negalimas kanalo nario atnaujinimas: negalite pridėti arba pašalinti svečio vaidmens rankiniu būdu."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Netinkamas kanalo nario atnaujinimas: naudotojas turi būti svečias arba naudotojas, bet ne abu."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "Suteiktą vaidmenį valdo schema, todėl jo negalima tiesiogiai taikyti kanalo nariui."
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "Numatytojo kanalo negalima paversti privačiu."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "Jūsų licencija nepalaiko kanalo schemos atnaujinimo"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "Nepavyksta nustatyti schemos kanalui, nes pateikta schema nėra kanalo schema."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Negalimas komandos nario atnaujinimas: negalite pridėti arba pašalinti svečio vaidmens rankiniu būdu."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "Suteiktas vaidmuo yra valdomas pagal schemą, todėl jo negalima tiesiogiai taikyti komandos nariui."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Vidinė klaida per debesies api užklausą."
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Trūksta reikiamų laukų, kad būtų galima išsiųsti delinkventinį el. laišką."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Jau pranešta administratoriui"
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Klaida apdorojant užklausą į CWS."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Nepavyksta sukurti komandos, nes pasiektas komandų limitas"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Nepavyksta atkurti komandos, nes pasiektas komandų limitas"
+  },
+  {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "Nurodytas naudotojas nėra nurodyto kanalo narys."
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "Komandas išjungė sistemos administratorius."
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "Šis trigeris jau naudojamas. Pasirinkite kitą žodį."
+  },
+  {
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "Komanda, kurios trigeris yra '{{.Trigger}}', nepavyko."
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "Komanda su trigeriu '{{.Trigger}}' grąžino tuščią atsakymą."
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "Komanda, kurios trigeris yra '{{.Trigger}}', grąžino atsakymą {{.Status}}."
+  },
+  {
+    "id": "api.command.execute_command.format.app_error",
+    "translation": "Komandos paleidžiamajame žodyje trūksta pradinio pasvirusiojo brūkšnio simbolio"
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "Komandos trigerio nerasta."
+  },
+  {
+    "id": "api.command.invite_people.desc",
+    "translation": "Siųskite kvietimą el. paštu savo \"Mattermost\" komandai"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "Kvietimai el. paštu išjungti, kvietimai neišsiųsti"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "El. paštas nesukonfigūruotas, kvietimas (-ai) neišsiųstas (-i)"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "Klaida siunčiant el. pašto kvietimą (-us)"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[vardas@domenas.lt ...]"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "kviesti_žmones"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Nurodykite vieną ar daugiau galiojančių el. pašto adresų"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Įvestas tekstas viršija simbolių limitą. Kanalo antraštėje galima įrašyti ne daugiau kaip {{.MaxLength}} simbolių."
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Klaida gaunant dabartinį kanalą."
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Kanalo pavadinimą turi sudaryti ne daugiau kaip {{.Length}} simbolių."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Klaida nustatant būseną."
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Nepavyksta nustatyti tiesioginių pranešimų kanalų paskirties. Naudokite /header, kad nustatytumėte antraštę."
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Nustatykite savo būseną"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "Ne prie kompiuterio"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Esate ne prie kompiuterio"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Klaida gaunant dabartinį kanalą."
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Redaguoti kanalo antraštę"
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[tekstas]"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Tekstas turi būti pateiktas su komanda /header."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "antraštė"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Neturite leidimų redaguoti kanalo antraštę."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Klaida atnaujinant kanalo antraštę."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Įvestas tekstas viršija simbolių limitą. Kanalo antraštėje galima įrašyti ne daugiau kaip {{.MaxLength}} simbolių."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Redaguoti kanalo paskirtį"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "Kartu su komanda /purpose turi būti pateiktas pranešimas."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "paskirtis"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Neturite tinkamų leidimų redaguoti kanalo paskirtį."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Klaida atnaujinant kanalo paskirtį."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Klaida gaunant kanalą."
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Klaida gaunant kanalą."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Kanalo pervadinimas"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "Nepavyksta pervadinti tiesioginių pranešimų kanalų."
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "Kartu su komanda /rename turi būti pateiktas pranešimas."
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "pervadinti"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Neturite tinkamų leidimų pervadinti kanalą."
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Kanalo pavadinimą turi sudaryti ne daugiau kaip {{.Length}} simbolių."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Klaida atnaujinant kanalą."
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Rodyti tekstą kaip kodo bloką"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[tekstas]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "Kartu su komanda /code turi būti pateiktas pranešimas."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "kodas"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Įjungti automatinį nuotrakų peržiūros sutraukimą"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "suskleisti"
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "Paveikslėliai dabar suspaudžiami pagal numatytuosius nustatymus"
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Klaida išvalant būseną."
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Jūsų būsena buvo panaikinta."
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Nustatykite arba panaikinkite savo būseną"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] arba valyti"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "būsena"
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "Išsiųstas (-i) kvietimas (-ai) el. paštu"
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[tekstas]"
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[tekstas]"
+  }
+]

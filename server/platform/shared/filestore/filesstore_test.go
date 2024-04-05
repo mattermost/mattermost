@@ -391,7 +391,7 @@ func (s *FileBackendTestSuite) TestListDirectoryRecursively() {
 	b := []byte("test")
 	path1 := "19700101/" + randomString()
 	path2 := "19800101/" + randomString()
-	longPath := "19800102/this/is/a/way/too/long/path/for/this/function/to/handle" + randomString()
+	longPath := "19800102" + strings.Repeat("/toomuch", MaxRecursionDepth+1) + randomString()
 
 	paths, err := s.backend.ListDirectoryRecursively("19700101")
 	s.Nil(err)

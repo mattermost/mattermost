@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	sq "github.com/mattermost/squirrel"
@@ -18,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -105,7 +107,7 @@ func (us SqlUserStore) InsertUsers(users []*model.User) error {
 	return nil
 }
 
-func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
+func (us SqlUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
 	if user.Id != "" && !user.IsRemote() {
 		return nil, store.NewErrInvalidInput("User", "id", user.Id)
 	}
@@ -162,7 +164,7 @@ func (us SqlUserStore) DeactivateGuests() ([]string, error) {
 	return userIds, nil
 }
 
-func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.UserUpdate, error) {
+func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateData bool) (*model.UserUpdate, error) {
 	user.PreUpdate()
 
 	if err := user.IsValid(); err != nil {
@@ -1511,7 +1513,7 @@ func (us SqlUserStore) GetAnyUnreadPostCountForChannel(userId string, channelId 
 	return count, nil
 }
 
-func (us SqlUserStore) Search(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+func (us SqlUserStore) Search(rctx request.CTX, teamId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	query := us.usersQuery.
 		OrderBy("Username ASC").
 		Limit(uint64(options.Limit))
@@ -2143,7 +2145,7 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err erro
 	return user, nil
 }
 
-func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
+func (us SqlUserStore) AutocompleteUsersInChannel(rctx request.CTX, teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 	var usersInChannel, usersNotInChannel []*model.User
 	g := errgroup.Group{}
 	g.Go(func() (err error) {
@@ -2264,4 +2266,152 @@ func (us SqlUserStore) RefreshPostStatsForUsers() error {
 	}
 
 	return nil
+}
+
+func applyUserReportFilter(query sq.SelectBuilder, filter *model.UserReportOptions, isPostgres bool) sq.SelectBuilder {
+	query = applyRoleFilter(query, filter.Role, isPostgres)
+	if filter.HasNoTeam {
+		query = query.Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM TeamMembers WHERE DeleteAt = 0)"))
+	} else if filter.Team != "" {
+		query = query.Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.DeleteAt = 0)").
+			Where(sq.Eq{"tm.TeamId": filter.Team})
+	}
+	if filter.HideActive {
+		query = query.Where(sq.Gt{"u.DeleteAt": 0})
+	}
+	if filter.HideInactive {
+		query = query.Where(sq.Eq{"u.DeleteAt": 0})
+	}
+
+	if strings.TrimSpace(filter.SearchTerm) != "" {
+		query = generateSearchQuery(query, strings.Fields(sanitizeSearchTerm(filter.SearchTerm, "*")), UserSearchTypeAll, isPostgres)
+	}
+
+	return query
+}
+
+func (us SqlUserStore) GetUserCountForReport(filter *model.UserReportOptions) (int64, error) {
+	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
+	query := us.getQueryBuilder().
+		Select("COUNT(u.Id)").
+		From("Users u")
+
+	if isPostgres {
+		query = query.LeftJoin("Bots ON u.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+	} else {
+		query = query.Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)"))
+	}
+
+	query = applyUserReportFilter(query, filter, isPostgres)
+	queryStr, args, err := query.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "user_count_report_tosql")
+	}
+	var v int64
+	err = us.GetReplicaX().Get(&v, queryStr, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to count Users for report")
+	}
+	return v, nil
+}
+
+func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
+	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
+	selectColumns := []string{"u.*", "MAX(s.LastActivityAt) AS LastStatusAt"}
+	if isPostgres {
+		selectColumns = append(selectColumns,
+			"MAX(ps.LastPostDate) AS LastPostDate",
+			"COUNT(ps.Day) AS DaysActive",
+			"SUM(ps.NumPosts) AS TotalPosts",
+		)
+	}
+
+	sortDirection := "ASC"
+	if filter.SortDesc {
+		sortDirection = "DESC"
+	}
+
+	query := us.getQueryBuilder().
+		Select(selectColumns...).
+		From("Users u").
+		LeftJoin("Status s ON s.UserId = u.Id").
+		Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)")).
+		GroupBy("u.Id")
+
+	// no need to apply any filtering and pagination if there are no
+	// previous element ID and value provided.
+	if filter.FromId != "" && filter.FromColumnValue != "" {
+		if (filter.Direction == "prev" && !filter.SortDesc) || (filter.Direction == "next" && filter.SortDesc) {
+			sortDirection = "DESC"
+
+			query = query.Where(sq.Or{
+				sq.Lt{filter.SortColumn: filter.FromColumnValue},
+				sq.And{
+					sq.Eq{filter.SortColumn: filter.FromColumnValue},
+					sq.Lt{"u.Id": filter.FromId},
+				},
+			})
+		} else {
+			sortDirection = "ASC"
+
+			query = query.Where(sq.Or{
+				sq.Gt{filter.SortColumn: filter.FromColumnValue},
+				sq.And{
+					sq.Eq{filter.SortColumn: filter.FromColumnValue},
+					sq.Gt{"u.Id": filter.FromId},
+				},
+			})
+		}
+	}
+
+	query = query.OrderBy(filter.SortColumn+" "+sortDirection, "u.Id")
+
+	if filter.PageSize > 0 {
+		query = query.Limit(uint64(filter.PageSize))
+	}
+
+	if isPostgres {
+		joinSql := sq.And{}
+		if filter.StartAt > 0 {
+			startDate := time.UnixMilli(filter.StartAt)
+			joinSql = append(joinSql, sq.GtOrEq{"ps.Day": startDate.Format("2006-01-02")})
+		}
+		if filter.EndAt > 0 {
+			endDate := time.UnixMilli(filter.EndAt)
+			joinSql = append(joinSql, sq.Lt{"ps.Day": endDate.Format("2006-01-02")})
+		}
+		sql, args, err := joinSql.ToSql()
+		if err != nil {
+			return nil, err
+		}
+		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id AND "+sql, args...)
+	}
+
+	query = applyUserReportFilter(query, filter, isPostgres)
+
+	parentQuery := query
+	// If we're going a page back...
+	//
+	// The way pagination works, we get the previous page's rows
+	// in reverse order. So, we use parent query on it to
+	// reverse the order in database itself.
+	if filter.Direction == "prev" {
+		reverseSortDirection := "ASC"
+		if sortDirection == "ASC" {
+			reverseSortDirection = "DESC"
+		}
+
+		parentQuery = us.getQueryBuilder().
+			Select("*").
+			FromSelect(query, "data").
+			OrderBy(filter.SortColumn+" "+reverseSortDirection, "Id")
+	}
+
+	userResults := []*model.UserReportQuery{}
+	err := us.GetReplicaX().SelectBuilder(&userResults, parentQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get users for reporting")
+	}
+
+	return userResults, nil
 }

@@ -189,16 +189,16 @@ export default class WebSocketClient {
                         console.log('long timeout, or server restart, or sequence number is not found.'); //eslint-disable-line no-console
 
                         this.missedEventCallback?.();
-			
-			for (const listener of this.missedMessageListeners) {
+
+                        for (const listener of this.missedMessageListeners) {
                             try {
                                 listener();
                             } catch (e) {
                                 console.log(`missed message listener "${listener.name}" failed: ${e}`); // eslint-disable-line no-console
                             }
                         }
-                        
-			this.serverSequence = 0;
+
+                        this.serverSequence = 0;
                     }
 
                     // If it's a fresh connection, we have to set the connectionId regardless.
@@ -355,7 +355,7 @@ export default class WebSocketClient {
         }
     }
 
-    sendMessage(action: string, data: any, responseCallback?: () => void) {
+    sendMessage(action: string, data: any, responseCallback?: (msg: any) => void) {
         const msg = {
             action,
             seq: this.responseSequence++,
@@ -380,6 +380,28 @@ export default class WebSocketClient {
             parent_id: parentId,
         };
         this.sendMessage('user_typing', data, callback);
+    }
+
+    updateActiveChannel(channelId: string, callback?: (msg: any) => void) {
+        const data = {
+            channel_id: channelId,
+        };
+        this.sendMessage('presence', data, callback);
+    }
+
+    updateActiveTeam(teamId: string, callback?: (msg: any) => void) {
+        const data = {
+            team_id: teamId,
+        };
+        this.sendMessage('presence', data, callback);
+    }
+
+    updateActiveThread(isThreadView: boolean, channelId: string, callback?: (msg: any) => void) {
+        const data = {
+            thread_channel_id: channelId,
+            is_thread_view: isThreadView,
+        };
+        this.sendMessage('presence', data, callback);
     }
 
     userUpdateActiveStatus(userIsActive: boolean, manual: boolean, callback?: () => void) {

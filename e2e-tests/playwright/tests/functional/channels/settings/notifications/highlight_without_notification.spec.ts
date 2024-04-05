@@ -12,6 +12,9 @@ const keywords = [`AB${getRandomId()}`, `CD${getRandomId()}`, `EF${getRandomId()
 const highlightWithoutNotificationClass = 'non-notification-highlight';
 
 test('MM-T5465-1 Should add the keyword when enter, comma or tab is pressed on the textbox', async ({pw, pages}) => {
+    // # Skip test if no license
+    await pw.skipIfNoLicense();
+
     const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
@@ -55,15 +58,20 @@ test('MM-T5465-1 Should add the keyword when enter, comma or tab is pressed on t
     await keywordsInput.press('Enter');
 
     // * Verify that the keywords have been added to the collapsed description
-    await expect(channelPage.settingsModal.notificationsSettings.container.getByText(keywords[0])).toBeVisible();
-    await expect(channelPage.settingsModal.notificationsSettings.container.getByText(keywords[1])).toBeVisible();
-    await expect(channelPage.settingsModal.notificationsSettings.container.getByText(keywords[2])).toBeVisible();
+    const keysWithHighlightDesc = channelPage.settingsModal.notificationsSettings.keysWithHighlightDesc;
+    await keysWithHighlightDesc.waitFor();
+    for (const keyword of keywords.slice(0, 3)) {
+        expect(await keysWithHighlightDesc).toContainText(keyword);
+    }
 });
 
 test('MM-T5465-2 Should highlight the keywords when a message is sent with the keyword in center', async ({
     pw,
     pages,
 }) => {
+    // # Skip test if no license
+    await pw.skipIfNoLicense();
+
     const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
@@ -117,6 +125,9 @@ test('MM-T5465-2 Should highlight the keywords when a message is sent with the k
 });
 
 test('MM-T5465-3 Should highlight the keywords when a message is sent with the keyword in rhs', async ({pw, pages}) => {
+    // # Skip test if no license
+    await pw.skipIfNoLicense();
+
     const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
@@ -172,6 +183,9 @@ test('MM-T5465-3 Should highlight the keywords when a message is sent with the k
 });
 
 test('MM-T5465-4 Highlighted keywords should not appear in the Recent Mentions', async ({pw, pages}) => {
+    // # Skip test if no license
+    await pw.skipIfNoLicense();
+
     const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
@@ -212,6 +226,9 @@ test('MM-T5465-4 Highlighted keywords should not appear in the Recent Mentions',
 });
 
 test('MM-T5465-5 Should highlight keywords in message sent from another user', async ({pw, pages}) => {
+    // # Skip test if no license
+    await pw.skipIfNoLicense();
+
     const {adminClient, team, adminUser, user} = await pw.initSetup();
 
     if (!adminUser) {

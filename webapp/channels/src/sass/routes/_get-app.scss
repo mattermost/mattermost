@@ -143,9 +143,9 @@
     height: 18px;
     padding: 0;
     border: 2px solid $dark-gray;
+    border-radius: 3px;
     margin-right: 7px;
     background: none;
-    border-radius: 3px;
 
     > * {
         pointer-events: none;
@@ -303,6 +303,7 @@
 
     .get-app__buttons {
         margin-top: 25px;
+        margin-bottom: 25px;
     }
 
     .get-app__preference {

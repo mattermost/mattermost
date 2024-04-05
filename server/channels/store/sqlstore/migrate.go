@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"sync"
 
+	sqlUtils "github.com/mattermost/mattermost/server/public/utils/sql"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/db"
@@ -28,11 +30,12 @@ type Migrator struct {
 	store  *SqlStore
 }
 
-func NewMigrator(settings model.SqlSettings, dryRun bool) (*Migrator, error) {
+func NewMigrator(settings model.SqlSettings, logger mlog.LoggerIFace, dryRun bool) (*Migrator, error) {
 	ss := &SqlStore{
 		rrCounter:   0,
 		srCounter:   0,
 		settings:    &settings,
+		logger:      logger,
 		quitMonitor: make(chan struct{}),
 		wgMonitor:   &sync.WaitGroup{},
 	}
@@ -118,16 +121,16 @@ func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, error) {
 	var driver drivers.Driver
 	switch ss.DriverName() {
 	case model.DatabaseDriverMysql:
-		dataSource, rErr := ResetReadTimeout(*ss.settings.DataSource)
+		dataSource, rErr := sqlUtils.ResetReadTimeout(*ss.settings.DataSource)
 		if rErr != nil {
 			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
 			return nil, rErr
 		}
-		dataSource, err = AppendMultipleStatementsFlag(dataSource)
+		dataSource, err = sqlUtils.AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
 			return nil, err
 		}
-		db, err2 := SetupConnection("master", dataSource, ss.settings, DBPingAttempts)
+		db, err2 := sqlUtils.SetupConnection(ss.Logger(), "master", dataSource, ss.settings, DBPingAttempts)
 		if err2 != nil {
 			return nil, err2
 		}

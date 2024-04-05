@@ -12,7 +12,6 @@ import {GenericModal} from '@mattermost/components';
 import type {UserStatus} from '@mattermost/types/users';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import DatePicker from 'components/date_picker';
@@ -36,7 +35,7 @@ type Props = {
 
     theme: Theme;
     actions: {
-        setStatus: (status: UserStatus) => ActionFunc;
+        setStatus: (status: UserStatus) => void;
     };
 };
 
@@ -237,6 +236,7 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
         return (
             <CompassThemeProvider theme={this.props.theme}>
                 <GenericModal
+                    compassDesign={true}
                     ariaLabel={localizeMessage('dnd_custom_time_picker_modal.defaultMsg', 'Disable notifications until')}
                     onExited={this.props.onExited}
                     modalHeaderText={modalHeaderText}

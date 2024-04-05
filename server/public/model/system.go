@@ -38,6 +38,7 @@ const (
 	SystemHostedPurchaseNeedsScreening     = "HostedPurchaseNeedsScreening"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
+	CloudRenewalEmail                      = "CloudRenewalEmail"
 )
 
 const (
@@ -83,7 +84,7 @@ type SupportPacket struct {
 	ServerOS           string `yaml:"server_os"`
 	ServerArchitecture string `yaml:"server_architecture"`
 	ServerVersion      string `yaml:"server_version"`
-	BuildHash          string `yaml:"build_hash,omitempty"`
+	BuildHash          string `yaml:"build_hash"`
 
 	/* DB */
 
@@ -116,8 +117,8 @@ type SupportPacket struct {
 	/* License */
 
 	LicenseTo             string `yaml:"license_to"`
-	LicenseSupportedUsers int    `yaml:"license_supported_users,omitempty"`
-	LicenseIsTrial        string `yaml:"license_is_trial,omitempty"`
+	LicenseSupportedUsers int    `yaml:"license_supported_users"`
+	LicenseIsTrial        bool   `yaml:"license_is_trial,omitempty"`
 
 	/* Server stats */
 
@@ -138,96 +139,12 @@ type SupportPacket struct {
 	BlevePostIndexingJobs      []*Job `yaml:"bleve_post_indexin_jobs"`
 	LdapSyncJobs               []*Job `yaml:"ldap_sync_jobs"`
 	MigrationJobs              []*Job `yaml:"migration_jobs"`
-	ComplianceJobs             []*Job `yaml:"compliance_jobs"`
 }
 
 type FileData struct {
 	Filename string
 	Body     []byte
 }
-
-var WarnMetricsTable = map[string]WarnMetric{
-	SystemWarnMetricMfa: {
-		Id:        SystemWarnMetricMfa,
-		Limit:     -1,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricEmailDomain: {
-		Id:        SystemWarnMetricEmailDomain,
-		Limit:     -1,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfTeams5: {
-		Id:        SystemWarnMetricNumberOfTeams5,
-		Limit:     5,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfChannels50: {
-		Id:        SystemWarnMetricNumberOfChannels50,
-		Limit:     50,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfActiveUsers100: {
-		Id:        SystemWarnMetricNumberOfActiveUsers100,
-		Limit:     100,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfActiveUsers200: {
-		Id:        SystemWarnMetricNumberOfActiveUsers200,
-		Limit:     200,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfActiveUsers300: {
-		Id:        SystemWarnMetricNumberOfActiveUsers300,
-		Limit:     300,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfActiveUsers500: {
-		Id:        SystemWarnMetricNumberOfActiveUsers500,
-		Limit:     500,
-		IsBotOnly: false,
-		IsRunOnce: true,
-	},
-	SystemWarnMetricNumberOfPosts2m: {
-		Id:        SystemWarnMetricNumberOfPosts2m,
-		Limit:     2000000,
-		IsBotOnly: false,
-		IsRunOnce: true,
-	},
-}
-
-type WarnMetric struct {
-	Id         string
-	Limit      int64
-	IsBotOnly  bool
-	IsRunOnce  bool
-	SkipAction bool
-}
-
-type WarnMetricDisplayTexts struct {
-	BotTitle          string
-	BotMessageBody    string
-	BotSuccessMessage string
-	EmailBody         string
-}
-type WarnMetricStatus struct {
-	Id          string `json:"id"`
-	Limit       int64  `json:"limit"`
-	Acked       bool   `json:"acked"`
-	StoreStatus string `json:"store_status,omitempty"`
-}
-
-type SendWarnMetricAck struct {
-	ForceAck bool `json:"forceAck"`
-}
-
 type AppliedMigration struct {
 	Version int    `json:"version"`
 	Name    string `json:"name"`
@@ -243,4 +160,15 @@ type LogFilter struct {
 type LogEntry struct {
 	Timestamp string
 	Level     string
+}
+
+// SystemPingOptions is the options for setting contents of the system ping
+// response.
+type SystemPingOptions struct {
+	// FullStatus allows server to set the detailed information about
+	// the system status.
+	FullStatus bool
+	// RestSemantics allows server to return 200 code even if the server
+	// status is unhealthy.
+	RESTSemantics bool
 }

@@ -1728,7 +1728,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Team beperken tot {{.Domain}} is niet toegestaan door de systeemconfiguratie. Neem contact op met jouw systeembeheerder."
+    "translation": "Team beperken tot {{ .Domain }} is niet toegestaan door de systeemconfiguratie. Neem contact op met jouw systeembeheerder."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -1848,7 +1848,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "[{{.SiteName}}] Jouw wachtwoord is bijgewerkt"
+    "translation": "{{ .SiteName }} Jouw wachtwoord werd bijgewerkt"
   },
   {
     "id": "api.templates.post_body.button",
@@ -1904,7 +1904,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "[{{.SiteName }}] Je gebruikersnaam werd gewijzigd"
+    "translation": "{{ .SiteName }} Je gebruikersnaam werd gewijzigd"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -2440,7 +2440,7 @@
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
-    "translation": "Geïmporteerde lijn heeft onbekend type \"\"{.Type}}\"."
+    "translation": "Geïmporteerde lijn heeft onbekend type \"{{.Type}}\"."
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
@@ -2852,15 +2852,15 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Nieuw groepsbericht van {{.ChannelName}} op {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nieuw groepsbericht van {{ .ChannelName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Nieuwe Notificatie voor {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nieuw groepsbericht op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Nieuw vermelding in {{ .TeamName}} op {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{ .SiteName }}] Melding in {{ .TeamName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -2992,7 +2992,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Clusterconfiguratie is gewijzigd voor id= {{.id}}. De cluster kan instabiel worden en een herstart is vereist. Om ervoor te zorgen dat de cluster correct is geconfigureerd, moet u onmiddellijk een rollende herstart uitvoeren."
+    "translation": "Clusterconfiguratie is gewijzigd voor id= {{ .id }}. De cluster kan instabiel worden en een herstart is vereist. Om ervoor te zorgen dat de cluster correct is geconfigureerd, moet je onmiddellijk een rollende herstart uitvoeren."
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -3323,16 +3323,8 @@
     "translation": "Er is een fout opgetreden bij de aanvraag richting de Identity Provider. Neem contact op met de beheerder."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Er is een fout opgetreden tijdens het versleutelen van de aanvraag richting de Identity Provider. Neem contact op met de beheerder."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML aanmelding is mislukt vanwege het ontbreken van encryptie. Neem contact op met de beheerder."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Identity Provider Public Certificate File is niet gevonden. Neem contact op met de beheerder."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3343,19 +3335,11 @@
     "translation": "SAML aanmelding is mislukt omdat de communicatie met de Identity Provider niet versleuteld is . Neem contact op met de beheerder."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML aanmelding is mislukt omdat er een fout is opgetreden tijdens het ondersleuteling van het bericht van de Identity Provider. Neem contact op met de beheerder."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "We hebben leeg anwtoord ontvangen van de Identity Provider."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "Er is een fout opgetreden tijdens het versleutelen van de aanvraag richting de Identity Provider. Neem contact op met de beheerder."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
     "translation": "Er is een fout opgetreden tijdens het versleutelen van de aanvraag richting de Identity Provider. Neem contact op met de beheerder."
   },
   {
@@ -3376,7 +3360,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger-ID voor interactief dialoogvenster is vervallen. Trigger-ID's hebben een levensduur van maximum {{.Seconds}} seconden."
+    "translation": "Trigger-ID voor interactief dialoogvenster is verlopen. Trigger-ID's blijven maximaal {{.Duration}} geldig."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -3720,11 +3704,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "Het bewaren van bestanden moet een dag of langer zijn."
+    "translation": "Het aantal dagen dat bestanden bewaard wordt mag niet kleiner zijn dan 0."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Het bewaren van berichten moet een dag of langer zijn."
+    "translation": "Het aantal dagen dat berichten bewaard wordt mag niet kleiner zijn dan 0."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -3884,7 +3868,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Bericht Export GlobalRelaySettings. CustomerType moet worden ingesteld op 'A9' of 'A10."
+    "translation": "Message export GlobalRelaySettings.CustomerType moet worden ingesteld op \"A9\", \"A10\" of \"CUSTOM\"."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -4492,7 +4476,7 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
-    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter en 1 cijfer bevatten"
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter en 1 cijfer bevatten."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
@@ -4544,15 +4528,15 @@
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
-    "translation": "Ongeldig toegangs token"
+    "translation": "Ongeldig toegangstoken."
   },
   {
     "id": "model.user_access_token.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldige gebruikersid."
   },
   {
     "id": "model.utils.decode_json.app_error",
-    "translation": "kan niet decoderen"
+    "translation": "kan niet decoderen."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -4568,7 +4552,7 @@
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
-    "translation": "Publieke links zijn uitgeschakeld"
+    "translation": "Openbare links zijn uitgeschakeld."
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
@@ -4588,27 +4572,27 @@
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Bot bestaat niet"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "Het kanaal kon niet gevonden worden"
+    "translation": "Het kanaal kon niet gevonden worden."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "You can not modify an archived channel"
+    "translation": "Je kan een gearchiveerd kanaal niet wijzigen."
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
-    "translation": "Gebruik 'SaveDirectChannel' om een direct kanaal aan te maken"
+    "translation": "Gebruik 'SaveDirectChannel' om een direct kanaal aan te maken."
   },
   {
     "id": "store.sql_channel.save_channel.existing.app_error",
-    "translation": "Moet bijwerken aanroepen voor het bestaande kanaal"
+    "translation": "Moet bijwerken aanroepen voor het bestaande kanaal."
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "A channel with that name already exists on the same team"
+    "translation": "Er bestaat al een kanaal met die naam in hetzelfde team."
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4616,11 +4600,11 @@
   },
   {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
-    "translation": "Geen poging om een direkt kanaal te maken met 'SaveDirectChannel'"
+    "translation": "Poging om geen direct kanaal te maken met 'SaveDirectChannel'."
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de opdracht niet ophalen."
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -4628,7 +4612,7 @@
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
-    "translation": "Een team lid met de opgegeven id bestaat al"
+    "translation": "Een teamlid met het opgegeven id bestaat reeds."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
@@ -4640,23 +4624,23 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Het kanaal kan niet gevonden worden"
+    "translation": "Kon de opdracht niet vinden."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Kan binnenkomende data niet verwerken"
+    "translation": "Kan binnenkomende data niet verwerken."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "Het wachtwoord van de gebruiker kan niet bijgewerkt worden"
+    "translation": "Het wachtwoord van de gebruiker kan niet bijgewerkt worden."
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
-    "translation": "Het kanaal kan niet gevonden worden"
+    "translation": "Het kanaal kan niet gevonden worden."
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel"
+    "translation": "Deze webhook is niet toegestaan om te posten naar het aangevraagde kanaal."
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4664,11 +4648,11 @@
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
-    "translation": "Ongeldige webhook"
+    "translation": "Ongeldige webhook."
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
-    "translation": "Kan binnenkomende data niet verwerken"
+    "translation": "Kan binnenkomende data niet verwerken."
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
@@ -4844,7 +4828,7 @@
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
-    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn"
+    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -4984,7 +4968,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Groottelimiet overschreden. Probeer de [maximale paginagrootte] (https: //docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-overschreden) te controleren."
+    "translation": "Grootte-limiet overschreden. Probeer je instelling voor maximale paginagrootte te verhogen. Kijk op https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded voor meer informatie."
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
@@ -5716,7 +5700,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "Je kunt {{.Users}} toevoegen aan dit kanaal zodra ze lid zijn van het **{.Team}}** team."
+    "translation": "Je kunt {{.Users}} toevoegen aan dit kanaal zodra ze lid zijn van het **{{.Team}}** team."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -6159,18 +6143,6 @@
     "translation": "Het persoonlijk access token kan niet verwijderd worden."
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP-server is verplicht"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Dank je om Mattermost te contacteren. We nemen spoedig contact op met jou."
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "E-mail: "
-  },
-  {
     "id": "store.sql_command.update.missing.app_error",
     "translation": "Opdracht bestaat niet."
   },
@@ -6183,14 +6155,6 @@
     "translation": "kan niet migreren."
   },
   {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Fout bij het bewaren van waarde voor {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermost Adviseur"
-  },
-  {
     "id": "api.user.delete_user.not_enabled.app_error",
     "translation": "Definitief verwijderen van gebruikers is niet ingeschakeld. Contacteer je systeembeheerder."
   },
@@ -6199,100 +6163,12 @@
     "translation": "Definitief verwijderen van de teams is niet ingeschakeld. Contacteer je systeembeheerder."
   },
   {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost Contacteer-ons-verzoek"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Heb je nog verdere vragen, dan kan je contact met ons opnemen op support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "Site URL: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Totaal actieve gebruikers: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Diagnostisch id: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Contact: "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Schalen met Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost beveelt ten zeerste aan dat implementaties van meer dan 500 gebruikers gebruik maken van functies zoals gebruikersbeheer, serverclustering en prestatiebewaking. Neem contact met ons op voor meer informatie en laat ons weten hoe we kunnen helpen.\n\nDoor op Contacteer ons te klikken, deel je jouw informatie met Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Schalen met Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Jouw Mattermost systeem heeft nu 200 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. We raden je aan om uw SAML 2.0 provider te integreren met jouw Mattermost server.[Meer informatie over integratie met SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nDoor op Contacteer ons te klikken, deelt je jouw informatie met Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Stuur ons een e-mail"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Bericht kon niet verzonden worden."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Stuur ons een e-mail."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Contacteer-ons-verzoek"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "Site URL: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Totaal actieve gebruikbers {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Als je nog meer vragen heeft, kan je contact opnemen met support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "E-mail: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Diagnostisch Id: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Contacteer: {{.Contact}}"
-  },
-  {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
     "translation": "Kan de zijbalk niet bijwerken naar de bijgewerkte voorkeuren"
   },
   {
     "id": "api.preference.delete_preferences.update_sidebar.app_error",
     "translation": "Kan de zijbalk niet bijwerken met de verwijderde voorkeuren"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Kon waarschuwingsmetric niet vinden."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Fout bij verzenden van admin bevestigingse-mail"
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -6563,10 +6439,6 @@
     "translation": "Fout bij het vinden van de systeemvariable."
   },
   {
-    "id": "app.system.get.app_error",
-    "translation": "Er trad een fout op bij het ophalen van de systeemeigenschappen."
-  },
-  {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "SAML-aanmelding kan niet worden voltooid met een leeg e-mailadres."
   },
@@ -6676,7 +6548,7 @@
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": "Uitnodigingse-mail limiet is overschreden. De timer zal worden gereset na {{.RetryAfter}} seconden. Probeer opnieuw over {{.RetryAfter}} seconden."
+    "translation": "Uitnodigingse-mail limiet is overschreden. De timer zal worden gereset na {{.ResetAfter}} seconden. Probeer opnieuw over {{.RetryAfter}} seconden."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
@@ -6843,184 +6715,12 @@
     "translation": "Het wissen van oude productmeldingen is mislukt"
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Jouw Enterprise proefversie is nu actief. Ga naar **Systeemconsole > Gebruikersbeheer > Machtigingen** om Geavanceerde machtigingen in te schakelen."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Je Mattermost systeem heeft nu verschillende teams. Veel teams hebben hun eigen manier van coördineren en samenwerken, inclusief hoe kanalen worden gecreëerd, wie nieuwe teamgenoten kan uitnodigen en hoe integraties worden beheerd. Met Team schema's kan je de gebruikersrechten binnen elk team aanpassen aan hun specifieke behoeften.\n\n[Meer informatie over het gebruik van geavanceerde rechten](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Geavanceerde rechten gebruiken"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Je Mattermost systeem heeft nu verschillende teams. Veel teams hebben hun eigen manier van coördineren en samenwerken, inclusief hoe kanalen worden gecreëerd, wie nieuwe teamgenoten kan uitnodigen en hoe integraties worden beheerd. Met Team schema's kan je de gebruikersrechten binnen elk team aanpassen aan hun specifieke behoeften.\n\n[Meer informatie over het gebruik van geavanceerde rechten](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nDoor te klikken op Contacteer ons, deel je jouw informatie met Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Mattermost contacteer ons verzoek. Ik ben geïnteresseerd in het leren van meer over geavanceerde rechten met teamschema's.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Jouw Enterprise proefversie is nu actief. Zodra je een Elasticsearch-server hebt, gaat u naar **Systeem-console > Omgeving> Elasticsearch** om Elasticsearch te configureren."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Jouw Mattermost-systeem heeft een groot aantal berichten. Het standaard zoeken in de Mattermost-database begint bij ongeveer 2,5 miljoen berichten een prestatieverlies te vertonen. Met meer dan 5 miljoen berichten kan Elasticsearch aanzienlijke prestatieproblemen helpen voorkomen, zoals time-outs, met zoekopdrachten en bijvermeldingen. Neem contact met ons op voor meer informatie en laat ons weten hoe we kunnen helpen.\n\n[Meer informatie over het verbeteren van de prestaties](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Performantie verbeteren"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Jouw Mattermost systeem heeft een groot aantal berichten. Het standaard zoeken in de Mattermost-database begint bij ongeveer 2,5 miljoen berichten een prestatieverlies te vertonen. Met meer dan 5 miljoen berichten kan Elasticsearch aanzienlijke prestatieproblemen helpen voorkomen, zoals time-outs, met zoekopdrachten en vermeldingen. Neem contact met ons op voor meer informatie en laat ons weten hoe we kunnen helpen.\n\n[Meer informatie over het verbeteren van de prestaties](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDoor op Contacteer ons te klikken, deelt je jouw informatie met Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Mattermost contacteer ons verzoek. Ik ben geïnteresseerd om meer te leren over het verbeteren van de prestaties met Elasticsearch.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Jouw Enterprise proefversie is nu actief. Ga naar **Systeem-console > Gebruikersbeheer > Machtigingen** om geavanceerde machtigingen in te schakelen."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Kanalen helpen de communicatie te verbeteren, maar met gebruikers over de meest materiële kanalen die zich aansluiten en kanalen creëren, neemt de uitdaging toe om het systeem georganiseerd te houden. Met geavanceerde rechten kan je instellen welke gebruikers of rollen bepaalde acties kunnen uitvoeren, waaronder het beheren van kanaalinstellingen en leden, het gebruik van @channel of @here om brede groepen gebruikers te taggen en het maken van nieuwe webhooks.\n\n[Meer informatie over het gebruik van geavanceerde rechten](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Geavanceerde rechten gebruiken"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Kanalen helpen de communicatie te verbeteren, maar met gebruikers die binnen Mattermost lid worden van kanalen en kanalen creëren, neemt de uitdaging toe om het systeem georganiseerd te houden. Met geavanceerde rechten kan je instellen welke gebruikers of rollen bepaalde acties kunnen uitvoeren, waaronder het beheren van kanaalinstellingen en leden, het gebruik van @channel of @here om brede groepen gebruikers te taggen en het maken van nieuwe webhooks.\n\n[Meer informatie over het gebruik van geavanceerde rechten](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDoor op Contacteer ons te klikken, deelt je jouw informatie met Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Mattermost contacteer ons verzoek. Ik ben geïnteresseerd om meer te leren over het gebruik van geavanceerde rechten met systeemschema's.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Jouw Enterprise proef is nu actief. Ga naar de Systeem-console om geavanceerde functies in te schakelen."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Het wordt ten zeerste aanbevolen dat implementaties van meer dan 500 gebruikers gebruik maken van functies zoals gebruikersbeheer, serverclustering en prestatiebewaking. Neem contact met ons op voor meer informatie en laat ons weten hoe we kunnen helpen.\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/) en het ontvangen van product-e-mails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost contacteer ons verzoek. Mijn team heeft nu 500 gebruikers, en ik overweeg Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Alleen-lezen aankondingskanalen"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Jouw Enterprise proefversie is nu actief. Maak een kanaal aan en ga naar **Systeemconsole > Gebruikersbeheer > Kanalen** om het posten te beperken tot kanaalbeheerders."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Met zoveel gesprekken die in Mattermost plaatsvinden, kan het een uitdaging zijn om te weten waar je moet zoeken naar belangrijke informatie. Als je een bericht wilt uitzenden naar een groot publiek, kan je alleen-lezen-kanalen instellen waar iedereen kan meedoen, maar alleen kanaalbeheerders kunnen berichten plaatsen.\n\n[Meer informatie over het creëren van alleen-lezen-kanalen](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Met zoveel gesprekken die in Mattermost plaatsvinden, kan het een uitdaging zijn om te weten waar je moet zoeken naar belangrijke informatie. Als je een bericht wilt uitzenden naar een groot publiek, kan je alleen-lezen-kanalen instellen waar iedereen kan meedoen, maar alleen kanaalbeheerders kunnen berichten plaatsen.\n\n[Meer informatie over het creëren van alleen-lezen-kanalen](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDoor op Contacteer ons te klikken, deelt je jouw informatie met Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Mattermost contacteer ons verzoek. Ik ben geïnteresseerd in meer informatie over het creëren van alleen-lezen-kanalen.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Jouw Enterprise proefversie is nu actief. Ga naar **Systeemconsole > Authenticatie > SAML 2.0** om te integreren met jouuw SAML 2.0-provider."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Jouw Mattermost systeem heeft nu 200 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. We raden je aan om jouw SAML 2.0 provider te integreren met jouw Mattermost server.[Meer informatie over integratie met SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost contacteer ons verzoek. Mijn team heeft nu 200 gebruikers, en ik overweeg de Mattermost Enterprise editie.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Jouw Enterprise proefversie is nu actief. Ga naar **Systeem-console > Authenticatie > AD/LDAP** om jouw AD/LDAP-service te integreren."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Jouw Mattermost systeem heeft meer dan 100 gebruikers. Naarmate jouw gebruikersbasis groeit, kan het aanmaken van nieuwe accounts tijdrovend worden. Wij raden je aan de Active Directory/LDAP van jouw organisatie te integreren, waardoor iedereen met een account toegang krijgt tot Mattermost.\n\n[Meer informatie over integratie met AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Schalen met Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Jouw Mattermost systeem heeft meer dan 100 gebruikers. Naarmate jouw gebruikersbasis groeit, kan het aanmaken van nieuwe accounts tijdrovend worden. Wij raden je aan de Active Directory/LDAP van jouw organisatie te integreren, waardoor iedereen met een account toegang krijgt tot Mattermost.\n\n[Meer informatie over integratie met AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDoor op Contacteer ons te klikken, deelt je jouw informatie met Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost contacteer ons verzoek. Mijn team heeft nu 100 gebruikers en ik overweeg de Mattermost Enterprise editie.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Jouw Enterprise proefversie is nu actief. Ga naar **Systeem-console > Authenticatie > MFA** om multi-factor authenticatie af te dwingen."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Jouw Mattermost systeem heeft multi-factor authenticatie ingeschakeld, waardoor gebruikers de keuze hebben om hun accounts te beveiligen met extra authenticatiemiddelen die verder gaan dan een wachtwoord. Om de beveiliging in het hele systeem te verbeteren kan je eisen dat alle Mattermost-accounts multi-factor authenticatie gebruiken.\n\n[Meer informatie over het afdwingen van Multi-Factor Authenticatie](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Multi-factor authenticatie afdwingen"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Jouw Mattermost systeem heeft multi-factor authenticatie ingeschakeld, waardoor gebruikers de keuze hebben om hun accounts te beveiligen met extra authenticatiemiddelen die verder gaan dan een wachtwoord. Om de beveiliging in het hele systeem te verbeteren kan je eisen dat alle Mattermost-accounts multi-factor authenticatie gebruiken.\n\n[Meer informatie over het afdwingen van Multi-Factor Authenticatie](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nDoor op Contact te klikken, deelt je jouw informatie met Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Mattermost contacteer ons verzoek. Ik ben geïnteresseerd in meer informatie over het afdwingen van Multi-Factor Authenticatie.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Je Enterprise proefversie is nu actief. Ga naar **Systeem-console>Authenticatie>Gasttoegang** om Gastaccounts in te schakelen."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Bij projecten zijn vaak mensen binnen en buiten een organisatie betrokken. Met gastaccounts kan je externe partners in jouw Mattermost-systeem brengen en aangeven met wie ze kunnen werken en wat ze kunnen zien.\n\n[Meer informatie over het inschakelen van gastaccounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nDoor te klikken op Proefversie starten, ga ik akkoord met de [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacybeleid](https://mattermost.com/pl/privacy-policy/), en het ontvangen van product-e-mails."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Mattermost contacteer ons verzoek. Ik ben geïnteresseerd in het gebruik van gastaccounts.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Bij projecten zijn vaak mensen binnen en buiten een organisatie betrokken. Met gastaccounts kan je externe partners in jouw Mattermost-systeem brengen en aangeven met wie ze kunnen werken en wat ze kunnen zien.\n\n[Meer informatie over het inschakelen van Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDoor op Contacteer ons te klikken, deelt je jouw informatie met Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Aanmaken van gastaccounts"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Proeflicentie kon niet worden opgehaald. Bezoek https://mattermost.com/trial/ om een licentie aan te vragen."
-  },
-  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Fout bij het verwerken van request body."
   },
   {
     "id": "api.migrate_to_saml.error",
     "translation": "Kan niet SAML migreren."
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Kan geen proeflicentie verkrijgen, probeer opnieuw of neem contact op met support@mattermost.com. Kan het aantal geregistreerde gebruikers niet verkrijgen."
   },
   {
     "id": "ent.message_export.csv_export.get_attachment_error",
@@ -7892,7 +7592,7 @@
   },
   {
     "id": "api.back_to_app",
-    "translation": "Terug naar {{.siteName}}"
+    "translation": "Terug naar {{.SiteName}}"
   },
   {
     "id": "api.user.update_user_auth.invalid_request",
@@ -8396,7 +8096,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Fout tijdens het controleren of een gedeeld kanaal bestaat: {{.Error}}"
+    "translation": "Fout bij het controleren of gedeeld kanaal {{.ChannelID}} bestaat: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -8424,7 +8124,7 @@
   },
   {
     "id": "api.command_share.available_actions",
-    "translation": "Beschikbare acties: {{.Acties}}"
+    "translation": "Beschikbare acties: {{.Actions}}"
   },
   {
     "id": "api.command_remote.unknown_action",
@@ -8468,7 +8168,7 @@
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Beveiligde verbindingen toevoegen/verwijderen. Beschikbare acties: {{.Acties}}"
+    "translation": "Beveiligde verbindingen toevoegen/verwijderen. Beschikbare acties: {{.Actions}}"
   },
   {
     "id": "api.command_remote.permission_required",
@@ -8532,7 +8232,7 @@
   },
   {
     "id": "api.command_remote.decode_invitation.error",
-    "translation": "Kon de uitnodiging niet decoderen: {{.Fout}}"
+    "translation": "Kon de uitnodiging niet decoderen: {{.Error}}"
   },
   {
     "id": "api.command_remote.cluster_removed",
@@ -8742,10 +8442,6 @@
     "translation": "Systeem"
   },
   {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "Lijst van beheerders is leeg."
-  },
-  {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "Lijst van beheerders is leeg."
   },
@@ -8855,7 +8551,7 @@
   },
   {
     "id": "app.notification.body.thread_dm.subTitle",
-    "translation": "Terwijl je weg was, heeft {{.Afzendernaam}} op een draadje in je privé-berichten geantwoord."
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} op een draadje in je privé-bericht geantwoord."
   },
   {
     "id": "app.notification.body.thread_channel_full.subTitle",
@@ -9067,23 +8763,19 @@
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
-    "translation": "[{{ .SiteName }}] {{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelsLen }} kanalen in het {{.TeamDisplayName }} team"
+    "translation": "{{ .SiteName }} {{ .SenderName }} heeft je uitgenodigd om lid te worden van {{ .ChannelsLen }}kanalen in het {{ .TeamDisplayName }} team"
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
-    "translation": "{{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelsLen }} kanalen in het {{.TeamDisplayName }} team"
+    "translation": "{{ .SenderName }} heeft je uitgenodigd om lid te worden van {{ .ChannelsLen }} kanalen in het {{ .TeamDisplayName }} team"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelName }} in het {{.TeamDisplayName }} team"
+    "translation": "{{ .SiteName }} {{ .SenderName }} heeft je uitgenodigd om lid te worden van {{ .ChannelName }} in het {{ .TeamDisplayName }} team"
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelName }} in het {{.TeamDisplayName }} team"
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Fout bij het parsen van de body data."
+    "translation": "{{ .SenderName }} nodigt je om deel te nemen aan het {{ .ChannelName }} kanaal op het {{ .TeamDisplayName }} team."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
@@ -9139,7 +8831,7 @@
   },
   {
     "id": "common.parse_error_int64",
-    "translation": "Mislukt om de waarde te ontleden:{{.Waarde}} naar int64"
+    "translation": "Mislukt om de waarde te ontleden:{{.Value}} naar int64"
   },
   {
     "id": "app.post.cloud.get.app_error",
@@ -9163,7 +8855,7 @@
   },
   {
     "id": "app.post_reminder_dm",
-    "translation": "Hoi hoi, hier is jouw herinnering aan dit bericht van @{.Gebruikersnaam}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+    "translation": "Hoi hoi, hier is jouw herinnering aan dit bericht van @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
     "id": "app.team.clear_cache.app_error",
@@ -9647,7 +9339,7 @@
   },
   {
     "id": "app.group.username_conflict",
-    "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Gebruikersnaam}}\"."
+    "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Username}}\"."
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9875,7 +9567,7 @@
   },
   {
     "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
-    "translation": "Berichten met een blijvende meldingen moeten minimaal {{.MaxRecipients}} 1 ontvanger hebben."
+    "translation": "Berichten met een blijvende meldingen moeten minimaal 1 ontvanger hebben."
   },
   {
     "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
@@ -9907,7 +9599,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.messageOverflow",
-    "translation": "Je kunt {{.FirstUser}} en {{.Others}} anderen aan dit kanaal toevoegen zodra ze lid zijn van het **{.Team}}** team."
+    "translation": "Je kunt {{.FirstUser}} en {{.Others}} anderen aan dit kanaal toevoegen zodra ze lid zijn van het **{{.Team}}** team."
   },
   {
     "id": "api.user.login.remote_users.login.error",
@@ -10019,7 +9711,7 @@
   },
   {
     "id": "api.templates.ip_filters_changed.subTitle",
-    "translation": "@{ .InitiatingUsername }} heeft de IP-filterinstellingen voor jouw werkruimte gewijzigd op de URL: {{ .SiteURL }}"
+    "translation": "@{{ .InitiatingUsername }} heeft de IP-filterinstellingen voor jouw werkruimte gewijzigd op de URL: {{ .SiteURL }}"
   },
   {
     "id": "api.templates.ip_filters_changed.subject",
@@ -10035,7 +9727,7 @@
   },
   {
     "id": "app.plugin.subpath_parse.app_error",
-    "translation": "Fout bij het parsen van het subpad van de  SiteURL"
+    "translation": "Fout bij het parsen van het subpad van de SiteURL"
   },
   {
     "id": "api.templates.ip_filters_changed.title",
@@ -10100,5 +9792,549 @@
   {
     "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
     "translation": "Bijgewerkt op moet een geldige tijd zijn."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Het bijwerken van de aangepaste status is mislukt. Een emoji met de opgegeven naam bestaat niet."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Ongeldig team id opgegeven."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Kan niet zowel actieve als inactieve gebruikers verbergen."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "De reactielimiet voor dit bericht is bereikt."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Als GlobalRelaySettings.CustomerType 'CUSTOM' is, dan moeten GlobalRelaySettings.CustomSMTPServerName en GlobalRelaySettings.CustomSMTPPort worden ingesteld."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Paginaformaat is ongeldig of te groot."
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Draadje kan niet worden verwijderd"
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Fout bij het ophalen van gebruikersrapport."
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Ongeldige time-out voor uitgaand integratieverzoek voor service-instellingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Het opgegeven datumbereik is ongeldig."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "De opgegeven sorteerkolom is ongeldig."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Het begin van het bestand kan niet worden gezocht."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Draadjes verplaatsen is uitgeschakeld"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Je hebt geen rechten om dit draadje te verplaatsen."
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Dit draadje was verplaatst vanuit een ander kanaal"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Een draadje met {{.NumMessages}} berichten is verplaatst: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Een bericht is verplaatst: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Een draadje met {{.NumMessages}} berichten is verplaatst naar een Direct/Groepsbericht\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Een bericht is verplaatst naar een Direct/Groepsbericht\n"
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Ongeldig domein voor de instellingen van het verplaatsen van draadjes"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Kan externe niet uitnodigen omdat kanaal {{.ChannelID}} niet wordt gedeeld."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Er is een fout opgetreden bij het weergeven van uitgaande OAuth-verbindingen."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Ongeldige invoerparameters."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Kan niet zoveel rollen op naam krijgen. Alleen {{.MaxNames}} rollen kunnen in één keer worden opgevraagd."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het verwijderen van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "De uitgaande oauth-verbinding werd niet gevonden."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Kon uitnodiging niet bevestigen: {{.Error}}"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Er is een fout opgetreden tijdens het parsen van de payload."
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Jaarlijkse abonnementsverlenging binnen 60 dagen"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het bewaren van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "Het aantal uren dat bestanden bewaard wordt mag niet kleiner zijn dan 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Het aantal dagen en uren dat bestanden bewaard kunnen niet allebei groter zijn dan 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Het aantal dagen en uren dat bestanden bewaard kunnen niet beiden 0 zijn."
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Kan de gebruiker niet vinden."
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Nu vernieuwen"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Vernieuw om onderbrekingen te voorkomen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Jaarlijkse factuur verschuldigd over 30 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Je jaarlijkse factuur is verschuldigd binnen 30 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Jaarlijkse abonnementsverlenging binnen 60 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Actie vereist: Jaarlijkse abonnementsverlenging over 7 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "Je staat op het punt om binnen 7 dagen de toegang tot je werkruimte te verliezen"
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Fout bij het ophalen van het aantal gebruikers"
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Gebruikersaantal kon niet worden opgehaald."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Het aantal uren dat berichten bewaard wordt mag niet kleiner zijn dan 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Het aantal dagen en uren dat berichten bewaard kunnen niet allebei groter zijn dan 0."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Ongeldige maximale payloadgrootte voor service-instellingen. Moet een geheel getal groter dan nul zijn."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het bewaren van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Het aantal dagen en uren om bestanden te bewaren kunnen niet allebei 0 zijn."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Fout bij het controleren of een gebruiker een aangepaste profielafbeelding heeft."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Kan de meldingsinstellingen van de kanaalleden niet bijwerken."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Kan niet zoveel kanaalleden updaten. Slechts {{.Max}} kanaalleden kunnen in één keer worden bijgewerkt."
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Fout bij het schrijven van CSV-headers."
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Jouw export is klaar. Het CSV-bestand bevat gebruikersgegevens voor {{.DateRange}}. Klik op de onderstaande link om het rapport te downloaden."
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "Je bent begonnen met het exporteren van gebruikersgegevens voor {{.DateRange}}. Wanneer het exporteren is voltooid, ontvang je een CSV-bestand in dit rechtstreekse bericht."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Niet-ondersteunde rapportindeling."
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Taak bestaat al voor deze gebruiker en datumbereik."
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Batch export van rapporten is alleen beschikbaar voor Pro en Enterprise."
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "Fout bij het schrijven van CSV data."
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Niet-ondersteunde rapportindeling."
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "de afgelopen 30 dagen"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "de laatste 6 maanden"
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "alles"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "de vorige maand"
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Fout bij het bewaren van de bestandsinformatie."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Ontbrekend datumbereik"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "Geen gebruikersid om het rapport naar toe te sturen"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Ongeldige update teamlid: Een gast kan geen teamlid of teambeheerder worden. Maak van de gast eerst een gebruiker."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Ongeldige invoerparameters."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het verwijderen van de uitgaande OAuth-verbinding."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Er is een fout opgetreden tijdens het bijwerken van de uitgaande OAuth-verbinding."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Ongeldige invoerparameters."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Er is een fout opgetreden tijdens het valideren van de gegevens van de uitgaande OAuth-verbinding."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het maken van de uitgaande OAuth-verbinding."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Uitgaande OAuth verbindingen zijn niet beschikbaar op deze server."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Kon geen gegevens ophalen met de opgegeven verbindingsconfiguratie."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Uitgaande OAuth verbindingen zijn niet beschikbaar op deze server."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Jouw licentie ondersteunt geen uitgaande oauth-verbindingen."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "Het opgeven \"audience\" is ongeldig: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "Er is al een uitgaande oauth-verbinding voor het opgegeven \"audience\": {{ .Audience }}"
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Ongeldig email_token"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "Er is een fout opgetreden bij het verifiëren van de uitgaande oauth-verbinding: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "Er is al een uitgaande oauth-verbinding voor het opgegeven \"audience\"."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "Er is geen uitgaande oauth verbinding voor de opgegeven \"audience\"."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "Er is een fout opgetreden bij het ohalen van de uitgaande oath verbinding voor de \"audience\"."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "De uitgaande oauth-verbinding voor het opgegeven \"audience\" werd niet gevonden."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "Er is al een uitgaande oauth-verbinding voor het opgegeven publiek: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "Het opgegeven \"audience\" is ongeldig: {{ .Error }}"
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Kan de gebruiker niet toevoegen als lid van het kanaal."
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Ongeldige props (aangepaste status)"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Ongeldige update teamlid: Een gast kan niet worden ingesteld voor een enkel team, een systeembeheerder moet gebruikers promoveren naar of degraderen van gast."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Kan externe gebruiker niet uitnodigen tot het kanaal: {{.Error}}"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Interacties met het Mattermost Klantenportaal zijn uitgeschakeld door de systeembeheerder."
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL is te lang"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Je licentie ondersteunt geen kanaalbladwijzers."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Gebruiker mag geen kanaalbladwijzer aanmaken."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Het aanmaken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Het aanmaken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Fout bij het verwijderen van de kanaalbladwijzer."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Het verwijderen van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Het verwijderen van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Het bijwerken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Het bijwerken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Het bijwerken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Het bijwerken van de sorteervolgorde van de kanaalbladwijzers is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Het bijwerken van de sorteervolgorde van de kanaalbladwijzers is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Het bijwerken van de sorteervolgorde van de kanaalbladwijzers is mislukt."
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "Kon bladwijzer niet verwijderen."
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "Kon geen bladwijzer ophalen."
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "Bestaande bladwijzer kon niet worden bijgewerkt."
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "Kon bladwijzer niet opslaan."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Ongeldige update kanaallid: Een gast kan geen teamlid of teambeheerder worden, promoveer eerst als gebruiker."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Ongeldige update van kanaallid: Een gast kan niet ingesteld worden voor een enkel kanaal, een systeembeheerder moet gebruikers promoveren naar of degraderen van gast."
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "Kon bladwijzer niet bijwerken."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "Kon de bladwijzer niet sorteren."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "Kon de bladwijzer niet sorteren. Ongeldige invoer."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "Kon de bladwijzer niet sorteren. Niet gevonden."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "Ongeldige kanaal id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "Create at moet een geldige tijd bevatten."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "Ongeldige type."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "Bijgewerkt op moet een geldige tijd zijn."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Kan geen link en bestand in dezelfde bladwijzer zetten."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "De URL van de link ontbreekt of is ongeldig."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "Ongeldige orgineel id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "Ongeldig eigenaars-id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "Ongeldig ouder-id."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Kanalen automatisch aanvullen kan niet worden ingeschakeld omdat het schema van de kanaalindex verouderd is. Het wordt aanbevolen om je kanaalindex te regenereren. Zie de Mattermost changelog voor meer informatie"
+  },
+  {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "Het schema van je Elasticsearch kanaalindex is verouderd. Het wordt aanbevolen om je kanaalindex te regenereren.\nKlik op de `Kanalenindex herbouwen` knop in [Elasticsearch sectie in System Console]({{.ElasticsearchSection}}) om het probleem op te lossen.\nZie Mattermost changelog voor meer informatie."
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "De functie lijst leegmaken is niet beschikbaar voor Bleve."
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "Het verwijderen van een Elasticsearch-index is mislukt"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "Het verwijderen van een onbekende index is mislukt"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "Weergavenaam ontbreekt."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "Bestandsid ontbreekt of is ongeldig."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Ongeldig Id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "Ongeldige afbeeldingsURL."
   }
 ]

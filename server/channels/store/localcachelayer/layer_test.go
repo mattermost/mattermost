@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
@@ -72,7 +73,7 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, request.CTX, store.S
 	}
 }
 
-func initStores() {
+func initStores(logger mlog.LoggerIFace) {
 	if testing.Short() {
 		return
 	}
@@ -103,7 +104,7 @@ func initStores() {
 		eg.Go(func() error {
 			var err error
 
-			st.SqlStore, err = sqlstore.New(*st.SqlSettings, nil)
+			st.SqlStore, err = sqlstore.New(*st.SqlSettings, logger, nil)
 			if err != nil {
 				return err
 			}

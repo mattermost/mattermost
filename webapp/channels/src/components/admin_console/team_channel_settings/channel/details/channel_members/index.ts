@@ -3,11 +3,10 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {ChannelStats} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
-import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getChannelStats} from 'mattermost-redux/actions/channels';
 import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
@@ -15,7 +14,6 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannelMembersInChannels, getAllChannelStats, getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {makeGetProfilesInChannel, makeSearchProfilesInChannel, filterProfiles, getFilteredUsersStats as selectFilteredUsersStats} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
 
 import {loadProfilesAndReloadChannelMembers, searchProfilesAndChannelMembers} from 'actions/user_actions';
@@ -29,24 +27,6 @@ type Props = {
     channelId: string;
     usersToAdd: Record<string, UserProfile>;
     usersToRemove: Record<string, UserProfile>;
-};
-
-type Actions = {
-    getChannelStats: (channelId: string) => Promise<{
-        data: boolean;
-    }>;
-    loadProfilesAndReloadChannelMembers: (page: number, perPage: number, channelId?: string, sort?: string, options?: {[key: string]: any}) => Promise<{
-        data: boolean;
-    }>;
-    searchProfilesAndChannelMembers: (term: string, options?: {[key: string]: any}) => Promise<{
-        data: boolean;
-    }>;
-    getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
-        data?: UsersStats;
-        error?: ServerError;
-    }>;
-    setUserGridSearch: (term: string) => ActionResult;
-    setUserGridFilters: (filters: GetFilteredUsersStatsOpts) => ActionResult;
 };
 
 function searchUsersToAdd(users: Record<string, UserProfile>, term: string): Record<string, UserProfile> {
@@ -89,10 +69,10 @@ function makeMapStateToProps() {
             };
             totalCount = stats.member_count;
         } else {
-            const filteredUserStats: UsersStats = selectFilteredUsersStats(state) || {
+            const filteredUserStats = selectFilteredUsersStats(state) || {
                 total_users_count: 0,
             };
-            totalCount = filteredUserStats.total_users_count;
+            totalCount = filteredUserStats.total_users_count ?? 0;
         }
 
         let users = [];
@@ -118,9 +98,9 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             getChannelStats,
             loadProfilesAndReloadChannelMembers,
             searchProfilesAndChannelMembers,

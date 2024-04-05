@@ -92,6 +92,18 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		IncludeCacheLayer: includeCacheLayer,
 	}
 
+	if enterprise {
+		th.App.Srv().Jobs.StopWorkers()
+		th.App.Srv().Jobs.StopSchedulers()
+
+		th.App.Srv().SetLicense(model.NewTestLicense())
+
+		th.App.Srv().Jobs.StartWorkers()
+		th.App.Srv().Jobs.StartSchedulers()
+	} else {
+		th.App.Srv().SetLicense(getLicense(false, memoryConfig))
+	}
+
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
@@ -118,23 +130,21 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		*cfg.PasswordSettings.Number = false
 	})
 
-	if enterprise {
-		th.App.Srv().Jobs.StopWorkers()
-		th.App.Srv().Jobs.StopSchedulers()
-
-		th.App.Srv().SetLicense(model.NewTestLicense())
-
-		th.App.Srv().Jobs.StartWorkers()
-		th.App.Srv().Jobs.StartSchedulers()
-	} else {
-		th.App.Srv().SetLicense(nil)
-	}
-
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
 	}
 
 	return th
+}
+
+func getLicense(enterprise bool, cfg *model.Config) *model.License {
+	if *cfg.ExperimentalSettings.EnableRemoteClusterService || *cfg.ExperimentalSettings.EnableSharedChannels {
+		return model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
+	}
+	if enterprise {
+		return model.NewTestLicense()
+	}
+	return nil
 }
 
 func setup(tb testing.TB) *TestHelper {
@@ -146,6 +156,17 @@ func setup(tb testing.TB) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 
 	return setupTestHelper(dbStore, false, true, tb, nil)
+}
+
+func setupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+
+	return setupTestHelper(dbStore, false, true, tb, updateConfig)
 }
 
 var initBasicOnce sync.Once
@@ -274,7 +295,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 
 	if channel.IsShared() {
 		id := model.NewId()
-		_, err := th.App.SaveSharedChannel(th.Context, &model.SharedChannel{
+		_, err := th.App.ShareChannel(th.Context, &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
 			Home:             false,

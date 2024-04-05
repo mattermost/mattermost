@@ -3,8 +3,11 @@
 
 import * as EmojiActions from 'mattermost-redux/actions/emojis';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {Preferences as ReduxPreferences} from 'mattermost-redux/constants';
 import {getCustomEmojisByName as selectCustomEmojisByName, getCustomEmojisEnabled} from 'mattermost-redux/selectors/entities/emojis';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import {getEmojiMap, getRecentEmojisData, getRecentEmojisNames, isCustomEmojiEnabled} from 'selectors/emojis';
 import {isCustomStatusEnabled, makeGetCustomStatus} from 'selectors/views/custom_status';
@@ -66,15 +69,12 @@ export function addRecentEmojis(aliases) {
 
         let updatedRecentEmojis = [...recentEmojis];
         for (const alias of aliases) {
-            let name;
             const emoji = emojiMap.get(alias);
             if (!emoji) {
                 continue;
-            } else if (emoji.short_name) {
-                name = emoji.short_name;
-            } else {
-                name = emoji.name;
             }
+
+            const name = getEmojiName(emoji);
 
             const currentEmojiIndexInRecentList = updatedRecentEmojis.findIndex((recentEmoji) => recentEmoji.name === name);
             if (currentEmojiIndexInRecentList > -1) {
@@ -127,6 +127,35 @@ export function loadCustomEmojisForCustomStatusesByUserIds(userIds) {
 
             emojisToLoad.add(customStatus.emoji);
         });
+
+        return dispatch(loadCustomEmojisIfNeeded(Array.from(emojisToLoad)));
+    };
+}
+
+export function loadCustomEmojisForRecentCustomStatuses() {
+    return (dispatch, getState) => {
+        const state = getState();
+        const customEmojiEnabled = isCustomEmojiEnabled(state);
+        const customStatusEnabled = isCustomStatusEnabled(state);
+        if (!customEmojiEnabled || !customStatusEnabled) {
+            return {data: false};
+        }
+
+        const recentCustomStatusesValue = get(state, ReduxPreferences.CATEGORY_CUSTOM_STATUS, ReduxPreferences.NAME_RECENT_CUSTOM_STATUSES);
+        if (!recentCustomStatusesValue) {
+            return {data: false};
+        }
+
+        const recentCustomStatuses = JSON.parse(recentCustomStatusesValue);
+        const emojisToLoad = new Set();
+
+        for (const customStatus of recentCustomStatuses) {
+            if (!customStatus || !customStatus.emoji) {
+                continue;
+            }
+
+            emojisToLoad.add(customStatus.emoji);
+        }
 
         return dispatch(loadCustomEmojisIfNeeded(Array.from(emojisToLoad)));
     };

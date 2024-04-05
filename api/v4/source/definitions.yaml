@@ -53,6 +53,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AppError"
+    BadGateway:
+      description: Bad gateway
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
   schemas:
     User:
       type: object
@@ -292,6 +298,68 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/ChannelWithTeamData"
+    ChannelBookmark:
+      type: object
+      properties:
+        id:
+          type: string
+        create_at:
+          description: The time in milliseconds a channel bookmark was created
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds a channel bookmark was last updated
+          type: integer
+          format: int64
+        delete_at:
+          description: The time in milliseconds a channel bookmark was deleted
+          type: integer
+          format: int64
+        channel_id:
+          type: string
+        owner_id:
+          description: The ID of the user that the channel bookmark belongs to
+          type: string
+        file_id:
+          description: The ID of the file associated with the channel bookmark
+          type: string
+        display_name:
+          type: string
+        sort_order:
+          description: The order of the channel bookmark
+          type: integer
+          format: int64
+        link_url:
+          description: The URL associated with the channel bookmark
+          type: string
+        image_url:
+          description: The URL of the image associated with the channel bookmark
+          type: string
+        emoji:
+          type: string
+        type:
+          type: string
+          enum: [link, file]
+        original_id:
+          description: The ID of the original channel bookmark
+          type: string
+        parent_id:
+          description: The ID of the parent channel bookmark
+          type: string
+    ChannelBookmarkWithFileInfo:
+      allOf:
+        - $ref: "#/components/schemas/ChannelBookmark"
+        - type: object
+          properties:
+            file:
+              $ref: "#/components/schemas/FileInfo"
+    UpdateChannelBookmarkResponse:
+      type: object
+      properties:
+        updated:
+          $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
+        deleted:
+          $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
     Post:
       type: object
       properties:
@@ -3524,6 +3592,40 @@ components:
         Description:
           description: A description for the CIDRBlock
           type: string
+    UserReport:
+      type: object
+      properties:
+        id:
+          type: string
+        create_at:
+          description: The time in milliseconds a user was created
+          type: integer
+          format: int64
+        username:
+          type: string
+        email:
+          type: string
+        display_name:
+          type: string
+          description: Calculated display name based on user
+        last_login_at:
+          description: Last time the user was logged in
+          type: integer
+          format: int64
+        last_status_at:
+          description: Last time the user's status was updated
+          type: integer
+          format: int64
+        last_post_date:
+          description: Last time the user made a post within the given date range
+          type: integer
+          format: int64
+        days_active:
+          description: Total number of days a user posted within the given date range
+          type: integer
+        total_posts:
+          description: Total number of posts made by a user within the given date range
+          type: integer
     Installation:
       type: object
       properties:
@@ -3534,6 +3636,68 @@ components:
           $ref: "#/components/schemas/AllowedIPRange"
         state:
           description: The current state of the installation
+          type: string
+    UserLimits:
+      type: object
+      properties:
+        maxUsersLimit:
+          description: The maximum number of users allowed on server
+          type: integer
+          format: int64
+        activeUserCount:
+          description: The number of active users in the server
+          type: integer
+          format: int64
+  # Outgoing OAuth Connections
+    OutgoingOAuthConnectionGetItem:
+      type: object
+      properties:
+        id:
+          description: The unique identifier for the outgoing OAuth connection.
+          type: string
+        name:
+          description: The name of the outgoing OAuth connection.
+          type: string
+        create_at:
+          description: The time in milliseconds the outgoing OAuth connection was created.
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds the outgoing OAuth connection was last updated.
+          type: integer
+          format: int64
+        grant_type:
+          description: The grant type of the outgoing OAuth connection.
+          type: string
+        audiences:
+          description: The audiences of the outgoing OAuth connection.
+          type: string
+    OutgoingOAuthConnectionPostItem:
+      type: object
+      properties:
+        name:
+          description: The name of the outgoing OAuth connection.
+          type: string
+        client_id:
+          description: The client ID of the outgoing OAuth connection.
+          type: string
+        client_secret:
+          description: The client secret of the outgoing OAuth connection.
+          type: string
+        credentials_username:
+          description: The username of the credentials of the outgoing OAuth connection.
+          type: string
+        credentials_password:
+          description: The password of the credentials of the outgoing OAuth connection.
+          type: string
+        oauth_token_url:
+          description: The OAuth token URL of the outgoing OAuth connection.
+          type: string
+        grant_type:
+          description: The grant type of the outgoing OAuth connection.
+          type: string
+        audiences:
+          description: The audiences of the outgoing OAuth connection.
           type: string
 externalDocs:
   description: Find out more about Mattermost

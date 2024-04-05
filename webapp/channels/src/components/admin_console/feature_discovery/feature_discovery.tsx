@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import type {AnalyticsRow} from '@mattermost/types/admin';
+import type {AnalyticsState} from '@mattermost/types/admin';
 import type {CloudCustomer} from '@mattermost/types/cloud';
 import type {ClientLicense} from '@mattermost/types/config';
 
@@ -46,7 +46,7 @@ type Props = {
 
     prevTrialLicense: ClientLicense;
 
-    stats?: Record<string, number | AnalyticsRow[]>;
+    stats?: AnalyticsState;
     actions: {
         getPrevTrialLicense: () => void;
         getCloudSubscription: () => void;

@@ -3,24 +3,18 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-
-import type {UserProfile} from '@mattermost/types/users';
+import type {Dispatch} from 'redux';
 
 import {updateMe} from 'mattermost-redux/actions/users';
-import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
 import ManageLanguages from './manage_languages';
 
-type Actions = {
-    updateMe: (user: UserProfile) => Promise<ActionResult>;
-}
-
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             updateMe,
-        }, dispatch)};
+        }, dispatch),
+    };
 }
 
 export default connect(null, mapDispatchToProps)(ManageLanguages);

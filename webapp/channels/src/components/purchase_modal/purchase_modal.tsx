@@ -7,16 +7,17 @@ import {Elements} from '@stripe/react-stripe-js';
 import type {Stripe, StripeCardElementChangeEvent} from '@stripe/stripe-js';
 import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
 import classnames from 'classnames';
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
-import type {Address, CloudCustomer, Product, Invoice, Feedback} from '@mattermost/types/cloud';
+import type {Address, CloudCustomer, Product, Invoice, Feedback, Subscription, InvoiceLineItem} from '@mattermost/types/cloud';
 import {areShippingDetailsValid} from '@mattermost/types/cloud';
 import type {Team} from '@mattermost/types/teams';
 
+import {Client4} from 'mattermost-redux/client';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -24,12 +25,12 @@ import {trackEvent, pageVisited} from 'actions/telemetry_actions';
 
 import BillingHistoryModal from 'components/admin_console/billing/billing_history_modal';
 import PaymentDetails from 'components/admin_console/billing/payment_details';
+import CloudInvoicePreview from 'components/cloud_invoice_preview';
 import PlanLabel from 'components/common/plan_label';
 import ComplianceScreenFailedSvg from 'components/common/svg_images_components/access_denied_happy_svg';
 import BackgroundSvg from 'components/common/svg_images_components/background_svg';
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import ExternalLink from 'components/external_link';
-import OverlayTrigger from 'components/overlay_trigger';
 import AddressForm from 'components/payment_form/address_form';
 import PaymentForm from 'components/payment_form/payment_form';
 import {STRIPE_CSS_SRC} from 'components/payment_form/stripe';
@@ -39,12 +40,12 @@ import SeatsCalculator, {errorInvalidNumber} from 'components/seats_calculator';
 import type {Seats} from 'components/seats_calculator';
 import Consequences from 'components/seats_calculator/consequences';
 import SwitchToYearlyPlanConfirmModal from 'components/switch_to_yearly_plan_confirm_modal';
-import Tooltip from 'components/tooltip';
 import StarMarkSvg from 'components/widgets/icons/star_mark_icon';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
+import 'components/payment_form/payment_form.scss';
 
+import {buildInvoiceSummaryPropsFromLineItems} from 'utils/cloud_utils';
 import {
-    Constants,
     TELEMETRY_CATEGORIES,
     CloudLinks,
     CloudProducts,
@@ -60,13 +61,13 @@ import type {ModalData} from 'types/actions';
 import type {BillingDetails} from 'types/cloud/sku';
 import {areBillingDetailsValid} from 'types/cloud/sku';
 
+import DelinquencyCard from './delinquency_card';
 import IconMessage from './icon_message';
 import ProcessPaymentSetup from './process_payment_setup';
-
-import 'components/payment_form/payment_form.scss';
+import RenewalCard from './renewal_card';
+import {findProductInDictionary, getSelectedProduct} from './utils';
 
 import './purchase.scss';
-
 let stripePromise: Promise<Stripe | null>;
 
 export enum ButtonCustomiserClasses {
@@ -75,22 +76,12 @@ export enum ButtonCustomiserClasses {
     special = 'special',
 }
 
-type ButtonDetails = {
+export type ButtonDetails = {
     action: () => void;
     text: string;
     disabled?: boolean;
     customClass?: ButtonCustomiserClasses;
 }
-
-type DelinquencyCardProps = {
-    topColor: string;
-    price: string;
-    buttonDetails: ButtonDetails;
-    onViewBreakdownClick: () => void;
-    isCloudDelinquencyGreaterThan90Days: boolean;
-    users: number;
-    cost: number;
-};
 
 type CardProps = {
     topColor?: string;
@@ -117,11 +108,13 @@ type Props = {
     intl: IntlShape;
     theme: Theme;
     isDelinquencyModal?: boolean;
+    isRenewalModal?: boolean;
     invoices?: Invoice[];
     isCloudDelinquencyGreaterThan90Days: boolean;
     usersCount: number;
     isComplianceBlocked: boolean;
     contactSupportLink: string;
+    subscription: Subscription | undefined;
 
     // callerCTA is information about the cta that opened this modal. This helps us provide a telemetry path
     // showing information about how the modal was opened all the way to more CTAs within the modal itself
@@ -167,55 +160,6 @@ type State = {
     isSwitchingToAnnual: boolean;
 }
 
-/**
- *
- * @param products  Record<string, Product> | undefined - the list of current cloud products
- * @param productId String - a valid product id used to find a particular product in the dictionary
- * @param productSku String - the sku value of the product of type either cloud-starter | cloud-professional | cloud-enterprise
- * @returns Product
- */
-function findProductInDictionary(products: Record<string, Product> | undefined, productId?: string | null, productSku?: string, productRecurringInterval?: string): Product | null {
-    if (!products) {
-        return null;
-    }
-    const keys = Object.keys(products);
-    if (!keys.length) {
-        return null;
-    }
-    if (!productId && !productSku) {
-        return products[keys[0]];
-    }
-    let currentProduct = products[keys[0]];
-    if (keys.length > 1) {
-        // here find the product by the provided id or name, otherwise return the one with Professional in the name
-        keys.forEach((key) => {
-            if (productId && products[key].id === productId) {
-                currentProduct = products[key];
-            } else if (productSku && products[key].sku === productSku && products[key].recurring_interval === productRecurringInterval) {
-                currentProduct = products[key];
-            }
-        });
-    }
-    return currentProduct;
-}
-
-function getSelectedProduct(
-    products: Record<string, Product> | undefined,
-    yearlyProducts: Record<string, Product>,
-    currentProductId?: string | null,
-    isDelinquencyModal?: boolean,
-    isCloudDelinquencyGreaterThan90Days?: boolean) {
-    if (isDelinquencyModal && !isCloudDelinquencyGreaterThan90Days) {
-        const currentProduct = findProductInDictionary(products, currentProductId, undefined, RecurringIntervals.MONTH);
-
-        // if the account hasn't been delinquent for more than 90 days, then we will allow them to settle up and stay on their current product
-        return currentProduct;
-    }
-
-    // Otherwise, we will default to upgrading them to the yearly professional plan
-    return findProductInDictionary(yearlyProducts, null, CloudProducts.PROFESSIONAL, RecurringIntervals.YEAR);
-}
-
 export function Card(props: CardProps) {
     const cardContent = (
         <div className='PlanCard'>
@@ -249,111 +193,6 @@ export function Card(props: CardProps) {
     );
 }
 
-function DelinquencyCard(props: DelinquencyCardProps) {
-    const seeHowBillingWorks = (
-        e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
-    ) => {
-        e.preventDefault();
-        trackEvent(
-            TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-            'click_see_how_billing_works',
-        );
-        window.open(CloudLinks.DELINQUENCY_DOCS, '_blank');
-    };
-    return (
-        <div className='PlanCard'>
-            <div
-                className='top'
-                style={{backgroundColor: props.topColor}}
-            />
-            <div className='bottom delinquency'>
-                <div className='delinquency_summary_section'>
-                    <div className={'summary-section'}>
-                        <div className='summary-title'>
-                            <FormattedMessage
-                                id={'cloud_delinquency.cc_modal.card.totalOwed'}
-                                defaultMessage={'Total Owed'}
-                            />
-                            {':'}
-                        </div>
-                        <div className='summary-total'>{props.price}</div>
-                        <div
-                            onClick={props.onViewBreakdownClick}
-                            className='view-breakdown'
-                        >
-                            <FormattedMessage
-                                defaultMessage={'View Breakdown'}
-                                id={
-                                    'cloud_delinquency.cc_modal.card.viewBreakdown'
-                                }
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <button
-                        className={
-                            'plan_action_btn ' + props.buttonDetails.customClass
-                        }
-                        disabled={props.buttonDetails.disabled}
-                        onClick={props.buttonDetails.action}
-                    >
-                        {props.buttonDetails.text}
-                    </button>
-                </div>
-                <div className='plan_billing_cycle delinquency'>
-                    {Boolean(!props.isCloudDelinquencyGreaterThan90Days) && (
-                        <FormattedMessage
-                            defaultMessage={
-                                'When you reactivate your subscription, you\'ll be billed the total outstanding amount immediately. Your bill is calculated at the end of the billing cycle based on the number of active users. {seeHowBillingWorks}'
-                            }
-                            id={'cloud_delinquency.cc_modal.disclaimer'}
-                            values={{
-                                seeHowBillingWorks: (
-                                    <a onClick={seeHowBillingWorks}>
-                                        <FormattedMessage
-                                            defaultMessage={
-                                                'See how billing works.'
-                                            }
-                                            id={
-                                                'admin.billing.subscription.howItWorks'
-                                            }
-                                        />
-                                    </a>
-                                ),
-                            }}
-                        />
-                    )}
-                    {Boolean(props.isCloudDelinquencyGreaterThan90Days) && (
-                        <FormattedMessage
-                            defaultMessage={
-                                'When you reactivate your subscription, you\'ll be billed the total outstanding amount immediately. You\'ll also be billed {cost} immediately for a 1 year subscription based on your current active user count of {users} users. {seeHowBillingWorks}'
-                            }
-                            id={
-                                'cloud_delinquency.cc_modal.disclaimer_with_upgrade_info'
-                            }
-                            values={{
-                                cost: `$${props.cost}`,
-                                users: props.users,
-                                seeHowBillingWorks: (
-                                    <a onClick={seeHowBillingWorks}>
-                                        <FormattedMessage
-                                            defaultMessage={'See how billing works.'}
-                                            id={
-                                                'admin.billing.subscription.howItWorks'
-                                            }
-                                        />
-                                    </a>
-                                ),
-                            }}
-                        />
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-}
-
 class PurchaseModal extends React.PureComponent<Props, State> {
     modal = React.createRef();
 
@@ -375,15 +214,11 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 props.productId,
             ),
             selectedProduct: getSelectedProduct(
-                props.products,
-                props.yearlyProducts,
-                props.productId,
-                props.isDelinquencyModal,
-                props.isCloudDelinquencyGreaterThan90Days,
+                props.products!,
             ),
             isUpgradeFromTrial: props.isFreeTrial,
             buttonClickedInfo: '',
-            selectedProductPrice: getSelectedProduct(props.products, props.yearlyProducts, props.productId, props.isDelinquencyModal, props.isCloudDelinquencyGreaterThan90Days)?.price_per_seat.toString() || null,
+            selectedProductPrice: getSelectedProduct(props.products!)?.price_per_seat.toString() || null,
             usersCount: this.props.usersCount,
             seats: {
                 quantity: this.props.usersCount.toString(),
@@ -398,8 +233,8 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             await this.props.actions.getCloudProducts();
             this.setState({
                 currentProduct: findProductInDictionary(this.props.products, this.props.productId),
-                selectedProduct: getSelectedProduct(this.props.products, this.props.yearlyProducts, this.props.productId, this.props.isDelinquencyModal, this.props.isCloudDelinquencyGreaterThan90Days),
-                selectedProductPrice: getSelectedProduct(this.props.products, this.props.yearlyProducts, this.props.productId, false)?.price_per_seat.toString() ?? null,
+                selectedProduct: getSelectedProduct(this.props.products!),
+                selectedProductPrice: getSelectedProduct(this.props.products!)?.price_per_seat.toString() ?? null,
             });
         }
 
@@ -565,7 +400,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
     };
 
     paymentFooterText = () => {
-        const normalPaymentText = (
+        return (
             <div className='plan_payment_commencement'>
                 <FormattedMessage
                     defaultMessage={'You\'ll be billed from: {beginDate}'}
@@ -576,61 +411,6 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 />
             </div>
         );
-
-        let payment = normalPaymentText;
-        if (!this.props.isFreeTrial && this.state.currentProduct?.billing_scheme === BillingSchemes.FLAT_FEE &&
-            this.state.selectedProduct?.billing_scheme === BillingSchemes.PER_SEAT) {
-            const announcementTooltip = (
-                <Tooltip
-                    id='proratedPayment__tooltip'
-                    className='proratedTooltip'
-                >
-                    <div className='tooltipTitle'>
-                        <FormattedMessage
-                            defaultMessage={'Prorated Payments'}
-                            id={'admin.billing.subscription.proratedPayment.tooltipTitle'}
-                        />
-                    </div>
-                    <div className='tooltipText'>
-                        <FormattedMessage
-                            defaultMessage={'If you upgrade to {selectedProductName} from {currentProductName} mid-month, you will be charged a prorated amount for both plans.'}
-                            id={'admin.billing.subscription.proratedPayment.tooltipText'}
-                            values={{
-                                beginDate: getNextBillingDate(),
-                                selectedProductName: this.state.selectedProduct?.name,
-                                currentProductName: this.state.currentProduct?.name,
-                            }}
-                        />
-                    </div>
-                </Tooltip>
-            );
-
-            const announcementIcon = (
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='top'
-                    overlay={announcementTooltip}
-                >
-                    <div className='content__icon'>{'\uF5D6'}</div>
-                </OverlayTrigger>
-
-            );
-            const prorratedPaymentText = (
-                <div className='prorrated-payment-text'>
-                    {announcementIcon}
-                    <FormattedMessage
-                        defaultMessage={'Prorated payment begins: {beginDate}. '}
-                        id={'admin.billing.subscription.proratedPaymentBegins'}
-                        values={{
-                            beginDate: getNextBillingDate(),
-                        }}
-                    />
-                    {this.learnMoreLink()}
-                </div>
-            );
-            payment = prorratedPaymentText;
-        }
-        return payment;
     };
 
     getPlanNameFromProductName = (productName: string): string => {
@@ -658,24 +438,30 @@ class PurchaseModal extends React.PureComponent<Props, State> {
     };
 
     handleViewBreakdownClick = () => {
-        this.props.actions.openModal({
-            modalId: ModalIdentifiers.BILLING_HISTORY,
-            dialogType: BillingHistoryModal,
-            dialogProps: {
-                invoices: this.props.invoices,
-            },
-        });
+        // If there is only one invoice, we can skip the summary and go straight to the invoice PDF preview for this singular invoice.
+        if (this.props.invoices?.length === 1) {
+            this.props.actions.openModal({
+                modalId: ModalIdentifiers.CLOUD_INVOICE_PREVIEW,
+                dialogType: CloudInvoicePreview,
+                dialogProps: {
+                    url: Client4.getInvoicePdfUrl(this.props.invoices[0].id),
+                },
+            });
+        } else {
+            this.props.actions.openModal({
+                modalId: ModalIdentifiers.BILLING_HISTORY,
+                dialogType: BillingHistoryModal,
+                dialogProps: {
+                    invoices: this.props.invoices,
+                },
+            });
+        }
     };
 
     purchaseScreenCard = () => {
         if (this.props.isDelinquencyModal) {
             return (
-                <>
-                    {this.props.isCloudDelinquencyGreaterThan90Days ? null : (
-                        <div className='plan_comparison'>
-                            {this.comparePlan}
-                        </div>
-                    )}
+                <div className='RHS'>
                     <DelinquencyCard
                         topColor='#4A69AC'
                         price={this.getDelinquencyTotalString()}
@@ -693,6 +479,44 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                         cost={parseInt(this.state.selectedProductPrice || '', 10) * this.props.usersCount}
                         users={this.props.usersCount}
                     />
+                </div>
+            );
+        }
+
+        if (this.props.isRenewalModal) {
+            if (!this.props.subscription || !this.props.subscription.upcoming_invoice) {
+                return null;
+            }
+            const invoice = this.props.subscription?.upcoming_invoice;
+            const invoiceSummaryProps = buildInvoiceSummaryPropsFromLineItems(invoice?.line_items || []);
+            if (this.state.seats.quantity !== this.props.usersCount.toString()) {
+                // If the user has changed the number of seats, the stripe invoice won't yet reflect that new seat count
+                // We must look for the invoice item that occurs in the future (ie, the invoice item for the next billing period)
+                // And adjust the quantity, so the summary equates properly
+                invoiceSummaryProps.fullCharges = invoiceSummaryProps.fullCharges.map((lineitem: InvoiceLineItem) => {
+                    if (new Date(lineitem.period_start * 1000) > new Date()) {
+                        return {
+                            ...lineitem,
+                            quantity: parseInt(this.state.seats.quantity, 10),
+                            total: parseInt(this.state.seats.quantity, 10) * lineitem.price_per_unit,
+                        };
+                    }
+
+                    return lineitem;
+                });
+            }
+            return (
+                <>
+                    <RenewalCard
+                        invoice={invoice}
+                        product={this.state.selectedProduct || undefined}
+                        seats={this.state.seats}
+                        existingUsers={this.props.usersCount}
+                        onSeatChange={(seats: Seats) => this.setState({seats})}
+                        buttonDisabled={!this.state.paymentInfoIsValid}
+                        onButtonClick={() => this.handleSubmitClick(this.props.callerCTA + '> purchase_modal > renew_button_click')}
+                        {...invoiceSummaryProps}
+                    />
                 </>
             );
         }
@@ -709,14 +533,10 @@ class PurchaseModal extends React.PureComponent<Props, State> {
 
         const yearlyProductMonthlyPrice = formatNumber(parseInt(this.state.selectedProductPrice || '0', 10) / 12, {maximumFractionDigits: 2});
 
-        const currentProductMonthly = this.state.currentProduct?.recurring_interval === RecurringIntervals.MONTH;
-        const currentProductProfessional = this.state.currentProduct?.sku === CloudProducts.PROFESSIONAL;
-        const currentProductMonthlyProfessional = currentProductMonthly && currentProductProfessional;
-
-        const cardBtnText = currentProductMonthlyProfessional ? formatMessage({id: 'pricing_modal.btn.switch_to_annual', defaultMessage: 'Switch to annual billing'}) : formatMessage({id: 'pricing_modal.btn.upgrade', defaultMessage: 'Upgrade'});
+        const cardBtnText = formatMessage({id: 'pricing_modal.btn.upgrade', defaultMessage: 'Upgrade'});
 
         return (
-            <>
+            <div className='RHS'>
                 <div
                     className={showPlanLabel ? 'plan_comparison show_label' : 'plan_comparison'}
                 >
@@ -739,11 +559,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                     planBriefing={<></>}
                     buttonDetails={{
                         action: () => {
-                            if (currentProductMonthlyProfessional) {
-                                this.confirmSwitchToAnnual();
-                            } else {
-                                this.handleSubmitClick(this.props.callerCTA + '> purchase_modal > upgrade_button_click');
-                            }
+                            this.handleSubmitClick(this.props.callerCTA + '> purchase_modal > upgrade_button_click');
                         },
                         text: cardBtnText,
                         customClass:
@@ -788,7 +604,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                         />
                     }
                 />
-            </>
+            </div>
         );
     };
 
@@ -912,7 +728,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                         />
                     )}
                 </div>
-                <div className='RHS'>{this.purchaseScreenCard()}</div>
+                {this.purchaseScreenCard()}
             </div>
         );
     };

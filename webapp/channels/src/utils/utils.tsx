@@ -5,7 +5,7 @@ import {getName} from 'country-list';
 import crypto from 'crypto';
 import cssVars from 'css-vars-ponyfill';
 import type {Locale} from 'date-fns';
-import {isNil} from 'lodash';
+import isNil from 'lodash/isNil';
 import moment from 'moment';
 import React from 'react';
 import type {LinkHTMLAttributes} from 'react';
@@ -322,9 +322,9 @@ export function toRgbValues(hexStr: string): string {
 export function applyTheme(theme: Theme) {
     if (theme.centerChannelColor) {
         changeCss('.app__body .markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
-        changeCss('.app__body .channel-header__info .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
-        changeCss('.app__body .channel-header .pinned-posts-button svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.6));
-        changeCss('.app__body .channel-header .channel-header_plugin-dropdown svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.6));
+        changeCss('.app__body .channel-header__info .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.75));
+        changeCss('.app__body .channel-header .pinned-posts-button svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.75));
+        changeCss('.app__body .channel-header .channel-header_plugin-dropdown svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.75));
         changeCss('.app__body .file-preview, .app__body .post-image__details, .app__body .markdown__table th, .app__body .markdown__table td, .app__body .webhooks__container, .app__body .dropdown-menu', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.emoji-picker .emoji-picker__header', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25));
@@ -341,7 +341,7 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .attachment .attachment__content, .app__body .attachment-actions button', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.16));
         changeCss('.app__body .attachment-actions button:focus, .app__body .attachment-actions button:hover', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.5));
         changeCss('.app__body .attachment-actions button:focus, .app__body .attachment-actions button:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.03));
-        changeCss('.app__body .input-group-addon, .app__body .channel-intro .channel-intro__content, .app__body .webhooks__container', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
+        changeCss('.app__body .input-group-addon, .app__body .webhooks__container', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
         changeCss('.app__body .date-separator .separator__text', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .date-separator .separator__hr, .app__body .modal-footer, .app__body .modal .custom-textarea', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .search-item-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1));
@@ -1046,7 +1046,7 @@ export function defaultImageURLForUser(userId: UserProfile['id']) {
 }
 
 // in contrast to Client4.getTeamIconUrl, for ui logic this function returns null if last_team_icon_update is unset
-export function imageURLForTeam(team: Team & {last_team_icon_update?: number}) {
+export function imageURLForTeam(team: Team) {
     return team.last_team_icon_update ? Client4.getTeamIconUrl(team.id, team.last_team_icon_update) : null;
 }
 
@@ -1397,7 +1397,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
                                 }
                             }
                             if (!member) {
-                                const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel, false));
+                                const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel.display_name, false));
                                 if (data.join) {
                                     let error = false;
                                     if (!getTeamMemberships(state)[team.id]) {
@@ -1419,7 +1419,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
             e.stopPropagation();
 
             if (match && match.type === 'permalink' && isTeamSameWithCurrentTeam(state, match.teamName) && isReply && crtEnabled) {
-                focusPost(match.postId ?? '', linkAttribute.value, user.id, {skipRedirectReplyPermalink: true})(store.dispatch, store.getState);
+                store.dispatch(focusPost(match.postId ?? '', linkAttribute.value, user.id, {skipRedirectReplyPermalink: true}));
             } else {
                 getHistory().push(linkAttribute.value);
             }

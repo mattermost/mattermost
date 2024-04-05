@@ -4,7 +4,7 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-import type {ChangeEvent, RefObject} from 'react';
+import type {ChangeEvent} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {Styles as ReactSelectStyles, ValueType} from 'react-select';
@@ -29,8 +29,10 @@ import DesktopNotificationSettings from './desktop_notification_setting/desktop_
 import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
 
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
+
 import type {PropsFromRedux} from './index';
-import './user_settings_notifications.scss';
 
 const WHITE_SPACE_REGEX = /\s+/g;
 const COMMA_REGEX = /,/g;
@@ -213,9 +215,6 @@ function getDefaultStateFromProps(props: Props): State {
 }
 
 class NotificationsTab extends React.PureComponent<Props, State> {
-    drawerRef: RefObject<HTMLHeadingElement>;
-    wrapperRef: RefObject<HTMLDivElement>;
-
     static defaultProps = {
         activeSection: '',
     };
@@ -224,8 +223,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         super(props);
 
         this.state = getDefaultStateFromProps(props);
-        this.drawerRef = React.createRef();
-        this.wrapperRef = React.createRef();
     }
 
     handleSubmit = async () => {
@@ -328,7 +325,9 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         a11yFocus(e?.currentTarget as HTMLElement);
     };
 
-    handleEmailRadio = (enableEmail: UserNotifyProps['email']): void => this.setState({enableEmail});
+    handleEmailRadio = (enableEmail: UserNotifyProps['email']): void => {
+        this.setState({enableEmail});
+    };
 
     handleChangeForUsernameKeyCheckbox = (event: ChangeEvent<HTMLInputElement>) => {
         const {target: {checked}} = event;
@@ -872,8 +871,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         autoFocus={true}
                         isClearable={false}
                         isMulti={true}
-                        styles={customKeywordsWithNotificationStyles}
-                        className='multiInput'
+                        styles={customKeywordsSelectorStyles}
                         placeholder=''
                         components={{
                             DropdownIndicator: () => null,
@@ -965,8 +963,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         autoFocus={true}
                         isClearable={false}
                         isMulti={true}
-                        styles={customKeywordsWithNotificationStyles}
-                        className='multiInput'
+                        styles={customKeywordsSelectorStyles}
                         placeholder=''
                         components={{
                             DropdownIndicator: () => null,
@@ -1265,63 +1262,45 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
         return (
             <div id='notificationSettings'>
-                <div className='modal-header'>
-                    <button
-                        id='closeButton'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4
-                        className='modal-title'
-                        ref={this.drawerRef}
-                    >
-                        <div className='modal-back'>
-                            <i
-                                className='fa fa-angle-left'
-                                aria-label={this.props.intl.formatMessage({
-                                    id: 'generic_icons.collapse',
-                                    defaultMessage: 'Collapse Icon',
-                                })}
-                                onClick={this.props.collapseModal}
-                            />
-                        </div>
+                <SettingMobileHeader
+                    closeModal={this.props.closeModal}
+                    collapseModal={this.props.collapseModal}
+                    text={
                         <FormattedMessage
                             id='user.settings.notifications.title'
                             defaultMessage='Notification Settings'
                         />
-                    </h4>
-                </div>
+                    }
+                />
                 <div
-                    ref={this.wrapperRef}
                     className='user-settings'
                 >
-                    <div className='notificationSettingsModalHeader'>
-                        <h3
-                            id='notificationSettingsTitle'
-                            className='tab-header'
-                        >
+                    <SettingDesktopHeader
+                        id='notificationSettingsTitle'
+                        text={
                             <FormattedMessage
                                 id='user.settings.notifications.header'
                                 defaultMessage='Notifications'
                             />
-                        </h3>
-                        <FormattedMessage
-                            id='user.settings.notifications.learnMore'
-                            defaultMessage='<a>Learn more about notifications</a>'
-                            values={{
-                                a: (chunks: string) => ((
-                                    <ExternalLink href='https://mattermost.com/pl/about-notifications'>
-                                        <LightbulbOutlineIcon/>
-                                        <span>{chunks}</span>
-                                    </ExternalLink>
-                                )),
-                            }}
-                        />
-                    </div>
+                        }
+                        info={
+                            <FormattedMessage
+                                id='user.settings.notifications.learnMore'
+                                defaultMessage='<a>Learn more about notifications</a>'
+                                values={{
+                                    a: (chunks: string) => ((
+                                        <ExternalLink
+                                            href='https://mattermost.com/pl/about-notifications'
+                                            className='btn btn-link'
+                                        >
+                                            <LightbulbOutlineIcon className='circular-border'/>
+                                            <span>{chunks}</span>
+                                        </ExternalLink>
+                                    )),
+                                }}
+                            />
+                        }
+                    />
                     <div className='divider-dark first'/>
                     <DesktopNotificationSettings
                         active={this.props.activeSection === 'desktop'}
@@ -1395,7 +1374,31 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     }
 }
 
-const customKeywordsWithNotificationStyles: ReactSelectStyles = {
+const customKeywordsSelectorStyles: ReactSelectStyles = {
+    container: ((baseStyle) => ({
+        ...baseStyle,
+        marginBlockStart: '10px',
+    })),
+    control: ((baseStyles) => ({
+        ...baseStyles,
+        backgroundColor: 'var(--center-channel-bg)',
+        border: '1px solid rgba(var(--center-channel-color-rgb), 0.16);',
+        ':hover': {
+            borderColor: 'rgba(var(--center-channel-color-rgb), 0.48);',
+        },
+    })),
+    multiValue: ((baseStyles) => ({
+        ...baseStyles,
+        background: 'rgba(var(--center-channel-color-rgb), 0.08)',
+    })),
+    multiValueLabel: ((baseStyles) => ({
+        ...baseStyles,
+        color: 'var(--center-channel-color);',
+    })),
+    input: ((baseStyles) => ({
+        ...baseStyles,
+        color: 'var(--center-channel-color)',
+    })),
     indicatorSeparator: ((indicatorSeperatorStyles) => ({
         ...indicatorSeperatorStyles,
         display: 'none',
@@ -1403,8 +1406,10 @@ const customKeywordsWithNotificationStyles: ReactSelectStyles = {
     multiValueRemove: ((multiValueRemoveStyles) => ({
         ...multiValueRemoveStyles,
         cursor: 'pointer',
+        color: 'rgba(var(--center-channel-color-rgb),0.32);',
         ':hover': {
             backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.16)',
+            color: 'rgba(var(--center-channel-color-rgb), 0.56);',
         },
     })),
 };

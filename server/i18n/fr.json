@@ -3328,16 +3328,8 @@
     "translation": "Une erreur s'est produite lors de l'initialisation de la requête au fournisseur d'identité. Veuillez contacter votre administrateur système."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Une erreur s'est produite lors de l'encodage de la requête au fournisseur d'identité. Veuillez contacter votre administrateur système."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "La connexion via SAML a échoué, car le chiffrement n'est pas activé. Veuillez contacter votre administrateur système."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Le fichier de certificat de fournisseur d'identité est introuvable. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3348,19 +3340,11 @@
     "translation": "La connexion via SAML a échoué, car la réponse du fournisseur d'identité n'est pas chiffrée. Veuillez contacter votre administrateur système."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "La connexion via SAML a échoué, car une erreur s'est produite lors du déchiffrement de la réponse du serveur d'identité. Veuillez contacter votre administrateur système."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Une réponse vide a été reçue du fournisseur d'identité."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "Une erreur s'est produite lors de l'encodage de la requête au fournisseur d'identité. Veuillez contacter votre administrateur système."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
     "translation": "Une erreur s'est produite lors de l'encodage de la requête au fournisseur d'identité. Veuillez contacter votre administrateur système."
   },
   {
@@ -6076,10 +6060,6 @@
     "translation": "Impossible de supprimer le jeton d'accès personnel"
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Un serveur SMTP est nécessaire"
-  },
-  {
     "id": "ent.message_export.run_export.app_error",
     "translation": "Impossible de sélectionner les données d'exportation de messages"
   },
@@ -6114,18 +6094,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Une erreur s'est produite lors de la suppression des préférences."
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL de site : "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Total utilisateurs actifs : "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Adresse e-mail : "
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -6304,10 +6272,6 @@
     "translation": "Impossible de trouver la variable système."
   },
   {
-    "id": "app.system.get.app_error",
-    "translation": "Une erreur s'est produite lors de la recherche des propriétés système"
-  },
-  {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Impossible de terminer la connexion via SAML avec une adresse e-mail vide."
   },
@@ -6442,10 +6406,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Impossible de récupérer les membres du canal."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Imposer l'authentification multi-facteurs"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -6744,14 +6704,6 @@
     "translation": "La connexion de bot est interdite."
   },
   {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Impossible de trouver la valeur déclenchant un avertissement."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Echec dans l'envoi de l'email de validation provenant de l'administrateur du système."
-  },
-  {
     "id": "api.invalid_channel",
     "translation": "L'utilisateur n'a pas les droits sur le canal invoqué dans la requête."
   },
@@ -6786,110 +6738,6 @@
   {
     "id": "api.templates.invite_body_footer.learn_more",
     "translation": "En savoir plus"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Formuaire de contact de Mattermost. Je souhaite en savoir plus sur les permissions avancées avec les schémas d'équipe.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Formulaire de contact de Mattermost. Je souhaite en savoir plus sur l'amélioration des performances avec Elasticsearch.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Formulaire de contact de Mattermost. Je souhaite en savoir plus sur l'utilisation des permissions avancées avec les schémas système.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Formulaire de contact de Mattermost. Je souhaite en savoir plus sur la création de canaux d'annonces en lecture seule.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Formulaire de contact de Mattermost. Je souhaite en savoir plus sur l'utilisation des comptes d'invités.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Mise à l'échelle avec Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Formulaire de contact de Mattermost. Mon équipe compte maintenant 200 utilisateurs, et j'envisage d'utiliser Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Votre version d'évaluation Enterprise est maintenant active. Allez dans **Console système > Authentification > AD/LDAP** pour intégrer votre service AD/LDAP."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Mise à l'échelle avec Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Formulaire de contact de Mattermost. Mon équipe compte maintenant 100 utilisateurs, et j'envisage d'utiliser Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Votre version d'évaluation Enterprise est maintenant active. Allez dans **Console système > Authentification > MFA** pour appliquer l'authentification multi-facteur."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Formulaire de contact de Mattermost. Je souhaite en savoir plus sur l'application de l'authentification multi-facteur.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Envoyez-nous un courriel"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Votre version d'essai Enterprise est maintenant active. Allez dans **Console système > Authentification > Accès invité** pour activer les comptes invités."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Création de comptes d'invités"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "La licence d'essai n'a pas pu être récupérée. Consulter https://mattermost.com/trial/ pour demander une licence."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Merci d'avoir contacté Mattermost. Nous vous contacterons prochainement."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Le message n'a pas pu être envoyé."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Veuillez nous envoyer un courriel."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Formulaire de contact"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "URL du site : {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Total des utilisateurs actifs : {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Pour toute demande de renseignements supplémentaires, veuillez contacter support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Email : {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Identifiant de diagnostic : {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Contact : {{.Contact}}"
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
@@ -6934,10 +6782,6 @@
   {
     "id": "api.migrate_to_saml.error",
     "translation": "Impossible de migrer le service SAML."
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Impossible d'obtenir une licence d'essai, veuillez réessayer ou contacter support@mattermost.com. Impossible d'obtenir le nombre d'utilisateurs enregistrés."
   },
   {
     "id": "api.license.request_renewal_link.app_error",
@@ -7184,14 +7028,6 @@
     "translation": "Source d'importation inconnue."
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Mise à l'échelle avec Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Canaux d'annonce en lecture seule"
-  },
-  {
     "id": "app.upload.upload_data.move_file.app_error",
     "translation": "Impossible de déplacer le fichier téléchargé."
   },
@@ -7328,10 +7164,6 @@
     "translation": "ID de la connexion sécurisée à retirer."
   },
   {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Un projet implique souvent des personnes venant de l'organisation, mais aussi de l'extérieur. Avec les comptes invités, vous pouvez amener des partenaires extérieurs à votre instance Mattermost et spécifier avec qui ils peuvent travailler et ce qu'ils peuvent voir.\n\n[En apprendre plus sur l'activation des comptes invités (en anglais)](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nEn cliquant sur « Nous contacter », vous partagerez vos informations avec Mattermost, Inc. [En savoir plus](https://mattermost.com/pl/default-admin-advisor)."
-  },
-  {
     "id": "api.command_remote.invite_summary",
     "translation": "Envoyez l'invitation suivante, chiffrée en AES 256 bits, à l'administrateur système externe avec le mot de passe. Il utilisera la commande slash `{{.Command}}` pour accepter l'invitation.\n\n```\n{{.Invitation}}\n```\n\n**Assurez-vous que la connexion sécurisée peut accéder à votre instance Mattermost via** {{.SiteURL}}"
   },
@@ -7462,14 +7294,6 @@
   {
     "id": "app.team.get_common_team_ids_for_users.app_error",
     "translation": "Impossible d'obtenir les identifiants d'équipes communes."
-  },
-  {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Impossible d'enregistrer la valeur pour {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Conseiller Mattermost"
   },
   {
     "id": "app.system.system_bot.bot_displayname",
@@ -7672,10 +7496,6 @@
     "translation": "Impossible de mettre jour l'appartenance au fil de discussion pour l'utilisateur mentionné"
   },
   {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "La liste des admins est vide."
-  },
-  {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "La liste des admins est vide."
   },
@@ -7844,22 +7664,6 @@
     "translation": "Télécharger"
   },
   {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Demande de contact Mattermost"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Pour toute demande de renseignements supplémentaires, veuillez nous contacter à support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Identifiant de diagnostic : "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Contact : "
-  },
-  {
     "id": "api.templates.verify_body.subTitle2",
     "translation": "Cliquez ci-dessous pour vérifier votre adresse e-mail."
   },
@@ -7954,114 +7758,6 @@
   {
     "id": "api.system.update_notices.fetch_failed",
     "translation": "La récupération des avis sur le produit a échoué"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Votre version d'évaluation de la version entreprise est maintenant active. Allez dans **Console système > Gestion des utilisateurs > Permissions** pour activer les permissions avancées."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Votre système Mattermost compte maintenant plusieurs équipes. De nombreuses équipes ont leur propre façon préférée de se coordonner et de collaborer, y compris la façon dont les canaux sont créés, qui peut inviter de nouveaux coéquipiers et comment les intégrations sont gérées. Les schémas de remplacement d'équipe vous permettent de personnaliser les permissions des utilisateurs au sein de chaque équipe pour répondre à leurs besoins spécifiques.\n\n[En savoir plus sur l'utilisation des autorisations avancées](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nEn cliquant sur « Démarrer l'essai », j'accepte le [Contrat d'évaluation du logiciel Mattermost](https://mattermost.com/software-evaluation-agreement/), la [Politique de confidentialité](https://mattermost.com/pl/privacy-policy/) et la réception d'e-mails sur le produit."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Utilisation des permissions avancées"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Votre système Mattermost compte maintenant plusieurs équipes. De nombreuses équipes ont leur propre façon préférée de se coordonner et de collaborer, y compris la façon dont les canaux sont créés, qui peut inviter de nouveaux coéquipiers et comment les intégrations sont gérées. Les schémas de remplacement d'équipe vous permettent de personnaliser les permissions des utilisateurs au sein de chaque équipe pour répondre à leurs besoins spécifiques.\n\n[En savoir plus sur l'utilisation des autorisations avancées](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nEn cliquant sur « Contactez-nous », vous partagez vos informations avec Mattermost, Inc. [En savoir plus](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Votre version d'essai de la version entreprise est maintenant active. Une fois que vous avez un serveur Elasticsearch, allez dans **Console système > Environnement > Elasticsearch** pour configurer Elasticsearch."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Votre système Mattermost contient un grand nombre de messages. La recherche par défaut dans la base de données Mattermost commence à montrer une dégradation des performances à environ 2,5 millions de messages. Au-dessus de 5 millions de messages, Elasticsearch peut aider à éviter les problèmes de performance importants comme les délais d'attente lors d'une recherche ou de l'utilisation des mentions. Contactez-nous pour en savoir plus et faites-nous savoir comment nous pouvons vous aider.\n\n[En savoir plus sur l'amélioration des performances](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nEn cliquant sur « Démarrer l'essai », j'accepte le [Contrat d'évaluation du logiciel Mattermost](https://mattermost.com/software-evaluation-agreement/), la [Politique de confidentialité](https://mattermost.com/pl/privacy-policy/) et la réception d'e-mails sur le produit."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Amélioration des performances"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Votre système Mattermost contient un grand nombre de messages. La recherche par défaut dans la base de données Mattermost commence à montrer une dégradation des performances à environ 2,5 millions de messages. Au-dessus de 5 millions de messages, Elasticsearch peut aider à éviter les problèmes de performance importants comme les délais d'attente lors d'une recherche ou de l'utilisation des mentions. Contactez-nous pour en savoir plus et faites-nous savoir comment nous pouvons vous aider.\n\n[En savoir plus sur l'amélioration des performances](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nEn cliquant sur « Contactez-nous », vous partagerez vos informations avec Mattermost, Inc. [En savoir plus](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Votre version d'évaluation de la version entreprise est maintenant active. Allez dans **Console système > Gestion des utilisateurs > Autorisations** pour activer les autorisations avancées."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Les canaux aident à améliorer la communication, mais avec les utilisateurs de Mattermost qui rejoignent et créent des canaux, le défi de garder le système organisé augmente. Les permissions avancées vous permettent de définir quels utilisateurs ou quels rôles peuvent effectuer certaines actions, y compris géer des paramètres et des membres des canaux, utiliser @channel ou @here pour mentionner de larges groupes d'utilisateurs et créer de nouveaux webhooks.\n\n[En savoir plus sur l'utilisation des permissions avancées](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nEn cliquant sur « Démarrer l'essai », j'accepte le [Contrat d'évaluation du logiciel Mattermost](https://mattermost.com/software-evaluation-agreement/), la [Politique de confidentialité](https://mattermost.com/pl/privacy-policy/) et la réception d'e-mails sur le produit."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Utilisation des permissions avancées"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Les canaux aident à améliorer la communication, mais avec les utilisateurs de Mattermost qui rejoignent et créent des canaux, le défi de garder le système organisé augmente. Les permissions avancées vous permettent de définir quels utilisateurs ou quels rôles peuvent effectuer certaines actions, y compris gérer des paramètres et des membres des canaux, utiliser @channel ou @here pour mentionner de larges groupes d'utilisateurs et créer de nouveaux webhooks.\n\n[En savoir plus sur l'utilisation des permissions avancées](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nEn cliquant sur « Nous contacter », vous partagez vos informations avec Mattermost, Inc. [En savoir plus](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Votre version d'évaluation de la version entreprise est maintenant active. Allez dans la console système pour activer les fonctions avancées."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost recommande vivement que les déploiements de plus de 500 utilisateurs tirent parti de fonctionnalités telles que la gestion des utilisateurs, la mise en grappe des serveurs et le contrôle des performances. Contactez-nous pour en savoir plus et faites-nous savoir comment nous pouvons vous aider.\n\nEn cliquant sur « Démarrer l'essai », j'accepte le [Contrat d'évaluation du logiciel Mattermost](https://mattermost.com/software-evaluation-agreement/), la [Politique de confidentialité](https://mattermost.com/pl/privacy-policy/) et la réception d'e-mails sur le produit."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost recommande vivement que les déploiements de plus de 500 utilisateurs tirent parti de fonctionnalités telles que la gestion des utilisateurs, la mise en grappe des serveurs et le contrôle des performances. Contactez-nous pour en savoir plus et faites-nous savoir comment nous pouvons vous aider.\n\nEn cliquant sur « Contactez-nous », vous partagerez vos informations avec Mattermost, Inc. [En savoir plus](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Demande de contact de Mattermost. Mon équipe compte maintenant 500 utilisateurs et j'envisage d'utiliser Mattermost version entreprise.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Votre version d'essai Entreprise est maintenant active. Créez un canal et allez dans **Console système > Gestion des utilisateurs > Canaux** pour restreindre les publications aux seuls administrateurs du canal."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Avec toutes les conversations qui se déroulent sur Mattermost, il peut être difficile de savoir où chercher les informations importantes. Si vous souhaitez diffuser un message à un large public, vous pouvez créer des canaux d'annonce en lecture seule. Tout le monde peut s'y joindre, mais seuls les administrateurs des canaux peuvent publier des messages.\n\n[En savoir plus sur la création de canaux d'annonces en lecture seule](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nEn cliquant sur Démarrer l'essai, j'accepte le [Contrat d'évaluation du logiciel Mattermost](https://mattermost.com/software-evaluation-agreement/), la [Politique de confidentialité](https://mattermost.com/pl/privacy-policy/) et la réception d'e-mails sur le produit."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Avec toutes les conversations qui se déroulent sur Mattermost, il peut être difficile de savoir où chercher les informations importantes. Si vous souhaitez diffuser un message à un large public, vous pouvez créer des canaux d'annonce en lecture seule. Tout le monde peut s'y joindre, mais seuls les administrateurs des canaux peuvent publier des messages.\n\n[En savoir plus sur la création de canaux d'annonces en lecture seule](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nEn cliquant sur Nous contacter, vous partagez vos informations avec Mattermost, Inc. [En savoir plus](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Votre version d'évaluation Enterprise est maintenant active. Allez dans **Console système > Authentification > SAML 2.0** pour intégrer votre fournisseur SAML 2.0."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Votre système Mattermost compte maintenant 200 utilisateurs. Lorsque vous connectez Mattermost avec le fournisseur d'authentification unique de votre organisation, les utilisateurs peuvent accéder à Mattermost sans avoir à saisir à nouveau leurs informations d'identification. Nous vous recommandons d'intégrer votre fournisseur SAML 2.0 à votre serveur Mattermost. [En savoir plus sur l'intégration avec SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nEn cliquant sur Démarrer l'essai, j'accepte le [Contrat d'évaluation du logiciel Mattermost](https://mattermost.com/software-evaluation-agreement/), la [Politique de confidentialité](https://mattermost.com/pl/privacy-policy/) et la réception d'e-mails sur le produit."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Votre système Mattermost compte maintenant 200 utilisateurs. Lorsque vous connectez Mattermost avec le fournisseur d'authentification unique de votre organisation, les utilisateurs peuvent accéder à Mattermost sans avoir à saisir à nouveau leurs informations d'identification. Nous vous recommandons d'intégrer votre fournisseur SAML 2.0 à votre serveur Mattermost. [En savoir plus sur l'intégration avec SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nEn cliquant sur Contactez-nous, vous partagerez vos informations avec Mattermost, Inc. [En savoir plus](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Votre système Mattermost compte plus de 100 utilisateurs. Au fur et à mesure que votre base d'utilisateurs augmente, le provisionnement de nouveaux comptes peut prendre beaucoup de temps. Nous vous recommandons d'intégrer l'Active Directory/LDAP de votre organisation, ce qui permettra à toute personne possédant un compte d'accéder à Mattermost.\n\nConsultez la [documentation sur l'intégration avec AD/LDAP pour en savoir plus](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nEn cliquant sur Commencer l'essai, j'accepte le [contrat d'évaluation du logiciel Mattermost](https://mattermost.com/software-evaluation-agreement/), la [politique de confidentialité](https://mattermost.com/pl/privacy-policy/) et la réception d'e-mails sur le produit."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Votre système Mattermost compte plus de 100 utilisateurs. Au fur et à mesure que votre base d'utilisateurs augmente, le provisionnement de nouveaux comptes peut prendre beaucoup de temps. Nous vous recommandons d'intégrer l'Active Directory/LDAP de votre organisation, ce qui permettra à toute personne possédant un compte d'accéder à Mattermost.\n\nConsultez la [documentation sur l'intégration avec AD/LDAP pour en savoir plus](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nEn cliquant sur « Nous contacter », vous partagerez vos informations avec Mattermost, Inc. [En savoir plus](https://mattermost.com/pl/default-admin-advisor)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Votre système Mattermost dispose de l'authentification multi-facteurs activée, donnant aux utilisateurs le choix de sécuriser leurs comptes avec des moyens d'authentification supplémentaires au-delà du simple mot de passe. Pour améliorer la sécurité du système, vous pouvez exiger que tous les comptes Mattermost utilisent l'authentification multi-facteurs.\n\nConsultez la [documentation sur l'application de l'authentification multi-facteurs pour en savoir plus](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nEn cliquant sur Commencer l'essai, j'accepte le [contrat d'évaluation du logiciel Mattermost](https://mattermost.com/software-evaluation-agreement/), la [politique de confidentialité](https://mattermost.com/pl/privacy-policy/) et la réception d'e-mails sur le produit."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Votre système Mattermost dispose de l'authentification multi-facteurs activée, donnant aux utilisateurs le choix de sécuriser leurs comptes avec des moyens d'authentification supplémentaires au-delà du simple mot de passe. Pour améliorer la sécurité du système, vous pouvez exiger que tous les comptes Mattermost utilisent l'authentification multi-facteurs.\n\nConsultez la [documentation sur l'application de l'authentification multi-facteurs pour en savoir plus](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nEn cliquant sur Nous contacter, vous acceptez de partagez vos informations avec Mattermost, Inc. [En savoir plus](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "La gestion de projets implique souvent de devoir nécessiter des personnes de votre organisation et d'autres à l'extérieur de celle-ci. Avec les comptes invités, vous pouvez permettre à des partenaires externes de rejoindre votre système Mattermost et spécifier avec qui ils peuvent travailler et ce qu'ils peuvent voir.\n\nConsultez [la documentation pour en savoir plus sur l'activation des comptes d'invités](https://www.mattermost.com/docs-guest-accounts/)\n\nEn cliquant sur Commencer l'essai, j'accepte le [contrat d'évaluation du logiciel Mattermost](https://mattermost.com/software-evaluation-agreement/), la [politique de confidentialité](https://mattermost.com/pl/privacy-policy/) et la réception d'e-mails sur le produit."
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -8722,10 +8418,6 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Confirmation de mise à niveau de Mattermost"
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Erreur lors de l'analyse des données du corps."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",

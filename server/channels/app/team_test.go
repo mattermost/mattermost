@@ -327,14 +327,14 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		)
 		guestEmail := rguest.Email
 		rguest.Email = "test@restricted.com"
-		_, err := th.App.Srv().Store().User().Update(rguest, false)
+		_, err := th.App.Srv().Store().User().Update(th.Context, rguest, false)
 		th.App.InvalidateCacheForUser(rguest.Id)
 		require.NoError(t, err)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		_, _, appErr := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)
 		require.Nil(t, appErr)
 		rguest.Email = guestEmail
-		_, err = th.App.Srv().Store().User().Update(rguest, false)
+		_, err = th.App.Srv().Store().User().Update(th.Context, rguest, false)
 		require.NoError(t, err)
 	})
 
@@ -351,7 +351,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
 		)
-		_, err = th.App.Srv().Store().User().Update(rguest, false)
+		_, err = th.App.Srv().Store().User().Update(th.Context, rguest, false)
 		require.NoError(t, err)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		_, _, appErr := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)
@@ -1034,7 +1034,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 
 		sqlstore.HasMaster(c.Context())
 	})
-	mockTeamStore.On("UpdateMember", mock.Anything).Return(nil, errors.New("repro error")) // This is the line that triggers the error
+	mockTeamStore.On("UpdateMember", mock.Anything, mock.Anything).Return(nil, errors.New("repro error")) // This is the line that triggers the error
 
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("Preference").Return(&mockPreferenceStore)

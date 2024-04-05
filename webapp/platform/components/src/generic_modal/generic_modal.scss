@@ -29,8 +29,12 @@
         .form-control {
             height: 40px;
             box-sizing: border-box;
-            border: 2px solid var(--button-bg);
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             border-radius: 4px;
+
+            &:focus {
+                border-color: var(--button-bg);
+            }
 
             &.has-error {
                 border-color: var(--error-text);
@@ -54,9 +58,13 @@
             }
         }
 
+        .input-wrapper {
+            position: relative;
+        }
+
         .input-clear {
             top: 12px;
-            right: 36px;
+            right: 12px;
             width: 16px;
             height: 16px;
             color: var(--center-channel-color);
@@ -68,111 +76,16 @@
         }
     }
 
-    .modal-content {
-        padding: 16px 15px;
-        border-radius: 8px;
-    }
-
-    .modal-header {
-        min-height: 0;
-        padding: 0;
-        border: none;
-        background: transparent;
-
-        .close {
-            top: 6px;
-            right: 6px;
-            display: flex;
-            width: 4rem;
-            height: 4rem;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            font-size: 32px;
-            font-weight: 400;
-
-            &:hover {
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                color: rgba(var(--center-channel-color-rgb), 0.72);
-            }
-
-            &:active {
-                background-color: rgba(var(--button-bg-rgb), 0.08);
-                color: v(button-bg);
-            }
-        }
-    }
-
-    .modal-footer {
-        padding: 12px 24px 24px 24px;
-        border: none;
-        border-radius: 4px;
-
-        &.divider {
-            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-        }
-    }
-
     &.GenericModal__compassDesign {
         .modal-content {
-            padding: 0;
-            border-radius: 12px;
-
-            .modal-header {
-                flex-direction: column;
-                padding: 26px 32px 7px;
-
-                .close {
-                    top: 22px;
-                    right: 18px;
-                    width: 40px;
-                    height: 40px;
-                    box-shadow: none;
-
-                    &:active {
-                        background: rgba(var(--button-bg-rgb), 0.08);
-                        color: var(--button-bg);
-                    }
-
-                    &:focus {
-                        box-sizing: border-box;
-                        border: 2px solid var(--sidebar-text-active-border);
-                    }
-                }
-
-                .GenericModal__header {
-                    display: flex;
-                    flex: 1;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 0;
-                    margin-right: 32px;
-                    border-top-left-radius: 12px;
-                    border-top-right-radius: 12px;
-
-                    h1 {
-                        color: var(--center-channel-color);
-                        font-size: 22px;
-                    }
-                }
-            }
-
             .modal-body {
                 .GenericModal__body {
                     padding: 0;
 
                     &.padding {
-                        padding: 15px 32px 0;
+                        padding: 8px 32px 0;
                     }
                 }
-            }
-
-            .modal-footer {
-                padding: 24px 32px;
-                border-bottom-left-radius: 12px;
-                border-bottom-right-radius: 12px;
             }
 
             .genericModalError {
@@ -217,52 +130,5 @@
     &__wrapper-enter-key-press-catcher {
         width: 100%;
         height: 100%;
-    }
-}
-
-.GenericModal__header {
-    padding: 28px 24px 16px 24px;
-
-    h1 {
-        margin: 0;
-        font-size: 20px;
-        font-weight: 600;
-        line-height: 28px;
-    }
-}
-
-.GenericModal__body {
-    position: relative;
-    width: 100%;
-    padding: 0 24px;
-    color: rgba(var(--center-channel-color-rgb), 0.72);
-    font-family: Open Sans;
-    font-size: 14px;
-    font-style: normal;
-    font-weight: normal;
-    line-height: 20px;
-}
-
-.GenericModal__button {
-    padding: 12px 16px;
-    border: none;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 12px;
-
-    &.cancel {
-        background: var(--center-channel-bg);
-        color: var(--button-bg);
-    }
-
-    &.confirm {
-        background: var(--button-bg);
-        border-radius: 4px;
-        color: var(--button-color);
-
-        &.disabled {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.32);
-        }
     }
 }

@@ -1,5 +1,7 @@
 @charset 'UTF-8';
 
+@use 'sass:color';
+
 .radio,
 .checkbox {
     &.margin-bottom--none {
@@ -45,7 +47,7 @@
     }
 
     &.error {
-        color: darken($red, 20%);
+        color: color.adjust($red, $lightness: -20%);
     }
 }
 
@@ -65,7 +67,7 @@
             font-size: 1.05em;
             font-style: italic;
             font-weight: normal;
-            opacity: 0.6;
+            opacity: 0.73;
         }
     }
 
@@ -162,11 +164,14 @@
 .app__body {
     .form-control {
         border-color: rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
         background: v(center-channel-bg);
+        box-shadow: none;
         color: v(center-channel-color);
 
         &:focus {
-            border-color: rgba(var(--center-channel-color-rgb), 0.4);
+            border-color: rgba(var(--button-bg-rgb), 1);
+            box-shadow: 0 0 0 1px var(--button-bg);
         }
 
         &[disabled],
@@ -182,14 +187,15 @@
         &::-moz-placeholder,
         &:-moz-placeholder {
             color: inherit !important;
-            opacity: 0.6;
+            opacity: 0.73;
         }
     }
 }
 
 .form-control[disabled],
 .form-control[readonly],
-fieldset[disabled] .form-control {
+fieldset[disabled] .form-control,
+.backstage-form .form-control[disabled] {
     background-color: #f9f9f9;
 }
 

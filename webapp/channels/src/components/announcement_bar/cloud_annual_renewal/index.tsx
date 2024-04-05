@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
+import {getConfig as adminGetConfig} from 'mattermost-redux/actions/admin';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
@@ -36,7 +37,6 @@ export const getCurrentYearAsString = () => {
 const CloudAnnualRenewalAnnouncementBar = () => {
     const subscription = useGetSubscription();
 
-    // TODO: Update with renewal modal
     const openPurchaseModal = useOpenCloudPurchaseModal({});
     const {formatMessage} = useIntl();
     const {isDelinquencySubscription} = useDelinquencySubscription();
@@ -45,14 +45,21 @@ const CloudAnnualRenewalAnnouncementBar = () => {
     const currentUserId = useSelector(getCurrentUserId);
     const hasDismissed60DayBanner = useSelector((state: GlobalState) => get(state, Preferences.CLOUD_ANNUAL_RENEWAL_BANNER, `${CloudBanners.ANNUAL_RENEWAL_60_DAY}_${getCurrentYearAsString()}`)) === 'true';
     const hasDismissed30DayBanner = useSelector((state: GlobalState) => get(state, Preferences.CLOUD_ANNUAL_RENEWAL_BANNER, `${CloudBanners.ANNUAL_RENEWAL_30_DAY}_${getCurrentYearAsString()}`)) === 'true';
-    const cloudAnnualRenewalsEnabled = useSelector(getConfig).FeatureFlags?.CloudAnnualRenewals;
+    const config = useSelector(getConfig);
+    const cloudAnnualRenewalsEnabled = config.FeatureFlags?.CloudAnnualRenewals;
+
+    useEffect(() => {
+        if (!config || !config.FeatureFlags) {
+            dispatch(adminGetConfig());
+        }
+    }, []);
 
     const daysUntilExpiration = useMemo(() => {
         if (!subscription || !subscription.end_at || !subscription.cancel_at) {
             return 0;
         }
 
-        return daysToExpiration(subscription.end_at * 1000);
+        return daysToExpiration(subscription);
     }, [subscription]);
 
     const handleDismiss = (banner: string) => {
@@ -82,7 +89,7 @@ const CloudAnnualRenewalAnnouncementBar = () => {
             ...defaultProps,
             type: '',
         };
-        if (between(daysUntilExpiration, 31, 60) && !hasDismissed60DayBanner) {
+        if (between(daysUntilExpiration, 31, 60)) {
             if (hasDismissed60DayBanner) {
                 return null;
             }
@@ -105,6 +112,7 @@ const CloudAnnualRenewalAnnouncementBar = () => {
                 handleClose: () => handleDismiss(CloudBanners.ANNUAL_RENEWAL_30_DAY),
             };
         } else if (between(daysUntilExpiration, 0, 7) && !isDelinquencySubscription()) {
+            // This banner is not dismissable
             bannerProps = {
                 ...defaultProps,
                 message: (<>{formatMessage({id: 'cloud_annual_renewal.banner.message.7', defaultMessage: 'Your annual subscription expires in {days} days. Failure to renew will result in your workspace being deleted.'}, {days: daysUntilExpiration})}</>),
@@ -112,13 +120,16 @@ const CloudAnnualRenewalAnnouncementBar = () => {
                 type: AnnouncementBarTypes.CRITICAL,
                 showCloseButton: false,
             };
+        } else {
+            // If none of the above, return null, so that a blank announcement bar isn't visible
+            return null;
         }
 
         return <AnnouncementBar {...bannerProps}/>;
     }, [daysUntilExpiration, hasDismissed60DayBanner, hasDismissed30DayBanner]);
 
     // Delinquent subscriptions will have a cancel_at time, but the banner is handled separately
-    if (!cloudAnnualRenewalsEnabled || !subscription || !subscription.cancel_at || subscription.will_renew === 'true' || isDelinquencySubscription() || !isAdmin || daysUntilExpiration > 60) {
+    if (!cloudAnnualRenewalsEnabled || !subscription || !subscription.cancel_at || subscription.is_free_trial === 'true' || subscription.will_renew === 'true' || isDelinquencySubscription() || !isAdmin || daysUntilExpiration > 60) {
         return null;
     }
 

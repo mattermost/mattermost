@@ -85,7 +85,7 @@ func InitTranslations(serverLocale, clientLocale string) error {
 	defaultClientLocale = clientLocale
 
 	var err error
-	T, err = getTranslationsBySystemLocale()
+	T, err = GetTranslationsBySystemLocale()
 	return err
 }
 
@@ -151,7 +151,7 @@ func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
 	}, nil
 }
 
-func getTranslationsBySystemLocale() (TranslateFunc, error) {
+func GetTranslationsBySystemLocale() (TranslateFunc, error) {
 	locale := defaultServerLocale
 	if _, ok := locales[locale]; !ok {
 		mlog.Warn("Failed to load system translations for selected locale, attempting to fall back to default", mlog.String("locale", locale), mlog.String("default_locale", defaultLocale))

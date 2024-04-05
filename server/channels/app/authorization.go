@@ -14,15 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func (a *App) MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError {
-	permissionsStr := "permission="
-	for _, permission := range permissions {
-		permissionsStr += permission.Id
-		permissionsStr += ","
-	}
-	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+s.UserId+", "+permissionsStr, http.StatusForbidden)
-}
-
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
 	if session.IsUnrestricted() {
 		return true
@@ -180,7 +171,11 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 }
 
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId); err == nil {
+	if postID == "" {
+		return false
+	}
+
+	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId, *a.Config().TeamSettings.ExperimentalViewArchivedChannels); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
@@ -222,12 +217,12 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 	return false
 }
 
-func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userID string) bool {
+func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Session, userID string) bool {
 	if session.IsUnrestricted() {
 		return true
 	}
 
-	err := a.SessionHasPermissionToManageBot(session, userID)
+	err := a.SessionHasPermissionToManageBot(rctx, session, userID)
 	if err == nil {
 		return true
 	}
@@ -291,7 +286,7 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 }
 
 func (a *App) HasPermissionToChannelByPost(c request.CTX, askingUserId string, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId); err == nil {
+	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId, *a.Config().TeamSettings.ExperimentalViewArchivedChannels); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
@@ -344,8 +339,8 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 // SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.
 // This function deviates from other authorization checks in returning an error instead of just
 // a boolean, allowing the permission failure to be exposed with more granularity.
-func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError {
-	existingBot, err := a.GetBot(botUserId, true)
+func (a *App) SessionHasPermissionToManageBot(rctx request.CTX, session model.Session, botUserId string) *model.AppError {
+	existingBot, err := a.GetBot(rctx, botUserId, true)
 	if err != nil {
 		return err
 	}
@@ -360,7 +355,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// the bot doesn't exist at all.
 				return model.MakeBotNotFoundError("permissions", botUserId)
 			}
-			return a.MakePermissionError(&session, []*model.Permission{model.PermissionManageBots})
+			return model.MakePermissionError(&session, []*model.Permission{model.PermissionManageBots})
 		}
 	} else {
 		if !a.SessionHasPermissionTo(session, model.PermissionManageOthersBots) {
@@ -369,7 +364,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// pretend as if the bot doesn't exist at all.
 				return model.MakeBotNotFoundError("permissions", botUserId)
 			}
-			return a.MakePermissionError(&session, []*model.Permission{model.PermissionManageOthersBots})
+			return model.MakePermissionError(&session, []*model.Permission{model.PermissionManageOthersBots})
 		}
 	}
 

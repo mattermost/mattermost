@@ -1,0 +1,197 @@
+  /api/v4/reports/users:
+    get:
+      tags:
+        - users
+      summary: Get a list of paged and sorted users for admin reporting purposes
+      description: >
+        Get a list of paged users for admin reporting purposes, based on provided parameters.
+        
+        Must be a system admin to invoke this API.
+        
+        ##### Permissions
+        
+        Requires `sysconsole_read_user_management_users`.
+
+      operationId: GetUsersForReporting
+      parameters:
+        - name: sort_column
+          in: query
+          description: The column to sort the users by. Must be one of ("CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email") or the API will return an error.
+          schema:
+            type: string
+            default: 'Username'
+        - name: direction
+          in: query
+          description: The direction in which to accept paging values from. Will return values ahead of the cursor if "up", and below the cursor if "down". Default is "down".
+          schema:
+            type: string
+            default: 'down'
+        - name: sort_direction
+          in: query
+          description: The sorting direction. Must be one of ("asc", "desc"). Will default to 'asc' if not specified or the input is invalid.
+          schema:
+            type: string
+            default: 'asc'
+        - name: page_size
+          in: query
+          description: The maximum number of users to return.
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+        - name: from_column_value
+          in: query
+          description: The value of the sorted column corresponding to the cursor to read from. Should be blank for the first page asked for.
+          schema:
+            type: string
+        - name: from_id
+          in: query
+          description: The value of the user id corresponding to the cursor to read from. Should be blank for the first page asked for.
+          schema:
+            type: string
+        - name: date_range
+          in: query
+          description: The date range of the post statistics to display. Must be one of ("last30days", "previousmonth", "last6months", "alltime"). Will default to 'alltime' if the input is not valid.
+          schema:
+            type: string
+            default: 'alltime'
+        - name: role_filter
+          in: query
+          description: Filter users by their role.
+          schema:
+            type: string
+        - name: team_filter
+          in: query
+          description: Filter users by a specified team ID.
+          schema:
+            type: string
+        - name: has_no_team
+          in: query
+          description: If true, show only users that have no team. Will ignore provided "team_filter" if true.
+          schema:
+            type: boolean
+        - name: hide_active
+          in: query
+          description: If true, show only users that are inactive. Cannot be used at the same time as "hide_inactive"
+          schema:
+            type: boolean
+        - name: hide_inactive
+          in: query
+          description: If true, show only users that are active. Cannot be used at the same time as "hide_active"
+          schema:
+            type: boolean
+        - name: search_term
+          in: query
+          description: A filtering search term that allows filtering by Username, FirstName, LastName, Nickname or Email
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User page retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserReport"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/reports/users/count:
+    get:
+      tags:
+        - users
+      summary: Gets the full count of users that match the filter.
+      description: >
+        Get the full count of users admin reporting purposes, based on provided parameters.
+
+        
+        Must be a system admin to invoke this API.
+        
+        ##### Permissions
+        
+        Requires `sysconsole_read_user_management_users`.
+      operationId: GetUserCountForReporting
+      parameters:
+        - name: role_filter
+          in: query
+          description: Filter users by their role.
+          schema:
+            type: string
+        - name: team_filter
+          in: query
+          description: Filter users by a specified team ID.
+          schema:
+            type: string
+        - name: has_no_team
+          in: query
+          description: If true, show only users that have no team. Will ignore provided "team_filter" if true.
+          schema:
+            type: boolean
+        - name: hide_active
+          in: query
+          description: If true, show only users that are inactive. Cannot be used at the same time as "hide_inactive"
+          schema:
+            type: boolean
+        - name: hide_inactive
+          in: query
+          description: If true, show only users that are active. Cannot be used at the same time as "hide_active"
+          schema:
+            type: boolean
+        - name: search_term
+          in: query
+          description: A filtering search term that allows filtering by Username, FirstName, LastName, Nickname or Email
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User count retrieval successful
+          content:
+            application/json:
+              schema:
+                type: number
+  /api/v4/reports/users/export:
+    post:
+      tags:
+        - reports
+      summary: Starts a job to export the users to a report file.
+      description: >
+        Starts a job to export the users to a report file.
+
+        
+        Must be a system admin to invoke this API.
+        
+        ##### Permissions
+        
+        Requires `sysconsole_read_user_management_users`.
+      operationId: StartBatchUsersExport
+      parameters:
+        - name: date_range
+          in: query
+          description: The date range of the post statistics to display. Must be one of ("last30days", "previousmonth", "last6months", "alltime"). Will default to 'alltime' if the input is not valid.
+          schema:
+            type: string
+            default: 'alltime'
+      responses:
+        "200":
+          description: Job successfully started
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserReport"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

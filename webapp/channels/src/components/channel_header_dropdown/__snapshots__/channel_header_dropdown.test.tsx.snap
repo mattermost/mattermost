@@ -48,7 +48,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
     openUp={false}
   />
   <Memo(MenuGroup)>
-    <Connect(ToggleFavoriteChannel)
+    <Connect(Component)
       channel={
         Object {
           "create_at": 0,
@@ -880,7 +880,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
     openUp={false}
   />
   <Memo(MenuGroup)>
-    <Connect(ToggleFavoriteChannel)
+    <Connect(Component)
       channel={
         Object {
           "create_at": 0,

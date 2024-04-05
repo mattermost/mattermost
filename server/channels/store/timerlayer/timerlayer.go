@@ -22,6 +22,7 @@ type TimerLayer struct {
 	AuditStore                      store.AuditStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
+	ChannelBookmarkStore            store.ChannelBookmarkStore
 	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
 	ClusterDiscoveryStore           store.ClusterDiscoveryStore
 	CommandStore                    store.CommandStore
@@ -76,6 +77,10 @@ func (s *TimerLayer) Bot() store.BotStore {
 
 func (s *TimerLayer) Channel() store.ChannelStore {
 	return s.ChannelStore
+}
+
+func (s *TimerLayer) ChannelBookmark() store.ChannelBookmarkStore {
+	return s.ChannelBookmarkStore
 }
 
 func (s *TimerLayer) ChannelMemberHistory() store.ChannelMemberHistoryStore {
@@ -258,6 +263,11 @@ type TimerLayerBotStore struct {
 
 type TimerLayerChannelStore struct {
 	store.ChannelStore
+	Root *TimerLayer
+}
+
+type TimerLayerChannelBookmarkStore struct {
+	store.ChannelBookmarkStore
 	Root *TimerLayer
 }
 
@@ -631,10 +641,10 @@ func (s *TimerLayerChannelStore) AnalyticsTypeCount(teamID string, channelType m
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
+func (s *TimerLayerChannelStore) Autocomplete(rctx request.CTX, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted, isGuest)
+	result, err := s.ChannelStore.Autocomplete(rctx, userID, term, includeDeleted, isGuest)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -647,10 +657,10 @@ func (s *TimerLayerChannelStore) Autocomplete(userID string, term string, includ
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
+func (s *TimerLayerChannelStore) AutocompleteInTeam(rctx request.CTX, teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted, isGuest)
+	result, err := s.ChannelStore.AutocompleteInTeam(rctx, teamID, userID, term, includeDeleted, isGuest)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -773,10 +783,10 @@ func (s *TimerLayerChannelStore) CountUrgentPostsAfter(channelID string, timesta
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) CreateDirectChannel(userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+func (s *TimerLayerChannelStore) CreateDirectChannel(ctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.CreateDirectChannel(userID, otherUserID, channelOptions...)
+	result, err := s.ChannelStore.CreateDirectChannel(ctx, userID, otherUserID, channelOptions...)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1013,10 +1023,10 @@ func (s *TimerLayerChannelStore) GetAllChannelsForExportAfter(limit int, afterID
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error) {
+func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterID)
+	result, err := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterID, includeArchivedChannels)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1445,10 +1455,10 @@ func (s *TimerLayerChannelStore) GetMemberCountsByGroup(ctx context.Context, cha
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetMemberForPost(postID string, userID string) (*model.ChannelMember, error) {
+func (s *TimerLayerChannelStore) GetMemberForPost(postID string, userID string, includeArchivedChannels bool) (*model.ChannelMember, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetMemberForPost(postID, userID)
+	result, err := s.ChannelStore.GetMemberForPost(postID, userID, includeArchivedChannels)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1461,10 +1471,10 @@ func (s *TimerLayerChannelStore) GetMemberForPost(postID string, userID string) 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
+func (s *TimerLayerChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetMemberOnly(ctx, channelID, userID)
+	result, err := s.ChannelStore.GetMemberLastViewedAt(ctx, channelID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1472,7 +1482,7 @@ func (s *TimerLayerChannelStore) GetMemberOnly(ctx context.Context, channelID st
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMemberOnly", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMemberLastViewedAt", success, elapsed)
 	}
 	return result, err
 }
@@ -1918,22 +1928,6 @@ func (s *TimerLayerChannelStore) InvalidatePinnedPostCount(channelID string) {
 	}
 }
 
-func (s *TimerLayerChannelStore) IsUserInChannelUseCache(userID string, channelID string) bool {
-	start := time.Now()
-
-	result := s.ChannelStore.IsUserInChannelUseCache(userID, channelID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if true {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.IsUserInChannelUseCache", success, elapsed)
-	}
-	return result
-}
-
 func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error) {
 	start := time.Now()
 
@@ -1950,10 +1944,26 @@ func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelID string, fro
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) PermanentDelete(channelID string) error {
+func (s *TimerLayerChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
 	start := time.Now()
 
-	err := s.ChannelStore.PermanentDelete(channelID)
+	result, err := s.ChannelStore.PatchMultipleMembersNotifyProps(members, notifyProps)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.PatchMultipleMembersNotifyProps", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) PermanentDelete(ctx request.CTX, channelID string) error {
+	start := time.Now()
+
+	err := s.ChannelStore.PermanentDelete(ctx, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1982,10 +1992,10 @@ func (s *TimerLayerChannelStore) PermanentDeleteByTeam(teamID string) error {
 	return err
 }
 
-func (s *TimerLayerChannelStore) PermanentDeleteMembersByChannel(channelID string) error {
+func (s *TimerLayerChannelStore) PermanentDeleteMembersByChannel(ctx request.CTX, channelID string) error {
 	start := time.Now()
 
-	err := s.ChannelStore.PermanentDeleteMembersByChannel(channelID)
+	err := s.ChannelStore.PermanentDeleteMembersByChannel(ctx, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1998,10 +2008,10 @@ func (s *TimerLayerChannelStore) PermanentDeleteMembersByChannel(channelID strin
 	return err
 }
 
-func (s *TimerLayerChannelStore) PermanentDeleteMembersByUser(userID string) error {
+func (s *TimerLayerChannelStore) PermanentDeleteMembersByUser(ctx request.CTX, userID string) error {
 	start := time.Now()
 
-	err := s.ChannelStore.PermanentDeleteMembersByUser(userID)
+	err := s.ChannelStore.PermanentDeleteMembersByUser(ctx, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2014,10 +2024,10 @@ func (s *TimerLayerChannelStore) PermanentDeleteMembersByUser(userID string) err
 	return err
 }
 
-func (s *TimerLayerChannelStore) RemoveAllDeactivatedMembers(channelID string) error {
+func (s *TimerLayerChannelStore) RemoveAllDeactivatedMembers(ctx request.CTX, channelID string) error {
 	start := time.Now()
 
-	err := s.ChannelStore.RemoveAllDeactivatedMembers(channelID)
+	err := s.ChannelStore.RemoveAllDeactivatedMembers(ctx, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2030,10 +2040,10 @@ func (s *TimerLayerChannelStore) RemoveAllDeactivatedMembers(channelID string) e
 	return err
 }
 
-func (s *TimerLayerChannelStore) RemoveMember(channelID string, userID string) error {
+func (s *TimerLayerChannelStore) RemoveMember(ctx request.CTX, channelID string, userID string) error {
 	start := time.Now()
 
-	err := s.ChannelStore.RemoveMember(channelID, userID)
+	err := s.ChannelStore.RemoveMember(ctx, channelID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2046,10 +2056,10 @@ func (s *TimerLayerChannelStore) RemoveMember(channelID string, userID string) e
 	return err
 }
 
-func (s *TimerLayerChannelStore) RemoveMembers(channelID string, userIds []string) error {
+func (s *TimerLayerChannelStore) RemoveMembers(ctx request.CTX, channelID string, userIds []string) error {
 	start := time.Now()
 
-	err := s.ChannelStore.RemoveMembers(channelID, userIds)
+	err := s.ChannelStore.RemoveMembers(ctx, channelID, userIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2094,10 +2104,10 @@ func (s *TimerLayerChannelStore) Restore(channelID string, timestamp int64) erro
 	return err
 }
 
-func (s *TimerLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
+func (s *TimerLayerChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.Save(channel, maxChannelsPerTeam)
+	result, err := s.ChannelStore.Save(rctx, channel, maxChannelsPerTeam)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2110,10 +2120,10 @@ func (s *TimerLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
+func (s *TimerLayerChannelStore) SaveDirectChannel(ctx request.CTX, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.SaveDirectChannel(channel, member1, member2)
+	result, err := s.ChannelStore.SaveDirectChannel(ctx, channel, member1, member2)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2126,10 +2136,10 @@ func (s *TimerLayerChannelStore) SaveDirectChannel(channel *model.Channel, membe
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, error) {
+func (s *TimerLayerChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.SaveMember(member)
+	result, err := s.ChannelStore.SaveMember(rctx, member)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2286,10 +2296,10 @@ func (s *TimerLayerChannelStore) SetShared(channelId string, shared bool) error 
 	return err
 }
 
-func (s *TimerLayerChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
+func (s *TimerLayerChannelStore) Update(ctx request.CTX, channel *model.Channel) (*model.Channel, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.Update(channel)
+	result, err := s.ChannelStore.Update(ctx, channel)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2334,10 +2344,10 @@ func (s *TimerLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateMember(member *model.ChannelMember) (*model.ChannelMember, error) {
+func (s *TimerLayerChannelStore) UpdateMember(ctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.UpdateMember(member)
+	result, err := s.ChannelStore.UpdateMember(ctx, member)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2474,6 +2484,118 @@ func (s *TimerLayerChannelStore) UserBelongsToChannels(userID string, channelIds
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UserBelongsToChannels", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) error {
+	start := time.Now()
+
+	err := s.ChannelBookmarkStore.Delete(bookmarkId, deleteFile)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId string) error {
+	start := time.Now()
+
+	err := s.ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached(fileId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.ChannelBookmarkWithFileInfo, error) {
+	start := time.Now()
+
+	result, err := s.ChannelBookmarkStore.Get(Id, includeDeleted)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
+	start := time.Now()
+
+	result, err := s.ChannelBookmarkStore.GetBookmarksForChannelSince(channelId, since)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.GetBookmarksForChannelSince", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (*model.ChannelBookmarkWithFileInfo, error) {
+	start := time.Now()
+
+	result, err := s.ChannelBookmarkStore.Save(bookmark, increaseSortOrder)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error {
+	start := time.Now()
+
+	err := s.ChannelBookmarkStore.Update(bookmark)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.Update", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerChannelBookmarkStore) UpdateSortOrder(bookmarkId string, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
+	start := time.Now()
+
+	result, err := s.ChannelBookmarkStore.UpdateSortOrder(bookmarkId, channelId, newIndex)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.UpdateSortOrder", success, elapsed)
 	}
 	return result, err
 }
@@ -3085,6 +3207,22 @@ func (s *TimerLayerDraftStore) Delete(userID string, channelID string, rootID st
 	return err
 }
 
+func (s *TimerLayerDraftStore) DeleteDraftsAssociatedWithPost(channelID string, rootID string) error {
+	start := time.Now()
+
+	err := s.DraftStore.DeleteDraftsAssociatedWithPost(channelID, rootID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.DeleteDraftsAssociatedWithPost", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error {
 	start := time.Now()
 
@@ -3097,6 +3235,22 @@ func (s *TimerLayerDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.DeleteEmptyDraftsByCreateAtAndUserId", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userId string) error {
+	start := time.Now()
+
+	err := s.DraftStore.DeleteOrphanDraftsByCreateAtAndUserId(createAt, userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.DeleteOrphanDraftsByCreateAtAndUserId", success, elapsed)
 	}
 	return err
 }
@@ -3277,10 +3431,10 @@ func (s *TimerLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) AttachToPost(fileID string, postID string, channelID string, creatorID string) error {
+func (s *TimerLayerFileInfoStore) AttachToPost(c request.CTX, fileID string, postID string, channelID string, creatorID string) error {
 	start := time.Now()
 
-	err := s.FileInfoStore.AttachToPost(fileID, postID, channelID, creatorID)
+	err := s.FileInfoStore.AttachToPost(c, fileID, postID, channelID, creatorID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3324,10 +3478,10 @@ func (s *TimerLayerFileInfoStore) CountAll() (int64, error) {
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) DeleteForPost(postID string) (string, error) {
+func (s *TimerLayerFileInfoStore) DeleteForPost(c request.CTX, postID string) (string, error) {
 	start := time.Now()
 
-	result, err := s.FileInfoStore.DeleteForPost(postID)
+	result, err := s.FileInfoStore.DeleteForPost(c, postID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3515,10 +3669,10 @@ func (s *TimerLayerFileInfoStore) InvalidateFileInfosForPostCache(postID string,
 	}
 }
 
-func (s *TimerLayerFileInfoStore) PermanentDelete(fileID string) error {
+func (s *TimerLayerFileInfoStore) PermanentDelete(c request.CTX, fileID string) error {
 	start := time.Now()
 
-	err := s.FileInfoStore.PermanentDelete(fileID)
+	err := s.FileInfoStore.PermanentDelete(c, fileID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3531,10 +3685,10 @@ func (s *TimerLayerFileInfoStore) PermanentDelete(fileID string) error {
 	return err
 }
 
-func (s *TimerLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+func (s *TimerLayerFileInfoStore) PermanentDeleteBatch(ctx request.CTX, endTime int64, limit int64) (int64, error) {
 	start := time.Now()
 
-	result, err := s.FileInfoStore.PermanentDeleteBatch(endTime, limit)
+	result, err := s.FileInfoStore.PermanentDeleteBatch(ctx, endTime, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3547,10 +3701,10 @@ func (s *TimerLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int6
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) PermanentDeleteByUser(userID string) (int64, error) {
+func (s *TimerLayerFileInfoStore) PermanentDeleteByUser(ctx request.CTX, userID string) (int64, error) {
 	start := time.Now()
 
-	result, err := s.FileInfoStore.PermanentDeleteByUser(userID)
+	result, err := s.FileInfoStore.PermanentDeleteByUser(ctx, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3563,10 +3717,10 @@ func (s *TimerLayerFileInfoStore) PermanentDeleteByUser(userID string) (int64, e
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
+func (s *TimerLayerFileInfoStore) Save(ctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 	start := time.Now()
 
-	result, err := s.FileInfoStore.Save(info)
+	result, err := s.FileInfoStore.Save(ctx, info)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3579,10 +3733,10 @@ func (s *TimerLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, e
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) Search(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.FileInfoList, error) {
+func (s *TimerLayerFileInfoStore) Search(ctx request.CTX, paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.FileInfoList, error) {
 	start := time.Now()
 
-	result, err := s.FileInfoStore.Search(paramsList, userID, teamID, page, perPage)
+	result, err := s.FileInfoStore.Search(ctx, paramsList, userID, teamID, page, perPage)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3595,10 +3749,10 @@ func (s *TimerLayerFileInfoStore) Search(paramsList []*model.SearchParams, userI
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) SetContent(fileID string, content string) error {
+func (s *TimerLayerFileInfoStore) SetContent(ctx request.CTX, fileID string, content string) error {
 	start := time.Now()
 
-	err := s.FileInfoStore.SetContent(fileID, content)
+	err := s.FileInfoStore.SetContent(ctx, fileID, content)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3611,10 +3765,10 @@ func (s *TimerLayerFileInfoStore) SetContent(fileID string, content string) erro
 	return err
 }
 
-func (s *TimerLayerFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error) {
+func (s *TimerLayerFileInfoStore) Upsert(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 	start := time.Now()
 
-	result, err := s.FileInfoStore.Upsert(info)
+	result, err := s.FileInfoStore.Upsert(rctx, info)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5530,10 +5684,10 @@ func (s *TimerLayerPostStore) ClearCaches() {
 	}
 }
 
-func (s *TimerLayerPostStore) Delete(postID string, timestamp int64, deleteByID string) error {
+func (s *TimerLayerPostStore) Delete(rctx request.CTX, postID string, timestamp int64, deleteByID string) error {
 	start := time.Now()
 
-	err := s.PostStore.Delete(postID, timestamp, deleteByID)
+	err := s.PostStore.Delete(rctx, postID, timestamp, deleteByID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5562,10 +5716,10 @@ func (s *TimerLayerPostStore) Get(ctx context.Context, id string, opts model.Get
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afterID string) ([]*model.DirectPostForExport, error) {
+func (s *TimerLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetDirectPostParentsForExportAfter(limit, afterID)
+	result, err := s.PostStore.GetDirectPostParentsForExportAfter(limit, afterID, includeArchivedChannels)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6025,10 +6179,10 @@ func (s *TimerLayerPostStore) InvalidateLastPostTimeCache(channelID string) {
 	}
 }
 
-func (s *TimerLayerPostStore) Overwrite(post *model.Post) (*model.Post, error) {
+func (s *TimerLayerPostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Post, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.Overwrite(post)
+	result, err := s.PostStore.Overwrite(rctx, post)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6089,10 +6243,10 @@ func (s *TimerLayerPostStore) PermanentDeleteBatchForRetentionPolicies(now int64
 	return result, resultVar1, err
 }
 
-func (s *TimerLayerPostStore) PermanentDeleteByChannel(channelID string) error {
+func (s *TimerLayerPostStore) PermanentDeleteByChannel(rctx request.CTX, channelID string) error {
 	start := time.Now()
 
-	err := s.PostStore.PermanentDeleteByChannel(channelID)
+	err := s.PostStore.PermanentDeleteByChannel(rctx, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6105,10 +6259,10 @@ func (s *TimerLayerPostStore) PermanentDeleteByChannel(channelID string) error {
 	return err
 }
 
-func (s *TimerLayerPostStore) PermanentDeleteByUser(userID string) error {
+func (s *TimerLayerPostStore) PermanentDeleteByUser(rctx request.CTX, userID string) error {
 	start := time.Now()
 
-	err := s.PostStore.PermanentDeleteByUser(userID)
+	err := s.PostStore.PermanentDeleteByUser(rctx, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6121,10 +6275,10 @@ func (s *TimerLayerPostStore) PermanentDeleteByUser(userID string) error {
 	return err
 }
 
-func (s *TimerLayerPostStore) Save(post *model.Post) (*model.Post, error) {
+func (s *TimerLayerPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.Save(post)
+	result, err := s.PostStore.Save(rctx, post)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6169,10 +6323,10 @@ func (s *TimerLayerPostStore) Search(teamID string, userID string, params *model
 	return result, err
 }
 
-func (s *TimerLayerPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
+func (s *TimerLayerPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.SearchPostsForUser(paramsList, userID, teamID, page, perPage)
+	result, err := s.PostStore.SearchPostsForUser(rctx, paramsList, userID, teamID, page, perPage)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6201,10 +6355,10 @@ func (s *TimerLayerPostStore) SetPostReminder(reminder *model.PostReminder) erro
 	return err
 }
 
-func (s *TimerLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
+func (s *TimerLayerPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.Update(newPost, oldPost)
+	result, err := s.PostStore.Update(rctx, newPost, oldPost)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6901,6 +7055,22 @@ func (s *TimerLayerRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFil
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.GetAll", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteCluster, error) {
+	start := time.Now()
+
+	result, err := s.RemoteClusterStore.GetByPluginID(pluginID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.GetByPluginID", success, elapsed)
 	}
 	return result, err
 }
@@ -7621,6 +7791,22 @@ func (s *TimerLayerSessionStore) Get(c request.CTX, sessionIDOrToken string) (*m
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSessionStore) GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
+	start := time.Now()
+
+	result, err := s.SessionStore.GetLRUSessions(c, userID, limit, offset)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetLRUSessions", success, elapsed)
 	}
 	return result, err
 }
@@ -8457,22 +8643,6 @@ func (s *TimerLayerSystemStore) SaveOrUpdate(system *model.System) error {
 	return err
 }
 
-func (s *TimerLayerSystemStore) SaveOrUpdateWithWarnMetricHandling(system *model.System) error {
-	start := time.Now()
-
-	err := s.SystemStore.SaveOrUpdateWithWarnMetricHandling(system)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.SaveOrUpdateWithWarnMetricHandling", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerSystemStore) Update(system *model.System) error {
 	start := time.Now()
 
@@ -9047,10 +9217,10 @@ func (s *TimerLayerTeamStore) RemoveAllMembersByTeam(teamID string) error {
 	return err
 }
 
-func (s *TimerLayerTeamStore) RemoveAllMembersByUser(userID string) error {
+func (s *TimerLayerTeamStore) RemoveAllMembersByUser(ctx request.CTX, userID string) error {
 	start := time.Now()
 
-	err := s.TeamStore.RemoveAllMembersByUser(userID)
+	err := s.TeamStore.RemoveAllMembersByUser(ctx, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -9063,10 +9233,10 @@ func (s *TimerLayerTeamStore) RemoveAllMembersByUser(userID string) error {
 	return err
 }
 
-func (s *TimerLayerTeamStore) RemoveMember(teamID string, userID string) error {
+func (s *TimerLayerTeamStore) RemoveMember(rctx request.CTX, teamID string, userID string) error {
 	start := time.Now()
 
-	err := s.TeamStore.RemoveMember(teamID, userID)
+	err := s.TeamStore.RemoveMember(rctx, teamID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -9079,10 +9249,10 @@ func (s *TimerLayerTeamStore) RemoveMember(teamID string, userID string) error {
 	return err
 }
 
-func (s *TimerLayerTeamStore) RemoveMembers(teamID string, userIds []string) error {
+func (s *TimerLayerTeamStore) RemoveMembers(rctx request.CTX, teamID string, userIds []string) error {
 	start := time.Now()
 
-	err := s.TeamStore.RemoveMembers(teamID, userIds)
+	err := s.TeamStore.RemoveMembers(rctx, teamID, userIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -9127,10 +9297,10 @@ func (s *TimerLayerTeamStore) Save(team *model.Team) (*model.Team, error) {
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
+func (s *TimerLayerTeamStore) SaveMember(rctx request.CTX, member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 	start := time.Now()
 
-	result, err := s.TeamStore.SaveMember(member, maxUsersPerTeam)
+	result, err := s.TeamStore.SaveMember(rctx, member, maxUsersPerTeam)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -9255,10 +9425,10 @@ func (s *TimerLayerTeamStore) UpdateLastTeamIconUpdate(teamID string, curTime in
 	return err
 }
 
-func (s *TimerLayerTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, error) {
+func (s *TimerLayerTeamStore) UpdateMember(rctx request.CTX, member *model.TeamMember) (*model.TeamMember, error) {
 	start := time.Now()
 
-	result, err := s.TeamStore.UpdateMember(member)
+	result, err := s.TeamStore.UpdateMember(rctx, member)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10054,10 +10224,10 @@ func (s *TimerLayerUserStore) AnalyticsGetSystemAdminCount() (int64, error) {
 	return result, err
 }
 
-func (s *TimerLayerUserStore) AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
+func (s *TimerLayerUserStore) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.AutocompleteUsersInChannel(teamID, channelID, term, options)
+	result, err := s.UserStore.AutocompleteUsersInChannel(rctx, teamID, channelID, term, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10709,6 +10879,38 @@ func (s *TimerLayerUserStore) GetUnreadCountForChannel(userID string, channelID 
 	return result, err
 }
 
+func (s *TimerLayerUserStore) GetUserCountForReport(filter *model.UserReportOptions) (int64, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetUserCountForReport(filter)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetUserCountForReport", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetUserReport(filter)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetUserReport", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) GetUsersBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.UserForIndexing, error) {
 	start := time.Now()
 
@@ -10914,10 +11116,10 @@ func (s *TimerLayerUserStore) ResetLastPictureUpdate(userID string) error {
 	return err
 }
 
-func (s *TimerLayerUserStore) Save(user *model.User) (*model.User, error) {
+func (s *TimerLayerUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.Save(user)
+	result, err := s.UserStore.Save(rctx, user)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10930,10 +11132,10 @@ func (s *TimerLayerUserStore) Save(user *model.User) (*model.User, error) {
 	return result, err
 }
 
-func (s *TimerLayerUserStore) Search(teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+func (s *TimerLayerUserStore) Search(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.Search(teamID, term, options)
+	result, err := s.UserStore.Search(rctx, teamID, term, options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -11042,10 +11244,10 @@ func (s *TimerLayerUserStore) SearchWithoutTeam(term string, options *model.User
 	return result, err
 }
 
-func (s *TimerLayerUserStore) Update(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
+func (s *TimerLayerUserStore) Update(rctx request.CTX, user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.Update(user, allowRoleUpdate)
+	result, err := s.UserStore.Update(rctx, user, allowRoleUpdate)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -11901,6 +12103,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.AuditStore = &TimerLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
 	newStore.BotStore = &TimerLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &TimerLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
+	newStore.ChannelBookmarkStore = &TimerLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
 	newStore.ChannelMemberHistoryStore = &TimerLayerChannelMemberHistoryStore{ChannelMemberHistoryStore: childStore.ChannelMemberHistory(), Root: &newStore}
 	newStore.ClusterDiscoveryStore = &TimerLayerClusterDiscoveryStore{ClusterDiscoveryStore: childStore.ClusterDiscovery(), Root: &newStore}
 	newStore.CommandStore = &TimerLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}

@@ -53,7 +53,7 @@ type MappingValueTypes = {roleName: string;
  * @param {object} roles same structure as returned by mattermost-redux `getRoles`.
  * @return {object} the updated roles (only) in the same structure as returned by mattermost-redux `getRoles`.
  */
-export function rolesFromMapping(mappingValues: Record<string, any>, roles: Record<string, Role>): Record<string, Role> {
+export function rolesFromMapping(mappingValues: Record<string, string>, roles: Record<string, Role>): Record<string, Role> {
     const rolesClone: Record<string, Role> = JSON.parse(JSON.stringify(roles));
 
     // Purge roles that aren't present in MAPPING, we don't care about them.
@@ -62,7 +62,7 @@ export function rolesFromMapping(mappingValues: Record<string, any>, roles: Reco
     Object.keys(MAPPING).forEach((mappingKey) => {
         const value = mappingValues[mappingKey];
         if (value) {
-            mutateRolesBasedOnMapping(mappingKey as MappingKeyTypes, value, rolesClone);
+            mutateRolesBasedOnMapping(mappingKey as MappingKeyTypes, value as any, rolesClone);
         }
     });
 

@@ -13,6 +13,8 @@ import (
 
 	model "github.com/mattermost/mattermost/server/public/model"
 
+	store "github.com/mattermost/mattermost/server/v8/channels/store"
+
 	templates "github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 
 	throttled "github.com/throttled/throttled"
@@ -65,13 +67,37 @@ func (_m *ServiceInterface) CreateVerifyEmailToken(userID string, newEmail strin
 	return r0, r1
 }
 
-// GetMessageForNotification provides a mock function with given fields: post, translateFunc
-func (_m *ServiceInterface) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
-	ret := _m.Called(post, translateFunc)
+// GenerateHyperlinkForChannels provides a mock function with given fields: postMessage, teamName, teamURL
+func (_m *ServiceInterface) GenerateHyperlinkForChannels(postMessage string, teamName string, teamURL string) (string, error) {
+	ret := _m.Called(postMessage, teamName, teamURL)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*model.Post, i18n.TranslateFunc) string); ok {
-		r0 = rf(post, translateFunc)
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string) (string, error)); ok {
+		return rf(postMessage, teamName, teamURL)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string) string); ok {
+		r0 = rf(postMessage, teamName, teamURL)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(postMessage, teamName, teamURL)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetMessageForNotification provides a mock function with given fields: post, teamName, siteUrl, translateFunc
+func (_m *ServiceInterface) GetMessageForNotification(post *model.Post, teamName string, siteUrl string, translateFunc i18n.TranslateFunc) string {
+	ret := _m.Called(post, teamName, siteUrl, translateFunc)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*model.Post, string, string, i18n.TranslateFunc) string); ok {
+		r0 = rf(post, teamName, siteUrl, translateFunc)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
@@ -121,6 +147,48 @@ func (_m *ServiceInterface) SendChangeUsernameEmail(newUsername string, _a1 stri
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, string, string) error); ok {
 		r0 = rf(newUsername, _a1, locale, siteURL)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SendCloudRenewalEmail30 provides a mock function with given fields: _a0, locale, siteURL
+func (_m *ServiceInterface) SendCloudRenewalEmail30(_a0 string, locale string, siteURL string) error {
+	ret := _m.Called(_a0, locale, siteURL)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(_a0, locale, siteURL)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SendCloudRenewalEmail60 provides a mock function with given fields: _a0, locale, siteURL
+func (_m *ServiceInterface) SendCloudRenewalEmail60(_a0 string, locale string, siteURL string) error {
+	ret := _m.Called(_a0, locale, siteURL)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(_a0, locale, siteURL)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SendCloudRenewalEmail7 provides a mock function with given fields: _a0, locale, siteURL
+func (_m *ServiceInterface) SendCloudRenewalEmail7(_a0 string, locale string, siteURL string) error {
+	ret := _m.Called(_a0, locale, siteURL)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(_a0, locale, siteURL)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -564,6 +632,11 @@ func (_m *ServiceInterface) SendWelcomeEmail(userID string, _a1 string, verified
 	}
 
 	return r0
+}
+
+// SetStore provides a mock function with given fields: st
+func (_m *ServiceInterface) SetStore(st store.Store) {
+	_m.Called(st)
 }
 
 // Stop provides a mock function with given fields:

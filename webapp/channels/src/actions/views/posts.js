@@ -21,8 +21,8 @@ import {getTimestamp} from 'utils/utils';
 import {runMessageWillBePostedHooks} from '../hooks';
 
 export function editPost(post) {
-    return async (dispatch, getState) => {
-        const result = await PostActions.editPost(post)(dispatch, getState);
+    return async (dispatch) => {
+        const result = await dispatch(PostActions.editPost(post));
 
         // Send to error bar if it's an edit post error about time limit.
         if (result.error && result.error.server_error_id === 'api.post.update_post.permissions_time_limit.app_error') {

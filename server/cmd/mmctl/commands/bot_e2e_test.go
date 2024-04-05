@@ -22,14 +22,14 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: s.th.BasicUser.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
 			s.Require().Nil(err)
 		}()
 
 		deletedBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: s.th.BasicUser.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(deletedBot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, deletedBot.UserId)
 			s.Require().Nil(err)
 		}()
 
@@ -59,14 +59,14 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: s.th.BasicUser.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
 			s.Require().Nil(err)
 		}()
 
 		deletedBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: user.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(deletedBot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, deletedBot.UserId)
 			s.Require().Nil(err)
 		}()
 
@@ -76,7 +76,7 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 		orphanBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: user.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(orphanBot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, orphanBot.UserId)
 			s.Require().Nil(err)
 		}()
 
@@ -106,21 +106,21 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: s.th.BasicUser2.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
 			s.Require().Nil(err)
 		}()
 
 		orphanBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: user.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(orphanBot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, orphanBot.UserId)
 			s.Require().Nil(err)
 		}()
 
 		deletedBot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: model.NewId(), OwnerId: s.th.BasicUser2.Id})
 		s.Require().Nil(appErr)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(deletedBot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, deletedBot.UserId)
 			s.Require().Nil(err)
 		}()
 
@@ -151,7 +151,7 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 
 		err := botListCmdF(s.th.Client, cmd, []string{})
 		s.Require().Error(err)
-		s.Require().Equal("Failed to fetch bots: : You do not have the appropriate permissions.", err.Error())
+		s.Require().Equal("Failed to fetch bots: You do not have the appropriate permissions.", err.Error())
 	})
 }
 
@@ -181,7 +181,7 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 		s.Require().Equal(newBot.Username, printedBot.Username)
 		s.Require().Equal(newBot.OwnerId, printedBot.OwnerId)
 
-		bot, appErr := s.th.App.GetBot(newBot.UserId, false)
+		bot, appErr := s.th.App.GetBot(s.th.Context, newBot.UserId, false)
 		s.Require().Nil(appErr)
 		s.Require().Equal(newBot.UserId, bot.UserId)
 		s.Require().Equal(newBot.Username, bot.Username)
@@ -235,7 +235,7 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 		s.Require().Equal(newBot.Username, printedBot.Username)
 		s.Require().Equal(newBot.OwnerId, printedBot.OwnerId)
 
-		bot, appErr := s.th.App.GetBot(newBot.UserId, false)
+		bot, appErr := s.th.App.GetBot(s.th.Context, newBot.UserId, false)
 		s.Require().Nil(appErr)
 		s.Require().Equal(newBot.UserId, bot.UserId)
 		s.Require().Equal(newBot.Username, bot.Username)
@@ -269,7 +269,7 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		s.Require().Equal(newBot.Username, printedBot.Username)
 		s.Require().Equal(newBot.OwnerId, printedBot.OwnerId)
 
-		_, appErr = s.th.App.GetBot(newBot.UserId, false)
+		_, appErr = s.th.App.GetBot(s.th.Context, newBot.UserId, false)
 		s.Require().NotNil(appErr)
 		s.Require().Equal("store.sql_bot.get.missing.app_error", appErr.Id)
 	})
@@ -321,7 +321,7 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		s.Require().Equal(newBot.Username, printedBot.Username)
 		s.Require().Equal(newBot.OwnerId, printedBot.OwnerId)
 
-		_, appErr = s.th.App.GetBot(newBot.UserId, false)
+		_, appErr = s.th.App.GetBot(s.th.Context, newBot.UserId, false)
 		s.Require().NotNil(appErr)
 		s.Require().Equal("store.sql_bot.get.missing.app_error", appErr.Id)
 	})
@@ -351,7 +351,7 @@ func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
 		s.Require().Nil(appErr)
 		s.Require().Equal(bot.OwnerId, botOwner.Id)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
 			s.Require().Nil(err)
 		}()
 
@@ -384,7 +384,7 @@ func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
 		s.Require().Nil(appErr)
 		s.Require().Equal(bot.OwnerId, botOwner.Id)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
 			s.Require().Nil(err)
 		}()
 
@@ -420,7 +420,7 @@ func (s *MmctlE2ETestSuite) TestBotCreateCmdF() {
 		bot, ok := printer.GetLines()[0].(*model.Bot)
 		s.Require().True(ok)
 		defer func() {
-			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
 			s.Require().Nil(err)
 		}()
 		token, ok := printer.GetLines()[1].(*model.UserAccessToken)

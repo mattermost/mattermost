@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {
-    searchMoreChannels,
     addUsersToChannel,
     openDirectChannelToUserId,
     openGroupChannelToUserIds,
@@ -11,6 +10,7 @@ import {
 import {loadProfilesForSidebar} from 'actions/user_actions';
 
 import mockStore from 'tests/test_store';
+import {TestHelper} from 'utils/test_helper';
 
 const initialState = {
     entities: {
@@ -26,25 +26,25 @@ const initialState = {
                 },
             },
             channels: {
-                current_channel_id: {
+                current_channel_id: TestHelper.getChannelMock({
                     id: 'current_channel_id',
                     name: 'default-name',
                     display_name: 'Default',
                     delete_at: 0,
                     type: 'O',
                     team_id: 'team_id',
-                },
-                current_user_id__existingId: {
+                }),
+                current_user_id__existingId: TestHelper.getChannelMock({
                     id: 'current_user_id__existingId',
                     name: 'current_user_id__existingId',
                     display_name: 'Default',
                     delete_at: 0,
-                    type: '0',
+                    type: 'O',
                     team_id: 'team_id',
-                },
+                }),
             },
             channelsInTeam: {
-                'team-id': ['current_channel_id'],
+                'team-id': new Set(['asdf']),
             },
             messageCounts: {
                 current_channel_id: {total: 10},
@@ -57,7 +57,7 @@ const initialState = {
                 'team-id': {
                     id: 'team_id',
                     name: 'team-1',
-                    displayName: 'Team 1',
+                    display_name: 'Team 1',
                 },
             },
             myMembers: {
@@ -96,7 +96,7 @@ const initialState = {
         general: {
             license: {IsLicensed: 'false'},
             serverVersion: '5.4.0',
-            config: {PostEditTimeLimit: -1},
+            config: {PostEditTimeLimit: '-1'},
         },
     },
 };
@@ -140,24 +140,6 @@ describe('Actions.Channel', () => {
         await testStore.dispatch(loadChannelsForCurrentUser());
         expect(testStore.getActions()).toEqual(expectedActions);
         expect(loadProfilesForSidebar).toHaveBeenCalledTimes(1);
-    });
-
-    test('searchMoreChannels', async () => {
-        const testStore = await mockStore(initialState);
-
-        const expectedActions = [{
-            type: 'MOCK_SEARCH_CHANNELS',
-            data: [{
-                id: 'channel-id',
-                name: 'channel-name',
-                display_name: 'Channel',
-                delete_at: 0,
-                type: 'O',
-            }],
-        }];
-
-        await testStore.dispatch(searchMoreChannels('', false, true));
-        expect(testStore.getActions()).toEqual(expectedActions);
     });
 
     test('addUsersToChannel', async () => {

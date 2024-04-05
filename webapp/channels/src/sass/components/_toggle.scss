@@ -1,9 +1,11 @@
+@use 'sass:color';
+
 // Based on https://codepen.io/aanjulena/pen/ZLZjzV
 // Colors
 $brand-primary: #2a9fd8;
 $gray: #6b7381;
-$gray-light: lighten($gray, 15%);
-$gray-lighter: lighten($gray, 30%);
+$gray-light: color.adjust($gray, $lightness: 15%);
+$gray-lighter: color.adjust($gray, $lightness: 30%);
 
 // Button Colors
 $btn-default-color: $gray;
@@ -28,7 +30,7 @@ $toggle-default-font-size: 0.75rem;
 // Mixin for Default Switch Styles
 // Variables: $size, $margin, $color, $bg, $active-bg, $font-size
 @mixin toggle-mixin($size: $toggle-default-size, $margin: $toggle-default-margin, $font-size: $toggle-default-font-size) {
-    $handlePosition: calc($size/7);
+    $handlePosition: calc($size / 7);
     $handleSize: calc($size - (2 * $handlePosition));
 
     position: relative;
@@ -55,8 +57,8 @@ $toggle-default-font-size: 0.75rem;
         left: $handlePosition;
         width: $handleSize;
         height: $handleSize;
-        background: #fff;
         border-radius: 1rem;
+        background: #fff;
         transition: left 0.25s;
     }
 

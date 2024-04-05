@@ -11,17 +11,19 @@ import * as TeamActions from 'mattermost-redux/actions/teams';
 import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {addUsersToTeam} from 'actions/team_actions';
+
+import type {InviteResults} from 'components/invitation_modal/result_view';
 
 import {ConsolePages} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
 
-export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[]): ActionFuncAsync<InviteResults> {
+    return async (dispatch, getState) => {
         if (users.length > 0) {
             await dispatch(TeamActions.getTeamMembersByIds(teamId, users.map((u) => u.id)));
         }
@@ -62,7 +64,12 @@ export function sendMembersInvites(teamId: string, users: UserProfile[], emails:
             try {
                 response = await dispatch(TeamActions.sendEmailInvitesToTeamGracefully(teamId, emails));
             } catch (e) {
-                response = {data: emails.map((email) => ({email, error: {error: localizeMessage('invite.members.unable-to-add-the-user-to-the-team', 'Unable to add the user to the team.')}}))};
+                response = {
+                    data: emails.map((email) => ({
+                        email,
+                        error: {error: localizeMessage('invite.members.unable-to-add-the-user-to-the-team', 'Unable to add the user to the team.')},
+                    })) as unknown as TeamInviteWithError[],
+                };
             }
             const invitesWithErrors = response.data || [];
             if (response.error) {
@@ -151,8 +158,8 @@ export function sendGuestsInvites(
     users: UserProfile[],
     emails: string[],
     message: string,
-): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+): ActionFuncAsync<InviteResults> {
+    return async (dispatch, getState) => {
         const state = getState();
         const sent = [];
         const notSent = [];
@@ -173,7 +180,12 @@ export function sendGuestsInvites(
             try {
                 response = await dispatch(TeamActions.sendEmailGuestInvitesToChannelsGracefully(teamId, channels.map((x) => x.id), emails, message));
             } catch (e) {
-                response = {data: emails.map((email) => ({email, error: {error: localizeMessage('invite.guests.unable-to-add-the-user-to-the-channels', 'Unable to add the guest to the channels.')}}))};
+                response = {
+                    data: emails.map((email) => ({
+                        email,
+                        error: {error: localizeMessage('invite.guests.unable-to-add-the-user-to-the-channels', 'Unable to add the guest to the channels.')},
+                    })) as unknown as TeamInviteWithError[],
+                };
             }
 
             if (response.error) {
@@ -214,8 +226,8 @@ export function sendMembersInvitesToChannels(
     users: UserProfile[],
     emails: string[],
     message: string,
-): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+): ActionFuncAsync<InviteResults> {
+    return async (dispatch, getState) => {
         if (users.length > 0) {
             // used to preload in the global store the teammembers info, used later to validate
             // if one of the invites is already part of the team by getTeamMembers > getMembersInTeam.
@@ -265,7 +277,12 @@ export function sendMembersInvitesToChannels(
                     ),
                 );
             } catch (e) {
-                response = {data: emails.map((email) => ({email, error: {error: localizeMessage('invite.members.unable-to-add-the-user-to-the-team', 'Unable to add the user to the team.')}}))};
+                response = {
+                    data: emails.map((email) => ({
+                        email,
+                        error: {error: localizeMessage('invite.members.unable-to-add-the-user-to-the-team', 'Unable to add the user to the team.')},
+                    })) as unknown as TeamInviteWithError[],
+                };
             }
             const invitesWithErrors = response.data || [];
             if (response.error) {

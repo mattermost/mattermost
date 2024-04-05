@@ -4,71 +4,22 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import ReactDOM from 'react-dom';
-import {
-    defineMessages,
-    injectIntl,
-} from 'react-intl';
-import type {
-    IntlShape} from 'react-intl';
-import {Provider} from 'react-redux';
+import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import type {StatusOK} from '@mattermost/types/client4';
 import type {UserProfile} from '@mattermost/types/users';
 
-import store from 'stores/redux_store';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
+import SettingsSidebar from 'components/settings_sidebar';
+import UserSettings from 'components/user_settings';
 
 import Constants from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import * as NotificationSounds from 'utils/notification_sounds';
-import * as Utils from 'utils/utils';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
+import {stopTryNotificationRing} from 'utils/notification_sounds';
 
-const UserSettings = React.lazy(() => import(/* webpackPrefetch: true */ 'components/user_settings'));
-const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ '../../settings_sidebar'));
-
-const holders = defineMessages({
-    profile: {
-        id: 'user.settings.modal.profile',
-        defaultMessage: 'Profile',
-    },
-    security: {
-        id: 'user.settings.modal.security',
-        defaultMessage: 'Security',
-    },
-    notifications: {
-        id: 'user.settings.modal.notifications',
-        defaultMessage: 'Notifications',
-    },
-    display: {
-        id: 'user.settings.modal.display',
-        defaultMessage: 'Display',
-    },
-    sidebar: {
-        id: 'user.settings.modal.sidebar',
-        defaultMessage: 'Sidebar',
-    },
-    advanced: {
-        id: 'user.settings.modal.advanced',
-        defaultMessage: 'Advanced',
-    },
-    checkEmail: {
-        id: 'user.settings.general.checkEmail',
-        defaultMessage: 'Check your email at {email} to verify the address. Cannot find the email?',
-    },
-    confirmTitle: {
-        id: 'user.settings.modal.confirmTitle',
-        defaultMessage: 'Discard Changes?',
-    },
-    confirmMsg: {
-        id: 'user.settings.modal.confirmMsg',
-        defaultMessage: 'You have unsaved changes, are you sure you want to discard them?',
-    },
-    confirmBtns: {
-        id: 'user.settings.modal.confirmBtns',
-        defaultMessage: 'Yes, Discard',
-    },
-});
+import type {PluginConfiguration} from 'types/plugins/user_settings';
 
 export type Props = {
     currentUser: UserProfile;
@@ -76,13 +27,9 @@ export type Props = {
     intl: IntlShape;
     isContentProductSettings: boolean;
     actions: {
-        sendVerificationEmail: (email: string) => Promise<{
-            data: StatusOK;
-            error: {
-                err: string;
-            };
-        }>;
+        sendVerificationEmail: (email: string) => Promise<ActionResult>;
     };
+    pluginSettings: {[pluginId: string]: PluginConfiguration};
 }
 
 type State = {
@@ -151,7 +98,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
     }
 
     handleKeyDown = (e: KeyboardEvent) => {
-        if (Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && Keyboard.isKeyPressed(e, Constants.KeyCodes.A)) {
+        if (cmdOrCtrlPressed(e) && e.shiftKey && isKeyPressed(e, Constants.KeyCodes.A)) {
             e.preventDefault();
             this.handleHide();
         }
@@ -165,7 +112,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         }
 
         // Cancel any ongoing notification sound, if any (from DesktopNotificationSettings)
-        NotificationSounds.stopTryNotificationRing();
+        stopTryNotificationRing();
 
         this.setState({
             show: false,
@@ -271,23 +218,68 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         }
     };
 
+    getUserSettingsTabs = () => {
+        return [
+            {
+                name: 'notifications',
+                uiName: this.props.intl.formatMessage({id: 'user.settings.modal.notifications', defaultMessage: 'Notifications'}),
+                icon: 'icon icon-bell-outline',
+                iconTitle: this.props.intl.formatMessage({id: 'user.settings.notifications.icon', defaultMessage: 'Notification Settings Icon'}),
+            },
+            {
+                name: 'display',
+                uiName: this.props.intl.formatMessage({id: 'user.settings.modal.display', defaultMessage: 'Display'}),
+                icon: 'icon icon-eye-outline',
+                iconTitle: this.props.intl.formatMessage({id: 'user.settings.display.icon', defaultMessage: 'Display Settings Icon'}),
+            },
+            {
+                name: 'sidebar',
+                uiName: this.props.intl.formatMessage({id: 'user.settings.modal.sidebar', defaultMessage: 'Sidebar'}),
+                icon: 'icon icon-dock-left',
+                iconTitle: this.props.intl.formatMessage({id: 'user.settings.sidebar.icon', defaultMessage: 'Sidebar Settings Icon'}),
+            },
+            {
+                name: 'advanced',
+                uiName: this.props.intl.formatMessage({id: 'user.settings.modal.advanced', defaultMessage: 'Advanced'}),
+                icon: 'icon icon-tune',
+                iconTitle: this.props.intl.formatMessage({id: 'user.settings.advance.icon', defaultMessage: 'Advanced Settings Icon'}),
+            },
+        ];
+    };
+
+    getProfileSettingsTab = () => {
+        return [
+            {
+                name: 'profile',
+                uiName: this.props.intl.formatMessage({id: 'user.settings.modal.profile', defaultMessage: 'Profile'}),
+                icon: 'icon icon-settings-outline',
+                iconTitle: this.props.intl.formatMessage({id: 'user.settings.profile.icon', defaultMessage: 'Profile Settings Icon'}),
+            },
+            {
+                name: 'security',
+                uiName: this.props.intl.formatMessage({id: 'user.settings.modal.security', defaultMessage: 'Security'}),
+                icon: 'icon icon-lock-outline',
+                iconTitle: this.props.intl.formatMessage({id: 'user.settings.security.icon', defaultMessage: 'Security Settings Icon'}),
+            },
+        ];
+    };
+
+    getPluginsSettingsTab = () => {
+        return Object.values(this.props.pluginSettings).map((v) => ({
+            name: v.id,
+            uiName: v.uiName,
+            icon: v.icon ? {url: v.icon} : 'icon-power-plug-outline',
+            iconTitle: v.uiName,
+        }));
+    };
+
     render() {
         const {formatMessage} = this.props.intl;
         if (this.props.currentUser == null) {
             return (<div/>);
         }
-        const tabs = [];
-        if (this.props.isContentProductSettings) {
-            tabs.push({name: 'notifications', uiName: formatMessage(holders.notifications), icon: 'icon icon-bell-outline', iconTitle: Utils.localizeMessage('user.settings.notifications.icon', 'Notification Settings Icon')});
-            tabs.push({name: 'display', uiName: formatMessage(holders.display), icon: 'icon icon-eye-outline', iconTitle: Utils.localizeMessage('user.settings.display.icon', 'Display Settings Icon')});
-            tabs.push({name: 'sidebar', uiName: formatMessage(holders.sidebar), icon: 'icon icon-dock-left', iconTitle: Utils.localizeMessage('user.settings.sidebar.icon', 'Sidebar Settings Icon')});
-            tabs.push({name: 'advanced', uiName: formatMessage(holders.advanced), icon: 'icon icon-tune', iconTitle: Utils.localizeMessage('user.settings.advance.icon', 'Advanced Settings Icon')});
-        } else {
-            tabs.push({name: 'profile', uiName: formatMessage(holders.profile), icon: 'icon icon-settings-outline', iconTitle: Utils.localizeMessage('user.settings.profile.icon', 'Profile Settings Icon')});
-            tabs.push({name: 'security', uiName: formatMessage(holders.security), icon: 'icon icon-lock-outline', iconTitle: Utils.localizeMessage('user.settings.security.icon', 'Security Settings Icon')});
-        }
 
-        const title = this.props.isContentProductSettings ? formatMessage({
+        const modalTitle = this.props.isContentProductSettings ? formatMessage({
             id: 'global_header.productSettings',
             defaultMessage: 'Settings',
         }) : formatMessage({
@@ -304,7 +296,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 onExited={this.handleHidden}
                 enforceFocus={this.state.enforceFocus}
                 role='dialog'
-                aria-label={title}
+                aria-label={modalTitle}
             >
                 <Modal.Header
                     id='accountSettingsHeader'
@@ -314,49 +306,47 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                         componentClass='h1'
                         id='accountSettingsModalLabel'
                     >
-                        {title}
+                        {modalTitle}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body ref={this.modalBodyRef}>
                     <div className='settings-table'>
                         <div className='settings-links'>
-                            <React.Suspense fallback={null}>
-                                <Provider store={store}>
-                                    <SettingsSidebar
-                                        tabs={tabs}
-                                        activeTab={this.state.active_tab}
-                                        updateTab={this.updateTab}
-                                    />
-                                </Provider>
-                            </React.Suspense>
+                            <SettingsSidebar
+                                tabs={this.props.isContentProductSettings ? this.getUserSettingsTabs() : this.getProfileSettingsTab()}
+                                pluginTabs={this.props.isContentProductSettings ? this.getPluginsSettingsTab() : []}
+                                activeTab={this.state.active_tab}
+                                updateTab={this.updateTab}
+                            />
                         </div>
                         <div className='settings-content minimize-settings'>
-                            <React.Suspense fallback={null}>
-                                <Provider store={store}>
-                                    <UserSettings
-                                        activeTab={this.state.active_tab}
-                                        activeSection={this.state.active_section}
-                                        updateSection={this.updateSection}
-                                        updateTab={this.updateTab}
-                                        closeModal={this.closeModal}
-                                        collapseModal={this.collapseModal}
-                                        setEnforceFocus={(enforceFocus?: boolean) => this.setState({enforceFocus})}
-                                        setRequireConfirm={
-                                            (requireConfirm?: boolean, customConfirmAction?: () => () => void) => {
-                                                this.requireConfirm = requireConfirm!;
-                                                this.customConfirmAction = customConfirmAction!;
-                                            }
-                                        }
-                                    />
-                                </Provider>
-                            </React.Suspense>
+                            <UserSettings
+                                activeTab={this.state.active_tab}
+                                activeSection={this.state.active_section}
+                                updateSection={this.updateSection}
+                                updateTab={this.updateTab}
+                                closeModal={this.closeModal}
+                                collapseModal={this.collapseModal}
+                                setEnforceFocus={(enforceFocus?: boolean) => this.setState({enforceFocus})}
+                                setRequireConfirm={
+                                    (requireConfirm?: boolean, customConfirmAction?: () => () => void) => {
+                                        this.requireConfirm = requireConfirm!;
+                                        this.customConfirmAction = customConfirmAction!;
+                                    }
+                                }
+                                pluginSettings={this.props.pluginSettings}
+                                user={this.props.currentUser}
+                            />
                         </div>
                     </div>
                 </Modal.Body>
                 <ConfirmModal
-                    title={formatMessage(holders.confirmTitle)}
-                    message={formatMessage(holders.confirmMsg)}
-                    confirmButtonText={formatMessage(holders.confirmBtns)}
+                    title={formatMessage({id: 'user.settings.modal.confirmTitle', defaultMessage: 'Discard Changes?'})}
+                    message={formatMessage({
+                        id: 'user.settings.modal.confirmMsg',
+                        defaultMessage: 'You have unsaved changes, are you sure you want to discard them?',
+                    })}
+                    confirmButtonText={formatMessage({id: 'user.settings.modal.confirmBtns', defaultMessage: 'Yes, Discard'})}
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleConfirm}
                     onCancel={this.handleCancelConfirmation}

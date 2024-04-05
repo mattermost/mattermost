@@ -13,8 +13,6 @@ import {InviteType} from './invite_as';
 import ResultTable from './result_table';
 import type {InviteResult} from './result_table';
 
-import './result_view.scss';
-
 export type InviteResults = {
     sent: InviteResult[];
     notSent: InviteResult[];
@@ -46,7 +44,10 @@ export default function ResultView(props: Props) {
     return (
         <>
             <Modal.Header className={props.headerClass}>
-                <h1 id='invitation_modal_title'>
+                <h1
+                    id='invitation_modal_title'
+                    className='modal-title'
+                >
                     <FormattedMessage
                         id='invite_modal.invited'
                         defaultMessage='{inviteType} invited to {team_name}'

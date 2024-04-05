@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelType} from './channels';
-import {CustomEmoji} from './emojis';
-import {FileInfo} from './files';
-import {Reaction} from './reactions';
-import { TeamType } from './teams';
-import {UserProfile} from './users';
-import {
+import type {Channel, ChannelType} from './channels';
+import type {CustomEmoji} from './emojis';
+import type {FileInfo} from './files';
+import type {Reaction} from './reactions';
+import type {TeamType} from './teams';
+import type {UserProfile} from './users';
+import type {
     RelationOneToOne,
     RelationOneToMany,
     IDMappedObjects,
@@ -31,6 +31,7 @@ export type PostType = 'system_add_remove' |
 'system_fake_parent_deleted' |
 'system_generic' |
 'reminder' |
+'system_wrangler' |
 '';
 
 export type PostEmbedType = 'image' | 'link' | 'message_attachment' | 'opengraph' | 'permalink';
@@ -65,7 +66,7 @@ export type PostMetadata = {
     emojis: CustomEmoji[];
     files: FileInfo[];
     images: Record<string, PostImage>;
-    reactions: Reaction[];
+    reactions?: Reaction[];
     priority?: PostPriorityMetadata;
     acknowledgements?: PostAcknowledgement[];
 };
@@ -145,7 +146,6 @@ export type PostsState = {
     reactions: RelationOneToOne<Post, Record<string, Reaction>>;
     openGraph: RelationOneToOne<Post, Record<string, OpenGraphMetadata>>;
     pendingPostIds: string[];
-    selectedPostId: string;
     postEditHistory: Post[];
     currentFocusedPostId: string;
     messagesHistory: MessageHistory;

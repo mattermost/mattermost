@@ -24,12 +24,12 @@ func (s *LocalCacheReactionStore) handleClusterInvalidateReaction(msg *model.Clu
 }
 
 func (s LocalCacheReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
-	defer s.rootStore.doInvalidateCacheCluster(s.rootStore.reactionCache, reaction.PostId)
+	defer s.rootStore.doInvalidateCacheCluster(s.rootStore.reactionCache, reaction.PostId, nil)
 	return s.ReactionStore.Save(reaction)
 }
 
 func (s LocalCacheReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
-	defer s.rootStore.doInvalidateCacheCluster(s.rootStore.reactionCache, reaction.PostId)
+	defer s.rootStore.doInvalidateCacheCluster(s.rootStore.reactionCache, reaction.PostId, nil)
 	return s.ReactionStore.Delete(reaction)
 }
 

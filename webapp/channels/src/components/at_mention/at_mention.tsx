@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, useState, useMemo} from 'react';
+import React, {useRef, useState, useMemo, type ComponentProps} from 'react';
 import {Overlay} from 'react-bootstrap';
 
 import type {Group} from '@mattermost/types/groups';
@@ -31,7 +31,6 @@ type Props = {
     groupsByName: Record<string, Group>;
     children?: React.ReactNode;
     channelId?: string;
-    hasMention?: boolean;
     disableHighlight?: boolean;
     disableGroupHighlight?: boolean;
 }
@@ -42,7 +41,7 @@ export const AtMention = (props: Props) => {
     const [show, setShow] = useState(false);
     const [groupUser, setGroupUser] = useState<UserProfile | undefined>();
     const [target, setTarget] = useState<HTMLAnchorElement | undefined>();
-    const [placement, setPlacement] = useState('right');
+    const [placement, setPlacement] = useState<ComponentProps<typeof Overlay>['placement']>('right');
 
     const [user, group] = useMemo(
         () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight),
@@ -122,7 +121,6 @@ export const AtMention = (props: Props) => {
                     className='user-profile-popover'
                     userId={user.id}
                     src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
-                    hasMention={props.hasMention}
                     hide={hideOverlay}
                     channelId={props.channelId}
                 />
@@ -187,7 +185,6 @@ export const AtMention = (props: Props) => {
                             userId={groupUser.id}
                             src={Client4.getProfilePictureUrl(groupUser.id, groupUser.last_picture_update)}
                             channelId={props.channelId}
-                            hasMention={props.hasMention}
                             hide={hideGroupUserOverlay}
                             returnFocus={returnFocus}
                         />

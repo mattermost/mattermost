@@ -9,7 +9,6 @@ import {GenericModal} from '@mattermost/components';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal} from 'actions/views/modals';
@@ -29,8 +28,6 @@ import LearnMoreTrialModalStep from './learn_more_trial_modal_step';
 import type {LearnMoreTrialModalStepProps} from './learn_more_trial_modal_step';
 import StartTrialBtn from './start_trial_btn';
 
-import './learn_more_trial_modal.scss';
-
 type Props = {
     onClose?: () => void;
     onExited: () => void;
@@ -45,7 +42,7 @@ const LearnMoreTrialModal = (
     }: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
     const [embargoed, setEmbargoed] = useState(false);
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     const [, salesLink] = useOpenSalesLink();
 
@@ -190,6 +187,7 @@ const LearnMoreTrialModal = (
 
     return (
         <GenericModal
+            compassDesign={true}
             className='LearnMoreTrialModal'
             id='learnMoreTrialModal'
             onExited={handleOnClose}

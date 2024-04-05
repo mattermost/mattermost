@@ -4,12 +4,10 @@
 package api4
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -83,34 +81,7 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	cloudWorkspaceOwnerEmailAddress := ""
-	if c.App.License().IsCloud() {
-		portalUserCustomer, cErr := c.App.Cloud().GetCloudCustomer(c.AppContext.Session().UserId)
-		if cErr != nil {
-			mlog.Error("Failed to get portal user customer", mlog.Err(cErr))
-		}
-		if cErr == nil && portalUserCustomer != nil {
-			cloudWorkspaceOwnerEmailAddress = portalUserCustomer.Email
-		}
-	}
-
-	go func() {
-		initiatingUser, err := c.App.Srv().Store().User().GetProfileByIds(context.Background(), []string{c.AppContext.Session().UserId}, nil, true)
-		if err != nil {
-			mlog.Error("Failed to get initiating user", mlog.Err(err))
-		}
-
-		users, err := c.App.Srv().Store().User().GetSystemAdminProfiles()
-		if err != nil {
-			mlog.Error("Failed to get system admins", mlog.Err(err))
-		}
-
-		for _, user := range users {
-			if err = c.App.Srv().EmailService.SendIPFiltersChangedEmail(user.Email, initiatingUser[0], *c.App.Config().ServiceSettings.SiteURL, *c.App.Config().CloudSettings.CWSURL, user.Locale, cloudWorkspaceOwnerEmailAddress == user.Email); err != nil {
-				mlog.Error("Error while sending IP filters changed email", mlog.Err(err))
-			}
-		}
-	}()
+	go c.App.SendIPFiltersChangedEmail(c.AppContext, c.AppContext.Session().UserId)
 
 	if err := json.NewEncoder(w).Encode(updatedAllowedRanges); err != nil {
 		c.Err = model.NewAppError("getIPFilters", "api.context.ip_filtering.get_ip_filters.app_error", nil, err.Error(), http.StatusInternalServerError)

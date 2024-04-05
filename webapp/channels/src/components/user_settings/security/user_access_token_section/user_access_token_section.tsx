@@ -4,8 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {UserProfile} from '@mattermost/types/users';
+import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -38,30 +39,10 @@ type Props = {
     setRequireConfirm: (isRequiredConfirm: boolean, confirmCopyToken: (confirmAction: () => void) => void) => void;
     actions: {
         getUserAccessTokensForUser: (userId: string, page: number, perPage: number) => void;
-        createUserAccessToken: (userId: string, description: string) => Promise<{
-            data: {token: string; description: string; id: string; is_active: boolean} | null;
-            error?: {
-                message: string;
-            };
-        }>;
-        revokeUserAccessToken: (tokenId: string) => Promise<{
-            data: string;
-            error?: {
-                message: string;
-            };
-        }>;
-        enableUserAccessToken: (tokenId: string) => Promise<{
-            data: string;
-            error?: {
-                message: string;
-            };
-        }>;
-        disableUserAccessToken: (tokenId: string) => Promise<{
-            data: string;
-            error?: {
-                message: string;
-            };
-        }>;
+        createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
+        revokeUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        enableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         clearUserAccessTokens: () => void;
     };
 }
@@ -69,7 +50,7 @@ type Props = {
 type State = {
     active?: boolean;
     showConfirmModal: boolean;
-    newToken?: {token: string; description: string; id: string; is_active: boolean} | null;
+    newToken?: UserAccessToken | null;
     tokenCreationState?: string;
     tokenError?: string;
     serverError?: string|null;

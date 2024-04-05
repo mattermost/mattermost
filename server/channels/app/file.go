@@ -29,7 +29,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/docextractor"
@@ -49,18 +48,6 @@ const (
 	maxContentExtractionSize   = 1024 * 1024 // 1MB
 )
 
-// Ensure fileInfo service wrapper implements `product.FileInfoStoreService`
-var _ product.FileInfoStoreService = (*fileInfoWrapper)(nil)
-
-// fileInfoWrapper implements `product.FileInfoStoreService` for use by products.
-type fileInfoWrapper struct {
-	srv *Server
-}
-
-func (f *fileInfoWrapper) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	return f.srv.getFileInfo(fileID)
-}
-
 func (a *App) FileBackend() filestore.FileBackend {
 	return a.ch.filestore
 }
@@ -70,7 +57,13 @@ func (a *App) ExportFileBackend() filestore.FileBackend {
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	fileBackendSettings := filestore.NewFileBackendSettingsFromConfig(settings, false, false)
+	var fileBackendSettings filestore.FileBackendSettings
+	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+		fileBackendSettings = filestore.NewExportFileBackendSettingsFromConfig(settings, false, false)
+	} else {
+		fileBackendSettings = filestore.NewFileBackendSettingsFromConfig(settings, false, false)
+	}
+
 	err := fileBackendSettings.CheckMandatoryS3Fields()
 	if err != nil {
 		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest).Wrap(err)
@@ -100,7 +93,15 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	license := a.Srv().License()
 	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections
-	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+	var backend filestore.FileBackend
+	var err error
+	complianceEnabled := license != nil && *license.Features.Compliance
+	if license.IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+		allowInsecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *a.Config().ServiceSettings.EnableInsecureOutgoingConnections
+		backend, err = filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(cfg, complianceEnabled && license.IsCloud(), allowInsecure))
+	} else {
+		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, insecure != nil && *insecure))
+	}
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -505,7 +506,7 @@ func (a *App) MigrateFilenamesToFileInfos(rctx request.CTX, post *model.Post) []
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIDs := make([]string, 0, len(filenames))
 	for _, info := range infos {
-		if _, nErr = a.Srv().Store().FileInfo().Save(info); nErr != nil {
+		if _, nErr = a.Srv().Store().FileInfo().Save(rctx, info); nErr != nil {
 			rctx.Logger().Error(
 				"Unable to save file info when migrating post to use FileInfos",
 				mlog.String("post_id", post.Id),
@@ -527,7 +528,7 @@ func (a *App) MigrateFilenamesToFileInfos(rctx request.CTX, post *model.Post) []
 	newPost.FileIds = fileIDs
 
 	// Update Posts to clear Filenames and set FileIds
-	if _, nErr = a.Srv().Store().Post().Update(newPost, post); nErr != nil {
+	if _, nErr = a.Srv().Store().Post().Update(rctx, newPost, post); nErr != nil {
 		rctx.Logger().Error(
 			"Unable to save migrated post when migrating to use FileInfos",
 			mlog.String("new_file_ids", strings.Join(newPost.FileIds, ",")),
@@ -575,7 +576,7 @@ func (a *App) UploadFileForUserAndTeam(c request.CTX, data []byte, channelID str
 		teamId = "noteam"
 	}
 
-	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), teamId, channelID, userId, filename, data)
+	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), teamId, channelID, userId, filename, data, true)
 	if appError != nil {
 		return nil, appError
 	}
@@ -591,8 +592,8 @@ func (a *App) UploadFileForUserAndTeam(c request.CTX, data []byte, channelID str
 	return info, nil
 }
 
-func (a *App) DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
-	info, _, err := a.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+func (a *App) DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, *model.AppError) {
+	info, _, err := a.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data, extractContent)
 	return info, err
 }
 
@@ -678,7 +679,7 @@ type UploadFileTask struct {
 	// Testing: overridable dependency functions
 	pluginsEnvironment *plugin.Environment
 	writeFile          func(io.Reader, string) (int64, *model.AppError)
-	saveToDatabase     func(*model.FileInfo) (*model.FileInfo, error)
+	saveToDatabase     func(request.CTX, *model.FileInfo) (*model.FileInfo, error)
 
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
@@ -703,6 +704,7 @@ func (t *UploadFileTask) init(a *App) {
 	t.fileinfo.CreatorId = t.UserId
 	t.fileinfo.CreateAt = t.Timestamp.UnixNano() / int64(time.Millisecond)
 	t.fileinfo.Path = t.pathPrefix() + t.Name
+	t.fileinfo.ChannelId = t.ChannelId
 
 	t.limitedInput = &io.LimitedReader{
 		R: t.Input,
@@ -722,7 +724,7 @@ func (t *UploadFileTask) init(a *App) {
 // contained the last "good" FileInfo before the execution of that plugin.
 func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader,
 	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
-	c.WithLogger(c.Logger().With(
+	c = c.WithLogger(c.Logger().With(
 		mlog.String("file_name", name),
 	))
 
@@ -791,7 +793,7 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 		t.postprocessImage(file)
 	}
 
-	if _, err := t.saveToDatabase(t.fileinfo); err != nil {
+	if _, err := t.saveToDatabase(c, t.fileinfo); err != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
@@ -949,6 +951,12 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 }
 
 func (t UploadFileTask) pathPrefix() string {
+	if t.UserId == model.BookmarkFileOwner {
+		return model.BookmarkFileOwner +
+			"/teams/" + t.TeamId +
+			"/channels/" + t.ChannelId +
+			"/" + t.fileinfo.Id + "/"
+	}
 	return t.Timestamp.Format("20060102") +
 		"/teams/" + t.TeamId +
 		"/channels/" + t.ChannelId +
@@ -977,7 +985,7 @@ func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...any) *mo
 	return model.NewAppError("uploadFileTask", id, params, "", httpStatus)
 }
 
-func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
+func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, []byte, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 	teamID := filepath.Base(rawTeamId)
 	channelID := filepath.Base(rawChannelId)
@@ -1002,6 +1010,9 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	info.CreateAt = now.UnixNano() / int64(time.Millisecond)
 
 	pathPrefix := now.Format("20060102") + "/teams/" + teamID + "/channels/" + channelID + "/users/" + userID + "/" + info.Id + "/"
+	if userID == model.BookmarkFileOwner {
+		pathPrefix = model.BookmarkFileOwner + "/teams/" + teamID + "/channels/" + channelID + "/" + info.Id + "/"
+	}
 	info.Path = pathPrefix + filename
 
 	if info.IsImage() && !info.IsSvg() {
@@ -1042,7 +1053,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 		return nil, data, err
 	}
 
-	if _, err := a.Srv().Store().FileInfo().Save(info); err != nil {
+	if _, err := a.Srv().Store().FileInfo().Save(c, info); err != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
@@ -1052,7 +1063,10 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent {
+	// The extra boolean extractContent is used to turn off extraction
+	// during the import process. It is unnecessary overhead during the import,
+	// and something we can do without.
+	if *a.Config().FileSettings.ExtractContent && extractContent {
 		infoCopy := *info
 		a.Srv().GoBuffered(func() {
 			err := a.ExtractContentFromFileInfo(c, &infoCopy)
@@ -1177,7 +1191,7 @@ func (a *App) generateMiniPreview(rctx request.CTX, fi *model.FileInfo) {
 		} else {
 			fi.MiniPreview = &miniPreview
 		}
-		if _, err = a.Srv().Store().FileInfo().Upsert(fi); err != nil {
+		if _, err = a.Srv().Store().FileInfo().Upsert(rctx, fi); err != nil {
 			rctx.Logger().Debug("Creating mini preview failed", mlog.Err(err))
 		} else {
 			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
@@ -1230,13 +1244,13 @@ func (a *App) GetFileInfo(rctx request.CTX, fileID string) (*model.FileInfo, *mo
 	return fileInfo, appErr
 }
 
-func (a *App) SetFileSearchableContent(fileID string, data string) *model.AppError {
+func (a *App) SetFileSearchableContent(rctx request.CTX, fileID string, data string) *model.AppError {
 	fileInfo, appErr := a.Srv().getFileInfo(fileID)
 	if appErr != nil {
 		return appErr
 	}
 
-	err := a.Srv().Store().FileInfo().SetContent(fileInfo.Id, data)
+	err := a.Srv().Store().FileInfo().SetContent(rctx, fileInfo.Id, data)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1317,7 +1331,7 @@ func (a *App) getFileIgnoreCloudLimit(rctx request.CTX, fileID string) ([]byte, 
 	return data, nil
 }
 
-func (a *App) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
+func (a *App) CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) ([]string, *model.AppError) {
 	var newFileIds []string
 
 	now := model.GetMillis()
@@ -1341,7 +1355,7 @@ func (a *App) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.A
 		fileInfo.PostId = ""
 		fileInfo.ChannelId = ""
 
-		if _, err := a.Srv().Store().FileInfo().Save(fileInfo); err != nil {
+		if _, err := a.Srv().Store().FileInfo().Save(rctx, fileInfo); err != nil {
 			var appErr *model.AppError
 			switch {
 			case errors.As(err, &appErr):
@@ -1428,8 +1442,8 @@ func (a *App) SearchFilesInTeamForUser(c request.CTX, terms string, userId strin
 			params.ExcludedChannels = a.convertChannelNamesToChannelIds(c, params.ExcludedChannels, userId, teamId, includeDeletedChannels)
 
 			// Convert usernames to user IDs
-			params.FromUsers = a.convertUserNameToUserIds(params.FromUsers)
-			params.ExcludedUsers = a.convertUserNameToUserIds(params.ExcludedUsers)
+			params.FromUsers = a.convertUserNameToUserIds(c, params.FromUsers)
+			params.ExcludedUsers = a.convertUserNameToUserIds(c, params.ExcludedUsers)
 
 			finalParamsList = append(finalParamsList, params)
 		}
@@ -1440,7 +1454,7 @@ func (a *App) SearchFilesInTeamForUser(c request.CTX, terms string, userId strin
 		return model.NewFileInfoList(), nil
 	}
 
-	fileInfoSearchResults, nErr := a.Srv().Store().FileInfo().Search(finalParamsList, userId, teamId, page, perPage)
+	fileInfoSearchResults, nErr := a.Srv().Store().FileInfo().Search(c, finalParamsList, userId, teamId, page, perPage)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -1475,7 +1489,7 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 		if len(text) > maxContentExtractionSize {
 			text = text[0:maxContentExtractionSize]
 		}
-		if storeErr := a.Srv().Store().FileInfo().SetContent(fileInfo.Id, text); storeErr != nil {
+		if storeErr := a.Srv().Store().FileInfo().SetContent(rctx, fileInfo.Id, text); storeErr != nil {
 			return errors.Wrap(storeErr, "failed to save the extracted file content")
 		}
 		reloadFileInfo, storeErr := a.Srv().Store().FileInfo().Get(fileInfo.Id)

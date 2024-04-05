@@ -31,7 +31,7 @@ func (a *App) CompleteOnboarding(c request.CTX, request *model.CompleteOnboardin
 	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
 
 	if !isCloud && request.Organization == "" {
-		mlog.Error("No organization name provided for self hosted onboarding")
+		c.Logger().Error("No organization name provided for self hosted onboarding")
 		return model.NewAppError("CompleteOnboarding", "api.error_no_organization_name_provided_for_self_hosted_onboarding", nil, "", http.StatusBadRequest)
 	}
 
@@ -59,19 +59,19 @@ func (a *App) CompleteOnboarding(c request.CTX, request *model.CompleteOnboardin
 			}
 			_, appErr := a.Channels().InstallMarketplacePlugin(installRequest)
 			if appErr != nil {
-				mlog.Error("Failed to install plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
+				c.Logger().Error("Failed to install plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
 				return
 			}
 
 			appErr = a.EnablePlugin(id)
 			if appErr != nil {
-				mlog.Error("Failed to enable plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
+				c.Logger().Error("Failed to enable plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
 				return
 			}
 
-			hooks, err := a.ch.HooksForPluginOrProduct(id)
+			hooks, err := a.ch.HooksForPlugin(id)
 			if err != nil {
-				mlog.Warn("Getting hooks for plugin failed", mlog.String("plugin_id", id), mlog.Err(err))
+				c.Logger().Warn("Getting hooks for plugin failed", mlog.String("plugin_id", id), mlog.Err(err))
 				return
 			}
 
@@ -79,7 +79,7 @@ func (a *App) CompleteOnboarding(c request.CTX, request *model.CompleteOnboardin
 				UserId: c.Session().UserId,
 			}
 			if err = hooks.OnInstall(pluginContext, event); err != nil {
-				mlog.Error("Plugin OnInstall hook failed", mlog.String("plugin_id", id), mlog.Err(err))
+				c.Logger().Error("Plugin OnInstall hook failed", mlog.String("plugin_id", id), mlog.Err(err))
 			}
 		}(pluginID)
 	}

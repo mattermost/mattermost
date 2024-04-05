@@ -10,17 +10,16 @@ import {Link} from 'react-router-dom';
 import type {ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
 import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
 import ExternalLink from 'components/external_link';
 
-import ackIcon from 'images/icons/check-circle-outline.svg';
 import alertIcon from 'images/icons/round-white-info-icon.svg';
 import warningIcon from 'images/icons/warning-icon.svg';
-import {AnnouncementBarTypes, AnnouncementBarMessages, WarnMetricTypes, Preferences, ConfigurationBanners, Constants, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {AnnouncementBarTypes, AnnouncementBarMessages, Preferences, ConfigurationBanners, Constants, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {daysToLicenseExpire, isLicenseExpired, isLicenseExpiring, isLicensePastGracePeriod, isTrialLicense} from 'utils/license_utils';
 import {getSkuDisplayName} from 'utils/subscription';
@@ -47,9 +46,7 @@ type Props = {
     warnMetricsStatus?: Record<string, WarnMetricStatus>;
     actions: {
         dismissNotice: (notice: string) => void;
-        savePreferences: (userId: string, preferences: PreferenceType[]) => (dispatch: DispatchFunc) => Promise<{
-            data: boolean;
-        }>;
+        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
     };
 };
 
@@ -78,114 +75,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
         props.actions.dismissNotice(AnnouncementBarMessages.TRIAL_LICENSE_EXPIRING);
     };
 
-    const dismissNumberOfActiveUsersWarnMetric = () => {
-        props.actions.dismissNotice(AnnouncementBarMessages.WARN_METRIC_STATUS_NUMBER_OF_USERS);
-    };
-
-    const dismissNumberOfPostsWarnMetric = () => {
-        props.actions.dismissNotice(AnnouncementBarMessages.WARN_METRIC_STATUS_NUMBER_OF_POSTS);
-    };
-
-    const dismissNumberOfActiveUsersWarnMetricAck = () => {
-        props.actions.dismissNotice(AnnouncementBarMessages.WARN_METRIC_STATUS_NUMBER_OF_USERS_ACK);
-    };
-
-    const dismissNumberOfPostsWarnMetricAck = () => {
-        props.actions.dismissNotice(AnnouncementBarMessages.WARN_METRIC_STATUS_NUMBER_OF_POSTS_ACK);
-    };
-
     const renewLinkTelemetry = {success: 'renew_license_banner_success', error: 'renew_license_banner_fail'};
-
-    const getNoticeForWarnMetric = (warnMetricStatus: any) => {
-        if (!warnMetricStatus ||
-            (warnMetricStatus.id !== WarnMetricTypes.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500 &&
-            warnMetricStatus.id !== WarnMetricTypes.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M)) {
-            return null;
-        }
-
-        let message: JSX.Element | string = '';
-        let type = '';
-        let showModal = false;
-        let dismissFunc;
-        let isDismissed = null;
-        let canCloseBar = false;
-
-        if (warnMetricStatus.acked) {
-            message = (
-                <>
-                    <img
-                        className='advisor-icon'
-                        src={ackIcon}
-                    />
-                    <FormattedMessage
-                        id='announcement_bar.warn_metric_status_ack.text'
-                        defaultMessage='Thank you for contacting Mattermost. We will follow up with you soon.'
-                    />
-                </>
-            );
-
-            if (warnMetricStatus.id === WarnMetricTypes.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500) {
-                dismissFunc = dismissNumberOfActiveUsersWarnMetricAck;
-                isDismissed = props.dismissedNumberOfActiveUsersWarnMetricStatusAck;
-            } else if (warnMetricStatus.id === WarnMetricTypes.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M) {
-                dismissFunc = dismissNumberOfPostsWarnMetricAck;
-                isDismissed = props.dismissedNumberOfPostsWarnMetricStatusAck;
-            }
-
-            type = AnnouncementBarTypes.ADVISOR_ACK;
-            showModal = false;
-            canCloseBar = true;
-        } else {
-            if (warnMetricStatus.id === WarnMetricTypes.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500) {
-                message = (
-                    <>
-                        <img
-                            className='advisor-icon'
-                            src={alertIcon}
-                        />
-                        <FormattedMessage
-                            id='announcement_bar.number_active_users_warn_metric_status.text'
-                            defaultMessage='You now have over {limit} users. We strongly recommend using advanced features for large-scale servers.'
-                            values={{
-                                limit: warnMetricStatus.limit,
-                            }}
-                        />
-                    </>
-                );
-                dismissFunc = dismissNumberOfActiveUsersWarnMetric;
-                isDismissed = props.dismissedNumberOfActiveUsersWarnMetricStatus;
-            } else if (warnMetricStatus.id === WarnMetricTypes.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M) {
-                message = (
-                    <>
-                        <img
-                            className='advisor-icon'
-                            src={alertIcon}
-                        />
-                        <FormattedMessage
-                            id='announcement_bar.number_of_posts_warn_metric_status.text'
-                            defaultMessage='You now have over {limit} posts. We strongly recommend using advanced features for large-scale servers.'
-                            values={{
-                                limit: warnMetricStatus.limit,
-                            }}
-                        />
-                    </>
-                );
-                dismissFunc = dismissNumberOfPostsWarnMetric;
-                isDismissed = props.dismissedNumberOfPostsWarnMetricStatus;
-            }
-            type = AnnouncementBarTypes.ADVISOR;
-            showModal = true;
-            canCloseBar = false;
-        }
-        return {
-            Message: message,
-            DismissFunc: dismissFunc,
-            IsDismissed: isDismissed,
-            Type: type,
-            ShowModal: showModal,
-            CanCloseBar: canCloseBar,
-        };
-    };
 
     // System administrators
     if (props.canViewSystemErrors) {
@@ -317,29 +207,6 @@ const ConfigurationAnnouncementBar = (props: Props) => {
                     tooltipMsg={message}
                 />
             );
-        }
-
-        if (props.license?.IsLicensed === 'false' &&
-                props.warnMetricsStatus) {
-            for (const status of Object.values(props.warnMetricsStatus)) {
-                const notice = getNoticeForWarnMetric(status);
-                if (!notice || notice.IsDismissed) {
-                    continue;
-                }
-
-                return (
-                    <AnnouncementBar
-                        showCloseButton={notice.CanCloseBar}
-                        handleClose={notice.DismissFunc}
-                        type={notice.Type}
-                        showModal={notice.ShowModal}
-                        modalButtonText={t('announcement_bar.error.warn_metric_status.link')}
-                        modalButtonDefaultText='Learn more'
-                        warnMetricStatus={status}
-                        message={notice.Message}
-                    />
-                );
-            }
         }
     } else {
         // Regular users

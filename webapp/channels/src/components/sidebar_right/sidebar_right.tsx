@@ -28,6 +28,7 @@ import {isMac} from 'utils/user_agent';
 import type {RhsState} from 'types/store/rhs';
 
 export type Props = {
+    isSuppressed: boolean;
     isExpanded: boolean;
     isOpen: boolean;
     channel: Channel;
@@ -68,6 +69,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     sidebarRightWidthHolder: React.RefObject<HTMLDivElement>;
     previous: Partial<Props> | undefined = undefined;
     focusSearchBar?: () => void;
+    lastOpenState = false;
+    lastSuppressedState = false;
 
     constructor(props: Props) {
         super(props);
@@ -148,6 +151,9 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         if (!wasOpen && isOpen) {
             trackEvent('ui', 'ui_rhs_opened');
         }
+
+        this.lastOpenState = this.props.isOpen;
+        this.lastSuppressedState = this.props.isSuppressed;
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
         if (isPinnedPosts && prevProps.isPinnedPosts === isPinnedPosts && rhsChannel.id !== prevProps.rhsChannel.id) {
@@ -232,7 +238,10 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             content = (
                 <div className='post-right__container'>
                     <FileUploadOverlay overlayType='right'/>
-                    <RhsThread previousRhsState={previousRhsState}/>
+                    <RhsThread
+                        previousRhsState={previousRhsState}
+                        fromSuppressed={!this.lastOpenState && this.props.isOpen && this.lastSuppressedState}
+                    />
                 </div>
             );
         } else if (postCardVisible) {

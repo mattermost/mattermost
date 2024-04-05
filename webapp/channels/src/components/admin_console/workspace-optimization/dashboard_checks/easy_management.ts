@@ -72,7 +72,7 @@ const usesLDAP = async (
 // // @see discussion here: https://github.com/mattermost/mattermost-webapp/pull/9822#discussion_r806879385
 // const fetchGuestAccounts = async (
 //     config: Partial<AdminConfig>,
-//     analytics: Record<string, number | AnalyticsRow[]> | undefined,
+//     analytics: AnalyticsState | undefined,
 // ) => {
 //     if (config.TeamSettings?.EnableOpenServer && config.GuestAccountsSettings?.Enable) {
 //         let usersArray = await fetch(`${Client4.getBaseRoute()}/users/invalid_emails`).then((result) => result.json());

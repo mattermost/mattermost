@@ -3324,16 +3324,8 @@
     "translation": "Si è verificato un errore di inizializzazione della richiesta all'Identity Provider. Contattare l'amministratore di sistema."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Si è verificato un errore di codifica della richiesta all'Identity Provider. Contattare l'amministratore di sistema."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Il login SAML non ha avuto successo perché la crittografia non è abilitata. Contattare l'amministratore di sistema."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Il file del Certificato pubblico dell'Identity Provider non è stato trovato. Contattare l'amministratore di sistema."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3344,20 +3336,12 @@
     "translation": "Il login SAML non ha avuto successo perché la risposta dell'Identity Provider non è crittografata. Contattare l'amministratore di sistema."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Il login SAML non ha avuto successo perché si è verificato un errore nella decodifica della risposta dall'Identity Provider. Contattare l'amministratore di sistema."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "E' stata ricevuta una risposta vuota dall'Identity Provider."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Si è verificato un errore durante la lettura della risposta dell'Identity Provider. Contattare l'amministratore di sistema."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Si è verificato un errore durante la validazione della risposta dell'Identity Provider. Contattare l'amministratore di sistema."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -6160,112 +6144,12 @@
     "translation": "Impossibile eliminare il token di accesso personale."
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "E' richiesto un server SMTP"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Se ci sono ulteriori richieste, contattare support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL Sito: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Totale Utenti Attivi: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Id Diagnostica: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Contatto: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Email: "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Aggiorna Mattermost a edizione enterprise"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost consiglia caldamente che le installazioni con più di 500 utenti si aggiornino a Mattermost Enterprise Edition, che offre funzionalità avanzate come la gestione utenti, il server clustering e il monitore delle performance.\n\nContattando il servizio clienti, le tue informazioni di contatto verranno inviate a Mattermost, Inc. [Per saperne di più](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Il tuo Mattermost adesso ha 200 utenti. Man mano che la tua base di utenti cresce, gestire ulteriori account può richiedere molto tempo. Ti consigliamo di aggiornare il tuo sistema a Mattermost Enterprise Edition e integrarlo nell'Active Directory/LDAP della tua organizzazione, che consentirà a chiunque con un account di accedere a Mattermost. Gli utenti potranno accedere senza dover creare nuovi nomi utente e nuove password e gli amministratori risparmieranno tempo nel gestire gli account.\n\n[Scopri di più su come integrare AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nContattando il servizio clienti, le tue informazioni di contatto verranno inviate a Mattermost, Inc. [Per saperne di più](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Integra AD/LDAP"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Scrivici"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Grazie per aver contattato Mattermost. Ti daremo riscontro presto."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Il messaggio non può essere inviato."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Per favore inviaci un email."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Richiesta di contatto con Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "URL sito: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Utenti attivi totale: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Se ci sono ulteriori richieste, per favore contattare support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Email: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Id diagnostica: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Contatto: {{.Contact}}"
-  },
-  {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
     "translation": "Impossibile aggiornare la barra laterale per coincidere con le preferenze aggiornate"
   },
   {
     "id": "api.preference.delete_preferences.update_sidebar.app_error",
     "translation": "Impossibile aggiornare la barra laterale per coincidere con le preferenze cancellate"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Impossibile trovare la metrica di avviso."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Errore durante l'invio dell'email di conferma all'amministratore"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Richiesta di contatto con Mattermost"
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -6448,14 +6332,6 @@
     "translation": "Impossibile convertire bot in utente."
   },
   {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Errore durante il salvataggio del valore di {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Consigliere di Mattermost"
-  },
-  {
     "id": "app.post.update.app_error",
     "translation": "Impossibile aggiornare la pubblicazione."
   },
@@ -6522,10 +6398,6 @@
   {
     "id": "app.system.get_by_name.app_error",
     "translation": "Impossibile trovare la variabile di sistema."
-  },
-  {
-    "id": "app.system.get.app_error",
-    "translation": "Si è verificato un errore durante la ricerca delle proprietà di sistema."
   },
   {
     "id": "app.email.setup_rate_limiter.app_error",
@@ -6630,30 +6502,6 @@
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "La funzione di eliminazione definitiva squadra non è attiva. Contattare l'Amministratore di Sistema."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Aggiorna Mattermost a edizione enterprise"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Il tuo Mattermost adesso ha 200 utenti. Man mano che la tua base di utenti cresce, gestire ulteriori account può richiedere molto tempo. Ti consigliamo di aggiornare il tuo sistema a Mattermost Enterprise Edition e integrarlo nell'Active Directory/LDAP della tua organizzazione, che consentirà a chiunque con un account di accedere a Mattermost. Gli utenti potranno accedere senza dover creare nuovi nomi utente e nuove password e gli amministratori risparmieranno tempo nel gestire gli account.\n\n[Scopri di più su come integrare AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nContattando il servizio clienti, le tue informazioni di contatto verranno inviate a Mattermost, Inc. [Per saperne di più](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Forza Autenticazione Multifattore"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -7104,10 +6952,6 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": " "
-  },
-  {
     "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
     "translation": " "
   },
@@ -7133,10 +6977,6 @@
   },
   {
     "id": "api.config.patch_config.restricted_merge.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
     "translation": " "
   },
   {
@@ -7348,30 +7188,6 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": " "
-  },
-  {
     "id": "api.export.export_not_found.app_error",
     "translation": " "
   },
@@ -7500,10 +7316,6 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": " "
-  },
-  {
     "id": "app.notification.body.dm.time",
     "translation": " "
   },
@@ -7529,10 +7341,6 @@
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
     "translation": " "
   },
   {
@@ -7704,15 +7512,7 @@
     "translation": " "
   },
   {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.no_license",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
     "translation": " "
   },
   {
@@ -7777,10 +7577,6 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
     "translation": " "
   },
   {
@@ -7897,10 +7693,6 @@
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
-    "translation": " "
-  },
-  {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
     "translation": " "
   },
   {
@@ -8096,15 +7888,7 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": " "
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
     "translation": " "
   },
   {
@@ -8157,22 +7941,6 @@
   },
   {
     "id": "app.team.join_user_to_team.save_member.conflict.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
     "translation": " "
   },
   {
@@ -8296,10 +8064,6 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": " "
-  },
-  {
     "id": "app.notification.body.group.title",
     "translation": " "
   },
@@ -8317,14 +8081,6 @@
   },
   {
     "id": "model.session.is_valid.user_id.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
     "translation": " "
   },
   {
@@ -8408,10 +8164,6 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": " "
-  },
-  {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
     "translation": " "
   },
@@ -8492,10 +8244,6 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": " "
-  },
-  {
     "id": "api.command_remote.invite_password.help",
     "translation": " "
   },
@@ -8529,10 +8277,6 @@
   },
   {
     "id": "api.templates.welcome_body.info1",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
     "translation": " "
   },
   {
@@ -8637,10 +8381,6 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.info",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
     "translation": " "
   },
   {
@@ -8856,10 +8596,6 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": " "
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_generating_link",
     "translation": " "
   },
@@ -8917,10 +8653,6 @@
   },
   {
     "id": "api.system.update_notices.parse_failed",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
     "translation": " "
   },
   {
@@ -9016,22 +8748,6 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": " "
-  },
-  {
     "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
     "translation": " "
   },
@@ -9045,26 +8761,6 @@
   },
   {
     "id": "app.channel.save_member.exists.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
     "translation": " "
   },
   {
@@ -9089,10 +8785,6 @@
   },
   {
     "id": "api.templates.payment_failed_no_card.info1",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
     "translation": " "
   },
   {

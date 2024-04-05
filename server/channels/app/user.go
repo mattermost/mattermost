@@ -230,12 +230,21 @@ func (a *App) CreateGuest(c request.CTX, user *model.User) (*model.User, *model.
 }
 
 func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*model.User, *model.AppError) {
+	exceeded, limitErr := a.isHardUserLimitExceeded()
+	if limitErr != nil {
+		return nil, limitErr
+	}
+
+	if exceeded {
+		return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.user_limits.exceeded", nil, "", http.StatusBadRequest)
+	}
+
 	if err := a.isUniqueToGroupNames(user.Username); err != nil {
 		err.Where = "createUserOrGuest"
 		return nil, err
 	}
 
-	ruser, nErr := a.ch.srv.userService.CreateUser(user, users.UserCreateOptions{Guest: guest})
+	ruser, nErr := a.ch.srv.userService.CreateUser(c, user, users.UserCreateOptions{Guest: guest})
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -263,9 +272,15 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		}
 	}
 
-	if user.EmailVerified {
-		a.InvalidateCacheForUser(ruser.Id)
+	// We always invalidate the user because we actually need to invalidate
+	// in case the user's EmailVerified is true, but we also always need to invalidate
+	// the GetAllProfiles cache.
+	// To have a proper fix would mean duplicating the invalidation of GetAllProfiles
+	// everywhere else. Therefore, to keep things simple we always invalidate both caches here.
+	// The performance penalty for invalidating the UserById cache is nil because the user was just created.
+	a.InvalidateCacheForUser(ruser.Id)
 
+	if user.EmailVerified {
 		nUser, err := a.ch.srv.userService.GetUser(ruser.Id)
 		if err != nil {
 			var nfErr *store.ErrNotFound
@@ -316,6 +331,17 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 				c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
 			}
 		}(ruser.Id)
+	}
+
+	userLimits, limitErr := a.GetUserLimits()
+	if limitErr != nil {
+		// we don't want to break the create user flow just because of this.
+		// So, we log the error, not return
+		mlog.Error("Error fetching user limits in createUserOrGuest", mlog.Err(limitErr))
+	} else {
+		if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
+			mlog.Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+		}
 	}
 
 	return ruser, nil
@@ -778,6 +804,25 @@ func (a *App) DeactivateMfa(userID string) *model.AppError {
 	return nil
 }
 
+// GetProfileImagePaths returns the paths to the profile images for the given user IDs if such a profile image exists.
+func (a *App) GetProfileImagePath(user *model.User) (string, *model.AppError) {
+	path := getProfileImagePath(user.Id)
+	exist, err := a.ch.srv.FileBackend().FileExists(path)
+	if err != nil {
+		return "", model.NewAppError(
+			"GetProfileImagePath",
+			"api.user.get_profile_image_path.app_error",
+			nil,
+			"",
+			http.StatusInternalServerError,
+		).Wrap(err)
+	}
+	if !exist {
+		return "", nil
+	}
+	return path, nil
+}
+
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	return a.ch.srv.GetProfileImage(user)
 }
@@ -885,7 +930,7 @@ func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.Read
 	if err := a.Srv().Store().User().UpdateLastPictureUpdate(userID); err != nil {
 		c.Logger().Warn("Error with updating last picture update", mlog.Err(err))
 	}
-	a.invalidateUserCacheAndPublish(userID)
+	a.invalidateUserCacheAndPublish(c, userID)
 	a.onUserProfileChange(userID)
 
 	return nil
@@ -937,7 +982,7 @@ func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
 	}
 
 	if nErr := a.Srv().Store().OAuth().RemoveAuthDataByUserId(userID); nErr != nil {
-		mlog.Warn("unable to remove auth data by user id", mlog.Err(nErr))
+		c.Logger().Warn("unable to remove auth data by user id", mlog.Err(nErr))
 	}
 
 	return nil
@@ -967,6 +1012,17 @@ func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *
 }
 
 func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
+	if active {
+		exceeded, appErr := a.isHardUserLimitExceeded()
+		if appErr != nil {
+			return nil, appErr
+		}
+
+		if exceeded {
+			return nil, model.NewAppError("UpdateActive", "app.user.update_active.user_limit.exceeded", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	user.UpdateAt = model.GetMillis()
 	if active {
 		user.DeleteAt = 0
@@ -974,7 +1030,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		user.DeleteAt = user.UpdateAt
 	}
 
-	userUpdate, err := a.ch.srv.userService.UpdateUser(user, true)
+	userUpdate, err := a.ch.srv.userService.UpdateUser(c, user, true)
 	if err != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -1011,6 +1067,17 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 				return true
 			}, plugin.UserHasBeenDeactivatedID)
 		})
+	}
+
+	if active {
+		userLimits, appErr := a.GetUserLimits()
+		if appErr != nil {
+			mlog.Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
+		} else {
+			if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
+				mlog.Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			}
+		}
 	}
 
 	return ruser, nil
@@ -1222,7 +1289,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 		}
 	}
 
-	userUpdate, err := a.ch.srv.userService.UpdateUser(user, false)
+	userUpdate, err := a.ch.srv.userService.UpdateUser(c, user, false)
 	if err != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -1604,17 +1671,17 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 	}
 
 	user.Roles = newRoles
-	uchan := make(chan store.GenericStoreResult[*model.UserUpdate], 1)
+	uchan := make(chan store.StoreResult[*model.UserUpdate], 1)
 	go func() {
-		userUpdate, err := a.Srv().Store().User().Update(user, true)
-		uchan <- store.GenericStoreResult[*model.UserUpdate]{Data: userUpdate, NErr: err}
+		userUpdate, err := a.Srv().Store().User().Update(c, user, true)
+		uchan <- store.StoreResult[*model.UserUpdate]{Data: userUpdate, NErr: err}
 		close(uchan)
 	}()
 
-	schan := make(chan store.GenericStoreResult[string], 1)
+	schan := make(chan store.StoreResult[string], 1)
 	go func() {
 		id, err := a.Srv().Store().Session().UpdateRoles(user.Id, newRoles)
-		schan <- store.GenericStoreResult[string]{Data: id, NErr: err}
+		schan <- store.StoreResult[string]{Data: id, NErr: err}
 		close(schan)
 	}()
 
@@ -1689,7 +1756,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		return model.NewAppError("PermanentDeleteUser", "app.preference.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().Channel().PermanentDeleteMembersByUser(user.Id); err != nil {
+	if err := a.Srv().Store().Channel().PermanentDeleteMembersByUser(c, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1697,7 +1764,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		return model.NewAppError("PermanentDeleteUser", "app.group.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().Post().PermanentDeleteByUser(user.Id); err != nil {
+	if err := a.Srv().Store().Post().PermanentDeleteByUser(c, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1756,7 +1823,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 
 	if errProfileImageExists != nil {
 		fileHandlingErrorsFound = true
-		mlog.Warn(
+		c.Logger().Warn(
 			"Error checking existence of profile image.",
 			mlog.String("path", profileImagePath),
 			mlog.Err(errProfileImageExists),
@@ -1768,7 +1835,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 
 		if errRemoveDirectory != nil {
 			fileHandlingErrorsFound = true
-			mlog.Warn(
+			c.Logger().Warn(
 				"Unable to remove profile image directory",
 				mlog.String("path", profileImageDirectory),
 				mlog.Err(errRemoveDirectory),
@@ -1776,7 +1843,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		}
 	}
 
-	if _, err := a.Srv().Store().FileInfo().PermanentDeleteByUser(user.Id); err != nil {
+	if _, err := a.Srv().Store().FileInfo().PermanentDeleteByUser(c, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1788,7 +1855,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		return model.NewAppError("PermanentDeleteUser", "app.audit.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().Team().RemoveAllMembersByUser(user.Id); err != nil {
+	if err := a.Srv().Store().Team().RemoveAllMembersByUser(c, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1877,7 +1944,7 @@ func (a *App) VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string
 	if user.Email != tokenData.Email {
 		a.Srv().Go(func() {
 			if err := a.Srv().EmailService.SendEmailChangeEmail(user.Email, tokenData.Email, user.Locale, a.GetSiteURL()); err != nil {
-				mlog.Error("Failed to send email change email", mlog.Err(err))
+				c.Logger().Error("Failed to send email change email", mlog.Err(err))
 			}
 		})
 	}
@@ -1945,7 +2012,7 @@ func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
 	return nil
 }
 
-func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (a *App) SearchUsers(rctx request.CTX, props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	if props.WithoutTeam {
 		return a.SearchUsersWithoutTeam(props.Term, options)
 	}
@@ -1964,7 +2031,7 @@ func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOpti
 	if props.NotInGroupId != "" {
 		return a.SearchUsersNotInGroup(props.NotInGroupId, props.Term, options)
 	}
-	return a.SearchUsersInTeam(props.TeamId, props.Term, options)
+	return a.SearchUsersInTeam(rctx, props.TeamId, props.Term, options)
 }
 
 func (a *App) SearchUsersInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
@@ -1994,10 +2061,10 @@ func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term stri
 	return users, nil
 }
 
-func (a *App) SearchUsersInTeam(teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (a *App) SearchUsersInTeam(rctx request.CTX, teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 
-	users, err := a.Srv().Store().User().Search(teamID, term, options)
+	users, err := a.Srv().Store().User().Search(rctx, teamID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("SearchUsersInTeam", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2065,10 +2132,10 @@ func (a *App) SearchUsersNotInGroup(groupID string, term string, options *model.
 	return users, nil
 }
 
-func (a *App) AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+func (a *App) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
 	term = strings.TrimSpace(term)
 
-	autocomplete, err := a.Srv().Store().User().AutocompleteUsersInChannel(teamID, channelID, term, options)
+	autocomplete, err := a.Srv().Store().User().AutocompleteUsersInChannel(rctx, teamID, channelID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteUsersInChannel", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2084,10 +2151,10 @@ func (a *App) AutocompleteUsersInChannel(teamID string, channelID string, term s
 	return autocomplete, nil
 }
 
-func (a *App) AutocompleteUsersInTeam(teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
+func (a *App) AutocompleteUsersInTeam(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
 	term = strings.TrimSpace(term)
 
-	users, err := a.Srv().Store().User().Search(teamID, term, options)
+	users, err := a.Srv().Store().User().Search(rctx, teamID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteUsersInTeam", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2136,7 +2203,7 @@ func (a *App) UpdateOAuthUserAttrs(c request.CTX, userData io.Reader, user *mode
 	}
 
 	if userAttrsChanged {
-		users, err := a.Srv().Store().User().Update(user, true)
+		users, err := a.Srv().Store().User().Update(c, user, true)
 		if err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
@@ -2417,12 +2484,12 @@ func (a *App) PublishUserTyping(userID, channelID, parentId string) *model.AppEr
 }
 
 // invalidateUserCacheAndPublish Invalidates cache for a user and publishes user updated event
-func (a *App) invalidateUserCacheAndPublish(userID string) {
+func (a *App) invalidateUserCacheAndPublish(rctx request.CTX, userID string) {
 	a.InvalidateCacheForUser(userID)
 
 	user, userErr := a.GetUser(userID)
 	if userErr != nil {
-		mlog.Error("Error in getting users profile", mlog.String("user_id", userID), mlog.Err(userErr))
+		rctx.Logger().Error("Error in getting users profile", mlog.String("user_id", userID), mlog.Err(userErr))
 		return
 	}
 
@@ -2816,4 +2883,14 @@ func (a *App) UserIsFirstAdmin(user *model.User) bool {
 	}
 
 	return true
+}
+
+func (a *App) getAllSystemAdmins() ([]*model.User, *model.AppError) {
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  500,
+		Role:     model.SystemAdminRoleId,
+		Inactive: false,
+	}
+	return a.GetUsersFromProfiles(userOptions)
 }

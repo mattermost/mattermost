@@ -159,7 +159,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isAuthorized := false
 
-	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.AppContext.Session().UserId, model.PreferenceCategoryAuthorizedOAuthApp, authRequest.ClientId); err == nil {
+	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.AppContext, c.AppContext.Session().UserId, model.PreferenceCategoryAuthorizedOAuthApp, authRequest.ClientId); err == nil {
 		// when we support scopes we should check if the scopes match
 		isAuthorized = true
 	}
@@ -343,9 +343,9 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 			return
-		} else { // For web
-			c.App.AttachSessionCookies(c.AppContext, w, r)
 		}
+		// For web
+		c.App.AttachSessionCookies(c.AppContext, w, r)
 
 		desktopToken := ""
 		if val, ok := props["desktop_token"]; ok {

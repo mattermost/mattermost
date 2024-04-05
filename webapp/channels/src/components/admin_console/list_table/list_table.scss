@@ -1,0 +1,263 @@
+@mixin textElipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.adminConsoleListTableContainer {
+    overflow: auto;
+}
+
+table.adminConsoleListTable {
+    // This is rgba(var(--sys-center-channel-color-rgb), 0.08) but since we cannot use opacity
+    // due to sticky row which shows the background thus a defined color is used
+    $sysCenterChannelColorWith8Alpha: #f0f0f0;
+
+    width: 100%;
+
+    thead {
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        tr {
+            color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 16px;
+            text-wrap: nowrap;
+            white-space: nowrap;
+
+            th {
+                background-color: var(--sys-center-channel-bg);
+                padding-block-end: 12px;
+                padding-block-start: 12px;
+                vertical-align: middle;
+
+                &:first-child {
+                    padding-inline-end: 12px;
+                    padding-inline-start: 24px;
+                }
+
+                &:not(:first-child):not(:last-child) {
+                    padding-inline-end: 12px;
+                    padding-inline-start: 12px;
+                }
+
+                &:last-child {
+                    padding-inline-end: 24px;
+                    padding-inline-start: 12px;
+                }
+
+                &.pinned {
+                    position: sticky;
+                    z-index: 1;
+                    right: 0;
+                    left: 0;
+                    background-color: var(--sys-center-channel-bg);
+
+                    &:first-child {
+                        left: 0;
+
+                        &::after {
+                            position: absolute;
+                            top: 0;
+                            right: 0;
+                            bottom: 0;
+                            width: 1px;
+                            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                            content: "";
+                        }
+                    }
+
+                    &:last-child {
+                        right: 0;
+
+                        &::before {
+                            position: absolute;
+                            top: 0;
+                            bottom: 0;
+                            left: 0;
+                            width: 1px;
+                            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                            content: "";
+                        }
+                    }
+
+                    & > span {
+                        font-size: 14px;
+                        font-weight: 400;
+                        line-height: 14px;
+                    }
+                }
+
+                &.sortable {
+                    &:hover {
+                        background-color: $sysCenterChannelColorWith8Alpha;
+                        cursor: pointer;
+
+                        & > span.hoverSortingIcon {
+                            visibility: visible;
+                        }
+                    }
+
+                    & > span {
+                        font-size: 14px;
+                        font-weight: 400;
+                        line-height: 14px;
+
+                        &.hoverSortingIcon {
+                            color: rgba(var(--sys-center-channel-color-rgb), 0.32);
+                            visibility: hidden;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    tbody {
+        tr {
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            background-color: var(--sys-center-channel-bg);
+            color: var(--sys-center-channel-color);
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
+
+            &:hover {
+                background-color: $sysCenterChannelColorWith8Alpha;
+                cursor: pointer;
+
+                // Since the sticky element creates a new stacking context and doesnt automatically inherit the background color
+                // set the background color of the sticky element to the same as the on hover
+                td.pinned {
+                    background-color: $sysCenterChannelColorWith8Alpha;
+                }
+
+                td.noRows {
+                    background-color: var(--sys-center-channel-bg);
+                    cursor: default;
+                }
+            }
+
+            td {
+                overflow: hidden;
+                padding-block-end: 16px;
+                padding-block-start: 16px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+
+                &:first-child {
+                    padding-inline-end: 12px;
+                    padding-inline-start: 24px;
+                }
+
+                &:not(:first-child):not(:last-child) {
+                    padding-inline-end: 12px;
+                    padding-inline-start: 12px;
+                }
+
+                &:last-child {
+                    padding-inline-end: 24px;
+                    padding-inline-start: 12px;
+                }
+
+                // Pinning of columns can only be done on the first and/or last column
+                &.pinned {
+                    position: sticky;
+                    z-index: 1;
+                    overflow: visible;
+                    background-color: var(--sys-center-channel-bg);
+
+                    &:first-child {
+                        left: 0;
+
+                        &::after {
+                            position: absolute;
+                            top: 0;
+                            right: 0;
+                            bottom: 0;
+                            width: 1px;
+                            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                            content: "";
+                        }
+                    }
+
+                    &:last-child {
+                        right: 0;
+
+                        &::before {
+                            position: absolute;
+                            top: 0;
+                            bottom: 0;
+                            left: 0;
+                            width: 1px;
+                            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                            content: "";
+                        }
+                    }
+                }
+
+                &.noRows {
+                    text-align: center;
+                }
+            }
+        }
+    }
+
+    tfoot {
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+}
+
+.adminConsoleListTabletOptionalFoot,
+.adminConsoleListTabletOptionalHead {
+    position: sticky;
+    z-index: 1;
+    left: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    color: rgba(var(--sys-center-channel-color-rgb), 0.6);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: normal;
+    padding-block-end: 12px;
+    padding-block-start: 12px;
+    padding-inline-end: 24px;
+    padding-inline-start: 24px;
+
+    .adminConsoleListTablePageSize {
+        display: flex;
+        flex-direction: row;
+        flex-grow: 1;
+        align-items: center;
+        justify-content: flex-end;
+        justify-self: flex-end;
+        margin-inline-end: 12px;
+
+        & > .react-select {
+            min-width: 72px;
+            margin: 0 6px;
+
+            .react-select__value-container {
+                color: rgba(var(--sys-center-channel-color-rgb), 1);
+            }
+
+            .react-select__menu-list {
+                color: rgba(var(--sys-center-channel-color-rgb), 1);
+            }
+        }
+    }
+
+    .paginationButtons {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+
+        & > span {
+            padding-inline-end: 12px;
+        }
+    }
+}

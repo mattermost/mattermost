@@ -20,6 +20,13 @@ const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;
 const UNICODE_EMOJI_REGEX = emojiRegex();
 const htmlEmojiPattern = /^<p>\s*(?:<img class="emoticon"[^>]*>|<span data-emoticon[^>]*>[^<]*<\/span>\s*|<span class="emoticon emoticon--unicode">[^<]*<\/span>\s*)+<\/p>$/;
 
+const FORMAT_TOKEN_LIMIT = 1000;
+const FORMAT_TOKEN_LIMIT_ERROR = 'maximum number of tokens reached';
+
+export function isFormatTokenLimitError(error: unknown) {
+    return Boolean(error && typeof error === 'object' && 'message' in error && (error as Record<string, string>).message === FORMAT_TOKEN_LIMIT_ERROR);
+}
+
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags,
 // @mentions and ~channels to links by taking a user's message and returning a string of formatted html. Also takes
 // a number of options as part of the second parameter:
@@ -29,11 +36,6 @@ export type ChannelNamesMap = {
         team_name?: string;
     } | string;
 };
-
-export type Tokens = Map<
-string,
-{ value: string; originalText: string; hashtag?: string }
->;
 
 export type SearchPattern = {
     pattern: RegExp;
@@ -51,7 +53,7 @@ export type Team = {
     display_name: string;
 };
 
-interface TextFormattingOptionsBase {
+export interface TextFormattingOptionsBase {
 
     /**
      * If specified, this word is highlighted in the resulting html.
@@ -198,9 +200,26 @@ interface TextFormattingOptionsBase {
      * Defaults to `false`.
      */
     atPlanMentions: boolean;
+
+    /**
+     * If true, the renderer will assume links are not safe.
+     *
+     * Defaults to `false`.
+     */
+    unsafeLinks: boolean;
 }
 
 export type TextFormattingOptions = Partial<TextFormattingOptionsBase>;
+
+export class Tokens extends Map<string, {value: string; originalText: string; hashtag?: string}> {
+    set(key: string, value: {value: string; originalText: string; hashtag?: string}) {
+        super.set(key, value);
+        if (this.size > FORMAT_TOKEN_LIMIT) {
+            throw new Error(FORMAT_TOKEN_LIMIT_ERROR);
+        }
+        return this;
+    }
+}
 
 const DEFAULT_OPTIONS: TextFormattingOptions = {
     mentionHighlight: true,
@@ -215,6 +234,7 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
     proxyImages: false,
     editedAt: 0,
     postId: '',
+    unsafeLinks: false,
 };
 
 /**
@@ -328,57 +348,64 @@ export function formatText(
 export function doFormatText(text: string, options: TextFormattingOptions, emojiMap: EmojiMap): string {
     let output = text;
 
-    const tokens = new Map();
+    const tokens = new Tokens();
 
-    // replace important words and phrases with tokens
-    if (options.atMentions) {
-        output = autolinkAtMentions(output, tokens);
+    try {
+        // replace important words and phrases with tokens
+        if (options.atMentions) {
+            output = autolinkAtMentions(output, tokens);
+        }
+
+        if (options.atSumOfMembersMentions) {
+            output = autoLinkSumOfMembersMentions(output, tokens);
+        }
+
+        if (options.atPlanMentions) {
+            output = autoPlanMentions(output, tokens);
+        }
+
+        if (options.channelNamesMap) {
+            output = autolinkChannelMentions(
+                output,
+                tokens,
+                options.channelNamesMap,
+                options.team,
+            );
+        }
+
+        output = autolinkEmails(output, tokens);
+        output = autolinkHashtags(output, tokens, options.minimumHashtagLength);
+
+        if (!('emoticons' in options) || options.emoticons) {
+            output = Emoticons.handleEmoticons(output, tokens);
+        }
+
+        if (options.searchPatterns) {
+            output = highlightSearchTerms(output, tokens, options.searchPatterns);
+        }
+
+        if (!('mentionHighlight' in options) || options.mentionHighlight) {
+            output = highlightCurrentMentions(output, tokens, options.mentionKeys);
+        }
+
+        if (options.highlightKeys && options.highlightKeys.length > 0) {
+            output = highlightWithoutNotificationKeywords(output, tokens, options.highlightKeys);
+        }
+
+        if (!('emoticons' in options) || options.emoticons) {
+            output = handleUnicodeEmoji(output, emojiMap, UNICODE_EMOJI_REGEX);
+        }
+
+        // reinsert tokens with formatted versions of the important words and phrases
+        output = replaceTokens(output, tokens) || text;
+        return output;
+    } catch (error) {
+        if (isFormatTokenLimitError(error)) {
+            return text;
+        }
+
+        throw error;
     }
-
-    if (options.atSumOfMembersMentions) {
-        output = autoLinkSumOfMembersMentions(output, tokens);
-    }
-
-    if (options.atPlanMentions) {
-        output = autoPlanMentions(output, tokens);
-    }
-
-    if (options.channelNamesMap) {
-        output = autolinkChannelMentions(
-            output,
-            tokens,
-            options.channelNamesMap,
-            options.team,
-        );
-    }
-
-    output = autolinkEmails(output, tokens);
-    output = autolinkHashtags(output, tokens, options.minimumHashtagLength);
-
-    if (!('emoticons' in options) || options.emoticons) {
-        output = Emoticons.handleEmoticons(output, tokens);
-    }
-
-    if (options.searchPatterns) {
-        output = highlightSearchTerms(output, tokens, options.searchPatterns);
-    }
-
-    if (!('mentionHighlight' in options) || options.mentionHighlight) {
-        output = highlightCurrentMentions(output, tokens, options.mentionKeys);
-    }
-
-    if (options.highlightKeys && options.highlightKeys.length > 0) {
-        output = highlightWithoutNotificationKeywords(output, tokens, options.highlightKeys);
-    }
-
-    if (!('emoticons' in options) || options.emoticons) {
-        output = handleUnicodeEmoji(output, emojiMap, UNICODE_EMOJI_REGEX);
-    }
-
-    // reinsert tokens with formatted versions of the important words and phrases
-    output = replaceTokens(output, tokens);
-
-    return output;
 }
 
 export function sanitizeHtml(text: string): string {
@@ -503,7 +530,7 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
     return output;
 }
 
-export function allAtMentions(text: string): RegExpMatchArray {
+export function allAtMentions(text: string): string[] {
     return text.match(Constants.SPECIAL_MENTIONS_REGEX && AT_MENTION_PATTERN) || [];
 }
 
@@ -616,6 +643,10 @@ export function autolinkChannelMentions(
 
 export function escapeRegex(text?: string): string {
     return text?.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') || '';
+}
+
+export function escapeReplaceSpecialPatterns(text?: string): string {
+    return text?.replace(/[$]/g, '$$$$') || '';
 }
 
 const htmlEntities = {
@@ -1022,7 +1053,7 @@ export function replaceTokens(text: string, tokens: Tokens): string {
     for (let i = aliases.length - 1; i >= 0; i--) {
         const alias = aliases[i];
         const token = tokens.get(alias);
-        output = output.replace(alias, token ? token.value : '');
+        output = output.replace(alias, escapeReplaceSpecialPatterns(token?.value || ''));
     }
 
     return output;

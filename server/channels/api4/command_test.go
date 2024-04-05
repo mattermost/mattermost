@@ -104,7 +104,7 @@ func TestUpdateCommand(t *testing.T) {
 	cmd1, _ = th.App.CreateCommand(cmd1)
 
 	cmd2 := &model.Command{
-		CreatorId: GenerateTestId(),
+		CreatorId: GenerateTestID(),
 		TeamId:    team.Id,
 		URL:       "http://nowhere.com/change",
 		Method:    model.CommandMethodGet,
@@ -127,7 +127,7 @@ func TestUpdateCommand(t *testing.T) {
 
 		require.Equal(t, cmd1.Token, rcmd.Token, "Token should have not updated")
 
-		cmd2.Id = GenerateTestId()
+		cmd2.Id = GenerateTestID()
 
 		rcmd, resp, err := client.UpdateCommand(context.Background(), cmd2)
 		require.Error(t, err)
@@ -142,7 +142,7 @@ func TestUpdateCommand(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 
 		cmd2.Id = cmd1.Id
-		cmd2.TeamId = GenerateTestId()
+		cmd2.TeamId = GenerateTestID()
 
 		_, resp, err = client.UpdateCommand(context.Background(), cmd2)
 		require.Error(t, err)
@@ -194,7 +194,7 @@ func TestMoveCommand(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		resp, err = client.MoveCommand(context.Background(), GenerateTestId(), rcmd1.Id)
+		resp, err = client.MoveCommand(context.Background(), GenerateTestID(), rcmd1.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -252,7 +252,7 @@ func TestDeleteCommand(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		resp, err = client.DeleteCommand(context.Background(), GenerateTestId())
+		resp, err = client.DeleteCommand(context.Background(), GenerateTestID())
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})

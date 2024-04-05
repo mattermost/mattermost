@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {batchActions} from 'redux-batched-actions';
-
 import {LogLevel} from '@mattermost/types/client4';
+import type {SystemSetting} from '@mattermost/types/general';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 import {loadRolesIfNeeded} from './roles';
 
-export function getClientConfig(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getClientConfig(): ActionFuncAsync {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getClientConfigOld();
@@ -32,30 +31,7 @@ export function getClientConfig(): ActionFunc {
     };
 }
 
-export function getDataRetentionPolicy(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        let data;
-        try {
-            data = await Client4.getDataRetentionPolicy();
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch({
-                type: GeneralTypes.RECEIVED_DATA_RETENTION_POLICY,
-                error,
-            });
-            dispatch(logError(error));
-            return {error};
-        }
-
-        dispatch(batchActions([
-            {type: GeneralTypes.RECEIVED_DATA_RETENTION_POLICY, data},
-        ]));
-
-        return {data};
-    };
-}
-
-export function getLicenseConfig(): ActionFunc {
+export function getLicenseConfig() {
     return bindClientFunc({
         clientFunc: Client4.getClientLicenseOld,
         onSuccess: [GeneralTypes.CLIENT_LICENSE_RECEIVED],
@@ -75,7 +51,7 @@ export function logClientError(message: string, level = LogLevel.Error) {
     });
 }
 
-export function setServerVersion(serverVersion: string): ActionFunc {
+export function setServerVersion(serverVersion: string): ActionFuncAsync {
     return async (dispatch) => {
         dispatch({type: GeneralTypes.RECEIVED_SERVER_VERSION, data: serverVersion});
         dispatch(loadRolesIfNeeded([]));
@@ -89,23 +65,8 @@ export function setUrl(url: string) {
     return true;
 }
 
-export function getWarnMetricsStatus(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        let data;
-        try {
-            data = await Client4.getWarnMetricsStatus();
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            return {error};
-        }
-        dispatch({type: GeneralTypes.WARN_METRICS_STATUS_RECEIVED, data});
-
-        return {data};
-    };
-}
-
-export function setFirstAdminVisitMarketplaceStatus(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function setFirstAdminVisitMarketplaceStatus(): ActionFuncAsync {
+    return async (dispatch) => {
         try {
             await Client4.setFirstAdminVisitMarketplaceStatus();
         } catch (e) {
@@ -117,25 +78,9 @@ export function setFirstAdminVisitMarketplaceStatus(): ActionFunc {
     };
 }
 
-export function getFirstAdminVisitMarketplaceStatus(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        let data;
-        try {
-            data = await Client4.getFirstAdminVisitMarketplaceStatus();
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            return {error};
-        }
-
-        data = JSON.parse(data.value);
-        dispatch({type: GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED, data});
-        return {data};
-    };
-}
-
 // accompanying "set" happens as part of Client4.completeSetup
-export function getFirstAdminSetupComplete(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getFirstAdminSetupComplete(): ActionFuncAsync<SystemSetting> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getFirstAdminSetupComplete();
@@ -152,11 +97,8 @@ export function getFirstAdminSetupComplete(): ActionFunc {
 
 export default {
     getClientConfig,
-    getDataRetentionPolicy,
     getLicenseConfig,
     logClientError,
     setServerVersion,
     setUrl,
-    getWarnMetricsStatus,
-    getFirstAdminVisitMarketplaceStatus,
 };

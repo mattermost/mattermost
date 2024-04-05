@@ -18,7 +18,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         onSubmit={[Function]}
         role="form"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
         >
           <div
@@ -26,7 +26,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
           >
             <SchemaText
               isMarkdown={true}
-              isTranslated={false}
               text="# Header
 *This* is the **header**"
             />
@@ -36,7 +35,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             footer={null}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the text field."
               />
             }
@@ -46,7 +44,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             onChange={[Function]}
             placeholder="e.g. some setting"
             setByEnv={false}
-            type="input"
+            type="text"
             value="setting_default"
           />
           <BooleanSetting
@@ -59,7 +57,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             }
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the bool field."
               />
             }
@@ -80,7 +77,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the dropdown field."
               />
             }
@@ -107,11 +103,10 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               ]
             }
           />
-          <RadioSetting
+          <Memo(RadioSetting)
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the radio field."
               />
             }
@@ -142,7 +137,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the generated field."
               />
             }
@@ -165,7 +159,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the user autocomplete field."
               />
             }
@@ -181,12 +174,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
           >
             <SchemaText
               isMarkdown={true}
-              isTranslated={false}
               text="# Footer
 *This* is the **footer**"
             />
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </form>
     </div>
   </div>
@@ -226,7 +218,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     </div>
     <Overlay
       animation={[Function]}
-      delayShow={400}
       placement="top"
       rootClose={false}
       show={false}
@@ -296,7 +287,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     </div>
     <Overlay
       animation={[Function]}
-      delayShow={400}
       placement="top"
       rootClose={false}
       show={false}
@@ -328,7 +318,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         onSubmit={[Function]}
         role="form"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
         >
           <div
@@ -336,7 +326,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
           >
             <SchemaText
               isMarkdown={true}
-              isTranslated={false}
               text="# Header
 *This* is the **header**"
             />
@@ -346,7 +335,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             footer={null}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the text field."
               />
             }
@@ -356,7 +344,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             onChange={[Function]}
             placeholder="e.g. some setting"
             setByEnv={false}
-            type="input"
+            type="text"
             value="fsdsdg"
           />
           <BooleanSetting
@@ -369,7 +357,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             }
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the bool field."
               />
             }
@@ -384,13 +371,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 id="admin.true"
               />
             }
-            value={false}
+            value={true}
           />
           <Memo(DropdownSetting)
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the dropdown field."
               />
             }
@@ -417,11 +403,10 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               ]
             }
           />
-          <RadioSetting
+          <Memo(RadioSetting)
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the radio field."
               />
             }
@@ -452,7 +437,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the generated field."
               />
             }
@@ -475,7 +459,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the user autocomplete field."
               />
             }
@@ -491,12 +474,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
           >
             <SchemaText
               isMarkdown={true}
-              isTranslated={false}
               text="# Footer
 *This* is the **footer**"
             />
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </form>
     </div>
   </div>
@@ -536,7 +518,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     </div>
     <Overlay
       animation={[Function]}
-      delayShow={400}
       placement="top"
       rootClose={false}
       show={false}

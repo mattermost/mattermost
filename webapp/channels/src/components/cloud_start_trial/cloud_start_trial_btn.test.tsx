@@ -58,7 +58,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
             modals: {
                 modalState: {
                     learn_more_trial_modal: {
-                        open: 'true',
+                        open: true,
                     },
                 },
             },

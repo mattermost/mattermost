@@ -1,35 +1,5 @@
 # shellcheck disable=SC2148,SC2155
 
-# Utility variables
-# NB: these assume you `source` them from the directory this file is in
-# Set up base docker compose file and export
-export MME2E_DC_SERVER="docker compose -p mmserver -f ./server.yml"
-export MME2E_DC_DASHBOARD="docker compose -p mmdashboard -f ./dashboard/docker/docker-compose.yml -f ./dashboard.override.yml"
-export MME2E_UID=$(id -u)
-export MME2E_OSTYPE=$(docker version -f '{{ .Client.Os }}')
-export MME2E_ARCHTYPE=$(docker version -f '{{ .Client.Arch }}')
-export NODE_VERSION_REQUIRED=$(cat ../../.nvmrc)
-
-# Default values for optional variables
-export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mattermost-enterprise-edition:$(git rev-parse --short=7 HEAD)"
-export BROWSER_DEFAULT="chrome"
-export SERVER_DEFAULT="self-hosted"
-export TEST_DEFAULT="cypress"
-export ENABLED_DOCKER_SERVICES_DEFAULT="postgres inbucket"
-# OS specific defaults overrides
-case $MME2E_OSTYPE in
-  darwin )
-    BROWSER_DEFAULT="electron" ;;
-  * )
-esac
-
-# Populate the optional variables that are used in the docker-compose file
-export SERVER_IMAGE=${SERVER_IMAGE:-$SERVER_IMAGE_DEFAULT}
-export BROWSER=${BROWSER:-$BROWSER_DEFAULT}
-export SERVER=${SERVER:-$SERVER_DEFAULT}
-export TEST=${TEST:-$TEST_DEFAULT}
-export ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES:-$ENABLED_DOCKER_SERVICES_DEFAULT}
-
 # Function definitions
 mme2e_log () { echo "[$(date +%Y-%m-%dT%H:%M:%S%Z)]" "$@"; }
 mme2e_get_current_shopt_arg () {
@@ -96,10 +66,48 @@ mme2e_is_token_in_list() {
   grep -qE "(^| )$TOKEN( |$)" <<<"$LIST"
 }
 
-# Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose' in your shell
-# NB: this won't work in the script
+# Call prerequisite utility functions
+mme2e_load_env_file
+
+# Utility variables
+# NB: these assume you `source` them from the directory this file is in
+# Set up base docker compose file and export
+export MME2E_DC_SERVER="docker compose -p mmserver -f ./server.yml"
+export MME2E_DC_DASHBOARD="docker compose -p mmdashboard -f ./dashboard/docker/docker-compose.yml -f ./dashboard.override.yml"
+export MME2E_UID=$(id -u)
+export MME2E_OSTYPE=$(docker version -f '{{ .Client.Os }}')
+export MME2E_ARCHTYPE=$(docker version -f '{{ .Client.Arch }}')
+export NODE_VERSION_REQUIRED=$(cat ../../.nvmrc)
+
+# Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose-mmserver' in your shell
+# NB: this only works in interactive shells
 alias docker-compose-mmserver='${MME2E_DC_SERVER}'
 alias docker-compose-mmdashboard='${MME2E_DC_DASHBOARD}'
 
-# Call prerequisite utility functions
-mme2e_load_env_file
+# Default values for optional variables
+export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mattermost-enterprise-edition:$(git rev-parse --short=7 HEAD)"
+export BROWSER_DEFAULT="chrome"
+export SERVER_DEFAULT="self-hosted"
+export TEST_DEFAULT="cypress"
+export ENABLED_DOCKER_SERVICES_DEFAULT="postgres inbucket"
+export TEST_FILTER_DEFAULT='--stage=@prod --group=@smoke'
+export BRANCH_DEFAULT=$(git branch --show-current || echo -n "unknown")
+export BUILD_ID_DEFAULT=$(date +%s)
+# OS specific defaults overrides
+case $MME2E_OSTYPE in
+  darwin )
+    BROWSER_DEFAULT="electron" ;;
+  * )
+esac
+
+# Populate the optional variables that are used in the docker-compose file
+export SERVER_IMAGE=${SERVER_IMAGE:-$SERVER_IMAGE_DEFAULT}
+export BROWSER=${BROWSER:-$BROWSER_DEFAULT}
+export SERVER=${SERVER:-$SERVER_DEFAULT}
+export TEST=${TEST:-$TEST_DEFAULT}
+export ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES:-$ENABLED_DOCKER_SERVICES_DEFAULT}
+export TEST_FILTER=${TEST_FILTER:-$TEST_FILTER_DEFAULT}
+export BRANCH_UNSANITIZED=${BRANCH:-$BRANCH_DEFAULT}
+export BRANCH=${BRANCH_UNSANITIZED::50} # The automation dashboard only accepts branch names up to 50 characters
+export BUILD_ID_UNSANITIZED=${BUILD_ID:-$BUILD_ID_DEFAULT}
+export BUILD_ID=${BUILD_ID_UNSANITIZED::64} # The automation dashboard only accepts build IDs up to 64 characters

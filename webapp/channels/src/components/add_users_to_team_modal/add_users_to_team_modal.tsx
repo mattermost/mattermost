@@ -3,18 +3,19 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {injectIntl, FormattedMessage} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 import ProfilePicture from 'components/profile_picture';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
@@ -28,6 +29,7 @@ type UserProfileValue = Value & UserProfile;
 type Props = {
     team: Team;
     users: UserProfile[];
+    intl: IntlShape;
     filterExcludeGuests?: boolean;
     excludeUsers: { [userId: string]: UserProfile };
     includeUsers: { [userId: string]: UserProfile };
@@ -35,8 +37,8 @@ type Props = {
     onExited?: () => void;
 
     actions: {
-        getProfilesNotInTeam: (teamId: string, groupConstrained: boolean, page: number, perPage?: number, options?: Record<string, any>) => Promise<{ data: UserProfile[] }>;
-        searchProfiles: (term: string, options?: Record<string, any>) => Promise<{ data: UserProfile[] }>;
+        getProfilesNotInTeam: (teamId: string, groupConstrained: boolean, page: number, perPage?: number, options?: Record<string, any>) => Promise<ActionResult<UserProfile[]>>;
+        searchProfiles: (term: string, options?: Record<string, any>) => Promise<ActionResult<UserProfile[]>>;
     };
 }
 
@@ -51,7 +53,7 @@ type State = {
     filterOptions: {[key: string]: any};
 }
 
-export default class AddUsersToTeamModal extends React.PureComponent<Props, State> {
+export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
     selectedItemRef: React.RefObject<HTMLDivElement>;
 
     public constructor(props: Props) {
@@ -90,7 +92,7 @@ export default class AddUsersToTeamModal extends React.PureComponent<Props, Stat
         const search = term !== '';
         if (search) {
             const {data} = await this.props.actions.searchProfiles(term, {not_in_team_id: this.props.team.id, replace: true, ...this.state.filterOptions});
-            searchResults = data;
+            searchResults = data!;
         } else {
             await this.props.actions.getProfilesNotInTeam(this.props.team.id, false, 0, USERS_PER_PAGE * 2);
         }
@@ -134,7 +136,9 @@ export default class AddUsersToTeamModal extends React.PureComponent<Props, Stat
                 </div>
                 <div className='more-modal__actions'>
                     <div className='more-modal__actions--round'>
-                        <AddIcon/>
+                        <i
+                            className='icon icon-plus'
+                        />
                     </div>
                 </div>
             </div>
@@ -238,6 +242,7 @@ export default class AddUsersToTeamModal extends React.PureComponent<Props, Stat
                         key='addUsersToTeamKey'
                         options={options}
                         optionRenderer={this.renderOption}
+                        intl={this.props.intl}
                         selectedItemRef={this.selectedItemRef}
                         ariaLabelRenderer={this.renderAriaLabel}
                         values={this.state.values}
@@ -261,3 +266,5 @@ export default class AddUsersToTeamModal extends React.PureComponent<Props, Stat
         );
     };
 }
+
+export default injectIntl(AddUsersToTeamModal);

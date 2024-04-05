@@ -7,15 +7,12 @@ import {FormattedMessage} from 'react-intl';
 
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
 import ResetPasswordModal from './reset_password_modal';
 
 describe('components/admin_console/reset_password_modal/reset_password_modal.tsx', () => {
-    const emptyFunction = jest.fn();
     const notifyProps: UserNotifyProps = {
         channel: 'true',
         comments: 'never',
@@ -36,13 +33,11 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
     });
 
     const baseProps = {
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        actions: {updateUserPassword: jest.fn<ActionResult, Array<{}>>(() => ({data: ''}))},
+        actions: {updateUserPassword: jest.fn(() => Promise.resolve({data: ''}))},
         currentUserId: user.id,
         user,
-        show: true,
-        onModalSubmit: emptyFunction,
-        onModalDismissed: emptyFunction,
+        onHide: jest.fn(),
+        onExited: jest.fn(),
         passwordConfig: {
             minimumLength: 10,
             requireLowercase: true,
@@ -68,8 +63,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
     });
 
     test('should call updateUserPassword', () => {
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        const updateUserPassword = jest.fn<ActionResult, Array<{}>>(() => ({data: ''}));
+        const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
         const oldPassword = 'oldPassword123!';
         const newPassword = 'newPassword123!';
         const props = {...baseProps, actions: {updateUserPassword}};
@@ -85,8 +79,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
     });
 
     test('should not call updateUserPassword when the old password is not provided', () => {
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        const updateUserPassword = jest.fn<ActionResult, Array<{}>>(() => ({data: ''}));
+        const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
         const newPassword = 'newPassword123!';
         const props = {...baseProps, actions: {updateUserPassword}};
         const wrapper = mountWithIntl(<ResetPasswordModal {...props}/>);
@@ -104,8 +97,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
     });
 
     test('should call updateUserPassword', () => {
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        const updateUserPassword = jest.fn<ActionResult, Array<{}>>(() => ({data: ''}));
+        const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
         const password = 'Password123!';
 
         const props = {...baseProps, currentUserId: '2', actions: {updateUserPassword}};

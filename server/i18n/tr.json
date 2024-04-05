@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Hizmet Sağlayıcı üst verileri oluşturulurken bir sorun çıktı."
+    "translation": "Hizmet sağlayıcı üst verileri oluşturulurken bir sorun çıktı."
   },
   {
     "id": "api.admin.saml.not_available.app_error",
@@ -2848,7 +2848,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}], {{ .SenderDisplayName}} tarafından {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bir doğrudan ileti gönderildi"
+    "translation": "[{{.SiteName}}], {{.SenderDisplayName}} tarafından {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bir doğrudan ileti gönderildi"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -2856,7 +2856,7 @@
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] sitesinde {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bir grup iletisi gönderildi"
+    "translation": "[{{ .SiteName }}] sitesinde {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bir grup iletisi gönderildi"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -3323,16 +3323,8 @@
     "translation": "Kimlik hizmeti sağlayıcı isteği yapılırken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Kimlik hizmeti sağlayıcı isteği şifrelenirken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Şifreleme etkinleştirilmemiş olduğundan SAML oturumu açılamadı. Lütfen sistem yöneticiniz ile görüşün."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Kimlik hizmeti sağlayıcının herkese açık sertifika dosyası bulunamadı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3343,20 +3335,12 @@
     "translation": "Kimlik hizmeti sağlayıcının yanıtı şifrelenmemiş olduğundan SAML oturumu açılamadı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Kimlik hizmeti sağlayıcı yanıtının şifresi çözülürken bir sorun çıktığından SAML oturumu açılamadı. Lütfen sistem yöneticiniz ile görüşün."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Kimlik hizmeti sağlayıcıdan boş bir yanıt alındı."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt işlenirken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt doğrulanırken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -3376,7 +3360,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Etkileşimli pencere için tetikleyici kodunun süresi geçmiş. Tetikleyici kodları en fazla {{.Seconds}} saniye süreyle geçerlidir."
+    "translation": "Etkileşimli pencere için tetikleyici kodunun süresi geçmiş. Tetikleyici kodları en fazla {{.Duration}} saniye süreyle geçerlidir."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -5028,7 +5012,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Boyut sınırı aşıldı. [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded) değerini denetlemeyi deneyin."
+    "translation": "Boyut sınırı aşıldı. En büyük dosya boyutu ayarını artırmayı deneyin. Ayrıntılı bilgi almak için https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded adresine bakabilirsiniz."
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -5140,7 +5124,7 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "XML içinde kimlik hizmeti sağlayıcı Tek Oturum Açma hizmetleri bölümü bulunamadı."
+    "translation": "XML içinde kimlik hizmeti sağlayıcı tek oturum açma hizmetleri bölümü bulunamadı."
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
@@ -5472,7 +5456,7 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "XML içinde kimlik hizmeti sağlayıcı Tek Oturum Açma belirteçleri bölümü bulunamadı."
+    "translation": "XML içinde kimlik hizmeti sağlayıcı tek oturum açma belirteçleri bölümü bulunamadı."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
@@ -6187,114 +6171,6 @@
     "translation": "Kişisel erişim kodu silinemedi."
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP sunucusu zorunludur"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Mattermost ile kuruluşunuzun tek oturum açma hizmeti sağlayıcısı arasında bağlantı kurarak var olan kullanıcılarınızın kimlik doğrulama bilgilerini yeniden yazmasına gerek kalmadan Mattermost üzerine erişmesini sağlayabilirsiniz. Mattermost sunucunuz ile SAML 2.0 hizmeti sağlayıcınızı bütünleştirmenizi öneririz. [Buraya tıklayarak SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi alabilirsiniz](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermost danışmanı"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost, 500 üzerinde kullanıcı için, kullanıcı yönetimi, sunucu kümeleme ve başarım izleme gibi özelliklerin kullanılmasını önerir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "{{.WarnMetricName}} değeri kaydedilemedi"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost ile iletişim kurma isteği"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Sorularınız için lütfen support@mattermost.com adresine yazın"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "Site adresi: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Etkin kullanıcı toplamı: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Tanı kodu: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "İlgili: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "E-posta: "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Mattermost ile büyümek"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Mattermost ile büyümek"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Bize e-posta gönderin"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Mattermost ile iletişim kurduğunuz için teşekkür ederiz. Kısa süre içinde size yazacağız."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "İleti gönderilemedi."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Lütfen bize e-posta gönderin."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost ile iletişim kurma isteği"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "Site adresi: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Etkin kullanıcı toplamı: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Sorularınız için lütfen support@mattermost.com adresine yazın"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "E-posta: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Tanı kodu: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "İlgili: {{.Contact}}"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Uyarı ölçütü bulunamadı."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Yönetici onayı e-postası gönderilemedi"
-  },
-  {
     "id": "ent.message_export.run_export.app_error",
     "translation": "İleti dışa aktarma verisi seçilemedi."
   },
@@ -6555,10 +6431,6 @@
     "translation": "Sistem değişkeni bulunamadı."
   },
   {
-    "id": "app.system.get.app_error",
-    "translation": "Sistem özellikleri aranırken bir sorun çıktı."
-  },
-  {
     "id": "app.status.get.missing.app_error",
     "translation": "Bu durum için bir kayıt yok."
   },
@@ -6787,18 +6659,6 @@
     "translation": "Kanallar alınamadı."
   },
   {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Konuk hesapları ekleniyor"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Mattermost ile iletişim kurma isteği. Konuk Hesaplarını kullanmak hakkında bilgi almak istiyorum.\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Deneme lisansı alınamadı. Lisans isteğinde bulunmak için https://mattermost.com/trial/ adresine bakabilirsiniz."
-  },
-  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "İstek gövdesi işlenemedi."
   },
@@ -6877,30 +6737,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Kanal üyeleri alınamadı."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost ile görüşme isteği. Takımım 500 kullanıcıya ulaştı. Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost ile iletişim kurma isteği. Takımım 200 kullanıcıya ulaştı. Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Mattermost ile büyümek"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Mattermost sisteminiz 100 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak almanız ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesini sağlamanız önerilir.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. Yükseltme hakkında ayrıntılı bilgi almak için [buraya tıklayın](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost ile görüşme isteği. Takımım 100 kullanıcıya ulaştı. Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Çok aşamalı kimlik doğrulama dayatılıyor"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -7155,36 +6991,8 @@
     "translation": "Zaten Mattermost Enterprise üst tarifesine geçmişsiniz. Lütfen geçiş işlemini tamamlamak için sunucuyu yeniden başlatın."
   },
   {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Mattermost ile iletişim kurma isteği. Çok aşamalı kimlik doğrulamasını zorunlu kılmak hakkında bilgi almak istiyorum.\n"
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Bir deneme sürümü lisansı alınamadı. Lütfen yeniden deneyin ya da support@mattermost.com e-posta adresine yazın. Kayıtlı kullanıcı sayısı alınamadı."
-  },
-  {
     "id": "api.system.update_notices.validating_failed",
     "translation": "Ürün bildirimi koşulları doğrulanamadı"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Enterprise sürümü denemeniz etkinleştirildi. Gelişmiş izinleri etkinleştirmek için **Sistem panosu > Kullanıcı yönetimi > İzinler** bölümüne gidin."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Gelişmiş izinleri kullanmak"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Başarımı arttırmak"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Gelişmiş izinleri kullanmak"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Salt okunur duyuru kanalları"
   },
   {
     "id": "api.cloud.request_error",
@@ -7205,10 +7013,6 @@
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
     "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt içindeki imza geçersiz. Lütfen sistem yöneticiniz ile görüşün."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Mattermost sisteminizde çok sayıda ileti var. Varsayılan Mattermost veri tabanı aramasının başarımı 2.5 milyon iletiye yaklaşıldığında düşmeye başlar. 5 milyondan fazla iletide Elasticsearch kullanmak, arama ve anma durumlarında zaman aşımları gibi önemli başarım sorunlarını önleyebilir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\n[Başarımı arttırmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
   },
   {
     "id": "app.channel.save_member.exists.app_error",
@@ -7481,110 +7285,6 @@
   {
     "id": "api.templates.copyright",
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Mattermost sisteminizde artık birkaç takım var. Takımların çoğu, kanalların nasıl oluşturulacağı, kimlerin yeni takım arkadaşları çağırabileceği ve bütünleştirmelerin nasıl yönetilebileceği gibi yönetim ve işbirliği yollarını kendisine göre belirler. Takım değişikliği şemaları, her takımın kullanıcı izinlerini kendi özel gereksinimlerine göre özelleştirebilmenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Mattermost sisteminizde artık birkaç takım var. Takımların çoğu, kanalların nasıl oluşturulacağı, kimlerin yeni takım arkadaşları çağırabileceği ve bütünleştirmelerin nasıl yönetilebileceği gibi yönetim ve işbirliği yollarını kendisine göre belirler. Takım değişikliği şemaları, her takımın kullanıcı izinlerini kendi özel gereksinimlerine göre özelleştirebilmenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Enterprise sürümü denemeniz etkinleştirildi. Elasticsearch sunucunuzu edindikten sonra **Sistem panosu > Ortam > Elasticsearch** bölümüne gidin."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Mattermost sisteminizde çok sayıda ileti var. Varsayılan Mattermost veri tabanı aramasının başarımı 2,5 milyon iletiye yaklaşıldığında düşmeye başlar. 5 milyondan fazla iletide Elasticsearch kullanmak, arama ve anma durumlarında zaman aşımları gibi önemli başarım sorunlarını önleyebilir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\n[Başarımı arttırmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost, 500 üzerinde kullanıcı için, kullanıcı yönetimi, sunucu kümeleme ve başarım izleme gibi özelliklerin kullanılmasını önerir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlatmak için bizimle görüşün.\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Enterprise sürümü denemeniz etkinleştirildi. Gelişmiş izinleri etkinleştirmek için **Sistem panosu > İzinler** bölümüne gidin."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Kanallar iletişimi geliştirmeye yardımcı olur. Ancak Mattermost üzerindeki kullanıcıların kanallara katılması ve kanal oluşturması ile sistemi düzenli tutmak zorlaşır. Gelişmiş izinler, kanal ayarlarını ve üyeleri yönetmek, geniş kullanıcı gruplarını etiketlemek için @channel ya da @here kullanmak ve yeni web kancaları oluşturmak gibi işlemleri hangi kullanıcıların ya da rollerin yapabileceğini belirlemenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Kanallar iletişimi geliştirmeye yardımcı olur. Ancak Mattermost üzerindeki kullanıcıların kanallara katılması ve kanal oluşturması ile sistemi düzenli tutmak zorlaşır. Gelişmiş izinler, kanal ayarlarını ve üyeleri yönetmek, geniş kullanıcı gruplarını etiketlemek için @channel ya da @here kullanmak ve yeni internet kancaları oluşturmak gibi işlemleri hangi kullanıcıların ya da rollerin yapabileceğini belirlemenizi sağlar.\n\n[Gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Mattermost üzerinde bu kadar çok görüşme gerçekleşirken, önemli bilgileri nerede arayacağınızı bilmek zor olabilir. Geniş bir topluluğa bir ileti yayınlamak istiyorsanız, herkesin katılabileceği ancak yalnızca kanal yöneticilerinin ileti gönderebileceği salt okunur Duyuru Kanalları oluşturabilirsiniz.\n\n[Salt okunur duyuru kanalları oluşturmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Mattermost ile kuruluşunuzun tek oturum açma hizmeti sağlayıcısı arasında bağlantı kurarak var olan kullanıcılarınızın kimlik doğrulama bilgilerini yeniden yazmasına gerek kalmadan Mattermost üzerine erişmesini sağlayabilirsiniz. Mattermost sunucunuz ile SAML 2.0 hizmeti sağlayıcınızı bütünleştirmenizi öneririz. [Buraya tıklayarak SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi alabilirsiniz](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Mattermost sisteminiz 100 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak almanız ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesini sağlamanız önerilir.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Mattermost sisteminizde çok aşamalı kimlik doğrulaması etkinleştirildi. Kullanıcılar parolanın yanında ek kimlik doğrulama araçları ile hesap güvenliğini arttırabilir. Sistem genelinde güvenliği artırmak için tüm Mattermost hesaplarının çok aşamalı kimlik doğrulaması kullanmasını zorunlu kılabilirsiniz.\n\n[Çok aşamalı kimlik doğrulamasını zorunlu kılmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Projelerde genellikle bir kuruluşun hem içinden hem de dışından kişiler bulunur. Konuk hesapları ile dış iş ortaklarınız Mattermost sisteminize erişmesini sağlayarak, kiminle çalışabileceklerini ve neleri görebileceklerini belirleyebilirsiniz.\n\n[Konuk hesaplarını etkinleştirmek hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nDenemeyi başlat üzerine tıklayarak [Mattermost yazılım deneme sözleşmesi](https://mattermost.com/software-evaluation-agreement/) ve [Kişisel verilerin gizliliği ilkesi](https://mattermost.com/pl/privacy-policy/) metinleri ile ürün tanıtımı e-postalarını almayı kabul ediyorum."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Enterprise sürümü denemeniz etkinleştirildi. Yalnızca kanal yöneticilerinin ileti gönderebilmesini sağlamak için **Sistem panosu > Kullanıcı yönetimi > Kanallar** bölümüne gidin."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Mattermost üzerinde bu kadar çok görüşme gerçekleşirken, önemli bilgileri nerede arayacağınızı bilmek zor olabilir. Geniş bir topluluğa bir ileti yayınlamak istiyorsanız, herkesin katılabileceği ancak yalnızca kanal yöneticilerinin ileti gönderebileceği salt okunur Duyuru Kanalları oluşturabilirsiniz.\n\n[Salt okunur duyuru kanalları oluşturmak hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Enterprise sürümü denemeniz etkinleştirildi. Gelişmiş özellikleri etkinleştirmek için sistem panosuna gidin."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Mattermost ile görüşme isteği. Takım şemaları ile gelişmiş izinleri kullanmak hakkında ayrıntılı bilgi almak istiyorum.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Mattermost ile görüşme isteği. Elasticsearch kullanarak başarımı arttırmak hakkında bilgi almak istiyorum.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Mattermost ile görüşme isteği. Sistem şemaları ile gelişmiş izinleri kullanmak hakkında bilgi almak istiyorum.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Mattermost ile iletişim kurma isteği. Salt okunur duyuru kanalları oluşturmak hakkında bilgi almak istiyorum.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Enterprise sürümü denemeniz etkinleştirildi. SAML 2.0 hizmetini bütünleştirmek için **Sistem panosu > Kimlik doğrulama > SAML 2.0** bölümüne gidin."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Enterprise sürümü denemeniz etkinleştirildi. AD/LDAP hizmetini etkinleştirmek için **Sistem panosu > Kimlik doğrulama > AD/LDAP** bölümüne gidin."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Enterprise sürümü denemeniz etkinleştirildi. Çok aşamalı kimlik doğrulamasını etkinleştirmek için **Sistem panosu > Kimlik doğrulama > ÇAKD** bölümüne gidin."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Mattermost sisteminizde çok aşamalı kimlik doğrulaması etkinleştirildi. Kullanıcılar parolanın yanında ek kimlik doğrulama araçları ile hesap güvenliğini arttırabilir. Sistem genelinde güvenliği artırmak için tüm Mattermost hesaplarının çok aşamalı kimlik doğrulaması kullanmasını zorunlu kılabilirsiniz.\n\n[Çok aşamalı kimlik doğrulaması hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Enterprise sürümü denemeniz etkinleştirildi. Konuk hesaplarını etkinleştirmek için **Sistem panosu > Kimlik doğrulama > Konuk erişimi** bölümüne gidin."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Projelerde genellikle bir kuruluşun hem içinden hem de dışından kişiler bulunur. Konuk hesapları ile dış iş ortaklarınız Mattermost sisteminize erişmesini sağlayarak, kiminle çalışabileceklerini ve neleri görebileceklerini belirleyebilirsiniz.\n\n[Konuk hesaplarını etkinleştirmek hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nBizimle görüşün üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "app.user.update_threads_read_for_user.app_error",
@@ -7908,7 +7608,7 @@
   },
   {
     "id": "app.user.get_threads_for_user.not_found",
-    "translation": "Kullanıcının konusu bulunamadı ya da takip edilmiyor"
+    "translation": "Kullanıcının konusu bulunamadı ya da izlenmiyor"
   },
   {
     "id": "api.unable_to_read_file_from_backend",
@@ -8300,7 +8000,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Paylaşılan kanal denetlenirken sorun çıktı: {{.Error}}"
+    "translation": "{{.ChannelID}} paylaşılan kanalının varlığı denetlenirken sorun çıktı: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -8742,10 +8442,6 @@
     "translation": "Sistem"
   },
   {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "Yönetici listesi boş."
-  },
-  {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "Yönetici listesi boş."
   },
@@ -8827,7 +8523,7 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": " takip ettiğiniz bir konuyu yanıtladı."
+    "translation": " izlediğiniz bir konuyu yanıtladı."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -8855,11 +8551,11 @@
   },
   {
     "id": "app.notification.body.thread_channel_full.subTitle",
-    "translation": "Siz uzaktayken {{.SenderName}}, takip ettiğiniz {{.ChannelName}} kanalında bir konuyu yanıtladı."
+    "translation": "Siz uzaktayken {{.SenderName}}, izlediğiniz {{.ChannelName}} kanalında bir konuyu yanıtladı."
   },
   {
     "id": "app.notification.body.thread_channel.subTitle",
-    "translation": "Siz uzaktayken, {{.SenderName}} takip ettiğiniz bir konuyu yanıtladı."
+    "translation": "Siz uzaktayken, {{.SenderName}} izlediğiniz bir konuyu yanıtladı."
   },
   {
     "id": "api.push_notification.title.collapsed_threads_dm",
@@ -9084,10 +8780,6 @@
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": "Post_id geçersiz"
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Gövde verileri işlenirken sorun çıktı."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
@@ -9984,5 +9676,25 @@
   {
     "id": "model.config.is_valid.log.advanced_logging.parse",
     "translation": "Biçim geçersiz: {{.Error}}"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "{{.NumMessages}} ileti bulunan bir konu taşındı: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Bir ileti taşındı: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "{{.NumMessages}} ileti bulunan bir konu Doğrudan/Grup iletisine taşındı\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Bir ileti Doğrudan/Grup iletisine taşındı\n"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Bu konu başka bir kanaldan taşınmış"
   }
 ]

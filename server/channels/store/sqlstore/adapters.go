@@ -6,11 +6,7 @@ package sqlstore
 import (
 	"bytes"
 	"database/sql/driver"
-	"fmt"
 	"strconv"
-	"strings"
-
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type jsonArray []string
@@ -48,16 +44,6 @@ type jsonKeyPath string
 
 func (str jsonKeyPath) Value() (driver.Value, error) {
 	return "{" + string(str) + "}", nil
-}
-
-type TraceOnAdapter struct{}
-
-func (t *TraceOnAdapter) Printf(format string, v ...any) {
-	originalString := fmt.Sprintf(format, v...)
-	newString := strings.ReplaceAll(originalString, "\n", " ")
-	newString = strings.ReplaceAll(newString, "\t", " ")
-	newString = strings.ReplaceAll(newString, "\"", "")
-	mlog.Debug(newString)
 }
 
 type JSONSerializable interface {

@@ -13,6 +13,12 @@
 describe('Support Packet Generation', () => {
     before(() => {
         cy.apiRequireLicense();
+
+        cy.apiUpdateConfig({
+            LogSettings: {
+                FileLevel: 'ERROR',
+            },
+        });
     });
 
     it('MM-T3849 - Commercial Support Dialog UI - E10/E20 License', () => {

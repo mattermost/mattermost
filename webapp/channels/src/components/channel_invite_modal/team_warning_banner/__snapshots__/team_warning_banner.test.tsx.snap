@@ -567,7 +567,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             >
               <OverlayTrigger
                 defaultOverlayShown={false}
-                delayShow={500}
+                delayShow={100}
                 overlay={
                   <Tooltip
                     className="hidden-xs"
@@ -587,7 +587,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               >
                 <OverlayTrigger
                   defaultOverlayShown={false}
-                  delayShow={500}
+                  delayShow={100}
                   overlay={
                     <OverlayWrapper
                       className="hidden-xs"
@@ -897,7 +897,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             >
               <OverlayTrigger
                 defaultOverlayShown={false}
-                delayShow={500}
+                delayShow={100}
                 overlay={
                   <Tooltip
                     className="hidden-xs"
@@ -917,7 +917,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               >
                 <OverlayTrigger
                   defaultOverlayShown={false}
-                  delayShow={500}
+                  delayShow={100}
                   overlay={
                     <OverlayWrapper
                       className="hidden-xs"

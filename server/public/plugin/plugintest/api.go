@@ -1942,6 +1942,32 @@ func (_m *API) GetPostsSince(channelId string, time int64) (*model.PostList, *mo
 	return r0, r1
 }
 
+// GetPreferenceForUser provides a mock function with given fields: userID, category, name
+func (_m *API) GetPreferenceForUser(userID string, category string, name string) (model.Preference, *model.AppError) {
+	ret := _m.Called(userID, category, name)
+
+	var r0 model.Preference
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, string) (model.Preference, *model.AppError)); ok {
+		return rf(userID, category, name)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string) model.Preference); ok {
+		r0 = rf(userID, category, name)
+	} else {
+		r0 = ret.Get(0).(model.Preference)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+		r1 = rf(userID, category, name)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPreferencesForUser provides a mock function with given fields: userID
 func (_m *API) GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError) {
 	ret := _m.Called(userID)
@@ -2780,6 +2806,20 @@ func (_m *API) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *mo
 	return r0, r1
 }
 
+// InviteRemoteToChannel provides a mock function with given fields: channelID, remoteID, userID, shareIfNotShared
+func (_m *API) InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error {
+	ret := _m.Called(channelID, remoteID, userID, shareIfNotShared)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) error); ok {
+		r0 = rf(channelID, remoteID, userID, shareIfNotShared)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // IsEnterpriseReady provides a mock function with given fields:
 func (_m *API) IsEnterpriseReady() bool {
 	ret := _m.Called()
@@ -3186,6 +3226,22 @@ func (_m *API) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot,
 	return r0, r1
 }
 
+// PatchChannelMembersNotifications provides a mock function with given fields: members, notifyProps
+func (_m *API) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError {
+	ret := _m.Called(members, notifyProps)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMemberIdentifier, map[string]string) *model.AppError); ok {
+		r0 = rf(members, notifyProps)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // PermanentDeleteBot provides a mock function with given fields: botUserId
 func (_m *API) PermanentDeleteBot(botUserId string) *model.AppError {
 	ret := _m.Called(botUserId)
@@ -3307,6 +3363,30 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 	}
 
 	return r0
+}
+
+// RegisterPluginForSharedChannels provides a mock function with given fields: opts
+func (_m *API) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (string, error) {
+	ret := _m.Called(opts)
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.RegisterPluginOpts) (string, error)); ok {
+		return rf(opts)
+	}
+	if rf, ok := ret.Get(0).(func(model.RegisterPluginOpts) string); ok {
+		r0 = rf(opts)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(model.RegisterPluginOpts) error); ok {
+		r1 = rf(opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // RemovePlugin provides a mock function with given fields: id
@@ -3731,6 +3811,60 @@ func (_m *API) SetUserStatusTimedDND(userId string, endtime int64) (*model.Statu
 	return r0, r1
 }
 
+// ShareChannel provides a mock function with given fields: sc
+func (_m *API) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	ret := _m.Called(sc)
+
+	var r0 *model.SharedChannel
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.SharedChannel) (*model.SharedChannel, error)); ok {
+		return rf(sc)
+	}
+	if rf, ok := ret.Get(0).(func(*model.SharedChannel) *model.SharedChannel); ok {
+		r0 = rf(sc)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.SharedChannel) error); ok {
+		r1 = rf(sc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SyncSharedChannel provides a mock function with given fields: channelID
+func (_m *API) SyncSharedChannel(channelID string) error {
+	ret := _m.Called(channelID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(channelID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UninviteRemoteFromChannel provides a mock function with given fields: channelID, remoteID
+func (_m *API) UninviteRemoteFromChannel(channelID string, remoteID string) error {
+	ret := _m.Called(channelID, remoteID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(channelID, remoteID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UnregisterCommand provides a mock function with given fields: teamID, trigger
 func (_m *API) UnregisterCommand(teamID string, trigger string) error {
 	ret := _m.Called(teamID, trigger)
@@ -3743,6 +3877,44 @@ func (_m *API) UnregisterCommand(teamID string, trigger string) error {
 	}
 
 	return r0
+}
+
+// UnregisterPluginForSharedChannels provides a mock function with given fields: pluginID
+func (_m *API) UnregisterPluginForSharedChannels(pluginID string) error {
+	ret := _m.Called(pluginID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(pluginID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UnshareChannel provides a mock function with given fields: channelID
+func (_m *API) UnshareChannel(channelID string) (bool, error) {
+	ret := _m.Called(channelID)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (bool, error)); ok {
+		return rf(channelID)
+	}
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(channelID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UpdateBotActive provides a mock function with given fields: botUserId, active
@@ -3999,6 +4171,46 @@ func (_m *API) UpdatePreferencesForUser(userID string, preferences []model.Prefe
 	return r0
 }
 
+// UpdateSharedChannel provides a mock function with given fields: sc
+func (_m *API) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	ret := _m.Called(sc)
+
+	var r0 *model.SharedChannel
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.SharedChannel) (*model.SharedChannel, error)); ok {
+		return rf(sc)
+	}
+	if rf, ok := ret.Get(0).(func(*model.SharedChannel) *model.SharedChannel); ok {
+		r0 = rf(sc)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.SharedChannel) error); ok {
+		r1 = rf(sc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateSharedChannelCursor provides a mock function with given fields: channelID, remoteID, cusror
+func (_m *API) UpdateSharedChannelCursor(channelID string, remoteID string, cusror model.GetPostsSinceForSyncCursor) error {
+	ret := _m.Called(channelID, remoteID, cusror)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, model.GetPostsSinceForSyncCursor) error); ok {
+		r0 = rf(channelID, remoteID, cusror)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateTeam provides a mock function with given fields: team
 func (_m *API) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	ret := _m.Called(team)
@@ -4141,6 +4353,34 @@ func (_m *API) UpdateUserCustomStatus(userID string, customStatus *model.CustomS
 	}
 
 	return r0
+}
+
+// UpdateUserRoles provides a mock function with given fields: userID, newRoles
+func (_m *API) UpdateUserRoles(userID string, newRoles string) (*model.User, *model.AppError) {
+	ret := _m.Called(userID, newRoles)
+
+	var r0 *model.User
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) (*model.User, *model.AppError)); ok {
+		return rf(userID, newRoles)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.User); ok {
+		r0 = rf(userID, newRoles)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userID, newRoles)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // UpdateUserStatus provides a mock function with given fields: userID, status

@@ -19,23 +19,11 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
       <div
         className="header__icon"
       >
-        <LocalizedIcon
+        <i
           className="fa fa-plus"
-          title={
-            Object {
-              "defaultMessage": "Expand Icon",
-              "id": "generic_icons.expand",
-            }
-          }
         />
-        <LocalizedIcon
+        <i
           className="fa fa-minus"
-          title={
-            Object {
-              "defaultMessage": "Collapse Icon",
-              "id": "generic_icons.collapse",
-            }
-          }
         />
       </div>
     </div>
@@ -283,23 +271,11 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
       <div
         className="header__icon"
       >
-        <LocalizedIcon
+        <i
           className="fa fa-plus"
-          title={
-            Object {
-              "defaultMessage": "Expand Icon",
-              "id": "generic_icons.expand",
-            }
-          }
         />
-        <LocalizedIcon
+        <i
           className="fa fa-minus"
-          title={
-            Object {
-              "defaultMessage": "Collapse Icon",
-              "id": "generic_icons.collapse",
-            }
-          }
         />
       </div>
     </div>
@@ -453,11 +429,9 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
           <OverlayTrigger
             defaultOverlayShown={false}
             overlay={
-              <Popover
+              <Memo(Popover)
                 className="code-popover"
                 id="code-popover"
-                placement="right"
-                popoverSize="sm"
                 popoverStyle="info"
               >
                 <img
@@ -465,7 +439,7 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
                   src={null}
                   width="200"
                 />
-              </Popover>
+              </Memo(Popover)>
             }
             placement="top"
             trigger={
@@ -503,23 +477,11 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
       <div
         className="header__icon"
       >
-        <LocalizedIcon
+        <i
           className="fa fa-plus"
-          title={
-            Object {
-              "defaultMessage": "Expand Icon",
-              "id": "generic_icons.expand",
-            }
-          }
         />
-        <LocalizedIcon
+        <i
           className="fa fa-minus"
-          title={
-            Object {
-              "defaultMessage": "Collapse Icon",
-              "id": "generic_icons.collapse",
-            }
-          }
         />
       </div>
     </div>

@@ -1,17 +1,15 @@
 .ConfirmLicenseRemovalModal {
     .modal-header {
-        border-bottom: none !important;
-        background: none !important;
-
         button.close {
             span {
-                color: rgba(63, 67, 80, 0.56) !important;
+                color: rgba(63, 67, 80, 0.75) !important;
             }
         }
     }
 
     .modal-body {
         padding-top: 0 !important;
+        padding-bottom: 40px !important;
     }
 
     .content-body {
@@ -52,9 +50,9 @@
 
         button {
             height: 40px;
+            border-radius: 4px;
             margin-top: 15px !important;
             margin-left: 10px;
-            border-radius: 4px;
         }
     }
 

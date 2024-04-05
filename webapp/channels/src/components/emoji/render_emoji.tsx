@@ -34,7 +34,7 @@ const RenderEmoji = ({emojiName, emojiStyle, size, onClick}: ComponentProps) => 
         <span
             onClick={onClick}
             className='emoticon'
-            alt={`:${emojiName}:`}
+            aria-label={`:${emojiName}:`}
             data-emoticon={emojiName}
             style={{
                 backgroundImage: `url(${emojiImageUrl})`,

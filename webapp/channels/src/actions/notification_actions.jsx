@@ -20,21 +20,17 @@ import {isThreadOpen} from 'selectors/views/threads';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {t} from 'utils/i18n';
 import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import * as NotificationSounds from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
-import {isDesktopApp, isMobileApp, isWindowsApp} from 'utils/user_agent';
+import {isDesktopApp, isMobileApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import {runDesktopNotificationHooks} from './hooks';
-
-const NOTIFY_TEXT_MAX_LENGTH = 50;
-
-// windows notification length is based windows chrome which supports 128 characters and is the lowest length of windows browsers
-const WINDOWS_NOTIFY_TEXT_MAX_LENGTH = 120;
 
 const getSoundFromChannelMemberAndUser = (member, user) => {
     if (member?.notify_props?.desktop_sound) {
@@ -52,6 +48,9 @@ const getNotificationSoundFromChannelMemberAndUser = (member, user) => {
     return user.notify_props?.desktop_notification_sound ? user.notify_props.desktop_notification_sound : 'Bing';
 };
 
+/**
+ * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<void>}
+ */
 export function sendDesktopNotification(post, msgProps) {
     return async (dispatch, getState) => {
         const state = getState();
@@ -240,12 +239,7 @@ export function sendDesktopNotification(post, msgProps) {
             image |= attachment.image_url.length > 0;
         });
 
-        let strippedMarkdownNotifyText = stripMarkdown(notifyText);
-
-        const notifyTextMaxLength = isWindowsApp() ? WINDOWS_NOTIFY_TEXT_MAX_LENGTH : NOTIFY_TEXT_MAX_LENGTH;
-        if (strippedMarkdownNotifyText.length > notifyTextMaxLength) {
-            strippedMarkdownNotifyText = strippedMarkdownNotifyText.substring(0, notifyTextMaxLength - 1) + '...';
-        }
+        const strippedMarkdownNotifyText = stripMarkdown(notifyText);
 
         let body = `@${username}`;
         if (strippedMarkdownNotifyText.length === 0) {
@@ -312,24 +306,7 @@ export function sendDesktopNotification(post, msgProps) {
 export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
     // handle notifications in desktop app
     if (isDesktopApp()) {
-        const msg = {
-            title,
-            body,
-            channel,
-            teamId,
-            silent,
-        };
-        msg.data = {soundName};
-        msg.url = url;
-
-        // get the desktop app to trigger the notification
-        window.postMessage(
-            {
-                type: 'dispatch-notification',
-                message: msg,
-            },
-            window.location.origin,
-        );
+        DesktopApp.dispatchNotification(title, body, channel.id, teamId, silent, soundName, url);
     } else {
         showNotification({
             title,

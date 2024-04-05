@@ -2460,20 +2460,12 @@
     "translation": "Vaše licence nepodporuje SAML ověřování."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Při ověřování odpovědi od Identity Providera došlo k chybě. Obraťte se na správce systému."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Při analýze odpovědi poskytovatele identit došlo k chybě. Obraťte se na správce systému."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Od Identity Providera jsme obdrželi prázdnou odpověď."
-  },
-  {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML přihlášení nebylo úspěšné, protože při dešifrování odpovědi od Identity Providera došlo k chybě. Prosím obraťte se na správce systému."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
@@ -2484,16 +2476,8 @@
     "translation": "Přihlášení SAML bylo neúspěšné, protože veřejný klíč Service Providera nebyl nalezen. Obraťte se na správce systému."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Soubor s veřejný certifikátem Identity Providera nebyl nalezen. Obraťte se na správce systému."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Přihlášení SAML bylo neúspěšné, protože šifrování není povoleno. Obraťte se na správce systému."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Při kódování požadavku na poskytovatele totožnosti došlo k chybě. Obraťte se na správce systému."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -3821,7 +3805,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "Chyba serializace"
+    "translation": "Chyba serializace."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -4337,11 +4321,15 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "{{.Username}} není členem tohoto kanálu."
+    "translation": "Můžete přidat {{.Users}} do toho kanálu jakmile bude členem týmu **{{.Team}}**."
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} je již v kanálu."
+    "translation": {
+      "few": "{{.User}} již jsou v kanálu.",
+      "one": "{{.User}} již je v kanálu.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -4361,7 +4349,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Nelze najít uživatele. Mohl být pravděpodobně deaktivován správcem."
+    "translation": "Nelze najít uživatele {{.User}}. Mohl být deaktivován správcem."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
@@ -4369,7 +4357,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username] ~[channel]"
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -5300,26 +5288,6 @@
     "translation": "Funkce trvalého odstranění týmu není povolena. Obraťte se na svého systémového administrátora."
   },
   {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "S případnými dotazy se obraťte na support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL stránky: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Celkem aktivních uživatelů: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Kontakt: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "E-mail: "
-  },
-  {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Licence Mattermost Enterprise byla zastavena."
   },
@@ -5342,46 +5310,6 @@
   {
     "id": "api.team.import_team.unknown_import_from.app_error",
     "translation": "Neznámý zdroj importu."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Škalování Mattermostu"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Napište nám e-mail"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Děkujeme, že jste se obrátili na Mattermost. Brzy se vám ozveme."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Zprávu se nepodařilo odeslat."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Napište nám e-mail."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "URL stránky: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Celkem aktivních uživatelů: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "S případnými dotazy se obraťte na support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "E-mail: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Kontakt: {{.Contact}}"
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
@@ -5424,10 +5352,6 @@
     "translation": "server_error: Při vytváření smajlíku došlo k interní chybě serveru."
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Je vyžadován SMTP server"
-  },
-  {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "URL stránky nelze smazat."
   },
@@ -5446,14 +5370,6 @@
   {
     "id": "web.error.unsupported_browser.system_browser_or",
     "translation": "nebo"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Kontaktujte nás požadavek"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "ID diagnózy: {{.DiagnosticId}}"
   },
   {
     "id": "api.push_notifications.session.expired",
@@ -5480,14 +5396,6 @@
     "translation": "Tuto úlohu nelze stáhnout"
   },
   {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Nelze najít varovnou metriku."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Nepodařilo se odeslat potvrzovací e-mail správce"
-  },
-  {
     "id": "api.context.get_user.app_error",
     "translation": "Nelze získat uživatele z relace UserID."
   },
@@ -5502,10 +5410,6 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Chyba při rozboru multipart požadavku"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Rádce Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
@@ -5868,10 +5772,6 @@
     "translation": "Nevalidní syncable id pro skupinové syncable."
   },
   {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Použití Advanced Permissions"
-  },
-  {
     "id": "model.link_metadata.is_valid.url.app_error",
     "translation": "Je nutné nastavit Link metadata URL."
   },
@@ -5938,10 +5838,6 @@
   {
     "id": "app.plugin_store.get.app_error",
     "translation": "Nelze získat hodnotu klíče zásuvného modulu."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Váš Enterprise test je nyní aktivní. Jděte do **Systémová konzole > Autentizace > Návštěvníci** a povolte návštěvnické účty."
   },
   {
     "id": "api.context.local_origin_required.app_error",
@@ -6088,82 +5984,6 @@
     "translation": "Nelze použít heslo delší jak 72 znaků díky limitaci funkce bcrypt."
   },
   {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Dotaz na Mattermost. Mám zájem zjistit více o Pokročilých oprávněních a Systémových schématech.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Váš Enterprise test je nyní aktivní. Jděte do Systémové konzole chcete-li povolit rozšířené vlastnosti."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost silně doporučuje, aby nasazení serveru s více jak 500 uživateli využilo vlastností jako správa uživatelů, server clustering a monitorování výkonu. Kontaktujte nás a zjistěte více o tom, jak můžeme pomoci.\n\nKliknutím na Zahájit test souhlasíte s [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) a příjmem produktových emailů."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost silně doporučuje, aby nasazení serveru s více jak 500 uživateli využilo vlastností jako správa uživatelů, server clustering a monitorování výkonu. Kontaktujte nás a zjistěte více o tom, jak můžeme pomoci.\n\nKliknutím na Kontaktujte nás budete sdílet své informace s Mattermost, Inc. [Zjistit více](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Dotaz na Mattermost. Můj tým má nyní 500 uživatelů a zvažuji využít Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Oznamovací kanály"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Váš Enterprise test je nyní aktivní. Jděte do **Systémová konzole > Správa uživatelů > Kanály** chcete-li omezit tvorbu zpráv v kanálu."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Při veškeré konverzaci, která se děje napříč Mattermostem, může být obtížné pátrat po důležitých informacích. Pokud chcete rozesílat informace širokému publiku, můžete vytvořit Oznamovací kanály. Ty jsou pouze pro čtení - vyjma adminů, kteří mohou zprávy vytvářet.\n\n[Zjistit více o Oznamovacích kanálech](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nKliknutím na Zahájit test souhlasíte s [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) a příjmem produktových emailů."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Při veškeré konverzaci, která se děje napříč Mattermostem, může být obtížné pátrat po důležitých informacích. Pokud chcete rozesílat informace širokému publiku, můžete vytvořit Oznamovací kanály. Ty jsou pouze pro čtení - vyjma adminů, kteří mohou zprávy vytvářet.\n\n[Zjistit více o Oznamovacích kanálech](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nKliknutím na Kontaktujte nás budete sdílet své informace s Mattermost, Inc. [Zjistit více](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Dotaz na Mattermost. Zajímalo by mě více o tvorbě oznamovacích kanálů.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Váš Enterprise test je nyní aktivní. Jděte do **Systémová konzole > Autentizace > SAML 2.0** chcete-li integraci se SAML 2.0."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Váš Mattermost má nyní 200 uživatelů. Pokud jej propojíte s vaším řešením SSO (single sign on), uživatelé budou moci využívat Mattermost bez nutnosti znovu zadávat své přihlašovací údaje. Doporučujeme integraci vašeho SAML 2.0 poskytovatele s Mattermost serverem [Zjistit více o integraci se SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nKliknutím na Zahájit test souhlasíte s [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) a příjmem produktových emailů."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Škálování Mattermostu"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Váš Mattermost má nyní 200 uživatelů. Pokud jej propojíte s vaším řešením SSO (single sign on), uživatelé budou moci využívat Mattermost bez nutnosti znovu zadávat své přihlašovací údaje. Doporučujeme integraci vašeho SAML 2.0 poskytovatele s Mattermost serverem [Zjistit více o integraci se SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nKliknutím na Kontaktujte nás budete sdílet své informace s Mattermost, Inc. [Zjistit více](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Dotaz na Mattermost. Můj tým má nyní 200 uživatelů a zvažuji přejít na Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Váš Enterprise test je nyní aktivní. Jděte do **Systémová konzole > Autentizace > AD/LDAP** chcete-li se napojit na vaše AD/LDAP."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Váš Mattermost má přes 100 uživatelů. S tím, jak roste uživatelská základna, správa nových účtů se stává časově nákladnou. Doporučujeme integrovat vaši podnikovou databázi AD/LDAP, která umožní každému účtu přístup k Mattermostu.\n\n[Zjistit více o integraci ADL/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nKliknutím na Zahájit test souhlasíte s [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) a příjmem produktových emailů."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Škálování s Mattermostem"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Projekty často zahrnují lidi jak z vnitřku, tak vnějšku organizace. S pomocí návštěvnických účtů můžete zapojit externí partnery do vašeho Mattermostu a určit, s kým mohou pracovat a co mohou vidět.\n\n[Zjistit více o návštěvnických účtech]((https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nKliknutím na Kontaktujte nás budete sdílet své informace s Mattermost, Inc. [Zjistit více](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot účet neexistuje."
   },
@@ -6304,14 +6124,6 @@
     "translation": "Již jste aktualizovali na Mattermost Enterprise edici. Prosím restartujte server k dokončení aktualizace."
   },
   {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Požadavek z Kontaktuje nás"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Id diagnostiky: "
-  },
-  {
     "id": "api.team.add_team_member.invalid_body.app_error",
     "translation": "Selhalo zprasování těla požadavku."
   },
@@ -6334,34 +6146,6 @@
   {
     "id": "api.system.update_notices.clear_failed",
     "translation": "Vyčištění starých oznámení selhalo"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Váš Enterprise test je nyní aktivní. Jděte do **Systémová konzole > Správa uživatelů > Oprávnění ** pro povolení Pokročilých oprávnění."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Váš Mattermost má nyní více týmů. Mnoho týmů má své vlastní preference pokud jde o koordinaci a spolupráci, včetně toho, jak jsou zakládány kanály, kdo může pozvat nové členy nebo jak se spravují integrace. Týmová přetížená schémata (Override Schemes) umožňují přizpůsobit oprávnění uživateů pro každý tým zvlášť.\n\n[Zjistit více o Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nKliknutím na Zahájit test souhlasíte se [Smlouvou o používání programu Mattermost ](https://mattermost.com/software-evaluation-agreement/), [Nastavením soukromí](https://mattermost.com/privacy-policy/) a zasíláním obchodních sdělení."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Použití Advanced Permissions"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Váš Mattermost má nyní více týmů. Mnoho týmů má své vlastní preference pokud jde o koordinaci a spolupráci, včetně toho, jak jsou zakládány kanály, kdo může pozvat nové členy nebo jak se spravují integrace. Týmová přetížená schémata (Override Schemes) umožňují přizpůsobit oprávnění uživateů pro každý tým zvlášť.\n\n[Zjistit více o Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nKliknutím na Kontaktujte nás budete sdílet své informace s Mattermost, Inc. [Zjistit více](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Váš Mattermost má velký počet zpráv. Výchozí databázové hledání začíná mít výkonostní problémy kolem 2.5 mil příspěvků. Pří více jak 5 mil příspěvcích může Elasticsearch výrazně pomoci s výkonem. Kontaktujte nás, chcete-li se dozvědět více jak můžeme pomoci.\n\n[Zjistit více o zvýšení výkonu](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nKliknutím na Zahájit test souhlasíte s [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) a příjmem produktových emailů."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Váš Mattermost má velký počet zpráv. Výchozí databázové hledání začíná mít výkonostní problémy kolem 2.5 mil příspěvků. Pří více jak 5 mil příspěvcích může Elasticsearch výrazně pomoci s výkonem. Kontaktujte nás, chcete-li se dozvědět více jak můžeme pomoci.\n\n[Zjistit více o zvýšení výkonu](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nKliknutím na Kontaktujte nás budete sdílet své informace s Mattermost, Inc. [Zjistit více](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Kanály umožňují zlepšit komunikaci, ale s tím, jak je uživatelé napříč Mattermostem zakládají a vstupují do nich, rostou nároky na to udržovat systém organizovaný. Advanced Permissions umožní nastavit, kteří uživatelé nebo role mohou provádět určité akce, jako spravovat nastavení kanálů a jejich členů, využívat @channel nebo @here zmínek, či vytváření nových webhooků.\n\n[Zjistit více o Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nKliknutím na Kontaktujte nás budete sdílet své informace s Mattermost, Inc. [Zjistit více](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
@@ -6640,50 +6424,6 @@
     "translation": "Nelze najít daný kanál."
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Váš Mattermost má přes 100 uživatelů. S tím, jak roste uživatelská základna, správa nových účtů se stává časově nákladnou. Doporučujeme integrovat vaši podnikovou databázi AD/LDAP, která umožní každému účtu přístup k Mattermostu.\n\n[Zjistit více o integraci ADL/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nKliknutím na Kontaktujte nás budete sdílet své informace s Mattermost, Inc. [Zjistit více](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Dotaz na Mattermost. Můj tým má nyní 100 uživatelů a zvažuji využití Mattermost Enterprise Edice.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Váš Enterprise test je nyní aktivní. Jděte do **Systémová konzole > Autentizace > VFA** chcete-li vynutit vícefaktorovou autentizaci."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Váš Mattermost má povolenu vícefaktorovou autentizaci, což umožňuje uživatelům zabezpečit jejich účty dalším způsobem, nejen heslem. Ke zvýšení zabezpečení napříč systémem můžete vynutit použivání vícefaktorové autentizace u všech účtů.\n\n[Zjistit více o vynucení vícefaktorové autentizace](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nKliknutím na Zahájit test souhlasíte s [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) a příjmem produktových emailů."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Vynucení vícefaktorové autentizace"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Váš Mattermost má povolenu vícefaktorovou autentizaci, což umožňuje uživatelům zabezpečit jejich účty dalším způsobem, nejen heslem. Ke zvýšení zabezpečení napříč systémem můžete vynutit použivání vícefaktorové autentizace u všech účtů.\n\n[Zjistit více o vynucení vícefaktorové autentizace](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nKliknutím na Kontaktujte nás budete sdílete své informace s Mattermost, Inc. [Zjistit více](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Dotaz na Mattermost. Zajímá mě více o vynucení vícefaktorové autentizace.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Projekty často zahrnují lidi jak z vnitřku, tak vnějšku organizace. S pomocí návštěvnických účtů můžete zapojit externí partnery do vašeho Mattermostu a určit, s kým mohou pracovat a co mohou vidět.\n\n[Zjistit více o návštěvnických účtech]((https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nKliknutím na Zahájit test souhlasíte s [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/) a příjmem produktových emailů."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Vytvoření návštěvnických účtů"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Dotaz na Mattermost. Mám zájem zjistit více o návštěvnických účtech.\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Testovací licenci nelze stáhnout. Navštivte https://mattermost.com/trial/ kde ji lze získat."
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Jedna nebo více změn v oprávněních, které se pokušíte nastavit, není povolena"
   },
@@ -6692,36 +6432,8 @@
     "translation": "Nelze získat detail čekající zprávy."
   },
   {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Nelze získat testovací licenci, prosím zkuste znovu nebo kontaktujte podporu na support@mattermost.com. Nelze získat počet registrovaných uživatelů."
-  },
-  {
     "id": "api.config.patch_config.restricted_merge.app_error",
     "translation": "Selhalo sloučení dané konfigurace."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Dotaz na Mattermost. Chci se dozvědět více o Pokročilých oprávněních s Týmovými schématy.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Váš Enterprise test je nyní aktivní. Až budete mít připraven Elasticsearch server, přejděte do **Systémová konzole > Prostředí > Elasticsearch ** pro nastavení Elasticsearch."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Zlepšení výkonnosti"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Dotaz na Mattermost. Zajímalo by mě více o zlepšení výkonnosti s Elasticsearch.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Váš Enterprise test je nyní aktivní. Jděte do **Systémová konzole > Správa uživatelů > Oprávnění ** pro povolení Pokročilých oprávnění."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Kanály mohou zlepšit komunikaci, ale s množstvím uživatelů Mattermostu připojujících se a vytvářejících kanály rostou nároky na udržení přehlednosti systému. Pokročilá oprávnění vám umožní nastavit, kteří uživatelé mohou provádět vybrané akce, např. změnit nastavení, spravovat členy kanálu, používat @channel nebo @here pro označení většího počtu uživatelů či vytvářet nové webhooky.\n\n[Dozvědět se více o Pokročilých oprávněních](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nKliknutím na Zahájit test souhlasíte se [Smlouvou o používání programu Mattermost ](https://mattermost.com/software-evaluation-agreement/), [Nastavením soukromí](https://mattermost.com/privacy-policy/) a zasíláním obchodních sdělení."
   },
   {
     "id": "app.oauth.update_app.updating.app_error",
@@ -7453,7 +7165,7 @@
   },
   {
     "id": "api.command_custom_status.app_error",
-    "translation": "Chyba při nastavování stavu"
+    "translation": "Chyba při nastavování stavu."
   },
   {
     "id": "api.channel.group_message.converted.to_private_channel",
@@ -7461,7 +7173,7 @@
   },
   {
     "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
-    "translation": "Nejste oprávněni aktualizovat název, display_name a účel přímých nebo skupinových zpráv."
+    "translation": "Nejste oprávněn aktualizovat název, display_name a účel přímých nebo skupinových zpráv."
   },
   {
     "id": "api.command_custom_status.clear.success",
@@ -7473,7 +7185,7 @@
   },
   {
     "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
-    "translation": "Nejste oprávněni aktualizovat název, display_name a účel přímých nebo skupinových zpráv."
+    "translation": "Nejste oprávněn aktualizovat název, display_name a účel přímých nebo skupinových zpráv."
   },
   {
     "id": "api.command_custom_status.desc",
@@ -7570,5 +7282,165 @@
   {
     "id": "api.command_remote.service_not_enabled",
     "translation": "Služba zabezpečeného připojení není povolena."
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Zpráva byla přesunuta do soukromé/skupinové konverzace\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Vlákno nelze odebrat"
+  },
+  {
+    "id": "app.post.permanent_delete_by_user.app_error",
+    "translation": "Nelze vybrat zprávy pro smazání u tohoto uživatele."
+  },
+  {
+    "id": "app.post.save.app_error",
+    "translation": "Nelze uložit příspěvek."
+  },
+  {
+    "id": "app.post.save.existing.app_error",
+    "translation": "Nemůžete aktualizovat existující příspěvek."
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Toto vlákno bylo přesunuto z jiného kanálu"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Vlákno s {{.NumMessages}} zprávami bylo přesunuto: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Zpráva byla přesunuta: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Vlákno s {{.NumMessages}} zprávami bylo přesunuto do soukromé/skupinové konverzace\n"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Není možné pozvat vzdáleného hosta, protože kanál {{.ChannelID}} není nastaven jako sdílený."
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Tento kanál je nyní sdílen."
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Zobrazí stav pro tento sdílený kanál"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Stav kanálu `{{.ChannelId}}`"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Nastala chyba při kontrole, zda kanál {{.ChannelID}} existuje: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Není možné zrušit pozvánku pro `{{.RemoteId}}`: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Nastaví sdílení aktuálního kanálu s externí Mattermost instancí."
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Zobrazí stav všech zabezpečených připojení"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Neznámý úkon `{{.Action}}`"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Dosupné úkony: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Chyba při zvaní uživatele `{{.Name}}` do kanálu: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Nepodařilo se potvrdit pozvánku: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Nelze zastavit sdílení kanálu, který není sdílený."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Je vyžadováno oprávnění `{{.Permission}}` pro editaci sdílené kanálu."
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Neplatná hodnota pro '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "sdilet-kanal"
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "K tomuto kanálu nebyla pozvána žádná zabezpečená připojení."
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "ID zabezpečeného připojení je neplatné: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Chcete-li zrušit pozvánku, musíte zadat platné ID zabezpečeného připojení"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Bezpečné připojení | URL webu | Pouze pro čtení | Pozvánka přijata | Online | Poslední synchronizace |"
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Zabezpečené připojení sdíleného kanálu `{{.RemoteId}}` pro tento kanál neexistuje."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Chyba při načítání zabezpečených připojení: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Nelze načíst stav zabezpečených připojení: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Pozvánka ke sdílenému kanálu byla odeslána na adresu `{{.Name}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Invites an external Mattermost instance to the current shared channel"
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Chybějící akce. Dostupné akce: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Zabezpečené připojení již bylo pozváno."
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "ID existujícího zabezpečeného připojení. Chcete-li přidat zabezpečené připojení, viz příkaz `secure-connection`."
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Nelze pozvat zabezpečené připojení ke sdílenému kanálu pocházejícímu někde jinde."
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[akce]"
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL adresa je příliš dlouhá"
   }
 ]

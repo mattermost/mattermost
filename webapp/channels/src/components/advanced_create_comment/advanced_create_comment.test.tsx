@@ -75,7 +75,7 @@ describe('components/AdvancedCreateComment', () => {
         maxPostSize: Constants.DEFAULT_CHARACTER_LIMIT,
         rhsExpanded: false,
         badConnection: false,
-        getChannelTimezones: jest.fn(() => Promise.resolve({data: '', error: ''})),
+        getChannelTimezones: jest.fn(() => Promise.resolve({data: [], error: ''})),
         selectedPostFocussedAt: 0,
         canPost: true,
         canUploadFiles: true,
@@ -91,7 +91,7 @@ describe('components/AdvancedCreateComment', () => {
         },
         groupsWithAllowReference: null,
         channelMemberCountsByGroup: undefined as any,
-        savePreferences(): ActionResult {
+        savePreferences(): Promise<ActionResult> {
             throw new Error('Function not implemented.');
         },
     };
@@ -238,7 +238,7 @@ describe('components/AdvancedCreateComment', () => {
 
         (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), getBoundingClientRect: jest.fn(), focus: jest.fn()};
 
-        wrapper.instance().handleEmojiClick({name: 'smile'} as any);
+        wrapper.instance().handleEmojiClick(TestHelper.getCustomEmojiMock({name: 'smile'}));
 
         jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
         expect(onUpdateCommentDraft).toHaveBeenCalled();
@@ -252,7 +252,7 @@ describe('components/AdvancedCreateComment', () => {
         wrapper.setState({draft: TestHelper.getPostDraftMock({message: 'test', uploadsInProgress: [], fileInfos: []}),
             caretPosition: 'test'.length, // cursor is at the end
         });
-        wrapper.instance().handleEmojiClick({name: 'smile'} as any);
+        wrapper.instance().handleEmojiClick(TestHelper.getCustomEmojiMock({name: 'smile'}));
 
         // Message with no space at the end
         jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
@@ -264,7 +264,7 @@ describe('components/AdvancedCreateComment', () => {
         wrapper.setState({draft: TestHelper.getPostDraftMock({message: 'test ', uploadsInProgress: [], fileInfos: []}),
             caretPosition: 'test '.length, // cursor is at the end
         });
-        wrapper.instance().handleEmojiClick({name: 'smile'} as any);
+        wrapper.instance().handleEmojiClick(TestHelper.getCustomEmojiMock({name: 'smile'}));
 
         // Message with space at the end
         jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);

@@ -23,14 +23,12 @@ export type Props = {
     user?: UserProfileType;
     userId: string;
     displayName?: string;
-    isBusy?: boolean;
     isShared?: boolean;
-    overwriteName?: React.ReactNode;
+    overwriteName?: string;
     overwriteIcon?: string;
     disablePopover?: boolean;
     displayUsername?: boolean;
     colorize?: boolean;
-    hasMention?: boolean;
     hideStatus?: boolean;
     isMobileView: boolean;
     isRHS?: boolean;
@@ -44,7 +42,6 @@ export default class UserProfile extends PureComponent<Props> {
     static defaultProps: Partial<Props> = {
         disablePopover: false,
         displayUsername: false,
-        hasMention: false,
         hideStatus: false,
         isRHS: false,
         overwriteName: '',
@@ -66,11 +63,9 @@ export default class UserProfile extends PureComponent<Props> {
             disablePopover,
             displayName,
             displayUsername,
-            isBusy,
             isMobileView,
             isRHS,
             isShared,
-            hasMention,
             hideStatus,
             overwriteName,
             overwriteIcon,
@@ -123,6 +118,7 @@ export default class UserProfile extends PureComponent<Props> {
         if (isShared) {
             sharedIcon = (
                 <SharedUserIndicator
+                    id={`sharedUserIndicator-${userId}`}
                     className='shared-user-icon'
                     withTooltip={true}
                 />
@@ -142,10 +138,8 @@ export default class UserProfile extends PureComponent<Props> {
                             userId={userId}
                             channelId={channelId}
                             src={profileImg}
-                            isBusy={isBusy}
                             hide={this.hideProfilePopover}
                             hideStatus={hideStatus}
-                            hasMention={hasMention}
                             overwriteName={overwriteName}
                             overwriteIcon={overwriteIcon}
                         />

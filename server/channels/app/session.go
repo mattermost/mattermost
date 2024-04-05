@@ -18,7 +18,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+// maxSessionsLimit prevents a potential DOS caused by creating an unbounded number of sessions; MM-55320
+const maxSessionsLimit = 500
+
 func (a *App) CreateSession(c request.CTX, session *model.Session) (*model.Session, *model.AppError) {
+	if appErr := a.limitNumberOfSessions(c, session.UserId); appErr != nil {
+		return nil, appErr
+	}
+
 	session, err := a.ch.srv.platform.CreateSession(c, session)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -131,6 +138,40 @@ func (a *App) GetSessions(c request.CTX, userID string) ([]*model.Session, *mode
 	sessions, err := a.ch.srv.platform.GetSessions(c, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return sessions, nil
+}
+
+// limitNumberOfSessions revokes userId's least recently used sessions to keep the number below
+// maxSessionsLimit; MM-55320
+func (a *App) limitNumberOfSessions(c request.CTX, userId string) *model.AppError {
+	const returnLimit = 100
+	sessions, appErr := a.GetLRUSessions(c, userId, returnLimit, maxSessionsLimit-1)
+	if appErr != nil {
+		return model.NewAppError("limitNumberOfSessions", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	// Revoke any sessions over the limit to make room for new sessions
+	for _, sess := range sessions {
+		if err := a.RevokeSession(c, sess); err != nil {
+			return model.NewAppError("limitNumberOfSessions", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		c.Logger().Debug("Session revoked; user's number of sessions were over the maxSessionsLimit",
+			mlog.String("user_id", userId),
+			mlog.String("session_id", sess.Id))
+	}
+
+	return nil
+}
+
+// GetLRUSessions returns the Least Recently Used sessions for userID, skipping over the newest 'offset'
+// number of sessions. E.g., if userID has 100 sessions, offset 98 will return the oldest 2 sessions.
+func (a *App) GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, *model.AppError) {
+	sessions, err := a.ch.srv.platform.GetLRUSessions(c, userID, limit, offset)
+	if err != nil {
+		return nil, model.NewAppError("GetLRUSessions", "app.session.get_lru_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return sessions, nil
@@ -274,13 +315,17 @@ func (a *App) ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Sessi
 
 	newExpiry := now + sessionLength
 	if err := a.ch.srv.platform.ExtendSessionExpiry(session, newExpiry); err != nil {
-		mlog.Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+		rctx.Logger().Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 		auditRec.AddMeta("err", err.Error())
 		return false
 	}
 
-	mlog.Debug("Session extended", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id),
-		mlog.Int("newExpiry", newExpiry), mlog.Int("session_length", sessionLength))
+	rctx.Logger().Debug("Session extended",
+		mlog.String("user_id", session.UserId),
+		mlog.String("session_id", session.Id),
+		mlog.Int("newExpiry", newExpiry),
+		mlog.Int("session_length", sessionLength),
+	)
 
 	auditRec.Success()
 	auditRec.AddEventResultState(session)
@@ -378,6 +423,10 @@ func (a *App) createSessionForUserAccessToken(c request.CTX, tokenString string)
 
 	if user.DeleteAt != 0 {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_user_id="+user.Id, http.StatusUnauthorized)
+	}
+
+	if appErr := a.limitNumberOfSessions(c, user.Id); appErr != nil {
+		return nil, appErr
 	}
 
 	session := &model.Session{

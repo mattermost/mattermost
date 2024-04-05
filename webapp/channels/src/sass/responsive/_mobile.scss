@@ -73,8 +73,8 @@
                 height: 30px;
                 padding-top: 13px;
                 border: 1px solid $white;
-                margin-left: -15px;
                 border-radius: 50%;
+                margin-left: -15px;
                 color: $white;
                 font-family: 'Open Sans', sans-serif;
                 font-size: 23px;
@@ -112,7 +112,7 @@
                         }
 
                         .SubMenu__icon-right {
-                            color: rgba(255, 255, 255, 0.56);
+                            color: rgba(255, 255, 255, 0.75);
                         }
                     }
 
@@ -234,6 +234,7 @@
                             top: 0;
                             display: flex;
                             width: 100%;
+                            background-color: var(--center-channel-bg);
 
                             .modal-title {
                                 width: 100%;
@@ -273,10 +274,6 @@
                         width: 100%;
                         margin: 0;
 
-                        &.position--top {
-                            top: auto;
-                        }
-
                         >li {
                             >a {
                                 font-size: 1.1em;
@@ -299,6 +296,8 @@
                             padding: 0;
 
                             .user-settings {
+                                overflow: auto;
+                                max-height: 100vh;
                                 padding: 100px 20px 30px;
                             }
                         }
@@ -386,9 +385,9 @@
                 align-items: center;
                 padding: 6em 2em 4em;
                 border: 0;
+                border-radius: 0;
                 margin: 0;
                 background: transparent;
-                border-radius: 0;
 
                 .Menu__content {
                     position: relative;
@@ -441,7 +440,7 @@
         .post {
             &.post--thread {
                 .post-pre-header__icons-container {
-                    width: 60px; // If the width of post__img changes, this needs to be adjusted accordingly
+                    width: 44px; // If the width of post__img changes, this needs to be adjusted accordingly
                     padding-right: 12px; // If the padding of post__img changes, this needs to be adjusted accordingly
                     margin-left: 0; // if left margin of post__content changes, this needs to be adjusted accordingly
                 }
@@ -657,8 +656,8 @@
                 >button {
                     height: auto;
                     padding: 15px 20px;
-                    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
                     border-radius: 0;
+                    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
                 }
 
                 &:first-child {
@@ -809,8 +808,8 @@
             height: 30px;
             padding-top: 13px;
             border: 1px solid $white;
-            margin-left: -15px;
             border-radius: 50%;
+            margin-left: -15px;
             color: $white;
             font-family: 'Open Sans', sans-serif;
             font-size: 23px;
@@ -1373,8 +1372,8 @@
             .form-control {
                 padding: 0 31px;
                 border: none;
-                background: var(--center-channel-bg);
                 border-radius: 3px;
+                background: var(--center-channel-bg);
             }
         }
     }
@@ -1449,8 +1448,8 @@
                     ul {
                         position: relative;
                         top: 5px;
-                        background: var(--center-channel-bg);
                         border-radius: 3px;
+                        background: var(--center-channel-bg);
                         clear: both;
 
                         li {
@@ -1553,8 +1552,8 @@
                     ul {
                         position: relative;
                         top: 5px;
-                        background: var(--center-channel-bg);
                         border-radius: 3px;
+                        background: var(--center-channel-bg);
                         clear: both;
 
                         li {

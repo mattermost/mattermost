@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    image: "mysql/mysql-server:5.7.12"
+    image: "mysql/mysql-server:8.0.32"
     restart: always
     networks:
       - mm-test
@@ -19,12 +19,15 @@ services:
     volumes:
       - ./docker/mysql.conf.d/source.cnf:/etc/mysql/conf.d/mysql.cnf
   mysql-read-replica:
-    image: "mysql/mysql-server:5.7.12"
+    image: "mysql/mysql-server:8.0.32"
     restart: always
     networks:
       - mm-test
     ports:
-      - 3307:3306
+      - target: 3306
+        published: 3307
+        protocol: tcp
+        mode: host
     environment:
       MYSQL_ROOT_HOST: "%"
       MYSQL_ROOT_PASSWORD: mostest
@@ -101,17 +104,19 @@ services:
     networks:
       - mm-test
   keycloak:
-    image: "jboss/keycloak:10.0.2"
+    image: "quay.io/keycloak/keycloak:23.0.7"
     restart: always
-    environment:
-      KEYCLOAK_USER: mmuser
-      KEYCLOAK_PASSWORD: mostest
-      DB_VENDOR: h2
-      KEYCLOAK_IMPORT: /setup/realm.json
+    entrypoint: /opt/keycloak/bin/kc.sh start --import-realm
     networks:
       - mm-test
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HOSTNAME_STRICT_HTTPS: 'false'
+      KC_HTTP_ENABLED: 'true'
     volumes:
-     - "./docker/keycloak:/setup"
+     - "./docker/keycloak:/opt/keycloak/data/import"
   prometheus:
     image: "prom/prometheus:v2.46.0"
     volumes:

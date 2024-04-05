@@ -49,7 +49,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.APISessionRequired(regenerateTeamInviteId)).Methods("POST")
 
 	api.BaseRoutes.Team.Handle("/image", api.APISessionRequiredTrustRequester(getTeamIcon)).Methods("GET")
-	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(setTeamIcon)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(setTeamIcon, handlerParamFileAPI)).Methods("POST")
 	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(removeTeamIcon)).Methods("DELETE")
 
 	api.BaseRoutes.TeamMembers.Handle("", api.APISessionRequired(getTeamMembers)).Methods("GET")
@@ -644,10 +644,12 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userIDs []string
-	err := json.NewDecoder(r.Body).Decode(&userIDs)
-	if err != nil || len(userIDs) == 0 {
-		c.SetInvalidParamWithErr("user_ids", err)
+	userIDs, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("getTeamMembersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(userIDs) == 0 {
+		c.SetInvalidParam("user_ids")
 		return
 	}
 
@@ -865,6 +867,12 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionAddUserToTeam) {
+		c.SetPermissionError(model.PermissionAddUserToTeam)
+		return
+	}
+
+	canInviteGuests := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest)
 	var userIDs []string
 	for _, member := range members {
 		if member.TeamId != c.Params.TeamId {
@@ -877,12 +885,19 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// if user cannot invite guests, check if any users are guest users.
+		if !canInviteGuests {
+			user, err := c.App.GetUser(member.UserId)
+			if err != nil {
+				c.Err = model.NewAppError("addTeamMembers", "api.team.user.missing_account", nil, "", http.StatusNotFound).Wrap(err)
+				return
+			}
+			if user.IsGuest() {
+				c.SetPermissionError(model.PermissionInviteGuest)
+				return
+			}
+		}
 		userIDs = append(userIDs, member.UserId)
-	}
-
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionAddUserToTeam) {
-		c.SetPermissionError(model.PermissionAddUserToTeam)
-		return
 	}
 
 	membersWithErrors, appErr := c.App.AddTeamMembers(c.AppContext, c.Params.TeamId, userIDs, c.AppContext.Session().UserId, graceful)
@@ -1360,14 +1375,10 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bf, err := io.ReadAll(r.Body)
+	memberInvite := &model.MemberInvite{}
+	err := model.StructFromJSONLimited(r.Body, memberInvite)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
-	memberInvite := &model.MemberInvite{}
-	if err := json.Unmarshal(bf, memberInvite); err != nil {
-		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 

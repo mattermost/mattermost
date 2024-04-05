@@ -21,7 +21,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -106,7 +106,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -260,7 +260,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -302,7 +302,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
               <br />
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -369,7 +369,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -454,7 +454,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -608,7 +608,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             disabled={true}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -650,7 +650,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
               <br />
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -717,7 +717,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -746,7 +746,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
               <br />
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -813,7 +813,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -898,7 +898,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -1052,7 +1052,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             disabled={true}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -1094,7 +1094,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
               <br />
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -1161,7 +1161,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -1246,7 +1246,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -1402,7 +1402,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -1444,7 +1444,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
               <br />
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -1511,7 +1511,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -1596,7 +1596,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -1750,7 +1750,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -1796,7 +1796,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
               />
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -1863,7 +1863,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -1948,7 +1948,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -2102,7 +2102,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -2144,7 +2144,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
               <br />
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -2211,7 +2211,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -2296,7 +2296,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -2452,7 +2452,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             disabled={true}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -2469,7 +2469,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             setByEnv={false}
             value="marketplace.example.com"
           />
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -2536,7 +2536,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -2621,7 +2621,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -2775,7 +2775,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -2817,7 +2817,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
               <br />
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -2884,7 +2884,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -2969,7 +2969,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -3172,7 +3172,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
               <br />
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -3239,7 +3239,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -3324,7 +3324,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -3478,7 +3478,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -3583,7 +3583,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -3650,7 +3650,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -3735,7 +3735,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -3889,7 +3889,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -3962,7 +3962,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -4029,7 +4029,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -4114,7 +4114,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -4268,7 +4268,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -4341,7 +4341,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -4408,7 +4408,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -4493,7 +4493,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -4647,7 +4647,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -4720,7 +4720,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div
@@ -4787,7 +4787,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
           id="PluginSettings"
         >
@@ -4872,7 +4872,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -5026,7 +5026,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -5131,7 +5131,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </div>
     </div>
     <div

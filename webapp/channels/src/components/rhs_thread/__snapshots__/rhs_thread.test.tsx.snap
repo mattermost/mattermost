@@ -30,9 +30,10 @@ exports[`components/RhsThread should match snapshot 1`] = `
     rootPostId="id"
   />
   <Connect(ThreadViewer)
+    fromSuppressed={false}
     isThreadView={false}
     rootPostId="id"
-    useRelativeTimestamp={false}
+    useRelativeTimestamp={true}
   />
 </div>
 `;

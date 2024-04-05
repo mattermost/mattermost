@@ -27,7 +27,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         className="fa fa-spinner fa-pulse fa-2x"
       />
     </div>
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name0 Surname0"
       email="test0@test.com"
       key="id0"
@@ -35,7 +35,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id0"
       username="username0"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name1 Surname1"
       email="test1@test.com"
       key="id1"
@@ -43,7 +43,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id1"
       username="username1"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name2 Surname2"
       email="test2@test.com"
       key="id2"
@@ -51,7 +51,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id2"
       username="username2"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name3 Surname3"
       email="test3@test.com"
       key="id3"
@@ -59,7 +59,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id3"
       username="username3"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name4 Surname4"
       email="test4@test.com"
       key="id4"
@@ -67,7 +67,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id4"
       username="username4"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name5 Surname5"
       email="test5@test.com"
       key="id5"
@@ -75,7 +75,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id5"
       username="username5"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name6 Surname6"
       email="test6@test.com"
       key="id6"
@@ -83,7 +83,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id6"
       username="username6"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name7 Surname7"
       email="test7@test.com"
       key="id7"
@@ -91,7 +91,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id7"
       username="username7"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name8 Surname8"
       email="test8@test.com"
       key="id8"
@@ -99,7 +99,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id8"
       username="username8"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name9 Surname9"
       email="test9@test.com"
       key="id9"
@@ -107,7 +107,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id9"
       username="username9"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name10 Surname10"
       email="test10@test.com"
       key="id10"
@@ -115,7 +115,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id10"
       username="username10"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name11 Surname11"
       email="test11@test.com"
       key="id11"
@@ -123,7 +123,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id11"
       username="username11"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name12 Surname12"
       email="test12@test.com"
       key="id12"
@@ -131,7 +131,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id12"
       username="username12"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name13 Surname13"
       email="test13@test.com"
       key="id13"
@@ -139,7 +139,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id13"
       username="username13"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name14 Surname14"
       email="test14@test.com"
       key="id14"
@@ -147,7 +147,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id14"
       username="username14"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name15 Surname15"
       email="test15@test.com"
       key="id15"
@@ -155,7 +155,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id15"
       username="username15"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name16 Surname16"
       email="test16@test.com"
       key="id16"
@@ -163,7 +163,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id16"
       username="username16"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name17 Surname17"
       email="test17@test.com"
       key="id17"
@@ -171,7 +171,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id17"
       username="username17"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name18 Surname18"
       email="test18@test.com"
       key="id18"
@@ -179,7 +179,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id18"
       username="username18"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name19 Surname19"
       email="test19@test.com"
       key="id19"
@@ -253,7 +253,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         className="fa fa-spinner fa-pulse fa-2x"
       />
     </div>
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name0 Surname0"
       email="test0@test.com"
       key="id0"
@@ -261,7 +261,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id0"
       username="username0"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name1 Surname1"
       email="test1@test.com"
       key="id1"
@@ -269,7 +269,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id1"
       username="username1"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name2 Surname2"
       email="test2@test.com"
       key="id2"
@@ -277,7 +277,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id2"
       username="username2"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name3 Surname3"
       email="test3@test.com"
       key="id3"
@@ -285,7 +285,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id3"
       username="username3"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name4 Surname4"
       email="test4@test.com"
       key="id4"
@@ -293,7 +293,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id4"
       username="username4"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name5 Surname5"
       email="test5@test.com"
       key="id5"
@@ -301,7 +301,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id5"
       username="username5"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name6 Surname6"
       email="test6@test.com"
       key="id6"
@@ -309,7 +309,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id6"
       username="username6"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name7 Surname7"
       email="test7@test.com"
       key="id7"
@@ -317,7 +317,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id7"
       username="username7"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name8 Surname8"
       email="test8@test.com"
       key="id8"
@@ -325,7 +325,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id8"
       username="username8"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name9 Surname9"
       email="test9@test.com"
       key="id9"
@@ -333,7 +333,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id9"
       username="username9"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name10 Surname10"
       email="test10@test.com"
       key="id10"
@@ -341,7 +341,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id10"
       username="username10"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name11 Surname11"
       email="test11@test.com"
       key="id11"
@@ -349,7 +349,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id11"
       username="username11"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name12 Surname12"
       email="test12@test.com"
       key="id12"
@@ -357,7 +357,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id12"
       username="username12"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name13 Surname13"
       email="test13@test.com"
       key="id13"
@@ -365,7 +365,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id13"
       username="username13"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name14 Surname14"
       email="test14@test.com"
       key="id14"
@@ -373,7 +373,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id14"
       username="username14"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name15 Surname15"
       email="test15@test.com"
       key="id15"
@@ -381,7 +381,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id15"
       username="username15"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name16 Surname16"
       email="test16@test.com"
       key="id16"
@@ -389,7 +389,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id16"
       username="username16"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name17 Surname17"
       email="test17@test.com"
       key="id17"
@@ -397,7 +397,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id17"
       username="username17"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name18 Surname18"
       email="test18@test.com"
       key="id18"
@@ -405,7 +405,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id18"
       username="username18"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name19 Surname19"
       email="test19@test.com"
       key="id19"
@@ -479,7 +479,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         className="fa fa-spinner fa-pulse fa-2x"
       />
     </div>
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name20 Surname20"
       email="test20@test.com"
       key="id20"
@@ -487,7 +487,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id20"
       username="username20"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name21 Surname21"
       email="test21@test.com"
       key="id21"
@@ -495,7 +495,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id21"
       username="username21"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name22 Surname22"
       email="test22@test.com"
       key="id22"
@@ -503,7 +503,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id22"
       username="username22"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name23 Surname23"
       email="test23@test.com"
       key="id23"
@@ -511,7 +511,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id23"
       username="username23"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name24 Surname24"
       email="test24@test.com"
       key="id24"
@@ -519,7 +519,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id24"
       username="username24"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name25 Surname25"
       email="test25@test.com"
       key="id25"
@@ -527,7 +527,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id25"
       username="username25"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name26 Surname26"
       email="test26@test.com"
       key="id26"
@@ -535,7 +535,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id26"
       username="username26"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name27 Surname27"
       email="test27@test.com"
       key="id27"
@@ -543,7 +543,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id27"
       username="username27"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name28 Surname28"
       email="test28@test.com"
       key="id28"
@@ -551,7 +551,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id28"
       username="username28"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name29 Surname29"
       email="test29@test.com"
       key="id29"
@@ -559,7 +559,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id29"
       username="username29"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name30 Surname30"
       email="test30@test.com"
       key="id30"
@@ -567,7 +567,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id30"
       username="username30"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name31 Surname31"
       email="test31@test.com"
       key="id31"
@@ -575,7 +575,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id31"
       username="username31"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name32 Surname32"
       email="test32@test.com"
       key="id32"
@@ -583,7 +583,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id32"
       username="username32"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name33 Surname33"
       email="test33@test.com"
       key="id33"
@@ -591,7 +591,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id33"
       username="username33"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name34 Surname34"
       email="test34@test.com"
       key="id34"
@@ -599,7 +599,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id34"
       username="username34"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name35 Surname35"
       email="test35@test.com"
       key="id35"
@@ -607,7 +607,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id35"
       username="username35"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name36 Surname36"
       email="test36@test.com"
       key="id36"
@@ -615,7 +615,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id36"
       username="username36"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name37 Surname37"
       email="test37@test.com"
       key="id37"
@@ -623,7 +623,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id37"
       username="username37"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name38 Surname38"
       email="test38@test.com"
       key="id38"
@@ -631,7 +631,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id38"
       username="username38"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name39 Surname39"
       email="test39@test.com"
       key="id39"
@@ -705,7 +705,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         className="fa fa-spinner fa-pulse fa-2x"
       />
     </div>
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name40 Surname40"
       email="test40@test.com"
       key="id40"
@@ -713,7 +713,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id40"
       username="username40"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name41 Surname41"
       email="test41@test.com"
       key="id41"
@@ -721,7 +721,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id41"
       username="username41"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name42 Surname42"
       email="test42@test.com"
       key="id42"
@@ -729,7 +729,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id42"
       username="username42"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name43 Surname43"
       email="test43@test.com"
       key="id43"
@@ -737,7 +737,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id43"
       username="username43"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name44 Surname44"
       email="test44@test.com"
       key="id44"
@@ -745,7 +745,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id44"
       username="username44"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name45 Surname45"
       email="test45@test.com"
       key="id45"
@@ -753,7 +753,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id45"
       username="username45"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name46 Surname46"
       email="test46@test.com"
       key="id46"
@@ -761,7 +761,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id46"
       username="username46"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name47 Surname47"
       email="test47@test.com"
       key="id47"
@@ -769,7 +769,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id47"
       username="username47"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name48 Surname48"
       email="test48@test.com"
       key="id48"
@@ -777,7 +777,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id48"
       username="username48"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name49 Surname49"
       email="test49@test.com"
       key="id49"
@@ -785,7 +785,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id49"
       username="username49"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name50 Surname50"
       email="test50@test.com"
       key="id50"
@@ -793,7 +793,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id50"
       username="username50"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name51 Surname51"
       email="test51@test.com"
       key="id51"
@@ -801,7 +801,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id51"
       username="username51"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name52 Surname52"
       email="test52@test.com"
       key="id52"
@@ -809,7 +809,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id52"
       username="username52"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name53 Surname53"
       email="test53@test.com"
       key="id53"
@@ -817,7 +817,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id53"
       username="username53"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name54 Surname54"
       email="test54@test.com"
       key="id54"
@@ -891,7 +891,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         className="fa fa-spinner fa-pulse fa-2x"
       />
     </div>
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name0 Surname0"
       email="test0@test.com"
       key="id0"
@@ -899,7 +899,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id0"
       username="username0"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name1 Surname1"
       email="test1@test.com"
       key="id1"
@@ -907,7 +907,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id1"
       username="username1"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name2 Surname2"
       email="test2@test.com"
       key="id2"
@@ -915,7 +915,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id2"
       username="username2"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name3 Surname3"
       email="test3@test.com"
       key="id3"
@@ -923,7 +923,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id3"
       username="username3"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name4 Surname4"
       email="test4@test.com"
       key="id4"
@@ -931,7 +931,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id4"
       username="username4"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name5 Surname5"
       email="test5@test.com"
       key="id5"
@@ -939,7 +939,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id5"
       username="username5"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name6 Surname6"
       email="test6@test.com"
       key="id6"
@@ -947,7 +947,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id6"
       username="username6"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name7 Surname7"
       email="test7@test.com"
       key="id7"
@@ -955,7 +955,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id7"
       username="username7"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name8 Surname8"
       email="test8@test.com"
       key="id8"
@@ -963,7 +963,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id8"
       username="username8"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name9 Surname9"
       email="test9@test.com"
       key="id9"
@@ -971,7 +971,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id9"
       username="username9"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name10 Surname10"
       email="test10@test.com"
       key="id10"
@@ -979,7 +979,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id10"
       username="username10"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name11 Surname11"
       email="test11@test.com"
       key="id11"
@@ -987,7 +987,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id11"
       username="username11"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name12 Surname12"
       email="test12@test.com"
       key="id12"
@@ -995,7 +995,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id12"
       username="username12"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name13 Surname13"
       email="test13@test.com"
       key="id13"
@@ -1003,7 +1003,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id13"
       username="username13"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name14 Surname14"
       email="test14@test.com"
       key="id14"
@@ -1011,7 +1011,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id14"
       username="username14"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name15 Surname15"
       email="test15@test.com"
       key="id15"
@@ -1019,7 +1019,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id15"
       username="username15"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name16 Surname16"
       email="test16@test.com"
       key="id16"
@@ -1027,7 +1027,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id16"
       username="username16"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name17 Surname17"
       email="test17@test.com"
       key="id17"
@@ -1035,7 +1035,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id17"
       username="username17"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name18 Surname18"
       email="test18@test.com"
       key="id18"
@@ -1043,7 +1043,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id18"
       username="username18"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name19 Surname19"
       email="test19@test.com"
       key="id19"
@@ -1159,7 +1159,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         className="fa fa-spinner fa-pulse fa-2x"
       />
     </div>
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name0 Surname0"
       email="test0@test.com"
       key="id0"
@@ -1167,7 +1167,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id0"
       username="username0"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name1 Surname1"
       email="test1@test.com"
       key="id1"
@@ -1175,7 +1175,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id1"
       username="username1"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name2 Surname2"
       email="test2@test.com"
       key="id2"
@@ -1183,7 +1183,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id2"
       username="username2"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name3 Surname3"
       email="test3@test.com"
       key="id3"
@@ -1191,7 +1191,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id3"
       username="username3"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name4 Surname4"
       email="test4@test.com"
       key="id4"
@@ -1199,7 +1199,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id4"
       username="username4"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name5 Surname5"
       email="test5@test.com"
       key="id5"
@@ -1207,7 +1207,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id5"
       username="username5"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name6 Surname6"
       email="test6@test.com"
       key="id6"
@@ -1215,7 +1215,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id6"
       username="username6"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name7 Surname7"
       email="test7@test.com"
       key="id7"
@@ -1223,7 +1223,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id7"
       username="username7"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name8 Surname8"
       email="test8@test.com"
       key="id8"
@@ -1231,7 +1231,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id8"
       username="username8"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name9 Surname9"
       email="test9@test.com"
       key="id9"
@@ -1239,7 +1239,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id9"
       username="username9"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name10 Surname10"
       email="test10@test.com"
       key="id10"
@@ -1247,7 +1247,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id10"
       username="username10"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name11 Surname11"
       email="test11@test.com"
       key="id11"
@@ -1255,7 +1255,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id11"
       username="username11"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name12 Surname12"
       email="test12@test.com"
       key="id12"
@@ -1263,7 +1263,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id12"
       username="username12"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name13 Surname13"
       email="test13@test.com"
       key="id13"
@@ -1271,7 +1271,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id13"
       username="username13"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name14 Surname14"
       email="test14@test.com"
       key="id14"
@@ -1279,7 +1279,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id14"
       username="username14"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name15 Surname15"
       email="test15@test.com"
       key="id15"
@@ -1287,7 +1287,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id15"
       username="username15"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name16 Surname16"
       email="test16@test.com"
       key="id16"
@@ -1295,7 +1295,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id16"
       username="username16"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name17 Surname17"
       email="test17@test.com"
       key="id17"
@@ -1303,7 +1303,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id17"
       username="username17"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name18 Surname18"
       email="test18@test.com"
       key="id18"
@@ -1311,7 +1311,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
       userId="id18"
       username="username18"
     />
-    <GroupUsersRow
+    <Memo(GroupUsersRow)
       displayName="Name19 Surname19"
       email="test19@test.com"
       key="id19"

@@ -16,7 +16,7 @@ import {localizeMessage} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
 
-interface Props extends PropsFromRedux {
+export interface Props extends PropsFromRedux {
     channel: Channel;
     currentTeamName: string;
 }

@@ -353,7 +353,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 	// Automatic deactivation disabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -362,7 +362,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 
 	th.App.UpdateActive(th.Context, th.BasicUser, false)
 
-	retbot1, err := th.App.GetBot(bot.UserId, true)
+	retbot1, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
 	require.Zero(t, retbot1.DeleteAt)
 	user1, err := th.App.GetUser(bot.UserId)
@@ -378,7 +378,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 
 	th.App.UpdateActive(th.Context, th.BasicUser, false)
 
-	retbot2, err := th.App.GetBot(bot.UserId, true)
+	retbot2, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
 	require.NotZero(t, retbot2.DeleteAt)
 	user2, err := th.App.GetUser(bot.UserId)
@@ -499,13 +499,13 @@ func TestCreateUserConflict(t *testing.T) {
 		Email:    "test@localhost",
 		Username: model.NewId(),
 	}
-	user, err := th.App.Srv().Store().User().Save(user)
+	user, err := th.App.Srv().Store().User().Save(th.Context, user)
 	require.NoError(t, err)
 	username := user.Username
 
 	var invErr *store.ErrInvalidInput
 	// Same id
-	_, err = th.App.Srv().Store().User().Save(user)
+	_, err = th.App.Srv().Store().User().Save(th.Context, user)
 	require.Error(t, err)
 	require.True(t, errors.As(err, &invErr))
 	assert.Equal(t, "id", invErr.Field)
@@ -515,7 +515,7 @@ func TestCreateUserConflict(t *testing.T) {
 		Email:    "test@localhost",
 		Username: model.NewId(),
 	}
-	_, err = th.App.Srv().Store().User().Save(user)
+	_, err = th.App.Srv().Store().User().Save(th.Context, user)
 	require.Error(t, err)
 	require.True(t, errors.As(err, &invErr))
 	assert.Equal(t, "email", invErr.Field)
@@ -525,7 +525,7 @@ func TestCreateUserConflict(t *testing.T) {
 		Email:    "test2@localhost",
 		Username: username,
 	}
-	_, err = th.App.Srv().Store().User().Save(user)
+	_, err = th.App.Srv().Store().User().Save(th.Context, user)
 	require.Error(t, err)
 	require.True(t, errors.As(err, &invErr))
 	assert.Equal(t, "username", invErr.Field)
@@ -568,7 +568,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			Username: model.NewId(),
 			IsBot:    true,
 		}
-		_, nErr := th.App.Srv().Store().User().Save(&botuser)
+		_, nErr := th.App.Srv().Store().User().Save(th.Context, &botuser)
 		assert.NoError(t, nErr)
 
 		newBotEmail := th.MakeEmail()
@@ -611,7 +611,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			Username: model.NewId(),
 			IsBot:    true,
 		}
-		_, nErr := th.App.Srv().Store().User().Save(&botuser)
+		_, nErr := th.App.Srv().Store().User().Save(th.Context, &botuser)
 		assert.NoError(t, nErr)
 
 		newBotEmail := th.MakeEmail()
@@ -1060,7 +1060,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	b := []byte("testimage")
 
-	finfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "testfile.txt", b)
+	finfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "testfile.txt", b, true)
 
 	require.Nil(t, err, "Unable to upload file. err=%v", err)
 
@@ -1126,13 +1126,13 @@ func TestPasswordRecovery(t *testing.T) {
 		assert.Nil(t, err)
 
 		tokenData := struct {
-			UserId string
+			UserID string
 			Email  string
 		}{}
 
 		err2 := json.Unmarshal([]byte(token.Extra), &tokenData)
 		assert.NoError(t, err2)
-		assert.Equal(t, th.BasicUser.Id, tokenData.UserId)
+		assert.Equal(t, th.BasicUser.Id, tokenData.UserID)
 		assert.Equal(t, th.BasicUser.Email, tokenData.Email)
 
 		err = th.App.ResetPasswordFromToken(th.Context, token.Token, "abcdefgh")
@@ -1813,17 +1813,17 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		testUser := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
-		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
+		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, testUser.Id, tutorialStepPref.Name)
 
-		recommendedNextStepsPref, appErr := th.App.GetPreferenceByCategoryForUser(testUser.Id, model.PreferenceRecommendedNextSteps)
+		recommendedNextStepsPref, appErr := th.App.GetPreferenceByCategoryForUser(th.Context, testUser.Id, model.PreferenceRecommendedNextSteps)
 		require.Nil(t, appErr)
 		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
 		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
 		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
 
-		gmASdmNoticeViewedPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategorySystemNotice, "GMasDM")
+		gmASdmNoticeViewedPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, testUser.Id, model.PreferenceCategorySystemNotice, "GMasDM")
 		require.Nil(t, appErr)
 		assert.Equal(t, "GMasDM", gmASdmNoticeViewedPref.Name)
 		assert.Equal(t, "true", gmASdmNoticeViewedPref.Value)
@@ -1835,17 +1835,17 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		testUser := th.CreateGuest()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
-		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
+		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, testUser.Id, tutorialStepPref.Name)
 
-		recommendedNextStepsPref, appErr := th.App.GetPreferenceByCategoryForUser(testUser.Id, model.PreferenceRecommendedNextSteps)
+		recommendedNextStepsPref, appErr := th.App.GetPreferenceByCategoryForUser(th.Context, testUser.Id, model.PreferenceRecommendedNextSteps)
 		require.Nil(t, appErr)
 		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
 		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
 		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
 
-		gmASdmNoticeViewedPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategorySystemNotice, "GMasDM")
+		gmASdmNoticeViewedPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, testUser.Id, model.PreferenceCategorySystemNotice, "GMasDM")
 		require.Nil(t, appErr)
 		assert.Equal(t, "GMasDM", gmASdmNoticeViewedPref.Name)
 		assert.Equal(t, "true", gmASdmNoticeViewedPref.Value)
@@ -1931,4 +1931,237 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 		require.Equal(t, subscription.ID, subscriptionHistoryEvent.SubscriptionID, "subscription ID doesn't match")
 		require.Equal(t, 10, subscriptionHistoryEvent.Seats, "Number of seats doesn't match")
 	})
+}
+
+func TestGetUsersForReporting(t *testing.T) {
+	t.Run("should throw error on invalid date range", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+				StartAt:    1000,
+				EndAt:      500,
+			},
+		})
+		require.Error(t, err)
+		require.Nil(t, userReports)
+	})
+
+	t.Run("should throw error on bad sort column", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "FakeColumn",
+				PageSize:   50,
+			},
+		})
+		require.Error(t, err)
+		require.Nil(t, userReports)
+	})
+
+	t.Run("should return some formatted reporting data", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		// Mock to get the user count
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("GetUserReport",
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+		).Return([]*model.UserReportQuery{
+			{
+				User: model.User{
+					Id:        "some-id",
+					CreateAt:  1000,
+					FirstName: "Bob",
+					LastName:  "Bobson",
+					LastLogin: 1500,
+				},
+			},
+		}, nil)
+
+		mockStore.On("User").Return(&mockUserStore)
+
+		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+		})
+		require.Nil(t, err)
+		require.NotNil(t, userReports)
+	})
+}
+
+func TestCreateUserOrGuest(t *testing.T) {
+	t.Run("base case - you can create a user", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		user := &model.User{
+			Email:         "TestCreateUserOrGuest@example.com",
+			Username:      "username_123",
+			Nickname:      "nn_username_123",
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "username_123", createdUser.Username)
+	})
+
+	t.Run("cannot create user when user count has exceeded the permissible limit", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("Count", mock.Anything).Return(int64(12000), nil)
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockStore.On("User").Return(&mockUserStore)
+
+		user := &model.User{
+			Email:         "TestCreateUserOrGuest@example.com",
+			Username:      "username_123",
+			Nickname:      "nn_username_123",
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
+		require.NotNil(t, appErr)
+		require.Nil(t, createdUser)
+	})
+
+	t.Run("can create user when server is exactly on limit", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		id := NewTestId()
+		userCreationMocks(t, th, id, 11000)
+
+		user := &model.User{
+			Email:         "TestCreateUserOrGuest@example.com",
+			Username:      "username_123",
+			Nickname:      "nn_username_123",
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "username_123", createdUser.Username)
+	})
+
+	t.Run("licensed server can create user when server is OVER limit", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		id := NewTestId()
+		userCreationMocks(t, th, id, 20000)
+
+		user := &model.User{
+			Email:         "TestCreateUserOrGuest@example.com",
+			Username:      "username_123",
+			Nickname:      "nn_username_123",
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "username_123", createdUser.Username)
+	})
+
+	t.Run("licensed server can create user when server is UNDER limit", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		id := NewTestId()
+		userCreationMocks(t, th, id, 10)
+
+		user := &model.User{
+			Email:         "TestCreateUserOrGuest@example.com",
+			Username:      "username_123",
+			Nickname:      "nn_username_123",
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "username_123", createdUser.Username)
+	})
+}
+
+func userCreationMocks(t *testing.T, th *TestHelper, userID string, activeUserCount int64) {
+	mockUserStore := storemocks.UserStore{}
+	mockUserStore.On("Count", mock.Anything).Return(activeUserCount, nil)
+	mockUserStore.On("IsEmpty", mock.Anything).Return(false, nil)
+	mockUserStore.On("VerifyEmail", mock.Anything, "TestCreateUserOrGuest@example.com").Return("", nil)
+	mockUserStore.On("InvalidateProfilesInChannelCacheByUser", mock.Anything).Return()
+	mockUserStore.On("InvalidateProfileCacheForUser", mock.Anything).Return()
+	mockUserStore.On("Save", mock.Anything, mock.Anything).Return(&model.User{
+		Id:            userID,
+		Email:         "TestCreateUserOrGuest@example.com",
+		Username:      "username_123",
+		Nickname:      "nn_username_123",
+		Password:      "Password1",
+		EmailVerified: true,
+	}, nil)
+
+	mockUserStore.On("Get", mock.Anything, userID).Return(&model.User{
+		Id:            userID,
+		Email:         "TestCreateUserOrGuest@example.com",
+		Username:      "username_123",
+		Nickname:      "nn_username_123",
+		Password:      "Password1",
+		EmailVerified: true,
+	}, nil)
+
+	mockGroupStore := storemocks.GroupStore{}
+	mockGroupStore.On("GetByName", "username_123", mock.Anything).Return(nil, nil)
+
+	mockChannelStore := storemocks.ChannelStore{}
+	mockChannelStore.On("InvalidateAllChannelMembersForUser", mock.Anything).Return()
+
+	mockPreferencesStore := storemocks.PreferenceStore{}
+	mockPreferencesStore.On("Save", mock.Anything).Return(nil)
+
+	mockProductNoticeStore := storemocks.ProductNoticesStore{}
+	mockProductNoticeStore.On("View", userID, mock.Anything).Return(nil)
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("Group").Return(&mockGroupStore)
+	mockStore.On("Channel").Return(&mockChannelStore)
+	mockStore.On("Preference").Return(&mockPreferencesStore)
+	mockStore.On("ProductNotices").Return(&mockProductNoticeStore)
+
+	var err error
+	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
+		UserStore:    &mockUserStore,
+		SessionStore: &storemocks.SessionStore{},
+		OAuthStore:   &storemocks.OAuthStore{},
+		ConfigFn:     th.App.ch.srv.platform.Config,
+		LicenseFn:    th.App.ch.srv.License,
+	})
+
+	require.NoError(t, err)
 }

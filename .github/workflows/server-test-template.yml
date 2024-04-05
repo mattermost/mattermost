@@ -18,19 +18,18 @@ on:
 jobs:
   test:
     name: ${{ inputs.name }}
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-22.04
     env:
       COMPOSE_PROJECT_NAME: ghactions
-      BUILD_IMAGE: mattermost/mattermost-build-server:20230904_golang-1.20.7
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Calculate Golang Version
         id: go
         working-directory: ./server
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: server/go.sum
@@ -42,6 +41,8 @@ jobs:
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
       - name: Run Tests
+        env:
+          BUILD_IMAGE: mattermost/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
             export RACE_MODE="-race"
@@ -65,7 +66,7 @@ jobs:
           docker compose --ansi never stop
       - name: Archive logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
         with:
           name: ${{ inputs.logsartifact }}
           path: |

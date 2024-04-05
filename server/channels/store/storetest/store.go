@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -56,6 +57,7 @@ type Store struct {
 	SharedChannelStore              mocks.SharedChannelStore
 	ProductNoticesStore             mocks.ProductNoticesStore
 	DraftStore                      mocks.DraftStore
+	logger                          mlog.LoggerIFace
 	context                         context.Context
 	NotifyAdminStore                mocks.NotifyAdminStore
 	PostPriorityStore               mocks.PostPriorityStore
@@ -63,10 +65,12 @@ type Store struct {
 	PostPersistentNotificationStore mocks.PostPersistentNotificationStore
 	TrueUpReviewStore               mocks.TrueUpReviewStore
 	DesktopTokensStore              mocks.DesktopTokensStore
+	ChannelBookmarkStore            mocks.ChannelBookmarkStore
 }
 
 func (s *Store) SetContext(context context.Context)            { s.context = context }
 func (s *Store) Context() context.Context                      { return s.context }
+func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
 func (s *Store) Team() store.TeamStore                         { return &s.TeamStore }
 func (s *Store) Channel() store.ChannelStore                   { return &s.ChannelStore }
 func (s *Store) Post() store.PostStore                         { return &s.PostStore }
@@ -107,13 +111,14 @@ func (s *Store) Draft() store.DraftStore                           { return &s.D
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
-func (s *Store) TrueUpReview() store.TrueUpReviewStore   { return &s.TrueUpReviewStore }
-func (s *Store) DesktopTokens() store.DesktopTokensStore { return &s.DesktopTokensStore }
-func (s *Store) NotifyAdmin() store.NotifyAdminStore     { return &s.NotifyAdminStore }
-func (s *Store) Group() store.GroupStore                 { return &s.GroupStore }
-func (s *Store) LinkMetadata() store.LinkMetadataStore   { return &s.LinkMetadataStore }
-func (s *Store) SharedChannel() store.SharedChannelStore { return &s.SharedChannelStore }
-func (s *Store) PostPriority() store.PostPriorityStore   { return &s.PostPriorityStore }
+func (s *Store) ChannelBookmark() store.ChannelBookmarkStore { return &s.ChannelBookmarkStore }
+func (s *Store) TrueUpReview() store.TrueUpReviewStore       { return &s.TrueUpReviewStore }
+func (s *Store) DesktopTokens() store.DesktopTokensStore     { return &s.DesktopTokensStore }
+func (s *Store) NotifyAdmin() store.NotifyAdminStore         { return &s.NotifyAdminStore }
+func (s *Store) Group() store.GroupStore                     { return &s.GroupStore }
+func (s *Store) LinkMetadata() store.LinkMetadataStore       { return &s.LinkMetadataStore }
+func (s *Store) SharedChannel() store.SharedChannelStore     { return &s.SharedChannelStore }
+func (s *Store) PostPriority() store.PostPriorityStore       { return &s.PostPriorityStore }
 func (s *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 	return &s.PostAcknowledgementStore
 }
@@ -184,5 +189,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.PostAcknowledgementStore,
 		&s.PostPersistentNotificationStore,
 		&s.DesktopTokensStore,
+		&s.ChannelBookmarkStore,
 	)
 }

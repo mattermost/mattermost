@@ -3316,16 +3316,8 @@
     "translation": "An error occurred while initiating the request to the Identity Provider. Please contact your System Administrator."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "An error occurred while encoding the request for the Identity Provider. Please contact your System Administrator."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML login was unsuccessful because encryption is not enabled. Please contact your System Administrator."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Identity Provider Public Certificate File was not found. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3336,20 +3328,12 @@
     "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML login was unsuccessful because an error occurred while decrypting the response from the Identity Provider. Please contact your System Administrator."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "We received an empty response from the Identity Provider"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "An error occurred while parsing the response from the Identity Provider. Please contact your System Administrator."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "An error occurred while validating the response from the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -6064,10 +6048,6 @@
     "translation": "개인 액세스 토큰을 삭제할 수 없습니다."
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP 서버가 필요합니다"
-  },
-  {
     "id": "api.license.request-trial.bad-request",
     "translation": "요청한 사용자 수가 올바르지 않습니다."
   },
@@ -6082,14 +6062,6 @@
   {
     "id": "api.emoji.create.internal_error",
     "translation": "서버 오류: 이모지를 만드는 중 내부 서버 오류가 발생했습니다."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "경고 메트릭을 찾을 수 없습니다."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "관리자 확인 전자우편을 보내지 못했습니다"
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
@@ -6126,14 +6098,6 @@
   {
     "id": "ent.cluster.timeout.error",
     "translation": "클러스터 응답 대기 시간이 초과되었습니다"
-  },
-  {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "{{.WarnMetricName}}의 값을 저장하지 못했습니다"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermost Advisor"
   },
   {
     "id": "app.job.download_export_results_not_enabled",
@@ -6178,78 +6142,6 @@
   {
     "id": "api.user.autocomplete_users.missing_team_id.app_error",
     "translation": "채널별로 자동 완성하려면 팀 ID 매개 변수가 필요합니다."
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "추가 문의 사항이 있으면 support@mattermost.com으로 문의하세요"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "사이트 URL: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "모든 활성 사용자: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "진단 Id: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "연락처: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "전자우편: "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Mattermost를 스케일링"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost는 500명 이상의 사용자가 있는 환경에 배포할 때 사용자 관리, 서버 클러스터링 및 성능 모니터링과 같은 기능을 활용할 것을 강력하게 권장합니다. 자세히 알아보려면 저희에게 연락해서 어떻게 도움이 될 수 있을지 알려주세요.\n\n문의하기를 클릭하면 Mattermost, Inc.와 정보를 공유하게 됩니다. [자세히 알아보기](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "현재 이 Mattermost 시스템에는 200명의 사용자가 있습니다. 사용자층이 증가함에 따라 새로운 계정을 프로비저닝하는 데 시간이 많이 걸릴 수 있습니다. 계정을 가진 모든 사람이 Mattermost에 액세스 할 수 있도록, Mattermost Enterprise E10으로 업그레이드하고 조직의 Active Directory/LDAP를 통합하는 것을 추천합니다. 사용자는 새로운 사용자 이름과 비밀번호를 만들 필요없이 로그인 할 수 있으며 관리자는 계정 프로비저닝 및 관리 시간을 절약 할 수 있습니다.\n\n[AD/LDAP와의 통합에 대해 자세히 알아보기](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Mattermost에 문의해 주셔서 감사합니다. 곧 연락 드리겠습니다."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "메시지를 보낼 수 없습니다."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "전자우편을 보내주시기 바랍니다."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "사이트 URL: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "모든 활성 사용자: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "추가 문의 사항이 있으면 support@mattermost.com으로 문의하세요"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "전자우편: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "진단 Id: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "연락처: {{.Contact}}"
   },
   {
     "id": "api.push_notifications.session.expired",
@@ -6474,10 +6366,6 @@
   {
     "id": "app.system.get_by_name.app_error",
     "translation": "Unable to find the system variable."
-  },
-  {
-    "id": "app.system.get.app_error",
-    "translation": "We encountered an error finding the system properties"
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
@@ -6880,30 +6768,6 @@
     "translation": "채널 구성원을 검색하지 못했습니다."
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost 문의 요청. 현재 팀에 {{.Limit}}명의 사용자가 있으며 Mattermost 엔터프라이즈 에디션을 고려하고 있습니다.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost 문의 요청. 현재 팀에 {{.Limit}}명의 사용자가 있으며 Mattermost 엔터프라이즈 에디션을 고려하고 있습니다.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Mattermost 확장"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "현재 당신의 Mattermost 시스템에는 100명이 넘는 사용자가 있습니다. 사용자층이 증가함에 따라 새로운 계정의 프로비저닝 시간이 많이 걸릴 수 있습니다. 계정을 가진 모든 사람이 Mattermost에 액세스 할 수 있도록, 조직 내의 Active Directory/LDAP과 통합하는 것을 권장합니다.\n\n[AD/LDAP과의 통합에 대해 자세히 알아보기](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\n문의 요청을 통해 Mattermost와 정보를 공유하게 됩니다. [자세히 알아보기](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost 문의 요청. 현재 팀에 {{.Limit}}명의 사용자가 있으며 Mattermost 엔터프라이즈 에디션을 고려하고 있습니다.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "멀티팩터 인증 강제"
-  },
-  {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "색인을 위한 게시글 배치를 가져올 수 없습니다."
   },
@@ -6990,10 +6854,6 @@
   {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
     "translation": "Mattermost를 엔터프라이즈 에디션으로 업그레이드 할 수 없습니다. Mattermost 시스템 사용자인 {{.MattermostUsername}}가 필수 바이너리 파일에 대한 쓰기 권한이 없습니다. 시스템 관리자가 Mattermost가 설치된 서버에서 이하의 명령을 실행하여 파일 권한을 조정할 수 있습니다.\n\n```\nchmod +w \"{{.Path}}\"\n```\n\n파일 권한이 변경된 후, Mattermost의 업그레이드를 다시 시도하십시오. 업그레이드 완료 후 재시작되면 원래의 권한으로 복구하십시오.\n\n```\nchmod -w \"{{.Path}}\"\n```"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Mattermost 확장"
   },
   {
     "id": "api.cloud.request_error",
@@ -8004,22 +7864,6 @@
     "translation": "구성원을 그룹-팀 및 그룹-채널에 추가하지 못했습니다"
   },
   {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "이메일 전송"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "엔터프라이즈 체험판이 활성화 되었습니다. 게스트 계정을 활성화하려면 **시스템 콘솔 > 인증 > 게스트 접근** 으로 이동하십시오."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "게스트 계정 생성하기"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "체험판 라이선스를 얻어오지 못했습니다. 라이선스를 요청하려면 https://mattermost.com/trial/ 를 방문해주세요."
-  },
-  {
     "id": "api.server.cws.health_check.app_error",
     "translation": "CWS 서버는 사용할수 없습니다."
   },
@@ -8042,10 +7886,6 @@
   {
     "id": "api.license.true_up_review.user_count_fail",
     "translation": "활성화된 전체 사용자수를 얻어올 수 없습니다."
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "체험판 라이선스를 적용하는데 실패하였습니다. 다시 시도하시거나 support@mattermost 로 연락주십시오. 등록된 사용자수를 얻어올 수 없습니다."
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
@@ -8284,18 +8124,6 @@
     "translation": "파일"
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "성능 향상"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "고급 권한 사용 중"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "엔터프라이즈 체험판이 활성화되었습니다. **시스템 콘솔 > 사용자 관리 > 권한** 에서 고급 권한 설정을 활성화하세요."
-  },
-  {
     "id": "api.system.logs.invalidFilter",
     "translation": "유효하지 않은 로그 필터"
   },
@@ -8330,10 +8158,6 @@
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "유효하지 않은 요청 본문입니다."
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "본문 데이터를 구문 분석하는 동안 오류가 발생했습니다."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",

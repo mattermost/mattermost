@@ -7,8 +7,10 @@ package mocks
 import (
 	context "context"
 
-	model "github.com/mattermost/mattermost/server/public/model"
+	mlog "github.com/mattermost/mattermost/server/public/shared/mlog"
 	mock "github.com/stretchr/testify/mock"
+
+	model "github.com/mattermost/mattermost/server/public/model"
 
 	sql "database/sql"
 
@@ -64,6 +66,22 @@ func (_m *Store) Channel() store.ChannelStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.ChannelStore)
+		}
+	}
+
+	return r0
+}
+
+// ChannelBookmark provides a mock function with given fields:
+func (_m *Store) ChannelBookmark() store.ChannelBookmarkStore {
+	ret := _m.Called()
+
+	var r0 store.ChannelBookmarkStore
+	if rf, ok := ret.Get(0).(func() store.ChannelBookmarkStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ChannelBookmarkStore)
 		}
 	}
 
@@ -453,6 +471,22 @@ func (_m *Store) LinkMetadata() store.LinkMetadataStore {
 // LockToMaster provides a mock function with given fields:
 func (_m *Store) LockToMaster() {
 	_m.Called()
+}
+
+// Logger provides a mock function with given fields:
+func (_m *Store) Logger() mlog.LoggerIFace {
+	ret := _m.Called()
+
+	var r0 mlog.LoggerIFace
+	if rf, ok := ret.Get(0).(func() mlog.LoggerIFace); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(mlog.LoggerIFace)
+		}
+	}
+
+	return r0
 }
 
 // MarkSystemRanUnitTests provides a mock function with given fields:

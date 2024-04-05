@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import {clearMarks, mark, measure, trackEvent} from 'actions/telemetry_actions.jsx';
 import type {LoadPostsParameters, LoadPostsReturnValue, CanLoadMorePosts} from 'actions/views/channel';
@@ -113,12 +115,12 @@ export interface Props {
         /*
          * Used for getting permalink view posts
          */
-        loadPostsAround: (channelId: string, focusedPostId: string) => Promise<void>;
+        loadPostsAround: (channelId: string, focusedPostId: string) => Promise<ActionResult>;
 
         /*
          * Used for geting unreads posts
          */
-        loadUnreads: (channelId: string) => Promise<void>;
+        loadUnreads: (channelId: string) => Promise<ActionResult>;
 
         /*
          * Used for getting posts using BEFORE_ID and AFTER_ID
@@ -128,13 +130,13 @@ export interface Props {
         /*
          * Used to loading posts since a timestamp to sync the posts
          */
-        syncPostsInChannel: (channelId: string, since: number, prefetch: boolean) => Promise<void>;
+        syncPostsInChannel: (channelId: string, since: number, prefetch: boolean) => Promise<ActionResult>;
 
         /*
          * Used to loading posts if it not first visit, permalink or there exists any postListIds
          * This happens when previous channel visit has a chunk which is not the latest set of posts
          */
-        loadLatestPosts: (channelId: string) => Promise<void>;
+        loadLatestPosts: (channelId: string) => Promise<ActionResult>;
 
         markChannelAsRead: (channelId: string) => void;
         updateNewMessagesAtInChannel: typeof updateNewMessagesAtInChannel;

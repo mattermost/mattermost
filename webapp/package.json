@@ -2,11 +2,11 @@
   "name": "@mattermost/webapp",
   "private": true,
   "engines": {
-    "node": "^18.10.0",
-    "npm": "^9.0.0"
+    "node": ">=18.10.0",
+    "npm": "^9.0.0 || ^10.0.0"
   },
   "scripts": {
-    "postinstall": "npm run build --workspace=platform/types --workspace=platform/client --workspace=platform/components",
+    "postinstall": "patch-package && npm run build --workspace=platform/types --workspace=platform/client --workspace=platform/components",
     "build": "node scripts/build.js",
     "run": "node scripts/run.js",
     "dev-server": "node scripts/dev-server.js",
@@ -19,7 +19,7 @@
     "clean": "npm run clean --workspaces --if-present"
   },
   "dependencies": {
-    "react-intl": "6.3.2"
+    "react-intl": "6.6.2"
   },
   "devDependencies": {
     "@babel/core": "7.21.8",
@@ -36,12 +36,15 @@
     "concurrently": "7.6.0",
     "cross-env": "7.0.3",
     "css-loader": "6.7.3",
-    "eslint": "8.37.0",
-    "eslint-import-resolver-webpack": "0.13.2",
-    "eslint-plugin-formatjs": "4.9.1",
+    "eslint": "8.57.0",
+    "eslint-import-resolver-webpack": "0.13.8",
+    "eslint-plugin-formatjs": "4.12.2",
+    "eslint-plugin-react": "7.34.0",
+    "eslint-plugin-react-hooks": "4.6.0",
     "mini-css-extract-plugin": "2.7.5",
-    "sass": "1.62.1",
-    "sass-loader": "13.2.2",
+    "patch-package": "8.0.0",
+    "sass": "1.71.1",
+    "sass-loader": "14.1.1",
     "strip-ansi": "6.0.1",
     "style-loader": "3.3.2",
     "webpack": "5.81.0",

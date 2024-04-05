@@ -118,7 +118,7 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes, PageLoadContext} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
 import {temporarilySetPageLoadContext} from './telemetry_actions';
@@ -256,6 +256,10 @@ export function reconnect() {
                 syncThreads(team.id, currentUserId);
             }
         }
+
+        // Re-syncing the current channel and team ids.
+        WebSocketClient.updateActiveChannel(currentChannelId);
+        WebSocketClient.updateActiveTeam(currentTeamId);
     }
 
     loadPluginsIfNecessary();
@@ -521,14 +525,6 @@ export function handleEvent(msg) {
 
     case SocketEvents.RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL:
         handleGroupNotAssociatedToChannelEvent(msg);
-        break;
-
-    case SocketEvents.WARN_METRIC_STATUS_RECEIVED:
-        handleWarnMetricStatusReceivedEvent(msg);
-        break;
-
-    case SocketEvents.WARN_METRIC_STATUS_REMOVED:
-        handleWarnMetricStatusRemovedEvent(msg);
         break;
 
     case SocketEvents.SIDEBAR_CATEGORY_CREATED:
@@ -1274,7 +1270,7 @@ function handleStatusChangedEvent(msg) {
 }
 
 function handleHelloEvent(msg) {
-    setServerVersion(msg.data.server_version)(dispatch, getState);
+    dispatch(setServerVersion(msg.data.server_version));
     dispatch(setConnectionId(msg.data.connection_id));
 }
 
@@ -1462,30 +1458,6 @@ function handleGroupNotAssociatedToChannelEvent(msg) {
         type: GroupTypes.RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL,
         data: {channelID: msg.broadcast.channel_id, groups: [{id: msg.data.group_id}]},
     });
-}
-
-function handleWarnMetricStatusReceivedEvent(msg) {
-    var receivedData = JSON.parse(msg.data.warnMetricStatus);
-    let bannerData;
-    if (receivedData.id === WarnMetricTypes.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500) {
-        bannerData = AnnouncementBarMessages.WARN_METRIC_STATUS_NUMBER_OF_USERS;
-    } else if (receivedData.id === WarnMetricTypes.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M) {
-        bannerData = AnnouncementBarMessages.WARN_METRIC_STATUS_NUMBER_OF_POSTS;
-    }
-    store.dispatch(batchActions([
-        {
-            type: GeneralTypes.WARN_METRIC_STATUS_RECEIVED,
-            data: receivedData,
-        },
-        {
-            type: ActionTypes.SHOW_NOTICE,
-            data: [bannerData],
-        },
-    ]));
-}
-
-function handleWarnMetricStatusRemovedEvent(msg) {
-    store.dispatch({type: GeneralTypes.WARN_METRIC_STATUS_REMOVED, data: {id: msg.data.warnMetricId}});
 }
 
 function handleSidebarCategoryCreated(msg) {

@@ -77,6 +77,13 @@ func (a *App) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStat
 		return model.NewAppError("SetCustomStatus", "api.custom_status.set_custom_statuses.update.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// Ensure the emoji exists before saving the custom status even if it's deleted afterwards
+	if cs.Emoji != "" {
+		if err := a.confirmEmojiExists(c, cs.Emoji); err != nil {
+			return model.NewAppError("SetCustomStatus", "api.custom_status.set_custom_statuses.emoji_not_found", nil, err.Error(), http.StatusBadRequest)
+		}
+	}
+
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
@@ -88,7 +95,7 @@ func (a *App) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStat
 		return updateErr
 	}
 
-	if err := a.addRecentCustomStatus(userID, cs); err != nil {
+	if err := a.addRecentCustomStatus(c, userID, cs); err != nil {
 		c.Logger().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
 	}
 
@@ -119,10 +126,10 @@ func (a *App) GetCustomStatus(userID string) (*model.CustomStatus, *model.AppErr
 	return user.GetCustomStatus(), nil
 }
 
-func (a *App) addRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
+func (a *App) addRecentCustomStatus(c request.CTX, userID string, status *model.CustomStatus) *model.AppError {
 	var newRCS model.RecentCustomStatuses
 
-	pref, appErr := a.GetPreferenceByCategoryAndNameForUser(userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
+	pref, appErr := a.GetPreferenceByCategoryAndNameForUser(c, userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
 	if appErr != nil || pref.Value == "" {
 		newRCS = model.RecentCustomStatuses{*status}
 	} else {
@@ -143,15 +150,15 @@ func (a *App) addRecentCustomStatus(userID string, status *model.CustomStatus) *
 		Name:     model.PreferenceNameRecentCustomStatuses,
 		Value:    string(newRCSJSON),
 	}
-	if appErr := a.UpdatePreferences(userID, model.Preferences{*pref}); appErr != nil {
+	if appErr := a.UpdatePreferences(c, userID, model.Preferences{*pref}); appErr != nil {
 		return appErr
 	}
 
 	return nil
 }
 
-func (a *App) RemoveRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
-	pref, appErr := a.GetPreferenceByCategoryAndNameForUser(userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
+func (a *App) RemoveRecentCustomStatus(c request.CTX, userID string, status *model.CustomStatus) *model.AppError {
+	pref, appErr := a.GetPreferenceByCategoryAndNameForUser(c, userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
 	if appErr != nil {
 		return appErr
 	}
@@ -179,7 +186,7 @@ func (a *App) RemoveRecentCustomStatus(userID string, status *model.CustomStatus
 		return model.NewAppError("RemoveRecentCustomStatus", "api.marshal_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	pref.Value = string(newRCSJSON)
-	if appErr := a.UpdatePreferences(userID, model.Preferences{*pref}); appErr != nil {
+	if appErr := a.UpdatePreferences(c, userID, model.Preferences{*pref}); appErr != nil {
 		return appErr
 	}
 
