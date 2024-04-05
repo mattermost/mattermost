@@ -306,7 +306,7 @@ func TestCreateWebhookPost(t *testing.T) {
 			"webhook_display_name": hook.DisplayName,
 		},
 		model.PostTypeSlackAttachment,
-		"", &model.PostPriority{RequestedAck: model.NewBool(true), Priority: model.NewString("high")git p})
+		"", &model.PostPriority{RequestedAck: model.NewBool(true), Priority: model.NewString("high")})
 	require.Nil(t, err)
 
 	assert.Contains(t, post.GetProps(), "from_webhook", "missing from_webhook prop")
