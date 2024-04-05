@@ -1630,8 +1630,7 @@ const TrackFlowRoles: Record<string, string> = {
     su: General.SYSTEM_USER_ROLE,
 };
 
-export function getTrackFlowRole() {
-    const state = store.getState();
+export function getTrackFlowRole(state: GlobalState) {
     let trackFlowRole = 'su';
 
     if (isFirstAdmin(state)) {
@@ -1643,8 +1642,8 @@ export function getTrackFlowRole() {
     return trackFlowRole;
 }
 
-export function getRoleForTrackFlow() {
-    const startedByRole = TrackFlowRoles[getTrackFlowRole()];
+export function getRoleForTrackFlow(state: GlobalState) {
+    const startedByRole = TrackFlowRoles[getTrackFlowRole(state)];
 
     return {started_by_role: startedByRole};
 }
