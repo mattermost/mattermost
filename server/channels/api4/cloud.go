@@ -594,40 +594,6 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch event.Event {
-	case model.EventTypeFailedPayment:
-		if nErr := c.App.SendPaymentFailedEmail(event.FailedPayment); nErr != nil {
-			c.Err = nErr
-			return
-		}
-	case model.EventTypeFailedPaymentNoCard:
-		if nErr := c.App.SendNoCardPaymentFailedEmail(); nErr != nil {
-			c.Err = nErr
-			return
-		}
-	case model.EventTypeSendUpgradeConfirmationEmail:
-
-		// isYearly determines whether to send the yearly or monthly Upgrade email
-		isYearly := false
-		if event.Subscription != nil && event.CloudWorkspaceOwner != nil {
-			user, appErr := c.App.GetUserByUsername(event.CloudWorkspaceOwner.UserName)
-			if appErr != nil {
-				c.Err = model.NewAppError("Api4.handleCWSWebhook", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
-				return
-			}
-
-			// Get the current cloud product to determine whether it's a monthly or yearly product
-			product, err := c.App.Cloud().GetCloudProduct(user.Id, event.Subscription.ProductID)
-			if err != nil {
-				c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			isYearly = product.IsYearly()
-		}
-
-		if nErr := c.App.SendUpgradeConfirmationEmail(isYearly); nErr != nil {
-			c.Err = nErr
-			return
-		}
 	case model.EventTypeSendAdminWelcomeEmail:
 		user, appErr := c.App.GetUserByUsername(event.CloudWorkspaceOwner.UserName)
 		if appErr != nil {
@@ -653,19 +619,6 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("SendCloudWelcomeEmail", "api.user.send_cloud_welcome_email.error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
-	case model.EventTypeTriggerDelinquencyEmail:
-		var emailToTrigger model.DelinquencyEmail
-		if event.DelinquencyEmail != nil {
-			emailToTrigger = model.DelinquencyEmail(event.DelinquencyEmail.EmailToTrigger)
-		} else {
-			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.delinquency_email.missing_email_to_trigger", nil, "", http.StatusInternalServerError)
-			return
-		}
-		if nErr := c.App.SendDelinquencyEmail(emailToTrigger); nErr != nil {
-			c.Err = nErr
-			return
-		}
-
 	default:
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)
 		return
