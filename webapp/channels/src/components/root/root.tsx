@@ -22,7 +22,6 @@ import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, isCurrentUserSystemAdmin, checkIsFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {loadRecentlyUsedCustomEmojis} from 'actions/emoji_actions';
 import * as GlobalActions from 'actions/global_actions';
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
@@ -134,8 +133,8 @@ function LoggedInRoute(props: LoggedInRouteProps) {
 const noop = () => {};
 
 export type Actions = {
-    getFirstAdminSetupComplete: () => Promise<ActionResult>;
     getProfiles: (page?: number, pageSize?: number, options?: Record<string, any>) => Promise<ActionResult>;
+    loadRecentlyUsedCustomEmojis: () => Promise<unknown>;
     migrateRecentEmojis: () => void;
     loadConfigAndMe: () => Promise<{config?: Partial<ClientConfig>; isMeLoaded: boolean}>;
     registerCustomPostRenderer: (type: string, component: any, id: string) => Promise<ActionResult>;
@@ -290,7 +289,7 @@ export default class Root extends React.PureComponent<Props, State> {
         });
 
         this.props.actions.migrateRecentEmojis();
-        store.dispatch(loadRecentlyUsedCustomEmojis());
+        this.props.actions.loadRecentlyUsedCustomEmojis();
 
         this.showLandingPageIfNecessary();
 

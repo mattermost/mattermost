@@ -64,11 +64,8 @@ describe('components/Root', () => {
                     isMeLoaded: false,
                 });
             }),
-            getFirstAdminSetupComplete: jest.fn(() => Promise.resolve({
-                type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED,
-                data: true,
-            })),
             getProfiles: jest.fn(),
+            loadRecentlyUsedCustomEmojis: jest.fn(),
             migrateRecentEmojis: jest.fn(),
             savePreferences: jest.fn(),
             registerCustomPostRenderer: jest.fn(),
