@@ -96,7 +96,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
         this.focusTextbox();
     };
 
-    private onSelect = (): void => {
+    private hideOnSelect = (): void => {
         this.focusPostTextbox();
         this.setState({
             text: '',
@@ -115,12 +115,12 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
         }
     };
 
-    private onHide = () => {
+    private hideOnCancel = () => {
         this.props.onExited?.();
         setTimeout(() => {
-            const textbox = document.querySelector('.SidebarChannelNavigator_jumpToButton') as HTMLElement;
-            if (textbox) {
-                textbox.focus();
+            const modalButton = document.querySelector('.SidebarChannelNavigator_jumpToButton') as HTMLElement;
+            if (modalButton) {
+                modalButton.focus();
             }
         });
     };
@@ -147,12 +147,12 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
             }
             switchToChannel(selectedChannel).then((result: ActionResult) => {
                 if ('data' in result) {
-                    this.onSelect();
+                    this.hideOnSelect();
                 }
             });
         } else {
             getHistory().push('/' + selected.name);
-            this.onHide();
+            this.hideOnSelect();
         }
     };
 
@@ -198,7 +198,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
             <Modal
                 dialogClassName='a11y__modal channel-switcher'
                 show={true}
-                onHide={this.onHide}
+                onHide={this.hideOnCancel}
                 enforceFocus={false}
                 restoreFocus={false}
                 role='dialog'
