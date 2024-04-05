@@ -4,16 +4,10 @@ exports[`components/ProductBrandingTeamEdition should show correct product brand
 <ProductBrandingTeamEditionContainer
   tabIndex={0}
 >
-  <MattermostIcon
-    size={24}
+  <_default
+    height={20}
+    width={116}
   />
-  <Heading
-    element="h1"
-    margin="none"
-    size={200}
-  >
-    Mattermost
-  </Heading>
   <Badge>
     FREE EDITION
   </Badge>
