@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ProductBrandingTeamEdition should show correct product branding for team edition 1`] = `
+<ProductBrandingTeamEditionContainer
+  tabIndex={0}
+>
+  <MattermostIcon
+    size={24}
+  />
+  <Heading
+    element="h1"
+    margin="none"
+    size={200}
+  >
+    Mattermost
+  </Heading>
+  <Badge>
+    FREE EDITION
+  </Badge>
+</ProductBrandingTeamEditionContainer>
+`;

@@ -40,7 +40,7 @@ const ProductBrandingTeamEdition = (): JSX.Element => {
             >
                 {'Mattermost'}
             </Heading>
-            <Badge>FREE VERSION</Badge>
+            <Badge>{'FREE EDITION'}</Badge>
         </ProductBrandingTeamEditionContainer>
     );
 };

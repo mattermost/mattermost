@@ -75,7 +75,7 @@ const ProductMenu = (): JSX.Element => {
     const switcherOpen = useSelector(isSwitcherOpen);
     const menuRef = useRef<HTMLDivElement>(null);
     const currentProductID = useCurrentProductId();
-    const license  = useSelector(getLicense);
+    const license = useSelector(getLicense);
 
     const enableTutorial = useSelector(getConfig).EnableTutorial === 'true';
     const currentUserId = useSelector(getCurrentUserId);

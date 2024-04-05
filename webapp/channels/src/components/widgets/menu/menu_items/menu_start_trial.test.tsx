@@ -4,10 +4,10 @@
 import React from 'react';
 import * as reactRedux from 'react-redux';
 
+import {Permissions} from 'mattermost-redux/constants';
+
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-
-import {Permissions} from 'mattermost-redux/constants';
 
 import MenuStartTrial from './menu_start_trial';
 
@@ -24,10 +24,10 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 users: {
                     currentUserId: 'test_id',
                     profiles: {
-                        'test_id': {
+                        test_id: {
                             id: 'test_id',
                             roles: 'system_user',
-                        }
+                        },
                     },
                 },
                 general: {
@@ -47,7 +47,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                     roles: {
                         system_user: {
                             permissions: [Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE],
-                        }
+                        },
                     },
                 },
                 preferences: {
@@ -75,10 +75,10 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 users: {
                     currentUserId: 'test_id',
                     profiles: {
-                        'test_id': {
+                        test_id: {
                             id: 'test_id',
                             roles: 'system_user',
-                        }
+                        },
                     },
                 },
                 general: {
@@ -99,7 +99,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                     roles: {
                         system_user: {
                             permissions: [Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE],
-                        }
+                        },
                     },
                 },
                 preferences: {
@@ -127,10 +127,10 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 users: {
                     currentUserId: 'test_id',
                     profiles: {
-                        'test_id': {
+                        test_id: {
                             id: 'test_id',
                             roles: 'system_user',
-                        }
+                        },
                     },
                 },
                 general: {
@@ -151,7 +151,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                     roles: {
                         system_user: {
                             permissions: [Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE],
-                        }
+                        },
                     },
                 },
                 preferences: {
@@ -179,10 +179,10 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 users: {
                     currentUserId: 'test_id',
                     profiles: {
-                        'test_id': {
+                        test_id: {
                             id: 'test_id',
                             roles: 'system_user',
-                        }
+                        },
                     },
                 },
                 general: {
@@ -203,7 +203,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                     roles: {
                         system_user: {
                             permissions: [Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE],
-                        }
+                        },
                     },
                 },
                 preferences: {
@@ -232,10 +232,10 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 users: {
                     currentUserId: 'test_id',
                     profiles: {
-                        'test_id': {
+                        test_id: {
                             id: 'test_id',
                             roles: 'system_user',
-                        }
+                        },
                     },
                 },
                 general: {
@@ -256,7 +256,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                     roles: {
                         system_user: {
                             permissions: [],
-                        }
+                        },
                     },
                 },
                 preferences: {
@@ -284,10 +284,10 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 users: {
                     currentUserId: 'test_id',
                     profiles: {
-                        'test_id': {
+                        test_id: {
                             id: 'test_id',
                             roles: 'system_user',
-                        }
+                        },
                     },
                 },
                 general: {
@@ -308,7 +308,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                     roles: {
                         system_user: {
                             permissions: [Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE],
-                        }
+                        },
                     },
                 },
                 preferences: {

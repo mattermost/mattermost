@@ -26,7 +26,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
 
     let title = EnableCustomBrand === 'true' || SiteName !== 'Mattermost' ? SiteName : <Logo/>;
     if (license.IsLicensed === 'false') {
-        title = <><Logo /><span className='freeBadge'>{'FREE EDITION'}</span></>
+        title = <><Logo/><span className='freeBadge'>{'FREE EDITION'}</span></>;
     }
 
     return (

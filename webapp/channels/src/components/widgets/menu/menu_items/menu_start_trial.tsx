@@ -7,8 +7,8 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import {Permissions} from 'mattermost-redux/constants';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
+import {Permissions} from 'mattermost-redux/constants';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
 
@@ -82,7 +82,7 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
                     </button>
                 </div>
             </li>
-        )
+        );
     }
 
     if (isCurrentLicensed === 'true') {
