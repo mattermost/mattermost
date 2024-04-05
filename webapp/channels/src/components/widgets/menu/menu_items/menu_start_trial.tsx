@@ -101,14 +101,14 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
             <div className='free_version_badge'>{'FREE EDITION'}</div>
             {!showTrial && (
                 <div className='start_trial_content'>
-                    {formatMessage({id: 'navbar_dropdown.freeVersionText', defaultMessage: 'This server is on the free edition of Mattermost'})}
+                    {formatMessage({id: 'navbar_dropdown.freeVersionText', defaultMessage: 'This server is currently on the Free Edition of Mattermost.'})}
                 </div>)}
             {showTrial && (<>
                 <div className='start_trial_content'>
-                    {formatMessage({id: 'navbar_dropdown.tryTrialNow', defaultMessage: 'This server is on the free edition of Mattermost. Try Enterprise for free.'})}
+                    {formatMessage({id: 'navbar_dropdown.freeVersionText', defaultMessage: 'This server is currently on the Free Edition of Mattermost.'})}
                 </div>
                 <button onClick={openLearnMoreTrialModal}>
-                    {formatMessage({id: 'navbar_dropdown.learnMore', defaultMessage: 'Learn More'})}
+                    {formatMessage({id: 'navbar_dropdown.tryTrialNow', defaultMessage: 'Try Enterprise for free'})}
                 </button>
             </>)}
         </li>
