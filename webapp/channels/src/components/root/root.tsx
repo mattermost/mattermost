@@ -3,23 +3,20 @@
 
 import classNames from 'classnames';
 import deepEqual from 'fast-deep-equal';
+import type {History} from 'history';
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {ClientConfig} from '@mattermost/types/config';
 import {ServiceEnvironment} from '@mattermost/types/config';
-import type {UserProfile} from '@mattermost/types/users';
 
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
-import {General} from 'mattermost-redux/constants';
-import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUser, isCurrentUserSystemAdmin, checkIsFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -139,6 +136,7 @@ export type Actions = {
     loadConfigAndMe: () => Promise<{config?: Partial<ClientConfig>; isMeLoaded: boolean}>;
     registerCustomPostRenderer: (type: string, component: any, id: string) => Promise<ActionResult>;
     initializeProducts: () => Promise<unknown>;
+    redirectToOnboardingOrDefaultTeam: (history: History) => unknown;
 }
 
 type Props = {
@@ -372,50 +370,6 @@ export default class Root extends React.PureComponent<Props, State> {
         }
     }
 
-    async redirectToOnboardingOrDefaultTeam() {
-        const storeState = store.getState();
-        const isUserAdmin = isCurrentUserSystemAdmin(storeState);
-        if (!isUserAdmin) {
-            GlobalActions.redirectUserToDefaultTeam();
-            return;
-        }
-
-        const teams = getActiveTeamsList(storeState);
-
-        const onboardingFlowEnabled = getIsOnboardingFlowEnabled(storeState);
-
-        if (teams.length > 0 || !onboardingFlowEnabled) {
-            GlobalActions.redirectUserToDefaultTeam();
-            return;
-        }
-
-        const firstAdminSetupComplete = await this.props.actions.getFirstAdminSetupComplete();
-        if (firstAdminSetupComplete?.data) {
-            GlobalActions.redirectUserToDefaultTeam();
-            return;
-        }
-
-        const profilesResult = await this.props.actions.getProfiles(0, General.PROFILE_CHUNK_SIZE, {roles: General.SYSTEM_ADMIN_ROLE});
-        if (profilesResult.error) {
-            GlobalActions.redirectUserToDefaultTeam();
-            return;
-        }
-        const currentUser = getCurrentUser(store.getState());
-        const adminProfiles = profilesResult.data.reduce(
-            (acc: Record<string, UserProfile>, curr: UserProfile) => {
-                acc[curr.id] = curr;
-                return acc;
-            },
-            {},
-        );
-        if (checkIsFirstAdmin(currentUser, adminProfiles)) {
-            this.props.history.push('/preparing-workspace');
-            return;
-        }
-
-        GlobalActions.redirectUserToDefaultTeam();
-    }
-
     captureUTMParams() {
         const qs = new URLSearchParams(window.location.search);
 
@@ -444,7 +398,7 @@ export default class Root extends React.PureComponent<Props, State> {
         const {config, isMeLoaded} = await this.props.actions.loadConfigAndMe();
 
         if (isMeLoaded && this.props.location.pathname === '/') {
-            this.redirectToOnboardingOrDefaultTeam();
+            this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history);
         }
 
         if (config) {

@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
+import type {History} from 'history';
 import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
 import rudderAnalytics from 'rudder-sdk-js';
 
 import {ServiceEnvironment} from '@mattermost/types/config';
 
-import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
@@ -16,9 +16,12 @@ import * as GlobalActions from 'actions/global_actions';
 
 import Root from 'components/root/root';
 
+import testConfigureStore from 'packages/mattermost-redux/test/test_store';
 import {StoragePrefixes} from 'utils/constants';
 
 import type {ProductComponent} from 'types/store/plugins';
+
+import {redirectToOnboardingOrDefaultTeam} from './actions';
 
 jest.mock('rudder-sdk-js', () => ({
     identify: jest.fn(),
@@ -42,15 +45,20 @@ jest.mock('utils/utils', () => {
         localizeMessage: () => {},
         applyTheme: jest.fn(),
         makeIsEligibleForClick: jest.fn(),
-
     };
 });
 
 jest.mock('mattermost-redux/actions/general', () => ({
+    getFirstAdminSetupComplete: jest.fn(() => Promise.resolve({
+        type: 'FIRST_ADMIN_COMPLETE_SETUP_RECEIVED',
+        data: true,
+    })),
     setUrl: () => {},
 }));
 
 describe('components/Root', () => {
+    const store = testConfigureStore();
+
     const baseProps = {
         telemetryEnabled: true,
         telemetryId: '1234ab',
@@ -70,6 +78,7 @@ describe('components/Root', () => {
             savePreferences: jest.fn(),
             registerCustomPostRenderer: jest.fn(),
             initializeProducts: jest.fn(),
+            redirectToOnboardingOrDefaultTeam: (history: History) => store.dispatch(redirectToOnboardingOrDefaultTeam(history)),
         },
         permalinkRedirectTeamName: 'myTeam',
         showLaunchingWorkspace: false,
