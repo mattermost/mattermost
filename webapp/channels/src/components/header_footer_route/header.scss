@@ -42,16 +42,18 @@
 
             .freeBadge {
                 display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 2px 6px 2px 6px;
-                border-radius: 4px;
+                align-self: center;
+                padding: 2px 6px;
+                position: relative;
+                top: 1px;
+                border-radius: var(--radius-s);
                 margin-left: 12px;
-                background: var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
-                color: var(--center-channel-color-75, rgba(63, 67, 80, 0.75)); 
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                font-family: 'Open Sans', sans-serif;
                 font-size: 10px;
                 font-weight: 600;
-                line-height: 10px;
+                line-height: 16px;
             }
         }
     }

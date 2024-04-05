@@ -4,42 +4,44 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports
-import {MattermostIcon} from '@mattermost/compass-icons/components';
+import Logo from 'components/common/svg_images_components/logo_dark_blue_svg';
 
 const ProductBrandingTeamEditionContainer = styled.div`
     display: flex;
     align-items: center;
-
+    
+    svg,
+    svg path {
+        fill: rgba(var(--sidebar-text-rgb), 0.75);
+    }
     > * + * {
         margin-left: 8px;
     }
 `;
 
 const Badge = styled.div`
-    color: var(--sidebar-text-72, rgba(255, 255, 255, 0.72));
+    display: flex;
+    align-self: center;
+    padding: 2px 6px;
+    position: relative;
+    top: 1px;
+    border-radius: var(--radius-s);
+    margin-left: 12px;
+    background: rgba(var(--sidebar-text-rgb), 0.08);
+    color: rgba(var(--sidebar-text-rgb), 0.75);
+    font-family: 'Open Sans', sans-serif;
     font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.2px;
-    display: flex;
-    padding: 2px var(--spacing-xxxxs, 4px) 2px var(--spacing-xxxs, 6px);
-    justify-content: center;
-    align-items: center;
-    border-radius: 4px;
-    background: var(--sidebar-text-8, rgba(255, 255, 255, 0.08));
+    line-height: 16px;
 `;
 
 const ProductBrandingTeamEdition = (): JSX.Element => {
     return (
         <ProductBrandingTeamEditionContainer tabIndex={0}>
-            <MattermostIcon size={24}/>
-            <Heading
-                element='h1'
-                size={200}
-                margin='none'
-            >
-                {'Mattermost'}
-            </Heading>
+            <Logo
+                width={116}
+                height={20}
+            />
             <Badge>{'FREE EDITION'}</Badge>
         </ProductBrandingTeamEditionContainer>
     );
