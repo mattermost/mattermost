@@ -2851,7 +2851,7 @@ func (a *OpenTracingAppLayer) CreateUserWithToken(c request.CTX, user *model.Use
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text string, overrideUsername string, overrideIconURL string, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text string, overrideUsername string, overrideIconURL string, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string, priority *model.PostPriority) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateWebhookPost")
 
@@ -2863,7 +2863,7 @@ func (a *OpenTracingAppLayer) CreateWebhookPost(c request.CTX, userID string, ch
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateWebhookPost(c, userID, channel, text, overrideUsername, overrideIconURL, overrideIconEmoji, props, postType, postRootId)
+	resultVar0, resultVar1 := a.app.CreateWebhookPost(c, userID, channel, text, overrideUsername, overrideIconURL, overrideIconEmoji, props, postType, postRootId, priority)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

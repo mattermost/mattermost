@@ -296,21 +296,25 @@ func TestCreateWebhookPost(t *testing.T) {
 	require.Nil(t, err)
 	defer th.App.DeleteIncomingWebhook(hook.Id)
 
-	post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", model.StringInterface{
-		"attachments": []*model.SlackAttachment{
-			{
-				Text: "text",
+	post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "",
+		model.StringInterface{
+			"attachments": []*model.SlackAttachment{
+				{
+					Text: "text @all",
+				},
 			},
+			"webhook_display_name": hook.DisplayName,
 		},
-		"webhook_display_name": hook.DisplayName,
-	}, model.PostTypeSlackAttachment, "")
+		model.PostTypeSlackAttachment,
+		"", &model.PostPriority{RequestedAck: model.NewBool(true), Priority: model.NewString("high")git p})
 	require.Nil(t, err)
 
 	assert.Contains(t, post.GetProps(), "from_webhook", "missing from_webhook prop")
 	assert.Contains(t, post.GetProps(), "attachments", "missing attachments prop")
 	assert.Contains(t, post.GetProps(), "webhook_display_name", "missing webhook_display_name prop")
+	assert.True(t, *post.GetPriority().RequestedAck, "RequestedAck is not true")
 
-	_, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostTypeSystemGeneric, "")
+	_, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostTypeSystemGeneric, "", nil)
 	require.NotNil(t, err, "Should have failed - bad post type")
 
 	expectedText := "`<>|<>|`"
@@ -321,7 +325,7 @@ func TestCreateWebhookPost(t *testing.T) {
 			},
 		},
 		"webhook_display_name": hook.DisplayName,
-	}, model.PostTypeSlackAttachment, "")
+	}, model.PostTypeSlackAttachment, "", nil)
 	require.Nil(t, err)
 	assert.Equal(t, expectedText, post.Message)
 
@@ -333,7 +337,7 @@ func TestCreateWebhookPost(t *testing.T) {
 			},
 		},
 		"webhook_display_name": hook.DisplayName,
-	}, model.PostTypeSlackAttachment, "")
+	}, model.PostTypeSlackAttachment, "", nil)
 	require.Nil(t, err)
 	assert.Equal(t, expectedText, post.Message)
 
@@ -361,13 +365,13 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 			},
 		},
 		"webhook_display_name": hook.DisplayName,
-	}, model.PostTypeSlackAttachment, "")
+	}, model.PostTypeSlackAttachment, "", nil)
 	require.Nil(t, err)
 	assert.Equal(t, expectedText, post.Message)
 
 	t.Run("should set webhook creator status to online", func(t *testing.T) {
 		testCluster.ClearMessages()
-		_, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "text", "", "", "", model.StringInterface{}, model.PostTypeDefault, "")
+		_, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "text", "", "", "", model.StringInterface{}, model.PostTypeDefault, "", nil)
 		require.Nil(t, appErr)
 
 		msgs := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
@@ -405,7 +409,7 @@ func TestCreateWebhookPostLinks(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, tc.input, "", "", "", model.StringInterface{}, "", "")
+			post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, tc.input, "", "", "", model.StringInterface{}, "", "", nil)
 			require.Nil(t, err)
 			require.Equal(t, tc.expectedOutput, post.Message)
 		})
