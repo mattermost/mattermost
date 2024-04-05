@@ -7,6 +7,7 @@ import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import type {ClientConfig} from '@mattermost/types/config';
 import {ServiceEnvironment} from '@mattermost/types/config';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -15,7 +16,6 @@ import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
 import {General} from 'mattermost-redux/constants';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
@@ -137,7 +137,7 @@ export type Actions = {
     getFirstAdminSetupComplete: () => Promise<ActionResult>;
     getProfiles: (page?: number, pageSize?: number, options?: Record<string, any>) => Promise<ActionResult>;
     migrateRecentEmojis: () => void;
-    loadConfigAndMe: () => Promise<ActionResult>;
+    loadConfigAndMe: () => Promise<{config?: Partial<ClientConfig>; isMeLoaded: boolean}>;
     registerCustomPostRenderer: (type: string, component: any, id: string) => Promise<ActionResult>;
     initializeProducts: () => Promise<unknown>;
 }
@@ -212,8 +212,7 @@ export default class Root extends React.PureComponent<Props, State> {
         store.subscribe(() => applyLuxonDefaults(store.getState()));
     }
 
-    onConfigLoaded = () => {
-        const config = getConfig(store.getState());
+    onConfigLoaded = (config: Partial<ClientConfig>) => {
         const telemetryId = this.props.telemetryId;
 
         const rudderUrl = 'https://pdat.matterlytics.com';
@@ -231,7 +230,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (rudderKey !== '' && this.props.telemetryEnabled) {
             const rudderCfg: {setCookieDomain?: string} = {};
-            const siteURL = getConfig(store.getState()).SiteURL;
+            const siteURL = config.SiteURL;
             if (siteURL !== '') {
                 try {
                     rudderCfg.setCookieDomain = new URL(siteURL || '').hostname;
@@ -445,13 +444,15 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     initiateMeRequests = async () => {
-        const {data: isMeLoaded} = await this.props.actions.loadConfigAndMe();
+        const {config, isMeLoaded} = await this.props.actions.loadConfigAndMe();
 
         if (isMeLoaded && this.props.location.pathname === '/') {
             this.redirectToOnboardingOrDefaultTeam();
         }
 
-        this.onConfigLoaded();
+        if (config) {
+            this.onConfigLoaded(config);
+        }
     };
 
     componentDidMount() {
