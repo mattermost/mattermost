@@ -4308,6 +4308,7 @@
   "navbar_dropdown.create.modal.titleAdminPreTrial": "Try unlimited teams with a free trial",
   "navbar_dropdown.create.modal.titleEndUser": "Multiple teams available in paid plans",
   "navbar_dropdown.create.tooltip.cloudFreeTrial": "During your trial you are able to create multiple teams. These teams will be archived after your trial.",
+  "navbar_dropdown.freeVersionText": "This server is currently on the free version of Mattermost",
   "navbar_dropdown.help": "Help",
   "navbar_dropdown.integrations": "Integrations",
   "navbar_dropdown.invitePeople": "Invite People",

@@ -98,9 +98,7 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
             role='menuitem'
             id={props.id}
         >
-            <div className='free_version_badge'>
-                {formatMessage({id: 'navbar_dropdown.freeVersionBadge', defaultMessage: 'FREE VERSION'})}
-            </div>
+            <div className='free_version_badge'>{'FREE EDITION'}</div>
             {!showTrial && (
                 <div className='start_trial_content'>
                     {formatMessage({id: 'navbar_dropdown.freeVersionText', defaultMessage: 'This server is currently on the free version of Mattermost'})}
