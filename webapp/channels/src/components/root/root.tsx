@@ -16,13 +16,10 @@ import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import * as GlobalActions from 'actions/global_actions';
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
-import store from 'stores/redux_store';
 
 import AccessProblem from 'components/access_problem';
 import AnnouncementBarController from 'components/announcement_bar';
@@ -49,7 +46,7 @@ import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import Pluggable from 'plugins/pluggable';
 import A11yController from 'utils/a11y_controller';
-import {PageLoadContext, StoragePrefixes} from 'utils/constants';
+import {PageLoadContext} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
@@ -136,6 +133,7 @@ export type Actions = {
     loadConfigAndMe: () => Promise<{config?: Partial<ClientConfig>; isMeLoaded: boolean}>;
     registerCustomPostRenderer: (type: string, component: any, id: string) => Promise<ActionResult>;
     initializeProducts: () => Promise<unknown>;
+    handleLoginLogoutSignal: (e: StorageEvent) => unknown;
     redirectToOnboardingOrDefaultTeam: (history: History) => unknown;
 }
 
@@ -427,28 +425,7 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     handleLogoutLoginSignal = (e: StorageEvent) => {
-        // when one tab on a browser logs out, it sets __logout__ in localStorage to trigger other tabs to log out
-        const isNewLocalStorageEvent = (event: StorageEvent) => event.storageArea === localStorage && event.newValue;
-
-        if (e.key === StoragePrefixes.LOGOUT && isNewLocalStorageEvent(e)) {
-            console.log('detected logout from a different tab'); //eslint-disable-line no-console
-            GlobalActions.emitUserLoggedOutEvent('/', false, false);
-        }
-        if (e.key === StoragePrefixes.LOGIN && isNewLocalStorageEvent(e)) {
-            const isLoggedIn = getCurrentUser(store.getState());
-
-            // make sure this is not the same tab which sent login signal
-            // because another tabs will also send login signal after reloading
-            if (isLoggedIn) {
-                return;
-            }
-
-            // detected login from a different tab
-            function reloadOnFocus() {
-                location.reload();
-            }
-            window.addEventListener('focus', reloadOnFocus);
-        }
+        this.props.actions.handleLoginLogoutSignal(e);
     };
 
     setRootMeta = () => {

@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import type {History} from 'history';
 import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
+import {bindActionCreators} from 'redux';
 import rudderAnalytics from 'rudder-sdk-js';
 
 import {ServiceEnvironment} from '@mattermost/types/config';
@@ -21,7 +21,7 @@ import {StoragePrefixes} from 'utils/constants';
 
 import type {ProductComponent} from 'types/store/plugins';
 
-import {redirectToOnboardingOrDefaultTeam} from './actions';
+import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
 
 jest.mock('rudder-sdk-js', () => ({
     identify: jest.fn(),
@@ -78,7 +78,10 @@ describe('components/Root', () => {
             savePreferences: jest.fn(),
             registerCustomPostRenderer: jest.fn(),
             initializeProducts: jest.fn(),
-            redirectToOnboardingOrDefaultTeam: (history: History) => store.dispatch(redirectToOnboardingOrDefaultTeam(history)),
+            ...bindActionCreators({
+                handleLoginLogoutSignal,
+                redirectToOnboardingOrDefaultTeam,
+            }, store.dispatch),
         },
         permalinkRedirectTeamName: 'myTeam',
         showLaunchingWorkspace: false,
