@@ -182,17 +182,8 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get some random user", func(c client.Client) {
 		printer.Clean()
 
-		var page int
-		var all bool
-		perpage := 5
-		team := ""
-		var inactive bool
-		cmd := &cobra.Command{}
-		cmd.Flags().IntVar(&page, "page", page, "page")
-		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
-		cmd.Flags().BoolVar(&all, "all", all, "all")
-		cmd.Flags().StringVar(&team, "team", team, "team")
-		cmd.Flags().BoolVar(&inactive, "inactive", inactive, "inactive")
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("per-page", "5")
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -208,17 +199,9 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of all user", func(c client.Client) {
 		printer.Clean()
 
-		var page int
-		perpage := 12
-		all := true
-		team := ""
-		var inactive bool
-		cmd := &cobra.Command{}
-		cmd.Flags().IntVar(&page, "page", page, "page")
-		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
-		cmd.Flags().BoolVar(&all, "all", all, "all")
-		cmd.Flags().StringVar(&team, "team", team, "team")
-		cmd.Flags().BoolVar(&inactive, "inactive", inactive, "inactive")
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("per-page", "12")
+		cmd.Flags().Set("all", "true")
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -233,17 +216,10 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of inactive users", func(c client.Client) {
 		printer.Clean()
 
-		var page int
-		perpage := 12
-		all := true
-		team := ""
-		inactive := true
-		cmd := &cobra.Command{}
-		cmd.Flags().IntVar(&page, "page", page, "page")
-		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
-		cmd.Flags().BoolVar(&all, "all", all, "all")
-		cmd.Flags().StringVar(&team, "team", team, "team")
-		cmd.Flags().BoolVar(&inactive, "inactive", inactive, "inactive")
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("per-page", "12")
+		cmd.Flags().Set("all", "true")
+		cmd.Flags().Set("inactive", "true")
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -271,17 +247,10 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list users given team", func(c client.Client) {
 		printer.Clean()
 
-		var page int
-		perpage := 40
-		all := true
-		teamName := s.th.BasicTeam.Name
-		inactive := false
-		cmd := &cobra.Command{}
-		cmd.Flags().IntVar(&page, "page", page, "page")
-		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
-		cmd.Flags().BoolVar(&all, "all", all, "all")
-		cmd.Flags().StringVar(&teamName, "team", teamName, "team")
-		cmd.Flags().BoolVar(&inactive, "inactive", inactive, "inactive")
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("per-page", "40")
+		cmd.Flags().Set("all", "true")
+		cmd.Flags().Set("team", s.th.BasicTeam.Name)
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -312,17 +281,11 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of inactive users given team", func(c client.Client) {
 		printer.Clean()
 
-		var page int
-		perpage := 40
-		all := true
-		teamName := s.th.BasicTeam.Name
-		inactive := true
-		cmd := &cobra.Command{}
-		cmd.Flags().IntVar(&page, "page", page, "page")
-		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
-		cmd.Flags().BoolVar(&all, "all", all, "all")
-		cmd.Flags().StringVar(&teamName, "team", teamName, "team")
-		cmd.Flags().BoolVar(&inactive, "inactive", inactive, "inactive")
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("per-page", "40")
+		cmd.Flags().Set("all", "true")
+		cmd.Flags().Set("team", s.th.BasicTeam.Name)
+		cmd.Flags().Set("inactive", "true")
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)

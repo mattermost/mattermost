@@ -780,6 +780,16 @@ auth_service: {{.AuthService}}`
 	return nil
 }
 
+func ResetListUsersCmd() *cobra.Command {
+	ListUsersCmd.Flags().Set("page", "0")
+	ListUsersCmd.Flags().Set("per-page", "200")
+	ListUsersCmd.Flags().Set("all", "false")
+	ListUsersCmd.Flags().Set("team", "")
+	ListUsersCmd.Flags().Set("inactive", "false")
+
+	return ListUsersCmd
+}
+
 func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error {
 	page, err := command.Flags().GetInt("page")
 	if err != nil {

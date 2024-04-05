@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -1834,31 +1833,18 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestListUserCmdF() {
-	cmd := &cobra.Command{}
-	cmd.Flags().Int("page", 0, "")
-	cmd.Flags().Int("per-page", 200, "")
-	cmd.Flags().Bool("all", false, "")
-	cmd.Flags().String("team", "", "")
-	cmd.Flags().Bool("inactive", false, "")
-
 	s.Run("Listing users with paging", func() {
 		printer.Clean()
 
 		email := "example@example.com"
 		mockUser := model.User{Username: "ExampleUser", Email: email}
 
-		page := 0
-		perPage := 1
-		showAll := false
-		inactive := false
-		_ = cmd.Flags().Set("page", strconv.Itoa(page))
-		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
-		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("per-page", "1")
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
@@ -1876,30 +1862,25 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email2 := "example2@example.com"
 		mockUser2 := model.User{Username: "ExampleUser2", Email: email2}
 
-		page := 0
-		perPage := 1
-		showAll := true
-		inactive := false
-		_ = cmd.Flags().Set("page", strconv.Itoa(page))
-		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
-		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("per-page", "1")
+		cmd.Flags().Set("all", "true")
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, perPage, "", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "", "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, perPage, "", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
@@ -1918,30 +1899,25 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email2 := "example2@example.com"
 		mockUser2 := model.User{Username: "ExampleUser2", Email: email2, DeleteAt: model.GetMillis()}
 
-		page := 0
-		perPage := 1
-		showAll := true
-		inactive := false
-		_ = cmd.Flags().Set("page", strconv.Itoa(page))
-		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
-		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("per-page", "1")
+		cmd.Flags().Set("all", "true")
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, perPage, "", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "", "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, perPage, "", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
@@ -1960,30 +1936,26 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email3 := "example3@example.com"
 		mockUser3 := model.User{Username: "ExampleUser3", Email: email3, DeleteAt: model.GetMillis()}
 
-		page := 0
-		perPage := 1
-		showAll := true
-		inactive := true
-		_ = cmd.Flags().Set("page", strconv.Itoa(page))
-		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
-		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("per-page", "1")
+		cmd.Flags().Set("all", "true")
+		cmd.Flags().Set("inactive", "true")
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "inactive=true", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "inactive=true", "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, perPage, "inactive=true", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "inactive=true", "").
 			Return([]*model.User{&mockUser3}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, perPage, "inactive=true", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "inactive=true", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
@@ -2002,18 +1974,14 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email1 := "del1@example.com"
 		mockUser1 := model.User{Username: "ExampleUser1", Email: email1, DeleteAt: model.GetMillis()}
 
-		page := 1
-		perPage := 1
-		showAll := false
-		inactive := true
-		_ = cmd.Flags().Set("page", strconv.Itoa(page))
-		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
-		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("page", "1")
+		cmd.Flags().Set("per-page", "1")
+		cmd.Flags().Set("inactive", "true")
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "inactive=true", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "inactive=true", "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
@@ -2026,18 +1994,13 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 	s.Run("Try to list all the users when there are no uses in store", func() {
 		printer.Clean()
 
-		page := 0
-		perPage := 1
-		showAll := false
-		inactive := false
-		_ = cmd.Flags().Set("page", strconv.Itoa(page))
-		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
-		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("page", "0")
+		cmd.Flags().Set("per-page", "1")
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
@@ -2049,21 +2012,16 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 	s.Run("Return an error from GetUsersWithCustomQueryParameters call and verify that error is properly returned", func() {
 		printer.Clean()
 
-		page := 0
-		perPage := 1
-		showAll := false
-		inactive := false
-		_ = cmd.Flags().Set("page", strconv.Itoa(page))
-		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
-		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("page", "0")
+		cmd.Flags().Set("per-page", "1")
 
 		mockError := errors.New("mock error")
 		mockErrorW := errors.Wrap(mockError, "Failed to fetch users")
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -2078,18 +2036,13 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email := "example@example.com"
 		mockUser := model.User{Username: "ExampleUser", Email: email}
 
-		page := 2
-		perPage := 1
-		showAll := false
-		inactive := false
-		_ = cmd.Flags().Set("page", strconv.Itoa(page))
-		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
-		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("page", "2")
+		cmd.Flags().Set("per-page", "1")
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "", "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "", "").
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
@@ -2104,16 +2057,14 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		email := "example@example.com"
 		mockUser := model.User{Username: "ExampleUser", Email: email}
-		resultID := "teamId"
 
-		page := 0
-		perPage := 1
-		showAll := false
+		resultID := "teamId"
 		team := "teamName"
-		_ = cmd.Flags().Set("page", strconv.Itoa(page))
-		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
-		_ = cmd.Flags().Set("team", team)
+
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("page", "0")
+		cmd.Flags().Set("per-page", "1")
+		cmd.Flags().Set("team", team)
 
 		s.client.
 			EXPECT().
@@ -2123,7 +2074,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "in_team="+resultID, "").
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
@@ -2142,17 +2093,12 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		mockUser1 := model.User{Username: "ExampleUser1", Email: email1, DeleteAt: model.GetMillis()}
 
 		resultID := "teamId"
-
-		page := 0
-		perPage := 1
-		showAll := false
 		team := "teamName"
-		inactive := false
-		_ = cmd.Flags().Set("page", strconv.Itoa(page))
-		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
-		_ = cmd.Flags().Set("team", team)
-		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
+
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("page", "0")
+		cmd.Flags().Set("per-page", "1")
+		cmd.Flags().Set("team", team)
 
 		s.client.
 			EXPECT().
@@ -2162,7 +2108,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "in_team="+resultID, "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
@@ -2183,17 +2129,13 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		mockUser2 := model.User{Username: "ExampleUser2", Email: email2, DeleteAt: model.GetMillis()}
 
 		resultID := "teamId"
-
-		page := 0
-		perPage := 1
-		showAll := true
 		team := "teamName"
-		inactive := false
-		_ = cmd.Flags().Set("page", strconv.Itoa(page))
-		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
-		_ = cmd.Flags().Set("team", team)
-		_ = cmd.Flags().Set("inactive", strconv.FormatBool(inactive))
+
+		cmd := ResetListUsersCmd()
+		cmd.Flags().Set("page", "0")
+		cmd.Flags().Set("per-page", "1")
+		cmd.Flags().Set("team", team)
+		cmd.Flags().Set("all", "true")
 
 		s.client.
 			EXPECT().
@@ -2203,19 +2145,19 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "in_team="+resultID, "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, perPage, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "in_team="+resultID, "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, perPage, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "in_team="+resultID, "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
