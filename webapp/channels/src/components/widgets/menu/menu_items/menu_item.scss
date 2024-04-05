@@ -338,12 +338,12 @@
 
         .free_version_badge {
             display: flex;
-            padding: 2px 4px 2px 6px;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            padding: 2px 4px 2px 6px;
             border-radius: 4px;
-            background: var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
             margin-bottom: 8px;
+            background: var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
         }
     }
 }
