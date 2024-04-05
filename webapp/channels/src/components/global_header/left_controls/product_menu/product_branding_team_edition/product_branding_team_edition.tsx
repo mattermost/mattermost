@@ -33,6 +33,7 @@ const Badge = styled.div`
     font-size: 10px;
     font-weight: 600;
     line-height: 16px;
+    letter-spacing: 0.025em;
 `;
 
 const ProductBrandingTeamEdition = (): JSX.Element => {
