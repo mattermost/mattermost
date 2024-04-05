@@ -79,6 +79,14 @@ func useAddFollowersHook(message *model.WebSocketEvent, followers model.StringAr
 
 type postedAckBroadcastHook struct{}
 
+func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channelType model.ChannelType, usersToNotify []string) {
+	message.GetBroadcast().AddHook(broadcastPostedAck, map[string]any{
+		"posted_user_id": postedUserId,
+		"channel_type":   channelType,
+		"users":          usersToNotify,
+	})
+}
+
 func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	// Nothing to do
 	if msg.Get("should_ack") == true {
@@ -116,14 +124,6 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	}
 
 	return nil
-}
-
-func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channelType model.ChannelType, usersToNotify []string) {
-	message.GetBroadcast().AddHook(broadcastPostedAck, map[string]any{
-		"posted_user_id": postedUserId,
-		"channel_type":   channelType,
-		"users":          usersToNotify,
-	})
 }
 
 // getTypedArg returns a correctly typed hook argument with the given key, reinterpreting the type using JSON encoding
