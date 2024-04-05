@@ -1416,7 +1416,6 @@
   "admin.license.trialCard.description": "Your free trial will expire in **{daysCount} {daysCount, plural, one {day} other {days}}**. Visit our customer portal to purchase a license now to continue using Mattermost Professional and Enterprise features after trial ends.",
   "admin.license.trialCard.description.expiringToday": "Your free trial expires **Today at {time}**. Visit our customer portal to purchase a license now to continue using Mattermost Professional and Enterprise features after trial ends",
   "admin.license.trialCard.licenseExpiring": "You’re currently on a free trial of our Mattermost Enterprise license.",
-  "admin.license.trialCard.purchase": "Purchase",
   "admin.license.trialCard.purchase_license": "Purchase a license",
   "admin.license.trialUpgradeAndRequest.submit": "Upgrade Server And Start trial",
   "admin.license.upgrade-and-trial-request.accept-terms-final-part": "Also, I agree to the terms of the Mattermost {eeModalTerms}. Upgrading will download the binary and update your Team Edition instance.",
