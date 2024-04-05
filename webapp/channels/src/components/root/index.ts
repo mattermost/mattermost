@@ -28,7 +28,7 @@ import {initializeProducts} from 'plugins/products';
 
 import type {GlobalState} from 'types/store/index';
 
-import {redirectToOnboardingOrDefaultTeam} from './actions';
+import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
 import Root from './root';
 
 function mapStateToProps(state: GlobalState) {
@@ -72,6 +72,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             migrateRecentEmojis,
             registerCustomPostRenderer,
             initializeProducts,
+            handleLoginLogoutSignal,
             redirectToOnboardingOrDefaultTeam,
         }, dispatch),
     };
