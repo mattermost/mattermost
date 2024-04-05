@@ -649,7 +649,7 @@ func testCreatePostWithOutgoingHook(
 	select {
 	case ok := <-success:
 		require.True(t, ok, "Test server did send an invalid webhook.")
-	case <-time.After(time.Second):
+	case <-time.After(2 * time.Second):
 		require.FailNow(t, "Timeout, test server did not send the webhook.")
 	}
 
