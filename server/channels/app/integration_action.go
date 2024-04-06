@@ -461,7 +461,7 @@ func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppE
 	}
 
 	if dialogErr := request.IsValid(); dialogErr != nil {
-		a.ch.srv.Log().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
+		a.ch.srv.Log().Error("Interactive dialog is invalid", mlog.Err(dialogErr))
 	}
 
 	request.TriggerId = clientTriggerId
