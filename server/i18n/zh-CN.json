@@ -10316,5 +10316,29 @@
   {
     "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
     "translation": "频道成员更新无效：不能将访客设置到单一频道，系统管理员必须将访客升级为用户或将用户降级为访客。"
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "导入的数据行中有“role”类型，但角色对象为 null。"
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "无法获取方案页面。"
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "无效方案。"
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "无法创建用户。服务器超过安全用户限制。联系您的管理员，并附上：ERROR_SAFETY_LIMITS_EXCEEDED。"
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "无法获取最近最不常用的会话。"
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "无法激活用户。服务器超过安全用户限制。联系您的管理员，并附上：ERROR_SAFETY_LIMITS_EXCEEDED。"
   }
 ]

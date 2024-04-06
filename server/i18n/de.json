@@ -10324,5 +10324,29 @@
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
     "translation": "Der angegebene unbekannte Index konnte nicht gelöscht werden"
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Die Seite mit den Schemata kann nicht aufgerufen werden."
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Die zuletzt verwendeten Sitzungen können nicht abgerufen werden."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Benutzer kann nicht aktiviert werden. Der Server überschreitet das Limit für sichere Benutzer. Kontaktiere deinen Administrator mit: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Ungültiges Schema."
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Benutzer kann nicht erstellt werden. Der Server überschreitet das Limit für sichere Benutzer. Kontaktiere deinen Administrator mit: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Die Importdatenzeile hat den Typ \"role\", aber das role-Objekt ist null."
   }
 ]
