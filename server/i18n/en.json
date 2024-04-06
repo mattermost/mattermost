@@ -6155,10 +6155,6 @@
     "translation": "We encountered an error updating the app."
   },
   {
-    "id": "app.open_interactive_dialog.invalid_request",
-    "translation": "Invalid interactive dialog payload."
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },

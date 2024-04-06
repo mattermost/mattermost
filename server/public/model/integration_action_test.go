@@ -208,7 +208,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 	t.Run("should pass validation", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		err := request.IsValid()
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("should fail on empty url", func(t *testing.T) {
@@ -256,7 +256,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		request.Dialog.IconURL = ""
 		err := request.IsValid()
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("should fail on wrong minimal and maximal element length", func(t *testing.T) {
@@ -307,7 +307,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 			Default:     "true",
 		})
 		err := request.IsValid()
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("should fail on wrong select datasource value", func(t *testing.T) {
@@ -320,6 +320,45 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		})
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "invalid data source")
+	})
+
+	t.Run("should fail on wrong radio default value", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName: "Radio element name",
+			Name:        "radio_element_name",
+			Type:        "radio",
+			Default:     "default",
+			Options: []*PostActionOptions{
+				{
+					Text:  "Text 1",
+					Value: "value 1",
+				},
+			},
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "default value \"default\" doesn't exist in options")
+	})
+	t.Run("should pass radio default value", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName: "Radio element name",
+			Name:        "radio_element_name",
+			Type:        "radio",
+			Default:     "default",
+			Options: []*PostActionOptions{
+				{
+					Text:  "Text 1",
+					Value: "value 1",
+				},
+				{
+					Text:  "Text 2",
+					Value: "default",
+				},
+			},
+		})
+		err := request.IsValid()
+		assert.NoError(t, err)
 	})
 
 	t.Run("should fail on too long text placeholder", func(t *testing.T) {

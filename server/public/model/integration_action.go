@@ -438,6 +438,9 @@ func (e *DialogElement) IsValid() error {
 		if e.DataSource != "" && e.DataSource != "users" && e.DataSource != "channels" {
 			multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source %q, allowed are 'users' or 'channels'", e.DataSource))
 		}
+		if e.DataSource == "" && !isDefaultInOptions(e.Default, e.Options) {
+			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
+		}
 
 	case "bool":
 		if e.Default != "" && e.Default != "true" && e.Default != "false" {
@@ -446,12 +449,29 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementBoolMaxLength))
 
 	case "radio":
+		if !isDefaultInOptions(e.Default, e.Options) {
+			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
+		}
 
 	default:
 		multiErr = multierror.Append(multiErr, errors.Errorf("invalid element type: %q", e.Type))
 	}
 
 	return multiErr.ErrorOrNil()
+}
+
+func isDefaultInOptions(defaultValue string, options []*PostActionOptions) bool {
+	if defaultValue == "" {
+		return true
+	}
+
+	for _, option := range options {
+		if defaultValue == option.Value {
+			return true
+		}
+	}
+
+	return false
 }
 
 func checkMaxLength(fieldName string, field string, length int) error {
