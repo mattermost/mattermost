@@ -4939,7 +4939,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "サイズ制限超過。[最大ページサイズ](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)を確認してください。"
+    "translation": "サイズ制限超過。最大ページサイズ設定を大きくしてください。詳しくは https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded を確認してください。"
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
@@ -9143,7 +9143,7 @@
   },
   {
     "id": "model.draft.is_valid.create_at.app_error",
-    "translation": "Create atは有効な時刻でなくてはなりません。"
+    "translation": "作成日時は有効な時刻でなくてはなりません。"
   },
   {
     "id": "model.draft.is_valid.channel_id.app_error",
@@ -9711,7 +9711,7 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
-    "translation": "Create atは有効な時刻にしてください。"
+    "translation": "作成日時は有効な時刻にしてください。"
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
@@ -10132,5 +10132,213 @@
   {
     "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
     "translation": "提供されたAudienceに対する外向きのOAuth接続は既に存在します: {{ .Audience }}"
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "不正なスキーマです。"
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "ブックマークをソートできませんでした。"
+  },
+  {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "Elasticsearch チャネルインデックススキーマが古くなっています。チャンネルインデックスを再生成してください。\n問題を解決するには[システムコンソールの Elasticsearch セクション]({{.ElasticsearchSection}}) にある `チャンネルインデックスの再構築` ボタンをクリックしてください。\n詳しくは Mattermost changelog を参照してください。"
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "インポートデータ行に \"role\" タイプがありますが、roleオブジェクトがnullです。"
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "不正なprops(カスタムステータス)です"
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "スキーマのページを取得できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "あなたのライセンスはチャンネルブックマークをサポートしていません。"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "ユーザーはチャンネルブックマークの作成を許可されていません。"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "チャンネルブックマークを作成できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "チャンネルブックマークを作成できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "チャンネルブックマークを削除できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "チャンネルブックマークを削除できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "チャンネルブックマークを削除できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "チャンネルブックマークを更新できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "チャンネルブックマークを更新できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "チャンネルブックマークを更新できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "チャンネルブックマークのソート順を更新できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "チャンネルブックマークのソート順を更新できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "チャンネルブックマークのソート順を更新できませんでした。"
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "ユーザーを作成できません。安全なユーザー数を超えています。ERROR_SAFETY_LIMITS_EXCEEDEDについて管理者へ連絡してください。"
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "ブックマークを削除できませんでした。"
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "ブックマークを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "更新対象のブックマークを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "ブックマークを保存できませんでした。"
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "ブックマークを更新できませんでした。"
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "ブックマークをソートできませんでした。不正な入力です。"
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "ブックマークをソートできませんでした。対象が見つかりませんでした。"
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "未使用期間の最も長いセッションを取得できませんでした。"
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "ユーザーを有効化できません。安全なユーザー数を超えています。ERROR_SAFETY_LIMITS_EXCEEDEDについて管理者に連絡してください。"
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "リスト破棄機能はBleveでは利用できません。"
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "Elasticsearchインデックスを削除できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "指定された不明なインデックスを削除できませんでした"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "不正なチャンネルIDです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "作成日時は有効な時刻にしてください。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "表示名が見つかりません。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "ファイルIDが見つからないか不正です。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "不正なIDです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "リンクURLが見つからないか不正です。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "不正な画像URLです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "リンクとファイルを同じブックマークにすることは設定できません。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "不正なParent IDです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "不正なオリジナルIDです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "不正なオーナーIDです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "不正なtypeです。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "更新日時は有効な時刻にしてください。"
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "チャンネルにリモートを招待できません: {{.Error}}"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Mattermostカスタマーポータルとのやり取りはシステム管理者によって無効化されています。"
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URLが長すぎます"
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "チャンネルインデックススキーマが古いため、チャンネル自動補完を有効にできません。チャンネルインデックスを再生成してください。詳しくはMattermost changelogを参照してください"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "チャンネルメンバーの不正な更新: ゲストをチームメンバーやチーム管理者にすることはできません。先にユーザーへ昇格してください。"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "チームメンバーの不正な更新: ゲストを単一のチャンネルに設定することはできません。システム管理者がユーザーをゲストに設定する必要があります。"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "チャンネルメンバーの不正な更新: ゲストを単一のチャンネルに設定することはできません。システム管理者がユーザーをゲストに設定する必要があります。"
   }
 ]
