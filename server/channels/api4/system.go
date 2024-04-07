@@ -149,9 +149,9 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Enhanced ping health check:
-	// If an extra form value is provided then perform extra health checks for
+	// If an extra form value is provided and the user is system admin, then perform extra health checks for
 	// database and file storage backends.
-	if r.FormValue("get_server_status") == "true" {
+	if r.FormValue("get_server_status") == "true" && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.StatusOk
 
