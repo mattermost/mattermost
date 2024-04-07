@@ -4,7 +4,7 @@
 package api4
 
 func (api *API) InitPluginLocal() {
-	api.BaseRoutes.Plugins.Handle("", api.APILocal(uploadPlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("", api.APILocal(uploadPlugin, handlerParamFileAPI)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("", api.APILocal(getPlugins)).Methods("GET")
 	api.BaseRoutes.Plugins.Handle("/install_from_url", api.APILocal(installPluginFromURL)).Methods("POST")
 	api.BaseRoutes.Plugin.Handle("", api.APILocal(removePlugin)).Methods("DELETE")

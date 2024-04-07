@@ -41,15 +41,12 @@ func (ps *PlatformService) GetSessions(c request.CTX, userID string) ([]*model.S
 	return ps.Store.Session().GetSessions(c, userID)
 }
 
-func (ps *PlatformService) AddSessionToCache(session *model.Session) {
-	ps.sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*ps.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute)
+func (ps *PlatformService) GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
+	return ps.Store.Session().GetLRUSessions(c, userID, limit, offset)
 }
 
-func (ps *PlatformService) SessionCacheLength() int {
-	if l, err := ps.sessionCache.Len(); err == nil {
-		return l
-	}
-	return 0
+func (ps *PlatformService) AddSessionToCache(session *model.Session) {
+	ps.sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*ps.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute)
 }
 
 func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {

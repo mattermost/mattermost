@@ -311,22 +311,13 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 			}
 
 			isGM := channel.Type == model.ChannelTypeGroup
-			if ShouldSendPushNotification(profileMap[userID], channelNotifyProps[channel.Id][userID], true, status, post, isGM) {
+			if a.ShouldSendPushNotification(profileMap[userID], channelNotifyProps[channel.Id][userID], true, status, post, isGM) {
 				a.sendPushNotification(
 					notification,
 					user,
 					true,
 					false,
 					"",
-				)
-			} else {
-				// register that a notification was not sent
-				a.NotificationsLog().Debug("Persistent Notification not sent",
-					mlog.String("ackId", ""),
-					mlog.String("type", model.PushTypeMessage),
-					mlog.String("userId", userID),
-					mlog.String("postId", post.Id),
-					mlog.String("status", model.PushNotSent),
 				)
 			}
 		}

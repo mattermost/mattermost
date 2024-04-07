@@ -38,9 +38,9 @@
 
             span.group-source span {
                 padding: 0 4px;
+                border-radius: 4px;
                 margin-left: 8px;
                 background: rgba(var(--center-channel-color-rgb), 0.08);
-                border-radius: 4px;
                 font-size: 10px;
                 line-height: 16px;
             }
@@ -68,9 +68,9 @@
 
                 &::-webkit-scrollbar-thumb {
                     border: 8px rgba(0, 0, 0, 0) solid;
+                    border-radius: 9999px;
                     background: rgba(var(--center-channel-color-rgb), 0.24);
                     background-clip: padding-box;
-                    border-radius: 9999px;
                 }
 
                 h2.group-member-count {

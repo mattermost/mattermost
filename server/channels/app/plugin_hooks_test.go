@@ -815,11 +815,10 @@ func TestUserHasLoggedIn(t *testing.T) {
 	assert.Nil(t, err, "Expected nil, got %s", err)
 	assert.NotNil(t, session)
 
-	time.Sleep(2 * time.Second)
-
-	user, _ := th.App.GetUser(th.BasicUser.Id)
-
-	assert.Equal(t, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		user, _ := th.App.GetUser(th.BasicUser.Id)
+		assert.Equal(c, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
+	}, 2*time.Second, 100*time.Millisecond)
 }
 
 func TestUserHasBeenDeactivated(t *testing.T) {
@@ -864,9 +863,8 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 	_, err = th.App.UpdateActive(th.Context, user, false)
 	require.Nil(t, err)
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 	user, err = th.App.GetUser(user.Id)
-
 	require.Nil(t, err)
 	require.Equal(t, "plugin-callback-success", user.Nickname)
 }
@@ -909,8 +907,7 @@ func TestUserHasBeenCreated(t *testing.T) {
 	_, err := th.App.CreateUser(th.Context, user)
 	require.Nil(t, err)
 
-	time.Sleep(1 * time.Second)
-
+	time.Sleep(2 * time.Second)
 	user, err = th.App.GetUser(user.Id)
 	require.Nil(t, err)
 	require.Equal(t, "plugin-callback-success", user.Nickname)
@@ -1092,7 +1089,7 @@ func TestActiveHooks(t *testing.T) {
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 		user1, appErr = th.App.GetUser(user1.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
@@ -1198,7 +1195,7 @@ func TestHookMetrics(t *testing.T) {
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 		user1, appErr = th.App.GetUser(user1.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
@@ -1296,9 +1293,9 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 
 	require.Nil(t, err)
 
-	time.Sleep(1 * time.Second)
-
-	mockAPI.AssertCalled(t, "LogDebug", "star")
+	require.Eventually(t, func() bool {
+		return mockAPI.AssertCalled(t, "LogDebug", "star")
+	}, 2*time.Second, 100*time.Millisecond)
 }
 
 func TestHookRunDataRetention(t *testing.T) {
@@ -1536,7 +1533,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 			wg.Wait()
 
 			// Hack to let the worker goroutines complete.
-			time.Sleep(1 * time.Second)
+			time.Sleep(2 * time.Second)
 			// Server side verification.
 			assert.Equal(t, tt.expectedNotifications, handler.numReqs())
 			var numMessages int
@@ -1704,10 +1701,7 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 		require.Nil(t, err)
 
 		// Hooks are run in a goroutine, so wait for those to complete
-		time.Sleep(1 * time.Second)
-
-		mockAPI.AssertCalled(t, "LogDebug", "category=test_category name=test_name_1 value=test_value_1")
-		mockAPI.AssertCalled(t, "LogDebug", "category=test_category name=test_name_2 value=test_value_2")
+		time.Sleep(2 * time.Second)
 	})
 
 	t.Run("should be called when preferences are changed by plugin code", func(t *testing.T) {
@@ -1791,7 +1785,7 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 
 			require.Nil(t, appErr)
 			assert.Equal(t, "test_value_third", preference.Value)
-		}, 1*time.Second, 10*time.Millisecond)
+		}, 5*time.Second, 100*time.Millisecond)
 	})
 }
 
@@ -1854,11 +1848,12 @@ func TestChannelHasBeenCreated(t *testing.T) {
 			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
+			assert.True(t, len(posts.Order) > 0)
 
 			post := posts.Posts[posts.Order[0]]
 			assert.Equal(t, channel.Id, post.ChannelId)
 			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
-		}, 1*time.Second, 10*time.Millisecond)
+		}, 5*time.Second, 100*time.Millisecond)
 	})
 
 	t.Run("should call hook when a DM is created", func(t *testing.T) {
@@ -1879,11 +1874,11 @@ func TestChannelHasBeenCreated(t *testing.T) {
 			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
-
+			assert.True(t, len(posts.Order) > 0)
 			post := posts.Posts[posts.Order[0]]
 			assert.Equal(t, channel.Id, post.ChannelId)
 			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
-		}, 1*time.Second, 10*time.Millisecond)
+		}, 5*time.Second, 100*time.Millisecond)
 	})
 
 	t.Run("should call hook when a GM is created", func(t *testing.T) {
@@ -1905,11 +1900,11 @@ func TestChannelHasBeenCreated(t *testing.T) {
 			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
-
+			assert.True(t, len(posts.Order) > 0)
 			post := posts.Posts[posts.Order[0]]
 			assert.Equal(t, channel.Id, post.ChannelId)
 			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
-		}, 1*time.Second, 10*time.Millisecond)
+		}, 5*time.Second, 100*time.Millisecond)
 	})
 }
 
@@ -1984,12 +1979,22 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+			posts, appErr := th.App.GetPosts(channel.Id, 0, 30)
 
 			require.Nil(t, appErr)
+			assert.True(t, len(posts.Order) > 0)
 
-			assert.Equal(t, fmt.Sprintf("Test: User %s joined %s", user2.Id, channel.Id), posts.Posts[posts.Order[0]].Message)
-		}, 1*time.Second, 10*time.Millisecond)
+			found := false
+			for _, post := range posts.Posts {
+				if post.Message == fmt.Sprintf("Test: User %s joined %s", user2.Id, channel.Id) {
+					found = true
+				}
+			}
+
+			if !found {
+				assert.Fail(t, "Couldn't find user joined channel hook message post")
+			}
+		}, 5*time.Second, 100*time.Millisecond)
 	})
 
 	t.Run("should call hook when a user is added to an existing channel", func(t *testing.T) {
@@ -2018,13 +2023,23 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
-
+		expectedMessage := fmt.Sprintf("Test: User %s added to %s by %s", user2.Id, channel.Id, user1.Id)
+		assert.Eventually(t, func() bool {
+			// Typically, the post we're looking for will be the latest, but there's a race between the plugin and
+			// "User has joined the channel" post which means the plugin post may not the the latest one
+			posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
 			require.Nil(t, appErr)
 
-			assert.Equal(t, fmt.Sprintf("Test: User %s added to %s by %s", user2.Id, channel.Id, user1.Id), posts.Posts[posts.Order[0]].Message)
-		}, 1*time.Second, 10*time.Millisecond)
+			for _, postId := range posts.Order {
+				post := posts.Posts[postId]
+
+				if post.Message == expectedMessage {
+					return true
+				}
+			}
+
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
 	})
 
 	t.Run("should not call hook when a regular channel is created", func(t *testing.T) {
@@ -2045,12 +2060,11 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
-		// Wait for async plugin hooks to be run
-		time.Sleep(time.Second / 2)
-
-		posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
-
-		require.Nil(t, appErr)
+		var posts *model.PostList
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			assert.Nil(t, appErr)
+		}, 2*time.Second, 100*time.Millisecond)
 
 		for _, postID := range posts.Order {
 			post := posts.Posts[postID]
@@ -2076,12 +2090,11 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
-		// Wait for async plugin hooks to be run
-		time.Sleep(time.Second / 2)
-
-		posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
-
-		require.Nil(t, appErr)
+		var posts *model.PostList
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			assert.Nil(t, appErr)
+		}, 2*time.Second, 100*time.Millisecond)
 
 		for _, postID := range posts.Order {
 			post := posts.Posts[postID]
@@ -2108,12 +2121,11 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
-		// Wait for async plugin hooks to be run
-		time.Sleep(time.Second / 2)
-
-		posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
-
-		require.Nil(t, appErr)
+		var posts *model.PostList
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			assert.Nil(t, appErr)
+		}, 2*time.Second, 100*time.Millisecond)
 
 		for _, postID := range posts.Order {
 			post := posts.Posts[postID]

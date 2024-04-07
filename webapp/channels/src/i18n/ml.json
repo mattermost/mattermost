@@ -241,7 +241,6 @@
   "emoji_picker.symbols": "ചിഹ്നങ്ങൾ",
   "integrations.add": "ചേർക്കുക",
   "intro_messages.anyMember": " ഏതൊരു അംഗത്തിനും ഈ ചാനൽ ചേരാനും വായിക്കാനും കഴിയും.",
-  "intro_messages.beginning": "{name} എന്നതിന്റെ തുടക്കം",
   "intro_messages.creator": "{date}-ന് {creator} സൃഷ്‌ടിച്ച {name} ചാനലിന്റെ തുടക്കമാണിത്.",
   "intro_messages.creatorPrivate": "{date}-ന് {creator} സൃഷ്‌ടിച്ച {name} സ്വകാര്യ ചാനലിന്റെ തുടക്കമാണിത്.",
   "intro_messages.group_message": "ഈ ടീമംഗങ്ങൾക്കൊപ്പമുള്ള നിങ്ങളുടെ ഗ്രൂപ്പ് സന്ദേശ ചരിത്രത്തിന്റെ തുടക്കമാണിത്. ഇവിടെ പങ്കിടുന്ന സന്ദേശങ്ങളും ഫയലുകളും ഈ പ്രദേശത്തിന് പുറത്തുള്ള ആളുകളെ കാണിക്കില്ല.",

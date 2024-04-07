@@ -21,6 +21,8 @@ type LocalCacheUserStore struct {
 	userProfileByIdsInvalidations map[string]bool
 }
 
+const allUserKey = "ALL"
+
 func (s *LocalCacheUserStore) handleClusterInvalidateScheme(msg *model.ClusterMessage) {
 	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.userProfileByIdsCache.Purge()
@@ -40,13 +42,22 @@ func (s *LocalCacheUserStore) handleClusterInvalidateProfilesInChannel(msg *mode
 	}
 }
 
+func (s *LocalCacheUserStore) handleClusterInvalidateAllProfiles(msg *model.ClusterMessage) {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
+		s.rootStore.allUserCache.Purge()
+	} else {
+		s.rootStore.allUserCache.Remove(string(msg.Data))
+	}
+}
+
 func (s *LocalCacheUserStore) ClearCaches() {
 	s.rootStore.userProfileByIdsCache.Purge()
+	s.rootStore.allUserCache.Purge()
 	s.rootStore.profilesInChannelCache.Purge()
 
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Purge")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.userProfileByIdsCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.profilesInChannelCache.Name())
 	}
 }
 
@@ -54,10 +65,11 @@ func (s *LocalCacheUserStore) InvalidateProfileCacheForUser(userId string) {
 	s.userProfileByIdsMut.Lock()
 	s.userProfileByIdsInvalidations[userId] = true
 	s.userProfileByIdsMut.Unlock()
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.userProfileByIdsCache, userId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.userProfileByIdsCache, userId, nil)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.allUserCache, allUserKey, nil)
 
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Remove")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.userProfileByIdsCache.Name())
 	}
 }
 
@@ -68,9 +80,9 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 			var userMap map[string]*model.User
 			if err = s.rootStore.profilesInChannelCache.Get(key, &userMap); err == nil {
 				if _, userInCache := userMap[userId]; userInCache {
-					s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, key)
+					s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, key, nil)
 					if s.rootStore.metrics != nil {
-						s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by User")
+						s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.profilesInChannelCache.Name())
 					}
 				}
 			}
@@ -79,10 +91,34 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 }
 
 func (s *LocalCacheUserStore) InvalidateProfilesInChannelCache(channelID string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, channelID)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, channelID, nil)
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by Channel")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.profilesInChannelCache.Name())
 	}
+}
+
+func (s *LocalCacheUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, error) {
+	if isEmptyOptions(options) &&
+		options.Page == 0 && options.PerPage == 100 { // This is hardcoded to the webapp call.
+		// read from cache
+		var users []*model.User
+		if err := s.rootStore.doStandardReadCache(s.rootStore.allUserCache, allUserKey, &users); err == nil {
+			return users, nil
+		}
+
+		users, err := s.UserStore.GetAllProfiles(options)
+		if err != nil {
+			return nil, err
+		}
+
+		// populate the cache only for those options.
+		s.rootStore.doStandardAddToCache(s.rootStore.allUserCache, allUserKey, users)
+
+		return users, nil
+	}
+
+	// For any other case, simply use the store
+	return s.UserStore.GetAllProfiles(options)
 }
 
 func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
@@ -161,13 +197,7 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 func (s *LocalCacheUserStore) Get(ctx context.Context, id string) (*model.User, error) {
 	var cacheItem *model.User
 	if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cacheItem); err == nil {
-		if s.rootStore.metrics != nil {
-			s.rootStore.metrics.AddMemCacheHitCounter("Profile By Id", float64(1))
-		}
 		return cacheItem, nil
-	}
-	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.AddMemCacheMissCounter("Profile By Id", float64(1))
 	}
 
 	// If it was invalidated, then we need to query master.
@@ -202,14 +232,8 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 	for _, id := range uniqIDs {
 		var cachedUser *model.User
 		if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cachedUser); err == nil {
-			if s.rootStore.metrics != nil {
-				s.rootStore.metrics.AddMemCacheHitCounter("Profile By Id", float64(1))
-			}
 			cachedUsers = append(cachedUsers, cachedUser)
 		} else {
-			if s.rootStore.metrics != nil {
-				s.rootStore.metrics.AddMemCacheMissCounter("Profile By Id", float64(1))
-			}
 			// If it was invalidated, then we need to query master.
 			s.userProfileByIdsMut.Lock()
 			if s.userProfileByIdsInvalidations[id] {
@@ -260,4 +284,27 @@ func dedup(elements []string) []string {
 	}
 
 	return elements[:j+1]
+}
+
+func isEmptyOptions(options *model.UserGetOptions) bool {
+	// We check to see if any of the options are set or not, and then
+	// use the cache only if none are set, which is the most common case.
+	// options.WithoutTeam, Sort is unused
+	if options.InTeamId == "" &&
+		options.NotInTeamId == "" &&
+		options.InChannelId == "" &&
+		options.NotInChannelId == "" &&
+		options.InGroupId == "" &&
+		options.NotInGroupId == "" &&
+		!options.GroupConstrained &&
+		!options.Inactive &&
+		!options.Active &&
+		options.Role == "" &&
+		len(options.Roles) == 0 &&
+		len(options.ChannelRoles) == 0 &&
+		len(options.TeamRoles) == 0 &&
+		options.ViewRestrictions == nil {
+		return true
+	}
+	return false
 }

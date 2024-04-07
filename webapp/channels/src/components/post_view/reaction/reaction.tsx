@@ -6,9 +6,6 @@ import React from 'react';
 import type {Post} from '@mattermost/types/posts';
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
 import * as Utils from 'utils/utils';
 
 import ReactionTooltip from './reaction_tooltip';
@@ -218,23 +215,14 @@ export default class Reaction extends React.PureComponent<Props, State> {
         );
 
         return (
-            <OverlayTrigger
-                delayShow={500}
-                placement='top'
-                shouldUpdatePosition={true}
-                overlay={
-                    <Tooltip id={`${this.props.post.id}-${this.props.emojiName}-reaction`}>
-                        <ReactionTooltip
-                            canAddReactions={canAddReactions}
-                            canRemoveReactions={canRemoveReactions}
-                            currentUserReacted={currentUserReacted}
-                            emojiName={emojiName}
-                            emojiIcon={emojiIcon}
-                            reactions={reactions}
-                        />
-                    </Tooltip>
-                }
-                onEnter={this.loadMissingProfiles}
+            <ReactionTooltip
+                id={`${this.props.post.id}-${this.props.emojiName}-reaction`}
+                canAddReactions={canAddReactions}
+                canRemoveReactions={canRemoveReactions}
+                currentUserReacted={currentUserReacted}
+                emojiName={emojiName}
+                reactions={reactions}
+                onShow={this.loadMissingProfiles}
             >
                 <button
                     id={`postReaction-${this.props.post.id}-${this.props.emojiName}`}
@@ -262,7 +250,7 @@ export default class Reaction extends React.PureComponent<Props, State> {
                         </span>
                     </span>
                 </button>
-            </OverlayTrigger>
+            </ReactionTooltip>
         );
     }
 }

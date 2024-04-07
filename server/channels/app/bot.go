@@ -89,13 +89,13 @@ func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (stri
 }
 
 // CreateBot creates the given bot and corresponding user.
-func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppError) {
+func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.AppError) {
 	vErr := bot.IsValidCreate()
 	if vErr != nil {
 		return nil, vErr
 	}
 
-	user, nErr := a.Srv().Store().User().Save(c, model.UserFromBot(bot))
+	user, nErr := a.Srv().Store().User().Save(rctx, model.UserFromBot(bot))
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -139,7 +139,7 @@ func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppEr
 	} else if ownerUser != nil {
 		// Send a message to the bot's creator to inform them that the bot needs to be added
 		// to a team and channel after it's created
-		channel, err := a.getOrCreateDirectChannelWithUser(c, user, ownerUser)
+		channel, err := a.getOrCreateDirectChannelWithUser(rctx, user, ownerUser)
 		if err != nil {
 			return nil, err
 		}
@@ -152,41 +152,12 @@ func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppEr
 			Message:   T("api.bot.teams_channels.add_message_mobile"),
 		}
 
-		if _, err := a.CreatePostAsUser(c, botAddPost, c.Session().Id, true); err != nil {
+		if _, err := a.CreatePostAsUser(rctx, botAddPost, rctx.Session().Id, true); err != nil {
 			return nil, err
 		}
 	}
 
 	return savedBot, nil
-}
-
-func (a *App) GetWarnMetricsBot(rctx request.CTX) (*model.Bot, *model.AppError) {
-	perPage := 1
-	userOptions := &model.UserGetOptions{
-		Page:     0,
-		PerPage:  perPage,
-		Role:     model.SystemAdminRoleId,
-		Inactive: false,
-	}
-
-	sysAdminList, err := a.GetUsersFromProfiles(userOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(sysAdminList) == 0 {
-		return nil, model.NewAppError("GetWarnMetricsBot", "app.bot.get_warn_metrics_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
-	}
-
-	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
-	warnMetricsBot := &model.Bot{
-		Username:    model.BotWarnMetricBotUsername,
-		DisplayName: T("app.system.warn_metric.bot_displayname"),
-		Description: "",
-		OwnerId:     sysAdminList[0].Id,
-	}
-
-	return a.getOrCreateBot(rctx, warnMetricsBot)
 }
 
 func (a *App) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
@@ -270,7 +241,7 @@ func (a *App) getOrCreateBot(rctx request.CTX, botDef *model.Bot) (*model.Bot, *
 	}
 
 	//return the bot for this user
-	savedBot, appErr := a.GetBot(botUser.Id, false)
+	savedBot, appErr := a.GetBot(rctx, botUser.Id, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -280,7 +251,7 @@ func (a *App) getOrCreateBot(rctx request.CTX, botDef *model.Bot) (*model.Bot, *
 
 // PatchBot applies the given patch to the bot and corresponding user.
 func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
-	bot, err := a.GetBot(botUserId, true)
+	bot, err := a.GetBot(rctx, botUserId, true)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +320,7 @@ func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPa
 }
 
 // GetBot returns the given bot.
-func (a *App) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+func (a *App) GetBot(rctx request.CTX, botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
 	bot, err := a.Srv().Store().Bot().Get(botUserId, includeDeleted)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -364,7 +335,7 @@ func (a *App) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.
 }
 
 // GetBots returns the requested page of bots.
-func (a *App) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppError) {
+func (a *App) GetBots(rctx request.CTX, options *model.BotGetOptions) (model.BotList, *model.AppError) {
 	bots, err := a.Srv().Store().Bot().GetAll(options)
 	if err != nil {
 		return nil, model.NewAppError("GetBots", "app.bot.getbots.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -373,7 +344,7 @@ func (a *App) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppEr
 }
 
 // UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
-func (a *App) UpdateBotActive(c request.CTX, botUserId string, active bool) (*model.Bot, *model.AppError) {
+func (a *App) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (*model.Bot, *model.AppError) {
 	user, nErr := a.Srv().Store().User().Get(context.Background(), botUserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -385,7 +356,7 @@ func (a *App) UpdateBotActive(c request.CTX, botUserId string, active bool) (*mo
 		}
 	}
 
-	if _, err := a.UpdateActive(c, user, active); err != nil {
+	if _, err := a.UpdateActive(rctx, user, active); err != nil {
 		return nil, err
 	}
 
@@ -429,7 +400,7 @@ func (a *App) UpdateBotActive(c request.CTX, botUserId string, active bool) (*mo
 }
 
 // PermanentDeleteBot permanently deletes a bot and its corresponding user.
-func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
+func (a *App) PermanentDeleteBot(rctx request.CTX, botUserId string) *model.AppError {
 	if err := a.Srv().Store().Bot().PermanentDelete(botUserId); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -448,7 +419,7 @@ func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
 }
 
 // UpdateBotOwner changes a bot's owner to the given value.
-func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.AppError) {
+func (a *App) UpdateBotOwner(rctx request.CTX, botUserId, newOwnerId string) (*model.Bot, *model.AppError) {
 	bot, err := a.Srv().Store().Bot().Get(botUserId, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -480,7 +451,7 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 }
 
 // disableUserBots disables all bots owned by the given user.
-func (a *App) disableUserBots(c request.CTX, userID string) *model.AppError {
+func (a *App) disableUserBots(rctx request.CTX, userID string) *model.AppError {
 	perPage := 20
 	for {
 		options := &model.BotGetOptions{
@@ -490,15 +461,15 @@ func (a *App) disableUserBots(c request.CTX, userID string) *model.AppError {
 			Page:           0,
 			PerPage:        perPage,
 		}
-		userBots, err := a.GetBots(options)
+		userBots, err := a.GetBots(rctx, options)
 		if err != nil {
 			return err
 		}
 
 		for _, bot := range userBots {
-			_, err := a.UpdateBotActive(c, bot.UserId, false)
+			_, err := a.UpdateBotActive(rctx, bot.UserId, false)
 			if err != nil {
-				c.Logger().Warn("Unable to deactivate bot.", mlog.String("bot_user_id", bot.UserId), mlog.Err(err))
+				rctx.Logger().Warn("Unable to deactivate bot.", mlog.String("bot_user_id", bot.UserId), mlog.Err(err))
 			}
 		}
 
@@ -513,7 +484,7 @@ func (a *App) disableUserBots(c request.CTX, userID string) *model.AppError {
 	return nil
 }
 
-func (a *App) notifySysadminsBotOwnerDeactivated(c request.CTX, userID string) *model.AppError {
+func (a *App) notifySysadminsBotOwnerDeactivated(rctx request.CTX, userID string) *model.AppError {
 	perPage := 25
 	botOptions := &model.BotGetOptions{
 		OwnerId:        userID,
@@ -525,7 +496,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(c request.CTX, userID string) *
 	// get owner bots
 	var userBots []*model.Bot
 	for {
-		bots, err := a.GetBots(botOptions)
+		bots, err := a.GetBots(rctx, botOptions)
 		if err != nil {
 			return err
 		}
@@ -575,7 +546,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(c request.CTX, userID string) *
 
 	// for each sysadmin, notify user that owns bots was disabled
 	for _, sysAdmin := range sysAdmins {
-		channel, appErr := a.GetOrCreateDirectChannel(c, sysAdmin.Id, sysAdmin.Id)
+		channel, appErr := a.GetOrCreateDirectChannel(rctx, sysAdmin.Id, sysAdmin.Id)
 		if appErr != nil {
 			return appErr
 		}
@@ -587,7 +558,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(c request.CTX, userID string) *
 			Type:      model.PostTypeSystemGeneric,
 		}
 
-		_, appErr = a.CreatePost(c, post, channel, false, true)
+		_, appErr = a.CreatePost(rctx, post, channel, false, true)
 		if appErr != nil {
 			return appErr
 		}
@@ -625,7 +596,7 @@ func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotL
 }
 
 // ConvertUserToBot converts a user to bot.
-func (a *App) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
+func (a *App) ConvertUserToBot(rctx request.CTX, user *model.User) (*model.Bot, *model.AppError) {
 	bot, err := a.Srv().Store().Bot().Save(model.BotFromUser(user))
 	if err != nil {
 		var appErr *model.AppError

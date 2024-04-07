@@ -29,6 +29,10 @@ export function getEmojiImageUrl(emoji: Emoji): string {
     return Client4.getEmojiRoute(emoji.id) + '/image';
 }
 
+export function getEmojiName(emoji: Emoji): string {
+    return isSystemEmoji(emoji) ? emoji.short_name : emoji.name;
+}
+
 export function parseEmojiNamesFromText(text: string): string[] {
     if (!text.includes(':')) {
         return [];
