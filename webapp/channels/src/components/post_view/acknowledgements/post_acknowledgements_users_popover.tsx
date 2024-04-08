@@ -57,7 +57,7 @@ const Popover = styled.div`
     border-radius: 4px;
     border: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    color: lighten($black, 25%);
+    color: color.adjust($black, $lightness: 25%);
     font-family: inherit;
     max-height: 400px;
     overflow-y: scroll;

@@ -87,5 +87,5 @@ export function getCallsConfig(state: GlobalState): CallsConfig {
 export const getIsUserStatusesConfigEnabled: (a: GlobalState) => boolean = createSelector(
     'getIsUserStatusesConfigEnabled',
     (state: GlobalState) => state.entities.general.config.EnableUserStatuses,
-    (EnableUserStatuses) => EnableUserStatuses === 'true',
+    (EnableUserStatuses) => EnableUserStatuses !== 'false',
 );

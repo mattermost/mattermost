@@ -255,4 +255,24 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
             defaultMessage: 'Create, edit, delete and manage the members of custom groups.',
         },
     }),
+    manage_public_channel_bookmarks: defineMessages({
+        name: {
+            id: 'admin.permissions.group.manage_public_channel_bookmarks.name',
+            defaultMessage: 'Manage Bookmarks',
+        },
+        description: {
+            id: 'admin.permissions.group.manage_public_channel_bookmarks.description',
+            defaultMessage: 'Add, edit, delete and sort bookmarks',
+        },
+    }),
+    manage_private_channel_bookmarks: defineMessages({
+        name: {
+            id: 'admin.permissions.group.manage_private_channel_bookmarks.name',
+            defaultMessage: 'Manage Bookmarks',
+        },
+        description: {
+            id: 'admin.permissions.group.manage_private_channel_bookmarks.description',
+            defaultMessage: 'Add, edit, delete and sort bookmarks',
+        },
+    }),
 };

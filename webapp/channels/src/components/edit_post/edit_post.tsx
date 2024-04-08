@@ -6,10 +6,11 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import {EmoticonPlusOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import DeletePostModal from 'components/delete_post_modal';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
@@ -390,8 +391,11 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     };
 
     const handleEmojiClick = (emoji?: Emoji) => {
-        const emojiAlias = emoji && (((emoji as SystemEmoji).short_names && (emoji as SystemEmoji).short_names[0]) || emoji.name);
+        if (!emoji) {
+            return;
+        }
 
+        const emojiAlias = getEmojiName(emoji);
         if (!emojiAlias) {
             //Oops.. There went something wrong
             return;

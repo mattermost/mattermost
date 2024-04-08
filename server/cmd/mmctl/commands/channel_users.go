@@ -60,22 +60,27 @@ func channelUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) err
 		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
+	var result *multierror.Error
 	users := getUsersFromUserArgs(c, args[1:])
 	for i, user := range users {
-		addUserToChannel(c, channel, user, args[i+1])
+		err := addUserToChannel(c, channel, user, args[i+1])
+		if err != nil {
+			printer.PrintError(err.Error())
+			result = multierror.Append(result, err)
+		}
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
-func addUserToChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) {
+func addUserToChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) error {
 	if user == nil {
-		printer.PrintError("Can't find user '" + userArg + "'")
-		return
+		return fmt.Errorf("unable to find user %q", userArg)
 	}
 	if _, _, err := c.AddChannelMember(context.TODO(), channel.Id, user.Id); err != nil {
-		printer.PrintError("Unable to add '" + userArg + "' to " + channel.Name + ". Error: " + err.Error())
+		return fmt.Errorf("unable to add %q to %q. Error: %w", userArg, channel.Name, err)
 	}
+	return nil
 }
 
 func channelUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -94,27 +99,32 @@ func channelUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
+	var result *multierror.Error
 	if allUsers {
 		if err := removeAllUsersFromChannel(c, channel); err != nil {
 			return err
 		}
 	} else {
 		for i, user := range getUsersFromUserArgs(c, args[1:]) {
-			removeUserFromChannel(c, channel, user, args[i+1])
+			err := removeUserFromChannel(c, channel, user, args[i+1])
+			if err != nil {
+				printer.PrintError(err.Error())
+				result = multierror.Append(result, err)
+			}
 		}
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
-func removeUserFromChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) {
+func removeUserFromChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) error {
 	if user == nil {
-		printer.PrintError("Can't find user '" + userArg + "'")
-		return
+		return fmt.Errorf("unable to find user %q", userArg)
 	}
 	if _, err := c.RemoveUserFromChannel(context.TODO(), channel.Id, user.Id); err != nil {
-		printer.PrintError("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
+		return fmt.Errorf("unable to remove %q from %q. Error: %w", userArg, channel.Name, err)
 	}
+	return nil
 }
 
 func removeAllUsersFromChannel(c client.Client, channel *model.Channel) error {

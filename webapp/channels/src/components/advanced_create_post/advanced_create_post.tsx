@@ -18,6 +18,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {Posts} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -1202,7 +1203,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     handleEmojiClick = (emoji: Emoji) => {
-        const emojiAlias = ('short_names' in emoji && emoji.short_names && emoji.short_names[0]) || emoji.name;
+        const emojiAlias = getEmojiName(emoji);
 
         if (!emojiAlias) {
             //Oops.. There went something wrong

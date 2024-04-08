@@ -286,7 +286,8 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateWebhookPost(t *testing.T) {
-	th := Setup(t).InitBasic()
+	testCluster := &testlib.FakeClusterInterface{}
+	th := SetupWithClusterMock(t, testCluster).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
@@ -365,20 +366,18 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 	assert.Equal(t, expectedText, post.Message)
 
 	t.Run("should set webhook creator status to online", func(t *testing.T) {
-		testCluster := &testlib.FakeClusterInterface{}
-		th.Server.Platform().SetCluster(testCluster)
-		defer th.Server.Platform().SetCluster(nil)
-
 		testCluster.ClearMessages()
 		_, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "text", "", "", "", model.StringInterface{}, model.PostTypeDefault, "")
 		require.Nil(t, appErr)
 
-		msgs := testCluster.GetMessages()
-		// The first message is ClusterEventInvalidateCacheForChannelByName so we skip it
-		ev, err1 := model.WebSocketEventFromJSON(bytes.NewReader(msgs[1].Data))
-		require.NoError(t, err1)
-		require.Equal(t, model.WebsocketEventPosted, ev.EventType())
-		assert.Equal(t, false, ev.GetData()["set_online"])
+		msgs := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+			event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
+			return err == nil && event.EventType() == model.WebsocketEventPosted
+		})
+		require.Len(t, msgs, 1)
+		// We know there will be no error from the filter condition.
+		event, _ := model.WebSocketEventFromJSON(bytes.NewReader(msgs[0].Data))
+		assert.Equal(t, false, event.GetData()["set_online"])
 	})
 }
 
@@ -752,6 +751,101 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 				}
 			case <-time.After(5 * time.Second):
 				require.Fail(t, "Timeout, webhook response not created as post")
+			}
+		})
+	}
+}
+
+func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
+	getPayload := func(hook *model.OutgoingWebhook, th *TestHelper, channel *model.Channel) *model.OutgoingWebhookPayload {
+		return &model.OutgoingWebhookPayload{
+			Token:       hook.Token,
+			TeamId:      hook.TeamId,
+			TeamDomain:  th.BasicTeam.Name,
+			ChannelId:   channel.Id,
+			ChannelName: channel.Name,
+			Timestamp:   th.BasicPost.CreateAt,
+			UserId:      th.BasicPost.UserId,
+			UserName:    th.BasicUser.Username,
+			PostId:      th.BasicPost.Id,
+			Text:        th.BasicPost.Message,
+			TriggerWord: "Abracadabra",
+			FileIds:     strings.Join(th.BasicPost.FileIds, ","),
+		}
+	}
+
+	createOutgoingWebhook := func(channel *model.Channel, testCallBackURLs []string, th *TestHelper) (*model.OutgoingWebhook, *model.AppError) {
+		outgoingWebhook := model.OutgoingWebhook{
+			ChannelId:    channel.Id,
+			TeamId:       channel.TeamId,
+			CallbackURLs: testCallBackURLs,
+			Username:     "some-user-name",
+			IconURL:      "http://some-website.com/assets/some-icon.png",
+			DisplayName:  "some-display-name",
+			Description:  "some-description",
+			CreatorId:    th.BasicUser.Id,
+			TriggerWords: []string{"Abracadabra"},
+			ContentType:  "application/json",
+		}
+
+		return th.App.CreateOutgoingWebhook(&outgoingWebhook)
+	}
+
+	chanTs1 := make(chan string, 1)
+	ts1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		chanTs1 <- "webhook received!"
+	}))
+	defer ts1.Close()
+
+	chanTs2 := make(chan string, 1)
+	ts2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		chanTs2 <- "webhook received!"
+	}))
+	defer ts2.Close()
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	for name, testCase := range map[string]struct {
+		CallBackURLs []string
+	}{
+		"One WebhookURL": {
+			CallBackURLs: []string{ts1.URL},
+		},
+		"Two WebhookURLs": {
+			CallBackURLs: []string{ts1.URL, ts2.URL},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.EnableOutgoingWebhooks = true
+			})
+			channel := th.CreateChannel(th.Context, th.BasicTeam)
+			hook, _ := createOutgoingWebhook(channel, testCase.CallBackURLs, th)
+			payload := getPayload(hook, th, channel)
+
+			th.App.TriggerWebhook(th.Context, payload, hook, th.BasicPost, channel)
+
+			select {
+			case webhookResponse := <-chanTs1:
+				require.Equal(t, "webhook received!", webhookResponse)
+
+			case <-time.After(5 * time.Second):
+				require.Fail(t, "Timeout, webhook URL 1 response not received")
+			}
+
+			if len(testCase.CallBackURLs) > 1 {
+				select {
+				case webhookResponse := <-chanTs2:
+					require.Equal(t, "webhook received!", webhookResponse)
+
+				case <-time.After(5 * time.Second):
+					require.Fail(t, "Timeout, webhook URL 2 response not received")
+				}
 			}
 		})
 	}
