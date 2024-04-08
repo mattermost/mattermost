@@ -7,6 +7,8 @@ import {FormattedMessage} from 'react-intl';
 
 import type {LogObject} from '@mattermost/types/admin';
 
+import Toggle from 'components/toggle';
+
 type Props = {
     log: LogObject | null;
     onModalDismissed: (e?: React.MouseEvent<HTMLButtonElement>) => void;
@@ -15,6 +17,7 @@ type Props = {
 
 type State = {
     copySuccess: boolean;
+    isFormatted: boolean;
 }
 
 export default class FullLogEventModal extends React.PureComponent<Props, State> {
@@ -23,8 +26,15 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
 
         this.state = {
             copySuccess: false,
+            isFormatted: false,
         };
     }
+
+    toggleMode = () => {
+        this.setState({
+            isFormatted: !this.state.isFormatted,
+        });
+    };
 
     renderContents = () => {
         const {log} = this.props;
@@ -36,7 +46,7 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
         return (
             <div>
                 <pre>
-                    {JSON.stringify(this.props.log, undefined, 2)}
+                    { this.state.isFormatted ? JSON.stringify(this.props.log, undefined, 2) : JSON.stringify(this.props.log)}
                 </pre>
             </div>
         );
@@ -78,6 +88,12 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
                             defaultMessage='Log Event'
                         />
                     </Modal.Title>
+                    <Toggle
+                        onText='Formatted'
+                        offText='Plain'
+                        toggled={this.state.isFormatted}
+                        onToggle={this.toggleMode}
+                    />
                     {this.state.copySuccess ? (
                         <FormattedMessage
                             id='admin.server_logs.DataCopied'
