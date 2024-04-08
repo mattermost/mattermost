@@ -129,6 +129,7 @@ function DesktopNotificationSoundsSettings({
                         />
                     </label>
                     <ReactSelect
+                        id='messageNotificationSoundSelect'
                         inputId='messageNotificationSoundSelectInput'
                         className='react-select inlineSelect'
                         classNamePrefix='react-select'
@@ -168,6 +169,7 @@ function DesktopNotificationSoundsSettings({
                             />
                         </label>
                         <ReactSelect
+                            id='incomingCallSoundNotificationSelect'
                             inputId='incomingCallSoundNotificationSelectInput'
                             className='react-select inlineSelect'
                             classNamePrefix='react-select'

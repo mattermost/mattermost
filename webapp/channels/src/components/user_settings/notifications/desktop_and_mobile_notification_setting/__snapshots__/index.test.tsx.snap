@@ -21,7 +21,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
         <div
           class="setting-list-item"
         >
-          <fieldset>
+          <fieldset
+            id="sendDesktopNotificationsSection"
+          >
             <legend
               class="form-legend"
             >
@@ -89,7 +91,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             for="pushMobileNotificationSelectInput"
             id="pushMobileNotificationsLabel"
           >
-            Trigger mobile notifications when i am:
+            Trigger mobile notifications when I am:
           </label>
           <div
             class="react-select singleSelect css-2b097c-container"
@@ -222,7 +224,9 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
         <div
           class="setting-list-item"
         >
-          <fieldset>
+          <fieldset
+            id="sendDesktopNotificationsSection"
+          >
             <legend
               class="form-legend"
             >
@@ -279,7 +283,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
             for="pushMobileNotificationSelectInput"
             id="pushMobileNotificationsLabel"
           >
-            Trigger mobile notifications when i am:
+            Trigger mobile notifications when I am:
           </label>
           <div
             class="react-select singleSelect css-2b097c-container"

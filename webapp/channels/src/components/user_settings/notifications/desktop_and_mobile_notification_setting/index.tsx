@@ -107,7 +107,10 @@ function DesktopAndMobileNotificationSettings({
         const maximizedSettingInputs = [];
 
         const sendDesktopNotificationsSection = (
-            <fieldset key='sendDesktopNotificationsSection'>
+            <fieldset
+                id='sendDesktopNotificationsSection'
+                key='sendDesktopNotificationsSection'
+            >
                 <legend className='form-legend'>
                     <FormattedMessage
                         id='user.settings.notifications.desktopAndMobile.sendDesktopNotificationFor'
@@ -243,7 +246,7 @@ function DesktopAndMobileNotificationSettings({
                     >
                         <FormattedMessage
                             id='user.settings.notifications.desktopAndMobile.pushNotification'
-                            defaultMessage='Trigger mobile notifications when i am:'
+                            defaultMessage='Trigger mobile notifications when I am:'
                         />
                     </label>
                     <ReactSelect

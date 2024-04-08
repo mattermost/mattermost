@@ -163,7 +163,7 @@ describe('DesktopNotificationSettings', () => {
             <DesktopNotificationSettings {...props}/>,
         );
 
-        expect(screen.getByText('Trigger mobile notifications when i am:')).toBeInTheDocument();
+        expect(screen.getByText('Trigger mobile notifications when I am:')).toBeInTheDocument();
     });
 
     test('should not show trigger mobile notifications section when desktop setting is none', () => {
@@ -172,7 +172,7 @@ describe('DesktopNotificationSettings', () => {
             <DesktopNotificationSettings {...props}/>,
         );
 
-        expect(screen.queryByText('Trigger mobile notifications when i am:')).toBeNull();
+        expect(screen.queryByText('Trigger mobile notifications when I am:')).toBeNull();
     });
 });
 

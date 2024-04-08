@@ -5674,7 +5674,7 @@
   "user.settings.notifications.desktopAndMobile.offline": "Offline",
   "user.settings.notifications.desktopAndMobile.online": "Online, away, or offline",
   "user.settings.notifications.desktopAndMobile.onlyMentions": "Mentions, direct messages, and group messages",
-  "user.settings.notifications.desktopAndMobile.pushNotification": "Trigger mobile notifications when i am:",
+  "user.settings.notifications.desktopAndMobile.pushNotification": "Trigger mobile notifications when I am:",
   "user.settings.notifications.desktopAndMobile.pushNotificationsDisabled": "Mobile push notifications haven't been enabled by your system administrator.",
   "user.settings.notifications.desktopAndMobile.sendDesktopNotificationFor": "Send notifications for:",
   "user.settings.notifications.desktopAndMobile.sendMobileNotificationsFor": "Send mobile notifications for:",
