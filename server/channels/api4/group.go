@@ -654,7 +654,8 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 			return appErr
 		}
 
-		// If this is the first syncable of the team, check that the user has the permission to manage the team.
+		// If it's the first time that the syncable gets linked to the team (i.e. no current sync to the team or to a team's channel),
+		// check that the user has the permission to manage the team.
 		_, appErr = c.App.GetGroupSyncable(c.Params.GroupId, channel.TeamId, model.GroupSyncableTypeTeam)
 		if appErr != nil {
 			var nfErr *store.ErrNotFound
