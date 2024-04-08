@@ -7,7 +7,6 @@ import {FormattedMessage} from 'react-intl';
 import BrowserStore from 'stores/browser_store';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
@@ -99,12 +98,11 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         return landingPreference && landingPreference === LandingPreferenceTypes.MATTERMOSTAPP;
     };
 
-    handleChecked = () => {
-        // If it was checked, and now we're unchecking it, clear the preference
-        if (this.state.rememberChecked) {
+    handleChecked = (e: React.ChangeEvent<HTMLInputElement>) => {
+        this.setState({rememberChecked: e.target.checked});
+        if (!e.target.checked) {
             BrowserStore.clearLandingPreference(this.props.siteUrl);
         }
-        this.setState({rememberChecked: !this.state.rememberChecked});
     };
 
     setPreference = (pref: string, clearIfNotChecked?: boolean) => {
@@ -199,16 +197,6 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
 
     handleBrandImageError = () => {
         this.setState({brandImageError: true});
-    };
-
-    renderCheckboxIcon = () => {
-        if (this.state.rememberChecked) {
-            return (
-                <CheckboxCheckedIcon/>
-            );
-        }
-
-        return null;
     };
 
     renderGraphic = () => {
@@ -393,12 +381,12 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                     </a>
                 </div>
                 <label className='get-app__preference'>
-                    <button
-                        className={`get-app__checkbox ${this.state.rememberChecked ? 'checked' : ''}`}
-                        onClick={this.handleChecked}
-                    >
-                        {this.renderCheckboxIcon()}
-                    </button>
+                    <input
+                        type='checkbox'
+                        checked={this.state.rememberChecked}
+                        className='get-app__checkbox'
+                        onChange={this.handleChecked}
+                    />
                     <FormattedMessage
                         id='get_app.rememberMyPreference'
                         defaultMessage='Remember my preference'

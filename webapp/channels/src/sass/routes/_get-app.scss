@@ -124,7 +124,7 @@
 }
 
 .get-app__preference {
-    display: flex;
+    display: block;
     margin-top: 23px;
 
     > span {
@@ -138,26 +138,11 @@
     }
 }
 
-.get-app__checkbox {
+input[type="checkbox"].get-app__checkbox {
     width: 18px;
     height: 18px;
     padding: 0;
-    border: 2px solid $dark-gray;
-    border-radius: 3px;
     margin-right: 7px;
-    background: none;
-
-    > * {
-        pointer-events: none;
-    }
-
-    &.checked {
-        border: 0;
-
-        svg {
-            fill: #145dbf;
-        }
-    }
 }
 
 .get-app__download-link {
