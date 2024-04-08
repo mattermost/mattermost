@@ -226,7 +226,7 @@ func TestOpenDialog(t *testing.T) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
 		})
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		_, err := client.OpenInteractiveDialog(context.Background(), request)
 		require.Error(t, err)

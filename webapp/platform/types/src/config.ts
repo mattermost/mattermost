@@ -763,10 +763,6 @@ export type ClusterSettings = {
     EnableExperimentalGossipEncryption: boolean;
     ReadOnlyConfig: boolean;
     GossipPort: number;
-    StreamingPort: number;
-    MaxIdleConns: number;
-    MaxIdleConnsPerHost: number;
-    IdleConnTimeoutMilliseconds: number;
 };
 
 export type MetricsSettings = {
@@ -780,7 +776,6 @@ export type ExperimentalSettings = {
     ClientSideCertCheck: string;
     LinkMetadataTimeoutMilliseconds: number;
     RestrictSystemAdmin: boolean;
-    UseNewSAMLLibrary: boolean;
     EnableSharedChannels: boolean;
     EnableRemoteClusterService: boolean;
     DisableAppBar: boolean;
