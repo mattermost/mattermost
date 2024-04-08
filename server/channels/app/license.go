@@ -129,7 +129,7 @@ func (s *Server) SetLicense(license *model.License) bool {
 	return s.platform.SetLicense(license)
 }
 
-func (s *Server) ValidateAndSetLicenseBytes(b []byte) bool {
+func (s *Server) ValidateAndSetLicenseBytes(b []byte) error {
 	return s.platform.ValidateAndSetLicenseBytes(b)
 }
 
