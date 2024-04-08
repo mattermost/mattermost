@@ -773,9 +773,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     createCommentsSection = () => {
         const serverError = this.state.serverError;
 
-        const active = this.props.activeSection === 'comments';
         let max = null;
-        if (active) {
+        if (this.props.activeSection === UserSettingsNotificationSections.REPLY_NOTIFCATIONS) {
             const commentsActive = [false, false, false];
             if (this.state.notifyCommentsLevel === 'never') {
                 commentsActive[2] = true;
@@ -792,7 +791,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     <legend className='form-legend hidden-label'>
                         <FormattedMessage
                             id='user.settings.notifications.comments'
-                            defaultMessage='Reply Notifications'
+                            defaultMessage='Reply notifications'
                         />
                     </legend>
                     <div className='radio'>
@@ -894,9 +893,9 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         return (
             <SettingItem
                 title={this.props.intl.formatMessage({id: 'user.settings.notifications.comments', defaultMessage: 'Reply notifications'})}
-                active={active}
+                active={this.props.activeSection === UserSettingsNotificationSections.REPLY_NOTIFCATIONS}
                 describe={describe}
-                section={'comments'}
+                section={UserSettingsNotificationSections.REPLY_NOTIFCATIONS}
                 updateSection={this.handleUpdateSection}
                 max={max}
                 areAllSectionsInactive={this.props.activeSection === ''}

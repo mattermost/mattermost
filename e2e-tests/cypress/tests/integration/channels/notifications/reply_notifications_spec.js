@@ -239,7 +239,7 @@ function setReplyNotificationsSetting(idToToggle) {
         and('contain', 'Notifications');
 
     // Open up 'Reply Notifications' sub-section
-    cy.get('#commentsTitle').
+    cy.get('#autoResponderTitle').
         scrollIntoView().
         click();
 

@@ -972,6 +972,7 @@ export const UserSettingsNotificationSections = {
     EMAIL: 'email',
     KEYWORDS_MENTIONS: 'keywordsAndMentions',
     KEYWORDS_HIGHLIGHT: 'keywordsAndHighlight',
+    REPLY_NOTIFCATIONS: 'replyNotifications',
     AUTO_RESPONDER: 'autoResponder',
 };
 

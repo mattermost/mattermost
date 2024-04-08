@@ -5,7 +5,7 @@ export function changeDesktopNotificationAs(category) {
     // # Open settings modal
     cy.uiOpenSettingsModal().within(() => {
         // # Click "Desktop Notifications"
-        cy.findByText('Desktop Notifications').should('be.visible').click();
+        cy.findByText('Desktop and mobile notifications').should('be.visible').click();
 
         // # Select category.
         cy.get(category).check();
