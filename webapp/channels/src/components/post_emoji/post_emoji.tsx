@@ -24,7 +24,7 @@ const PostEmoji = ({name, imageUrl}: Props) => {
     }
 
     return (
-        <WithTooltip 
+        <WithTooltip
             id='postEmoji__tooltip'
             title={emojiText}
             emoji={name}
