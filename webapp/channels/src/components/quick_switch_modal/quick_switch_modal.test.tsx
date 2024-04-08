@@ -8,7 +8,6 @@ import QuickSwitchModal from 'components/quick_switch_modal/quick_switch_modal';
 import ChannelNavigator from 'components/sidebar/channel_navigator/channel_navigator';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-
 import Constants from 'utils/constants';
 
 describe('components/QuickSwitchModal', () => {
