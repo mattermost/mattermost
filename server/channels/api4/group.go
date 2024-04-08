@@ -638,8 +638,8 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 	// This voids leaking the list of group members.
 	// See https://mattermost.atlassian.net/browse/MM-55314 for more details.
 	if !group.AllowReference {
-		if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleReadUserManagementGroups) {
-			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
+		if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleWriteUserManagementGroups) {
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleWriteUserManagementGroups})
 		}
 	}
 
