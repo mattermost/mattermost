@@ -963,7 +963,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     text={
                         <FormattedMessage
                             id='user.settings.notifications.title'
-                            defaultMessage='Notification Settings'
+                            defaultMessage='Notification settings'
                         />
                     }
                 />

@@ -519,7 +519,7 @@ function getCollapsedText(desktopActivity: UserNotifyProps['desktop'], pushActiv
             return (
                 <FormattedMessage
                     id='user.settings.notifications.desktopAndMobile.allDesktopButMobileNone'
-                    defaultMessage='All new messages on desktop; Never on mobile'
+                    defaultMessage='All new messages on desktop; never on mobile'
                 />
             );
         }
