@@ -14,6 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/config"
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
@@ -216,6 +217,42 @@ func TestGenerateSupportPacket(t *testing.T) {
 		rFileNames = append(rFileNames, fileData.Filename)
 	}
 	assert.ElementsMatch(t, testFiles, rFileNames)
+
+	t.Run("steps that generated an error should still return file data", func(t *testing.T) {
+		mockStore := smocks.Store{}
+
+		// Mock the post store to trigger an error
+		ps := &smocks.PostStore{}
+		ps.On("AnalyticsPostCount", &model.PostCountOptions{}).Return(int64(0), errors.New("all broken"))
+		ps.On("ClearCaches")
+		mockStore.On("Post").Return(ps)
+
+		mockStore.On("User").Return(th.App.Srv().Store().User())
+		mockStore.On("Channel").Return(th.App.Srv().Store().Channel())
+		mockStore.On("Post").Return(th.App.Srv().Store().Post())
+		mockStore.On("Team").Return(th.App.Srv().Store().Team())
+		mockStore.On("Job").Return(th.App.Srv().Store().Job())
+		mockStore.On("FileInfo").Return(th.App.Srv().Store().FileInfo())
+		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("System").Return(th.App.Srv().Store().System())
+		mockStore.On("License").Return(th.App.Srv().Store().License())
+		mockStore.On("Close").Return(nil)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
+		mockStore.On("GetDbVersion", false).Return("1.0.0", nil)
+		th.App.Srv().SetStore(&mockStore)
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context)
+
+		var rFileNames []string
+		for _, fileData := range fileDatas {
+			require.NotNil(t, fileData)
+			assert.Positive(t, len(fileData.Body))
+
+			rFileNames = append(rFileNames, fileData.Filename)
+		}
+		assert.Contains(t, rFileNames, "warning.txt")
+		assert.Contains(t, rFileNames, "support_packet.yaml")
+	})
 }
 
 func TestGetNotificationsLog(t *testing.T) {
