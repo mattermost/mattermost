@@ -458,7 +458,7 @@ func TestSentry(t *testing.T) {
 		select {
 		case <-data:
 			require.Fail(t, "Sentry received a message, even though it's disabled!")
-		case <-time.After(time.Second):
+		case <-time.After(2 * time.Second):
 			t.Log("Sentry request didn't arrive. Good!")
 		}
 	})
