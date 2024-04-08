@@ -80,7 +80,8 @@ func TestDesanitize(t *testing.T) {
 }
 
 func TestFixInvalidLocales(t *testing.T) {
-	utils.TranslationsPreInit()
+	err := utils.TranslationsPreInit()
+	require.NoError(t, err)
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()

@@ -27,7 +27,7 @@ linters:
     - makezero
     - whitespace
     # TODO: enable this later
-    # - errcheck
+    - errcheck
 
 issues:
   skip-dirs:
@@ -57,3 +57,7 @@ issues:
     - linters:
       - staticcheck
       text: SA1019
+
+    - linters:
+        - errcheck
+      path: "channels|platform|cmd/mattermost|public/model|public/plugin|public/shared/mlog|enterprise/data_retention|enterprise/saml|enterprise/cloud|enterprise/ldap"
