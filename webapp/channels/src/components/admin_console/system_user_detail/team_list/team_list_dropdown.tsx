@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
 import EllipsisHorizontalIcon from 'components/widgets/icons/ellipsis_h_icon';
@@ -33,6 +33,10 @@ const TeamListDropdown = ({
     const showMakeTeamAdmin = !isAdmin && !isGuest;
     const showMakeTeamMember = !isMember && !isGuest;
 
+    const makeTeamAdminOnClick = useCallback(() => doMakeUserTeamAdmin(team.id), [team.id, doMakeUserTeamAdmin]);
+    const makeTeamMemberOnClick = useCallback(() => doMakeUserTeamMember(team.id), [team.id, doMakeUserTeamMember]);
+    const removeUserTeamOnClick = useCallback(() => doRemoveUserFromTeam(team.id), [team.id, doRemoveUserFromTeam]);
+
     return (
         <MenuWrapper isDisabled={isDisabled}>
             <button
@@ -52,18 +56,18 @@ const TeamListDropdown = ({
                     <Menu.ItemAction
                         id='makeTeamAdmin'
                         show={showMakeTeamAdmin}
-                        onClick={() => doMakeUserTeamAdmin(team.id)}
+                        onClick={makeTeamAdminOnClick}
                         text={intl.formatMessage({id: 'team_members_dropdown.makeAdmin', defaultMessage: 'Make Team Admin'})}
                     />
                     <Menu.ItemAction
                         show={showMakeTeamMember}
-                        onClick={() => doMakeUserTeamMember(team.id)}
+                        onClick={makeTeamMemberOnClick}
                         text={intl.formatMessage({id: 'team_members_dropdown.makeMember', defaultMessage: 'Make Team Member'})}
                     />
                     <Menu.ItemAction
                         id='removeFromTeam'
                         show={true}
-                        onClick={() => doRemoveUserFromTeam(team.id)}
+                        onClick={removeUserTeamOnClick}
                         text={intl.formatMessage({id: 'team_members_dropdown.leave_team', defaultMessage: 'Remove from Team'})}
                         buttonClass='SystemUserDetail__action-remove-team'
                     />
