@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path"
 	"reflect"
 	"runtime"
@@ -50,6 +51,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/logs/download", api.APISessionRequired(downloadLogs)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/logs/query", api.APISessionRequired(queryLogs)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST")
 
@@ -399,6 +401,42 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "logs_per_page", c.Params.LogsPerPage)
 
 	w.Write([]byte(model.ArrayToJSON(lines)))
+}
+
+func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	lines, _ := c.App.GetLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage)
+
+	tmpfile, err := os.CreateTemp("", "logs-*.log")
+	if err != nil {
+		http.Error(w, "Failed to create temporary file", http.StatusInternalServerError)
+		return
+	}
+	defer tmpfile.Close()
+	defer os.Remove(tmpfile.Name())
+
+	for _, line := range lines {
+		if _, err := io.WriteString(tmpfile, line); err != nil {
+			http.Error(w, "Failed to write logs to file", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	fileInfo, err := tmpfile.Stat()
+	if err != nil {
+		http.Error(w, "Failed to get file information", http.StatusInternalServerError)
+		return
+	}
+
+	web.WriteFileResponse("mattermost.log",
+		"text/plain",
+		fileInfo.Size(),
+		time.Now(),
+		*c.App.Config().ServiceSettings.WebserverMode,
+		tmpfile,
+		true,
+		w,
+		r)
 }
 
 func postLog(c *Context, w http.ResponseWriter, r *http.Request) {

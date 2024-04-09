@@ -29,6 +29,7 @@ type Props = {
             perPage?: number | undefined
         ) => Promise<unknown>;
         getAllPlainLogs: () => Promise<unknown>;
+        downloadLogs: () => Promise<unknown>;
     };
 };
 
@@ -95,20 +96,7 @@ export default class Logs extends React.PureComponent<Props, State> {
     };
 
     downloadLogs = async () => {
-        let logString;
-        if (this.props.isPlainLogs) {
-            await this.props.actions.getAllPlainLogs();
-            logString = this.props.allPlainLogs.join('');
-        } else {
-            logString = this.props.logs.map((log) => JSON.stringify(log)).join('\n');
-        }
-        const blob = new Blob([logString], {type: 'text/plain'});
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'mattermost.log';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        await this.props.actions.downloadLogs();
     };
 
     reload = async () => {

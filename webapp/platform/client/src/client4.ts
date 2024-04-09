@@ -3086,6 +3086,13 @@ export default class Client4 {
         );
     };
 
+    downloadLogs = () => {
+        return this.doFetch<string[]>(
+            `${this.getBaseRoute()}/logs/download`,
+            {method: 'get'},
+        );
+    };
+
     getAllPlainLogs = () => {
         return this.doFetch<string[]>(
             `${this.getBaseRoute()}/logs`,

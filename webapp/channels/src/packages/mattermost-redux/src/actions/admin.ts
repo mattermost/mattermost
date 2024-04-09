@@ -62,6 +62,12 @@ export function getPlainLogs(page = 0, perPage: number = General.LOGS_PAGE_SIZE_
     });
 }
 
+export function downloadLogs() {
+    return bindClientFunc({
+        clientFunc: Client4.downloadLogs,
+    });
+}
+
 export function getAllPlainLogs() {
     return bindClientFunc({
         clientFunc: Client4.getAllPlainLogs,
