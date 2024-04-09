@@ -30,7 +30,7 @@ on:
         default: NONE
 
 concurrency:
-  group: "${{ github.workflow }}-${{ inputs.ref }}-${{ inputs.PR_NUMBER }}"
+  group: "${{ github.workflow }}-${{ inputs.PR_NUMBER || inputs.ref }}"
   cancel-in-progress: true
 
 jobs:
