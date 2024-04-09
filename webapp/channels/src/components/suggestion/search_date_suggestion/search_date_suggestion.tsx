@@ -5,10 +5,13 @@ import type {Locale} from 'date-fns';
 import React, {useCallback, useEffect, useState} from 'react';
 import {DayPicker} from 'react-day-picker';
 
-import Constants from '../../../utils/constants';
-import * as Keyboard from '../../../utils/keyboard';
-import * as Utils from '../../../utils/utils';
+import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import * as Utils from 'utils/utils';
+
 import type {SuggestionProps} from '../suggestion';
+
+import 'react-day-picker/dist/style.css';
 
 type Props = SuggestionProps<never> & {
     currentDate?: Date;
@@ -17,7 +20,28 @@ type Props = SuggestionProps<never> & {
     preventClose?: () => void;
 }
 
-const SearchDateSuggestion = ({currentDate, handleEscape, locale, preventClose, matchedPretext, onClick}: Props) => {
+const IconLeft = () => {
+    return (
+        <i className='icon icon-chevron-left'/>
+    );
+};
+
+const IconRight = () => {
+    return (
+        <i className='icon icon-chevron-right'/>
+    );
+};
+
+const dayPickerIcons = {IconRight, IconLeft};
+
+const SearchDateSuggestion = ({
+    currentDate,
+    handleEscape,
+    locale,
+    preventClose,
+    matchedPretext,
+    onClick,
+}: Props) => {
     let loadedLocales: Record<string, Locale> = {};
     loadedLocales = Utils.getDatePickerLocalesForDateFns(locale, loadedLocales);
     const [datePickerFocused, setDatePickerFocused] = useState(false);
@@ -39,19 +63,7 @@ const SearchDateSuggestion = ({currentDate, handleEscape, locale, preventClose, 
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, []);
-
-    const iconLeft = () => {
-        return (
-            <i className='icon icon-chevron-left'/>
-        );
-    };
-
-    const iconRight = () => {
-        return (
-            <i className='icon icon-chevron-right'/>
-        );
-    };
+    }, [handleEscape]);
 
     return (
         <DayPicker
@@ -63,10 +75,7 @@ const SearchDateSuggestion = ({currentDate, handleEscape, locale, preventClose, 
             onMonthChange={preventClose}
             id='searchDatePicker'
             selected={currentDate}
-            components={{
-                IconRight: iconRight,
-                IconLeft: iconLeft,
-            }}
+            components={dayPickerIcons}
         />
     );
 };
