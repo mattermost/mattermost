@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
@@ -17,65 +17,55 @@ type Props = {
     extraClasses?: string;
 }
 
-export default class SaveButton extends React.PureComponent<Props> {
-    public static defaultProps: Partial<Props> = {
-        btnClass: '',
-        defaultMessage: (
-            <FormattedMessage
-                id='save_button.save'
-                defaultMessage='Save'
-            />
-        ),
-        disabled: false,
-        extraClasses: '',
-        savingMessage: (
-            <FormattedMessage
-                id='save_button.saving'
-                defaultMessage='Saving'
-            />
-        ),
-    };
-
-    public render() {
-        const {
-            saving,
-            disabled,
-            savingMessage,
-            defaultMessage,
-            btnClass,
-            extraClasses,
-            ...props
-        } = this.props;
-
-        let className = 'btn';
-        if (!btnClass) {
-            className += ' btn-primary';
-        }
-
-        if (!disabled || saving) {
-            className += ' ' + btnClass;
-        }
-
-        if (extraClasses) {
-            className += ' ' + extraClasses;
-        }
-
-        return (
-            <button
-                type='submit'
-                data-testid='saveSetting'
-                id='saveSetting'
-                className={className}
-                disabled={disabled}
-                {...props}
-            >
-                <LoadingWrapper
-                    loading={saving}
-                    text={savingMessage}
-                >
-                    <span>{defaultMessage}</span>
-                </LoadingWrapper>
-            </button>
-        );
+const SaveButton = ({
+    disabled = false,
+    btnClass = '',
+    extraClasses = '',
+    savingMessage = (
+        <FormattedMessage
+            id='save_button.saving'
+            defaultMessage='Saving'
+        />
+    ),
+    defaultMessage = (
+        <FormattedMessage
+            id='save_button.save'
+            defaultMessage='Save'
+        />
+    ),
+    saving,
+    ...props
+}: Props) => {
+    let className = 'btn';
+    if (!btnClass) {
+        className += ' btn-primary';
     }
-}
+
+    if (!disabled || saving) {
+        className += ' ' + btnClass;
+    }
+
+    if (extraClasses) {
+        className += ' ' + extraClasses;
+    }
+
+    return (
+        <button
+            type='submit'
+            data-testid='saveSetting'
+            id='saveSetting'
+            className={className}
+            disabled={disabled}
+            {...props}
+        >
+            <LoadingWrapper
+                loading={saving}
+                text={savingMessage}
+            >
+                <span>{defaultMessage}</span>
+            </LoadingWrapper>
+        </button>
+    );
+};
+
+export default memo(SaveButton);
