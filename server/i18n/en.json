@@ -2501,6 +2501,14 @@
     "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
   },
   {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} didn't get notified by this mention because they aren't members of this team."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} didn't get notified by this mention because they aren't a member of this team."
+  },
+  {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
     "translation": "Can not post to deleted channel."
   },
@@ -4180,7 +4188,7 @@
   },
   {
     "id": "api.user.create_user.user_limits.exceeded",
-    "translation": "Can't create user. Server exceeds safe user limit. Contact your system administrator."
+    "translation": "Can't create user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
@@ -4544,7 +4552,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Failed to upgrade websocket connection."
+    "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -5473,6 +5481,10 @@
   {
     "id": "app.import.import_line.null_post.error",
     "translation": "Import data line has type \"post\" but the post object is null."
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Import data line has type \"role\" but the role object is null."
   },
   {
     "id": "app.import.import_line.null_scheme.error",
@@ -6663,6 +6675,10 @@
     "translation": "Unable to get the scheme."
   },
   {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Unable to get page of schemes."
+  },
+  {
     "id": "app.scheme.permanent_delete_all.app_error",
     "translation": "We could not permanently delete the schemes."
   },
@@ -7184,7 +7200,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Can't activate user. Server exceeds safe user limit. Contact your system administrator. Error code: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Can't activate user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "app.user.update_active_for_multiple_users.updating.app_error",
@@ -9789,6 +9805,10 @@
   {
     "id": "model.reporting_base_options.is_valid.bad_date_range",
     "translation": "Date range provided is invalid."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Invalid scheme."
   },
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",

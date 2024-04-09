@@ -23,6 +23,7 @@ const FullName = ({
     if (remoteId) {
         sharedIcon = (
             <SharedUserIndicator
+                id={`sharedUserIndicator-${username}`}
                 className='shared-user-icon'
                 withTooltip={true}
             />
