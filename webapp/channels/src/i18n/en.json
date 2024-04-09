@@ -5066,6 +5066,7 @@
   "sidebar_left.sidebar_channel_menu.copyLink": "Copy Link",
   "sidebar_left.sidebar_channel_menu.dropdownAriaLabel": "Edit channel menu",
   "sidebar_left.sidebar_channel_menu.editChannel": "Channel options",
+  "sidebar_left.sidebar_channel_menu.editChannel.ariaLabel": "Channel options for {channelName}",
   "sidebar_left.sidebar_channel_menu.favoriteChannel": "Favorite",
   "sidebar_left.sidebar_channel_menu.favorites": "Favorites",
   "sidebar_left.sidebar_channel_menu.leaveChannel": "Leave Channel",
