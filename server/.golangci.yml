@@ -30,7 +30,7 @@ linters:
     - errcheck
 
 issues:
-  skip-dirs:
+  exclude-dirs:
     - channels/store/storetest/mocks
   exclude-rules:
     - linters:
