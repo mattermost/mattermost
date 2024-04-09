@@ -387,6 +387,6 @@ type Hooks interface {
 	// GenerateSupportData is invoked when a Support Packet gets generated.
 	// It allows plugins to include their own content in the Support Packet.
 	//
-	// Minimum server version: 10.x
+	// Minimum server version: 9.8
 	GenerateSupportData(c *Context) ([]*model.FileData, error)
 }
