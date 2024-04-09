@@ -156,7 +156,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 						require.True(t, ok)
 						require.EqualValues(t, expected, updatedCategoriesData)
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}

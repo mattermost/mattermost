@@ -54,9 +54,9 @@ func (ps *PlatformService) LoadLicense() {
 	// ENV var overrides all other sources of license.
 	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
-		license, err := utils.LicenseValidator.LicenseFromBytes([]byte(licenseStr))
-		if err != nil {
-			ps.logger.Error("Failed to read license set in environment.", mlog.Err(err))
+		license, appErr := utils.LicenseValidator.LicenseFromBytes([]byte(licenseStr))
+		if appErr != nil {
+			ps.logger.Error("Failed to read license set in environment.", mlog.Err(appErr))
 			return
 		}
 
@@ -74,7 +74,9 @@ func (ps *PlatformService) LoadLicense() {
 			}
 		}
 
-		if ps.ValidateAndSetLicenseBytes([]byte(licenseStr)) {
+		if err := ps.ValidateAndSetLicenseBytes([]byte(licenseStr)); err != nil {
+			ps.logger.Info("License key from ENV is invalid.", mlog.Err(err))
+		} else {
 			ps.logger.Info("License key from ENV is valid, unlocking enterprise features.")
 		}
 		return
@@ -88,9 +90,10 @@ func (ps *PlatformService) LoadLicense() {
 
 	if !model.IsValidId(licenseId) {
 		// Lets attempt to load the file from disk since it was missing from the DB
-		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*ps.Config().ServiceSettings.LicenseFileLocation)
-
-		if license != nil {
+		license, licenseBytes, err := utils.GetAndValidateLicenseFileFromDisk(*ps.Config().ServiceSettings.LicenseFileLocation)
+		if err != nil {
+			ps.logger.Warn("Failed to get license from disk", mlog.Err(err))
+		} else {
 			if _, err := ps.SaveLicense(licenseBytes); err != nil {
 				ps.logger.Error("Failed to save license key loaded from disk.", mlog.Err(err))
 			} else {
@@ -101,19 +104,23 @@ func (ps *PlatformService) LoadLicense() {
 
 	record, nErr := ps.Store.License().Get(sqlstore.RequestContextWithMaster(c), licenseId)
 	if nErr != nil {
-		ps.logger.Error("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
+		ps.logger.Warn("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
 		ps.SetLicense(nil)
 		return
 	}
 
-	ps.ValidateAndSetLicenseBytes([]byte(record.Bytes))
-	ps.logger.Info("License key valid unlocking enterprise features.")
+	err := ps.ValidateAndSetLicenseBytes([]byte(record.Bytes))
+	if err != nil {
+		ps.logger.Info("License key is invalid.")
+	}
+
+	ps.logger.Info("License key is valid, unlocking enterprise features.")
 }
 
 func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
-	success, licenseStr := utils.LicenseValidator.ValidateLicense(licenseBytes)
-	if !success {
-		return nil, model.NewAppError("addLicense", model.InvalidLicenseError, nil, "", http.StatusBadRequest)
+	licenseStr, err := utils.LicenseValidator.ValidateLicense(licenseBytes)
+	if err != nil {
+		return nil, model.NewAppError("addLicense", model.InvalidLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	var license model.License
@@ -231,19 +238,19 @@ func (ps *PlatformService) SetLicense(license *model.License) bool {
 	return false
 }
 
-func (ps *PlatformService) ValidateAndSetLicenseBytes(b []byte) bool {
-	if success, licenseStr := utils.LicenseValidator.ValidateLicense(b); success {
-		var license model.License
-		if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
-			ps.logger.Warn("Failed to decode license from JSON", mlog.Err(jsonErr))
-			return false
-		}
-		ps.SetLicense(&license)
-		return true
+func (ps *PlatformService) ValidateAndSetLicenseBytes(b []byte) error {
+	licenseStr, err := utils.LicenseValidator.ValidateLicense(b)
+	if err != nil {
+		return errors.Wrap(err, "Failed to decode license from JSON")
 	}
 
-	ps.logger.Warn("No valid enterprise license found")
-	return false
+	var license model.License
+	if err := json.Unmarshal([]byte(licenseStr), &license); err != nil {
+		return errors.Wrap(err, "Failed to decode license from JSON")
+	}
+
+	ps.SetLicense(&license)
+	return nil
 }
 
 func (ps *PlatformService) SetClientLicense(m map[string]string) {
