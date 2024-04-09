@@ -124,11 +124,10 @@
 }
 
 .get-app__preference {
-    display: block;
+    display: flex;
     margin-top: 23px;
 
     > span {
-        margin-top: -2px;
         color: #000;
         font-family: "Open Sans";
         font-size: 16px;
