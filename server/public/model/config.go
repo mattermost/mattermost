@@ -913,7 +913,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaximumPayloadSizeBytes == nil {
-		s.MaximumPayloadSizeBytes = NewInt64(100000)
+		s.MaximumPayloadSizeBytes = NewInt64(300000)
 	}
 }
 
