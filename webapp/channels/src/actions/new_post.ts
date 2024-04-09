@@ -82,9 +82,9 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
 
         const {result, reason, data} = await dispatch(sendDesktopNotification(post, websocketMessageProps));
 
-        // Dont need to ACK your own posts
+        // Only ACK for posts that require it
         if (websocketMessageProps.should_ack) {
-            WebSocketClient.postedNotifyAck(post.id, result, reason, data);
+            WebSocketClient.acknowledgePostedNotification(post.id, result, reason, data);
         }
 
         return {data: true};

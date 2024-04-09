@@ -53,7 +53,7 @@ export async function showNotification(
 
     if (Notification.permission !== 'granted' && requestedNotificationPermission) {
         // User didn't allow notifications
-        return {result: 'not_sent', reason: 'notifications_permission_disallowed', data: Notification.permission, callback: () => {}};
+        return {result: 'not_sent', reason: 'notifications_permission_previously_denied', data: Notification.permission, callback: () => {}};
     }
 
     requestedNotificationPermission = true;

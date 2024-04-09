@@ -676,16 +676,17 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		useAddFollowersHook(message, notificationsForCRT.Desktop)
 	}
 
-	usersToNotify := []string{}
+	// Collect user IDs of whom we want to acknowledge the websocket event for notification metrics
+	usersToAck := []string{}
 	for id, profile := range profileMap {
 		userNotificationLevel := profile.NotifyProps[model.DesktopNotifyProp]
 		channelNotificationLevel := channelMemberNotifyPropsMap[id][model.DesktopNotifyProp]
 
 		if ShouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
-			usersToNotify = append(usersToNotify, id)
+			usersToAck = append(usersToAck, id)
 		}
 	}
-	usePostedAckHook(message, post.UserId, channel.Type, usersToNotify)
+	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
 
 	published, err := a.publishWebsocketEventForPermalinkPost(c, post, message)
 	if err != nil {
