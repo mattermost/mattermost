@@ -272,10 +272,10 @@ const SidebarChannelMenu = (props: Props) => {
                 id: `SidebarChannelMenu-Button-${props.channel.id}`,
                 class: 'SidebarMenu_menuButton',
                 'aria-label': formatMessage({
-                    id: 'sidebar_left.sidebar_channel_menu.editChannel', 
-                    defaultMessage: 'Channel options for {channelName}'
+                    id: 'sidebar_left.sidebar_channel_menu.editChannel',
+                    defaultMessage: 'Channel options for {channelName}',
                 }, {
-                    channelName: props.channel.name
+                    channelName: props.channel.name,
                 }),
                 children: <DotsVerticalIcon size={16}/>,
             }}
