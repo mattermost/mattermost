@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, memo} from 'react';
+import React, {useState, memo, useCallback} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
@@ -14,7 +14,7 @@ const PostDeletedModal = ({
 }: Props) => {
     const [show, setShow] = useState(true);
 
-    const handleHide = () => setShow(false);
+    const handleHide = useCallback(() => setShow(false), []);
 
     return (
         <Modal
