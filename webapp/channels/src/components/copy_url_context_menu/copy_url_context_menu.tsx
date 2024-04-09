@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, useCallback} from 'react';
 import {ContextMenu, ContextMenuTrigger, MenuItem} from 'react-contextmenu';
 import {FormattedMessage} from 'react-intl';
 
@@ -36,7 +36,7 @@ const CopyUrlContextMenu = ({
     menuId,
     children,
 }: Props) => {
-    const copy = () => {
+    const copy = useCallback(() => {
         let siteLink = link;
 
         // Transform relative links to absolute ones for copy and paste.
@@ -45,7 +45,7 @@ const CopyUrlContextMenu = ({
         }
 
         actions.copyToClipboard(siteLink);
-    };
+    }, [actions, link, siteURL]);
 
     const contextMenu = (
         <ContextMenu id={`copy-url-context-menu${menuId}`}>
