@@ -110,13 +110,13 @@ export function sendDesktopNotification(post, msgProps) {
             notifyLevel = user?.notify_props?.desktop || NotificationLevels.ALL;
         }
 
-        if (channel.type === 'G' && channelNotifyProp === NotificationLevels.DEFAULT && user?.notify_props?.desktop === NotificationLevels.MENTION) {
+        if (channel?.type === 'G' && channelNotifyProp === NotificationLevels.DEFAULT && user?.notify_props?.desktop === NotificationLevels.MENTION) {
             notifyLevel = NotificationLevels.ALL;
         }
 
         if (notifyLevel === NotificationLevels.NONE) {
             return {result: 'not_sent', reason: 'notify_level', data: notifyLevel};
-        } else if (channel.type === 'G' && notifyLevel === NotificationLevels.MENTION) {
+        } else if (channel?.type === 'G' && notifyLevel === NotificationLevels.MENTION) {
             // Compose the whole text in the message, including interactive messages.
             let text = post.message;
 
