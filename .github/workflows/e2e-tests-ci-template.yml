@@ -339,7 +339,7 @@ jobs:
       - test
       - report
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
+      - uses: mattermost/actions/delivery/update-commit-status@fix-update-commit-status-pt2
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -359,7 +359,7 @@ jobs:
       - test
       - report
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
+      - uses: mattermost/actions/delivery/update-commit-status@fix-update-commit-status-pt2
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
