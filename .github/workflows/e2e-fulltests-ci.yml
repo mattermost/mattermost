@@ -29,6 +29,10 @@ on:
           - NONE
         default: NONE
 
+concurrency:
+  group: "${{ inputs.ref }}_${{ inputs.PR_NUMBER }}"
+  cancel-in-progress: true
+
 jobs:
   resolve-ref:
     runs-on: ubuntu-22.04
