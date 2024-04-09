@@ -52,34 +52,43 @@ const StyledChip = styled.button<{ otherOption?: boolean }>`
     }
 `;
 
-export default class Chip extends React.PureComponent<Props> {
-    onClick = (e: React.MouseEvent) => {
+const Chip = ({
+    onClick,
+    otherOption,
+    className,
+    leadingIcon,
+    id,
+    defaultMessage,
+    values,
+    additionalMarkup,
+}: Props) => {
+    const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
-        this.props.onClick?.();
+        onClick?.();
     };
 
-    render() {
-        return (
-            <StyledChip
-                onClick={this.onClick}
-                otherOption={this.props.otherOption}
-                className={this.props.className || ''}
-            >
-                {this.props.leadingIcon && (
-                    <RenderEmoji
-                        emojiName={this.props.leadingIcon}
-                        emojiStyle={{marginRight: '11px'}}
-                    />
-                )}
-                {(this.props.id && this.props.defaultMessage && this.props.values) && (
-                    <FormattedMessage
-                        id={this.props.id}
-                        defaultMessage={this.props.defaultMessage}
-                        values={this.props.values}
-                    />
-                )}
-                {this.props.additionalMarkup}
-            </StyledChip>
-        );
-    }
-}
+    return (
+        <StyledChip
+            onClick={handleClick}
+            otherOption={otherOption}
+            className={className || ''}
+        >
+            {leadingIcon && (
+                <RenderEmoji
+                    emojiName={leadingIcon}
+                    emojiStyle={{marginRight: '11px'}}
+                />
+            )}
+            {(id && defaultMessage && values) && (
+                <FormattedMessage
+                    id={id}
+                    defaultMessage={defaultMessage}
+                    values={values}
+                />
+            )}
+            {additionalMarkup}
+        </StyledChip>
+    );
+};
+
+export default Chip;
