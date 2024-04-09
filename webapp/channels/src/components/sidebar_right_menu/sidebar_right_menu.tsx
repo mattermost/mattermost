@@ -10,19 +10,14 @@ import MainMenu from 'components/main_menu';
 
 import {Constants} from 'utils/constants';
 
-type Action = {
-    openRhsMenu: () => void;
-}
+import {ANIMATION_DURATION} from './constant';
 
 type Props = {
     isMobileView: boolean;
     isOpen: boolean;
     teamDisplayName?: string;
     siteName?: string;
-    actions: Action;
 };
-
-const ANIMATION_DURATION = 500;
 
 const SidebarRightMenu = ({
     siteName: defaultSiteName,
