@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (api *API) InitGroup() {
@@ -332,17 +334,6 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if group.Source != model.GroupSourceLdap {
-		c.Err = model.NewAppError("Api4.linkGroupSyncable", "app.group.crud_permission", nil, "", http.StatusBadRequest)
-		return
-	}
-
 	auditRec := c.MakeAuditRecord("linkGroupSyncable", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
@@ -363,8 +354,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr = verifyLinkUnlinkPermission(c, syncableType, syncableID)
+	appErr := verifyLinkUnlinkPermission(c, syncableType, syncableID)
 	if appErr != nil {
+		appErr.Where = "Api4.linkGroupSyncable"
 		c.Err = appErr
 		return
 	}
@@ -541,6 +533,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	appErr := verifyLinkUnlinkPermission(c, syncableType, syncableID)
 	if appErr != nil {
+		appErr.Where = "Api4.patchGroupSyncable"
 		c.Err = appErr
 		return
 	}
@@ -611,6 +604,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	appErr := verifyLinkUnlinkPermission(c, syncableType, syncableID)
 	if appErr != nil {
+		appErr.Where = "Api4.unlinkGroupSyncable"
 		c.Err = appErr
 		return
 	}
@@ -631,15 +625,48 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType, syncableID string) *model.AppError {
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
+	if appErr != nil {
+		return appErr
+	}
+
+	if group.Source != model.GroupSourceLdap {
+		return model.NewAppError("Api4.linkGroupSyncable", "app.group.crud_permission", nil, "", http.StatusBadRequest)
+	}
+
+	// If AllowReference is disabled, limit who can link the group.
+	// This voids leaking the list of group members.
+	// See https://mattermost.atlassian.net/browse/MM-55314 for more details.
+	if !group.AllowReference {
+		if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleReadUserManagementGroups) {
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
+		}
+	}
+
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionManageTeam) {
-			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeam})
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionInviteUser) {
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionInviteUser})
 		}
 	case model.GroupSyncableTypeChannel:
-		channel, err := c.App.GetChannel(c.AppContext, syncableID)
-		if err != nil {
-			return err
+		channel, appErr := c.App.GetChannel(c.AppContext, syncableID)
+		if appErr != nil {
+			return appErr
+		}
+
+		// If it's the first time that the syncable gets linked to the team (i.e. no current sync to the team or to a team's channel),
+		// check that the user has the permission to manage the team.
+		_, appErr = c.App.GetGroupSyncable(c.Params.GroupId, channel.TeamId, model.GroupSyncableTypeTeam)
+		if appErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(appErr, &nfErr):
+				if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionInviteUser) {
+					return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionInviteUser})
+				}
+			default:
+				return appErr
+			}
 		}
 
 		var permission *model.Permission
