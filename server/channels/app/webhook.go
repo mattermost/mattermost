@@ -95,23 +95,30 @@ func (a *App) handleWebhookEvents(c request.CTX, post *model.Post, team *model.T
 }
 
 func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
-	var body io.Reader
-	var contentType string
+	var jsonBytes []byte
+	var err error
+
+	contentType := "application/x-www-form-urlencoded"
 	if hook.ContentType == "application/json" {
-		js, err := json.Marshal(payload)
+		contentType = "application/json"
+		jsonBytes, err = json.Marshal(payload)
 		if err != nil {
 			c.Logger().Warn("Failed to encode to JSON", mlog.Err(err))
+			return
 		}
-		body = bytes.NewReader(js)
-		contentType = "application/json"
-	} else {
-		body = strings.NewReader(payload.ToFormValues())
-		contentType = "application/x-www-form-urlencoded"
 	}
 
 	var wg sync.WaitGroup
+
 	for i := range hook.CallbackURLs {
+		var body io.Reader
+		if hook.ContentType == "application/json" {
+			body = bytes.NewReader(jsonBytes)
+		} else {
+			body = strings.NewReader(payload.ToFormValues())
+		}
 		wg.Add(1)
+
 		// Get the callback URL by index to properly capture it for the go func
 		url := hook.CallbackURLs[i]
 
