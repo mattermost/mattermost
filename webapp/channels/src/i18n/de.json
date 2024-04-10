@@ -2570,6 +2570,8 @@
   "admin.system_users.list.memberSince.yesterday": "Gestern",
   "admin.system_users.list.totalPosts": "Gepostete Nachrichten",
   "admin.system_users.list.userDetails": "Benutzerdetails",
+  "admin.system_users.list.userIsRemote": "Entfernter Benutzer",
+  "admin.system_users.list.userIsRemoteAriaLabel": "Dies ist ein entfernter Benutzer",
   "admin.system_users.mysql_stats.desc": "Die Verwendung von MySQL kann die Verfügbarkeit einiger Statistikfunktionen einschränken. Wir empfehlen, von MySQL auf PostgreSQL umzusteigen, um die verbesserte Leistung und die umfassenden Analysefunktionen voll auszuschöpfen. Solange du noch MySQL verwendest, nutze bitte die Exportfunktion, um alle Nutzerstatistiken einzusehen.",
   "admin.system_users.mysql_stats.dismiss": "Verwerfen",
   "admin.system_users.mysql_stats.learn_more": "Mehr erfahren",
