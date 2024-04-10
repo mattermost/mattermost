@@ -107,7 +107,7 @@ func (us SqlUserStore) InsertUsers(users []*model.User) error {
 	return nil
 }
 
-func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
+func (us SqlUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
 	if user.Id != "" && !user.IsRemote() {
 		return nil, store.NewErrInvalidInput("User", "id", user.Id)
 	}
@@ -1613,6 +1613,8 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 			}
 			termArgs = append(termArgs, fmt.Sprintf("%%%s%%", strings.TrimLeft(term, "@")))
 		}
+		searchFields = append(searchFields, "Id = ?")
+		termArgs = append(termArgs, strings.TrimLeft(term, "@"))
 		query = query.Where(fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")), termArgs...)
 	}
 

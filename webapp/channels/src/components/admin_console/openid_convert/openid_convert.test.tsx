@@ -9,7 +9,7 @@ import OpenIdConvert from 'components/admin_console/openid_convert/openid_conver
 describe('components/OpenIdConvert', () => {
     const baseProps = {
         actions: {
-            updateConfig: jest.fn(),
+            patchConfig: jest.fn(),
         },
     };
 

@@ -44,7 +44,7 @@ const initialState = {
                 }),
             },
             channelsInTeam: {
-                'team-id': ['current_channel_id'],
+                'team-id': new Set(['asdf']),
             },
             messageCounts: {
                 current_channel_id: {total: 10},

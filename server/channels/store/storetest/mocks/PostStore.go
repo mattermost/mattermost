@@ -141,25 +141,25 @@ func (_m *PostStore) Get(ctx context.Context, id string, opts model.GetPostsOpti
 	return r0, r1
 }
 
-// GetDirectPostParentsForExportAfter provides a mock function with given fields: limit, afterID
-func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterID string) ([]*model.DirectPostForExport, error) {
-	ret := _m.Called(limit, afterID)
+// GetDirectPostParentsForExportAfter provides a mock function with given fields: limit, afterID, includeArchivedChannels
+func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error) {
+	ret := _m.Called(limit, afterID, includeArchivedChannels)
 
 	var r0 []*model.DirectPostForExport
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int, string) ([]*model.DirectPostForExport, error)); ok {
-		return rf(limit, afterID)
+	if rf, ok := ret.Get(0).(func(int, string, bool) ([]*model.DirectPostForExport, error)); ok {
+		return rf(limit, afterID, includeArchivedChannels)
 	}
-	if rf, ok := ret.Get(0).(func(int, string) []*model.DirectPostForExport); ok {
-		r0 = rf(limit, afterID)
+	if rf, ok := ret.Get(0).(func(int, string, bool) []*model.DirectPostForExport); ok {
+		r0 = rf(limit, afterID, includeArchivedChannels)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.DirectPostForExport)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int, string) error); ok {
-		r1 = rf(limit, afterID)
+	if rf, ok := ret.Get(1).(func(int, string, bool) error); ok {
+		r1 = rf(limit, afterID, includeArchivedChannels)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -989,25 +989,25 @@ func (_m *PostStore) PermanentDeleteByUser(rctx request.CTX, userID string) erro
 	return r0
 }
 
-// Save provides a mock function with given fields: post
-func (_m *PostStore) Save(post *model.Post) (*model.Post, error) {
-	ret := _m.Called(post)
+// Save provides a mock function with given fields: rctx, post
+func (_m *PostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
+	ret := _m.Called(rctx, post)
 
 	var r0 *model.Post
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Post) (*model.Post, error)); ok {
-		return rf(post)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) (*model.Post, error)); ok {
+		return rf(rctx, post)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Post) *model.Post); ok {
-		r0 = rf(post)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) *model.Post); ok {
+		r0 = rf(rctx, post)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Post) error); ok {
-		r1 = rf(post)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post) error); ok {
+		r1 = rf(rctx, post)
 	} else {
 		r1 = ret.Error(1)
 	}

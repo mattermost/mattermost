@@ -11,37 +11,47 @@ import Constants from 'utils/constants';
 
 const ChannelInfoRhsTopButtons = styled.div`
     display: flex;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     margin-top: 24px;
     padding: 0 18px;
 `;
 
 const Button = styled.button`
-    border-radius: 4px;
-    border: 0;
-    padding: 12px 0 10px 0;
-    background: rgba(var(--center-channel-color-rgb), 0.04);
     flex: 1;
+    padding: 12px 0 10px 0;
+    border: 0;
     margin: 0 6px;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    border-radius: 4px;
 
     &:hover {
-       background: rgba(var(--center-channel-color-rgb), 0.08);
-       color: rgba(var(--center-channel-color-rgb), 0.72);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.8);
+
+        & i {
+            color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
+        }
     }
 
     &:active,
     &.active {
         background: rgba(var(--button-bg-rgb), 0.08);
         color: var(--button-bg);
+
+        & i {
+            color: var(--button-bg-rgb);
+        }
     }
 
     & i {
+        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
         font-size: 24px;
     }
+
     & span {
-        line-height: 16px;
         font-size: 10px;
         font-weight: 600;
+        line-height: 16px;
     }
 `;
 
@@ -51,7 +61,7 @@ const CopyButton = styled(Button)`
     &:active,
     &.active {
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         transition: none;
     }
 

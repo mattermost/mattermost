@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {debounce} from 'lodash';
+import debounce from 'lodash/debounce';
 import React, {useEffect, useCallback, useState, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
@@ -64,16 +64,19 @@ export type Props = {
     };
 }
 
-const UserGroupPopover = (props: Props) => {
-    const {
-        group,
-        actions,
-        hide,
-        returnFocus,
-        searchTerm,
-        showUserOverlay,
-    } = props;
+const UserGroupPopover = ({
+    actions,
+    group,
+    hide,
+    returnFocus,
+    searchTerm,
+    showUserOverlay,
 
+    // These props are not passed explictly to this component, but
+    // they are added when this component is passed as a child to Overlay.
+    // They are not typed in the component because they will cause more confusion.
+    ...popoverProps
+}: Props) => {
     const {formatMessage} = useIntl();
 
     const closeRef = useRef<HTMLButtonElement>(null);
@@ -183,8 +186,8 @@ const UserGroupPopover = (props: Props) => {
 
     return (
         <Popover
-            {...props}
             id='user-group-popover'
+            {...popoverProps}
         >
             {tabCatcher}
             <Body
@@ -316,7 +319,7 @@ const Heading = styled.div`
 
 const Subtitle = styled.div`
     font-size: 12px;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     display: flex;
 `;
 

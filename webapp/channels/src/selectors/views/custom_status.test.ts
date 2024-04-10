@@ -40,6 +40,15 @@ describe('getCustomStatus', () => {
         expect(getCustomStatus(store.getState(), user.id)).toBeUndefined();
     });
 
+    it('should return undefined when user with invalid json for custom status set', async () => {
+        const store = await configureStore();
+        const newUser = {...user};
+        newUser.props.customStatus = 'not a JSON string';
+
+        (UserSelectors.getUser as jest.Mock).mockReturnValue(user);
+        expect(getCustomStatus(store.getState(), user.id)).toBeUndefined();
+    });
+
     it('should return customStatus object when there is custom status set', async () => {
         const store = await configureStore();
         const newUser = {...user};

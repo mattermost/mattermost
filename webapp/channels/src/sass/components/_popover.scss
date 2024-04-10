@@ -14,8 +14,8 @@
 
 .popover {
     padding: 0;
+    border-radius: var(--radius-s);
     background: var(--center-channel-bg);
-    border-radius: $border-rad * 2;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     color: var(--center-channel-color);
     font-family: inherit;
@@ -50,16 +50,16 @@
             }
 
             .popover-content {
+                border-radius: 0 0 3px 3px;
                 border-top: none;
                 background: v(center-channel-bg);
-                border-radius: 0 0 3px 3px;
                 box-shadow: rgba(var(--center-channel-color-rgb), 0.08) 0 17px 50px 0, rgba(var(--center-channel-color-rgb), 0.08) 0 12px 15px 0;
 
                 .shared-user-icon {
                     width: 16px;
                     height: 16px;
                     margin-left: 8px;
-                    color: rgba(61, 60, 64, 0.72);
+                    color: rgba(61, 60, 64, 0.75);
                     font-size: 16px;
                     line-height: 20px;
 
@@ -265,8 +265,8 @@
         width: 24px;
         height: 24px;
         padding: 2px;
-        background: rgba(var(--center-channel-bg-rgb), 1);
         border-radius: 50px;
+        background: rgba(var(--center-channel-bg-rgb), 1);
 
         svg {
             width: 100%;
@@ -293,13 +293,14 @@
     border: none;
     margin-left: auto;
     background: none;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     font-weight: 400;
     line-height: 18px;
 
     &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
         border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.8);
     }
 }
 
@@ -317,7 +318,7 @@
     justify-content: flex-start;
     padding: 0 0 0 2.4rem;
     margin: 1.2rem 0 0;
-    color: rgba(var(--center-channel-color-rgb), 0.6);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
@@ -373,8 +374,8 @@
 
             &::-webkit-scrollbar-thumb {
                 border: 1px solid v(center-channel-bg);
-                background-color: rgba(var(--center-channel-color-rgb), 0.24) !important;
                 border-radius: 4px;
+                background-color: rgba(var(--center-channel-color-rgb), 0.24) !important;
             }
 
             .rdp-months {

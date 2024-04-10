@@ -6,12 +6,12 @@ package platform
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
@@ -59,7 +59,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 func isEligibleForEvents(syncService SharedChannelServiceIFace, event *model.WebSocketEvent, events []model.WebsocketEventType) bool {
 	return syncServiceEnabled(syncService) &&
 		eventHasChannel(event) &&
-		utils.Contains(events, event.EventType())
+		slices.Contains(events, event.EventType())
 }
 
 func eventHasChannel(event *model.WebSocketEvent) bool {
@@ -95,7 +95,7 @@ func handleContentSync(ps *PlatformService, syncService SharedChannelServiceIFac
 		for _, remote := range remotes {
 			// invite remote to channel (will share the channel if not already shared)
 			if err := syncService.InviteRemoteToChannel(channel.Id, remote.RemoteId, remote.CreatorId, true); err != nil {
-				return fmt.Errorf("cannot invite remote to channel %s: %w", channel.Id, err)
+				return fmt.Errorf("cannot invite remote %s to channel %s: %w", remote.RemoteId, channel.Id, err)
 			}
 			shouldNotify = true
 		}

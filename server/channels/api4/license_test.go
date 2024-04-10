@@ -109,7 +109,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		licenseBytes, _ := json.Marshal(license)
 		licenseStr := string(licenseBytes)
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, licenseStr)
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(licenseStr, nil)
 		utils.LicenseValidator = &mockLicenseValidator
 
 		licenseManagerMock := &mocks.LicenseInterface{}
@@ -144,7 +144,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		licenseBytes, err := json.Marshal(license)
 		require.NoError(t, err)
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseBytes))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseBytes), nil)
 		utils.LicenseValidator = &mockLicenseValidator
 
 		resp, err := th.SystemAdminClient.UploadLicenseFile(context.Background(), []byte(""))
@@ -177,7 +177,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		licenseBytes, _ := json.Marshal(license)
 		licenseStr := string(licenseBytes)
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, licenseStr)
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(licenseStr, nil)
 
 		utils.LicenseValidator = &mockLicenseValidator
 
@@ -275,7 +275,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseJSON), nil)
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -306,7 +306,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseJSON), nil)
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -344,7 +344,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseJSON), nil)
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -405,7 +405,7 @@ func TestRequestTrialLicense(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseJSON), nil)
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -435,7 +435,7 @@ func TestRequestTrialLicense(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(string(licenseJSON), nil)
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -486,6 +486,7 @@ func TestRequestTrueUpReview(t *testing.T) {
 
 		cloud := mocks.CloudInterface{}
 		cloud.Mock.On("SubmitTrueUpReview", mock.Anything, mock.Anything).Return(nil)
+		cloud.Mock.On("CheckCWSConnection", mock.Anything).Return(nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {

@@ -31,16 +31,16 @@
 
             span.group-name {
                 margin-left: 70px;
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 12px;
                 line-height: 12px;
             }
 
             span.group-source span {
                 padding: 0 4px;
+                border-radius: 4px;
                 margin-left: 8px;
                 background: rgba(var(--center-channel-color-rgb), 0.08);
-                border-radius: 4px;
                 font-size: 10px;
                 line-height: 16px;
             }
@@ -68,9 +68,9 @@
 
                 &::-webkit-scrollbar-thumb {
                     border: 8px rgba(0, 0, 0, 0) solid;
+                    border-radius: 9999px;
                     background: rgba(var(--center-channel-color-rgb), 0.24);
                     background-clip: padding-box;
-                    border-radius: 9999px;
                 }
 
                 h2.group-member-count {
@@ -91,7 +91,7 @@
 
                     .group-member-username {
                         padding-left: 8px;
-                        color: rgba(var(--center-channel-color-rgb), 0.64);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                         font-size: 12px;
                         line-height: 18px;
                     }

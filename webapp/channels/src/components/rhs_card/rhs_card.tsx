@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import deepEqual from 'fast-deep-equal';
 import React from 'react';
 import type {ReactNode} from 'react';
 import Scrollbars from 'react-custom-scrollbars';
@@ -80,6 +81,9 @@ export default class RhsCard extends React.Component<Props, State> {
     }
 
     shouldComponentUpdate(nextProps: Props, nextState: State) {
+        if (!deepEqual(nextProps.selected?.props?.card, this.props.selected?.props?.card)) {
+            return true;
+        }
         if (nextState.isScrolling !== this.state.isScrolling) {
             return true;
         }
@@ -124,7 +128,7 @@ export default class RhsCard extends React.Component<Props, State> {
         if (!content) {
             content = (
                 <div className='info-card'>
-                    <Markdown message={selected.props && selected.props.card}/>
+                    <Markdown message={(selected.props && selected.props.card) || ''}/>
                 </div>
             );
         }

@@ -12,7 +12,6 @@ const state: GlobalState = {
             config: {},
             license: {},
             serverVersion: '',
-            warnMetricsStatus: {},
             firstAdminVisitMarketplaceStatus: false,
             firstAdminCompleteSetup: false,
         },
@@ -31,8 +30,10 @@ const state: GlobalState = {
             profilesNotInGroup: {},
             statuses: {},
             stats: {},
+            filteredStats: {},
             myUserAccessTokens: {},
             lastActivity: {},
+            dndEndTimes: {},
         },
         limits: {
             usersLimits: {
@@ -110,6 +111,7 @@ const state: GlobalState = {
             userAccessTokens: {},
             clusterInfo: [],
             analytics: {},
+            teamAnalytics: {},
             dataRetentionCustomPolicies: {},
             dataRetentionCustomPoliciesCount: 0,
             prevTrialLicense: {},

@@ -169,7 +169,7 @@ func (th *SearchTestHelper) makeEmail() string {
 }
 
 func (th *SearchTestHelper) createUser(username, nickname, firstName, lastName string) (*model.User, error) {
-	return th.Store.User().Save(&model.User{
+	return th.Store.User().Save(th.Context, &model.User{
 		Username:  username,
 		Password:  username,
 		Nickname:  nickname,
@@ -180,7 +180,7 @@ func (th *SearchTestHelper) createUser(username, nickname, firstName, lastName s
 }
 
 func (th *SearchTestHelper) createGuest(username, nickname, firstName, lastName string) (*model.User, error) {
-	return th.Store.User().Save(&model.User{
+	return th.Store.User().Save(th.Context, &model.User{
 		Username:  username,
 		Password:  username,
 		Nickname:  nickname,
@@ -225,7 +225,7 @@ func (th *SearchTestHelper) createBot(username, displayName, ownerID string) (*m
 		OwnerId:     ownerID,
 	}
 
-	user, err := th.Store.User().Save(model.UserFromBot(botModel))
+	user, err := th.Store.User().Save(th.Context, model.UserFromBot(botModel))
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
@@ -249,7 +249,7 @@ func (th *SearchTestHelper) deleteBot(botID string) error {
 }
 
 func (th *SearchTestHelper) createChannel(teamID, name, displayName, purpose string, channelType model.ChannelType, user *model.User, deleted bool) (*model.Channel, error) {
-	channel, err := th.Store.Channel().Save(&model.Channel{
+	channel, err := th.Store.Channel().Save(th.Context, &model.Channel{
 		TeamId:      teamID,
 		DisplayName: displayName,
 		Name:        name,
@@ -315,7 +315,7 @@ func (th *SearchTestHelper) createGroupChannel(teamID, displayName string, users
 		Type:        model.ChannelTypeGroup,
 	}
 
-	channel, err := th.Store.Channel().Save(group, 10000)
+	channel, err := th.Store.Channel().Save(th.Context, group, 10000)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
@@ -369,7 +369,7 @@ func (th *SearchTestHelper) createPost(userID, channelID, message, hashtags, pos
 		creationTime = createAt
 	}
 	postModel := th.createPostModel(userID, channelID, message, hashtags, postType, creationTime, pinned)
-	return th.Store.Post().Save(postModel)
+	return th.Store.Post().Save(th.Context, postModel)
 }
 
 func (th *SearchTestHelper) createFileInfoModel(creatorID, postID, channelID, name, content, extension, mimeType string, createAt, size int64) *model.FileInfo {
@@ -401,7 +401,7 @@ func (th *SearchTestHelper) createFileInfo(creatorID, postID, channelID, name, c
 func (th *SearchTestHelper) createReply(userID, message, hashtags string, parent *model.Post, createAt int64, pinned bool) (*model.Post, error) {
 	replyModel := th.createPostModel(userID, parent.ChannelId, message, hashtags, parent.Type, createAt, pinned)
 	replyModel.RootId = parent.Id
-	return th.Store.Post().Save(replyModel)
+	return th.Store.Post().Save(th.Context, replyModel)
 }
 
 func (th *SearchTestHelper) deleteUserPosts(userID string) error {

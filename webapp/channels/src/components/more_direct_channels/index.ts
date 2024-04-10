@@ -78,7 +78,7 @@ const makeMapStateToProps = () => {
             currentChannelMembers,
             currentUserId,
             restrictDirectMessage,
-            totalCount: stats.total_users_count,
+            totalCount: stats.total_users_count ?? 0,
         };
     };
 };

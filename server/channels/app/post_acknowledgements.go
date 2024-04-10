@@ -42,15 +42,20 @@ func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (
 	}
 
 	if appErr := a.ResolvePersistentNotification(c, post, userID); appErr != nil {
+		a.NotificationsLog().Error("Error resolving persistent notification",
+			mlog.String("sender_id", userID),
+			mlog.String("post_id", post.RootId),
+			mlog.String("status", model.StatusServerError),
+			mlog.String("reason", model.ReasonFetchError),
+			mlog.Err(appErr),
+		)
 		return nil, appErr
 	}
 
 	// The post is always modified since the UpdateAt always changes
-	a.invalidateCacheForChannelPosts(channel.Id)
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	a.Srv().Go(func() {
-		a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementAdded, acknowledgement, post)
-	})
+	a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementAdded, acknowledgement, post)
 
 	return acknowledgement, nil
 }
@@ -92,11 +97,9 @@ func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string)
 	}
 
 	// The post is always modified since the UpdateAt always changes
-	a.invalidateCacheForChannelPosts(channel.Id)
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	a.Srv().Go(func() {
-		a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementRemoved, oldAck, post)
-	})
+	a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementRemoved, oldAck, post)
 
 	return nil
 }

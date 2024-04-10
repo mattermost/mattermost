@@ -235,7 +235,6 @@ type AppError struct {
 	RequestId       string `json:"request_id,omitempty"`  // The RequestId that's also set in the header
 	StatusCode      int    `json:"status_code,omitempty"` // The http status code
 	Where           string `json:"-"`                     // The function where it happened in the form of Struct.Func
-	IsOAuth         bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
 	SkipTranslation bool   `json:"-"`                     // Whether translation for the error should be skipped.
 	params          map[string]any
 	wrapped         error
@@ -336,6 +335,11 @@ func (er *AppError) Wrap(err error) *AppError {
 	return er
 }
 
+func (er *AppError) WipeDetailed() {
+	er.wrapped = nil
+	er.DetailedError = ""
+}
+
 // AppErrorFromJSON will try to decode the input into an AppError.
 func AppErrorFromJSON(r io.Reader) error {
 	data, err := io.ReadAll(r)
@@ -365,7 +369,6 @@ func NewAppError(where string, id string, params map[string]any, details string,
 		Where:         where,
 		DetailedError: details,
 		StatusCode:    status,
-		IsOAuth:       false,
 	}
 	ap.Translate(translateFunc)
 	return ap
@@ -498,10 +501,9 @@ func ArrayFromJSON(data io.Reader) []string {
 	return objmap
 }
 
-func SortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
+func SortedArrayFromJSON(data io.Reader) ([]string, error) {
 	var obj []string
-	lr := io.LimitReader(data, maxBytes)
-	err := json.NewDecoder(lr).Decode(&obj)
+	err := json.NewDecoder(data).Decode(&obj)
 	if err != nil || obj == nil {
 		return nil, err
 	}
@@ -510,10 +512,9 @@ func SortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
 	return RemoveDuplicateStrings(obj), nil
 }
 
-func NonSortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
+func NonSortedArrayFromJSON(data io.Reader) ([]string, error) {
 	var obj []string
-	lr := io.LimitReader(data, maxBytes)
-	err := json.NewDecoder(lr).Decode(&obj)
+	err := json.NewDecoder(data).Decode(&obj)
 	if err != nil || obj == nil {
 		return nil, err
 	}
@@ -555,9 +556,8 @@ func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	return objmap
 }
 
-func StructFromJSONLimited[V any](data io.Reader, maxBytes int64, obj *V) error {
-	lr := io.LimitReader(data, maxBytes)
-	err := json.NewDecoder(lr).Decode(&obj)
+func StructFromJSONLimited[V any](data io.Reader, obj *V) error {
+	err := json.NewDecoder(data).Decode(&obj)
 	if err != nil || obj == nil {
 		return err
 	}

@@ -4,8 +4,8 @@
     width: 568px;
     padding: 28px 32px;
     border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
-    background: var(--sys-center-channel-bg);
     border-radius: 4px;
+    background: var(--sys-center-channel-bg);
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
 }
 
@@ -24,7 +24,7 @@
 .PlanDetails__userCount {
     display: block;
     margin-left: auto;
-    color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+    color: rgba(var(--sys-center-channel-color-rgb), 0.75);
     font-size: 14px;
     font-weight: 600;
     line-height: 20px;
@@ -36,8 +36,8 @@
 
     &.btn {
         padding: 11px 16px;
-        background: $primary-color;
         border-radius: 4px;
+        background: $primary-color;
         color: $white;
         font-size: 12px;
         font-weight: bold;
@@ -74,7 +74,7 @@
 .PlanDetails__description {
     display: flex;
     margin-top: 8px;
-    color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+    color: rgba(var(--sys-center-channel-color-rgb), 0.75);
     font-size: 12px;
     font-weight: normal;
     line-height: 16px;
@@ -116,9 +116,9 @@
 
 .TrialBadge {
     padding: 0 4px;
+    border-radius: 3px;
     margin-left: 10px;
     background: var(--sys-online-indicator);
-    border-radius: 3px;
     color: #fff;
     text-transform: uppercase;
 
@@ -139,7 +139,7 @@
     span {
         position: relative;
         bottom: 2px;
-        color: rgba(var(--center-channel-text-rgb), 0.56);
+        color: rgba(var(--center-channel-text-rgb), 0.75);
         font-family: 'Open Sans';
         font-size: 10px;
         font-weight: 600;

@@ -103,7 +103,7 @@ func init() {
 	ImportUploadCmd.Flags().String("upload", "", "The ID of the import upload to resume.")
 
 	ImportJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of import jobs")
-	ImportJobListCmd.Flags().Int("per-page", 200, "Number of import jobs to be fetched")
+	ImportJobListCmd.Flags().Int("per-page", DefaultPageSize, "Number of import jobs to be fetched")
 	ImportJobListCmd.Flags().Bool("all", false, "Fetch all import jobs. --page flag will be ignore if provided")
 
 	ImportValidateCmd.Flags().StringArray("team", nil, "Predefined team[s] to assume as already present on the destination server. Implies --check-missing-teams. The flag can be repeated")
@@ -112,6 +112,7 @@ func init() {
 	ImportValidateCmd.Flags().Bool("check-server-duplicates", true, "Set to false to ignore teams, channels, and users already present on the server")
 
 	ImportProcessCmd.Flags().Bool("bypass-upload", false, "If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.")
+	ImportProcessCmd.Flags().Bool("extract-content", true, "If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance.")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
@@ -271,11 +272,14 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 		}
 	}
 
+	extractContent, _ := command.Flags().GetBool("extract-content")
+
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{
 		Type: model.JobTypeImportProcess,
 		Data: map[string]string{
-			"import_file": importFile,
-			"local_mode":  strconv.FormatBool(isLocal && bypassUpload),
+			"import_file":     importFile,
+			"local_mode":      strconv.FormatBool(isLocal && bypassUpload),
+			"extract_content": strconv.FormatBool(extractContent),
 		},
 	})
 	if err != nil {
@@ -366,6 +370,7 @@ func importJobListCmdF(c client.Client, command *cobra.Command, args []string) e
 }
 
 type Statistics struct {
+	Roles          uint64 `json:"roles"`
 	Schemes        uint64 `json:"schemes"`
 	Teams          uint64 `json:"teams"`
 	Channels       uint64 `json:"channels"`
@@ -392,7 +397,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 	err := withClient(func(c client.Client, cmd *cobra.Command, args []string) error {
 		users, err := getPages(func(page, numPerPage int, etag string) ([]*model.User, *model.Response, error) {
 			return c.GetUsers(context.TODO(), page, numPerPage, etag)
-		}, 250)
+		}, DefaultPageSize)
 		if err != nil {
 			return err
 		}
@@ -415,7 +420,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 
 		teams, err := getPages(func(page, numPerPage int, etag string) ([]*model.Team, *model.Response, error) {
 			return c.GetAllTeams(context.TODO(), etag, page, numPerPage)
-		}, 250)
+		}, DefaultPageSize)
 		if err != nil {
 			return err
 		}
@@ -426,14 +431,14 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 
 			publicChannels, err := getPages(func(page, numPerPage int, etag string) ([]*model.Channel, *model.Response, error) {
 				return c.GetPublicChannelsForTeam(context.TODO(), team.Id, page, numPerPage, etag)
-			}, 250)
+			}, DefaultPageSize)
 			if err != nil {
 				return err
 			}
 
 			privateChannels, err := getPages(func(page, numPerPage int, etag string) ([]*model.Channel, *model.Response, error) {
 				return c.GetPrivateChannelsForTeam(context.TODO(), team.Id, page, numPerPage, etag)
-			}, 250)
+			}, DefaultPageSize)
 			if err != nil {
 				return err
 			}
@@ -506,6 +511,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 	}
 
 	stat := Statistics{
+		Roles:          validator.Roles(),
 		Schemes:        validator.Schemes(),
 		Teams:          validator.TeamCount(),
 		Channels:       validator.ChannelCount(),
@@ -553,6 +559,7 @@ func configurePrinter() {
 
 func printStatistics(stat Statistics) {
 	tmpl := "\n" +
+		"Roles           {{ .Roles }}\n" +
 		"Schemes         {{ .Schemes }}\n" +
 		"Teams           {{ .Teams }}\n" +
 		"Channels        {{ .Channels }}\n" +

@@ -81,11 +81,8 @@ func (s *SearchUserStore) Update(rctx request.CTX, user *model.User, trustedUpda
 	return userUpdate, err
 }
 
-func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
-	// TODO: Use the actuall request context from the App layer
-	// https://mattermost.atlassian.net/browse/MM-55737
-	rctx := request.EmptyContext(s.rootStore.Logger())
-	nuser, err := s.UserStore.Save(user)
+func (s *SearchUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
+	nuser, err := s.UserStore.Save(rctx, user)
 
 	if err == nil {
 		s.rootStore.indexUser(rctx, nuser)

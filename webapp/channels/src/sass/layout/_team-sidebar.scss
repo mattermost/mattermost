@@ -9,7 +9,7 @@
 
     .fa {
         color: var(--sidebar-header-text-color);
-        opacity: 0.6;
+        opacity: 0.73;
         transition: all 0.15s ease;
 
         &:hover {
@@ -53,8 +53,8 @@
                     right: -3px;
                     width: 8px;
                     height: 8px;
-                    background: var(--mention-bg);
                     border-radius: 100%;
+                    background: var(--mention-bg);
                     box-shadow: 0 0 0 3px var(--sidebar-teambar-bg);
                 }
             }
@@ -104,8 +104,8 @@
                 width: 16px;
                 height: 16px;
                 justify-content: center;
-                background: #000;
                 border-radius: 4px;
+                background: #000;
                 color: #fff;
                 font-size: 12px;
                 font-style: normal;

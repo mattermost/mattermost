@@ -91,14 +91,14 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
                     }),
                 },
                 channelsInTeam: {
-                    someTeamId: [
+                    someTeamId: new Set([
                         'somePublicMemberChannelId',
                         'somePrivateMemberChannelId',
                         'somePublicNonMemberChannelId',
                         'somePrivateNonMemberChannelId',
                         'someDirectConversation',
                         'someGroupConversation',
-                    ],
+                    ]),
                 },
             },
             roles: {

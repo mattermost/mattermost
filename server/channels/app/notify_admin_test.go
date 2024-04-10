@@ -61,7 +61,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		appErr = th.App.SendNotifyAdminPosts(th.Context, "test", "", false)
 		require.Nil(t, appErr)
 
-		bot, appErr := th.App.GetSystemBot()
+		bot, appErr := th.App.GetSystemBot(th.Context)
 		require.Nil(t, appErr)
 
 		// message sending is async, wait time for it
@@ -108,7 +108,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		appErr = th.App.SendNotifyAdminPosts(th.Context, "test", "", true)
 		require.Nil(t, appErr)
 
-		bot, appErr := th.App.GetSystemBot()
+		bot, appErr := th.App.GetSystemBot(th.Context)
 		require.Nil(t, appErr)
 
 		// message sending is async, wait time for it
@@ -153,7 +153,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		appErr = th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.Nil(t, appErr)
 
-		bot, appErr := th.App.GetSystemBot()
+		bot, appErr := th.App.GetSystemBot(th.Context)
 		require.Nil(t, appErr)
 
 		var channel *model.Channel
@@ -197,7 +197,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		appErr = th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.Nil(t, appErr)
 
-		bot, appErr := th.App.GetSystemBot()
+		bot, appErr := th.App.GetSystemBot(th.Context)
 		require.Nil(t, appErr)
 
 		var channel *model.Channel
@@ -342,7 +342,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		appErr = th.App.SendNotifyAdminPosts(th.Context, "test", model.LicenseShortSkuProfessional, false) // try and send notification but workspace currentSKU has since changed to cloud-professional
 		require.Nil(t, appErr)
 
-		bot, appErr := th.App.GetSystemBot()
+		bot, appErr := th.App.GetSystemBot(th.Context)
 		require.Nil(t, appErr)
 
 		// message sending is async, wait time for it
@@ -402,7 +402,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		appErr = th.App.SendNotifyAdminPosts(th.Context, "test", "", false)
 		require.Nil(t, appErr)
 
-		bot, appErr := th.App.GetSystemBot()
+		bot, appErr := th.App.GetSystemBot(th.Context)
 		require.Nil(t, appErr)
 
 		var channel *model.Channel

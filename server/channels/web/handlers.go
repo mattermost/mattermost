@@ -31,7 +31,8 @@ import (
 )
 
 const (
-	frameAncestors = "'self' teams.microsoft.com"
+	frameAncestors   = "'self' teams.microsoft.com"
+	maxURLCharacters = 2048
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -86,6 +87,7 @@ type Handler struct {
 	IsStatic                  bool
 	IsLocal                   bool
 	DisableWhenBusy           bool
+	FileAPI                   bool
 
 	cspShaDirective string
 }
@@ -142,7 +144,20 @@ func generateDevCSP(c Context) string {
 	return " " + strings.Join(devCSP, " ")
 }
 
+func (h Handler) basicSecurityChecks(w http.ResponseWriter, r *http.Request) *model.AppError {
+	if len(r.RequestURI) > maxURLCharacters {
+		return model.NewAppError("basicSecurityChecks", "basic_security_check.url.too_long_error", nil, "", http.StatusRequestURITooLong)
+	}
+
+	return nil
+}
+
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if appErr := h.basicSecurityChecks(w, r); appErr != nil {
+		http.Error(w, appErr.Error(), appErr.StatusCode)
+		return
+	}
+
 	w = newWrappedWriter(w)
 	now := time.Now()
 
@@ -213,13 +228,16 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
 	}
 
-	// Set the max request body size to be equal to MaxFileSize.
-	// Ideally, non-file request bodies should be smaller than file request bodies,
-	// but we don't have a clean way to identify all file upload handlers.
-	// So to keep it simple, we clamp it to the max file size.
-	// We add a buffer of bytes.MinRead so that file sizes close to max file size
-	// do not get cut off.
-	r.Body = http.MaxBytesReader(w, r.Body, *c.App.Config().FileSettings.MaxFileSize+bytes.MinRead)
+	var maxBytes int64
+	if h.FileAPI {
+		// We add a buffer of bytes.MinRead so that file sizes close to max file size
+		// do not get cut off.
+		maxBytes = *c.App.Config().FileSettings.MaxFileSize + bytes.MinRead
+	} else {
+		maxBytes = *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes + bytes.MinRead
+	}
+
+	r.Body = http.MaxBytesReader(w, r.Body, maxBytes)
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
@@ -376,17 +394,16 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Block out detailed error when not in developer mode
 		if !*c.App.Config().ServiceSettings.EnableDeveloper {
-			c.Err.DetailedError = ""
+			c.Err.WipeDetailed()
 		}
 
 		// Sanitize all 5xx error messages in hardened mode
 		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err.StatusCode >= 500 {
 			c.Err.Id = ""
 			c.Err.Message = "Internal Server Error"
-			c.Err.DetailedError = ""
+			c.Err.WipeDetailed()
 			c.Err.StatusCode = 500
 			c.Err.Where = ""
-			c.Err.IsOAuth = false
 		}
 
 		if IsAPICall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthAPICall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {

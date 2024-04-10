@@ -44,7 +44,7 @@ const initialState: DeepPartial<GlobalState> = {
                 },
             },
             channelsInTeam: {
-                'team-id': ['current_channel_id'],
+                'team-id': new Set(['current_channel_id']),
             },
             messageCounts: {
                 current_channel_id: {total: 10},

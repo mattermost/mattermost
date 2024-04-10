@@ -34,14 +34,14 @@ Object {
                 class="fa fa-angle-left"
               />
             </div>
-            Notification Settings
+            Notification settings
           </h4>
         </div>
         <div
           class="user-settings"
         >
           <div
-            class="notificationSettingsModalHeader"
+            class="userSettingDesktopHeader"
           >
             <h3
               class="tab-header"
@@ -49,27 +49,33 @@ Object {
             >
               Notifications
             </h3>
-            <a
-              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
-              rel="noopener noreferrer"
-              target="_blank"
+            <div
+              class="userSettingDesktopHeaderInfo"
             >
-              <svg
-                fill="currentColor"
-                height="1em"
-                version="1.1"
-                viewBox="0 0 24 24"
-                width="1em"
-                xmlns="http://www.w3.org/2000/svg"
+              <a
+                class="btn btn-link"
+                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+                rel="noopener noreferrer"
+                target="_blank"
               >
-                <path
-                  d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
-                />
-              </svg>
-              <span>
-                Learn more about notifications
-              </span>
-            </a>
+                <svg
+                  class="circular-border"
+                  fill="currentColor"
+                  height="1em"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
+                  />
+                </svg>
+                <span>
+                  Learn more about notifications
+                </span>
+              </a>
+            </div>
           </div>
           <div
             class="divider-dark first"
@@ -82,15 +88,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="desktopTitle"
+                id="desktopAndMobileTitle"
               >
-                Desktop Notifications
+                Desktop and mobile notifications
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="desktopTitle desktopEdit"
+                aria-labelledby="desktopAndMobileTitle desktopAndMobileEdit"
                 class="color--link style--none section-min__edit"
-                id="desktopEdit"
+                id="desktopAndMobileEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -101,9 +107,44 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="desktopDesc"
+              id="desktopAndMobileDesc"
             >
-              For all activity, without sound
+              Configure desktop and mobile settings
+            </div>
+          </div>
+          <div
+            class="divider-light"
+          />
+          <div
+            class="section-min"
+          >
+            <div
+              class="secion-min__header"
+            >
+              <h4
+                class="section-min__title"
+                id="desktopNotificationSoundTitle"
+              >
+                Desktop notification sounds
+              </h4>
+              <button
+                aria-expanded="false"
+                aria-labelledby="desktopNotificationSoundTitle desktopNotificationSoundEdit"
+                class="color--link style--none section-min__edit"
+                id="desktopNotificationSoundEdit"
+              >
+                <i
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
+            </div>
+            <div
+              class="section-min__describe"
+              id="desktopNotificationSoundDesc"
+            >
+              No sound
             </div>
           </div>
           <div
@@ -119,7 +160,7 @@ Object {
                 class="section-min__title"
                 id="emailTitle"
               >
-                Email Notifications
+                Email notifications
               </h4>
               <button
                 aria-expanded="false"
@@ -152,15 +193,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="pushTitle"
+                id="keywordsAndMentionsTitle"
               >
-                Mobile Push Notifications
+                Keywords that trigger notifications
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="pushTitle pushEdit"
+                aria-labelledby="keywordsAndMentionsTitle keywordsAndMentionsEdit"
                 class="color--link style--none section-min__edit"
-                id="pushEdit"
+                id="keywordsAndMentionsEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -171,42 +212,7 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="pushDesc"
-            >
-              Never
-            </div>
-          </div>
-          <div
-            class="divider-light"
-          />
-          <div
-            class="section-min"
-          >
-            <div
-              class="secion-min__header"
-            >
-              <h4
-                class="section-min__title"
-                id="keysWithNotificationTitle"
-              >
-                Keywords That Trigger Notifications
-              </h4>
-              <button
-                aria-expanded="false"
-                aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
-                class="color--link style--none section-min__edit"
-                id="keysWithNotificationEdit"
-              >
-                <i
-                  class="icon-pencil-outline"
-                  title="Edit Icon"
-                />
-                Edit
-              </button>
-            </div>
-            <div
-              class="section-min__describe"
-              id="keysWithNotificationDesc"
+              id="keywordsAndMentionsDesc"
             >
               "@some-user"
             </div>
@@ -222,15 +228,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="keysWithHighlightTitle"
+                id="keywordsAndHighlightTitle"
               >
-                Keywords That Get Highlighted (Without Notifications)
+                Keywords that get highlighted (without notifications)
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="keysWithHighlightTitle keysWithHighlightEdit"
+                aria-labelledby="keywordsAndHighlightTitle keywordsAndHighlightEdit"
                 class="color--link style--none section-min__edit"
-                id="keysWithHighlightEdit"
+                id="keywordsAndHighlightEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -241,7 +247,7 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="keysWithHighlightDesc"
+              id="keywordsAndHighlightDesc"
             >
               None
             </div>
@@ -286,14 +292,14 @@ Object {
               class="fa fa-angle-left"
             />
           </div>
-          Notification Settings
+          Notification settings
         </h4>
       </div>
       <div
         class="user-settings"
       >
         <div
-          class="notificationSettingsModalHeader"
+          class="userSettingDesktopHeader"
         >
           <h3
             class="tab-header"
@@ -301,27 +307,33 @@ Object {
           >
             Notifications
           </h3>
-          <a
-            href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
-            rel="noopener noreferrer"
-            target="_blank"
+          <div
+            class="userSettingDesktopHeaderInfo"
           >
-            <svg
-              fill="currentColor"
-              height="1em"
-              version="1.1"
-              viewBox="0 0 24 24"
-              width="1em"
-              xmlns="http://www.w3.org/2000/svg"
+            <a
+              class="btn btn-link"
+              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              <path
-                d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
-              />
-            </svg>
-            <span>
-              Learn more about notifications
-            </span>
-          </a>
+              <svg
+                class="circular-border"
+                fill="currentColor"
+                height="1em"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="1em"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
+                />
+              </svg>
+              <span>
+                Learn more about notifications
+              </span>
+            </a>
+          </div>
         </div>
         <div
           class="divider-dark first"
@@ -334,15 +346,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="desktopTitle"
+              id="desktopAndMobileTitle"
             >
-              Desktop Notifications
+              Desktop and mobile notifications
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="desktopTitle desktopEdit"
+              aria-labelledby="desktopAndMobileTitle desktopAndMobileEdit"
               class="color--link style--none section-min__edit"
-              id="desktopEdit"
+              id="desktopAndMobileEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -353,9 +365,44 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="desktopDesc"
+            id="desktopAndMobileDesc"
           >
-            For all activity, without sound
+            Configure desktop and mobile settings
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="section-min"
+        >
+          <div
+            class="secion-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="desktopNotificationSoundTitle"
+            >
+              Desktop notification sounds
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="desktopNotificationSoundTitle desktopNotificationSoundEdit"
+              class="color--link style--none section-min__edit"
+              id="desktopNotificationSoundEdit"
+            >
+              <i
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="desktopNotificationSoundDesc"
+          >
+            No sound
           </div>
         </div>
         <div
@@ -371,7 +418,7 @@ Object {
               class="section-min__title"
               id="emailTitle"
             >
-              Email Notifications
+              Email notifications
             </h4>
             <button
               aria-expanded="false"
@@ -404,15 +451,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="pushTitle"
+              id="keywordsAndMentionsTitle"
             >
-              Mobile Push Notifications
+              Keywords that trigger notifications
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="pushTitle pushEdit"
+              aria-labelledby="keywordsAndMentionsTitle keywordsAndMentionsEdit"
               class="color--link style--none section-min__edit"
-              id="pushEdit"
+              id="keywordsAndMentionsEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -423,42 +470,7 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="pushDesc"
-          >
-            Never
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="section-min"
-        >
-          <div
-            class="secion-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="keysWithNotificationTitle"
-            >
-              Keywords That Trigger Notifications
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
-              class="color--link style--none section-min__edit"
-              id="keysWithNotificationEdit"
-            >
-              <i
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="keysWithNotificationDesc"
+            id="keywordsAndMentionsDesc"
           >
             "@some-user"
           </div>
@@ -474,15 +486,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="keysWithHighlightTitle"
+              id="keywordsAndHighlightTitle"
             >
-              Keywords That Get Highlighted (Without Notifications)
+              Keywords that get highlighted (without notifications)
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="keysWithHighlightTitle keysWithHighlightEdit"
+              aria-labelledby="keywordsAndHighlightTitle keywordsAndHighlightEdit"
               class="color--link style--none section-min__edit"
-              id="keysWithHighlightEdit"
+              id="keywordsAndHighlightEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -493,7 +505,7 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="keysWithHighlightDesc"
+            id="keywordsAndHighlightDesc"
           >
             None
           </div>
@@ -597,14 +609,14 @@ Object {
                 class="fa fa-angle-left"
               />
             </div>
-            Notification Settings
+            Notification settings
           </h4>
         </div>
         <div
           class="user-settings"
         >
           <div
-            class="notificationSettingsModalHeader"
+            class="userSettingDesktopHeader"
           >
             <h3
               class="tab-header"
@@ -612,27 +624,33 @@ Object {
             >
               Notifications
             </h3>
-            <a
-              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
-              rel="noopener noreferrer"
-              target="_blank"
+            <div
+              class="userSettingDesktopHeaderInfo"
             >
-              <svg
-                fill="currentColor"
-                height="1em"
-                version="1.1"
-                viewBox="0 0 24 24"
-                width="1em"
-                xmlns="http://www.w3.org/2000/svg"
+              <a
+                class="btn btn-link"
+                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+                rel="noopener noreferrer"
+                target="_blank"
               >
-                <path
-                  d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
-                />
-              </svg>
-              <span>
-                Learn more about notifications
-              </span>
-            </a>
+                <svg
+                  class="circular-border"
+                  fill="currentColor"
+                  height="1em"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
+                  />
+                </svg>
+                <span>
+                  Learn more about notifications
+                </span>
+              </a>
+            </div>
           </div>
           <div
             class="divider-dark first"
@@ -645,15 +663,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="desktopTitle"
+                id="desktopAndMobileTitle"
               >
-                Desktop Notifications
+                Desktop and mobile notifications
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="desktopTitle desktopEdit"
+                aria-labelledby="desktopAndMobileTitle desktopAndMobileEdit"
                 class="color--link style--none section-min__edit"
-                id="desktopEdit"
+                id="desktopAndMobileEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -664,9 +682,44 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="desktopDesc"
+              id="desktopAndMobileDesc"
             >
-              For all activity, without sound
+              Configure desktop and mobile settings
+            </div>
+          </div>
+          <div
+            class="divider-light"
+          />
+          <div
+            class="section-min"
+          >
+            <div
+              class="secion-min__header"
+            >
+              <h4
+                class="section-min__title"
+                id="desktopNotificationSoundTitle"
+              >
+                Desktop notification sounds
+              </h4>
+              <button
+                aria-expanded="false"
+                aria-labelledby="desktopNotificationSoundTitle desktopNotificationSoundEdit"
+                class="color--link style--none section-min__edit"
+                id="desktopNotificationSoundEdit"
+              >
+                <i
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
+            </div>
+            <div
+              class="section-min__describe"
+              id="desktopNotificationSoundDesc"
+            >
+              No sound
             </div>
           </div>
           <div
@@ -682,7 +735,7 @@ Object {
                 class="section-min__title"
                 id="emailTitle"
               >
-                Email Notifications
+                Email notifications
               </h4>
               <button
                 aria-expanded="false"
@@ -715,15 +768,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="pushTitle"
+                id="keywordsAndMentionsTitle"
               >
-                Mobile Push Notifications
+                Keywords that trigger notifications
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="pushTitle pushEdit"
+                aria-labelledby="keywordsAndMentionsTitle keywordsAndMentionsEdit"
                 class="color--link style--none section-min__edit"
-                id="pushEdit"
+                id="keywordsAndMentionsEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -734,42 +787,7 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="pushDesc"
-            >
-              Never
-            </div>
-          </div>
-          <div
-            class="divider-light"
-          />
-          <div
-            class="section-min"
-          >
-            <div
-              class="secion-min__header"
-            >
-              <h4
-                class="section-min__title"
-                id="keysWithNotificationTitle"
-              >
-                Keywords That Trigger Notifications
-              </h4>
-              <button
-                aria-expanded="false"
-                aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
-                class="color--link style--none section-min__edit"
-                id="keysWithNotificationEdit"
-              >
-                <i
-                  class="icon-pencil-outline"
-                  title="Edit Icon"
-                />
-                Edit
-              </button>
-            </div>
-            <div
-              class="section-min__describe"
-              id="keysWithNotificationDesc"
+              id="keywordsAndMentionsDesc"
             >
               "@some-user"
             </div>
@@ -788,9 +806,9 @@ Object {
             >
               <h4
                 class="section-min__title isDisabled"
-                id="keysWithHighlightTitle"
+                id="keywordsAndHighlightTitle"
               >
-                Keywords That Get Highlighted (Without Notifications)
+                Keywords that get highlighted (without notifications)
               </h4>
               <span
                 class="RestrictedIndicator__icon-tooltip-container"
@@ -810,7 +828,7 @@ Object {
             </div>
             <div
               class="section-min__describe isDisabled"
-              id="keysWithHighlightDesc"
+              id="keywordsAndHighlightDesc"
             >
               None
             </div>
@@ -852,14 +870,14 @@ Object {
               class="fa fa-angle-left"
             />
           </div>
-          Notification Settings
+          Notification settings
         </h4>
       </div>
       <div
         class="user-settings"
       >
         <div
-          class="notificationSettingsModalHeader"
+          class="userSettingDesktopHeader"
         >
           <h3
             class="tab-header"
@@ -867,27 +885,33 @@ Object {
           >
             Notifications
           </h3>
-          <a
-            href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
-            rel="noopener noreferrer"
-            target="_blank"
+          <div
+            class="userSettingDesktopHeaderInfo"
           >
-            <svg
-              fill="currentColor"
-              height="1em"
-              version="1.1"
-              viewBox="0 0 24 24"
-              width="1em"
-              xmlns="http://www.w3.org/2000/svg"
+            <a
+              class="btn btn-link"
+              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              <path
-                d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
-              />
-            </svg>
-            <span>
-              Learn more about notifications
-            </span>
-          </a>
+              <svg
+                class="circular-border"
+                fill="currentColor"
+                height="1em"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="1em"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
+                />
+              </svg>
+              <span>
+                Learn more about notifications
+              </span>
+            </a>
+          </div>
         </div>
         <div
           class="divider-dark first"
@@ -900,15 +924,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="desktopTitle"
+              id="desktopAndMobileTitle"
             >
-              Desktop Notifications
+              Desktop and mobile notifications
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="desktopTitle desktopEdit"
+              aria-labelledby="desktopAndMobileTitle desktopAndMobileEdit"
               class="color--link style--none section-min__edit"
-              id="desktopEdit"
+              id="desktopAndMobileEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -919,9 +943,44 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="desktopDesc"
+            id="desktopAndMobileDesc"
           >
-            For all activity, without sound
+            Configure desktop and mobile settings
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="section-min"
+        >
+          <div
+            class="secion-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="desktopNotificationSoundTitle"
+            >
+              Desktop notification sounds
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="desktopNotificationSoundTitle desktopNotificationSoundEdit"
+              class="color--link style--none section-min__edit"
+              id="desktopNotificationSoundEdit"
+            >
+              <i
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="desktopNotificationSoundDesc"
+          >
+            No sound
           </div>
         </div>
         <div
@@ -937,7 +996,7 @@ Object {
               class="section-min__title"
               id="emailTitle"
             >
-              Email Notifications
+              Email notifications
             </h4>
             <button
               aria-expanded="false"
@@ -970,15 +1029,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="pushTitle"
+              id="keywordsAndMentionsTitle"
             >
-              Mobile Push Notifications
+              Keywords that trigger notifications
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="pushTitle pushEdit"
+              aria-labelledby="keywordsAndMentionsTitle keywordsAndMentionsEdit"
               class="color--link style--none section-min__edit"
-              id="pushEdit"
+              id="keywordsAndMentionsEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -989,42 +1048,7 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="pushDesc"
-          >
-            Never
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="section-min"
-        >
-          <div
-            class="secion-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="keysWithNotificationTitle"
-            >
-              Keywords That Trigger Notifications
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
-              class="color--link style--none section-min__edit"
-              id="keysWithNotificationEdit"
-            >
-              <i
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="keysWithNotificationDesc"
+            id="keywordsAndMentionsDesc"
           >
             "@some-user"
           </div>
@@ -1043,9 +1067,9 @@ Object {
           >
             <h4
               class="section-min__title isDisabled"
-              id="keysWithHighlightTitle"
+              id="keywordsAndHighlightTitle"
             >
-              Keywords That Get Highlighted (Without Notifications)
+              Keywords that get highlighted (without notifications)
             </h4>
             <span
               class="RestrictedIndicator__icon-tooltip-container"
@@ -1065,7 +1089,7 @@ Object {
           </div>
           <div
             class="section-min__describe isDisabled"
-            id="keysWithHighlightDesc"
+            id="keywordsAndHighlightDesc"
           >
             None
           </div>
@@ -1166,14 +1190,14 @@ Object {
                 class="fa fa-angle-left"
               />
             </div>
-            Notification Settings
+            Notification settings
           </h4>
         </div>
         <div
           class="user-settings"
         >
           <div
-            class="notificationSettingsModalHeader"
+            class="userSettingDesktopHeader"
           >
             <h3
               class="tab-header"
@@ -1181,27 +1205,33 @@ Object {
             >
               Notifications
             </h3>
-            <a
-              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
-              rel="noopener noreferrer"
-              target="_blank"
+            <div
+              class="userSettingDesktopHeaderInfo"
             >
-              <svg
-                fill="currentColor"
-                height="1em"
-                version="1.1"
-                viewBox="0 0 24 24"
-                width="1em"
-                xmlns="http://www.w3.org/2000/svg"
+              <a
+                class="btn btn-link"
+                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+                rel="noopener noreferrer"
+                target="_blank"
               >
-                <path
-                  d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
-                />
-              </svg>
-              <span>
-                Learn more about notifications
-              </span>
-            </a>
+                <svg
+                  class="circular-border"
+                  fill="currentColor"
+                  height="1em"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
+                  />
+                </svg>
+                <span>
+                  Learn more about notifications
+                </span>
+              </a>
+            </div>
           </div>
           <div
             class="divider-dark first"
@@ -1214,15 +1244,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="desktopTitle"
+                id="desktopAndMobileTitle"
               >
-                Desktop Notifications
+                Desktop and mobile notifications
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="desktopTitle desktopEdit"
+                aria-labelledby="desktopAndMobileTitle desktopAndMobileEdit"
                 class="color--link style--none section-min__edit"
-                id="desktopEdit"
+                id="desktopAndMobileEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -1233,9 +1263,44 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="desktopDesc"
+              id="desktopAndMobileDesc"
             >
-              For all activity, without sound
+              Configure desktop and mobile settings
+            </div>
+          </div>
+          <div
+            class="divider-light"
+          />
+          <div
+            class="section-min"
+          >
+            <div
+              class="secion-min__header"
+            >
+              <h4
+                class="section-min__title"
+                id="desktopNotificationSoundTitle"
+              >
+                Desktop notification sounds
+              </h4>
+              <button
+                aria-expanded="false"
+                aria-labelledby="desktopNotificationSoundTitle desktopNotificationSoundEdit"
+                class="color--link style--none section-min__edit"
+                id="desktopNotificationSoundEdit"
+              >
+                <i
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
+            </div>
+            <div
+              class="section-min__describe"
+              id="desktopNotificationSoundDesc"
+            >
+              No sound
             </div>
           </div>
           <div
@@ -1251,7 +1316,7 @@ Object {
                 class="section-min__title"
                 id="emailTitle"
               >
-                Email Notifications
+                Email notifications
               </h4>
               <button
                 aria-expanded="false"
@@ -1284,15 +1349,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="pushTitle"
+                id="keywordsAndMentionsTitle"
               >
-                Mobile Push Notifications
+                Keywords that trigger notifications
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="pushTitle pushEdit"
+                aria-labelledby="keywordsAndMentionsTitle keywordsAndMentionsEdit"
                 class="color--link style--none section-min__edit"
-                id="pushEdit"
+                id="keywordsAndMentionsEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -1303,42 +1368,7 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="pushDesc"
-            >
-              Never
-            </div>
-          </div>
-          <div
-            class="divider-light"
-          />
-          <div
-            class="section-min"
-          >
-            <div
-              class="secion-min__header"
-            >
-              <h4
-                class="section-min__title"
-                id="keysWithNotificationTitle"
-              >
-                Keywords That Trigger Notifications
-              </h4>
-              <button
-                aria-expanded="false"
-                aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
-                class="color--link style--none section-min__edit"
-                id="keysWithNotificationEdit"
-              >
-                <i
-                  class="icon-pencil-outline"
-                  title="Edit Icon"
-                />
-                Edit
-              </button>
-            </div>
-            <div
-              class="section-min__describe"
-              id="keysWithNotificationDesc"
+              id="keywordsAndMentionsDesc"
             >
               "@some-user"
             </div>
@@ -1383,14 +1413,14 @@ Object {
               class="fa fa-angle-left"
             />
           </div>
-          Notification Settings
+          Notification settings
         </h4>
       </div>
       <div
         class="user-settings"
       >
         <div
-          class="notificationSettingsModalHeader"
+          class="userSettingDesktopHeader"
         >
           <h3
             class="tab-header"
@@ -1398,27 +1428,33 @@ Object {
           >
             Notifications
           </h3>
-          <a
-            href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
-            rel="noopener noreferrer"
-            target="_blank"
+          <div
+            class="userSettingDesktopHeaderInfo"
           >
-            <svg
-              fill="currentColor"
-              height="1em"
-              version="1.1"
-              viewBox="0 0 24 24"
-              width="1em"
-              xmlns="http://www.w3.org/2000/svg"
+            <a
+              class="btn btn-link"
+              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=&uid=&sid="
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              <path
-                d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
-              />
-            </svg>
-            <span>
-              Learn more about notifications
-            </span>
-          </a>
+              <svg
+                class="circular-border"
+                fill="currentColor"
+                height="1em"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="1em"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
+                />
+              </svg>
+              <span>
+                Learn more about notifications
+              </span>
+            </a>
+          </div>
         </div>
         <div
           class="divider-dark first"
@@ -1431,15 +1467,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="desktopTitle"
+              id="desktopAndMobileTitle"
             >
-              Desktop Notifications
+              Desktop and mobile notifications
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="desktopTitle desktopEdit"
+              aria-labelledby="desktopAndMobileTitle desktopAndMobileEdit"
               class="color--link style--none section-min__edit"
-              id="desktopEdit"
+              id="desktopAndMobileEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -1450,9 +1486,44 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="desktopDesc"
+            id="desktopAndMobileDesc"
           >
-            For all activity, without sound
+            Configure desktop and mobile settings
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="section-min"
+        >
+          <div
+            class="secion-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="desktopNotificationSoundTitle"
+            >
+              Desktop notification sounds
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="desktopNotificationSoundTitle desktopNotificationSoundEdit"
+              class="color--link style--none section-min__edit"
+              id="desktopNotificationSoundEdit"
+            >
+              <i
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="desktopNotificationSoundDesc"
+          >
+            No sound
           </div>
         </div>
         <div
@@ -1468,7 +1539,7 @@ Object {
               class="section-min__title"
               id="emailTitle"
             >
-              Email Notifications
+              Email notifications
             </h4>
             <button
               aria-expanded="false"
@@ -1501,15 +1572,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="pushTitle"
+              id="keywordsAndMentionsTitle"
             >
-              Mobile Push Notifications
+              Keywords that trigger notifications
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="pushTitle pushEdit"
+              aria-labelledby="keywordsAndMentionsTitle keywordsAndMentionsEdit"
               class="color--link style--none section-min__edit"
-              id="pushEdit"
+              id="keywordsAndMentionsEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -1520,42 +1591,7 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="pushDesc"
-          >
-            Never
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="section-min"
-        >
-          <div
-            class="secion-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="keysWithNotificationTitle"
-            >
-              Keywords That Trigger Notifications
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
-              class="color--link style--none section-min__edit"
-              id="keysWithNotificationEdit"
-            >
-              <i
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="keysWithNotificationDesc"
+            id="keywordsAndMentionsDesc"
           >
             "@some-user"
           </div>

@@ -1,0 +1,26 @@
+.modal-info-tab-content {
+    display: flex;
+
+    .name-description-container {
+        flex: 2;
+    }
+
+    .description-section-input {
+        fieldset {
+            height: 100%;
+        }
+    }
+
+    #teamName,
+    #teamDescription {
+        background-color: unset;
+    }
+
+    .description-setting-item {
+        margin-top: 24px;
+    }
+}
+
+.modal-header {
+    background-color: var(--center-channel-bg);
+}

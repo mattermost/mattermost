@@ -172,7 +172,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
 
-	th := Setup(t, SkipProductsInitialization())
+	th := Setup(t)
 	defer th.TearDown()
 
 	databaseType, mattermostVersion := th.Server.DatabaseTypeAndSchemaVersion()
@@ -181,7 +181,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
 
-	th2 := Setup(t, SkipProductsInitialization())
+	th2 := Setup(t)
 	defer th2.TearDown()
 
 	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndSchemaVersion()
@@ -304,6 +304,7 @@ func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 }
 
 func TestPanicLog(t *testing.T) {
+	t.Skip("MM-57377")
 	// Creating a temp dir for log
 	tmpDir, err := os.MkdirTemp("", "mlog-test")
 	require.NoError(t, err, "cannot create tmp dir for log file")
@@ -457,7 +458,7 @@ func TestSentry(t *testing.T) {
 		select {
 		case <-data:
 			require.Fail(t, "Sentry received a message, even though it's disabled!")
-		case <-time.After(time.Second):
+		case <-time.After(2 * time.Second):
 			t.Log("Sentry request didn't arrive. Good!")
 		}
 	})

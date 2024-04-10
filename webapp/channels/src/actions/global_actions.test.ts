@@ -112,8 +112,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1'],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1']),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -185,8 +185,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1'],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1']),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -257,8 +257,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1'],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1']),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -382,8 +382,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1', directChannelId],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1', directChannelId]),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -479,8 +479,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1', directChannelId, groupChannelId],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1', directChannelId, groupChannelId]),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -554,8 +554,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1'],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1']),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {

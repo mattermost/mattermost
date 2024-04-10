@@ -18,10 +18,22 @@
 
     .sidebar--right & {
         padding-top: 12px;
+
+        .AutoHeight {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
     }
 
     .ThreadViewer & {
         padding-top: 12px;
+
+        .AutoHeight {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
     }
 
     .custom-textarea {
@@ -90,15 +102,15 @@
         justify-content: center;
         padding: 0;
         border: none;
-        background: transparent;
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         cursor: pointer;
         fill: currentColor;
 
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), 0.8);
             fill: currentColor;
             text-decoration: none;
         }
@@ -148,7 +160,7 @@
     &__helper-text {
         display: inline-block;
         margin: 8px 0 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-family: "Open Sans", sans-serif;
     }
 
@@ -190,9 +202,9 @@
         padding: 0;
 
         &__body {
+            border-radius: 0;
             border-right: none;
             border-left: none;
-            border-radius: 0;
 
             &:focus-visible,
             &:focus-within,

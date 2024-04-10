@@ -1,0 +1,134 @@
+---
+name: E2E Tests
+on:
+  # For PRs, this workflow gets triggered from the Argo Events platform.
+  # Check the following repo for details: https://github.com/mattermost/delivery-platform
+  workflow_dispatch:
+    inputs:
+      ref:
+        type: string
+        description: Branch or SHA of the commit to test. Ignored if PR_NUMBER is specified
+        required: false
+      PR_NUMBER:
+        type: string
+        description: If testing a PR, specify this instead of ref
+        required: false
+      MM_ENV:
+        type: string
+        required: false
+      REPORT_TYPE:
+        type: choice
+        description: The context this report is being generated in
+        options:
+          - PR
+          - RELEASE
+          - MASTER
+          - MASTER_UNSTABLE
+          - CLOUD
+          - CLOUD_UNSTABLE
+          - NONE
+        default: NONE
+
+jobs:
+  resolve-ref:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+    outputs:
+      commit_sha: "${{ steps.resolve-ref.outputs.commit_sha }}"
+      BRANCH: "${{ steps.resolve-ref.outputs.BRANCH }}"
+    env:
+      PR_NUMBER: "${{ inputs.PR_NUMBER }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: "${{ inputs.ref || github.sha }}"
+          fetch-depth: 0
+      - name: ci/resolve-ref
+        id: resolve-ref
+        run: |
+          set -e
+          if [ -n "$PR_NUMBER" ]; then
+            curl -fsSL -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" -H "Authorization: Bearer ${{ github.token }}" "${{ github.api_url }}/repos/${{ github.repository }}/pulls/${PR_NUMBER}" -o pr.json
+            echo "commit_sha=$(jq -r .head.sha <pr.json)" >> $GITHUB_OUTPUT
+            echo "BRANCH=server-pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
+            #echo "BRANCH=$(jq -r .head.ref <pr.json)" >> $GITHUB_OUTPUT
+          else
+            echo "commit_sha=$(git rev-parse --verify HEAD)" >> $GITHUB_OUTPUT
+            echo "BRANCH=${{ inputs.ref || github.sha }}" >> $GITHUB_OUTPUT
+          fi
+  generate-test-variables:
+    runs-on: ubuntu-22.04
+    needs:
+      - resolve-ref
+    defaults:
+      run:
+        shell: bash
+    outputs:
+      status_check_context: "${{ steps.generate.outputs.status_check_context }}"
+      workers_number: "${{ steps.generate.outputs.workers_number }}"
+      ENABLED_DOCKER_SERVICES: "${{ steps.generate.outputs.ENABLED_DOCKER_SERVICES }}"
+      TEST_FILTER: "${{ steps.generate.outputs.TEST_FILTER }}"
+      BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"
+    env:
+      # We could exclude the @smoke group for PRs, but then we wouldn't have it in the report
+      TEST_FILTER_PR: >-
+        --stage="@prod"
+        --excludeGroup="@te_only,@cloud_only,@high_availability"
+        --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap"
+        --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
+    steps:
+      - name: ci/generate-test-variables
+        id: generate
+        run: |
+          COMMIT_SHA="${{needs.resolve-ref.outputs.commit_sha}}"
+          # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
+          # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
+          BUILD_ID_PREFIX="${{ github.run_id }}_${{ github.run_attempt }}-${COMMIT_SHA::7}"
+          case "${{ inputs.REPORT_TYPE }}" in
+            NONE | PR)
+              echo "status_check_context=E2E Tests/test" >> $GITHUB_OUTPUT
+              echo "workers_number=20" >> $GITHUB_OUTPUT
+              echo "ENABLED_DOCKER_SERVICES=postgres inbucket minio openldap elasticsearch keycloak" >> $GITHUB_OUTPUT
+              echo "TEST_FILTER=$TEST_FILTER_PR" >> $GITHUB_OUTPUT
+              echo "BUILD_ID=${BUILD_ID_PREFIX}-pr-onprem-ent" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              # TODO implement other test types, in the future
+              echo "Fatal: unimplemented test type. Aborting."
+              exit 1
+          esac
+
+  e2e-fulltest:
+    needs:
+      - resolve-ref
+      - generate-test-variables
+    uses: ./.github/workflows/e2e-tests-ci-template.yml
+    strategy:
+      matrix:
+        type:
+        - name: PR
+    with:
+      commit_sha: "${{ needs.resolve-ref.outputs.commit_sha }}"
+      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}"
+      workers_number: "${{ needs.generate-test-variables.outputs.workers_number }}"
+      testcase_failure_fatal: false
+      run_preflight_checks: false
+      enable_reporting: true
+      ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
+      TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER }}"
+      MM_ENV: "${{ inputs.MM_ENV || '' }}"
+      BRANCH: "${{ needs.resolve-ref.outputs.BRANCH }}"
+      BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
+      REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"
+    secrets:
+      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
+      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
+      PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      ### These are disabled until release tests are implemented
+      #REPORT_TM4J_API_KEY: "${{ secrets.MM_E2E_TM4J_API_KEY }}"
+      #REPORT_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_TEST_CYCLE_LINK_PREFIX }}"

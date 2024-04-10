@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ReactWrapper} from 'enzyme';
+import type {ComponentProps} from 'react';
 import React from 'react';
 import {Provider} from 'react-redux';
 import {BrowserRouter} from 'react-router-dom';
@@ -84,7 +85,7 @@ describe('component/user_group_popover', () => {
             },
             users: {
                 profiles,
-                profilesInGroup: profilesInGroup as any, // HARRISONTODO The type entities.users.profilesInGroup is incorrectly an array when it should be a Set
+                profilesInGroup,
             },
             preferences: {
                 myPreferences: {},
@@ -100,10 +101,9 @@ describe('component/user_group_popover', () => {
         },
     };
 
-    const baseProps = {
+    const baseProps: ComponentProps<typeof UserGroupPopover> = {
         searchTerm: '',
         group: group1,
-        canManageGroup: true,
         showUserOverlay: jest.fn(),
         hide: jest.fn(),
         returnFocus: jest.fn(),

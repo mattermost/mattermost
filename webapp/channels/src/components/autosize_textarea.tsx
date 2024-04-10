@@ -32,7 +32,7 @@ const styles = {
     placeholder: {
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        opacity: 0.5,
+        opacity: 0.75,
         pointerEvents: 'none' as const,
         position: 'absolute' as const,
         whiteSpace: 'nowrap' as const,

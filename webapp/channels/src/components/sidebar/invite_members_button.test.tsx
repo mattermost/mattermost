@@ -35,7 +35,7 @@ describe('components/sidebar/invite_members_button', () => {
                 },
                 stats: {
                     total_users_count: 10,
-                } as any, // HARRISONTODO The defined type of entities.users.stats is incorrect
+                },
             },
             roles: {
                 roles: {

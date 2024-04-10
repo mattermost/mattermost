@@ -588,6 +588,14 @@ func (c *Client4) limitsRoute() string {
 	return "/limits"
 }
 
+func (c *Client4) bookmarksRoute(channelId string) string {
+	return c.channelRoute(channelId) + "/bookmarks"
+}
+
+func (c *Client4) bookmarkRoute(channelId, bookmarkId string) string {
+	return fmt.Sprintf(c.bookmarksRoute(channelId)+"/%v", bookmarkId)
+}
+
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
 	return c.DoAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
 }
@@ -4607,38 +4615,46 @@ func (c *Client4) GenerateSupportPacket(ctx context.Context) ([]byte, *Response,
 }
 
 // GetPing will return ok if the running goRoutines are below the threshold and unhealthy for above.
+// DEPRECATED: Use GetPingWithOptions method instead.
 func (c *Client4) GetPing(ctx context.Context) (string, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/ping", "")
-	if r != nil && r.StatusCode == 500 {
-		defer r.Body.Close()
-		return StatusUnhealthy, BuildResponse(r), err
+	ping, resp, err := c.GetPingWithOptions(ctx, SystemPingOptions{})
+	status := ""
+	if ping != nil {
+		status = ping["status"]
 	}
-	if err != nil {
-		return "", BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return MapFromJSON(r.Body)["status"], BuildResponse(r), nil
+	return status, resp, err
 }
 
 // GetPingWithServerStatus will return ok if several basic server health checks
 // all pass successfully.
+// DEPRECATED: Use GetPingWithOptions method instead.
 func (c *Client4) GetPingWithServerStatus(ctx context.Context) (string, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/ping?get_server_status="+c.boolString(true), "")
-	if r != nil && r.StatusCode == 500 {
-		defer r.Body.Close()
-		return StatusUnhealthy, BuildResponse(r), err
+	ping, resp, err := c.GetPingWithOptions(ctx, SystemPingOptions{FullStatus: true})
+	status := ""
+	if ping != nil {
+		status = ping["status"]
 	}
-	if err != nil {
-		return "", BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return MapFromJSON(r.Body)["status"], BuildResponse(r), nil
+	return status, resp, err
 }
 
 // GetPingWithFullServerStatus will return the full status if several basic server
 // health checks all pass successfully.
+// DEPRECATED: Use GetPingWithOptions method instead.
 func (c *Client4) GetPingWithFullServerStatus(ctx context.Context) (map[string]string, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/ping?get_server_status="+c.boolString(true), "")
+	return c.GetPingWithOptions(ctx, SystemPingOptions{FullStatus: true})
+}
+
+// GetPingWithOptions will return the status according to the options
+func (c *Client4) GetPingWithOptions(ctx context.Context, options SystemPingOptions) (map[string]string, *Response, error) {
+	pingURL, err := url.Parse(c.systemRoute() + "/ping")
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not parse query: %w", err)
+	}
+	values := pingURL.Query()
+	values.Set("get_server_status", c.boolString(options.FullStatus))
+	values.Set("use_rest_semantics", c.boolString(options.RESTSemantics))
+	pingURL.RawQuery = values.Encode()
+	r, err := c.DoAPIGet(ctx, pingURL.String(), "")
 	if r != nil && r.StatusCode == 500 {
 		defer r.Body.Close()
 		return map[string]string{"status": StatusUnhealthy}, BuildResponse(r), err
@@ -8908,4 +8924,86 @@ func (c *Client4) GetUserLimits(ctx context.Context) (*UserLimits, *Response, er
 		return nil, nil, NewAppError("GetUserLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &userLimits, BuildResponse(r), nil
+}
+
+// CreateChannelBookmark creates a channel bookmark based on the provided struct.
+func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmark, *Response, error) {
+	channelBookmarkJSON, err := json.Marshal(channelBookmark)
+	if err != nil {
+		return nil, nil, NewAppError("CreateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, c.bookmarksRoute(channelBookmark.ChannelId), channelBookmarkJSON)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var cb ChannelBookmark
+	if err := json.NewDecoder(r.Body).Decode(&cb); err != nil {
+		return nil, nil, NewAppError("CreateChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &cb, BuildResponse(r), nil
+}
+
+// UpdateChannelBookmark updates a channel bookmark based on the provided struct.
+func (c *Client4) UpdateChannelBookmark(ctx context.Context, channelId, bookmarkId string, patch *ChannelBookmarkPatch) (*UpdateChannelBookmarkResponse, *Response, error) {
+	buf, err := json.Marshal(patch)
+	if err != nil {
+		return nil, nil, NewAppError("UpdateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPatchBytes(ctx, c.bookmarkRoute(channelId, bookmarkId), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var ucb UpdateChannelBookmarkResponse
+	if err := json.NewDecoder(r.Body).Decode(&ucb); err != nil {
+		return nil, nil, NewAppError("UpdateChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &ucb, BuildResponse(r), nil
+}
+
+// UpdateChannelBookmarkSortOrder updates a channel bookmark's sort order based on the provided new index.
+func (c *Client4) UpdateChannelBookmarkSortOrder(ctx context.Context, channelId, bookmarkId string, sortOrder int64) ([]*ChannelBookmarkWithFileInfo, *Response, error) {
+	buf, err := json.Marshal(sortOrder)
+	if err != nil {
+		return nil, nil, NewAppError("UpdateChannelBookmarkSortOrder", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, c.bookmarkRoute(channelId, bookmarkId)+"/sort_order", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var b []*ChannelBookmarkWithFileInfo
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+		return nil, nil, NewAppError("UpdateChannelBookmarkSortOrder", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return b, BuildResponse(r), nil
+}
+
+// DeleteChannelBookmark deletes a channel bookmark.
+func (c *Client4) DeleteChannelBookmark(ctx context.Context, channelId, bookmarkId string) (*ChannelBookmarkWithFileInfo, *Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.bookmarkRoute(channelId, bookmarkId))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var b *ChannelBookmarkWithFileInfo
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+		return nil, nil, NewAppError("DeleteChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return b, BuildResponse(r), nil
+}
+
+func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId string, since int64) ([]*ChannelBookmarkWithFileInfo, *Response, error) {
+	query := fmt.Sprintf("?bookmarks_since=%v", since)
+	r, err := c.DoAPIGet(ctx, c.bookmarksRoute(channelId)+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var b []*ChannelBookmarkWithFileInfo
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+		return nil, nil, NewAppError("ListChannelBookmarksForChannel", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return b, BuildResponse(r), nil
 }

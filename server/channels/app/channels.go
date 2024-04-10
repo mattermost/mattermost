@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"runtime"
 	"strings"
 	"sync"
@@ -16,31 +15,26 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
-const ServerKey product.ServiceKey = "server"
-
-// licenseSvc is added to act as a starting point for future integrated products.
-// It has the same signature and functionality with the license related APIs of the plugin-api.
-type licenseSvc interface {
-	GetLicense() *model.License
-	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
-	RequestTrialLicenseWithExtraFields(requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError
+type configService interface {
+	Config() *model.Config
+	AddConfigListener(listener func(*model.Config, *model.Config)) string
+	RemoveConfigListener(id string)
+	UpdateConfig(f func(*model.Config))
+	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
 }
 
 // Channels contains all channels related state.
 type Channels struct {
 	srv             *Server
-	cfgSvc          product.ConfigService
+	cfgSvc          configService
 	filestore       filestore.FileBackend
 	exportFilestore filestore.FileBackend
-	licenseSvc      licenseSvc
-	routerSvc       *routerService
 
 	postActionCookieSecret []byte
 
@@ -84,76 +78,16 @@ type Channels struct {
 	postReminderTask *model.ScheduledTask
 }
 
-func init() {
-	product.RegisterProduct("channels", product.Manifest{
-		Initializer: func(services map[product.ServiceKey]any) (product.Product, error) {
-			return NewChannels(services)
-		},
-		Dependencies: map[product.ServiceKey]struct{}{
-			ServerKey:                  {},
-			product.ConfigKey:          {},
-			product.LicenseKey:         {},
-			product.FilestoreKey:       {},
-			product.ExportFilestoreKey: {},
-		},
-	})
-}
-
-func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
-	s, ok := services[ServerKey].(*Server)
-	if !ok {
-		return nil, errors.New("server not passed")
-	}
+func NewChannels(s *Server) (*Channels, error) {
 	ch := &Channels{
-		srv:           s,
-		imageProxy:    imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap: map[string]bool{},
+		srv:             s,
+		imageProxy:      imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap:   map[string]bool{},
+		filestore:       s.FileBackend(),
+		exportFilestore: s.ExportFileBackend(),
+		cfgSvc:          s.Platform(),
 	}
 
-	// To get another service:
-	// 1. Prepare the service interface
-	// 2. Add the field to *Channels
-	// 3. Add the service key to the slice.
-	// 4. Add a new case in the switch statement.
-	requiredServices := []product.ServiceKey{
-		product.ConfigKey,
-		product.LicenseKey,
-		product.FilestoreKey,
-		product.ExportFilestoreKey,
-	}
-	for _, svcKey := range requiredServices {
-		svc, ok := services[svcKey]
-		if !ok {
-			return nil, fmt.Errorf("Service %s not passed", svcKey)
-		}
-		switch svcKey {
-		// Keep adding more services here
-		case product.ConfigKey:
-			cfgSvc, ok := svc.(product.ConfigService)
-			if !ok {
-				return nil, errors.New("Config service did not satisfy ConfigSvc interface")
-			}
-			ch.cfgSvc = cfgSvc
-		case product.FilestoreKey:
-			filestore, ok := svc.(filestore.FileBackend)
-			if !ok {
-				return nil, errors.New("Filestore service did not satisfy FileBackend interface")
-			}
-			ch.filestore = filestore
-		case product.ExportFilestoreKey:
-			exportFilestore, ok := svc.(filestore.FileBackend)
-			if !ok {
-				return nil, errors.New("Export filestore service did not satisfy FileBackend interface")
-			}
-			ch.exportFilestore = exportFilestore
-		case product.LicenseKey:
-			svc, ok := svc.(licenseSvc)
-			if !ok {
-				return nil, errors.New("License service did not satisfy licenseSvc interface")
-			}
-			ch.licenseSvc = svc
-		}
-	}
 	// We are passing a partially filled Channels struct so that the enterprise
 	// methods can have access to app methods.
 	// Otherwise, passing server would mean it has to call s.Channels(),
@@ -176,8 +110,8 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 	if notificationInterface != nil {
 		ch.Notification = notificationInterface(New(ServerConnector(ch)))
 	}
-	if samlInterfaceNew != nil {
-		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
+	if samlInterface != nil {
+		ch.Saml = samlInterface(New(ServerConnector(ch)))
 		if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
 			s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 		}
@@ -207,44 +141,11 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 		return nil, errors.Wrap(imgErr, "failed to create image encoder")
 	}
 
-	ch.routerSvc = newRouterService()
-	services[product.RouterKey] = ch.routerSvc
-
 	// Setup routes.
 	pluginsRoute := ch.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	pluginsRoute.HandleFunc("", ch.ServePluginRequest)
 	pluginsRoute.HandleFunc("/public/{public_file:.*}", ch.ServePluginPublicRequest)
 	pluginsRoute.HandleFunc("/{anything:.*}", ch.ServePluginRequest)
-
-	services[product.ChannelKey] = &channelsWrapper{
-		app: &App{ch: ch},
-	}
-
-	services[product.PostKey] = &postServiceWrapper{
-		app: &App{ch: ch},
-	}
-
-	services[product.PermissionsKey] = &permissionsServiceWrapper{
-		app: &App{ch: ch},
-	}
-
-	services[product.TeamKey] = &teamServiceWrapper{
-		app: &App{ch: ch},
-	}
-
-	services[product.BotKey] = &botServiceWrapper{
-		app: &App{ch: ch},
-	}
-
-	services[product.UserKey] = &App{ch: ch}
-
-	services[product.PreferencesKey] = &preferencesServiceWrapper{
-		app: &App{ch: ch},
-	}
-
-	services[product.CommandKey] = &App{ch: ch}
-
-	services[product.ThreadsKey] = &App{ch: ch}
 
 	return ch, nil
 }
@@ -314,35 +215,22 @@ func (ch *Channels) RemoveConfigListener(id string) {
 	ch.cfgSvc.RemoveConfigListener(id)
 }
 
-func (ch *Channels) License() *model.License {
-	return ch.licenseSvc.GetLicense()
-}
-
-func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError {
-	return ch.licenseSvc.RequestTrialLicenseWithExtraFields(requesterID, trialRequest)
-}
-
-func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
-	return ch.licenseSvc.RequestTrialLicense(requesterID, users, termsAccepted,
-		receiveEmailsAccepted)
-}
-
 func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
 	if env := ch.GetPluginsEnvironment(); env != nil {
 		env.RunMultiPluginHook(hookRunnerFunc, hookId)
 	}
 }
 
-func (ch *Channels) HooksForPluginOrProduct(id string) (plugin.Hooks, error) {
-	var hooks plugin.Hooks
-	if env := ch.GetPluginsEnvironment(); env != nil {
-		// we intentionally ignore the error here, because the id can be a product id
-		// we are going to check if we have the hooks or not
-		hooks, _ = env.HooksForPlugin(id)
-		if hooks != nil {
-			return hooks, nil
-		}
+func (ch *Channels) HooksForPlugin(id string) (plugin.Hooks, error) {
+	env := ch.GetPluginsEnvironment()
+	if env == nil {
+		return nil, errors.New("plugins are not initialized")
 	}
 
-	return nil, fmt.Errorf("could not find hooks for id %s", id)
+	hooks, err := env.HooksForPlugin(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return hooks, nil
 }

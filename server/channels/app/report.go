@@ -95,7 +95,7 @@ func (a *App) SendReportToUser(rctx request.CTX, job *model.Job, format string) 
 		return model.NewAppError("SendReportToUser", "app.report.send_report_to_user.missing_date_range", nil, "", http.StatusInternalServerError)
 	}
 
-	systemBot, err := a.GetSystemBot()
+	systemBot, err := a.GetSystemBot(rctx)
 	if err != nil {
 		return err
 	}
@@ -238,7 +238,7 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt 
 	}
 
 	a.Srv().Go(func() {
-		systemBot, err := a.GetSystemBot()
+		systemBot, err := a.GetSystemBot(rctx)
 		if err != nil {
 			rctx.Logger().Error("Failed to get the system bot", mlog.Err(err))
 			return

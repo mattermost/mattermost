@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Instance} from '@popperjs/core';
-import {debounce} from 'lodash';
+import debounce from 'lodash/debounce';
 import type React from 'react';
 import {useCallback, useEffect, useLayoutEffect, useState} from 'react';
 
