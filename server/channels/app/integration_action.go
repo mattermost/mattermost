@@ -453,7 +453,7 @@ func (a *App) DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.R
 	return a.doPluginRequest(c, "POST", rawURL, nil, body)
 }
 
-func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
+func (a *App) OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError {
 	timeout := time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
 	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey(), timeout)
 	if appErr != nil {
@@ -461,7 +461,7 @@ func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppE
 	}
 
 	if dialogErr := request.IsValid(); dialogErr != nil {
-		a.ch.srv.Log().Error("Interactive dialog is invalid", mlog.Err(dialogErr))
+		c.Logger().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
 	}
 
 	request.TriggerId = clientTriggerId

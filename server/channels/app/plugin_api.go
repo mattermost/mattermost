@@ -849,7 +849,7 @@ func (api *PluginAPI) SetTeamIcon(teamID string, data []byte) *model.AppError {
 }
 
 func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
-	return api.app.OpenInteractiveDialog(dialog)
+	return api.app.OpenInteractiveDialog(api.ctx, dialog)
 }
 
 func (api *PluginAPI) RemoveTeamIcon(teamID string) *model.AppError {

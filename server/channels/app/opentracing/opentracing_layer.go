@@ -13090,7 +13090,7 @@ func (a *OpenTracingAppLayer) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *mo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
+func (a *OpenTracingAppLayer) OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OpenInteractiveDialog")
 
@@ -13102,7 +13102,7 @@ func (a *OpenTracingAppLayer) OpenInteractiveDialog(request model.OpenDialogRequ
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.OpenInteractiveDialog(request)
+	resultVar0 := a.app.OpenInteractiveDialog(c, request)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

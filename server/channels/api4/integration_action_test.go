@@ -6,6 +6,8 @@ package api4
 import (
 	"context"
 	"encoding/json"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -209,7 +211,7 @@ func TestOpenDialog(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("Should fail with too long display name of elements", func(t *testing.T) {
+	t.Run("Should pass with too long display name of elements", func(t *testing.T) {
 		request.Dialog.Elements = []model.DialogElement{
 			{
 				DisplayName: "Very very long Element Name",
@@ -218,11 +220,19 @@ func TestOpenDialog(t *testing.T) {
 				Placeholder: "Enter a value",
 			},
 		}
-		_, err := client.OpenInteractiveDialog(context.Background(), request)
+
+		buffer := &mlog.Buffer{}
+		err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
 		require.NoError(t, err)
+
+		_, err = client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Interactive dialog is invalid")
 	})
 
-	t.Run("Should fail with same elements", func(t *testing.T) {
+	t.Run("Should pass with same elements", func(t *testing.T) {
 		request.Dialog.Elements = []model.DialogElement{
 			{
 				DisplayName: "Element Name",
@@ -237,8 +247,15 @@ func TestOpenDialog(t *testing.T) {
 				Placeholder: "Enter a value",
 			},
 		}
-		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		buffer := &mlog.Buffer{}
+		err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
 		require.NoError(t, err)
+
+		_, err = client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Interactive dialog is invalid")
 	})
 
 	t.Run("Should pass with nil elements slice", func(t *testing.T) {
