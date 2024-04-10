@@ -516,6 +516,14 @@
             ~ .custom-emoji__wrapper {
                 margin-left: 8px;
             }
+
+            @media screen and (max-width: 1024px){
+                display: none;
+
+                ~ .custom-emoji__wrapper {
+                    margin-left: 0px;
+                }
+            }
         }
 
 
@@ -523,6 +531,16 @@
         .custom-emoji__wrapper {
             display: flex;
             align-items: center;
+
+            > span {
+                margin-right: 2px;
+            }
+
+            @media screen and (max-width: 1024px){
+                .custom-emoji__text {
+                    display:none;
+                }
+            }
         }
 
         p {

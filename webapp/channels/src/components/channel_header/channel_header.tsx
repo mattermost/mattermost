@@ -239,6 +239,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                 />
                 <CustomStatusText
                     text={customStatus?.text}
+                    className='custom-emoji__text'
                 />
             </div>
         );
