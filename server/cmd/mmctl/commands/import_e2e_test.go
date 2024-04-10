@@ -366,3 +366,68 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		s.Require().Equal(job2, printer.GetLines()[1].(*model.Job))
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	serverPath := os.Getenv("MM_SERVER_PATH")
+	importName := "import_test.zip"
+	importFilePath := filepath.Join(serverPath, "tests", importName)
+
+	s.RunForSystemAdminAndLocal("defaults", func(_ client.Client) {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringArray("team", nil, "")
+		cmd.Flags().Bool("check-missing-teams", false, "")
+		cmd.Flags().Bool("ignore-attachments", false, "")
+		cmd.Flags().Bool("check-server-duplicates", true, "")
+
+		err := importValidateCmdF(cmd, []string{importFilePath})
+		s.Require().Nil(err)
+		s.Require().Empty(printer.GetErrorLines())
+
+		s.Require().Equal(Statistics{
+			Teams:          2,
+			Channels:       24,
+			Users:          16,
+			Posts:          2001,
+			DirectChannels: 79,
+			DirectPosts:    901,
+			Attachments:    2,
+		}, printer.GetLines()[0].(Statistics))
+		s.Require().Equal(struct {
+			UnusedAttachments []string `json:"unused_attachments"`
+		}{
+			UnusedAttachments: []string{"data/test2.png"},
+		}, printer.GetLines()[1].(struct {
+			UnusedAttachments []string `json:"unused_attachments"`
+		}))
+		s.Require().Equal("Validation complete\n", printer.GetLines()[3])
+	})
+
+	s.RunForSystemAdminAndLocal("ignore attachments", func(_ client.Client) {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringArray("team", nil, "")
+		cmd.Flags().Bool("check-missing-teams", false, "")
+		cmd.Flags().Bool("ignore-attachments", true, "")
+		cmd.Flags().Bool("check-server-duplicates", true, "")
+
+		err := importValidateCmdF(cmd, []string{importFilePath})
+		s.Require().Nil(err)
+		s.Require().Empty(printer.GetErrorLines())
+
+		s.Require().Equal(Statistics{
+			Teams:          2,
+			Channels:       24,
+			Users:          16,
+			Posts:          2001,
+			DirectChannels: 79,
+			DirectPosts:    901,
+			Attachments:    0,
+		}, printer.GetLines()[0].(Statistics))
+		s.Require().Equal("Validation complete\n", printer.GetLines()[2])
+	})
+}
