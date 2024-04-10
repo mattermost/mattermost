@@ -401,5 +401,6 @@ type RemoteClusterQueryFilter struct {
 	CreatorId      string
 	OnlyConfirmed  bool
 	PluginID       string
+	OnlyPlugins    bool
 	RequireOptions Bitmask
 }
