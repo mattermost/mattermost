@@ -2706,7 +2706,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                   userID="user_id"
                 />
                 <CustomStatusText
-                  className=""
+                  className="custom-emoji__text"
                   text="In a meeting"
                   tooltipDirection="bottom"
                 />
