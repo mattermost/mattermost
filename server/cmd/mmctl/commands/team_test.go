@@ -734,8 +734,10 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 		cmd.Flags().Bool("private", true, "")
 
 		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
-		s.Require().Nil(err)
-		s.Require().Equal("Unable to find team 'team1'", printer.GetErrorLines()[0])
+
+		expectedError := "Unable to find team 'team1'"
+		s.Require().ErrorContains(err, expectedError)
+		s.Require().Equal(expectedError, printer.GetErrorLines()[0])
 	})
 
 	s.Run("Modify teams, set to private", func() {
@@ -823,8 +825,10 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 		cmd.Flags().Bool("public", true, "")
 
 		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
-		s.Require().Nil(err)
-		s.Require().Equal("Unable to modify team 'team1' error: an error occurred modifying a team",
+
+		expectedError := "Unable to modify team 'team1' error: an error occurred modifying a team"
+		s.Require().ErrorContains(err, expectedError)
+		s.Require().Equal(expectedError,
 			printer.GetErrorLines()[0])
 	})
 }
