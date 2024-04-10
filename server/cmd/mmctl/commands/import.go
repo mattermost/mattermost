@@ -406,6 +406,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
+
 		maxPostSize, err = strconv.Atoi(config["MaxPostSize"])
 		if err != nil {
 			return fmt.Errorf("failed to parse MaxPostSize: %w", err)
