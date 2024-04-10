@@ -374,7 +374,7 @@ func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
 	importName := "import_test.zip"
 	importFilePath := filepath.Join(serverPath, "tests", importName)
 
-	s.RunForSystemAdminAndLocal("defaults", func(_ client.Client) {
+	s.RunForSystemAdminAndLocal("defaults", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -383,7 +383,7 @@ func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
 		cmd.Flags().Bool("ignore-attachments", false, "")
 		cmd.Flags().Bool("check-server-duplicates", true, "")
 
-		err := importValidateCmdF(cmd, []string{importFilePath})
+		err := importValidateCmdF(c, cmd, []string{importFilePath})
 		s.Require().Nil(err)
 		s.Require().Empty(printer.GetErrorLines())
 
@@ -406,7 +406,7 @@ func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
 		s.Require().Equal("Validation complete\n", printer.GetLines()[3])
 	})
 
-	s.RunForSystemAdminAndLocal("ignore attachments", func(_ client.Client) {
+	s.RunForSystemAdminAndLocal("ignore attachments", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -415,7 +415,7 @@ func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
 		cmd.Flags().Bool("ignore-attachments", true, "")
 		cmd.Flags().Bool("check-server-duplicates", true, "")
 
-		err := importValidateCmdF(cmd, []string{importFilePath})
+		err := importValidateCmdF(c, cmd, []string{importFilePath})
 		s.Require().Nil(err)
 		s.Require().Empty(printer.GetErrorLines())
 
