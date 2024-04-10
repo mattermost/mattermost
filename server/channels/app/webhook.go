@@ -309,10 +309,9 @@ func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Cha
 			err := model.NewAppError("CreateWebhookPost", "api.context.invalid_param.app_error", map[string]any{"Name": "webhook.priority.priority"}, "Setting the priority of a post is required to use priority.", http.StatusBadRequest)
 			return nil, err
 		}
-		metadata := &model.PostMetadata{
+		post.Metadata = &model.PostMetadata{
 			Priority: priority,
 		}
-		post.Metadata = metadata
 	}
 
 	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
