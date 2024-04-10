@@ -230,7 +230,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		require.NoError(t, err)
 		err = os.Remove(notificationsLogLocation)
 		require.NoError(t, err)
-		t.Cleanup(genMockLogFiles())
+		t.Cleanup(genMockLogFiles)
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
 			IncludeLogs: true,

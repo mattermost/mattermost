@@ -1126,7 +1126,7 @@
         Requires either a E10 or E20 license.
       operationId: GenerateSupportPacket
       parameters:
-        - name: basic.server.logs
+        - name: basic_server_logs
           in: query
           description: |
             Specifies whether the server should include or exclude log files. Default value is true.

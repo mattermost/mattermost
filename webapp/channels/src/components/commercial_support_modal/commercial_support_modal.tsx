@@ -81,7 +81,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
         const url = new URL(Client4.getSystemRoute() + '/support_packet');
         this.state.packetContents.forEach((content) => {
             if (content.id === 'basic.server.logs') {
-                url.searchParams.set('basic.server.logs', String(content.selected));
+                url.searchParams.set('basic_server_logs', String(content.selected));
             } else if (!content.mandatory && content.selected) {
                 url.searchParams.append('plugin_packets', content.id);
             }

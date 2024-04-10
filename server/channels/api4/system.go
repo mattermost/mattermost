@@ -92,7 +92,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// We support the existing API hence the logs are always included
 	// if nothing specified.
 	includeLogs := true
-	if r.FormValue("basic.server.logs") == "false" {
+	if r.FormValue("basic_server_logs") == "false" {
 		includeLogs = false
 	}
 	supportPacketOptions := &model.SupportPacketOptions{
