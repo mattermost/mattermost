@@ -35,6 +35,7 @@ const SearchUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Us
     if (item.remote_id) {
         sharedIcon = (
             <SharedUserIndicator
+                id={`sharedUserIndicator-${item.id}`}
                 className='mention__shared-user-icon'
                 withTooltip={true}
             />

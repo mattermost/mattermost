@@ -918,7 +918,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     inputs={inputs}
                     serverError={this.state.serverError}
                     updateSection={this.handleUpdateSection}
-                    width='full'
+                    isFullWidth={true}
                     cancelButtonText={
                         <FormattedMessage
                             id='user.settings.security.close'
