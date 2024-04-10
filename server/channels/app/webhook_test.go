@@ -429,7 +429,6 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 		assert.Equal(t, *conditions.RequestedAck, *post.GetPriority().RequestedAck)
 		assert.Equal(t, *conditions.PersistentNotifications, *post.GetPriority().PersistentNotifications)
 	}
-
 }
 func TestCreateWebhookPostLinks(t *testing.T) {
 	th := Setup(t).InitBasic()
