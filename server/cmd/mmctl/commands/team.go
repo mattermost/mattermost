@@ -18,8 +18,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const APILimitMaximum = 200
-
 var TeamCmd = &cobra.Command{
 	Use:   "team",
 	Short: "Management of teams",
@@ -206,7 +204,7 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	page := 0
 	for {
-		teams, _, err := c.GetAllTeams(context.TODO(), "", page, APILimitMaximum)
+		teams, _, err := c.GetAllTeams(context.TODO(), "", page, DefaultPageSize)
 		if err != nil {
 			return err
 		}
@@ -219,7 +217,7 @@ func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		if len(teams) < APILimitMaximum {
+		if len(teams) < DefaultPageSize {
 			break
 		}
 
