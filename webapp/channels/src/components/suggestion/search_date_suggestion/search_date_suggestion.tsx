@@ -32,7 +32,7 @@ const IconRight = () => {
     );
 };
 
-const dayPickerIcons = {IconRight, IconLeft};
+const DAY_PICKER_ICONS = {IconRight, IconLeft};
 
 const SearchDateSuggestion = ({
     currentDate,
