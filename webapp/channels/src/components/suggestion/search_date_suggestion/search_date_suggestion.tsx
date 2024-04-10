@@ -75,7 +75,7 @@ const SearchDateSuggestion = ({
             onMonthChange={preventClose}
             id='searchDatePicker'
             selected={currentDate}
-            components={dayPickerIcons}
+            components={DAY_PICKER_ICONS}
         />
     );
 };
