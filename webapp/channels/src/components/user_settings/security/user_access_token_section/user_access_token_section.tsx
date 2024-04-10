@@ -627,7 +627,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                     infoPosition='top'
                     serverError={this.state.serverError}
                     updateSection={this.props.updateSection}
-                    width='full'
+                    isFullWidth={true}
                     saving={this.state.saving}
                     cancelButtonText={
                         <FormattedMessage

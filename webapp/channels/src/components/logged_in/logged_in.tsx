@@ -106,6 +106,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
 
         if (this.isValidState() && !this.props.mfaRequired) {
             BrowserStore.signalLogin();
+            DesktopApp.signalLogin();
         }
     }
 

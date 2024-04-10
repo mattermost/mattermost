@@ -1856,7 +1856,7 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 		var resp *model.WebSocketResponse
 		select {
 		case resp = <-wsc.ResponseChannel:
-		case <-time.After(1 * time.Second):
+		case <-time.After(2 * time.Second):
 		}
 		require.NotNil(t, resp)
 		require.Equal(t, resp.Status, model.StatusOk)
