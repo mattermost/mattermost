@@ -35,7 +35,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const userHasTokenRole = UserUtils.hasUserAccessTokenRole(ownProps.user.roles) || UserUtils.isSystemAdmin(ownProps.user.roles);
 
     const enableOAuthServiceProvider = config.EnableOAuthServiceProvider === 'true';
-    const allowedToSwitchToEmail = config.EnableSignInWithEmail === 'true' && (config.EnableSignInWithEmail === 'true' || config.EnableSignInWithUsername === 'true');
+    const allowedToSwitchToEmail = config.EnableSignUpWithEmail === 'true' && (config.EnableSignInWithEmail === 'true' || config.EnableSignInWithUsername === 'true');
     const enableSignUpWithGitLab = config.EnableSignUpWithGitLab === 'true';
     const enableSignUpWithGoogle = config.EnableSignUpWithGoogle === 'true';
     const enableSignUpWithOpenId = config.EnableSignUpWithOpenId === 'true';
