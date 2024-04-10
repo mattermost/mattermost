@@ -46,7 +46,6 @@ func (api *API) InitPost() {
 	api.BaseRoutes.PostForUser.Handle("/ack", api.APISessionRequired(unacknowledgePost)).Methods("DELETE")
 
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods("POST")
-	api.BaseRoutes.Posts.Handle("/max-size", api.APISessionRequired(getMaxPostsSize)).Methods("GET")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1267,12 +1266,4 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(js)
-}
-
-func getMaxPostsSize(c *Context, w http.ResponseWriter, r *http.Request) {
-	maxSize := c.App.MaxPostSize()
-
-	if err := json.NewEncoder(w).Encode(model.MaxPostSizeResponse{MaxPostSize: maxSize}); err != nil {
-		c.Err = model.NewAppError("getMaxPostsSize", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
 }

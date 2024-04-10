@@ -1101,26 +1101,3 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  "/api/v4/posts/max-size":
-    get:
-      tags:
-        - posts
-      summary: Returns the maximum size a post can have.
-      operationId: getMaxPostsSize
-      responses:
-        "200":
-          description: Returns the maximum size a post can have.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MaxPostSizeResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "501":
-          $ref: "#/components/responses/NotImplemented"

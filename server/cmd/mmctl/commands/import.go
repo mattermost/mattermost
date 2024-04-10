@@ -397,9 +397,13 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 			return err
 		}
 
-		maxPostSize, _, err = c.GetMaxPostsSize(context.TODO())
+		config, _, err := c.GetOldClientConfig(context.TODO(), "")
 		if err != nil {
 			return err
+		}
+		maxPostSize, err = strconv.Atoi(config["MaxPostSize"])
+		if err != nil {
+			return fmt.Errorf("failed to parse MaxPostSize: %w", err)
 		}
 
 		serverUsers = make(map[string]*model.User)
@@ -445,7 +449,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		return nil
 	})(command, args)
 	if err != nil {
-		printer.Print("could not initialize client, skipping online checks\n")
+		printer.Print(fmt.Sprintf("could not initialize client (%s), skipping online checks\n", err.Error()))
 	}
 
 	injectedTeams, err := command.Flags().GetStringArray("team")

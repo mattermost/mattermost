@@ -942,22 +942,6 @@ func (mr *MockClientMockRecorder) GetMarketplacePlugins(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMarketplacePlugins", reflect.TypeOf((*MockClient)(nil).GetMarketplacePlugins), arg0, arg1)
 }
 
-// GetMaxPostsSize mocks base method.
-func (m *MockClient) GetMaxPostsSize(arg0 context.Context) (int, *model.Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMaxPostsSize", arg0)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(*model.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// GetMaxPostsSize indicates an expected call of GetMaxPostsSize.
-func (mr *MockClientMockRecorder) GetMaxPostsSize(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxPostsSize", reflect.TypeOf((*MockClient)(nil).GetMaxPostsSize), arg0)
-}
-
 // GetOAuthApps mocks base method.
 func (m *MockClient) GetOAuthApps(arg0 context.Context, arg1, arg2 int) ([]*model.OAuthApp, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -972,6 +956,22 @@ func (m *MockClient) GetOAuthApps(arg0 context.Context, arg1, arg2 int) ([]*mode
 func (mr *MockClientMockRecorder) GetOAuthApps(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOAuthApps", reflect.TypeOf((*MockClient)(nil).GetOAuthApps), arg0, arg1, arg2)
+}
+
+// GetOldClientConfig mocks base method.
+func (m *MockClient) GetOldClientConfig(arg0 context.Context, arg1 string) (map[string]string, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOldClientConfig", arg0, arg1)
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetOldClientConfig indicates an expected call of GetOldClientConfig.
+func (mr *MockClientMockRecorder) GetOldClientConfig(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOldClientConfig", reflect.TypeOf((*MockClient)(nil).GetOldClientConfig), arg0, arg1)
 }
 
 // GetOutgoingWebhook mocks base method.
