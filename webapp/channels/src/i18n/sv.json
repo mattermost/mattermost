@@ -2570,6 +2570,8 @@
   "admin.system_users.list.memberSince.yesterday": "Igår",
   "admin.system_users.list.totalPosts": "Publicerade meddelanden",
   "admin.system_users.list.userDetails": "Användaruppgifter",
+  "admin.system_users.list.userIsRemote": "Fjärranvändare",
+  "admin.system_users.list.userIsRemoteAriaLabel": "Detta är en fjärranvändare",
   "admin.system_users.mysql_stats.desc": "Användning av MySQL kan begränsa tillgängligheten för vissa statistikfunktioner. Vi rekommenderar att du byter från MySQL till PostgreSQL för att dra full nytta av förbättrad prestanda och omfattande analys. Ni som fortfarande använder MySQL kan använda exportfunktionen för att visa all användarstatistik.",
   "admin.system_users.mysql_stats.dismiss": "Avvisa",
   "admin.system_users.mysql_stats.learn_more": "Mer information",
