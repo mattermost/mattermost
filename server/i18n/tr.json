@@ -93,7 +93,7 @@
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "SMTP sunucusu, kapı numarası ya da kullanıcı adı değiştirilmiş. Lütfen bağlantı sınaması için SMTP parolanızı yeniden yazın."
+    "translation": "SMTP sunucusu, bağlantı noktası ya da kullanıcı adı değiştirilmiş. Lütfen bağlantı sınaması için SMTP parolanızı yeniden yazın."
   },
   {
     "id": "api.admin.test_email.subject",
@@ -117,7 +117,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.storage.app_error",
-    "translation": "Görsel yüklenemedi. Görsel deposu yapılandırılmamış."
+    "translation": "Görsel yüklenemedi. Görsel depolama alanı yapılandırılmamış."
   },
   {
     "id": "api.admin.upload_brand_image.too_large.app_error",
@@ -2260,7 +2260,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "WebSocket bağlantısı yükseltilemedi."
+    "translation": "Adres CORS tarafından engellendi.: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -7592,7 +7592,7 @@
   },
   {
     "id": "api.back_to_app",
-    "translation": "{{.SiteName}} sitesine geri dön"
+    "translation": "{{.SiteName}} sitesine dön"
   },
   {
     "id": "api.user.update_user_auth.invalid_request",
@@ -9696,5 +9696,57 @@
   {
     "id": "app.post.move_thread.from_another_channel",
     "translation": "Bu konu başka bir kanaldan taşınmış"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Lisansınız kanal yer imleri özelliğini desteklemiyor."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kullanıcının bir kanal yer imi eklemesine izin verilmiyor."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kanal yer imi eklenemedi."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Kanal yer imi eklenemedi."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kanal yer imi silinemedi."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kanal yer imi silinemedi."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Kanal yer imi silinemedi."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kanal yer imi güncellenemedi."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kanal yer imi güncellenemedi."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Kanal yer imi güncellenemedi."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kanal yer imi sıralaması güncellenemedi."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kanal yer imi sıralaması güncellenemedi."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Kanal yer imi sıralaması güncellenemedi."
   }
 ]
