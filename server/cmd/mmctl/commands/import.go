@@ -103,7 +103,7 @@ func init() {
 	ImportUploadCmd.Flags().String("upload", "", "The ID of the import upload to resume.")
 
 	ImportJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of import jobs")
-	ImportJobListCmd.Flags().Int("per-page", 200, "Number of import jobs to be fetched")
+	ImportJobListCmd.Flags().Int("per-page", DefaultPageSize, "Number of import jobs to be fetched")
 	ImportJobListCmd.Flags().Bool("all", false, "Fetch all import jobs. --page flag will be ignore if provided")
 
 	ImportValidateCmd.Flags().StringArray("team", nil, "Predefined team[s] to assume as already present on the destination server. Implies --check-missing-teams. The flag can be repeated")
