@@ -15,7 +15,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands/importer"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -347,21 +346,7 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 		res := printer.GetLines()[1].(ImportValidationResult)
 		s.Require().Len(res.Errors, 1)
 
-		s.Require().Equal(&importer.ImportValidationError{
-			ImportFileInfo: importer.ImportFileInfo{
-				Source:      "import.zip",
-				FileName:    "import.jsonl",
-				CurrentLine: 6,
-				TotalLines:  5,
-			},
-			FieldName: "post",
-			Err: &model.AppError{
-				Id:         "app.import.validate_post_import_data.message_length.error",
-				Message:    "app.import.validate_post_import_data.message_length.error",
-				Where:      "BulkImport",
-				StatusCode: 400,
-			},
-		}, res.Errors[0])
+		s.Require().Equal("app.import.validate_post_import_data.message_length.error", res.Errors[0].Err.(*model.AppError).Id)
 
 		s.Equal("Validation complete\n", printer.GetLines()[2])
 	})

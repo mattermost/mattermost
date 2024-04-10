@@ -21,6 +21,8 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 	serverPath := os.Getenv("MM_SERVER_PATH")
 	importName := "import_test.zip"
 	importFilePath := filepath.Join(serverPath, "tests", importName)
+	info, err := os.Stat(importFilePath)
+	s.Require().NoError(err)
 
 	s.Run("no permissions", func() {
 		printer.Clean()
@@ -70,7 +72,7 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 
 		us, _, err := c.CreateUpload(context.TODO(), &model.UploadSession{
 			Filename: importName,
-			FileSize: 276051,
+			FileSize: info.Size(),
 			Type:     model.UploadTypeImport,
 			UserId:   userID,
 		})
