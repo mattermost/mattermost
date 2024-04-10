@@ -182,10 +182,12 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("private", true, "")
 		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
-		s.Require().NoError(err)
+
+		expectedError := fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name)
+		s.Require().ErrorContains(err, expectedError)
 		s.Require().Contains(
 			printer.GetErrorLines()[0],
-			fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name),
+			expectedError,
 		)
 		t, appErr := s.th.App.GetTeam(teamID)
 		s.Require().Nil(appErr)
@@ -199,10 +201,12 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		cmd.Flags().Bool("private", true, "")
 		s.th.LoginBasic2()
 		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
-		s.Require().NoError(err)
+
+		expectedError := fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name)
+		s.Require().ErrorContains(err, expectedError)
 		s.Require().Contains(
 			printer.GetErrorLines()[0],
-			fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name),
+			expectedError,
 		)
 		t, appErr := s.th.App.GetTeam(teamID)
 		s.Require().Nil(appErr)
