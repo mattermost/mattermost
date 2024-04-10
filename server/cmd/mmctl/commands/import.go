@@ -487,6 +487,10 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
+	if maxPostSize == 0 {
+		maxPostSize = model.PostMessageMaxRunesV1
+	}
+
 	createMissingTeams := !checkMissingTeams && len(injectedTeams) == 0
 	validator := importer.NewValidator(
 		args[0],               // input file
