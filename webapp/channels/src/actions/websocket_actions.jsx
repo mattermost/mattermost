@@ -716,8 +716,8 @@ export function handleNewPostEvent(msg) {
             msg.data.set_online
         ) {
             myDispatch({
-                type: UserTypes.RECEIVED_STATUSES,
-                data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
+                type: UserTypes.RECEIVED_STATUS,
+                data: [{[post.user_id]: UserStatuses.ONLINE}],
             });
         }
     };
@@ -1264,8 +1264,8 @@ function addedNewGmUser(preference) {
 
 function handleStatusChangedEvent(msg) {
     dispatch({
-        type: UserTypes.RECEIVED_STATUSES,
-        data: [{user_id: msg.data.user_id, status: msg.data.status}],
+        type: UserTypes.RECEIVED_STATUS,
+        data: [{[msg.data.user_id]: msg.data.status}],
     });
 }
 
