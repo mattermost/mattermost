@@ -345,19 +345,19 @@
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Mattermost takımınıza bir e-posta çağrısı gönderir"
+    "translation": "Mattermost takımınıza bir e-posta daveti gönderir"
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
-    "translation": "E-posta çağrıları devre dışı bırakılmış. Herhangi bir çağrı gönderilmedi"
+    "translation": "E-posta davetleri devre dışı bırakılmış. Herhangi bir davet gönderilmedi"
   },
   {
     "id": "api.command.invite_people.email_off",
-    "translation": "E-posta yapılandırması yapılmamış. Herhangi bir çağrı gönderilmedi"
+    "translation": "E-posta yapılandırması yapılmamış. Herhangi bir davet gönderilmedi"
   },
   {
     "id": "api.command.invite_people.fail",
-    "translation": "E-posta çağrıları gönderilirken bir sorun çıktı"
+    "translation": "E-posta davetleri gönderilirken bir sorun çıktı"
   },
   {
     "id": "api.command.invite_people.hint",
@@ -365,11 +365,11 @@
   },
   {
     "id": "api.command.invite_people.invite_off",
-    "translation": "Bu sunucu üzerine kullanıcı eklemek devre dışı bırakılmış olduğundan çağrı gönderilmedi"
+    "translation": "Bu sunucu üzerine kullanıcı eklemek devre dışı bırakılmış olduğundan davet gönderilmedi"
   },
   {
     "id": "api.command.invite_people.name",
-    "translation": "kisileri_cagir"
+    "translation": "kisileri_davet_et"
   },
   {
     "id": "api.command.invite_people.no_email",
@@ -377,7 +377,7 @@
   },
   {
     "id": "api.command.invite_people.sent",
-    "translation": "E-posta çağrıları gönderildi"
+    "translation": "E-posta davetleri gönderildi"
   },
   {
     "id": "api.command.team_mismatch.app_error",
@@ -636,7 +636,7 @@
   },
   {
     "id": "api.command_invite.desc",
-    "translation": "Bir kullanıcıyı bir kanala çağırır"
+    "translation": "Bir kullanıcıyı bir kanala davet eder"
   },
   {
     "id": "api.command_invite.directchannel.app_error",
@@ -660,7 +660,7 @@
   },
   {
     "id": "api.command_invite.name",
-    "translation": "çağır"
+    "translation": "davet et"
   },
   {
     "id": "api.command_invite.permission.app_error",
@@ -683,7 +683,7 @@
   },
   {
     "id": "api.command_invite_people.permission.app_error",
-    "translation": "Bu sunucuya yeni kullanıcılar çağırma izniniz yok."
+    "translation": "Bu sunucuya yeni kullanıcılar davet etme izniniz yok."
   },
   {
     "id": "api.command_join.desc",
@@ -1178,7 +1178,7 @@
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
-    "translation": "İstek geçersiz: Belirtilen yönlendirme adresi kayıtlı geri çağırma adresi ile eşleşmiyor."
+    "translation": "İstek geçersiz: Belirtilen yönlendirme adresi kayıtlı geri dönüş adresi ile eşleşmiyor."
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
@@ -1588,7 +1588,7 @@
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
-    "translation": "Takım açık bir takım olmadığından çağrı geçersiz."
+    "translation": "Takım açık bir takım olmadığından davet geçersiz."
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
@@ -1628,7 +1628,7 @@
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "E-posta çağrıları devre dışı bırakılmış."
+    "translation": "E-posta davetleri devre dışı bırakılmış."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -1636,7 +1636,7 @@
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
-    "translation": "Çağrılacak kimse yok."
+    "translation": "Davet edilecek kimse yok."
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
@@ -1812,11 +1812,11 @@
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "{{ .SenderName }} sizi {{ .TeamDisplayName }} takımına katılmaya çağırdı."
+    "translation": "{{ .SenderName }} sizi {{ .TeamDisplayName }} takımına katılmaya davet etti."
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi {{ .TeamDisplayName }} takımına katılmaya çağırdı"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi {{ .TeamDisplayName }} takımına katılmaya davet etti"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -2036,7 +2036,7 @@
   },
   {
     "id": "api.user.create_user.no_open_server",
-    "translation": "Sunucu hesap açılmasına izin vermiyor. Lütfen yöneticiniz ile görüşerek bir çağrı göndermesini isteyin."
+    "translation": "Sunucu hesap açılmasına izin vermiyor. Lütfen yöneticiniz ile görüşerek bir davet göndermesini isteyin."
   },
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
@@ -2280,7 +2280,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "Aynı kanaldaki giden internet kancalarında aynı tetikleyici sözcük ve geri çağırma adresleri bulunamaz."
+    "translation": "Aynı kanaldaki giden İnternet kancalarında aynı tetikleyici sözcük ve geri dönüş adresleri bulunamaz."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
@@ -2304,7 +2304,7 @@
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
-    "translation": "Aynı kanaldaki giden internet kancalarında aynı tetikleyici sözcük ve geri çağırma adresleri bulunamaz."
+    "translation": "Aynı kanaldaki giden İnternet kancalarında aynı tetikleyici sözcük ve geri dönüş adresleri bulunamaz."
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -4184,7 +4184,7 @@
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
-    "translation": "Geri çağırma adresi http:// ya da https:// ile başlayan geçerli bir adres olmalıdır."
+    "translation": "Geri dönüş adresi http:// ya da https:// ile başlayan geçerli bir adres olmalıdır."
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
@@ -4224,7 +4224,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
-    "translation": "Geri çağırma adresleri geçersiz."
+    "translation": "Geri dönüş adresleri geçersiz."
   },
   {
     "id": "model.outgoing_hook.is_valid.channel_id.app_error",
@@ -4268,7 +4268,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.url.app_error",
-    "translation": "Geri çağırma adresleri http:// ya da https:// ile başlayan geçerli adresler olmalıdır."
+    "translation": "Geri dönüş adresleri http:// ya da https:// ile başlayan geçerli adresler olmalıdır."
   },
   {
     "id": "model.outgoing_hook.is_valid.user_id.app_error",
@@ -4616,7 +4616,7 @@
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": "Bu takım için kimlik doğrulama bilgilerinizle eşleşen var olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin çağrı göndermesi gerekiyor olabilir."
+    "translation": "Bu takım için kimlik doğrulama bilgilerinizle eşleşen var olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin davet göndermesi gerekiyor olabilir."
   },
   {
     "id": "system.message.name",
@@ -5060,7 +5060,7 @@
   },
   {
     "id": "model.team.is_valid.invite_id.app_error",
-    "translation": "Çağrı kodu geçersiz."
+    "translation": "Davet kodu geçersiz."
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
@@ -5204,7 +5204,7 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "Konuklar bir takıma ancak bir çağrı bağlantısı ile katılabilir. Lütfen takıma katılmak için bir konuk e-posta çağrısı isteğinde bulunun."
+    "translation": "Konuklar bir takıma ancak bir davet bağlantısı ile katılabilir. Lütfen takıma katılmak için bir konuk e-posta daveti isteğinde bulunun."
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
@@ -5212,7 +5212,7 @@
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi konuk olarak {{ .TeamDisplayName }} takımına katılmaya çağırdı"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi konuk olarak {{ .TeamDisplayName }} takımına katılmaya davet etti"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
@@ -5320,7 +5320,7 @@
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
-    "translation": "Grup ile kısıtlanmış bir takıma çağrı ile katılınamaz."
+    "translation": "Grup ile kısıtlanmış bir takıma davet ile katılınamaz."
   },
   {
     "id": "app.team.invite_token.group_constrained.error",
@@ -5624,11 +5624,11 @@
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "E-posta çağrıları geçersiz kılınırken sorun çıktı."
+    "translation": "E-posta davetleri geçersiz kılınırken sorun çıktı."
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
-    "translation": "Çağrılan kanallar çağrı yapılan takımın bir parçası olmalıdır."
+    "translation": "Davet edilen kanallar davet edilen takımın bir parçası olmalıdır."
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
@@ -5644,7 +5644,7 @@
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
-    "translation": "Kullanıcı eklenemedi, çağrı geçersiz."
+    "translation": "Kullanıcı eklenemedi, davet geçersiz."
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
@@ -7184,7 +7184,7 @@
   },
   {
     "id": "app.user.get_by_username.app_error",
-    "translation": "Bu takım için kullanıcı adınızla eşleşen var olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin çağrı göndermesi gerekiyor olabilir."
+    "translation": "Bu takım için kullanıcı adınızla eşleşen var olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin davet göndermesi gerekiyor olabilir."
   },
   {
     "id": "app.user.get_by_auth.other.app_error",
@@ -7192,7 +7192,7 @@
   },
   {
     "id": "app.user.get_by_auth.missing_account.app_error",
-    "translation": "Bu takım için kimlik doğrulama türünüzle eşleşen var olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin çağrı göndermesi gerekiyor olabilir."
+    "translation": "Bu takım için kimlik doğrulama türünüzle eşleşen var olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin davet göndermesi gerekiyor olabilir."
   },
   {
     "id": "app.user.get.app_error",
@@ -7260,7 +7260,7 @@
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": "Çağrı e-postaları hız sınırlaması aşıldı. Zamanlayıcı {{.ResetAfter}} saniye sonra sıfırlanacak. Lütfen {{.RetryAfter}} saniye sonra yeniden deneyin."
+    "translation": "Davet e-postaları hız sınırlaması aşıldı. Zamanlayıcı {{.ResetAfter}} saniye sonra sıfırlanacak. Lütfen {{.RetryAfter}} saniye sonra yeniden deneyin."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
@@ -7772,7 +7772,7 @@
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
-    "translation": "Takım ile iş birliği yapmak üzere konuk olarak çağrıldınız"
+    "translation": "Takım ile iş birliği yapmak üzere konuk olarak davet edildiniz"
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
@@ -7856,11 +7856,11 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_sub_info",
-    "translation": "Kişileri {{.WorkSpace}} çalışma alanınıza çağırmak için bu bağlantıyı paylaşın:"
+    "translation": "Kişileri {{.WorkSpace}} çalışma alanınıza davet etmek için bu bağlantıyı paylaşın:"
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_info",
-    "translation": "Kişileri çalışma alanınıza çağırın"
+    "translation": "Kişileri çalışma alanınıza davet edin"
   },
   {
     "id": "api.templates.cloud_welcome_email.info2",
@@ -7932,15 +7932,15 @@
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Çağrı şifrelenemedi: {{.Error}}"
+    "translation": "Davet şifrelenemedi: {{.Error}}"
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Mattermost kopyaları arasında iletişim kurmak için uzak güvenli bağlantıları çağırın."
+    "translation": "Mattermost kopyaları arasında iletişim kurmak için uzak güvenli bağlantıları davet edin."
   },
   {
     "id": "api.command_remote.decode_invitation.error",
-    "translation": "Çağrı kodu çözülemedi: {{.Error}}"
+    "translation": "Davet kodu çözülemedi: {{.Error}}"
   },
   {
     "id": "api.command_remote.cluster_removed",
@@ -7952,15 +7952,15 @@
   },
   {
     "id": "api.command_remote.accept_invitation.error",
-    "translation": "Çağrı kabul edilemedi: {{.Error}}"
+    "translation": "Davet kabul edilemedi: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Bir dış Mattermost kopyasından gelen bir çağrıyı kabul et"
+    "translation": "Bir dış Mattermost kopyasından gelen bir daveti kabul et"
   },
   {
     "id": "api.command_remote.accept_invitation",
-    "translation": "Çağrı kabul edildi ve doğrulandı.\nSite adresi: {{.SiteURL}}"
+    "translation": "Davet kabul edildi ve doğrulandı.\nSite adresi: {{.SiteURL}}"
   },
   {
     "id": "api.command_share.missing_action",
@@ -7968,11 +7968,11 @@
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "Bir dış Mattermost kopyasını geçerli paylaşılmış kanala çağırır"
+    "translation": "Bir dış Mattermost kopyasını geçerli paylaşılmış kanala davet eder"
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "`{{.Name}} {{.SiteURL}}` üzerine paylaşılmış kanal çağrısı gönderildi."
+    "translation": "`{{.Name}} {{.SiteURL}}` üzerine paylaşılmış kanal daveti gönderildi."
   },
   {
     "id": "api.command_share.invalid_value.error",
@@ -7996,7 +7996,7 @@
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
-    "translation": "`{{.RemoteId}}` çağrısı geri alınamadı: {{.Error}}"
+    "translation": "`{{.RemoteId}}` daveti geri alınamadı: {{.Error}}"
   },
   {
     "id": "api.command_share.check_channel_exist.error",
@@ -8020,11 +8020,11 @@
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Güvenli bağlantı, kaynağı başka bir yerde bulunan bir paylaşılmış kanala çağrılamaz."
+    "translation": "Güvenli bağlantı, kaynağı başka bir yerde bulunan bir paylaşılmış kanala davet edilemez."
   },
   {
     "id": "api.command_share.channel_invite.error",
-    "translation": "`{{.Name}}` bu kanala çağrılırken sorun çıktı: {{.Error}}"
+    "translation": "`{{.Name}}` bu kanala davet edilirken sorun çıktı: {{.Error}}"
   },
   {
     "id": "api.command_share.available_actions",
@@ -8060,7 +8060,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Aşağıdaki şifreli (AES256 + Base64) veri yığınını parola ile dış Mattermost yöneticisine gönderin. `{{.Command}}` bölü komutunu kullanarak çağrıyı kabul edebilir.\n\n```\n{{.Invitation}}\n```\n\n**Güvenli bağlantının sizin Mattermost kopyanıza ** {{.SiteURL}} adresi ile erişilebildiğinden emin olun"
+    "translation": "Aşağıdaki şifreli (AES256 + Base64) veri yığınını parola ile dış Mattermost yöneticisine gönderin. `{{.Command}}` bölü komutunu kullanarak daveti kabul edebilir.\n\n```\n{{.Invitation}}\n```\n\n**Güvenli bağlantının sizin Mattermost kopyanıza ** {{.SiteURL}} adresi ile erişilebildiğinden emin olun"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8076,7 +8076,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Güvenli bağlantı | Görüntülenecek ad | Bağlantı kodu | Site adresi | Çağrı onaylandı | Çevrim içi | Son iletişim |"
+    "translation": "| Güvenli bağlantı | Görüntülenecek ad | Bağlantı kodu | Site adresi | Davet kabul edildi | Çevrim içi | Son iletişim |"
   },
   {
     "id": "api.command_remote.permission_required",
@@ -8104,31 +8104,31 @@
   },
   {
     "id": "api.command_remote.invite_password.hint",
-    "translation": "Çağrıyı şifrelemek için kullanılacak parola"
+    "translation": "Daveti şifrelemek için kullanılacak parola"
   },
   {
     "id": "api.command_remote.invite_password.help",
-    "translation": "Çağrı parolası"
+    "translation": "Davet parolası"
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Güvenli bir bağlantı çağır"
+    "translation": "Güvenli bir bağlantı davet et"
   },
   {
     "id": "api.command_remote.invitation_created",
-    "translation": "Çağrı oluşturuldu."
+    "translation": "Davet oluşturuldu."
   },
   {
     "id": "api.command_remote.invitation.hint",
-    "translation": "Güvenli bir bağlantıdan şifrelenmiş çağrı"
+    "translation": "Güvenli bir bağlantıdan şifrelenmiş davet"
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "Güvenli bağlantıdan çağrı"
+    "translation": "Güvenli bağlantıdan davet"
   },
   {
     "id": "api.command_remote.incorrect_password.error",
-    "translation": "Çağrının şifresi çözülemedi. Parola yanlış ya da çağrı bozuk: {{.Error}}"
+    "translation": "Davetin şifresi çözülemedi. Parola yanlış ya da davet bozuk: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",
@@ -8228,7 +8228,7 @@
   },
   {
     "id": "api.context.invitation_expired.error",
-    "translation": "Çağrının süresi dolmuş."
+    "translation": "Davetin süresi dolmuş."
   },
   {
     "id": "api.command_share.shared_channel_unshare.error",
@@ -8256,7 +8256,7 @@
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Güvenli bağlantı | Site adresi | Salt okunur| Çağrı onaylandı | Çevrim içi | Son eşitleme |"
+    "translation": "| Güvenli bağlantı | Site adresi | Salt okunur| Davet kabul edildi | Çevrim içi | Son eşitleme |"
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
@@ -8272,19 +8272,19 @@
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "Çağırmaktan vazgeçilecek güvenli bağlantı kodu."
+    "translation": "Davet etmekten vazgeçilecek güvenli bağlantı kodu."
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "Bu paylaşılmış kanala bir güvenli bağlantıyı çağırmaktan vazgeçer"
+    "translation": "Bu paylaşılmış kanala bir güvenli bağlantıyı davet etmekten vazgeçer"
   },
   {
     "id": "api.command_share.remote_uninvited",
-    "translation": "`{{.RemoteId}}` güvenli bağlantı çağrısından vazgeçildi."
+    "translation": "`{{.RemoteId}}` güvenli bağlantı davetinden vazgeçildi."
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Çağırmaktan vazgeçilecek geçerli bir güvenli bağlantı kodu belirtilmelidir"
+    "translation": "Davet etmekten vazgeçilecek geçerli bir güvenli bağlantı kodu belirtilmelidir"
   },
   {
     "id": "api.command_share.remote_id.help",
@@ -8292,7 +8292,7 @@
   },
   {
     "id": "api.command_share.remote_already_invited",
-    "translation": "Güvenli bağlantı zaten çağrılmış."
+    "translation": "Güvenli bağlantı zaten davet edilmiş."
   },
   {
     "id": "api.command_share.permission_required",
@@ -8304,7 +8304,7 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Bu kanala herhangi bir güvenli bağlantı çağrılmamış."
+    "translation": "Bu kanala herhangi bir güvenli bağlantı davet edilmemiş."
   },
   {
     "id": "api.command_share.name",
@@ -8312,7 +8312,7 @@
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Çağrılacak geçerli bir güvenli bağlantı kodu belirtilmelidir."
+    "translation": "Davet edilecek geçerli bir güvenli bağlantı kodu belirtilmelidir."
   },
   {
     "id": "api.command_remote.displayname.hint",
@@ -8751,19 +8751,19 @@
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelsLen }} kanallarına katılmaya çağırdı"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelsLen }} kanallarına katılmaya davet etti"
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
-    "translation": "{{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelsLen }} kanallarına katılmaya çağırdı"
+    "translation": "{{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelsLen }} kanallarına katılmaya davet etti"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelName }} kanalına katılmaya çağırdı"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelName }} kanalına katılmaya davet etti"
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelName }} kanalına katılmaya çağırdı"
+    "translation": "{{ .SenderName }} sizi {{ .TeamDisplayName }} takımındaki {{ .ChannelName }} kanalına katılmaya davet etti"
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
@@ -9748,5 +9748,29 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
     "translation": "Kanal yer imi sıralaması güncellenemedi."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "İstek içeriğinde display_name eksik"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "İstek içinde team_id eksik"
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Uzak taraf kanala davet edilemedi: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "{{.ChannelID}} paylaşılmadığından uzak taraf davet edilemedi."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Kanal üyesi güncellemesi geçersiz: Bir konuk, takım üyesi ya da takım yöneticisi yapılamaz. Lütfen önce kullanıcı rolüne yükseltin."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Kanal üyesi güncellemesi geçersiz: Bir konuk tek bir kanal için ayarlanamaz. Bir sistem yöneticisi kullanıcıları konuk rolünden yükseltmeli ya da üyelik rolünden düşürmelidir."
   }
 ]
