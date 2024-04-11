@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
@@ -86,6 +87,16 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&channel)
 	if err != nil || channel == nil {
 		c.SetInvalidParamWithErr("channel", err)
+		return
+	}
+
+	if channel.TeamId == "" {
+		c.SetInvalidParamWithDetails("team_id", i18n.T("api.channel.create_channel.missing_team_id.error"))
+		return
+	}
+
+	if channel.DisplayName == "" {
+		c.SetInvalidParamWithDetails("display_name", i18n.T("api.channel.create_channel.missing_display_name.error"))
 		return
 	}
 
