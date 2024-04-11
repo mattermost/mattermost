@@ -38,9 +38,6 @@ func (h *addMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, w
 	if len(mentions) > 0 && slices.Contains(mentions, webConn.UserId) {
 		// Note that the client expects this field to be stringified
 		msg.Add("mentions", model.ArrayToJSON([]string{webConn.UserId}))
-		if msg.Get("should_ack") != true {
-			msg.Add("should_ack", true)
-		}
 	}
 
 	return nil
@@ -63,9 +60,6 @@ func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, 
 	if len(followers) > 0 && slices.Contains(followers, webConn.UserId) {
 		// Note that the client expects this field to be stringified
 		msg.Add("followers", model.ArrayToJSON([]string{webConn.UserId}))
-		if msg.Get("should_ack") != true {
-			msg.Add("should_ack", true)
-		}
 	}
 
 	return nil
@@ -88,8 +82,10 @@ func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channe
 }
 
 func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
-	// Nothing to do
-	if msg.Get("should_ack") == true {
+	// Add if we have mentions or followers
+	// This works since we currently do have an order for broadcast hooks, but this probably should be reworked going forward
+	if msg.Get("followers") != nil || msg.Get("mentions") != nil {
+		msg.Add("should_ack", true)
 		return nil
 	}
 
