@@ -9772,5 +9772,37 @@
   {
     "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
     "translation": "Kanal üyesi güncellemesi geçersiz: Bir konuk tek bir kanal için ayarlanamaz. Bir sistem yöneticisi kullanıcıları konuk rolünden yükseltmeli ya da üyelik rolünden düşürmelidir."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Davet kabul edilemedi: {{.Error}}"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "IP süzgeçleri alınırken bir sorun çıktı"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "İstemcinin IP adresi alınırken bir sorun çıktı"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP süzgeci bu sunucuda kullanılamıyor"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "IP süzgeçleri uygulanırken bir sorun çıktı"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Giden OAuth bağlantısı oluşturulurken bir sorun çıktı."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Kanal dizini şeması güncel olmadığı için kanal otomatik tamamlama özelliği etkinleştirilemedi. Kanal dizininizi yeniden oluşturmanız önerilir. Ayrıntılı bilgi almak için Mattermost değişiklik günlüğüne bakın"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Giriş parametreleri geçersiz."
   }
 ]
