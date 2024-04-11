@@ -156,7 +156,7 @@ class DesktopAppAPI {
      * One-ways
      */
 
-    dispatchNotification = (
+    dispatchNotification = async (
         title: string,
         body: string,
         channelId: string,
@@ -166,8 +166,8 @@ class DesktopAppAPI {
         url: string,
     ) => {
         if (window.desktopAPI?.sendNotification) {
-            window.desktopAPI.sendNotification(title, body, channelId, teamId, url, silent, soundName);
-            return;
+            const result = await window.desktopAPI.sendNotification(title, body, channelId, teamId, url, silent, soundName);
+            return result ?? {result: 'unsupported', reason: 'desktop_app_unsupported'};
         }
 
         // get the desktop app to trigger the notification
@@ -186,6 +186,7 @@ class DesktopAppAPI {
             },
             window.location.origin,
         );
+        return {result: 'unsupported', reason: 'desktop_app_unsupported'};
     };
 
     doBrowserHistoryPush = (path: string) => {
