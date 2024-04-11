@@ -29,6 +29,10 @@ on:
           - NONE
         default: NONE
 
+concurrency:
+  group: "${{ github.workflow }}-${{ inputs.PR_NUMBER || inputs.ref }}"
+  cancel-in-progress: true
+
 jobs:
   resolve-ref:
     runs-on: ubuntu-22.04
