@@ -2570,6 +2570,7 @@
   "admin.system_users.list.memberSince.yesterday": "Gisteren",
   "admin.system_users.list.totalPosts": "Aantal berichten geplaatst",
   "admin.system_users.list.userDetails": "Gebruikersgegevens",
+  "admin.system_users.list.userIsRemote": "Externe gebruiker",
   "admin.system_users.mysql_stats.desc": "Het gebruik van MySQL kan de beschikbaarheid van sommige statistische functies beperken. We raden aan om over te stappen van MySQL naar PostgreSQL om volledig gebruik te maken van de verbeterde prestaties en uitgebreide analyses. Als je nog steeds MySQL gebruikt, gebruik dan de exportfunctie om alle gebruikersstatistieken te bekijken.",
   "admin.system_users.mysql_stats.dismiss": "Afwijzen",
   "admin.system_users.mysql_stats.learn_more": "Meer info",
