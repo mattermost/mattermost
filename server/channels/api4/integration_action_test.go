@@ -6,8 +6,6 @@ package api4
 import (
 	"context"
 	"encoding/json"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -18,6 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 type testHandler struct {
