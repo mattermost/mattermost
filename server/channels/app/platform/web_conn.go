@@ -67,6 +67,7 @@ type WebConnConfig struct {
 	ConnectionID string
 	Active       bool
 	ReuseCount   int
+	OriginClient string
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int
@@ -88,6 +89,7 @@ type WebConn struct {
 	Locale           string
 	Sequence         int64
 	UserId           string
+	OriginClient     string
 
 	allChannelMembers         map[string]string
 	lastAllChannelMembersTime int64
@@ -228,6 +230,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		WebSocket:          cfg.WebSocket,
 		lastUserActivityAt: model.GetMillis(),
 		UserId:             cfg.Session.UserId,
+		OriginClient:       cfg.OriginClient,
 		T:                  cfg.TFunc,
 		Locale:             cfg.Locale,
 		reuseCount:         cfg.ReuseCount,
@@ -954,11 +957,13 @@ func (wc *WebConn) logSocketErr(source string, err error) {
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 		mlog.Debug(source+": client side closed socket",
 			mlog.String("user_id", wc.UserId),
-			mlog.String("conn_id", wc.GetConnectionID()))
+			mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.String("origin_client", wc.OriginClient))
 	} else {
 		mlog.Debug(source+": closing websocket",
 			mlog.String("user_id", wc.UserId),
 			mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.String("origin_client", wc.OriginClient),
 			mlog.Err(err))
 	}
 }
