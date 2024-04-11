@@ -3741,6 +3741,28 @@ func (a *OpenTracingAppLayer) DemoteUserToGuest(c request.CTX, user *model.User)
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) DetachPlugin(pluginId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DetachPlugin")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.DetachPlugin(pluginId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) DisableAutoResponder(rctx request.CTX, userID string, asAdmin bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DisableAutoResponder")
@@ -13943,6 +13965,28 @@ func (a *OpenTracingAppLayer) ReadFile(path string) ([]byte, *model.AppError) {
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) ReattachPlugin(manifest *model.Manifest, pluginReattachConfig *model.PluginReattachConfig) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ReattachPlugin")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.ReattachPlugin(manifest, pluginReattachConfig)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) RecycleDatabaseConnection(rctx request.CTX) {

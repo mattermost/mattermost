@@ -4615,6 +4615,10 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Failed to parse request"
+  },
+  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Unable to delete acknowledgement."
   },
@@ -6289,6 +6293,10 @@
   {
     "id": "app.plugin.not_installed.app_error",
     "translation": "Plugin is not installed."
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Failed to reattach plugin"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -10141,6 +10149,14 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Missing TO address."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Missing manifest"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Missing plugin reattach config"
   },
   {
     "id": "searchengine.bleve.disabled.error",
