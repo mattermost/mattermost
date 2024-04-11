@@ -7,7 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
+import {getBool as getBoolPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import AlertBanner from 'components/alert_banner';
@@ -90,11 +90,8 @@ const TrialBanner = ({
 
     const {formatMessage} = useIntl();
 
-    const restartedAfterUpgradePrefValue = useSelector<GlobalState>((state) => getPreference(state, Preferences.UNIQUE, Unique.REQUEST_TRIAL_AFTER_SERVER_UPGRADE));
-    const clickedUpgradeAndStartTrialBtn = useSelector<GlobalState>((state) => getPreference(state, Preferences.UNIQUE, Unique.CLICKED_UPGRADE_AND_TRIAL_BTN));
-
-    const restartedAfterUpgradePrefs = restartedAfterUpgradePrefValue === 'true';
-    const clickedUpgradeAndTrialBtn = clickedUpgradeAndStartTrialBtn === 'true';
+    const restartedAfterUpgradePrefs = useSelector<GlobalState>((state) => getBoolPreference(state, Preferences.UNIQUE, Unique.REQUEST_TRIAL_AFTER_SERVER_UPGRADE));
+    const clickedUpgradeAndTrialBtn = useSelector<GlobalState>((state) => getBoolPreference(state, Preferences.UNIQUE, Unique.CLICKED_UPGRADE_AND_TRIAL_BTN));
 
     const userId = useSelector((state: GlobalState) => getCurrentUserId(state));
 

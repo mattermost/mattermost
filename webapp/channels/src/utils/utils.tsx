@@ -31,6 +31,7 @@ import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {getTeamByName as getTeamByNameAction} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences, General} from 'mattermost-redux/constants';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     getChannel,
     getChannelsNameMapInTeam,
@@ -1642,11 +1643,15 @@ export function getTrackFlowRole(state: GlobalState) {
     return trackFlowRole;
 }
 
-export function getRoleForTrackFlow(state: GlobalState) {
-    const startedByRole = TrackFlowRoles[getTrackFlowRole(state)];
+export const getRoleForTrackFlow = createSelector(
+    'getRoleForTrackFlow',
+    getTrackFlowRole,
+    (trackFlowRole) => {
+        const startedByRole = TrackFlowRoles[trackFlowRole];
 
-    return {started_by_role: startedByRole};
-}
+        return {started_by_role: startedByRole};
+    },
+);
 
 export function getSbr() {
     const params = new URLSearchParams(window.location.search);
