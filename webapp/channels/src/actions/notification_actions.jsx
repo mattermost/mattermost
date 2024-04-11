@@ -273,21 +273,22 @@ export function sendDesktopNotification(post, msgProps) {
         const channelId = channel ? channel.id : null;
 
         let notify = false;
-        let notifyResult = {result: 'not_sent', reason: 'unknown'};
-        if (isCrtReply) {
-            notify = !isThreadOpen(state, post.root_id);
-            if (!notify) {
-                notifyResult = {result: 'not_sent', reason: 'thread_is_open', data: post.root_id};
+        let notifyResult = {status: 'not_sent', reason: 'unknown'};
+        if (state.views.browser.focused) {
+            notifyResult = {status: 'not_sent', reason: 'window_is_focused'};
+            if (isCrtReply) {
+                notify = !isThreadOpen(state, post.root_id);
+                if (!notify) {
+                    notifyResult = {status: 'not_sent', reason: 'thread_is_open', data: post.root_id};
+                }
+            } else {
+                notify = activeChannel && activeChannel.id !== channelId;
+                if (!notify) {
+                    notifyResult = {status: 'not_sent', reason: 'channel_is_open', data: activeChannel?.id};
+                }
             }
         } else {
-            notify = activeChannel && activeChannel.id !== channelId;
-            if (!notify) {
-                notifyResult = {result: 'not_sent', reason: 'channel_is_open', data: activeChannel?.id};
-            }
-        }
-        notify = notify || !state.views.browser.focused;
-        if (!notify) {
-            notifyResult = {result: 'not_sent', reason: 'window_is_focused'};
+            notify = true;
         }
 
         let soundName = getNotificationSoundFromChannelMemberAndUser(member, user);
