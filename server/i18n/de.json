@@ -2260,7 +2260,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Fehler beim Hochstufen der Websocket-Verbindung."
+    "translation": "URL aufgrund von CORS blockiert. Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -10348,5 +10348,21 @@
   {
     "id": "app.import.import_line.null_role.error",
     "translation": "Die Importdatenzeile hat den Typ \"role\", aber das role-Objekt ist null."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} und @{{.LastUsername}} wurden von dieser Erwähnung nicht benachrichtigt, weil sie nicht zu diesem Team gehören."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} wurde durch diese Erwähnung nicht benachrichtigt, weil sie kein Mitglied dieses Teams sind."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Fehlender display_name im Anfragebody"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Fehlende team_id im Anfragebody"
   }
 ]
