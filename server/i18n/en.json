@@ -308,6 +308,14 @@
     "translation": "Unable to create more than {{.MaxChannelsPerTeam}} channels for current team."
   },
   {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Missing display_name in request body"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Missing team_id in request body"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "Off-Topic"
   },
@@ -2501,6 +2509,14 @@
     "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
   },
   {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} didn't get notified by this mention because they aren't members of this team."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} didn't get notified by this mention because they aren't a member of this team."
+  },
+  {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
     "translation": "Can not post to deleted channel."
   },
@@ -4544,7 +4560,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Failed to upgrade websocket connection."
+    "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",

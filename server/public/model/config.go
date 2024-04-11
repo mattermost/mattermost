@@ -122,7 +122,9 @@ const (
 
 	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
-	FileSettingsDefaultDirectory = "./data/"
+	FileSettingsDefaultDirectory                   = "./data/"
+	FileSettingsDefaultS3UploadPartSizeBytes       = 5 * 1024 * 1024   // 5MB
+	FileSettingsDefaultS3ExportUploadPartSizeBytes = 100 * 1024 * 1024 // 100MB
 
 	ImportSettingsDefaultDirectory     = "./import"
 	ImportSettingsDefaultRetentionDays = 30
@@ -918,7 +920,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaximumPayloadSizeBytes == nil {
-		s.MaximumPayloadSizeBytes = NewInt64(100000)
+		s.MaximumPayloadSizeBytes = NewInt64(300000)
 	}
 }
 
@@ -1007,7 +1009,6 @@ type ExperimentalSettings struct {
 	ClientSideCertCheck             *string `access:"experimental_features,cloud_restrictable"`
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
-	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	DisableAppBar                   *bool   `access:"experimental_features"`
@@ -1030,10 +1031,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.RestrictSystemAdmin == nil {
 		s.RestrictSystemAdmin = NewBool(false)
-	}
-
-	if s.UseNewSAMLLibrary == nil {
-		s.UseNewSAMLLibrary = NewBool(false)
 	}
 
 	if s.EnableSharedChannels == nil {
@@ -1579,6 +1576,7 @@ type FileSettings struct {
 	AmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	// Export store settings
 	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable"`
@@ -1595,6 +1593,7 @@ type FileSettings struct {
 	ExportAmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportAmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1703,6 +1702,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AmazonS3RequestTimeoutMilliseconds = NewInt64(30000)
 	}
 
+	if s.AmazonS3UploadPartSizeBytes == nil {
+		s.AmazonS3UploadPartSizeBytes = NewInt64(FileSettingsDefaultS3UploadPartSizeBytes)
+	}
+
 	if s.DedicatedExportStore == nil {
 		s.DedicatedExportStore = NewBool(false)
 	}
@@ -1763,6 +1766,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExportAmazonS3PresignExpiresSeconds == nil {
 		s.ExportAmazonS3PresignExpiresSeconds = NewInt64(21600) // 6h
+	}
+
+	if s.ExportAmazonS3UploadPartSizeBytes == nil {
+		s.ExportAmazonS3UploadPartSizeBytes = NewInt64(FileSettingsDefaultS3ExportUploadPartSizeBytes)
 	}
 }
 
@@ -4356,6 +4363,10 @@ func (o *Config) Sanitize() {
 
 	for i := range o.SqlSettings.DataSourceSearchReplicas {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FakeSetting
+	}
+
+	for i := range o.SqlSettings.ReplicaLagSettings {
+		o.SqlSettings.ReplicaLagSettings[i].DataSource = NewString(FakeSetting)
 	}
 
 	if o.MessageExportSettings.GlobalRelaySettings != nil &&
