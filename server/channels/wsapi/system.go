@@ -26,14 +26,32 @@ func ping(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
 func (api *API) websocketNotificationAck(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
 	// Log the ACKs if necessary
 	api.App.NotificationsLog().Debug("Websocket notification acknowledgment",
-		mlog.String("type", model.TypeWebsocket),
+		mlog.String("type", model.NotificationTypeWebsocket),
 		mlog.String("user_id", req.Session.UserId),
 		mlog.Any("user_agent", req.Data["user_agent"]),
 		mlog.Any("post_id", req.Data["post_id"]),
-		mlog.Any("result", req.Data["result"]),
+		mlog.Any("status", req.Data["status"]),
 		mlog.Any("reason", req.Data["reason"]),
 		mlog.Any("data", req.Data["data"]),
 	)
+
+	// Count metrics for websocket acks
+	api.App.Metrics().IncrementNotificationAckCounter(model.NotificationTypeWebsocket)
+
+	status := req.Data["status"]
+	reason := req.Data["reason"]
+	if status == nil || reason == nil {
+		return nil, nil
+	}
+
+	notificationReason := model.NotificationReason(reason.(string))
+	notificationStatus := model.NotificationStatus(status.(string))
+	switch notificationStatus {
+	case model.NotificationStatusError:
+		api.App.Metrics().IncrementNotificationErrorCounter(model.NotificationTypeWebsocket, notificationReason)
+	case model.NotificationStatusNotSent:
+		api.App.Metrics().IncrementNotificationNotSentCounter(model.NotificationTypeWebsocket, notificationReason)
+	}
 
 	return nil, nil
 }
