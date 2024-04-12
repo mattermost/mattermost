@@ -109,6 +109,10 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 		additionalJoin = "JOIN Users o ON (o.Id = b.OwnerId)"
 		conditions = append(conditions, "o.DeleteAt != 0")
 	}
+	if options.ExcludeSystemBot {
+		conditions = append(conditions, "u.Username != ?")
+		args = append(args, model.BotSystemBotUsername)
+	}
 
 	if len(conditions) > 0 {
 		conditionsSql = "WHERE " + strings.Join(conditions, " AND ")
