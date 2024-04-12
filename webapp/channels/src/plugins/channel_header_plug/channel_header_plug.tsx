@@ -13,7 +13,6 @@ import type {AppBinding} from '@mattermost/types/apps';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -32,6 +31,8 @@ type CustomMenuProps = {
     rootCloseEvent?: 'click' | 'mousedown';
     bsRole: string;
 }
+
+export const maxComponentsBeforeDropdown = 15;
 
 class CustomMenu extends React.PureComponent<CustomMenuProps> {
     handleRootClose = () => {
@@ -104,7 +105,6 @@ type ChannelHeaderPlugProps = {
     appsEnabled: boolean;
     channel: Channel;
     channelMember?: ChannelMembership;
-    theme: Theme;
     sidebarOpen: boolean;
     shouldShowAppBar: boolean;
     actions: {
@@ -346,7 +346,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
         const appBindings = this.props.appsEnabled ? this.props.appBindings || [] : [];
         if (this.props.shouldShowAppBar || (components.length === 0 && appBindings.length === 0)) {
             return null;
-        } else if ((components.length + appBindings.length) <= 15) {
+        } else if ((components.length + appBindings.length) <= maxComponentsBeforeDropdown) {
             let componentButtons = components.filter((plug) => plug.icon && plug.action).map(this.createComponentButton);
             if (this.props.appsEnabled) {
                 componentButtons = componentButtons.concat(appBindings.map(this.createAppBindingButton));

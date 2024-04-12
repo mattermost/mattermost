@@ -61,6 +61,7 @@ function isDependencyWarning(params: string[]) {
         paramsHasComponent('Portal') ||
         paramsHasComponent('Overlay') ||
         paramsHasComponent('Position') ||
+        paramsHasComponent('Dropdown') ||
 
         // React-Select
         paramsHasComponent('Select')
