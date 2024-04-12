@@ -7,7 +7,6 @@ import {
     openGroupChannelToUserIds,
     loadChannelsForCurrentUser,
 } from 'actions/channel_actions';
-import {loadProfilesForSidebar} from 'actions/user_actions';
 
 import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
@@ -123,23 +122,28 @@ jest.mock('mattermost-redux/actions/channels', () => ({
 }));
 
 jest.mock('actions/user_actions', () => ({
-    loadNewDMIfNeeded: jest.fn(),
-    loadNewGMIfNeeded: jest.fn(),
-    loadProfilesForSidebar: jest.fn(),
+    loadNewDMIfNeeded: (...args: any) => ({type: 'MOCK_LOAD_NEW_DM', args}),
+    loadNewGMIfNeeded: (...args: any) => ({type: 'MOCK_LOAD_NEW_GM', args}),
+    loadProfilesForSidebar: (...args: any) => ({type: 'MOCK_LOAD_PROFILES_FOR_SIDEBAR', args}),
 }));
 
 describe('Actions.Channel', () => {
     test('loadChannelsForCurrentUser', async () => {
         const testStore = await mockStore(initialState);
 
-        const expectedActions = [{
-            type: 'MOCK_FETCH_CHANNELS_AND_MEMBERS',
-            args: ['team-id'],
-        }];
+        const expectedActions = [
+            {
+                type: 'MOCK_FETCH_CHANNELS_AND_MEMBERS',
+                args: ['team-id'],
+            },
+            {
+                type: 'MOCK_LOAD_PROFILES_FOR_SIDEBAR',
+                args: [],
+            },
+        ];
 
         await testStore.dispatch(loadChannelsForCurrentUser());
         expect(testStore.getActions()).toEqual(expectedActions);
-        expect(loadProfilesForSidebar).toHaveBeenCalledTimes(1);
     });
 
     test('addUsersToChannel', async () => {

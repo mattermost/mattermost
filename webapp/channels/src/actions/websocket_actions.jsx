@@ -1236,11 +1236,11 @@ function handlePreferenceChangedEvent(msg) {
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: [preference]});
 
     if (addedNewDmUser(preference)) {
-        loadProfilesForDM();
+        dispatch(loadProfilesForDM());
     }
 
     if (addedNewGmUser(preference)) {
-        loadProfilesForGM();
+        dispatch(loadProfilesForGM());
     }
 }
 
@@ -1249,11 +1249,11 @@ function handlePreferencesChangedEvent(msg) {
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: preferences});
 
     if (preferences.findIndex(addedNewDmUser) !== -1) {
-        loadProfilesForDM();
+        dispatch(loadProfilesForDM());
     }
 
     if (preferences.findIndex(addedNewGmUser) !== -1) {
-        loadProfilesForGM();
+        dispatch(loadProfilesForGM());
     }
 }
 

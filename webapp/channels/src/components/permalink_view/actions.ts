@@ -83,7 +83,7 @@ function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: 
     };
 }
 
-export function focusPost(postId: string, returnTo = '', currentUserId: string, option: Option = {skipRedirectReplyPermalink: false}): ThunkActionFunc<Promise<void>> {
+export function focusPost(postId: string, returnTo = '', currentUserId: string, option: Option = {skipRedirectReplyPermalink: false}): ThunkActionFunc<Promise<void>, GlobalState> {
     return async (dispatch, getState) => {
         // Ignore if prompt is still visible
         if (privateChannelJoinPromptVisible) {

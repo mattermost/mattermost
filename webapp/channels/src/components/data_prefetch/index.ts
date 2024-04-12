@@ -9,6 +9,7 @@ import {getCurrentChannelId, getUnreadChannels} from 'mattermost-redux/selectors
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
+import {loadProfilesForSidebar} from 'actions/user_actions';
 import {prefetchChannelPosts} from 'actions/views/channel';
 import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
@@ -40,6 +41,7 @@ function mapStateToProps(state: GlobalState) {
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
+            loadProfilesForSidebar,
             prefetchChannelPosts,
             trackPreloadedChannels,
         }, dispatch),

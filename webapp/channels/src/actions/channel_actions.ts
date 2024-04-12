@@ -22,6 +22,8 @@ import {getHistory} from 'utils/browser_history';
 import {Constants, Preferences, NotificationLevels} from 'utils/constants';
 import {getDirectChannelName} from 'utils/utils';
 
+import type {GlobalState} from 'types/store';
+
 export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFuncAsync<Channel> {
     return async (dispatch, getState) => {
         const state = getState();
@@ -90,7 +92,7 @@ export function loadChannelsForCurrentUser(): ActionFuncAsync<boolean, GlobalSta
             }
         }
 
-        loadProfilesForSidebar();
+        dispatch(loadProfilesForSidebar());
         return {data: true};
     };
 }

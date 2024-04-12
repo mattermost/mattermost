@@ -92,7 +92,7 @@ export function emitChannelClickEvent(channel: Channel) {
         }
 
         if (currentChannelId) {
-            loadProfilesForSidebar();
+            dispatch(loadProfilesForSidebar());
         }
 
         dispatch(batchActions([
