@@ -271,7 +271,10 @@ const SidebarChannelMenu = (props: Props) => {
             menuButton={{
                 id: `SidebarChannelMenu-Button-${props.channel.id}`,
                 class: 'SidebarMenu_menuButton',
-                'aria-label': formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'}),
+                'aria-label': formatMessage({
+                    id: 'sidebar_left.sidebar_channel_menu.editChannel.ariaLabel',
+                    defaultMessage: 'Channel options for {channelName}',
+                }, {channelName: props.channel.name}),
                 children: <DotsVerticalIcon size={16}/>,
             }}
             menuButtonTooltip={{

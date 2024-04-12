@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"maps"
 	"strconv"
 )
 
@@ -91,6 +92,7 @@ const (
 	WebsocketEventChannelBookmarkDeleted                                 = "channel_bookmark_deleted"
 	WebsocketEventChannelBookmarkSorted                                  = "channel_bookmark_sorted"
 	WebsocketPresenceIndicator                        WebsocketEventType = "presence"
+	WebsocketPostedNotifyAck                                             = "posted_notify_ack"
 )
 
 type WebSocketMessage interface {
@@ -272,20 +274,12 @@ func (ev *WebSocketEvent) Copy() *WebSocketEvent {
 func (ev *WebSocketEvent) DeepCopy() *WebSocketEvent {
 	evCopy := &WebSocketEvent{
 		event:           ev.event,
-		data:            copyMap(ev.data),
+		data:            maps.Clone(ev.data),
 		broadcast:       ev.broadcast.copy(),
 		sequence:        ev.sequence,
 		precomputedJSON: ev.precomputedJSON.copy(),
 	}
 	return evCopy
-}
-
-func copyMap[K comparable, V any](m map[K]V) map[K]V {
-	dataCopy := make(map[K]V, len(m))
-	for k, v := range m {
-		dataCopy[k] = v
-	}
-	return dataCopy
 }
 
 func (ev *WebSocketEvent) GetData() map[string]any {

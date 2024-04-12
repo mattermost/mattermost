@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -25,7 +26,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 const (
@@ -877,7 +877,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		// For typing events, we don't send them to users who don't have
 		// that channel or thread opened.
 		if wc.Platform.Config().FeatureFlags.WebSocketEventScope &&
-			utils.Contains([]model.WebsocketEventType{
+			slices.Contains([]model.WebsocketEventType{
 				model.WebsocketEventTyping,
 				model.WebsocketEventReactionAdded,
 				model.WebsocketEventReactionRemoved,

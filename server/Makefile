@@ -147,10 +147,10 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.25.1
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.26.2
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.2.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.8.1
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.2
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.3
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
@@ -675,6 +675,21 @@ config-ldap: ## Configures LDAP.
 	@sed -i'' -e 's|"LoginIdAttribute": ".*"|"LoginIdAttribute": "uid"|g' ../config/config.json
 	@sed -i'' -e 's|"GroupDisplayNameAttribute": ".*"|"GroupDisplayNameAttribute": "cn"|g' ../config/config.json
 	@sed -i'' -e 's|"GroupIdAttribute": ".*"|"GroupIdAttribute": "entryUUID"|g' ../config/config.json
+
+config-saml: ## Configures SAML.
+	@echo Setting up configuration for local SAML with keycloak, please ensure your keycloak is running on http://localhost:8484
+
+	@cp build/docker/keycloak/keycloak.crt ../config/saml-idp.crt
+
+	@sed -i'' -e 's|"Verify": true|"Verify": false|g' ../config/config.json
+	@sed -i'' -e 's|"Encrypt": true|"Encrypt": false|g' ../config/config.json
+	@sed -i'' -e 's|"SignRequest": true|"SignRequest": false|g' ../config/config.json
+	@sed -i'' -e 's|"IdpURL": ".*"|"IdpURL": "http://localhost:8484/realms/mattermost/protocol/saml"|g' ../config/config.json
+	@sed -i'' -e 's|"IdpDescriptorURL": ".*"|"IdpDescriptorURL": "http://localhost:8484/realms/mattermost"|g' ../config/config.json
+	@sed -i'' -e 's|"IdpMetadataURL": ".*"|"IdpMetadataURL": "http://localhost:8484/realms/mattermost/protocol/saml/descriptor"|g' ../config/config.json
+	@sed -i'' -e 's|"ServiceProviderIdentifier": ".*"|"ServiceProviderIdentifier": "mattermost"|g' ../config/config.json
+	@sed -i'' -e 's|"AssertionConsumerServiceURL": ".*"|"AssertionConsumerServiceURL": "http://localhost:8065/login/sso/saml"|g' ../config/config.json
+	@sed -i'' -e 's|"IdpCertificateFile": ".*"|"IdpCertificateFile": "saml-idp.crt"|g' ../config/config.json
 
 config-reset: ## Resets the config/config.json file to the default production values.
 	@echo Resetting configuration to production default
