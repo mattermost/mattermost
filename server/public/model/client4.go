@@ -7690,6 +7690,19 @@ func (c *Client4) PatchGroup(ctx context.Context, groupID string, patch *GroupPa
 	return &g, BuildResponse(r), nil
 }
 
+func (c *Client4) GetGroupMembers(ctx context.Context, groupID string) (*GroupMemberList, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.groupRoute(groupID)+"/members", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var ml GroupMemberList
+	if err := json.NewDecoder(r.Body).Decode(&ml); err != nil {
+		return nil, nil, NewAppError("UpsertGroupMembers", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &ml, BuildResponse(r), nil
+}
+
 func (c *Client4) UpsertGroupMembers(ctx context.Context, groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
 	payload, err := json.Marshal(userIds)
 	if err != nil {
