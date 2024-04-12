@@ -89,7 +89,6 @@ type WebConn struct {
 	Locale           string
 	Sequence         int64
 	UserId           string
-	OriginClient     string
 
 	allChannelMembers         map[string]string
 	lastAllChannelMembersTime int64
@@ -116,6 +115,9 @@ type WebConn struct {
 	sessionToken atomic.Value
 	session      atomic.Pointer[model.Session]
 	connectionID atomic.Value
+
+	// The client type behind the connection (i.e. web, desktop or mobile)
+	originClient string
 
 	activeChannelID                 atomic.Value
 	activeTeamID                    atomic.Value
@@ -230,7 +232,6 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		WebSocket:          cfg.WebSocket,
 		lastUserActivityAt: model.GetMillis(),
 		UserId:             cfg.Session.UserId,
-		OriginClient:       cfg.OriginClient,
 		T:                  cfg.TFunc,
 		Locale:             cfg.Locale,
 		reuseCount:         cfg.ReuseCount,
@@ -239,6 +240,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		pluginPosted:       make(chan pluginWSPostedHook, 10),
 		lastLogTimeSlow:    time.Now(),
 		lastLogTimeFull:    time.Now(),
+		originClient:       cfg.OriginClient,
 	}
 	wc.active.Store(cfg.Active)
 
@@ -958,12 +960,12 @@ func (wc *WebConn) logSocketErr(source string, err error) {
 		mlog.Debug(source+": client side closed socket",
 			mlog.String("user_id", wc.UserId),
 			mlog.String("conn_id", wc.GetConnectionID()),
-			mlog.String("origin_client", wc.OriginClient))
+			mlog.String("origin_client", wc.originClient))
 	} else {
 		mlog.Debug(source+": closing websocket",
 			mlog.String("user_id", wc.UserId),
 			mlog.String("conn_id", wc.GetConnectionID()),
-			mlog.String("origin_client", wc.OriginClient),
+			mlog.String("origin_client", wc.originClient),
 			mlog.Err(err))
 	}
 }

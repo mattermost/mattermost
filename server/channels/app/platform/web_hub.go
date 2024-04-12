@@ -392,7 +392,7 @@ func (h *Hub) Start() {
 				connIndex.Add(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 				if metrics := h.platform.metricsIFace; metrics != nil {
-					metrics.IncrementHTTPWebSockets(webConn.OriginClient)
+					metrics.IncrementHTTPWebSockets(webConn.originClient)
 				}
 
 				if webConn.IsAuthenticated() && webConn.reuseCount == 0 {
@@ -409,7 +409,7 @@ func (h *Hub) Start() {
 
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 				if metrics := h.platform.metricsIFace; metrics != nil {
-					metrics.DecrementHTTPWebSockets(webConn.OriginClient)
+					metrics.DecrementHTTPWebSockets(webConn.originClient)
 				}
 
 				if webConn.UserId == "" {
