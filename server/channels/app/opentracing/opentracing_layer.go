@@ -4786,7 +4786,7 @@ func (a *OpenTracingAppLayer) GeneratePublicLink(siteURL string, info *model.Fil
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GenerateSupportPacket(c request.CTX) []model.FileData {
+func (a *OpenTracingAppLayer) GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GenerateSupportPacket")
 
@@ -4798,7 +4798,7 @@ func (a *OpenTracingAppLayer) GenerateSupportPacket(c request.CTX) []model.FileD
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GenerateSupportPacket(c)
+	resultVar0 := a.app.GenerateSupportPacket(c, options)
 
 	return resultVar0
 }
