@@ -249,21 +249,18 @@ export function loadNewGMIfNeeded(channelId: string): ActionFuncAsync {
         const state = doGetState();
         const currentUserId = Selectors.getCurrentUserId(state);
 
-        function checkPreference() {
-            const pref = getBool(state, Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, false);
-            if (pref === false) {
-                dispatch(savePreferences(currentUserId, [{user_id: currentUserId, category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW, name: channelId, value: 'true'}]));
-                loadProfilesForGM();
-                return {data: true};
-            }
-            return {data: false};
-        }
-
         const channel = getChannel(state, channelId);
         if (!channel) {
             await doDispatch(getChannelAndMyMember(channelId));
         }
-        return checkPreference();
+
+        const pref = getBool(state, Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, false);
+        if (pref === false) {
+            doDispatch(savePreferences(currentUserId, [{user_id: currentUserId, category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW, name: channelId, value: 'true'}]));
+            loadProfilesForGM();
+            return {data: true};
+        }
+        return {data: false};
     };
 }
 

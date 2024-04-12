@@ -75,7 +75,7 @@ export function openGroupChannelToUserIds(userIds: Array<UserProfile['id']>): Ac
     };
 }
 
-export function loadChannelsForCurrentUser(): ActionFuncAsync {
+export function loadChannelsForCurrentUser(): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const unreads = getUnreadChannelIds(state);

@@ -141,7 +141,9 @@ describe('components/PermalinkView', () => {
     describe('actions', () => {
         const initialState = {
             entities: {
-                general: {},
+                general: {
+                    config: {},
+                },
                 users: {
                     currentUserId: 'current_user_id',
                     profiles: {
@@ -151,12 +153,16 @@ describe('components/PermalinkView', () => {
                         },
                     },
                 },
+                channelCategories: {
+                    orderByTeam: {},
+                },
                 channels: {
                     channels: {
                         channelid1: TestHelper.getChannelMock({id: 'channelid1', name: 'channel1', type: 'O', team_id: 'current_team_id'}),
                         dmchannelid: TestHelper.getChannelMock({id: 'dmchannelid', name: 'dmchannel__current_user_id', type: 'D', team_id: ''}),
                         gmchannelid: TestHelper.getChannelMock({id: 'gmchannelid', name: 'gmchannel', type: 'G', team_id: ''}),
                     },
+                    channelsInTeam: {},
                     myMembers: {channelid1: {channel_id: 'channelid1', user_id: 'current_user_id'}},
                 },
                 preferences: {
@@ -172,6 +178,10 @@ describe('components/PermalinkView', () => {
                         },
                     },
                 },
+            },
+            views: {
+                channel: {},
+                channelSidebar: {},
             },
         };
 
@@ -233,6 +243,7 @@ describe('components/PermalinkView', () => {
                     reply(200, {status: 'OK'});
 
                 const modifiedState = {
+                    ...initialState,
                     entities: {
                         ...initialState.entities,
                         channels: {
@@ -275,6 +286,7 @@ describe('components/PermalinkView', () => {
                 nockInfoForPost(postId);
 
                 const modifiedState = {
+                    ...initialState,
                     entities: {
                         ...initialState.entities,
                         channels: {
@@ -293,6 +305,12 @@ describe('components/PermalinkView', () => {
                 expect(getPostThread).toHaveBeenCalledWith(postId);
                 expect(testStore.getActions()).toEqual([
                     {type: 'MOCK_GET_POST_THREAD', data: {posts: {gmpostid1: {id: postId, message: 'some message', channel_id: 'gmchannelid'}}, order: [postId]}},
+                    {
+                        type: 'RECEIVED_PREFERENCES',
+                        data: [
+                            {user_id: 'current_user_id', category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW, name: 'gmchannelid', value: 'true'},
+                        ],
+                    },
                     {type: 'MOCK_SELECT_CHANNEL', args: ['gmchannelid']},
                     {type: 'RECEIVED_FOCUSED_POST', channelId: 'gmchannelid', data: postId},
                     {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},
@@ -333,6 +351,7 @@ describe('components/PermalinkView', () => {
                 nockInfoForPost(postId);
 
                 const newState = {
+                    ...initialState,
                     entities: {
                         ...initialState.entities,
                         general: {
