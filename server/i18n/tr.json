@@ -69,7 +69,7 @@
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
-    "translation": "Görsel deposu yapılandırılmamış."
+    "translation": "Görsel depolama alanı yapılandırılmamış."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -1018,7 +1018,7 @@
   },
   {
     "id": "api.emoji.storage.app_error",
-    "translation": "Dosya depolama ayarları doğru şekilde yapılmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucusu ayarlayın."
+    "translation": "Dosya depolama alanı ayarları doğru şekilde yapılmamış. Lütfen dosya depolama alanı için bir S3 ya da yerel sunucusu ayarlayın."
   },
   {
     "id": "api.emoji.upload.image.app_error",
@@ -1026,11 +1026,11 @@
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
-    "translation": "Emoji eklenemedi. Görsel kodu çözülürken bir sorun çıktı."
+    "translation": "Emoji eklenemedi. Görselin kodu çözülürken bir sorun çıktı."
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": "Emoji eklenemedi. Görsel kodu çözülürken bir sorun çıktı."
+    "translation": "Emoji eklenemedi. Görsel kodlanırken bir sorun çıktı."
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
@@ -1078,7 +1078,7 @@
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
-    "translation": "Yerel sunucu depolaması okunurken bir sorun çıktı."
+    "translation": "Yerel sunucu depolama alanı okunurken bir sorun çıktı."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1106,7 +1106,7 @@
   },
   {
     "id": "api.file.upload_file.storage.app_error",
-    "translation": "Dosya yüklenemedi. Görsel deposu yapılandırılmamış."
+    "translation": "Dosya yüklenemedi. Görsel depolama alanı yapılandırılmamış."
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
@@ -1114,7 +1114,7 @@
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
-    "translation": "Gelen internet kancaları sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Gelen İnternet kancaları sistem yöneticisi tarafından devre dışı bırakılmış."
   },
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
@@ -1278,7 +1278,7 @@
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
-    "translation": "Giden internet kancaları sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Giden İnternet kancaları sistem yöneticisi tarafından devre dışı bırakılmış."
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -1708,7 +1708,7 @@
   },
   {
     "id": "api.team.set_team_icon.storage.app_error",
-    "translation": "Takım simgesi yüklenemedi. Görsel deposu yapılandırılmamış."
+    "translation": "Takım simgesi yüklenemedi. Görsel depolama alanı yapılandırılmamış."
   },
   {
     "id": "api.team.set_team_icon.too_large.app_error",
@@ -2232,7 +2232,7 @@
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
-    "translation": "Dosya yüklenemedi. Görsel deposu yapılandırılmamış."
+    "translation": "Dosya yüklenemedi. Görsel depolama alanı yapılandırılmamış."
   },
   {
     "id": "api.user.upload_profile_user.too_large.app_error",
@@ -2284,11 +2284,11 @@
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
-    "translation": "Giden internet kancaları yalnızca herkese açık kanallara eklenebilir."
+    "translation": "Giden İnternet kancaları yalnızca herkese açık kanallara eklenebilir."
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
-    "translation": "Giden internet kancası eklemek için izinleriniz yetersiz."
+    "translation": "Giden İnternet kancası eklemek için izinleriniz yetersiz."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -2296,7 +2296,7 @@
   },
   {
     "id": "api.webhook.incoming.error",
-    "translation": "Gelen internet kancasının birkaç parçalı paketinin kodu çözülemedi."
+    "translation": "Gelen İnternet kancasının birkaç parçalı paketinin kodu çözülemedi."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
@@ -2980,7 +2980,7 @@
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": "Görsel dosyası kullandığınız dosya depolaması üzerine yazılamadı. Lütfen bağlantınızı denetleyip yeniden deneyin."
+    "translation": "Görsel dosyası kullandığınız dosya depolama alanı üzerine yazılamadı. Lütfen bağlantınızı denetleyip yeniden deneyin."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3888,7 +3888,7 @@
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
-    "translation": "Hız sınırlaması ayarı için bellek depolama boyutu geçersiz. Değer pozitif bir sayı olmalıdır."
+    "translation": "Hız sınırlaması ayarı için bellek depolama alanı boyutu geçersiz. Değer pozitif bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.rate_sec.app_error",
@@ -4640,11 +4640,11 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Bu internet bağlantısının istenilen kanala gönderilmesine izin verilmiyor."
+    "translation": "Bu İnternet bağlantısının istenilen kanala gönderilmesine izin verilmiyor."
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
-    "translation": "Gelen internet kancaları sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Gelen İnternet kancaları sistem yöneticisi tarafından devre dışı bırakılmış."
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
@@ -4808,7 +4808,7 @@
   },
   {
     "id": "app.plugin.webapp_bundle.app_error",
-    "translation": "Uygulama eki internet uygulaması paketi oluşturulamadı."
+    "translation": "Uygulama eki İnternet uygulaması paketi oluşturulamadı."
   },
   {
     "id": "app.plugin.write_file.read.app_error",
@@ -5172,7 +5172,7 @@
   },
   {
     "id": "api.emoji.create.internal_error",
-    "translation": "sunucu_sorunu: Emoji oluşturulurken sunucuda bir iç sorun çıktı."
+    "translation": "server_error: Emoji oluşturulurken sunucuda bir iç sorun çıktı."
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
@@ -6228,11 +6228,11 @@
   },
   {
     "id": "app.webhooks.analytics_outgoing_count.app_error",
-    "translation": "Giden internet kancaları sayılamadı."
+    "translation": "Giden İnternet kancaları sayılamadı."
   },
   {
     "id": "app.webhooks.analytics_incoming_count.app_error",
-    "translation": "Gelen internet kancaları sayılamadı."
+    "translation": "Gelen İnternet kancaları sayılamadı."
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -6240,23 +6240,23 @@
   },
   {
     "id": "app.webhooks.update_incoming.app_error",
-    "translation": "Gelen internet kancası güncellenemedi."
+    "translation": "Gelen İnternet kancası güncellenemedi."
   },
   {
     "id": "app.webhooks.save_outgoing.override.app_error",
-    "translation": "Var olan bir giden internet kancasının üzerine yazılamaz."
+    "translation": "Var olan bir giden İnternet kancasının üzerine yazılamaz."
   },
   {
     "id": "app.webhooks.save_outgoing.app_error",
-    "translation": "Giden internet kancası kaydedilemedi."
+    "translation": "Giden İnternet kancası kaydedilemedi."
   },
   {
     "id": "app.webhooks.save_incoming.existing.app_error",
-    "translation": "Var olan bir gelen internet kancasının üzerine yazılamaz."
+    "translation": "Var olan bir gelen İnternet kancasının üzerine yazılamaz."
   },
   {
     "id": "app.webhooks.save_incoming.app_error",
-    "translation": "Gelen internet kancası kaydedilemedi."
+    "translation": "Gelen İnternet kancası kaydedilemedi."
   },
   {
     "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
@@ -6328,7 +6328,7 @@
   },
   {
     "id": "model.config.is_valid.directory.app_error",
-    "translation": "Yerel depolama klasörü geçersiz. Boş olmayan bir dizge olmalıdır."
+    "translation": "Yerel depolama alanı klasörü geçersiz. Boş olmayan bir dizge olmalıdır."
   },
   {
     "id": "app.user.convert_bot_to_user.app_error",
@@ -6668,7 +6668,7 @@
   },
   {
     "id": "api.config.migrate_config.app_error",
-    "translation": "Yapılandırma depolaması aktarılamadı."
+    "translation": "Kaydedilmiş yapılandırma aktarılamadı."
   },
   {
     "id": "api.cloud.license_error",
@@ -7448,7 +7448,7 @@
   },
   {
     "id": "api.file.test_connection.app_error",
-    "translation": "Dosya depolamasına erişilemedi."
+    "translation": "Dosya depolama alanına erişilemedi."
   },
   {
     "id": "api.file.remove_file.app_error",
@@ -7472,7 +7472,7 @@
   },
   {
     "id": "api.file.file_size.app_error",
-    "translation": "Dosya boyutu alınamadı."
+    "translation": "Dosyanın boyutu alınamadı."
   },
   {
     "id": "api.file.file_reader.app_error",
@@ -7604,7 +7604,7 @@
   },
   {
     "id": "api.file.file_mod_time.app_error",
-    "translation": "Dosyanın en son değişiklik zamanı alınamadı."
+    "translation": "Dosyanın son değişiklik zamanı alınamadı."
   },
   {
     "id": "app.user.get_threads_for_user.not_found",
@@ -7692,11 +7692,11 @@
   },
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
-    "translation": "Son durum silinemedi. Lütfen önce bir durum eklemeyi deneyin ya da ayrıntılı bilgi almak için BT yöneticiniz ile görüşün."
+    "translation": "Son durum silinemedi. Lütfen önce bir durum eklemeyi deneyin ya da ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.custom_status.disabled",
-    "translation": "Özel durum özelliği devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için BT yöneticiniz ile görüşün."
+    "translation": "Özel durum özelliği devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.command_custom_status.success",
@@ -8743,7 +8743,7 @@
   },
   {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "dosya depolama ayarlarında yapılandırılmamış değerler var."
+    "translation": "Dosya depolama alanı ayarlarında yapılandırılmamış değerler var."
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
@@ -9095,7 +9095,7 @@
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
-    "translation": "SAML, herkese açık kimlik hizmeti sağlayıcı sertifikasını yükleyemedi. Lütfen sistem yöneticinizle görüşün."
+    "translation": "SAML, herkese açık kimlik hizmeti sağlayıcı sertifikasını yükleyemedi. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "app.user.get_badge_count.app_error",
@@ -9299,11 +9299,11 @@
   },
   {
     "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Toplam giden internet kancası sayısı alınamadı"
+    "translation": "Toplam giden İnternet kancası sayısı alınamadı"
   },
   {
     "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Toplam gelen internet kancası sayısı alınamadı"
+    "translation": "Toplam gelen İnternet kancası sayısı alınamadı"
   },
   {
     "id": "api.license.true_up_review.user_count_fail",
@@ -9499,11 +9499,11 @@
   },
   {
     "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "Bu işlemler için ayrılmış bir dışa aktarma depolaması kullanılmalıdır."
+    "translation": "Bu işlemler için ayrılmış bir dışa aktarma depolama alanı kullanılmalıdır."
   },
   {
     "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "Dışa aktarma depolaması sürücünüz önceden imzalanmış adreslerin oluşturulmasını desteklemiyor."
+    "translation": "Dışa aktarma depolama alanı sürücünüz önceden imzalanmış adreslerin oluşturulmasını desteklemiyor."
   },
   {
     "id": "app.eport.generate_presigned_url.featureflag.app_error",
