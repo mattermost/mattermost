@@ -4272,6 +4272,91 @@ func TestSwitchAccount(t *testing.T) {
 	_, appErr := th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
 	require.NoError(t, appErr)
 
+	t.Run("From GitLab to Email", func(t *testing.T) {
+		sr = &model.SwitchRequest{
+			CurrentService: model.UserAuthServiceGitlab,
+			NewService:     model.UserAuthServiceEmail,
+			Email:          th.BasicUser.Email,
+			NewPassword:    th.BasicUser.Password,
+		}
+
+		t.Run("Switching from OAuth to email is disabled if EnableSignUpWithEmail is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = false })
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = true })
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.email_signup_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+
+		t.Run("Switching from OAuth to email is disabled if EnableSignInWithEmail and EnableSignInWithUsername is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.EnableSignInWithEmail = false
+				*cfg.EmailSettings.EnableSignInWithUsername = false
+			})
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.EmailSettings.EnableSignInWithEmail = true
+					*cfg.EmailSettings.EnableSignInWithUsername = true
+				})
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.login_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+	})
+
+	t.Run("From LDAP to Email", func(t *testing.T) {
+		_, err = th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceLdap, &fakeAuthData, th.BasicUser.Email, true)
+		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			_, err = th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
+			require.NoError(t, err)
+		})
+
+		sr = &model.SwitchRequest{
+			CurrentService: model.UserAuthServiceLdap,
+			NewService:     model.UserAuthServiceEmail,
+			Email:          th.BasicUser.Email,
+			NewPassword:    th.BasicUser.Password,
+		}
+
+		t.Run("Switching from LDAP to email is disabled if EnableSignUpWithEmail is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = false })
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = true })
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.email_signup_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+		t.Run("Switching from LDAP to email is disabled if EnableSignInWithEmail and EnableSignInWithUsername is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.EnableSignInWithEmail = false
+				*cfg.EmailSettings.EnableSignInWithUsername = false
+			})
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.EmailSettings.EnableSignInWithEmail = true
+					*cfg.EmailSettings.EnableSignInWithUsername = true
+				})
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.login_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+	})
+
 	sr = &model.SwitchRequest{
 		CurrentService: model.UserAuthServiceGitlab,
 		NewService:     model.UserAuthServiceEmail,

@@ -53,7 +53,7 @@ type Props = {
     setRequireConfirm: () => void;
     canUseAccessTokens: boolean;
     enableOAuthServiceProvider: boolean;
-    enableSignUpWithEmail: boolean;
+    allowedToSwitchToEmail: boolean;
     enableSignUpWithGitLab: boolean;
     enableSignUpWithGoogle: boolean;
     enableSignUpWithOpenId: boolean;
@@ -668,7 +668,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         </div>
                     );
                 }
-            } else if (this.props.enableSignUpWithEmail) {
+            } else if (this.props.allowedToSwitchToEmail) {
                 let link;
                 if (user.auth_service === Constants.LDAP_SERVICE) {
                     link =
@@ -963,7 +963,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
         // If there are other sign-in methods and either email is enabled or the user's account is email, then allow switching
         let signInSection;
         if (
-            (this.props.enableSignUpWithEmail || user.auth_service === '') &&
+            (this.props.allowedToSwitchToEmail || user.auth_service === '') &&
             numMethods > 0 &&
             this.props.experimentalEnableAuthenticationTransfer
         ) {
