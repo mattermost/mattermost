@@ -137,7 +137,7 @@ func makeInvite(url string) RemoteClusterInvite {
 	}
 }
 
-func Test_newIDFromBytes(t *testing.T) {
+func TestNewIDFromBytes(t *testing.T) {
 	tests := []struct {
 		name string
 		ss   string
