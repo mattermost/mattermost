@@ -4067,6 +4067,14 @@
     "translation": "not an ldap user"
   },
   {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Authentication Transfer is not available as email signup is disabled."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Authentication Transfer is not available as neither email login nor username login is enabled."
+  },
+  {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
     "translation": "Bad response from token request."
   },
