@@ -168,55 +168,91 @@ func TestGenerateSupportPacket(t *testing.T) {
 	logLocation := config.GetLogFileLocation(dir)
 	notificationsLogLocation := config.GetNotificationsLogFileLocation(dir)
 
-	d1 := []byte("hello\ngo\n")
-	err = os.WriteFile(logLocation, d1, 0777)
-	require.NoError(t, err)
-	err = os.WriteFile(notificationsLogLocation, d1, 0777)
-	require.NoError(t, err)
-
-	fileDatas := th.App.GenerateSupportPacket(th.Context)
-	var rFileNames []string
-	testFiles := []string{
-		"support_packet.yaml",
-		"plugins.json",
-		"sanitized_config.json",
-		"mattermost.log",
-		"notifications.log",
-		"cpu.prof",
-		"heap.prof",
-		"goroutines",
+	genMockLogFiles := func() {
+		d1 := []byte("hello\ngo\n")
+		genErr := os.WriteFile(logLocation, d1, 0777)
+		require.NoError(t, genErr)
+		genErr = os.WriteFile(notificationsLogLocation, d1, 0777)
+		require.NoError(t, genErr)
 	}
-	for _, fileData := range fileDatas {
-		require.NotNil(t, fileData)
-		assert.Positive(t, len(fileData.Body))
+	genMockLogFiles()
 
-		rFileNames = append(rFileNames, fileData.Filename)
-	}
-	assert.ElementsMatch(t, testFiles, rFileNames)
+	t.Run("generate support packet with logs", func(t *testing.T) {
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: true,
+		})
+		var rFileNames []string
+		testFiles := []string{
+			"support_packet.yaml",
+			"plugins.json",
+			"sanitized_config.json",
+			"mattermost.log",
+			"notifications.log",
+			"cpu.prof",
+			"heap.prof",
+			"goroutines",
+		}
+		for _, fileData := range fileDatas {
+			require.NotNil(t, fileData)
+			assert.Positive(t, len(fileData.Body))
 
-	// Remove these two files and ensure that warning.txt file is generated
-	err = os.Remove(logLocation)
-	require.NoError(t, err)
-	err = os.Remove(notificationsLogLocation)
-	require.NoError(t, err)
-	fileDatas = th.App.GenerateSupportPacket(th.Context)
-	testFiles = []string{
-		"support_packet.yaml",
-		"plugins.json",
-		"sanitized_config.json",
-		"cpu.prof",
-		"heap.prof",
-		"warning.txt",
-		"goroutines",
-	}
-	rFileNames = nil
-	for _, fileData := range fileDatas {
-		require.NotNil(t, fileData)
-		assert.Positive(t, len(fileData.Body))
+			rFileNames = append(rFileNames, fileData.Filename)
+		}
+		assert.ElementsMatch(t, testFiles, rFileNames)
+	})
 
-		rFileNames = append(rFileNames, fileData.Filename)
-	}
-	assert.ElementsMatch(t, testFiles, rFileNames)
+	t.Run("generate support packet without logs", func(t *testing.T) {
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: false,
+		})
+
+		testFiles := []string{
+			"support_packet.yaml",
+			"plugins.json",
+			"sanitized_config.json",
+			"cpu.prof",
+			"heap.prof",
+			"goroutines",
+		}
+		var rFileNames []string
+		for _, fileData := range fileDatas {
+			require.NotNil(t, fileData)
+			assert.Positive(t, len(fileData.Body))
+
+			rFileNames = append(rFileNames, fileData.Filename)
+		}
+		assert.ElementsMatch(t, testFiles, rFileNames)
+	})
+
+	t.Run("remove the log files and ensure that warning.txt file is generated", func(t *testing.T) {
+		// Remove these two files and ensure that warning.txt file is generated
+		err = os.Remove(logLocation)
+		require.NoError(t, err)
+		err = os.Remove(notificationsLogLocation)
+		require.NoError(t, err)
+		t.Cleanup(genMockLogFiles)
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: true,
+		})
+		testFiles := []string{
+			"support_packet.yaml",
+			"plugins.json",
+			"sanitized_config.json",
+			"cpu.prof",
+			"heap.prof",
+			"warning.txt",
+			"goroutines",
+		}
+		var rFileNames []string
+		for _, fileData := range fileDatas {
+			require.NotNil(t, fileData)
+			assert.Positive(t, len(fileData.Body))
+
+			rFileNames = append(rFileNames, fileData.Filename)
+		}
+		assert.ElementsMatch(t, testFiles, rFileNames)
+	})
 
 	t.Run("steps that generated an error should still return file data", func(t *testing.T) {
 		mockStore := smocks.Store{}
@@ -241,7 +277,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("GetDbVersion", false).Return("1.0.0", nil)
 		th.App.Srv().SetStore(&mockStore)
 
-		fileDatas := th.App.GenerateSupportPacket(th.Context)
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: false,
+		})
 
 		var rFileNames []string
 		for _, fileData := range fileDatas {

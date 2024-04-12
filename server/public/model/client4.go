@@ -7352,6 +7352,36 @@ func (c *Client4) InstallMarketplacePlugin(ctx context.Context, request *Install
 	return &m, BuildResponse(r), nil
 }
 
+// ReattachPlugin asks the server to reattach to a plugin launched by another process.
+//
+// Only available in local mode, and currently only used for testing.
+func (c *Client4) ReattachPlugin(ctx context.Context, request *PluginReattachRequest) (*Response, error) {
+	buf, err := json.Marshal(request)
+	if err != nil {
+		return nil, NewAppError("ReattachPlugin", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPost(ctx, c.pluginsRoute()+"/reattach", string(buf))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
+// DetachPlugin detaches a previously reattached plugin.
+//
+// Only available in local mode, and currently only used for testing.
+func (c *Client4) DetachPlugin(ctx context.Context, pluginID string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.pluginRoute(pluginID)+"/detach", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
 // GetPlugins will return a list of plugin manifests for currently active plugins.
 func (c *Client4) GetPlugins(ctx context.Context) (*PluginsResponse, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.pluginsRoute(), "")
