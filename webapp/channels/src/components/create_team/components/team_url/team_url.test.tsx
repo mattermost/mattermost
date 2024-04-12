@@ -6,7 +6,7 @@ import React from 'react';
 
 import TeamUrl from 'components/create_team/components/team_url/team_url';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 jest.mock('images/logo.png', () => 'logo.png');
@@ -56,27 +56,22 @@ describe('/components/create_team/components/display_name', () => {
 
         screen.getByText('Finish').click();
 
-        // Wait for the check to see if the team already exists which should fail
-        await Promise.resolve();
-
-        expect(screen.getByText('This URL is taken or unavailable. Please try another.')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('This URL is taken or unavailable. Please try another.')).toBeInTheDocument();
+        });
 
         expect(actions.checkIfTeamExists).toHaveBeenCalledTimes(1);
         expect(actions.createTeam).not.toHaveBeenCalled();
 
-        expect(screen.getByText('This URL is taken or unavailable. Please try another.')).toBeInTheDocument();
-
         screen.getByText('Finish').click();
 
-        // Wait for the check to see if the team already exists and then to create the team
-        await Promise.resolve();
-        await Promise.resolve();
-
-        expect(actions.checkIfTeamExists).toHaveBeenCalledTimes(2);
-        expect(actions.createTeam).toHaveBeenCalledTimes(1);
-        expect(actions.createTeam).toBeCalledWith({display_name: 'test-team', name: 'test-team', type: 'O'});
-        expect(props.history.push).toHaveBeenCalledTimes(1);
-        expect(props.history.push).toBeCalledWith('/test-team/channels/town-square');
+        await waitFor(() => {
+            expect(actions.checkIfTeamExists).toHaveBeenCalledTimes(2);
+            expect(actions.createTeam).toHaveBeenCalledTimes(1);
+            expect(actions.createTeam).toBeCalledWith({display_name: 'test-team', name: 'test-team', type: 'O'});
+            expect(props.history.push).toHaveBeenCalledTimes(1);
+            expect(props.history.push).toBeCalledWith('/test-team/channels/town-square');
+        });
     });
 
     test('should display isRequired error', () => {
