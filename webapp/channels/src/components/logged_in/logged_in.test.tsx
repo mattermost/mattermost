@@ -6,7 +6,6 @@ import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import * as GlobalActions from 'actions/global_actions';
 import BrowserStore from 'stores/browser_store';
 
 import LoggedIn from 'components/logged_in/logged_in';
@@ -36,6 +35,7 @@ describe('components/logged_in/LoggedIn', () => {
         mfaRequired: false,
         actions: {
             autoUpdateTimezone: jest.fn(),
+            emitBrowserFocus: jest.fn(),
             emitUserLoggedOutEvent: jest.fn(),
             getChannelURLAction: jest.fn(),
             updateApproximateViewTime: jest.fn(),
@@ -179,9 +179,6 @@ describe('components/logged_in/LoggedIn', () => {
     it('should set state to unfocused if it starts in the background', () => {
         document.hasFocus = jest.fn(() => false);
 
-        const obj = Object.assign(GlobalActions);
-        obj.emitBrowserFocus = jest.fn();
-
         const props = {
             ...baseProps,
             mfaRequired: false,
@@ -189,7 +186,7 @@ describe('components/logged_in/LoggedIn', () => {
         };
 
         shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-        expect(obj.emitBrowserFocus).toBeCalledTimes(1);
+        expect(props.actions.emitBrowserFocus).toBeCalledTimes(1);
     });
 
     it('should not make viewChannel call on unload', () => {

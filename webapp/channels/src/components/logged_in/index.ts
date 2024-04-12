@@ -12,7 +12,7 @@ import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general
 import {getCurrentUser, shouldShowTermsOfService} from 'mattermost-redux/selectors/entities/users';
 import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
 
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
+import {emitBrowserFocus, emitUserLoggedOutEvent} from 'actions/global_actions';
 import {getChannelURL} from 'selectors/urls';
 
 import {getHistory} from 'utils/browser_history';
@@ -63,6 +63,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             autoUpdateTimezone,
+            emitBrowserFocus,
             emitUserLoggedOutEvent,
             getChannelURLAction,
             updateApproximateViewTime,

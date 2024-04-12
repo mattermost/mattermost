@@ -6,7 +6,6 @@ import {Redirect} from 'react-router-dom';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import * as GlobalActions from 'actions/global_actions';
 import * as WebSocketActions from 'actions/websocket_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
@@ -35,6 +34,7 @@ export type Props = {
     mfaRequired: boolean;
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
+        emitBrowserFocus: (focused: boolean) => void;
         emitUserLoggedOutEvent: (redirectTo: string, shouldSignalLogout: boolean, userAction: boolean) => void;
         getChannelURLAction: (channelId: string, teamId: string, url: string) => void;
         updateApproximateViewTime: (channelId: string) => void;
@@ -78,7 +78,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
         window.addEventListener('focus', this.onFocusListener);
         window.addEventListener('blur', this.onBlurListener);
         if (!document.hasFocus()) {
-            GlobalActions.emitBrowserFocus(false);
+            this.props.actions.emitBrowserFocus(false);
         }
 
         // Listen for user activity and notifications from the Desktop App (if applicable)
@@ -154,13 +154,13 @@ export default class LoggedIn extends React.PureComponent<Props> {
         this.props.actions.autoUpdateTimezone(getBrowserTimezone());
     }
 
-    private onFocusListener(): void {
-        GlobalActions.emitBrowserFocus(true);
-    }
+    private onFocusListener = () => {
+        this.props.actions.emitBrowserFocus(true);
+    };
 
-    private onBlurListener(): void {
-        GlobalActions.emitBrowserFocus(false);
-    }
+    private onBlurListener = () => {
+        this.props.actions.emitBrowserFocus(false);
+    };
 
     private updateActiveStatus = (userIsActive: boolean, idleTime: number, manual: boolean) => {
         if (!this.props.currentUser) {

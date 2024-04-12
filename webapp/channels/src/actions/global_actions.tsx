@@ -256,10 +256,10 @@ export function toggleSideBarRightMenuAction(): ThunkActionFunc<void> {
 }
 
 export function emitBrowserFocus(focus: boolean) {
-    dispatch({
+    return {
         type: ActionTypes.BROWSER_CHANGE_FOCUS,
         focus,
-    });
+    };
 }
 
 export async function getTeamRedirectChannelIfIsAccesible(user: UserProfile, team: Team) {
