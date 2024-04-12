@@ -27,7 +27,7 @@ export function switchToChannels(): ActionFuncAsync<boolean> {
             return {data: false};
         }
 
-        const channel = await getTeamRedirectChannelIfIsAccesible(user, team);
+        const channel = await dispatch(getTeamRedirectChannelIfIsAccesible(user, team));
         const channelName = channel?.name || Constants.DEFAULT_CHANNEL;
 
         getHistory().push(`/${team.name}/channels/${channelName}`);

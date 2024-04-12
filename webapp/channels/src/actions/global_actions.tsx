@@ -262,55 +262,57 @@ export function emitBrowserFocus(focus: boolean) {
     };
 }
 
-export async function getTeamRedirectChannelIfIsAccesible(user: UserProfile, team: Team) {
-    let state = getState();
-    let channel = null;
+export function getTeamRedirectChannelIfIsAccesible(user: UserProfile, team: Team): ThunkActionFunc<Promise<Channel | null>> {
+    return async (doDispatch, doGetState) => {
+        let state = doGetState();
+        let channel = null;
 
-    const myMember = getMyTeamMember(state, team.id);
-    if (!myMember || Object.keys(myMember).length === 0) {
-        return null;
-    }
+        const myMember = getMyTeamMember(state, team.id);
+        if (!myMember || Object.keys(myMember).length === 0) {
+            return null;
+        }
 
-    let teamChannels = getChannelsNameMapInTeam(state, team.id);
-    if (!teamChannels || Object.keys(teamChannels).length === 0) {
-        // This should be executed in pretty limited scenarios (empty teams)
-        await dispatch(fetchChannelsAndMembers(team.id)); // eslint-disable-line no-await-in-loop
-        state = getState();
-        teamChannels = getChannelsNameMapInTeam(state, team.id);
-    }
+        let teamChannels = getChannelsNameMapInTeam(state, team.id);
+        if (!teamChannels || Object.keys(teamChannels).length === 0) {
+            // This should be executed in pretty limited scenarios (empty teams)
+            await doDispatch(fetchChannelsAndMembers(team.id)); // eslint-disable-line no-await-in-loop
+            state = doGetState();
+            teamChannels = getChannelsNameMapInTeam(state, team.id);
+        }
 
-    const channelName = LocalStorageStore.getPreviousChannelName(user.id, team.id);
-    channel = teamChannels[channelName];
-
-    if (typeof channel === 'undefined') {
-        const dmList = getAllDirectChannels(state);
-        channel = dmList.find((directChannel) => directChannel.name === channelName);
-    }
-
-    let channelMember: ChannelMembership | null | undefined;
-    if (channel) {
-        channelMember = getMyChannelMember(state, channel.id);
-    }
-
-    if (!channel || !channelMember) {
-        // This should be executed in pretty limited scenarios (when the last visited channel in the team has been removed)
-        await dispatch(getChannelByNameAndTeamName(team.name, channelName)); // eslint-disable-line no-await-in-loop
-        state = getState();
-        teamChannels = getChannelsNameMapInTeam(state, team.id);
+        const channelName = LocalStorageStore.getPreviousChannelName(user.id, team.id);
         channel = teamChannels[channelName];
-        channelMember = getMyChannelMember(state, channel && channel.id);
-    }
 
-    if (!channel || !channelMember) {
-        const redirectedChannelName = getRedirectChannelNameForTeam(state, team.id);
-        channel = teamChannels[redirectedChannelName];
-        channelMember = getMyChannelMember(state, channel && channel.id);
-    }
+        if (typeof channel === 'undefined') {
+            const dmList = getAllDirectChannels(state);
+            channel = dmList.find((directChannel) => directChannel.name === channelName);
+        }
 
-    if (channel && channelMember) {
-        return channel;
-    }
-    return null;
+        let channelMember: ChannelMembership | null | undefined;
+        if (channel) {
+            channelMember = getMyChannelMember(state, channel.id);
+        }
+
+        if (!channel || !channelMember) {
+            // This should be executed in pretty limited scenarios (when the last visited channel in the team has been removed)
+            await doDispatch(getChannelByNameAndTeamName(team.name, channelName)); // eslint-disable-line no-await-in-loop
+            state = doGetState();
+            teamChannels = getChannelsNameMapInTeam(state, team.id);
+            channel = teamChannels[channelName];
+            channelMember = getMyChannelMember(state, channel && channel.id);
+        }
+
+        if (!channel || !channelMember) {
+            const redirectedChannelName = getRedirectChannelNameForTeam(state, team.id);
+            channel = teamChannels[redirectedChannelName];
+            channelMember = getMyChannelMember(state, channel && channel.id);
+        }
+
+        if (channel && channelMember) {
+            return channel;
+        }
+        return null;
+    };
 }
 
 export async function redirectUserToDefaultTeam() {
@@ -354,7 +356,7 @@ export async function redirectUserToDefaultTeam() {
     }
 
     if (team && team.delete_at === 0) {
-        const channel = await getTeamRedirectChannelIfIsAccesible(user, team);
+        const channel = await dispatch(getTeamRedirectChannelIfIsAccesible(user, team));
         if (channel) {
             dispatch(selectChannel(channel.id));
             getHistory().push(`/${team.name}/channels/${channel.name}`);
@@ -366,7 +368,7 @@ export async function redirectUserToDefaultTeam() {
 
     for (const myTeam of myTeams) {
         // This should execute async behavior in a pretty limited set of situations, so shouldn't be a problem
-        const channel = await getTeamRedirectChannelIfIsAccesible(user, myTeam); // eslint-disable-line no-await-in-loop
+        const channel = await dispatch(getTeamRedirectChannelIfIsAccesible(user, myTeam)); // eslint-disable-line no-await-in-loop
         if (channel) {
             dispatch(selectChannel(channel.id));
             getHistory().push(`/${myTeam.name}/channels/${channel.name}`);

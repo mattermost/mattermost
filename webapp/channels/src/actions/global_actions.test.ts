@@ -138,6 +138,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
+            reduxStore.dispatch.mockImplementation(store.dispatch);
             reduxStore.getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
@@ -211,6 +212,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
+            reduxStore.dispatch.mockImplementation(store.dispatch);
             reduxStore.getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
@@ -283,6 +285,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
+            reduxStore.dispatch.mockImplementation(store.dispatch);
             reduxStore.getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
@@ -412,7 +415,7 @@ describe('actions/global_actions', () => {
             LocalStorageStore.setPreviousTeamId(userId, teamId);
             LocalStorageStore.setPreviousChannelName(userId, teamId, directChannelId);
 
-            const result = await getTeamRedirectChannelIfIsAccesible({id: userId} as UserProfile, {id: teamId} as Team);
+            const result = await store.dispatch(getTeamRedirectChannelIfIsAccesible({id: userId} as UserProfile, {id: teamId} as Team));
             expect(result?.id).toBe(directChannelId);
         });
 
@@ -505,11 +508,12 @@ describe('actions/global_actions', () => {
                     },
                 },
             });
+            reduxStore.dispatch.mockImplementation(store.dispatch);
             reduxStore.getState.mockImplementation(store.getState);
             LocalStorageStore.setPreviousTeamId(userId, teamId);
             LocalStorageStore.setPreviousChannelName(userId, teamId, groupChannelId);
 
-            const result = await getTeamRedirectChannelIfIsAccesible({id: userId} as UserProfile, {id: teamId} as Team);
+            const result = await store.dispatch(getTeamRedirectChannelIfIsAccesible({id: userId} as UserProfile, {id: teamId} as Team));
             expect(result?.id).toBe(groupChannelId);
         });
 
