@@ -34,6 +34,7 @@ export interface UpdateMyTermsOfServiceStatusResponse {
 export interface TermsOfServiceProps extends RouteComponentProps {
     termsEnabled: boolean;
     actions: {
+        emitUserLoggedOutEvent: (redirectTo: string) => void;
         getTermsOfService: () => Promise<ActionResult<ReduxTermsOfService>>;
         updateMyTermsOfServiceStatus: (
             termsOfServiceId: string,
@@ -93,13 +94,13 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
                 loading: false,
             });
         } else {
-            GlobalActions.emitUserLoggedOutEvent(`/login?extra=${Constants.GET_TERMS_ERROR}`);
+            this.props.actions.emitUserLoggedOutEvent(`/login?extra=${Constants.GET_TERMS_ERROR}`);
         }
     };
 
     handleLogoutClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>): void => {
         e.preventDefault();
-        GlobalActions.emitUserLoggedOutEvent('/login');
+        this.props.actions.emitUserLoggedOutEvent('/login');
     };
 
     handleAcceptTerms = (): void => {
@@ -135,7 +136,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
         this.registerUserAction(
             false,
             () => {
-                GlobalActions.emitUserLoggedOutEvent(`/login?extra=${Constants.TERMS_REJECTED}`);
+                this.props.actions.emitUserLoggedOutEvent(`/login?extra=${Constants.TERMS_REJECTED}`);
             },
         );
     };

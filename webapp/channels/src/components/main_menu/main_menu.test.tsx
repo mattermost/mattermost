@@ -62,6 +62,7 @@ describe('components/Menu', () => {
             closeRightHandSide: jest.fn(),
             closeRhsMenu: jest.fn(),
             getCloudLimits: jest.fn(),
+            emitUserLoggedOutEvent: jest.fn(),
         },
         teamIsGroupConstrained: false,
         isCloud: false,

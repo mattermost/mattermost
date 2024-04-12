@@ -11,7 +11,6 @@ import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import AnnouncementBar from 'components/announcement_bar';
@@ -38,6 +37,7 @@ type Actions = {
     getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => any;
     loadRolesIfNeeded: (roles: Iterable<string>) => any;
     addUserToTeam: (teamId: string, userId?: string) => any;
+    emitUserLoggedOutEvent: (redirectTo: string) => void;
 }
 
 type Props = {
@@ -155,7 +155,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
     handleLogoutClick = (e: MouseEvent): void => {
         e.preventDefault();
         trackEvent('select_team', 'click_logout');
-        emitUserLoggedOutEvent('/login');
+        this.props.actions.emitUserLoggedOutEvent('/login');
     };
 
     clearError = (e: MouseEvent): void => {

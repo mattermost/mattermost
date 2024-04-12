@@ -46,6 +46,7 @@ describe('plugins/MainMenuActions', () => {
             closeRightHandSide: jest.fn(),
             closeRhsMenu: jest.fn(),
             getCloudLimits: jest.fn(),
+            emitUserLoggedOutEvent: jest.fn(),
         },
         isCloud: false,
         isStarterFree: false,

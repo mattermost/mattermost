@@ -162,7 +162,7 @@ export async function oauthToEmail(currentService, email, password, success, err
     const {data, error: err} = await dispatch(UserActions.switchOAuthToEmail(currentService, email, password));
     if (data) {
         if (data.follow_link) {
-            emitUserLoggedOutEvent(data.follow_link);
+            dispatch(emitUserLoggedOutEvent(data.follow_link));
         }
         if (success) {
             success(data);

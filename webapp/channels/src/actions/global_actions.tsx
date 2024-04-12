@@ -222,27 +222,29 @@ export function emitLocalUserTypingEvent(channelId: string, parentPostId: string
     };
 }
 
-export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = true, userAction = true) {
-    // If the logout was intentional, discard knowledge about having previously been logged in.
-    // This bit is otherwise used to detect session expirations on the login page.
-    if (userAction) {
-        LocalStorageStore.setWasLoggedIn(false);
-    }
-
-    dispatch(logout()).then(() => {
-        if (shouldSignalLogout) {
-            BrowserStore.signalLogout();
-            DesktopApp.signalLogout();
+export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = true, userAction = true): ThunkActionFunc<void, GlobalState> {
+    return (doDispatch) => {
+        // If the logout was intentional, discard knowledge about having previously been logged in.
+        // This bit is otherwise used to detect session expirations on the login page.
+        if (userAction) {
+            LocalStorageStore.setWasLoggedIn(false);
         }
 
-        WebsocketActions.close();
+        doDispatch(logout()).then(() => {
+            if (shouldSignalLogout) {
+                BrowserStore.signalLogout();
+                DesktopApp.signalLogout();
+            }
 
-        clearUserCookie();
+            WebsocketActions.close();
 
-        getHistory().push(redirectTo);
-    }).catch(() => {
-        getHistory().push(redirectTo);
-    });
+            clearUserCookie();
+
+            getHistory().push(redirectTo);
+        }).catch(() => {
+            getHistory().push(redirectTo);
+        });
+    };
 }
 
 export function toggleSideBarRightMenuAction(): ThunkActionFunc<void> {

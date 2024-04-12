@@ -7,8 +7,6 @@ import React from 'react';
 import type {CloudUsage} from '@mattermost/types/cloud';
 import type {Team} from '@mattermost/types/teams';
 
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
-
 import SelectTeam, {TEAMS_PER_PAGE} from 'components/select_team/select_team';
 
 jest.mock('actions/global_actions', () => ({
@@ -38,6 +36,7 @@ describe('components/select_team/SelectTeam', () => {
             getTeams: jest.fn().mockResolvedValue({}),
             loadRolesIfNeeded: jest.fn(),
             addUserToTeam: jest.fn().mockResolvedValue({data: true}),
+            emitUserLoggedOutEvent: jest.fn(),
         },
         totalTeamsCount: 15,
         isCloud: false,
@@ -114,8 +113,8 @@ describe('components/select_team/SelectTeam', () => {
             <SelectTeam {...baseProps}/>,
         );
         wrapper.instance().handleLogoutClick({preventDefault: jest.fn()} as any);
-        expect(emitUserLoggedOutEvent).toHaveBeenCalledTimes(1);
-        expect(emitUserLoggedOutEvent).toHaveBeenCalledWith('/login');
+        expect(baseProps.actions.emitUserLoggedOutEvent).toHaveBeenCalledTimes(1);
+        expect(baseProps.actions.emitUserLoggedOutEvent).toHaveBeenCalledWith('/login');
     });
 
     test('should match state on clearError', () => {

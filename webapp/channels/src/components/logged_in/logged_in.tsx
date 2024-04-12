@@ -35,6 +35,7 @@ export type Props = {
     mfaRequired: boolean;
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
+        emitUserLoggedOutEvent: (redirectTo: string, shouldSignalLogout: boolean, userAction: boolean) => void;
         getChannelURLAction: (channelId: string, teamId: string, url: string) => void;
         updateApproximateViewTime: (channelId: string) => void;
     };
@@ -100,7 +101,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
             if (rootEl) {
                 rootEl.setAttribute('class', '');
             }
-            GlobalActions.emitUserLoggedOutEvent('/login?redirect_to=' + encodeURIComponent(`${this.props.location.pathname}${this.props.location.search}`), true, false);
+            this.props.actions.emitUserLoggedOutEvent('/login?redirect_to=' + encodeURIComponent(`${this.props.location.pathname}${this.props.location.search}`), true, false);
         }
 
         // Prevent backspace from navigating back a page

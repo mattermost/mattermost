@@ -7,7 +7,6 @@ import type {IntlShape} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
-import * as GlobalActions from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import AboutBuildModal from 'components/about_build_modal';
@@ -27,6 +26,7 @@ type Props = {
     teams: Team[];
     actions: {
         deferNavigation: (onNavigationConfirmed: any) => any;
+        emitUserLoggedOutEvent: () => void;
     };
     isLicensed: boolean;
     isCloud: boolean;
@@ -36,9 +36,9 @@ class AdminNavbarDropdown extends React.PureComponent<Props> {
     private handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
         if (this.props.navigationBlocked) {
             e.preventDefault();
-            this.props.actions.deferNavigation(GlobalActions.emitUserLoggedOutEvent);
+            this.props.actions.deferNavigation(this.props.actions.emitUserLoggedOutEvent);
         } else {
-            GlobalActions.emitUserLoggedOutEvent();
+            this.props.actions.emitUserLoggedOutEvent();
         }
     };
 

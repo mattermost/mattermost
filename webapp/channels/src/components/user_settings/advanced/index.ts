@@ -11,6 +11,8 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get, getUnreadScrollPositionPreference, makeGetCategory, syncedDraftsAreAllowed} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
+import {emitUserLoggedOutEvent} from 'actions/global_actions';
+
 import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -49,6 +51,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             savePreferences,
             updateUserActive,
             revokeAllSessionsForUser,
+            emitUserLoggedOutEvent,
         }, dispatch),
     };
 }

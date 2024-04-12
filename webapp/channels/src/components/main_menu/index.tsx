@@ -19,6 +19,7 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
+import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import {openModal} from 'actions/views/modals';
 import {showMentions, showFlaggedPosts, closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
@@ -98,6 +99,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             showFlaggedPosts,
             closeRightHandSide,
             closeRhsMenu,
+            emitUserLoggedOutEvent,
         }, dispatch),
     };
 }

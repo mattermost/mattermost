@@ -17,8 +17,6 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import {CustomStatusDuration} from '@mattermost/types/users';
 import type {UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
 
-import * as GlobalActions from 'actions/global_actions';
-
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusModal from 'components/custom_status/custom_status_modal';
 import CustomStatusText from 'components/custom_status/custom_status_text';
@@ -55,6 +53,7 @@ type Props = {
         unsetCustomStatus: () => void;
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         setStatusDropdown: (open: boolean) => void;
+        emitUserLoggedOutEvent: () => void;
     };
     customStatus?: UserCustomStatus;
     currentUser: UserProfile;
@@ -240,7 +239,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
     };
 
     handleEmitUserLoggedOutEvent = (): void => {
-        GlobalActions.emitUserLoggedOutEvent();
+        this.props.actions.emitUserLoggedOutEvent();
     };
 
     onToggle = (open: boolean): void => {

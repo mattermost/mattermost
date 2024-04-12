@@ -4,8 +4,6 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
-
 import type EmojiMap from 'utils/emoji_map';
 
 import TermsOfService from './terms_of_service';
@@ -22,6 +20,7 @@ describe('components/terms_of_service/TermsOfService', () => {
 
     const baseProps: TermsOfServiceProps = {
         actions: {
+            emitUserLoggedOutEvent: jest.fn(),
             getTermsOfService,
             updateMyTermsOfServiceStatus,
         },
@@ -91,7 +90,7 @@ describe('components/terms_of_service/TermsOfService', () => {
     test('should call emitUserLoggedOutEvent on handleLogoutClick', () => {
         const wrapper = shallow<TermsOfService>(<TermsOfService {...baseProps}/>);
         wrapper.instance().handleLogoutClick({preventDefault: jest.fn()} as unknown as React.MouseEvent<HTMLAnchorElement, MouseEvent>);
-        expect(emitUserLoggedOutEvent).toHaveBeenCalledTimes(1);
-        expect(emitUserLoggedOutEvent).toHaveBeenCalledWith('/login');
+        expect(baseProps.actions.emitUserLoggedOutEvent).toHaveBeenCalledTimes(1);
+        expect(baseProps.actions.emitUserLoggedOutEvent).toHaveBeenCalledWith('/login');
     });
 });

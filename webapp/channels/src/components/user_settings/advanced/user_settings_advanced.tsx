@@ -12,8 +12,6 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
-
 import ConfirmModal from 'components/confirm_modal';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
@@ -59,6 +57,7 @@ export type Props = {
         savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
         updateUserActive: (userId: string, active: boolean) => Promise<ActionResult>;
         revokeAllSessionsForUser: (userId: string) => Promise<ActionResult>;
+        emitUserLoggedOutEvent: () => void;
     };
 };
 
@@ -195,7 +194,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
         const {data, error} = await this.props.actions.revokeAllSessionsForUser(userId);
         if (data) {
-            emitUserLoggedOutEvent();
+            this.props.actions.emitUserLoggedOutEvent();
         } else if (error) {
             this.setState({serverError: error.message});
         }

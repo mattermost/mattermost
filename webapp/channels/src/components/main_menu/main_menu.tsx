@@ -9,7 +9,6 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import * as GlobalActions from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import AboutBuildModal from 'components/about_build_modal';
@@ -73,6 +72,7 @@ export type Props = {
         showFlaggedPosts: () => void;
         closeRightHandSide: () => void;
         closeRhsMenu: () => void;
+        emitUserLoggedOutEvent: () => void;
     };
 
 };
@@ -99,7 +99,7 @@ export class MainMenu extends React.PureComponent<Props> {
     };
 
     handleEmitUserLoggedOutEvent = (): void => {
-        GlobalActions.emitUserLoggedOutEvent();
+        this.props.actions.emitUserLoggedOutEvent();
     };
 
     getFlagged = (e: Event): void => {

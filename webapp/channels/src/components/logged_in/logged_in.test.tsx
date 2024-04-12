@@ -36,6 +36,7 @@ describe('components/logged_in/LoggedIn', () => {
         mfaRequired: false,
         actions: {
             autoUpdateTimezone: jest.fn(),
+            emitUserLoggedOutEvent: jest.fn(),
             getChannelURLAction: jest.fn(),
             updateApproximateViewTime: jest.fn(),
         },

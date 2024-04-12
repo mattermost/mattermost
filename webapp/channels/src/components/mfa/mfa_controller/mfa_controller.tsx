@@ -6,8 +6,6 @@ import {FormattedMessage} from 'react-intl';
 import {Route, Switch} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
-
 import BackButton from 'components/common/back_button';
 import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 
@@ -26,6 +24,7 @@ type Props = {
     mfa: boolean;
     enableMultifactorAuthentication: boolean;
     enforceMultifactorAuthentication: boolean;
+    emitUserLoggedOutEvent: (redirectTo: string) => void;
 
     /*
      * Object from react-router
@@ -62,7 +61,7 @@ export default class MFAController extends React.PureComponent<Props & RouteComp
 
     public handleOnClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e.preventDefault();
-        emitUserLoggedOutEvent('/login');
+        this.props.emitUserLoggedOutEvent('/login');
     };
 
     public updateParent = (state: State): void => {

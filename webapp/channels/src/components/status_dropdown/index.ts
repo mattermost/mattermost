@@ -13,6 +13,7 @@ import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferen
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getDndEndTimeForUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import {openModal} from 'actions/views/modals';
 import {setStatusDropdown} from 'actions/views/status_dropdown';
 import {makeGetCustomStatus, isCustomStatusEnabled, showStatusDropdownPulsatingDot, isCustomStatusExpired} from 'selectors/views/custom_status';
@@ -66,6 +67,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             unsetCustomStatus,
             setStatusDropdown,
             savePreferences,
+            emitUserLoggedOutEvent,
         }, dispatch),
     };
 }

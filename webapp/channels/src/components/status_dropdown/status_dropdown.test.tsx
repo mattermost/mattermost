@@ -28,6 +28,7 @@ describe('components/StatusDropdown', () => {
         unsetCustomStatus: jest.fn(),
         setStatusDropdown: jest.fn(),
         savePreferences: jest.fn(),
+        emitUserLoggedOutEvent: jest.fn(),
     };
 
     const baseProps = {

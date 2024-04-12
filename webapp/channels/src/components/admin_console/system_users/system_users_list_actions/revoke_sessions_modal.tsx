@@ -27,7 +27,7 @@ export default function RevokeSessionsModal({user, currentUser, onExited, onErro
     async function confirm() {
         const {data, error} = await dispatch(revokeAllSessionsForUser(user.id));
         if (data && user.id === currentUser.id) {
-            emitUserLoggedOutEvent();
+            dispatch(emitUserLoggedOutEvent());
         } else if (error) {
             onError(error);
         }

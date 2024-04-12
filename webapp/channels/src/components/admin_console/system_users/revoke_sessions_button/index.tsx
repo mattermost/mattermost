@@ -26,7 +26,7 @@ export function RevokeSessionsButton() {
         const {data} = await dispatch(revokeSessionsForAllUsers());
 
         if (data) {
-            emitUserLoggedOutEvent();
+            dispatch(emitUserLoggedOutEvent());
         } else {
             setShowModal(false);
         }

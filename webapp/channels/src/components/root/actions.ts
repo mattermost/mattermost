@@ -17,6 +17,8 @@ import * as GlobalActions from 'actions/global_actions';
 
 import {StoragePrefixes} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
+
 export function redirectToOnboardingOrDefaultTeam(history: History): ThunkActionFunc<void> {
     return async (dispatch, getState) => {
         const state = getState();
@@ -63,14 +65,14 @@ export function redirectToOnboardingOrDefaultTeam(history: History): ThunkAction
     };
 }
 
-export function handleLoginLogoutSignal(e: StorageEvent): ThunkActionFunc<void> {
+export function handleLoginLogoutSignal(e: StorageEvent): ThunkActionFunc<void, GlobalState> {
     return (dispatch, getState) => {
         // when one tab on a browser logs out, it sets __logout__ in localStorage to trigger other tabs to log out
         const isNewLocalStorageEvent = (event: StorageEvent) => event.storageArea === localStorage && event.newValue;
 
         if (e.key === StoragePrefixes.LOGOUT && isNewLocalStorageEvent(e)) {
             console.log('detected logout from a different tab'); //eslint-disable-line no-console
-            GlobalActions.emitUserLoggedOutEvent('/', false, false);
+            dispatch(GlobalActions.emitUserLoggedOutEvent('/', false, false));
         }
         if (e.key === StoragePrefixes.LOGIN && isNewLocalStorageEvent(e)) {
             const isLoggedIn = getCurrentUser(getState());
