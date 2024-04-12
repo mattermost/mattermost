@@ -935,7 +935,7 @@
   },
   {
     "id": "api.context.invalid_body_param.app_error",
-    "translation": "İstek gövdesindeki {{.Name}} eksik ya da geçersiz."
+    "translation": "İstek içeriğinde {{.Name}} eksik ya da geçersiz."
   },
   {
     "id": "api.context.invalid_param.app_error",
@@ -1054,7 +1054,7 @@
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
-    "translation": "Herkese açık bağlantı geçersiz görünüyor."
+    "translation": "Herkese açık bağlantı geçersiz gibi görünüyor."
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
@@ -1274,7 +1274,7 @@
   },
   {
     "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
-    "translation": "Hesap açma bağlantısı geçersiz görünüyor."
+    "translation": "Hesap açma bağlantısı geçersiz gibi görünüyor."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
@@ -1956,7 +1956,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.bad_token.app_error",
-    "translation": "Kod türü bozuk."
+    "translation": "Kod türü yanlış."
   },
   {
     "id": "api.user.authorize_oauth_user.invalid_state.app_error",
@@ -2048,7 +2048,7 @@
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
-    "translation": "Hesap açma bağlantısı geçersiz görünüyor."
+    "translation": "Hesap açma bağlantısı geçersiz gibi görünüyor."
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
@@ -2056,7 +2056,7 @@
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
-    "translation": "Kimlik Doğrulama Aktarımı yapılandırması yapılmamış ya da bu sunucu üzerinde kullanılamıyor."
+    "translation": "Kimlik doğrulama aktarımı yapılandırılmamış ya da bu sunucu üzerinde kullanılamıyor."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -2080,11 +2080,11 @@
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Geçerli bir sertifika belirtilmeden deneme aşamasındaki İstemci tarafı sertifikası özelliği kullanılarak oturum açılmaya çalışıldı."
+    "translation": "Geçerli bir sertifika belirtilmeden deneme aşamasındaki ClientSideCert özelliği kullanılarak oturum açılmaya çalışıldı."
   },
   {
     "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Geçerli bir Enterprise sürümü lisansı olmadan deneme aşamasındaki istemci tarafı sertifikası özelliği kullanılmaya çalışıldı."
+    "translation": "Geçerli bir Enterprise sürümü lisansı olmadan deneme aşamasındaki ClientSideCert özelliği kullanılmaya çalışıldı."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -2124,11 +2124,11 @@
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
-    "translation": "Parola sıfırlama kodu geçersiz görünüyor."
+    "translation": "Parola sıfırlama kodu geçersiz gibi görünüyor."
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
-    "translation": "Parola sıfırlama bağlantısı geçersiz görünüyor."
+    "translation": "Parola sıfırlama bağlantısı geçersiz gibi görünüyor."
   },
   {
     "id": "api.user.reset_password.link_expired.app_error",
@@ -2164,7 +2164,7 @@
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "Parola güncelleme bildirim e-postası gönderilemedi"
+    "translation": "Parola güncelleme bildirimi e-postası gönderilemedi"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -2252,11 +2252,11 @@
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "E-posta kimlik doğrulama bağlantısının kullanma süresi geçmiş."
+    "translation": "E-posta kimlik doğrulama bağlantısının geçerlilik süresi dolmuş."
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "E-posta kimlik doğrulamasındaki kod verisi işlenemedi"
+    "translation": "E-posta kimlik doğrulamasındaki kod verileri işlenemedi"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -5228,7 +5228,7 @@
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
-    "translation": "Konuk hesapları kullanılmıyor"
+    "translation": "Konuk hesapları devre dışı bırakılmış"
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
@@ -5236,7 +5236,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Geçerli bir e-posta ya da kullanıcı adı ve parola yazın ya da başka bir oturum açma yöntemi kullanın."
+    "translation": "Geçerli bir e-posta adresi ya da kullanıcı adı ve parola yazın ya da başka bir oturum açma yöntemi kullanın."
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
@@ -5440,7 +5440,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Oturumun süresi dolmuş: Lütfen bildirimleri almaya sürdürmek için oturum açın. {{.siteName}} oturumlarının süresi, sistem yöneticiniz tarafından her {{.hoursCount}} saatte bir dolacak şekilde ayarlanmış."
+    "translation": "Oturumun süresi dolmuş: Lütfen bildirimleri almayı sürdürmek için oturum açın. {{.siteName}} oturumlarının süresi, sistem yöneticiniz tarafından her {{.hoursCount}} saatte bir dolacak şekilde ayarlanmış."
   },
   {
     "id": "app.bot.permenent_delete.bad_id",
@@ -5608,7 +5608,7 @@
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
-    "translation": "Konuk hesapları kullanılmıyor."
+    "translation": "Konuk hesapları devre dışı bırakılmış."
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
@@ -5640,7 +5640,7 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
-    "translation": "Konuk hesapları kullanılmıyor."
+    "translation": "Konuk hesapları devre dışı bırakılmış."
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
@@ -5656,11 +5656,11 @@
   },
   {
     "id": "api.user.login.invalid_credentials_email",
-    "translation": "Geçerli bir e-posta ve parola yazın"
+    "translation": "Geçerli bir e-posta adresi ve parola yazın"
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
-    "translation": "Geçerli bir e-posta ya da kullanıcı adı ve parola yazın."
+    "translation": "Geçerli bir e-posta adresi ya da kullanıcı adı ve parola yazın."
   },
   {
     "id": "api.user.login.invalid_credentials_username",
@@ -5668,7 +5668,7 @@
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
-    "translation": "Konuk bir konuk hesabı kullanmadığından normal bir kullanıcıya dönüştürülemedi."
+    "translation": "Konuk, bir konuk hesabı kullanmadığından normal bir kullanıcıya dönüştürülemedi."
   },
   {
     "id": "api.user.reset_password.token_parse.error",
@@ -6128,7 +6128,7 @@
   },
   {
     "id": "api.user.delete_team.not_enabled.app_error",
-    "translation": "Kalıcı takım silme özelliği etkinleştirilmemiş. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Takımları kalıcı olarak silme özelliği etkinleştirilmemiş. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
@@ -6520,7 +6520,7 @@
   },
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
-    "translation": "Kalıcı takım silme özelliği etkinleştirilmemiş. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Kanalları kalıcı olarak silme özelliği etkinleştirilmemiş. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
@@ -6660,7 +6660,7 @@
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",
-    "translation": "İstek gövdesi işlenemedi."
+    "translation": "İstek içeriği işlenemedi."
   },
   {
     "id": "api.migrate_to_saml.error",
@@ -6672,11 +6672,11 @@
   },
   {
     "id": "api.cloud.license_error",
-    "translation": "Lisansınız bulut isteklerini desteklemiyor."
+    "translation": "Lisansınız Cloud isteklerini desteklemiyor."
   },
   {
     "id": "api.cloud.app_error",
-    "translation": "Bulut API isteği yapılırken bir iç sorun çıktı."
+    "translation": "Cloud API isteği yapılırken bir iç sorun çıktı."
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
@@ -6780,7 +6780,7 @@
   },
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
-    "translation": "İstek gövdesi işlenemedi."
+    "translation": "İstek içeriği işlenemedi."
   },
   {
     "id": "app.team.save_member.save.app_error",
@@ -6872,11 +6872,11 @@
   },
   {
     "id": "app.post.get_post_id_around.app_error",
-    "translation": "İlgili gönderim civarı süresi alınamadı."
+    "translation": "Sınırlanan süre içinde ileti alınamıyor."
   },
   {
     "id": "app.post.get_post_after_time.app_error",
-    "translation": "İlgili gönderi sonrası süresi alınamadı."
+    "translation": "Süre sınırı dolduktan sonra ileti alınamadı."
   },
   {
     "id": "app.post.get_flagged_posts.app_error",
@@ -7276,7 +7276,7 @@
   },
   {
     "id": "api.upload.upload_data.invalid_content_type",
-    "translation": "Çok parçalı yükleme için içerik türü geçersiz."
+    "translation": "İçerik türü çok parçalı yükleme için geçersiz."
   },
   {
     "id": "api.templates.email_us_anytime_at",
@@ -7372,11 +7372,11 @@
   },
   {
     "id": "api.templates.payment_failed.info2",
-    "translation": "Reddedilme nedeni:"
+    "translation": "Onlardan gelen red nedeni:"
   },
   {
     "id": "api.templates.payment_failed.info1",
-    "translation": "Bankanız, Mattermost Cloud çalışma alanınız ile ilişkilendirilmiş {{.CardBrand}} ****{{.LastFour}} karından ödeme yapılmasına izin vermedi."
+    "translation": "Bankanız, Mattermost Cloud çalışma alanınız ile ilişkilendirilmiş {{.CardBrand}} ****{{.LastFour}} kartından ödeme yapılmasına izin vermedi."
   },
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
@@ -7776,7 +7776,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "Windows, Linuxi Mac, iOS ve Android üzerinde en iyi deneyim için."
+    "translation": "Windows, Linux, Mac, iOS ve Android üzerinde en iyi deneyim için."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -7892,7 +7892,7 @@
   },
   {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
-    "translation": "İstek gövdesi geçersiz ya da eksik."
+    "translation": "İstek içeriği geçersiz ya da eksik."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
@@ -8435,7 +8435,7 @@
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
-    "translation": "Görsel sınırları denetimi yapılamadı. Çözünürlük çok yüksek."
+    "translation": "Görsel sınırları denetlenemedi. Çözünürlük çok yüksek."
   },
   {
     "id": "app.system.system_bot.bot_displayname",
@@ -8683,7 +8683,7 @@
   },
   {
     "id": "api.license_error",
-    "translation": "abi uç noktası için bir lisans gereklidir"
+    "translation": "API uç noktası için bir lisans gereklidir"
   },
   {
     "id": "api.custom_groups.no_remote_id",
@@ -8783,7 +8783,7 @@
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
-    "translation": "İstek gövdesi geçersiz."
+    "translation": "İstek içeriği geçersiz."
   },
   {
     "id": "api.license.request_trial_license.embargoed",
@@ -8803,7 +8803,7 @@
   },
   {
     "id": "api.file.cloud_upload.app_error",
-    "translation": "Bir Bulut kopyasına mmctl ile yükleme desteklenmiyor. Lütfen şu makaleye bakın: https://docs.mattermost.com/manage/cloud-data-export.html."
+    "translation": "Bir Cloud kopyasına mmctl ile yükleme desteklenmiyor. Lütfen şu makaleye bakın: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
   {
     "id": "app.teams.analytics_teams_count.app_error",
@@ -8899,7 +8899,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "ek olarak, Cloud Free tarifesinin sınırlamaları nedeniyle verileriniz arşive kaldırılabilir."
+    "translation": "Ek olarak, Cloud Free tarifesinin sınırlamaları nedeniyle verileriniz arşive kaldırılabilir."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -8935,7 +8935,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "{{.Plan}} tarifenizi Kullanmayı Sürdürmek için bankanızla görüşün ve ödeme bilgilerinizi doğru şekilde güncelleyin."
+    "translation": "{{.Plan}} tarifenizi kullanmayı sürdürmek için bankanızla görüşün ve ödeme bilgilerinizi doğru şekilde güncelleyin."
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -9311,7 +9311,7 @@
   },
   {
     "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "Bulut kopyalarında lisans artırımı değerlendirmesi yapılamaz"
+    "translation": "Cloud kopyalarında lisans artırımı değerlendirmesi yapılamaz"
   },
   {
     "id": "api.license.true_up_review.license_required",
@@ -9387,7 +9387,7 @@
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
-    "translation": "Kalıcı bildirim gönderiminde en fazla {{.MaxRecipients}} alıcı olabilir."
+    "translation": "Kalıcı bildirim iletisinde en fazla {{.MaxRecipients}} alıcı olabilir."
   },
   {
     "id": "api.license.true_up_review.failed_to_submit",
@@ -9395,15 +9395,15 @@
   },
   {
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
-    "translation": "Yalnızca root gönderilerinin önceliği olmasına izin veriliyor."
+    "translation": "Yalnızca root iletilerinin önceliği olmasına izin veriliyor."
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
-    "translation": "Parola kurtarma belirteçleri geçersiz kılınırken belirteçler türe göre alınamadı"
+    "translation": "Parola kurtarma kodları geçersiz kılınırken kodlar türe göre alınamadı"
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens_delete.error",
-    "translation": "Parola kurtarma belirteçleri geçersiz kılınırken belirteçler kaldırılamadı"
+    "translation": "Parola kurtarma kodları geçersiz kılınırken kodlar kaldırılamadı"
   },
   {
     "id": "app.post_persistent_notification.delete_by_channel.app_error",
@@ -9423,7 +9423,7 @@
   },
   {
     "id": "model.config.is_valid.persistent_notifications_count.app_error",
-    "translation": "Gönderi başına toplam kalıcı bildirim sayısı geçersiz. Pozitif bir sayı olmalıdır."
+    "translation": "İleti başına toplam kalıcı bildirim sayısı geçersiz. Pozitif bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.persistent_notifications_interval.app_error",
@@ -9435,7 +9435,7 @@
   },
   {
     "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
-    "translation": "Kalıcı bildirim gönderiminde en az 1 alıcı olmalıdır."
+    "translation": "Kalıcı bildirim iletisinde en az 1 alıcı olmalıdır."
   },
   {
     "id": "app.file_info.get.gif.app_error",
@@ -9543,15 +9543,15 @@
   },
   {
     "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
-    "translation": "Kullanıcının öncelikli gönderim ya da kalıcı bildirim oluşturma izni yok."
+    "translation": "Kullanıcının öncelikli ileti ya da kalıcı bildirim oluşturma izni yok."
   },
   {
     "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
-    "translation": "Kalıcı bildirim gönderilerinin önceliği Acil olmalıdır."
+    "translation": "Kalıcı bildirim iletilerinin önceliği Acil olmalıdır."
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens_parse.error",
-    "translation": "Parola kurtarma belirteçleri geçersiz kılınırken belirteç işlenemedi"
+    "translation": "Parola kurtarma kodları geçersiz kılınırken kodlar işlenemedi"
   },
   {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
@@ -9647,7 +9647,7 @@
   },
   {
     "id": "app.channel.group_message_conversion.post_message.error",
-    "translation": "Kanal dönüştürme gönderisi için grup iletisi oluşturulamadı"
+    "translation": "Kanal dönüştürme iletisi için grup iletisi oluşturulamadı"
   },
   {
     "id": "api.command_invite.user_not_in_team.messageOverflow",
@@ -9755,7 +9755,7 @@
   },
   {
     "id": "api.channel.create_channel.missing_team_id.error",
-    "translation": "İstek içinde team_id eksik"
+    "translation": "İstek içeriğinde team_id eksik"
   },
   {
     "id": "api.command_share.invite_remote_to_channel.error",
