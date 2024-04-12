@@ -21,8 +21,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
-import * as GlobalActions from 'actions/global_actions';
-
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
@@ -222,6 +220,8 @@ export type Props = {
         savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
 
         searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
+
+        emitLocalUserTypingEvent: (channelId: string, rootId: string) => void;
     };
 
     groupsWithAllowReference: Map<string, Group> | null;
@@ -878,7 +878,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     emitTypingEvent = () => {
         const channelId = this.props.currentChannel?.id;
         if (channelId) {
-            GlobalActions.emitLocalUserTypingEvent(channelId, '');
+            this.props.actions.emitLocalUserTypingEvent(channelId, '');
         }
     };
 

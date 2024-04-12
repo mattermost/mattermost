@@ -33,6 +33,7 @@ import {getCurrentUserId, getStatusForUserId, getUser, isCurrentUserGuestUser} f
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions.js';
 
 import {executeCommand} from 'actions/command';
+import {emitLocalUserTypingEvent} from 'actions/global_actions';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
 import {addReaction, createPost, setEditingPost, emitShortcutReactToLastPostFrom, submitReaction} from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
@@ -194,6 +195,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getChannelMemberCountsByGroup,
             savePreferences,
             searchAssociatedGroupsForReference,
+            emitLocalUserTypingEvent,
         }, dispatch),
     };
 }

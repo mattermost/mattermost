@@ -18,6 +18,7 @@ import {getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entitie
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
+import {emitLocalUserTypingEvent} from 'actions/global_actions';
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {
     clearCommentDraftUploads,
@@ -180,6 +181,7 @@ function makeMapDispatchToProps() {
                 savePreferences,
                 searchAssociatedGroupsForReference,
                 focusedRHS,
+                emitLocalUserTypingEvent,
             },
             dispatch,
         );

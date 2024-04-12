@@ -18,8 +18,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
-import * as GlobalActions from 'actions/global_actions';
-
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
@@ -185,6 +183,7 @@ export type Props = {
     isPlugin?: boolean;
     shouldFocusRHS: boolean;
     focusedRHS: () => void;
+    emitLocalUserTypingEvent: (channelId: string, rootId: string) => void;
 }
 
 type State = {
@@ -750,7 +749,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
     emitTypingEvent = () => {
         const {channelId, rootId} = this.props;
-        GlobalActions.emitLocalUserTypingEvent(channelId, rootId);
+        this.props.emitLocalUserTypingEvent(channelId, rootId);
     };
 
     handleChange = (e: React.ChangeEvent<TextboxElement>) => {

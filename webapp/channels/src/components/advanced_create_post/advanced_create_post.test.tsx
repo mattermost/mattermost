@@ -21,7 +21,6 @@ import EmojiMap from 'utils/emoji_map';
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('actions/global_actions', () => ({
-    emitLocalUserTypingEvent: jest.fn(),
     emitUserPostedEvent: jest.fn(),
 }));
 
@@ -103,6 +102,7 @@ const baseProp: Props = {
         getChannelMemberCountsByGroup: jest.fn(),
         emitShortcutReactToLastPostFrom: jest.fn(),
         searchAssociatedGroupsForReference: jest.fn(),
+        emitLocalUserTypingEvent: jest.fn(),
     },
     ctrlSend: ctrlSendProp,
     currentUsersLatestPost: currentUsersLatestPostProp,

@@ -96,6 +96,7 @@ describe('components/AdvancedCreateComment', () => {
         },
         shouldFocusRHS: true,
         focusedRHS: jest.fn(),
+        emitLocalUserTypingEvent: jest.fn(),
     };
 
     const submitEvent = {
