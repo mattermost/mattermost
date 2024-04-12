@@ -11,7 +11,6 @@ import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import * as UserActions from 'actions/user_actions';
-import store from 'stores/redux_store';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import mockStore from 'tests/test_store';
@@ -52,13 +51,6 @@ jest.mock('mattermost-redux/actions/preferences', () => {
         ...original,
         deletePreferences: (...args: any[]) => ({type: 'MOCK_DELETE_PREFERENCES', args}),
         savePreferences: (...args: any[]) => ({type: 'MOCK_SAVE_PREFERENCES', args}),
-    };
-});
-
-jest.mock('stores/redux_store', () => {
-    return {
-        dispatch: jest.fn(),
-        getState: jest.fn(),
     };
 });
 
@@ -604,7 +596,6 @@ describe('Actions.User', () => {
         } as unknown as GlobalState;
 
         const testStore = mockStore(state);
-        store.getState.mockImplementation(testStore.getState);
 
         await testStore.dispatch(UserActions.loadProfilesForGM());
         expect(UserActions.queue.onEmpty).toHaveBeenCalled();
