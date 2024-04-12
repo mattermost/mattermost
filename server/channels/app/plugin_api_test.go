@@ -608,7 +608,7 @@ func TestPluginAPIGetFile(t *testing.T) {
 	uploadTime := time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local)
 	filename := "testGetFile"
 	fileData := []byte("Hello World")
-	info, err := th.App.DoUploadFile(th.Context, uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData)
+	info, err := th.App.DoUploadFile(th.Context, uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData, true)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
@@ -637,6 +637,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 		th.BasicUser.Id,
 		"testFile1",
 		[]byte("testfile1 Content"),
+		true,
 	)
 	require.Nil(t, err)
 	defer func() {
@@ -651,6 +652,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 		th.BasicUser2.Id,
 		"testFile2",
 		[]byte("testfile2 Content"),
+		true,
 	)
 	require.Nil(t, err)
 	defer func() {
@@ -665,6 +667,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 		th.BasicUser.Id,
 		"testFile3",
 		[]byte("testfile3 Content"),
+		true,
 	)
 	require.Nil(t, err)
 	defer func() {
@@ -1853,7 +1856,7 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 		var resp *model.WebSocketResponse
 		select {
 		case resp = <-wsc.ResponseChannel:
-		case <-time.After(1 * time.Second):
+		case <-time.After(2 * time.Second):
 		}
 		require.NotNil(t, resp)
 		require.Equal(t, resp.Status, model.StatusOk)

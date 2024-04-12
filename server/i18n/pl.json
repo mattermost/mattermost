@@ -10326,5 +10326,29 @@
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
     "translation": "Nie udało się usunąć nieznanego indeksu"
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Importowany wiersz danych ma typ \"role\", ale obiekt roli ma wartość null."
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Nie można uzyskać strony schematów."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Nieprawidłowy schemat."
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Nie można pobrać ostatnio używanych sesji."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Nie można aktywować użytkownika. Serwer przekroczył limit bezpiecznych użytkowników. Skontaktuj się z administratorem: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Nie można utworzyć użytkownika. Serwer przekroczył limit bezpiecznych użytkowników. Skontaktuj się z administratorem: ERROR_SAFETY_LIMITS_EXCEEDED."
   }
 ]
