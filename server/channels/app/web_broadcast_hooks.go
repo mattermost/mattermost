@@ -16,12 +16,14 @@ import (
 const (
 	broadcastAddMentions  = "add_mentions"
 	broadcastAddFollowers = "add_followers"
+	broadcastPostedAck    = "posted_ack"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 	return map[string]platform.BroadcastHook{
 		broadcastAddMentions:  &addMentionsBroadcastHook{},
 		broadcastAddFollowers: &addFollowersBroadcastHook{},
+		broadcastPostedAck:    &postedAckBroadcastHook{},
 	}
 }
 
@@ -67,6 +69,57 @@ func useAddFollowersHook(message *model.WebSocketEvent, followers model.StringAr
 	message.GetBroadcast().AddHook(broadcastAddFollowers, map[string]any{
 		"followers": followers,
 	})
+}
+
+type postedAckBroadcastHook struct{}
+
+func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channelType model.ChannelType, usersToNotify []string) {
+	message.GetBroadcast().AddHook(broadcastPostedAck, map[string]any{
+		"posted_user_id": postedUserId,
+		"channel_type":   channelType,
+		"users":          usersToNotify,
+	})
+}
+
+func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	// Add if we have mentions or followers
+	// This works since we currently do have an order for broadcast hooks, but this probably should be reworked going forward
+	if msg.Get("followers") != nil || msg.Get("mentions") != nil {
+		msg.Add("should_ack", true)
+		return nil
+	}
+
+	postedUserId, err := getTypedArg[string](args, "posted_user_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid posted_user_id value passed to postedAckBroadcastHook")
+	}
+
+	// Don't ACK your own posts
+	if postedUserId == webConn.UserId {
+		return nil
+	}
+
+	channelType, err := getTypedArg[model.ChannelType](args, "channel_type")
+	if err != nil {
+		return errors.Wrap(err, "Invalid channel_type value passed to postedAckBroadcastHook")
+	}
+
+	// Always ACK direct channels
+	if channelType == model.ChannelTypeDirect {
+		msg.Add("should_ack", true)
+		return nil
+	}
+
+	users, err := getTypedArg[model.StringArray](args, "users")
+	if err != nil {
+		return errors.Wrap(err, "Invalid users value passed to addFollowersBroadcastHook")
+	}
+
+	if len(users) > 0 && slices.Contains(users, webConn.UserId) {
+		msg.Add("should_ack", true)
+	}
+
+	return nil
 }
 
 // getTypedArg returns a correctly typed hook argument with the given key, reinterpreting the type using JSON encoding
