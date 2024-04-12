@@ -40,6 +40,7 @@ func (rcs *Service) pingAllNow(filter model.RemoteClusterQueryFilter) {
 	remotes, err := rcs.server.GetStore().RemoteCluster().GetAll(filter)
 	if err != nil {
 		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Ping all remote clusters failed (could not get list of remotes)", mlog.Err(err))
+		return
 	}
 
 	for _, rc := range remotes {
