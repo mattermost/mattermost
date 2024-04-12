@@ -16,11 +16,11 @@
 
         #searchIcon {
             position: absolute;
+            z-index: 2;
             top: 16px;
             left: 46px;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             pointer-events: none;
-            z-index: 2;
         }
 
         #searchChannelsTextbox {
