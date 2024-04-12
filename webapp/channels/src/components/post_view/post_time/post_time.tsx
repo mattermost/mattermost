@@ -5,8 +5,6 @@ import React from 'react';
 import type {ComponentProps} from 'react';
 import {Link} from 'react-router-dom';
 
-import * as GlobalActions from 'actions/global_actions';
-
 import OverlayTrigger from 'components/overlay_trigger';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Tooltip from 'components/tooltip';
@@ -41,6 +39,8 @@ type Props = {
     postId: string;
     teamUrl: string;
     timestampProps?: ComponentProps<typeof Timestamp>;
+
+    closeRightHandSide: () => void;
 }
 
 export default class PostTime extends React.PureComponent<Props> {
@@ -51,7 +51,7 @@ export default class PostTime extends React.PureComponent<Props> {
 
     handleClick = () => {
         if (this.props.isMobileView) {
-            GlobalActions.emitCloseRightHandSide();
+            this.props.closeRightHandSide();
         }
     };
 

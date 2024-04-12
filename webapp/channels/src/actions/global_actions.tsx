@@ -158,10 +158,6 @@ export function updateNewMessagesAtInChannel(channelId: string, lastViewedAt = D
     };
 }
 
-export function emitCloseRightHandSide() {
-    dispatch(closeRightHandSide());
-}
-
 export function showMobileSubMenuModal(elements: any[]) { // TODO Use more specific type
     const submenuModalData = {
         modalId: ModalIdentifiers.MOBILE_SUBMENU,

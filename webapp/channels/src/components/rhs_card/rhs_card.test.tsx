@@ -26,6 +26,7 @@ describe('comoponents/rhs_card/RhsCard', () => {
         teamUrl: 'test-team-url',
         enablePostUsernameOverride: false,
         previousRhsState: {} as RhsState,
+        closeRightHandSide: jest.fn(),
     };
 
     it('should match when no post is selected', () => {

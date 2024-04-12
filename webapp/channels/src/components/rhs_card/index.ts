@@ -6,6 +6,7 @@ import {connect} from 'react-redux';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
+import {closeRightHandSide} from 'actions/views/rhs';
 import {getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -27,4 +28,8 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-export default connect(mapStateToProps)(RhsCard);
+const mapDispatchToProps = {
+    closeRightHandSide,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(RhsCard);

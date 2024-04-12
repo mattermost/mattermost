@@ -10,8 +10,6 @@ import {Link} from 'react-router-dom';
 
 import type {Post} from '@mattermost/types/posts';
 
-import {emitCloseRightHandSide} from 'actions/global_actions';
-
 import Markdown from 'components/markdown';
 import PostProfilePicture from 'components/post_profile_picture';
 import RhsCardHeader from 'components/rhs_card_header';
@@ -30,6 +28,7 @@ type Props = {
     previousRhsState?: RhsState;
     enablePostUsernameOverride?: boolean;
     teamUrl?: string;
+    closeRightHandSide: () => void;
 };
 
 type State = {
@@ -108,7 +107,7 @@ export default class RhsCard extends React.Component<Props, State> {
 
     handleClick = () => {
         if (this.props.isMobileView) {
-            emitCloseRightHandSide();
+            this.props.closeRightHandSide();
         }
     };
 

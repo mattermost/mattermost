@@ -10,9 +10,9 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
-import * as GlobalActions from 'actions/global_actions';
 import {closeModal} from 'actions/views/modals';
 import {getMembershipForEntities} from 'actions/views/profile_popover';
+import {closeRightHandSide} from 'actions/views/rhs';
 import {getSelectedPost} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -124,7 +124,7 @@ const ProfilePopover = ({
         const result = await dispatch(openDirectChannelToUserId(user.id));
         if (!result.error) {
             if (isMobileView) {
-                GlobalActions.emitCloseRightHandSide();
+                dispatch(closeRightHandSide());
             }
             setLoadingDMChannel(undefined);
             hide?.();

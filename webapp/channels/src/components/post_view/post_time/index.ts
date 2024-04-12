@@ -5,6 +5,7 @@ import {connect} from 'react-redux';
 
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
+import {closeRightHandSide} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import type {GlobalState} from 'types/store';
@@ -22,4 +23,8 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     };
 }
 
-export default connect(mapStateToProps)(PostTime);
+const mapDispatchToProps = {
+    closeRightHandSide,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(PostTime);
