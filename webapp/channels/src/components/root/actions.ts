@@ -19,12 +19,12 @@ import {StoragePrefixes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-export function redirectToOnboardingOrDefaultTeam(history: History): ThunkActionFunc<void> {
+export function redirectToOnboardingOrDefaultTeam(history: History): ThunkActionFunc<void, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const isUserAdmin = isCurrentUserSystemAdmin(state);
         if (!isUserAdmin) {
-            GlobalActions.redirectUserToDefaultTeam();
+            dispatch(GlobalActions.redirectUserToDefaultTeam());
             return;
         }
 
@@ -33,19 +33,19 @@ export function redirectToOnboardingOrDefaultTeam(history: History): ThunkAction
         const onboardingFlowEnabled = getIsOnboardingFlowEnabled(state);
 
         if (teams.length > 0 || !onboardingFlowEnabled) {
-            GlobalActions.redirectUserToDefaultTeam();
+            dispatch(GlobalActions.redirectUserToDefaultTeam());
             return;
         }
 
         const firstAdminSetupComplete = await dispatch(getFirstAdminSetupComplete());
         if (firstAdminSetupComplete?.data) {
-            GlobalActions.redirectUserToDefaultTeam();
+            dispatch(GlobalActions.redirectUserToDefaultTeam());
             return;
         }
 
         const profilesResult = await dispatch(getProfiles(0, General.PROFILE_CHUNK_SIZE, {roles: General.SYSTEM_ADMIN_ROLE}));
         if (profilesResult.error) {
-            GlobalActions.redirectUserToDefaultTeam();
+            dispatch(GlobalActions.redirectUserToDefaultTeam());
             return;
         }
         const currentUser = getCurrentUser(getState());
@@ -61,7 +61,7 @@ export function redirectToOnboardingOrDefaultTeam(history: History): ThunkAction
             return;
         }
 
-        GlobalActions.redirectUserToDefaultTeam();
+        dispatch(GlobalActions.redirectUserToDefaultTeam());
     };
 }
 

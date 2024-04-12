@@ -25,6 +25,7 @@ type Props = {
     enableMultifactorAuthentication: boolean;
     enforceMultifactorAuthentication: boolean;
     emitUserLoggedOutEvent: (redirectTo: string) => void;
+    redirectUserToDefaultTeam: () => void;
 
     /*
      * Object from react-router
@@ -125,6 +126,7 @@ export default class MFAController extends React.PureComponent<Props & RouteComp
                                                 <Confirm
                                                     state={this.state}
                                                     updateParent={this.updateParent}
+                                                    redirectUserToDefaultTeam={this.props.redirectUserToDefaultTeam}
                                                     {...props}
                                                 />
                                             )}

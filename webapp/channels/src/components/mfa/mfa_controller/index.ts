@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
+import {emitUserLoggedOutEvent, redirectUserToDefaultTeam} from 'actions/global_actions';
 
 import type {GlobalState} from 'types/store';
 
@@ -28,6 +28,7 @@ function mapStateToProps(state: GlobalState) {
 
 const mapDispatchToProps = {
     emitUserLoggedOutEvent,
+    redirectUserToDefaultTeam,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MFAController);

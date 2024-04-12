@@ -4,8 +4,6 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {redirectUserToDefaultTeam} from 'actions/global_actions';
-
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import Constants from 'utils/constants';
@@ -28,6 +26,8 @@ type Props = {
      * Function that updates parent component with state props
      */
     updateParent: (state: MFAControllerState) => void;
+
+    redirectUserToDefaultTeam: () => void;
 }
 
 export default class Confirm extends React.PureComponent<Props> {
@@ -41,7 +41,7 @@ export default class Confirm extends React.PureComponent<Props> {
 
     submit = (e: KeyboardEvent | React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
-        redirectUserToDefaultTeam();
+        this.props.redirectUserToDefaultTeam();
     };
 
     onKeyPress = (e: KeyboardEvent | React.FormEvent<HTMLFormElement>): void => {

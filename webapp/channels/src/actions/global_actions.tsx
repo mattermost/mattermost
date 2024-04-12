@@ -37,7 +37,6 @@ import {getCurrentLocale} from 'selectors/i18n';
 import {getIsRhsOpen, getPreviousRhsState, getRhsState} from 'selectors/rhs';
 import BrowserStore from 'stores/browser_store';
 import LocalStorageStore from 'stores/local_storage_store';
-import store from 'stores/redux_store';
 
 import WebSocketClient from 'client/web_websocket_client';
 import {getHistory} from 'utils/browser_history';
@@ -47,9 +46,6 @@ import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
-
-/** @deprecated */
-const dispatch = store.dispatch;
 
 export function emitChannelClickEvent(channel: Channel): ThunkActionFunc<void, GlobalState> {
     return (doDispatch, doGetState) => {
@@ -315,66 +311,68 @@ export function getTeamRedirectChannelIfIsAccesible(user: UserProfile, team: Tea
     };
 }
 
-export async function redirectUserToDefaultTeam() {
-    let state = getState();
+export function redirectUserToDefaultTeam(): ThunkActionFunc<Promise<void>, GlobalState> {
+    return async (doDispatch, doGetState) => {
+        let state = doGetState();
 
-    // Assume we need to load the user if they don't have any team memberships loaded or the user loaded
-    let user = getCurrentUser(state);
-    const shouldLoadUser = Utils.isEmptyObject(getTeamMemberships(state)) || !user;
-    const onboardingFlowEnabled = getIsOnboardingFlowEnabled(state);
-    if (shouldLoadUser) {
-        await dispatch(loadMe());
-        state = getState();
-        user = getCurrentUser(state);
-    }
+        // Assume we need to load the user if they don't have any team memberships loaded or the user loaded
+        let user = getCurrentUser(state);
+        const shouldLoadUser = Utils.isEmptyObject(getTeamMemberships(state)) || !user;
+        const onboardingFlowEnabled = getIsOnboardingFlowEnabled(state);
+        if (shouldLoadUser) {
+            await doDispatch(loadMe());
+            state = doGetState();
+            user = getCurrentUser(state);
+        }
 
-    if (!user) {
-        return;
-    }
-
-    // if the user is the first admin
-    const isUserFirstAdmin = isFirstAdmin(state);
-
-    const locale = getCurrentLocale(state);
-    const teamId = LocalStorageStore.getPreviousTeamId(user.id);
-
-    let myTeams = getMyTeams(state);
-    const teams = getActiveTeamsList(state);
-    if (teams.length === 0) {
-        if (isUserFirstAdmin && onboardingFlowEnabled) {
-            getHistory().push('/preparing-workspace');
+        if (!user) {
             return;
+        }
+
+        // if the user is the first admin
+        const isUserFirstAdmin = isFirstAdmin(state);
+
+        const locale = getCurrentLocale(state);
+        const teamId = LocalStorageStore.getPreviousTeamId(user.id);
+
+        let myTeams = getMyTeams(state);
+        const teams = getActiveTeamsList(state);
+        if (teams.length === 0) {
+            if (isUserFirstAdmin && onboardingFlowEnabled) {
+                getHistory().push('/preparing-workspace');
+                return;
+            }
+
+            getHistory().push('/select_team');
+            return;
+        }
+
+        let team: Team | undefined;
+        if (teamId) {
+            team = getTeam(state, teamId);
+        }
+
+        if (team && team.delete_at === 0) {
+            const channel = await doDispatch(getTeamRedirectChannelIfIsAccesible(user, team));
+            if (channel) {
+                doDispatch(selectChannel(channel.id));
+                getHistory().push(`/${team.name}/channels/${channel.name}`);
+                return;
+            }
+        }
+
+        myTeams = filterAndSortTeamsByDisplayName(myTeams, locale);
+
+        for (const myTeam of myTeams) {
+            // This should execute async behavior in a pretty limited set of situations, so shouldn't be a problem
+            const channel = await doDispatch(getTeamRedirectChannelIfIsAccesible(user, myTeam)); // eslint-disable-line no-await-in-loop
+            if (channel) {
+                doDispatch(selectChannel(channel.id));
+                getHistory().push(`/${myTeam.name}/channels/${channel.name}`);
+                return;
+            }
         }
 
         getHistory().push('/select_team');
-        return;
-    }
-
-    let team: Team | undefined;
-    if (teamId) {
-        team = getTeam(state, teamId);
-    }
-
-    if (team && team.delete_at === 0) {
-        const channel = await dispatch(getTeamRedirectChannelIfIsAccesible(user, team));
-        if (channel) {
-            dispatch(selectChannel(channel.id));
-            getHistory().push(`/${team.name}/channels/${channel.name}`);
-            return;
-        }
-    }
-
-    myTeams = filterAndSortTeamsByDisplayName(myTeams, locale);
-
-    for (const myTeam of myTeams) {
-        // This should execute async behavior in a pretty limited set of situations, so shouldn't be a problem
-        const channel = await dispatch(getTeamRedirectChannelIfIsAccesible(user, myTeam)); // eslint-disable-line no-await-in-loop
-        if (channel) {
-            dispatch(selectChannel(channel.id));
-            getHistory().push(`/${myTeam.name}/channels/${channel.name}`);
-            return;
-        }
-    }
-
-    getHistory().push('/select_team');
+    };
 }

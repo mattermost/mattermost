@@ -342,7 +342,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     // let the default root component handle it.
                     history.push('/');
                 } else {
-                    redirectUserToDefaultTeam();
+                    dispatch(redirectUserToDefaultTeam());
                 }
             }
         }
@@ -495,7 +495,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             // let the default root component handle it.
             history.push('/');
         } else {
-            redirectUserToDefaultTeam();
+            dispatch(redirectUserToDefaultTeam());
         }
     };
 

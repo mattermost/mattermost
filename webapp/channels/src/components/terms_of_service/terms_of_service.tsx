@@ -11,8 +11,6 @@ import type {TermsOfService as ReduxTermsOfService} from '@mattermost/types/term
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
-import * as GlobalActions from 'actions/global_actions';
-
 import AnnouncementBar from 'components/announcement_bar';
 import LoadingScreen from 'components/loading_screen';
 import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
@@ -36,6 +34,7 @@ export interface TermsOfServiceProps extends RouteComponentProps {
     actions: {
         emitUserLoggedOutEvent: (redirectTo: string) => void;
         getTermsOfService: () => Promise<ActionResult<ReduxTermsOfService>>;
+        redirectUserToDefaultTeam: () => void;
         updateMyTermsOfServiceStatus: (
             termsOfServiceId: string,
             accepted: boolean
@@ -76,7 +75,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
         if (this.props.termsEnabled) {
             this.getTermsOfService();
         } else {
-            GlobalActions.redirectUserToDefaultTeam();
+            this.props.actions.redirectUserToDefaultTeam();
         }
     }
 
@@ -122,7 +121,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
                     // let the default root component handle it.
                     getHistory().push('/');
                 } else {
-                    GlobalActions.redirectUserToDefaultTeam();
+                    this.props.actions.redirectUserToDefaultTeam();
                 }
             },
         );

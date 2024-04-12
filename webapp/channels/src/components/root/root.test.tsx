@@ -12,8 +12,6 @@ import {ServiceEnvironment} from '@mattermost/types/config';
 import {Client4} from 'mattermost-redux/client';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
-import * as GlobalActions from 'actions/global_actions';
-
 import Root from 'components/root/root';
 
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
@@ -21,7 +19,7 @@ import {StoragePrefixes} from 'utils/constants';
 
 import type {ProductComponent} from 'types/store/plugins';
 
-import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
+import {handleLoginLogoutSignal} from './actions';
 
 jest.mock('rudder-sdk-js', () => ({
     identify: jest.fn(),
@@ -32,10 +30,6 @@ jest.mock('rudder-sdk-js', () => ({
 }));
 
 jest.mock('actions/telemetry_actions');
-
-jest.mock('actions/global_actions', () => ({
-    redirectUserToDefaultTeam: jest.fn(),
-}));
 
 jest.mock('utils/utils', () => {
     const original = jest.requireActual('utils/utils');
@@ -78,9 +72,9 @@ describe('components/Root', () => {
             savePreferences: jest.fn(),
             registerCustomPostRenderer: jest.fn(),
             initializeProducts: jest.fn(),
+            redirectToOnboardingOrDefaultTeam: jest.fn(),
             ...bindActionCreators({
                 handleLoginLogoutSignal,
-                redirectToOnboardingOrDefaultTeam,
             }, store.dispatch),
         },
         permalinkRedirectTeamName: 'myTeam',
@@ -135,7 +129,7 @@ describe('components/Root', () => {
         class MockedRoot extends Root {
             onConfigLoaded = jest.fn(() => {
                 expect(this.onConfigLoaded).toHaveBeenCalledTimes(1);
-                expect(GlobalActions.redirectUserToDefaultTeam).toHaveBeenCalledTimes(1);
+                expect(props.actions.redirectToOnboardingOrDefaultTeam).toHaveBeenCalledTimes(1);
                 expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
                 done();
             });
@@ -169,7 +163,7 @@ describe('components/Root', () => {
         class MockedRoot extends Root {
             onConfigLoaded = jest.fn(() => {
                 expect(this.onConfigLoaded).toHaveBeenCalledTimes(1);
-                expect(GlobalActions.redirectUserToDefaultTeam).not.toHaveBeenCalled();
+                expect(props.actions.redirectToOnboardingOrDefaultTeam).not.toHaveBeenCalled();
                 expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
                 done();
             });

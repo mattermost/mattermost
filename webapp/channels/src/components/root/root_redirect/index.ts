@@ -9,6 +9,8 @@ import {getFirstAdminSetupComplete} from 'mattermost-redux/actions/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, isCurrentUserSystemAdmin, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {redirectUserToDefaultTeam} from 'actions/global_actions';
+
 import type {GlobalState} from 'types/store';
 
 import RootRedirect from './root_redirect';
@@ -30,6 +32,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             getFirstAdminSetupComplete,
+            redirectUserToDefaultTeam,
         }, dispatch),
     };
 }

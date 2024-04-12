@@ -66,7 +66,7 @@ describe('actions/global_actions', () => {
 
             reduxStore.getState.mockImplementation(store.getState);
 
-            await redirectUserToDefaultTeam();
+            await store.dispatch(redirectUserToDefaultTeam());
             expect(getHistory().push).toHaveBeenCalledWith('/select_team');
         });
 
@@ -138,10 +138,9 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.dispatch.mockImplementation(store.dispatch);
             reduxStore.getState.mockImplementation(store.getState);
 
-            await redirectUserToDefaultTeam();
+            await store.dispatch(redirectUserToDefaultTeam());
             expect(getHistory().push).toHaveBeenCalledWith('/team2/channels/channel-in-team-2');
         });
 
@@ -212,10 +211,9 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.dispatch.mockImplementation(store.dispatch);
             reduxStore.getState.mockImplementation(store.getState);
 
-            await redirectUserToDefaultTeam();
+            await store.dispatch(redirectUserToDefaultTeam());
             expect(getHistory().push).toHaveBeenCalledWith('/team2/channels/channel-in-team-2');
         });
 
@@ -285,10 +283,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.dispatch.mockImplementation(store.dispatch);
-            reduxStore.getState.mockImplementation(store.getState);
-
-            await redirectUserToDefaultTeam();
+            await store.dispatch(redirectUserToDefaultTeam());
             expect(getHistory().push).toHaveBeenCalledWith('/select_team');
         });
 
@@ -318,9 +313,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
-
-            await redirectUserToDefaultTeam();
+            await store.dispatch(redirectUserToDefaultTeam());
             expect(getHistory().push).not.toHaveBeenCalled();
         });
 
@@ -571,9 +564,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
-
-            await redirectUserToDefaultTeam();
+            await store.dispatch(redirectUserToDefaultTeam());
             expect(getHistory().push).toHaveBeenCalledWith('/team1/channels/channel-in-team-1');
         });
     });

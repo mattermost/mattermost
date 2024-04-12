@@ -4,8 +4,6 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {redirectUserToDefaultTeam} from 'actions/global_actions';
-
 import Confirm from 'components/mfa/confirm';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
@@ -23,6 +21,7 @@ describe('components/mfa/components/Confirm', () => {
         state: {
             enforceMultifactorAuthentication: true,
         },
+        redirectUserToDefaultTeam: jest.fn(),
     };
 
     afterAll(() => {
@@ -38,7 +37,7 @@ describe('components/mfa/components/Confirm', () => {
         const wrapper = mountWithIntl(<Confirm {...defaultProps}/>);
         wrapper.find('form').simulate('submit');
 
-        expect(redirectUserToDefaultTeam).toHaveBeenCalled();
+        expect(defaultProps.redirectUserToDefaultTeam).toHaveBeenCalled();
     });
 
     test('should submit on enter', () => {
@@ -57,6 +56,6 @@ describe('components/mfa/components/Confirm', () => {
         };
         map.keydown(event);
 
-        expect(redirectUserToDefaultTeam).toHaveBeenCalled();
+        expect(defaultProps.redirectUserToDefaultTeam).toHaveBeenCalled();
     });
 });

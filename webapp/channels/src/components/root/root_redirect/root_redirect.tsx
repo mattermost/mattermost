@@ -6,8 +6,6 @@ import {Redirect, useHistory} from 'react-router-dom';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import * as GlobalActions from 'actions/global_actions';
-
 export type Props = {
     isElegibleForFirstAdmingOnboarding: boolean;
     currentUserId: string;
@@ -15,6 +13,7 @@ export type Props = {
     isFirstAdmin: boolean;
     actions: {
         getFirstAdminSetupComplete: () => Promise<ActionResult>;
+        redirectUserToDefaultTeam: () => void;
     };
 }
 
@@ -29,11 +28,11 @@ export default function RootRedirect(props: Props) {
                     if (firstAdminCompletedSignup.data === false && props.isFirstAdmin) {
                         history.push('/preparing-workspace');
                     } else {
-                        GlobalActions.redirectUserToDefaultTeam();
+                        props.actions.redirectUserToDefaultTeam();
                     }
                 });
             } else {
-                GlobalActions.redirectUserToDefaultTeam();
+                props.actions.redirectUserToDefaultTeam();
             }
         }
     }, [props.currentUserId, props.isElegibleForFirstAdmingOnboarding]);

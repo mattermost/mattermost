@@ -408,7 +408,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 history.push(redirectTo);
                 return;
             }
-            redirectUserToDefaultTeam();
+            dispatch(redirectUserToDefaultTeam());
             return;
         }
 
@@ -676,7 +676,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             // let the default root component handle it.
             history.push('/');
         } else {
-            redirectUserToDefaultTeam();
+            dispatch(redirectUserToDefaultTeam());
         }
     };
 

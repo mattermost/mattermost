@@ -59,7 +59,7 @@ const DoVerifyEmail = () => {
                 history.push('/');
                 return;
             }
-            redirectUserToDefaultTeam();
+            dispatch(redirectUserToDefaultTeam());
             return;
         }
 

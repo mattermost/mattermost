@@ -11,7 +11,7 @@ import {getTermsOfService, updateMyTermsOfServiceStatus} from 'mattermost-redux/
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
+import {emitUserLoggedOutEvent, redirectUserToDefaultTeam} from 'actions/global_actions';
 import {getEmojiMap} from 'selectors/emojis';
 
 import TermsOfService from './terms_of_service';
@@ -31,6 +31,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             emitUserLoggedOutEvent,
             getTermsOfService,
+            redirectUserToDefaultTeam,
             updateMyTermsOfServiceStatus,
         }, dispatch),
     };

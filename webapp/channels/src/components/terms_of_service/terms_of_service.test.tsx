@@ -9,11 +9,6 @@ import type EmojiMap from 'utils/emoji_map';
 import TermsOfService from './terms_of_service';
 import type {TermsOfServiceProps} from './terms_of_service';
 
-jest.mock('actions/global_actions', () => ({
-    emitUserLoggedOutEvent: jest.fn(),
-    redirectUserToDefaultTeam: jest.fn(),
-}));
-
 describe('components/terms_of_service/TermsOfService', () => {
     const getTermsOfService = jest.fn().mockResolvedValue({data: {id: 'tos_id', text: 'tos_text'}});
     const updateMyTermsOfServiceStatus = jest.fn().mockResolvedValue({data: true});
@@ -22,6 +17,7 @@ describe('components/terms_of_service/TermsOfService', () => {
         actions: {
             emitUserLoggedOutEvent: jest.fn(),
             getTermsOfService,
+            redirectUserToDefaultTeam: jest.fn(),
             updateMyTermsOfServiceStatus,
         },
         location: {search: '', hash: '', pathname: '', state: ''},
