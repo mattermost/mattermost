@@ -165,15 +165,44 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
     };
 
     createComponentButton = (plug: PluginComponent) => {
+        // These values are supposed to be strings based on PluginComponent, but some plugins pass non-strings,
+        // so do some hacky stuff to try to convert it back to a string. DO NOT USE THIS ELSEWHERE!
+        function tooltipToAriaLabelHack(intl: IntlShape, stringOrElement: string | React.ReactElement) {
+            if (typeof stringOrElement === 'string') {
+                // This is the case that we hope for
+                return stringOrElement;
+            }
+
+            if (stringOrElement.type === FormattedMessage) {
+                // This is a FormattedMessage, so extract the props to translate the text manually
+                return intl.formatMessage(
+                    {
+                        id: stringOrElement.props.id,
+                        defaultMessage: stringOrElement.props.defaultMessage,
+                    },
+                    stringOrElement.props.value,
+                );
+            }
+
+            return '';
+        }
+
+        let ariaLabel;
+        if (plug.tooltipText) {
+            ariaLabel = tooltipToAriaLabelHack(this.props.intl, plug.tooltipText);
+        } else if (plug.dropdownText) {
+            ariaLabel = tooltipToAriaLabelHack(this.props.intl, plug.dropdownText);
+        }
+
         return (
             <HeaderIconWrapper
                 key={'channelHeaderButton' + plug.id}
                 buttonClass='channel-header__icon'
                 iconComponent={plug.icon!}
                 onClick={() => this.fireAction(plug.action!)}
-                buttonId={plug.id}
-                tooltipKey={'plugin'}
-                tooltipText={plug.tooltipText ? plug.tooltipText : plug.dropdownText}
+                buttonId={plug.id + 'ChannelHeaderButton'}
+                tooltip={plug.tooltipText ?? plug.dropdownText ?? ''}
+                ariaLabelOverride={ariaLabel}
                 pluginId={plug.pluginId}
             />
         );
@@ -245,8 +274,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                 )}
                 onClick={() => this.onBindingClick(binding)}
                 buttonId={`${binding.app_id}_${binding.location}`}
-                tooltipKey={'plugin'}
-                tooltipText={binding.label}
+                tooltip={binding.label}
             />
         );
     };

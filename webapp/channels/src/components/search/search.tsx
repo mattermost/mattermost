@@ -382,14 +382,15 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                     aria-hidden='true'
                 />
             }
-            ariaLabel={true}
             buttonClass={classNames(
                 'channel-header__icon',
                 {'channel-header__icon--active': props.isMentionSearch},
             )}
             buttonId={props.isSideBarRight ? 'sbrChannelHeaderMentionButton' : 'channelHeaderMentionButton'}
             onClick={searchMentions}
-            tooltipKey={'recentMentions'}
+            tooltip={intl.formatMessage({id: 'channel_header.recentMentions', defaultMessage: 'Recent mentions'})}
+
+            // tooltipShortcut={KEYBOARD_SHORTCUTS.navMention}
             isRhsOpen={props.isRhsOpen}
         />
     );
@@ -399,14 +400,13 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             iconComponent={
                 <FlagIcon className='icon icon--standard'/>
             }
-            ariaLabel={true}
             buttonClass={classNames(
                 'channel-header__icon ',
                 {'channel-header__icon--active': props.isFlaggedPosts},
             )}
             buttonId={props.isSideBarRight ? 'sbrChannelHeaderFlagButton' : 'channelHeaderFlagButton'}
             onClick={getFlagged}
-            tooltipKey={'flaggedPosts'}
+            tooltip={intl.formatMessage({id: 'channel_header.flagged', defaultMessage: 'Saved messages'})}
             isRhsOpen={props.isRhsOpen}
         />
     );
@@ -501,10 +501,9 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                             aria-hidden='true'
                         />
                     }
-                    ariaLabel={true}
                     buttonId={'channelHeaderSearchButton'}
                     onClick={searchButtonClick}
-                    tooltipKey={'search'}
+                    tooltip={intl.formatMessage({id: 'channel_header.search', defaultMessage: 'Search'})}
                 />
             );
         }
