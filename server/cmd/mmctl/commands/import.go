@@ -504,7 +504,7 @@ func importValidateCmdF(c client.Client, command *cobra.Command, args []string) 
 	}
 
 	if maxPostSize == 0 {
-		maxPostSize = model.PostMessageMaxRunesV1
+		maxPostSize = model.PostMessageMaxRunesV2
 	}
 
 	createMissingTeams := !checkMissingTeams && len(injectedTeams) == 0
