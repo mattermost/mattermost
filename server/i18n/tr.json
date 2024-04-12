@@ -389,11 +389,11 @@
   },
   {
     "id": "api.command_away.name",
-    "translation": "Uzakta"
+    "translation": "away"
   },
   {
     "id": "api.command_away.success",
-    "translation": "Durumunuz: uzakta"
+    "translation": "Durumunuz: Uzakta"
   },
   {
     "id": "api.command_channel_header.channel.app_error",
@@ -413,7 +413,7 @@
   },
   {
     "id": "api.command_channel_header.name",
-    "translation": "başlık"
+    "translation": "header"
   },
   {
     "id": "api.command_channel_header.permission.app_error",
@@ -445,7 +445,7 @@
   },
   {
     "id": "api.command_channel_purpose.name",
-    "translation": "amaç"
+    "translation": "purpose"
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
@@ -481,7 +481,7 @@
   },
   {
     "id": "api.command_channel_rename.name",
-    "translation": "yeniden adlandır"
+    "translation": "rename"
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
@@ -513,7 +513,7 @@
   },
   {
     "id": "api.command_code.name",
-    "translation": "kod"
+    "translation": "code"
   },
   {
     "id": "api.command_collapse.desc",
@@ -521,7 +521,7 @@
   },
   {
     "id": "api.command_collapse.name",
-    "translation": "daralt"
+    "translation": "collapse"
   },
   {
     "id": "api.command_collapse.success",
@@ -533,7 +533,7 @@
   },
   {
     "id": "api.command_dnd.name",
-    "translation": "re"
+    "translation": "dnd"
   },
   {
     "id": "api.command_dnd.success",
@@ -569,7 +569,7 @@
   },
   {
     "id": "api.command_expand.name",
-    "translation": "genişlet"
+    "translation": "expand"
   },
   {
     "id": "api.command_expand.success",
@@ -612,7 +612,7 @@
   },
   {
     "id": "api.command_groupmsg.name",
-    "translation": "ileti"
+    "translation": "message"
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
@@ -624,7 +624,7 @@
   },
   {
     "id": "api.command_help.name",
-    "translation": "yardım"
+    "translation": "help"
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -640,7 +640,7 @@
   },
   {
     "id": "api.command_invite.directchannel.app_error",
-    "translation": "Bir kişiyi doğrudan ileti kanalına ekleyemezsiniz."
+    "translation": "Doğrudan ileti kanalına bir kişi ekleyemezsiniz."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -660,7 +660,7 @@
   },
   {
     "id": "api.command_invite.name",
-    "translation": "davet et"
+    "translation": "invite"
   },
   {
     "id": "api.command_invite.permission.app_error",
@@ -707,11 +707,11 @@
   },
   {
     "id": "api.command_join.name",
-    "translation": "katılın"
+    "translation": "join"
   },
   {
     "id": "api.command_kick.name",
-    "translation": "kov"
+    "translation": "kick"
   },
   {
     "id": "api.command_leave.desc",
@@ -723,7 +723,7 @@
   },
   {
     "id": "api.command_leave.name",
-    "translation": "ayrıl"
+    "translation": "leave"
   },
   {
     "id": "api.command_logout.desc",
@@ -731,7 +731,7 @@
   },
   {
     "id": "api.command_logout.name",
-    "translation": "oturumu kapat"
+    "translation": "logout"
   },
   {
     "id": "api.command_me.desc",
@@ -743,7 +743,7 @@
   },
   {
     "id": "api.command_me.name",
-    "translation": "ben"
+    "translation": "me"
   },
   {
     "id": "api.command_msg.desc",
@@ -847,7 +847,7 @@
   },
   {
     "id": "api.command_remove.direct_group.app_error",
-    "translation": "Bir kişiyi doğrudan ileti kanalından çıkaramazsınız."
+    "translation": "Doğrudan ileti kanalından bir kişiyi çıkaramazsınız."
   },
   {
     "id": "api.command_remove.hint",
@@ -887,7 +887,7 @@
   },
   {
     "id": "api.command_search.unsupported.app_error",
-    "translation": "Arama komutu aygıtınız için desteklenmiyor."
+    "translation": "Aygıtınızda search komutu desteklenmiyor."
   },
   {
     "id": "api.command_settings.desc",
@@ -899,19 +899,19 @@
   },
   {
     "id": "api.command_settings.unsupported.app_error",
-    "translation": "Ayarlar komutu aygıtınız için desteklenmiyor."
+    "translation": "Aygıtınızda settings komutu desteklenmiyor."
   },
   {
     "id": "api.command_shortcuts.desc",
-    "translation": "Tuş takımı kısayollarının listesini görüntüler"
+    "translation": "Klavye kısayollarının listesini görüntüler"
   },
   {
     "id": "api.command_shortcuts.name",
-    "translation": "kısayollar"
+    "translation": "shortcuts"
   },
   {
     "id": "api.command_shortcuts.unsupported.app_error",
-    "translation": "Kısayollar komutu aygıtınız için desteklenmiyor."
+    "translation": "Aygıtınızda shortcuts komutu desteklenmiyor."
   },
   {
     "id": "api.command_shrug.desc",
@@ -931,7 +931,7 @@
   },
   {
     "id": "api.context.404.app_error",
-    "translation": "Maalesef sayfa bulunamadı."
+    "translation": "Ne yazık ki sayfa bulunamadı."
   },
   {
     "id": "api.context.invalid_body_param.app_error",
@@ -6216,7 +6216,7 @@
   },
   {
     "id": "api.context.get_user.app_error",
-    "translation": "Kullanıcı oturum kullanıcı kodundan bulunamadı."
+    "translation": "UserId değeriyle bir kullanıcı oturumu bulunamadı."
   },
   {
     "id": "model.command.is_valid.plugin_id.app_error",
@@ -6560,7 +6560,7 @@
   },
   {
     "id": "app.channel.get_member.missing.app_error",
-    "translation": "Bu kullanıcı kodu ve kanal kodu için bir kanal üyesi bulunamadı."
+    "translation": "Bu kullanıcı kimliği ve kanal kimliği için bir kanal üyesi bulunamadı."
   },
   {
     "id": "app.channel.get_member.app_error",
@@ -6668,7 +6668,7 @@
   },
   {
     "id": "api.config.migrate_config.app_error",
-    "translation": "Yapılandırma mağazası aktarılamadı."
+    "translation": "Yapılandırma depolaması aktarılamadı."
   },
   {
     "id": "api.cloud.license_error",
@@ -7704,7 +7704,7 @@
   },
   {
     "id": "api.command_custom_status.name",
-    "translation": "durum"
+    "translation": "status"
   },
   {
     "id": "api.command_custom_status.hint",
@@ -8076,7 +8076,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Güvenli bağlantı | Görüntülenecek ad | Bağlantı kodu | Site adresi | Davet kabul edildi | Çevrim içi | Son iletişim |"
+    "translation": "| Güvenli bağlantı | Görüntülenecek ad | Bağlantı kimliği | Site adresi | Davet kabul edildi | Çevrim içi | Son iletişim |"
   },
   {
     "id": "api.command_remote.permission_required",
@@ -8084,15 +8084,15 @@
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Güvenli bağlantı için tekil ad"
+    "translation": "Güvenli bağlantı için eşsiz ad"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Güvenli bağlantı adı"
+    "translation": "Güvenli bağlantının adı"
   },
   {
     "id": "api.command_remote.name",
-    "translation": "guvenli-baglanti"
+    "translation": "secure-connection"
   },
   {
     "id": "api.command_remote.missing_empty",
@@ -8308,7 +8308,7 @@
   },
   {
     "id": "api.command_share.name",
-    "translation": "kanal-paylas"
+    "translation": "share-channel"
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
@@ -9471,7 +9471,7 @@
   },
   {
     "id": "api.command_exportlink.name",
-    "translation": "dışaaktarmabağlantısı"
+    "translation": "exportlink"
   },
   {
     "id": "api.command_exportlink.permission.app_error",
