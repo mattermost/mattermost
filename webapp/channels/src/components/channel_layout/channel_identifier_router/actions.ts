@@ -3,9 +3,6 @@
 
 import type {History} from 'history';
 
-import type {Channel} from '@mattermost/types/channels';
-import type {GlobalState} from '@mattermost/types/store';
-
 import {joinChannel, getChannelByNameAndTeamName, getChannelMember, markGroupChannelOpen, fetchChannelsAndMembers} from 'mattermost-redux/actions/channels';
 import {getUser, getUserByUsername, getUserByEmail} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
@@ -22,6 +19,8 @@ import {joinPrivateChannelPrompt} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
+import type {GlobalState} from 'types/store';
+
 import type {Match, MatchAndHistory} from './channel_identifier_router';
 
 const LENGTH_OF_ID = 26;
@@ -29,7 +28,7 @@ const LENGTH_OF_GROUP_ID = 40;
 const LENGTH_OF_USER_ID_PAIR = 54;
 const USER_ID_PAIR_REGEXP = new RegExp(`^[a-zA-Z0-9]{${LENGTH_OF_ID}}__[a-zA-Z0-9]{${LENGTH_OF_ID}}$`);
 
-export function onChannelByIdentifierEnter({match, history}: MatchAndHistory): ActionFuncAsync {
+export function onChannelByIdentifierEnter({match, history}: MatchAndHistory): ActionFuncAsync<unknown, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const {path, identifier, team} = match.params;
@@ -154,7 +153,7 @@ export function goToChannelByChannelId(match: Match, history: History): ActionFu
     };
 }
 
-export function goToChannelByChannelName(match: Match, history: History): ActionFuncAsync {
+export function goToChannelByChannelName(match: Match, history: History): ActionFuncAsync<unknown, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const {team, identifier} = match.params;
@@ -218,13 +217,13 @@ export function goToChannelByChannelName(match: Match, history: History): Action
         } else if (channel.type === Constants.GM_CHANNEL) {
             history.replace(`/${team}/messages/${channel.name}`);
         } else {
-            doChannelChange(channel);
+            dispatch(GlobalActions.emitChannelClickEvent(channel));
         }
         return {data: undefined};
     };
 }
 
-function goToDirectChannelByUsername(match: Match, history: History): ActionFuncAsync {
+function goToDirectChannelByUsername(match: Match, history: History): ActionFuncAsync<unknown, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const {team, identifier} = match.params;
@@ -249,7 +248,7 @@ function goToDirectChannelByUsername(match: Match, history: History): ActionFunc
             return {data: undefined};
         }
 
-        doChannelChange(directChannelDispatchRes.data!);
+        dispatch(GlobalActions.emitChannelClickEvent(directChannelDispatchRes.data!));
         return {data: undefined};
     };
 }
@@ -322,7 +321,7 @@ export function goToDirectChannelByEmail(match: Match, history: History): Action
     };
 }
 
-function goToGroupChannelByGroupId(match: Match, history: History): ActionFuncAsync {
+function goToGroupChannelByGroupId(match: Match, history: History): ActionFuncAsync<unknown, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const {identifier, team} = match.params;
@@ -344,13 +343,9 @@ function goToGroupChannelByGroupId(match: Match, history: History): ActionFuncAs
 
         dispatch(markGroupChannelOpen(channel!.id));
 
-        doChannelChange(channel!);
+        dispatch(GlobalActions.emitChannelClickEvent(channel!));
         return {data: undefined};
     };
-}
-
-function doChannelChange(channel: Channel) {
-    GlobalActions.emitChannelClickEvent(channel);
 }
 
 function handleError(match: Match, history: History, defaultChannel: string) {

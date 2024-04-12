@@ -52,69 +52,74 @@ import type {GlobalState} from 'types/store';
 
 import {openModal} from './views/modals';
 
+/** @deprecated */
 const dispatch = store.dispatch;
+
+/** @deprecated */
 const getState = store.getState;
 
-export function emitChannelClickEvent(channel: Channel) {
-    function switchToChannel(chan: Channel) {
-        const state = getState();
-        const userId = getCurrentUserId(state);
-        const teamId = chan.team_id || getCurrentTeamId(state);
-        const isRHSOpened = getIsRhsOpen(state);
-        const isPinnedPostsShowing = getRhsState(state) === RHSStates.PIN;
-        const isChannelFilesShowing = getRhsState(state) === RHSStates.CHANNEL_FILES;
-        const member = getMyChannelMember(state, chan.id);
-        const currentChannelId = getCurrentChannelId(state);
-        const previousRhsState = getPreviousRhsState(state);
+export function emitChannelClickEvent(channel: Channel): ThunkActionFunc<void, GlobalState> {
+    return (doDispatch, doGetState) => {
+        function switchToChannel(chan: Channel) {
+            const state = doGetState();
+            const userId = getCurrentUserId(state);
+            const teamId = chan.team_id || getCurrentTeamId(state);
+            const isRHSOpened = getIsRhsOpen(state);
+            const isPinnedPostsShowing = getRhsState(state) === RHSStates.PIN;
+            const isChannelFilesShowing = getRhsState(state) === RHSStates.CHANNEL_FILES;
+            const member = getMyChannelMember(state, chan.id);
+            const currentChannelId = getCurrentChannelId(state);
+            const previousRhsState = getPreviousRhsState(state);
 
-        dispatch(getChannelStats(chan.id));
+            doDispatch(getChannelStats(chan.id));
 
-        const penultimate = LocalStorageStore.getPreviousChannelName(userId, teamId);
-        const penultimateType = LocalStorageStore.getPreviousViewedType(userId, teamId);
-        if (penultimate !== chan.name) {
-            LocalStorageStore.setPenultimateChannelName(userId, teamId, penultimate);
-            LocalStorageStore.setPreviousChannelName(userId, teamId, chan.name);
+            const penultimate = LocalStorageStore.getPreviousChannelName(userId, teamId);
+            const penultimateType = LocalStorageStore.getPreviousViewedType(userId, teamId);
+            if (penultimate !== chan.name) {
+                LocalStorageStore.setPenultimateChannelName(userId, teamId, penultimate);
+                LocalStorageStore.setPreviousChannelName(userId, teamId, chan.name);
+            }
+
+            if (penultimateType !== PreviousViewedTypes.CHANNELS || penultimate !== chan.name) {
+                LocalStorageStore.setPreviousViewedType(userId, teamId, PreviousViewedTypes.CHANNELS);
+                LocalStorageStore.setPenultimateViewedType(userId, teamId, penultimateType);
+            }
+
+            // When switching to a different channel if the pinned posts is showing
+            // Update the RHS state to reflect the pinned post of the selected channel
+            if (isRHSOpened && isPinnedPostsShowing) {
+                doDispatch(updateRhsState(RHSStates.PIN, chan.id, previousRhsState));
+            }
+
+            if (isRHSOpened && isChannelFilesShowing) {
+                doDispatch(updateRhsState(RHSStates.CHANNEL_FILES, chan.id, previousRhsState));
+            }
+
+            if (currentChannelId) {
+                doDispatch(loadProfilesForSidebar());
+            }
+
+            doDispatch(batchActions([
+                {
+                    type: ChannelTypes.SELECT_CHANNEL,
+                    data: chan.id,
+                },
+                {
+                    type: ActionTypes.SELECT_CHANNEL_WITH_MEMBER,
+                    data: chan.id,
+                    channel: chan,
+                    member: member || {},
+                },
+                setLastUnreadChannel(state, chan),
+            ]));
+
+            if (appsEnabled(state)) {
+                doDispatch(fetchAppBindings(chan.id));
+            }
         }
 
-        if (penultimateType !== PreviousViewedTypes.CHANNELS || penultimate !== chan.name) {
-            LocalStorageStore.setPreviousViewedType(userId, teamId, PreviousViewedTypes.CHANNELS);
-            LocalStorageStore.setPenultimateViewedType(userId, teamId, penultimateType);
-        }
-
-        // When switching to a different channel if the pinned posts is showing
-        // Update the RHS state to reflect the pinned post of the selected channel
-        if (isRHSOpened && isPinnedPostsShowing) {
-            dispatch(updateRhsState(RHSStates.PIN, chan.id, previousRhsState));
-        }
-
-        if (isRHSOpened && isChannelFilesShowing) {
-            dispatch(updateRhsState(RHSStates.CHANNEL_FILES, chan.id, previousRhsState));
-        }
-
-        if (currentChannelId) {
-            dispatch(loadProfilesForSidebar());
-        }
-
-        dispatch(batchActions([
-            {
-                type: ChannelTypes.SELECT_CHANNEL,
-                data: chan.id,
-            },
-            {
-                type: ActionTypes.SELECT_CHANNEL_WITH_MEMBER,
-                data: chan.id,
-                channel: chan,
-                member: member || {},
-            },
-            setLastUnreadChannel(state, chan),
-        ]));
-
-        if (appsEnabled(state)) {
-            dispatch(fetchAppBindings(chan.id));
-        }
-    }
-
-    switchToChannel(channel);
+        switchToChannel(channel);
+    };
 }
 
 function setLastUnreadChannel(state: GlobalState, channel: Channel) {

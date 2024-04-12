@@ -7,7 +7,7 @@ import {getChannelByNameAndTeamName, getChannelMember, joinChannel} from 'matter
 import {getUserByEmail} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 
-import {emitChannelClickEvent} from 'actions/global_actions';
+import configureStore from 'store';
 
 import {
     goToChannelByChannelName,
@@ -23,13 +23,14 @@ import mockStore from 'tests/test_store';
 import {joinPrivateChannelPrompt} from 'utils/channel_utils';
 
 jest.mock('actions/global_actions', () => ({
-    emitChannelClickEvent: jest.fn(),
+    emitChannelClickEvent: jest.fn((...args) => ({type: 'MOCK_CHANNEL_CLICK_EVENT', args})),
 }));
 
 jest.mock('mattermost-redux/actions/channels', () => ({
     joinChannel: jest.fn(() => ({type: '', data: {channel: {id: 'channel_id3', name: 'achannel3', team_id: 'team_id1', type: 'O'}}})),
     getChannelByNameAndTeamName: jest.fn(() => ({type: '', data: {id: 'channel_id3', name: 'achannel3', team_id: 'team_id1', type: 'O'}})),
     getChannelMember: jest.fn(() => ({type: '', error: {}})),
+    getChannelStats: jest.fn(() => ({type: ''})),
 }));
 
 jest.mock('mattermost-redux/actions/users', () => ({
@@ -39,7 +40,7 @@ jest.mock('mattermost-redux/actions/users', () => ({
 
 jest.mock('utils/channel_utils', () => ({
     joinPrivateChannelPrompt: jest.fn(() => {
-        return async () => {
+        return () => {
             return {data: {join: true}};
         };
     }),
@@ -53,7 +54,7 @@ describe('Actions', () => {
     const channel5 = {id: 'channel_id5', name: 'some-group-channel', team_id: 'team_id1', type: 'G' as const};
     const channel6 = {id: 'channel_id6', name: '12345678901234567890123456', team_id: 'team_id1', type: 'O' as const};
 
-    const initialState = {
+    const initialState = configureStore({
         entities: {
             channels: {
                 currentChannelId: 'channel_id1',
@@ -76,12 +77,15 @@ describe('Actions', () => {
             },
             users: {
                 currentUserId: 'current_user_id',
-                profiles: {user_id2: {id: 'user_id2', username: 'user2', email: 'user2@bladekick.com'}},
+                profiles: {
+                    current_user_id: TestHelper.getUserMock({id: 'current_user_id'}),
+                    user_id2: TestHelper.getUserMock({id: 'user_id2', username: 'user2', email: 'user2@bladekick.com'}),
+                },
             },
             general: {license: {IsLicensed: 'false'}, config: {}},
             preferences: {myPreferences: {}},
         },
-    };
+    }).getState();
 
     describe('getPathFromIdentifier', () => {
         test.each([
@@ -129,7 +133,7 @@ describe('Actions', () => {
 
     describe('goToChannelByChannelId', () => {
         test('switch to public channel we have locally but need to join', async () => {
-            const testStore = await mockStore(initialState);
+            const testStore = mockStore(initialState);
             const history = {replace: jest.fn()};
 
             await testStore.dispatch((goToChannelByChannelId({params: {team: 'team1', identifier: 'channel_id3', path: '/'}, url: ''}, history as any) as any));
@@ -140,22 +144,30 @@ describe('Actions', () => {
 
     describe('goToChannelByChannelName', () => {
         test('switch to channel on different team with same name', async () => {
-            const testStore = await mockStore(initialState);
+            const testStore = mockStore(initialState);
 
             await testStore.dispatch((goToChannelByChannelName({params: {team: 'team2', identifier: 'achannel', path: '/'}, url: ''}, {} as any) as any));
-            expect(emitChannelClickEvent).toHaveBeenCalledWith(channel2);
+
+            expect(testStore.getActions()).toContainEqual({
+                type: 'MOCK_CHANNEL_CLICK_EVENT',
+                args: [channel2],
+            });
         });
 
         test('switch to public channel we have locally but need to join', async () => {
-            const testStore = await mockStore(initialState);
+            const testStore = mockStore(initialState);
 
             await testStore.dispatch((goToChannelByChannelName({params: {team: 'team1', identifier: 'achannel3', path: '/'}, url: ''}, {} as any) as any));
             expect(joinChannel).toHaveBeenCalledWith('current_user_id', 'team_id1', '', 'achannel3');
-            expect(emitChannelClickEvent).toHaveBeenCalledWith(channel3);
+
+            expect(testStore.getActions()).toContainEqual({
+                type: 'MOCK_CHANNEL_CLICK_EVENT',
+                args: [channel3],
+            });
         });
 
         test('switch to private channel we don\'t have locally and get prompted if super user and then join', async () => {
-            const testStore = await mockStore({
+            const testStore = mockStore({
                 ...initialState,
                 entities: {
                     ...initialState.entities,
@@ -164,6 +176,7 @@ describe('Actions', () => {
                         profiles: {
                             ...initialState.entities.users.profiles,
                             current_user_id: {
+                                ...initialState.entities.users.profiles.current_user_id,
                                 roles: 'system_admin',
                             },
                         },
@@ -183,7 +196,7 @@ describe('Actions', () => {
 
     describe('goToDirectChannelByUserId', () => {
         test('switch to a direct channel by user id on the same team', async () => {
-            const testStore = await mockStore(initialState);
+            const testStore = mockStore(initialState);
             const history = {replace: jest.fn()};
 
             await testStore.dispatch((goToDirectChannelByUserId({params: {team: 'team1', identifier: 'channel', path: '/'}, url: ''}, history as any, 'user_id2') as any));
@@ -191,7 +204,7 @@ describe('Actions', () => {
         });
 
         test('switch to a direct channel by user id on different team', async () => {
-            const testStore = await mockStore(initialState);
+            const testStore = mockStore(initialState);
             const history = {replace: jest.fn()};
 
             await testStore.dispatch((goToDirectChannelByUserId({params: {team: 'team2', identifier: 'channel', path: '/'}, url: ''}, history as any, 'user_id2') as any));
@@ -201,7 +214,7 @@ describe('Actions', () => {
 
     describe('goToDirectChannelByUserIds', () => {
         test('switch to a direct channel by name on the same team', async () => {
-            const testStore = await mockStore(initialState);
+            const testStore = mockStore(initialState);
             const history = {replace: jest.fn()};
 
             await testStore.dispatch((goToDirectChannelByUserIds({params: {team: 'team1', identifier: 'current_user_id__user_id2', path: '/'}, url: ''}, history as any) as any));
@@ -209,7 +222,7 @@ describe('Actions', () => {
         });
 
         test('switch to a direct channel by name on different team', async () => {
-            const testStore = await mockStore(initialState);
+            const testStore = mockStore(initialState);
             const history = {replace: jest.fn()};
 
             await testStore.dispatch((goToDirectChannelByUserIds({params: {team: 'team2', identifier: 'current_user_id__user_id2', path: '/'}, url: ''}, history as any) as any));
@@ -219,7 +232,7 @@ describe('Actions', () => {
 
     describe('goToDirectChannelByEmail', () => {
         test('switch to a direct channel by email with user already existing locally', async () => {
-            const testStore = await mockStore(initialState);
+            const testStore = mockStore(initialState);
             const history = {replace: jest.fn()};
 
             await testStore.dispatch((goToDirectChannelByEmail({params: {team: 'team1', identifier: 'user2@bladekick.com', path: '/'}, url: ''}, history as any) as any));
@@ -228,7 +241,7 @@ describe('Actions', () => {
         });
 
         test('switch to a direct channel by email with user not existing locally', async () => {
-            const testStore = await mockStore(initialState);
+            const testStore = mockStore(initialState);
             const history = {replace: jest.fn()};
 
             await testStore.dispatch((goToDirectChannelByEmail({params: {team: 'team1', identifier: 'user3@bladekick.com', path: '/'}, url: ''}, history as any) as any));
