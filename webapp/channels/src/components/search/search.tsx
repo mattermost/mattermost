@@ -22,6 +22,7 @@ import FlagIcon from 'components/widgets/icons/flag_icon';
 import MentionsIcon from 'components/widgets/icons/mentions_icon';
 import SearchIcon from 'components/widgets/icons/search_icon';
 import Popover from 'components/widgets/popover';
+import {ShortcutKeys} from 'components/with_tooltip/shortcut';
 
 import Constants, {searchHintOptions, RHSStates, searchFilesHintOptions} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -31,6 +32,11 @@ import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 import type {SearchType} from 'types/store/rhs';
 
 import type {Props, SearchFilterType} from './types';
+
+const mentionsShortcut = {
+    default: [ShortcutKeys.ctrl, ShortcutKeys.shift, 'M'],
+    mac: [ShortcutKeys.cmd, ShortcutKeys.shift, 'M'],
+};
 
 interface SearchHintOption {
     searchTerm: string;
@@ -389,8 +395,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             buttonId={props.isSideBarRight ? 'sbrChannelHeaderMentionButton' : 'channelHeaderMentionButton'}
             onClick={searchMentions}
             tooltip={intl.formatMessage({id: 'channel_header.recentMentions', defaultMessage: 'Recent mentions'})}
-
-            // tooltipShortcut={KEYBOARD_SHORTCUTS.navMention}
+            tooltipShortcut={mentionsShortcut}
             isRhsOpen={props.isRhsOpen}
         />
     );

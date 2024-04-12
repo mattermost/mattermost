@@ -4,10 +4,10 @@
 import React from 'react';
 
 import NewChannelWithBoardTourTip from 'components/app_bar/new_channel_with_board_tour_tip';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
+import type {ShortcutDefinition} from 'components/with_tooltip/shortcut';
 
-import {Constants, suitePluginIds} from 'utils/constants';
+import {suitePluginIds} from 'utils/constants';
 
 type Props = {
 
@@ -22,6 +22,7 @@ type Props = {
     iconComponent: React.ReactNode;
     onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
     tooltip: string;
+    tooltipShortcut?: ShortcutDefinition;
     isRhsOpen?: boolean;
     pluginId?: string;
 }
@@ -34,30 +35,10 @@ const HeaderIconWrapper = (props: Props) => {
         iconComponent,
         onClick,
         tooltip: tooltipText,
+        tooltipShortcut,
         isRhsOpen,
         pluginId,
     } = props;
-
-    let tooltipComponent;
-    if (pluginId) {
-        tooltipComponent = (
-            <Tooltip
-                id='pluginTooltip'
-                className=''
-            >
-                <span>{tooltipText}</span>
-            </Tooltip>
-        );
-    } else {
-        tooltipComponent = (
-            <Tooltip
-                id={buttonId + '-tooltip'}
-                className=''
-            >
-                <span>{tooltipText}</span>
-            </Tooltip>
-        );
-    }
 
     const boardsEnabled = pluginId === suitePluginIds.focalboard;
 
@@ -65,11 +46,11 @@ const HeaderIconWrapper = (props: Props) => {
 
     return (
         <div>
-            <OverlayTrigger
-                trigger={['hover', 'focus']}
-                delayShow={Constants.OVERLAY_TIME_DELAY}
+            <WithTooltip
+                id={buttonId + '-tooltip'}
                 placement='bottom'
-                overlay={isRhsOpen ? <></> : tooltipComponent}
+                title={isRhsOpen ? '' : tooltipText}
+                shortcut={tooltipShortcut}
             >
                 <button
                     id={buttonId}
@@ -79,7 +60,7 @@ const HeaderIconWrapper = (props: Props) => {
                 >
                     {iconComponent}
                 </button>
-            </OverlayTrigger>
+            </WithTooltip>
             {boardsEnabled &&
                 <NewChannelWithBoardTourTip
                     pulsatingDotPlacement={'start'}
