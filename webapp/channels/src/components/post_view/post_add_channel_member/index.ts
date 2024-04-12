@@ -13,6 +13,8 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
+import {sendAddToChannelEphemeralPost} from 'actions/global_actions';
+
 import PostAddChannelMember from './post_add_channel_member';
 
 type OwnProps = {
@@ -41,6 +43,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             addChannelMember,
             removePost,
+            sendAddToChannelEphemeralPost,
         }, dispatch),
     };
 }

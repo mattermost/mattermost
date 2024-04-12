@@ -51,9 +51,6 @@ import type {GlobalState} from 'types/store';
 /** @deprecated */
 const dispatch = store.dispatch;
 
-/** @deprecated */
-const getState = store.getState;
-
 export function emitChannelClickEvent(channel: Channel): ThunkActionFunc<void, GlobalState> {
     return (doDispatch, doGetState) => {
         function switchToChannel(chan: Channel) {
@@ -173,24 +170,26 @@ export function sendEphemeralPost(message: string, channelId?: string, parentId?
     };
 }
 
-export function sendAddToChannelEphemeralPost(user: UserProfile, addedUsername: string, addedUserId: string, channelId: string, postRootId = '', timestamp: number) {
-    const post = {
-        id: Utils.generateId(),
-        user_id: user.id,
-        channel_id: channelId || getCurrentChannelId(getState()),
-        message: '',
-        type: PostTypes.EPHEMERAL_ADD_TO_CHANNEL,
-        create_at: timestamp,
-        update_at: timestamp,
-        root_id: postRootId,
-        props: {
-            username: user.username,
-            addedUsername,
-            addedUserId,
-        },
-    } as unknown as Post;
+export function sendAddToChannelEphemeralPost(user: UserProfile, addedUsername: string, addedUserId: string, channelId: string, postRootId = '', timestamp: number): ActionFuncAsync<boolean, GlobalState> {
+    return (doDispatch, doGetState) => {
+        const post = {
+            id: Utils.generateId(),
+            user_id: user.id,
+            channel_id: channelId || getCurrentChannelId(doGetState()),
+            message: '',
+            type: PostTypes.EPHEMERAL_ADD_TO_CHANNEL,
+            create_at: timestamp,
+            update_at: timestamp,
+            root_id: postRootId,
+            props: {
+                username: user.username,
+                addedUsername,
+                addedUserId,
+            },
+        } as unknown as Post;
 
-    dispatch(handleNewPost(post));
+        return doDispatch(handleNewPost(post));
+    };
 }
 
 let lastTimeTypingSent = 0;
