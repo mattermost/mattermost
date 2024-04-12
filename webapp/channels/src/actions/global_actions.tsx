@@ -48,9 +48,9 @@ import * as Utils from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 export function emitChannelClickEvent(channel: Channel): ThunkActionFunc<void, GlobalState> {
-    return (doDispatch, doGetState) => {
+    return (dispatch, getState) => {
         function switchToChannel(chan: Channel) {
-            const state = doGetState();
+            const state = getState();
             const userId = getCurrentUserId(state);
             const teamId = chan.team_id || getCurrentTeamId(state);
             const isRHSOpened = getIsRhsOpen(state);
@@ -60,7 +60,7 @@ export function emitChannelClickEvent(channel: Channel): ThunkActionFunc<void, G
             const currentChannelId = getCurrentChannelId(state);
             const previousRhsState = getPreviousRhsState(state);
 
-            doDispatch(getChannelStats(chan.id));
+            dispatch(getChannelStats(chan.id));
 
             const penultimate = LocalStorageStore.getPreviousChannelName(userId, teamId);
             const penultimateType = LocalStorageStore.getPreviousViewedType(userId, teamId);
@@ -77,18 +77,18 @@ export function emitChannelClickEvent(channel: Channel): ThunkActionFunc<void, G
             // When switching to a different channel if the pinned posts is showing
             // Update the RHS state to reflect the pinned post of the selected channel
             if (isRHSOpened && isPinnedPostsShowing) {
-                doDispatch(updateRhsState(RHSStates.PIN, chan.id, previousRhsState));
+                dispatch(updateRhsState(RHSStates.PIN, chan.id, previousRhsState));
             }
 
             if (isRHSOpened && isChannelFilesShowing) {
-                doDispatch(updateRhsState(RHSStates.CHANNEL_FILES, chan.id, previousRhsState));
+                dispatch(updateRhsState(RHSStates.CHANNEL_FILES, chan.id, previousRhsState));
             }
 
             if (currentChannelId) {
-                doDispatch(loadProfilesForSidebar());
+                dispatch(loadProfilesForSidebar());
             }
 
-            doDispatch(batchActions([
+            dispatch(batchActions([
                 {
                     type: ChannelTypes.SELECT_CHANNEL,
                     data: chan.id,
@@ -103,7 +103,7 @@ export function emitChannelClickEvent(channel: Channel): ThunkActionFunc<void, G
             ]));
 
             if (appsEnabled(state)) {
-                doDispatch(fetchAppBindings(chan.id));
+                dispatch(fetchAppBindings(chan.id));
             }
         }
 
@@ -148,12 +148,12 @@ export function updateNewMessagesAtInChannel(channelId: string, lastViewedAt = D
 }
 
 export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): ActionFuncAsync<boolean, GlobalState> {
-    return (doDispatch, doGetState) => {
+    return (dispatch, getState) => {
         const timestamp = Utils.getTimestamp();
         const post = {
             id: Utils.generateId(),
             user_id: userId || '0',
-            channel_id: channelId || getCurrentChannelId(doGetState()),
+            channel_id: channelId || getCurrentChannelId(getState()),
             message,
             type: PostTypes.EPHEMERAL,
             create_at: timestamp,
@@ -162,16 +162,16 @@ export function sendEphemeralPost(message: string, channelId?: string, parentId?
             props: {},
         } as Post;
 
-        return doDispatch(handleNewPost(post));
+        return dispatch(handleNewPost(post));
     };
 }
 
 export function sendAddToChannelEphemeralPost(user: UserProfile, addedUsername: string, addedUserId: string, channelId: string, postRootId = '', timestamp: number): ActionFuncAsync<boolean, GlobalState> {
-    return (doDispatch, doGetState) => {
+    return (dispatch, getState) => {
         const post = {
             id: Utils.generateId(),
             user_id: user.id,
-            channel_id: channelId || getCurrentChannelId(doGetState()),
+            channel_id: channelId || getCurrentChannelId(getState()),
             message: '',
             type: PostTypes.EPHEMERAL_ADD_TO_CHANNEL,
             create_at: timestamp,
@@ -184,14 +184,14 @@ export function sendAddToChannelEphemeralPost(user: UserProfile, addedUsername: 
             },
         } as unknown as Post;
 
-        return doDispatch(handleNewPost(post));
+        return dispatch(handleNewPost(post));
     };
 }
 
 let lastTimeTypingSent = 0;
 export function emitLocalUserTypingEvent(channelId: string, parentPostId: string): ActionFunc {
-    return (actionDispatch, actionGetState) => {
-        const state = actionGetState();
+    return (dispatch, getState) => {
+        const state = getState();
         const config = getConfig(state);
 
         if (
@@ -219,14 +219,14 @@ export function emitLocalUserTypingEvent(channelId: string, parentPostId: string
 }
 
 export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = true, userAction = true): ThunkActionFunc<void, GlobalState> {
-    return (doDispatch) => {
+    return (dispatch) => {
         // If the logout was intentional, discard knowledge about having previously been logged in.
         // This bit is otherwise used to detect session expirations on the login page.
         if (userAction) {
             LocalStorageStore.setWasLoggedIn(false);
         }
 
-        doDispatch(logout()).then(() => {
+        dispatch(logout()).then(() => {
             if (shouldSignalLogout) {
                 BrowserStore.signalLogout();
                 DesktopApp.signalLogout();
@@ -244,10 +244,10 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
 }
 
 export function toggleSideBarRightMenuAction(): ThunkActionFunc<void> {
-    return (doDispatch) => {
-        doDispatch(closeRightHandSide());
-        doDispatch(closeLhs());
-        doDispatch(closeRhsMenu());
+    return (dispatch) => {
+        dispatch(closeRightHandSide());
+        dispatch(closeLhs());
+        dispatch(closeRhsMenu());
     };
 }
 
@@ -259,8 +259,8 @@ export function emitBrowserFocus(focus: boolean) {
 }
 
 export function getTeamRedirectChannelIfIsAccesible(user: UserProfile, team: Team): ThunkActionFunc<Promise<Channel | null>> {
-    return async (doDispatch, doGetState) => {
-        let state = doGetState();
+    return async (dispatch, getState) => {
+        let state = getState();
         let channel = null;
 
         const myMember = getMyTeamMember(state, team.id);
@@ -271,8 +271,8 @@ export function getTeamRedirectChannelIfIsAccesible(user: UserProfile, team: Tea
         let teamChannels = getChannelsNameMapInTeam(state, team.id);
         if (!teamChannels || Object.keys(teamChannels).length === 0) {
             // This should be executed in pretty limited scenarios (empty teams)
-            await doDispatch(fetchChannelsAndMembers(team.id)); // eslint-disable-line no-await-in-loop
-            state = doGetState();
+            await dispatch(fetchChannelsAndMembers(team.id)); // eslint-disable-line no-await-in-loop
+            state = getState();
             teamChannels = getChannelsNameMapInTeam(state, team.id);
         }
 
@@ -291,8 +291,8 @@ export function getTeamRedirectChannelIfIsAccesible(user: UserProfile, team: Tea
 
         if (!channel || !channelMember) {
             // This should be executed in pretty limited scenarios (when the last visited channel in the team has been removed)
-            await doDispatch(getChannelByNameAndTeamName(team.name, channelName)); // eslint-disable-line no-await-in-loop
-            state = doGetState();
+            await dispatch(getChannelByNameAndTeamName(team.name, channelName)); // eslint-disable-line no-await-in-loop
+            state = getState();
             teamChannels = getChannelsNameMapInTeam(state, team.id);
             channel = teamChannels[channelName];
             channelMember = getMyChannelMember(state, channel && channel.id);
@@ -312,16 +312,16 @@ export function getTeamRedirectChannelIfIsAccesible(user: UserProfile, team: Tea
 }
 
 export function redirectUserToDefaultTeam(): ThunkActionFunc<Promise<void>, GlobalState> {
-    return async (doDispatch, doGetState) => {
-        let state = doGetState();
+    return async (dispatch, getState) => {
+        let state = getState();
 
         // Assume we need to load the user if they don't have any team memberships loaded or the user loaded
         let user = getCurrentUser(state);
         const shouldLoadUser = Utils.isEmptyObject(getTeamMemberships(state)) || !user;
         const onboardingFlowEnabled = getIsOnboardingFlowEnabled(state);
         if (shouldLoadUser) {
-            await doDispatch(loadMe());
-            state = doGetState();
+            await dispatch(loadMe());
+            state = getState();
             user = getCurrentUser(state);
         }
 
@@ -353,9 +353,9 @@ export function redirectUserToDefaultTeam(): ThunkActionFunc<Promise<void>, Glob
         }
 
         if (team && team.delete_at === 0) {
-            const channel = await doDispatch(getTeamRedirectChannelIfIsAccesible(user, team));
+            const channel = await dispatch(getTeamRedirectChannelIfIsAccesible(user, team));
             if (channel) {
-                doDispatch(selectChannel(channel.id));
+                dispatch(selectChannel(channel.id));
                 getHistory().push(`/${team.name}/channels/${channel.name}`);
                 return;
             }
@@ -365,9 +365,9 @@ export function redirectUserToDefaultTeam(): ThunkActionFunc<Promise<void>, Glob
 
         for (const myTeam of myTeams) {
             // This should execute async behavior in a pretty limited set of situations, so shouldn't be a problem
-            const channel = await doDispatch(getTeamRedirectChannelIfIsAccesible(user, myTeam)); // eslint-disable-line no-await-in-loop
+            const channel = await dispatch(getTeamRedirectChannelIfIsAccesible(user, myTeam)); // eslint-disable-line no-await-in-loop
             if (channel) {
-                doDispatch(selectChannel(channel.id));
+                dispatch(selectChannel(channel.id));
                 getHistory().push(`/${myTeam.name}/channels/${channel.name}`);
                 return;
             }
