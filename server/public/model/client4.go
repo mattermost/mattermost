@@ -8896,20 +8896,6 @@ func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Respo
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) SubmitTrueUpReview(ctx context.Context, req map[string]any) (*Response, error) {
-	reqBytes, err := json.Marshal(req)
-	if err != nil {
-		return nil, NewAppError("SubmitTrueUpReview", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.licenseRoute()+"/review", reqBytes)
-	if err != nil {
-		return BuildResponse(r), nil
-	}
-	defer closeBody(r)
-
-	return BuildResponse(r), nil
-}
-
 func (c *Client4) GetUserLimits(ctx context.Context) (*UserLimits, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
 	if err != nil {
