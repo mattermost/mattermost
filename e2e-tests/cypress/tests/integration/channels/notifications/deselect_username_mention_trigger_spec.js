@@ -29,8 +29,8 @@ describe('Notifications', () => {
 
             // # Open 'Settings' modal
             cy.uiOpenSettingsModal().within(() => {
-                // # Open 'Keywords That Trigger Notifications' setting
-                cy.findByRole('heading', {name: 'Keywords That Trigger Notifications'}).should('be.visible').click();
+                // # Open 'Keywords that trigger notifications' setting
+                cy.findByRole('heading', {name: 'Keywords that trigger notifications'}).should('be.visible').click();
 
                 // * As otherUser, ensure that 'Your non-case sensitive username' is not checked
                 cy.findByRole('checkbox', {name: `Your non case-sensitive username "${otherUser.username}"`}).should('not.be.checked');

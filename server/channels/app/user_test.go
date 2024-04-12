@@ -1060,7 +1060,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	b := []byte("testimage")
 
-	finfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "testfile.txt", b)
+	finfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "testfile.txt", b, true)
 
 	require.Nil(t, err, "Unable to upload file. err=%v", err)
 
