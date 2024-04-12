@@ -136,7 +136,7 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	}
 
 	// Append additional config from env var; any target name collisions will be overwritten.
-	additionalJSON := strings.TrimSpace(os.Getenv("MM_EXPERIMENTALAUDITSETTINGS_ADVANCEDLOGGINGJSON_2"))
+	additionalJSON := strings.TrimSpace(os.Getenv("MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL"))
 	if additionalJSON != "" {
 		cfgAdditional := make(mlog.LoggerConfiguration)
 		if err := json.Unmarshal([]byte(additionalJSON), &cfgAdditional); err != nil {
