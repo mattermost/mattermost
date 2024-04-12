@@ -5,15 +5,13 @@ import classNames from 'classnames';
 import React from 'react';
 import type {CSSProperties} from 'react';
 
-import {showMobileSubMenuModal} from 'actions/global_actions';
-
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 
 import type {Menu} from 'types/store/plugins';
 
-import {isMobile as isMobileViewHack} from '../is_mobile_view_hack';
+import {isMobile as isMobileViewHack, showMobileSubMenuModalHack} from '../is_mobile_view_hack';
 
 import './menu_item.scss';
 
@@ -108,7 +106,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                 if (!root) { //required to close only the original menu
                     event.stopPropagation();
                 }
-                showMobileSubMenuModal(subMenu);
+                showMobileSubMenuModalHack(subMenu);
             } else if (action) { // leaf node in the tree handles action only
                 action(postId);
             }

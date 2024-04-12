@@ -39,18 +39,14 @@ import BrowserStore from 'stores/browser_store';
 import LocalStorageStore from 'stores/local_storage_store';
 import store from 'stores/redux_store';
 
-import SubMenuModal from 'components/widgets/menu/menu_modals/submenu_modal/submenu_modal';
-
 import WebSocketClient from 'client/web_websocket_client';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, PostTypes, RHSStates, ModalIdentifiers, PreviousViewedTypes} from 'utils/constants';
+import {ActionTypes, PostTypes, RHSStates, PreviousViewedTypes} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
-
-import {openModal} from './views/modals';
 
 /** @deprecated */
 const dispatch = store.dispatch;
@@ -156,18 +152,6 @@ export function updateNewMessagesAtInChannel(channelId: string, lastViewedAt = D
         channel_id: channelId,
         last_viewed_at: lastViewedAt,
     };
-}
-
-export function showMobileSubMenuModal(elements: any[]) { // TODO Use more specific type
-    const submenuModalData = {
-        modalId: ModalIdentifiers.MOBILE_SUBMENU,
-        dialogType: SubMenuModal,
-        dialogProps: {
-            elements,
-        },
-    };
-
-    dispatch(openModal(submenuModalData));
 }
 
 export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): ActionFuncAsync<boolean, GlobalState> {
