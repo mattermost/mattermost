@@ -409,7 +409,7 @@ func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	for _, line := range lines {
 		if _, err := buf.WriteString(line); err != nil {
-			http.Error(w, "Failed to write logs to buffer", http.StatusInternalServerError)
+			c.Err = model.NewAppError("downloadLogs", "api.system.logs.download_bytes_buffer.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
