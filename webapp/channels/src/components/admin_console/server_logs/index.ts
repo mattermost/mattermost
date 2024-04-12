@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getLogs, getPlainLogs, getAllPlainLogs, downloadLogs} from 'mattermost-redux/actions/admin';
+import {getLogs, getPlainLogs, getAllPlainLogs} from 'mattermost-redux/actions/admin';
 import * as Selectors from 'mattermost-redux/selectors/entities/admin';
 
 import type {GlobalState} from 'types/store';
@@ -29,7 +29,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getLogs,
             getAllPlainLogs,
             getPlainLogs,
-            downloadLogs
         }, dispatch),
     };
 }

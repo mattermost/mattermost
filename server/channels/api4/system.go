@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path"
 	"reflect"
 	"runtime"
@@ -407,33 +406,22 @@ func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	lines, _ := c.App.GetLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage)
 
-	tmpfile, err := os.CreateTemp("", "logs-*.log")
-	if err != nil {
-		http.Error(w, "Failed to create temporary file", http.StatusInternalServerError)
-		return
-	}
-	defer tmpfile.Close()
-	defer os.Remove(tmpfile.Name())
-
+	var buf bytes.Buffer
 	for _, line := range lines {
-		if _, err := io.WriteString(tmpfile, line); err != nil {
-			http.Error(w, "Failed to write logs to file", http.StatusInternalServerError)
+		if _, err := buf.WriteString(line); err != nil {
+			http.Error(w, "Failed to write logs to buffer", http.StatusInternalServerError)
 			return
 		}
 	}
 
-	fileInfo, err := tmpfile.Stat()
-	if err != nil {
-		http.Error(w, "Failed to get file information", http.StatusInternalServerError)
-		return
-	}
+	reader := bytes.NewReader(buf.Bytes())
 
 	web.WriteFileResponse("mattermost.log",
 		"text/plain",
-		fileInfo.Size(),
+		int64(buf.Len()),
 		time.Now(),
 		*c.App.Config().ServiceSettings.WebserverMode,
-		tmpfile,
+		reader,
 		true,
 		w,
 		r)

@@ -16,6 +16,7 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import LogList from './log_list';
 import PlainLogList from './plain_log_list';
+import { Client4 } from 'mattermost-redux/client';
 
 type Props = {
     logs: LogObject[];
@@ -29,7 +30,6 @@ type Props = {
             perPage?: number | undefined
         ) => Promise<unknown>;
         getAllPlainLogs: () => Promise<unknown>;
-        downloadLogs: () => Promise<unknown>;
     };
 };
 
@@ -95,10 +95,6 @@ export default class Logs extends React.PureComponent<Props, State> {
         this.setState({page: this.state.page - 1});
     };
 
-    downloadLogs = async () => {
-        await this.props.actions.downloadLogs();
-    };
-
     reload = async () => {
         this.setState({loadingLogs: true});
         await this.props.actions.getLogs({
@@ -162,16 +158,16 @@ export default class Logs extends React.PureComponent<Props, State> {
                             defaultMessage='Reload Logs'
                         />
                     </button>
-                    <button
-                        type='submit'
+                    <a
                         className='btn btn-primary'
-                        onClick={this.downloadLogs}
+                        href={Client4.getUrl() + '/api/v4/logs/download'}
+                        target='_blank'
                     >
                         <FormattedMessage
                             id='admin.logs.DownloadLogs'
                             defaultMessage='Download Logs'
                         />
-                    </button>
+                    </a>
                 </div>
                 <PlainLogList
                     logs={this.props.plainLogs}
@@ -200,16 +196,16 @@ export default class Logs extends React.PureComponent<Props, State> {
                                 defaultMessage='Reload Logs'
                             />
                         </button>
-                        <button
-                            type='submit'
+                        <a
                             className='btn btn-primary'
-                            onClick={this.downloadLogs}
+                            href={Client4.getUrl() + '/api/v4/logs/download'}
+                            target='_blank'
                         >
                             <FormattedMessage
                                 id='admin.logs.DownloadLogs'
                                 defaultMessage='Download Logs'
                             />
-                        </button>
+                        </a>
                     </div>
                 </div>
                 <LogList
