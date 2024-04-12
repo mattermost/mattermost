@@ -859,7 +859,7 @@ func (v *Validator) validateDirectChannel(info ImportFileInfo, line imports.Line
 
 func (v *Validator) validateDirectPost(info ImportFileInfo, line imports.LineImportData) (err error) {
 	ivErr := validateNotNil(info, "direct_post", line.DirectPost, func(data imports.DirectPostImportData) *ImportValidationError {
-		appErr := imports.ValidateDirectPostImportData(&data, model.PostMessageMaxRunesV1)
+		appErr := imports.ValidateDirectPostImportData(&data, v.maxPostSize)
 		if appErr != nil {
 			return &ImportValidationError{
 				ImportFileInfo: info,
