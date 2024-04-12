@@ -163,7 +163,7 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
         <div
           className="col-md-5 col-sm-8"
         >
-          <Connect(ChannelSelect)
+          <Connect(Component)
             onChange={[Function]}
             selectDm={false}
             selectOpen={true}

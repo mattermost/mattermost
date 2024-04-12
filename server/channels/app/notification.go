@@ -676,6 +676,18 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		useAddFollowersHook(message, notificationsForCRT.Desktop)
 	}
 
+	// Collect user IDs of whom we want to acknowledge the websocket event for notification metrics
+	usersToAck := []string{}
+	for id, profile := range profileMap {
+		userNotificationLevel := profile.NotifyProps[model.DesktopNotifyProp]
+		channelNotificationLevel := channelMemberNotifyPropsMap[id][model.DesktopNotifyProp]
+
+		if ShouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
+			usersToAck = append(usersToAck, id)
+		}
+	}
+	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
+
 	published, err := a.publishWebsocketEventForPermalinkPost(c, post, message)
 	if err != nil {
 		a.NotificationsLog().Error("Couldn't send websocket notification for permalink post",
@@ -1679,4 +1691,21 @@ func shouldChannelMemberNotifyCRT(userNotifyProps model.StringMap, channelMember
 	}
 
 	return
+}
+
+func ShouldAckWebsocketNotification(channelType model.ChannelType, userNotificationLevel, channelNotificationLevel string) bool {
+	if channelNotificationLevel == model.ChannelNotifyAll {
+		// Should ACK on if we notify for all messages in the channel
+		return true
+	} else if channelNotificationLevel == model.ChannelNotifyDefault && userNotificationLevel == model.UserNotifyAll {
+		// Should ACK on if we notify for all messages and the channel settings are unchanged
+		return true
+	} else if channelType == model.ChannelTypeGroup &&
+		((channelNotificationLevel == model.ChannelNotifyDefault && userNotificationLevel == model.UserNotifyMention) ||
+			channelNotificationLevel == model.ChannelNotifyMention) {
+		// Should ACK for group channels where default settings are in place (should be notified)
+		return true
+	}
+
+	return false
 }

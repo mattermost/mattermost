@@ -125,3 +125,11 @@ export type SchemaMigration = {
     version: number;
     name: string;
 };
+
+export type SupportPacketContent = {
+    id: string;
+    translation_id?: string;
+    label: string;
+    selected: boolean;
+    mandatory: boolean;
+}
