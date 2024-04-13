@@ -990,7 +990,7 @@
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": "Emoji eklenemedi. Aynı adlı başka bir emoji zaten var."
+    "translation": "Görsel ifade eklenemedi. Aynı adlı başka bir görsel ifade zaten var."
   },
   {
     "id": "api.emoji.create.other_user.app_error",
@@ -998,23 +998,23 @@
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Emoji eklenemedi. İstek anlaşılamadı."
+    "translation": "Görsel ifade eklenemedi. İstek anlaşılamadı."
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Emoji eklenemedi. Görsel 512 KiB boyutundan küçük olmalıdır."
+    "translation": "Görsel ifade eklenemedi. Görsel 512 KiB boyutundan küçük olmalıdır."
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "Özel emoji özelliği sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Özel görsel ifade özelliği sistem yöneticisi tarafından devre dışı bırakılmış."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Emoji için görsel dosyasının kodu çözülemedi."
+    "translation": "Görsel ifade için görsel dosyasının kodu çözülemedi."
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Emoji için görsel dosyası okunamadı."
+    "translation": "Görsel ifade için görsel dosyası okunamadı."
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -1022,31 +1022,31 @@
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "Emoji eklenemedi. Dosya PNG, JPEG ya da GIF türünde olmalıdır."
+    "translation": "Görsel ifade eklenemedi. Dosya PNG, JPEG ya da GIF türünde olmalıdır."
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
-    "translation": "Emoji eklenemedi. Görselin kodu çözülürken bir sorun çıktı."
+    "translation": "Görsel ifade eklenemedi. Görselin kodu çözülürken bir sorun çıktı."
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": "Emoji eklenemedi. Görsel kodlanırken bir sorun çıktı."
+    "translation": "Görsel ifade eklenemedi. Görsel kodlanırken bir sorun çıktı."
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
-    "translation": "Emoji eklenemedi. GIF görselinin kodu çözülürken bir sorun çıktı."
+    "translation": "Görsel ifade eklenemedi. GIF görselinin kodu çözülürken bir sorun çıktı."
   },
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
-    "translation": "Emoji eklenemedi. GIF görseli kodlanırken bir sorun çıktı."
+    "translation": "Görsel ifade eklenemedi. GIF görseli kodlanırken bir sorun çıktı."
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": "Emoji eklenemedi. Görsel {{.MaxWidth}} x {{.MaxHeight}} boyutundan küçük olmalıdır."
+    "translation": "Görsel ifade eklenemedi. Görsel {{.MaxWidth}} x {{.MaxHeight}} boyutundan küçük olmalıdır."
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Emoji eklenemedi. Eklenmiş görsel açılmaya çalışılırken bir sorun çıktı."
+    "translation": "Görsel ifade eklenemedi. Eklenmiş görsel açılmaya çalışılırken bir sorun çıktı."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -2184,7 +2184,7 @@
   },
   {
     "id": "api.user.update_password.context.app_error",
-    "translation": "Kapsamdaki user_id değeri, özelliklerdeki kullanıcı kimliği ile eşleşmediğinden parola güncellenemedi."
+    "translation": "Kapsamdaki user_id değeri, özelliklerdeki user_id ile eşleşmediğinden parola güncellenemedi."
   },
   {
     "id": "api.user.update_password.failed.app_error",
@@ -2348,7 +2348,7 @@
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "JSON verileri dışa aktarılmak için sıraya getirilirken bir sorun çıktı."
+    "translation": "JSON verileri dışa aktarılmak üzere sıralanırken bir sorun çıktı."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -2372,7 +2372,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "\"{{.EmojiName}}\" duygu ifadesi için duygu ifadeleri görsel dosyası okunurken sorun çıktı"
+    "translation": "\"{{.EmojiName}}\" görsel ifadesinin görsel dosyası okunurken sorun çıktı"
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -2496,7 +2496,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.name_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: ad"
+    "translation": "Zorunlu kanal özelliği eksik: name"
   },
   {
     "id": "app.import.validate_channel_import_data.purpose_length.error",
@@ -2508,7 +2508,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: takım"
+    "translation": "Zorunlu kanal özelliği eksik: team"
   },
   {
     "id": "app.import.validate_channel_import_data.type_invalid.error",
@@ -2516,7 +2516,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: tür."
+    "translation": "Zorunlu kanal özelliği eksik: type."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
@@ -2524,7 +2524,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
-    "translation": "Zorunlu doğrudan kanal özelliği eksik: uyeler"
+    "translation": "Zorunlu doğrudan kanal özelliği eksik: members"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
@@ -2540,7 +2540,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": "Zorunlu doğrudan kanal özelliği eksik: kanal_uyeleri"
+    "translation": "Zorunlu doğrudan kanal özelliği eksik: channel_members"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
@@ -2552,11 +2552,11 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
-    "translation": "Zorunlu doğrudan kanal özelliği eksik: olusturulma_zamani"
+    "translation": "Zorunlu doğrudan kanal özelliği eksik: create_at"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
-    "translation": "OlusturulmaZamani 0 değerinden büyük olmalıdır"
+    "translation": "CreateAt 0 değerinden büyük olmalıdır"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_length.error",
@@ -2564,7 +2564,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
-    "translation": "Zorunlu doğrudan ileti özelliği eksik: ileti"
+    "translation": "Zorunlu doğrudan ileti özelliği eksik: message"
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
@@ -2572,31 +2572,31 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": "Zorunlu doğrudan ileti özelliği eksik: kullanici"
+    "translation": "Zorunlu doğrudan ileti özelliği eksik: user"
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
-    "translation": "İçe aktarılan duygu ifadesi verileri boş."
+    "translation": "İçe aktarılan görsel ifade verileri boş."
   },
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
-    "translation": "İçe aktarılan duygu ifadesi alanı eksik ya da boş."
+    "translation": "İçe aktarılan görsel ifade alanı eksik ya da boş."
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": "İçe aktarılan duygu ifadesi adı alanı eksik ya da boş."
+    "translation": "İçe aktarılan görsel ifade adı alanı eksik ya da boş."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: kanal."
+    "translation": "Zorunlu kanal özelliği eksik: Channel."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: olusturulma_zamani."
+    "translation": "Zorunlu kanal özelliği eksik: create_at."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "İleti eklenme zamanı özelliği sıfır olamaz."
+    "translation": "İleti CreateAt özelliği sıfır olamaz."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -2604,59 +2604,59 @@
   },
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
-    "translation": "Zorunlu ileti özelliği eksik: ileti."
+    "translation": "Zorunlu ileti özelliği eksik: Message."
   },
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
-    "translation": "Zorunlu ileti özelliği eksik: takim."
+    "translation": "Zorunlu ileti özelliği eksik: Team."
   },
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
-    "translation": "Zorunlu ileti özelliği eksik: kullanici."
+    "translation": "Zorunlu ileti özelliği eksik: User."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": "Tepki eklenme zamanı özelliği üst iletinin eklenme zamanından sonra olmalıdır."
+    "translation": "Tepki CreateAt özelliği üst iletinin CreateAt değerinden büyük olmalıdır."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
-    "translation": "Zorunlu tepki özelliği eksik: olusturulma_zamani."
+    "translation": "Zorunlu tepki özelliği eksik: create_at."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
-    "translation": "Tepki eklenme zamanı özelliği sıfır olamaz."
+    "translation": "Tepki CreateAt özelliği sıfır olamaz."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Tepki EmojiAdı özelliği izin verilen uzunluğu aşıyor."
+    "translation": "Tepki EmojiName özelliği izin verilen uzunluğu aşıyor."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
-    "translation": "Zorunlu tepki özelliği eksik: EmojiAdi."
+    "translation": "Zorunlu tepki özelliği eksik: EmojiName."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
-    "translation": "Zorunlu tepki özelliği eksik: Kullanıcı."
+    "translation": "Zorunlu tepki özelliği eksik: User."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
-    "translation": "Zorunlu yanıt özelliği eksik: olusturulma_zamani."
+    "translation": "Zorunlu yanıt özelliği eksik: create_at."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
-    "translation": "Yanıt eklenme zamanı özelliği sıfır olamaz."
+    "translation": "Yanıt CreateAt özelliği sıfır olamaz."
   },
   {
     "id": "app.import.validate_reply_import_data.message_length.error",
-    "translation": "Yanıt metni özelliği izin verilen uzunluğu aşıyor."
+    "translation": "Yanıt Message özelliği izin verilen uzunluğu aşıyor."
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
-    "translation": "Zorunlu yanıt özelliği eksik: ileti."
+    "translation": "Zorunlu yanıt özelliği eksik: Message."
   },
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
-    "translation": "Zorunlu yanıt özelliği eksik: Kullanıcı."
+    "translation": "Zorunlu yanıt özelliği eksik: User."
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
@@ -2708,7 +2708,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
-    "translation": "Zorunlu takım özelliği eksik: goruntulenecek_ad."
+    "translation": "Zorunlu takım özelliği eksik: display_name."
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
@@ -2720,15 +2720,15 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_missing.error",
-    "translation": "Zorunlu takım özelliği eksik: ad."
+    "translation": "Zorunlu takım özelliği eksik: name."
   },
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
-    "translation": "Takım adında sistem kullanımına ayrılmış bir sözcük var."
+    "translation": "Takım adında sistem kullanımına ayrılmış sözcükler var."
   },
   {
     "id": "app.import.validate_team_import_data.scheme_invalid.error",
-    "translation": "Takım için şema geçersiz."
+    "translation": "Takımın şeması geçersiz."
   },
   {
     "id": "app.import.validate_team_import_data.type_invalid.error",
@@ -2736,7 +2736,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
-    "translation": "Zorunlu takım özelliği eksik: tur."
+    "translation": "Zorunlu takım özelliği eksik: type."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
@@ -2744,15 +2744,15 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": "Kullanıcının kanal üyeliğinde masaüstü bildirim özellikleri geçersiz."
+    "translation": "Kullanıcının kanal üyeliğinde masaüstü bildirim özellikleri değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
-    "translation": "Kullanıcının kanal üyeliğinde okunmamış olarak işaretle bildirim özellikleri geçersiz."
+    "translation": "Kullanıcının kanal üyeliğinde okunmamış olarak işaretle bildirim özellikleri değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
-    "translation": "Kullanıcının kanal üyeliğinde cep telefonu bildirim özellikleri geçersiz."
+    "translation": "Kullanıcının kanal üyeliğinde cep telefonu bildirim özellikleri değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
@@ -2772,7 +2772,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.email_missing.error",
-    "translation": "Zorunlu kullanıcı özelliği eksik: e-posta."
+    "translation": "Zorunlu kullanıcı özelliği eksik: email."
   },
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
@@ -2788,31 +2788,31 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
-    "translation": "Kullanıcının kanal tetikleyici bildirimi değeri geçersiz."
+    "translation": "Kullanıcının kanal tetikleyici bildirim özellikleri değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
-    "translation": "Kullanıcının yorum bildirimi değeri geçersiz."
+    "translation": "Kullanıcının yorum bildirim özelliği değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
-    "translation": "Kullanıcının masaüstü bildirimi değeri geçersiz."
+    "translation": "Kullanıcının masaüstü bildirim özellikleri değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
-    "translation": "Kullanıcının masaüstü sesi bildirimi değeri geçersiz."
+    "translation": "Kullanıcının masaüstü sesi bildirim özelliği değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
-    "translation": "Kullanıcının e-posta bildirimi değeri geçersiz."
+    "translation": "Kullanıcının e-posta bildirim özelliği değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
-    "translation": "Kullanıcının mobil bildirim değeri geçersiz."
+    "translation": "Kullanıcının mobil bildirim özelliği değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
-    "translation": "Kullanıcının mobil anında durum bildirimi değeri geçersiz."
+    "translation": "Kullanıcının mobil anında durum bildirimi özelliği değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.password_length.error",
@@ -2836,7 +2836,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
-    "translation": "Zorunlu kullanıcı özelliği eksik: Kullanıcı adı."
+    "translation": "Zorunlu kullanıcı özelliği eksik: username."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
@@ -3024,7 +3024,7 @@
   },
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Üst veri json biçimine dönüştürülemedi."
+    "translation": "Üst veriler JSON biçimine dönüştürülemedi."
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
@@ -3048,7 +3048,7 @@
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
-    "translation": "Geçerli lisansta uygunluk özelliği bulunmuyor. Lütfen Enterprise tarifesi lisansına geçmesi için sistem yöneticiniz ile görüşün."
+    "translation": "Geçerli lisansta uyumluluk özelliği bulunmuyor. Lütfen Enterprise tarifesi lisansına geçmesi için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
@@ -3056,7 +3056,7 @@
   },
   {
     "id": "ent.compliance.run_failed.error",
-    "translation": "'{{.JobName}}' görevi için '{{.FilePath}}' konumuna uygunluk dışa aktarma işlemi tamamlanamadı"
+    "translation": "'{{.JobName}}' görevi için '{{.FilePath}}' konumuna uyumluluk dışa aktarma işlemi tamamlanamadı"
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -4008,11 +4008,11 @@
   },
   {
     "id": "model.emoji.id.app_error",
-    "translation": "Emoji kimliği geçersiz."
+    "translation": "Görsel ifade kimliği geçersiz."
   },
   {
     "id": "model.emoji.name.app_error",
-    "translation": "Ad içinde 1 ile 64 arasında küçük alfasayısal karakterler kullanılmalıdır."
+    "translation": "Ad içinde 1 ile 64 arasında küçük harf ve rakam karakterleri kullanılmalıdır."
   },
   {
     "id": "model.emoji.update_at.app_error",
@@ -4372,7 +4372,7 @@
   },
   {
     "id": "model.reaction.is_valid.emoji_name.app_error",
-    "translation": "Emoji adı geçersiz."
+    "translation": "Görsel ifade adı geçersiz."
   },
   {
     "id": "model.reaction.is_valid.post_id.app_error",
@@ -4692,39 +4692,39 @@
   },
   {
     "id": "app.emoji.create.internal_error",
-    "translation": "Emoji kaydedilemedi."
+    "translation": "Görsel ifade kaydedilemedi."
   },
   {
     "id": "app.emoji.delete.app_error",
-    "translation": "Emoji silinemedi."
+    "translation": "Görsel ifade silinemedi."
   },
   {
     "id": "app.emoji.delete.no_results",
-    "translation": "Silinecek emoji bulunamadı."
+    "translation": "Silinecek görsel ifade bulunamadı."
   },
   {
     "id": "app.emoji.get.app_error",
-    "translation": "Emoji alınamadı."
+    "translation": "Görsel ifade alınamadı."
   },
   {
     "id": "app.emoji.get.no_result",
-    "translation": "Emoji bulunamadı."
+    "translation": "Görsel ifade bulunamadı."
   },
   {
     "id": "app.emoji.get_by_name.app_error",
-    "translation": "Emoji alınamadı."
+    "translation": "Görsel ifade alınamadı."
   },
   {
     "id": "app.emoji.get_by_name.no_result",
-    "translation": "Emoji bulunamadı."
+    "translation": "Görsel ifade bulunamadı."
   },
   {
     "id": "app.emoji.get_list.internal_error",
-    "translation": "Emoji alınamadı."
+    "translation": "Görsel ifade alınamadı."
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": "Özel emoji görselleri kopyalanamadı"
+    "translation": "Özel görsel ifade görselleri kopyalanamadı"
   },
   {
     "id": "app.import.get_teams_by_names.some_teams_not_found.error",
@@ -4736,7 +4736,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-    "translation": "Kullanıcı kimlik doğrulama hizmeti ve kimlik doğrulama verileri karşılıklı birbirini kapsıyor."
+    "translation": "Kullanıcı kimlik doğrulama hizmeti ve kimlik doğrulama verileri karşılıklı eşleşiyor."
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
@@ -5172,7 +5172,7 @@
   },
   {
     "id": "api.emoji.create.internal_error",
-    "translation": "server_error: Emoji oluşturulurken sunucuda bir iç sorun çıktı."
+    "translation": "server_error: Görsel ifade oluşturulurken sunucuda bir iç sorun çıktı."
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
@@ -5304,7 +5304,7 @@
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "Mağaza devre dışı bırakıldı. Ayrıntılar için günlük kayıtlarına bakın."
+    "translation": "Mağaza devre dışı bırakılmış. Ayrıntılar için günlük kayıtlarına bakın."
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
@@ -5924,7 +5924,7 @@
   },
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
-    "translation": "Bu emoji adının tüm tepkileri alınamadı."
+    "translation": "Bu görsel ifade adının tüm tepkileri alınamadı."
   },
   {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
@@ -5960,7 +5960,7 @@
   },
   {
     "id": "app.command_webhook.try_use.internal_error",
-    "translation": "İnternet kancası kullanılamaz."
+    "translation": "İnternet kancası kullanılamadı."
   },
   {
     "id": "app.command_webhook.handle_command_webhook.parse",
@@ -5980,7 +5980,7 @@
   },
   {
     "id": "app.command_webhook.create_command_webhook.existing",
-    "translation": "Var olan bir KomutİnternetKancasını güncelleyemezsiniz."
+    "translation": "Var olan bir CommandWebhook değerini güncelleyemezsiniz."
   },
   {
     "id": "app.oauth.update_app.updating.app_error",
@@ -6176,11 +6176,11 @@
   },
   {
     "id": "app.compliance.save.saving.app_error",
-    "translation": "Uygunluk raporu kaydedilirken bir sorun çıktı."
+    "translation": "Uyumluluk raporu kaydedilirken bir sorun çıktı."
   },
   {
     "id": "app.compliance.get.finding.app_error",
-    "translation": "Uygunluk raporları alınırken bir sorun çıktı."
+    "translation": "Uyumluluk raporları alınırken bir sorun çıktı."
   },
   {
     "id": "app.job.download_export_results_not_enabled",
@@ -6484,11 +6484,11 @@
   },
   {
     "id": "app.job.get_newest_job_by_status_and_type.app_error",
-    "translation": "Durum ve türe göre en son görev alınamadı."
+    "translation": "Son görev durumuna ve türüne göre alınamadı."
   },
   {
     "id": "app.job.get_count_by_status_and_type.app_error",
-    "translation": "Durum ve türe göre görev sayısı alınamadı."
+    "translation": "Görev sayısı durumlarına ve türlerine göre alınamadı."
   },
   {
     "id": "app.job.get_all.app_error",
@@ -6860,15 +6860,15 @@
   },
   {
     "id": "app.upload.get.app_error",
-    "translation": "Yüklenemedi."
+    "translation": "Yükleme alınamadı."
   },
   {
     "id": "app.upload.create.save.app_error",
-    "translation": "Yüklenemedi."
+    "translation": "Yükleme kaydedilemedi."
   },
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
-    "translation": "Kanal silindiğinden gönderilemedi."
+    "translation": "Silinmiş bir kanala yükleme yapılamaz."
   },
   {
     "id": "app.post.get_post_id_around.app_error",
@@ -8615,7 +8615,7 @@
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
-    "translation": "Özel durum güncellenemedi. Lütfen bir emoji ve/veya özel durum metni ekleyin."
+    "translation": "Özel durum güncellenemedi. Lütfen bir görsel ifade ve/veya özel durum metni ekleyin."
   },
   {
     "id": "api.templates.invite_body.title.reminder",
@@ -8655,7 +8655,7 @@
   },
   {
     "id": "model.emoji.system_emoji_name.app_error",
-    "translation": "Bu ad, var olan bir sistem emojisi adıyla çakışıyor."
+    "translation": "Bu ad, var olan bir sistem görsel ifadesi adıyla çakışıyor."
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
@@ -8707,7 +8707,7 @@
   },
   {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
-    "translation": "Türe ve duruma göre tüm görevler alınamadı."
+    "translation": "Tüm görevler türlerine ve durumlarına göre alınamadı."
   },
   {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
@@ -8811,7 +8811,7 @@
   },
   {
     "id": "app.post.analytics_teams_count.app_error",
-    "translation": "Takımların kullanım bilgisi alınamadı"
+    "translation": "Takımların kullanım bilgileri alınamadı"
   },
   {
     "id": "api.cloud.teams_limit_reached.restore",
@@ -9215,7 +9215,7 @@
   },
   {
     "id": "app.draft.feature_disabled",
-    "translation": "Taslaklar özelliği devre dışı."
+    "translation": "Taslaklar özelliği devre dışı bırakılmış."
   },
   {
     "id": "app.draft.delete.app_error",
@@ -9667,7 +9667,7 @@
   },
   {
     "id": "api.emoji.get_multiple_by_name_too_many.request_error",
-    "translation": "Ada göre bu kadar çok emoji alınamıyor. Aynı anda yalnızca {{.MaxNames}} emoji istenebilir."
+    "translation": "Ada göre bu kadar çok görsel ifade alınamıyor. Aynı anda yalnızca {{.MaxNames}} görsel ifade istenebilir."
   },
   {
     "id": "model.config.is_valid.log.advanced_logging.json",
@@ -9875,7 +9875,7 @@
   },
   {
     "id": "api.custom_status.set_custom_statuses.emoji_not_found",
-    "translation": "Özel durum güncellenemedi. Belirtilen adı taşıyan bir emoji yok."
+    "translation": "Özel durum güncellenemedi. Belirtilen adı taşıyan bir görsel ifade yok."
   },
   {
     "id": "app.channel.bookmark.save.app_error",
@@ -10063,7 +10063,7 @@
   },
   {
     "id": "app.channel.patch_channel_members_notify_props.app_error",
-    "translation": "Kanal üyelerinin bildirim ayarları güncellenemedi."
+    "translation": "Kanal üyelerinin bildirim özellikleri güncellenemedi."
   },
   {
     "id": "app.channel.patch_channel_members_notify_props.too_many",
