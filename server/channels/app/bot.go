@@ -458,11 +458,12 @@ func (a *App) disableUserBots(rctx request.CTX, userID string) *model.AppError {
 	perPage := 20
 	for {
 		options := &model.BotGetOptions{
-			OwnerId:        userID,
-			IncludeDeleted: false,
-			OnlyOrphaned:   false,
-			Page:           0,
-			PerPage:        perPage,
+			OwnerId:          userID,
+			IncludeDeleted:   false,
+			OnlyOrphaned:     false,
+			Page:             0,
+			PerPage:          perPage,
+			ExcludeSystemBot: true,
 		}
 		userBots, err := a.GetBots(rctx, options)
 		if err != nil {
