@@ -15,17 +15,25 @@ import store from 'stores/redux_store';
 
 import {ActionTypes, JobTypes} from 'utils/constants';
 
+/**
+ * @deprecated
+ */
 const dispatch = store.dispatch;
 
-export async function reloadConfig(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.reloadConfig());
-    if (data && success) {
-        dispatch(AdminActions.getConfig());
-        dispatch(AdminActions.getEnvironmentConfig());
-        success(data);
-    } else if (err && error) {
-        error({id: err.server_error_id, ...err});
-    }
+/**
+ * @returns ThunkActionFunc<void>
+ */
+export function reloadConfig(success, error) {
+    return async (dispatch) => {
+        const {data, error: err} = await dispatch(AdminActions.reloadConfig());
+        if (data && success) {
+            dispatch(AdminActions.getConfig());
+            dispatch(AdminActions.getEnvironmentConfig());
+            success(data);
+        } else if (err && error) {
+            error({id: err.server_error_id, ...err});
+        }
+    };
 }
 
 export async function adminResetMfa(userId, success, error) {
