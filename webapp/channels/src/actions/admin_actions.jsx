@@ -36,13 +36,8 @@ export function reloadConfig(success, error) {
     };
 }
 
-export async function adminResetMfa(userId, success, error) {
-    const {data, error: err} = await dispatch(UserActions.updateUserMfa(userId, false));
-    if (data && success) {
-        success(data);
-    } else if (err && error) {
-        error({id: err.server_error_id, ...err});
-    }
+export function adminResetMfa(userId) {
+    return UserActions.updateUserMfa(userId, false);
 }
 
 export async function getClusterStatus(success, error) {

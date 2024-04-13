@@ -254,10 +254,15 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                         defaultMessage='Remove MFA'
                     />
                 }
-                onClick={() => {
-                    adminResetMfa(user.id, null, onError).then(() => {
-                        updateUser({mfa_active: false});
-                    });
+                onClick={async () => {
+                    if (user.auth_service === Constants.LDAP_SERVICE) {
+                        return;
+                    }
+
+                    const {error} = await dispatch(adminResetMfa(user.id));
+                    if (error) {
+                        onError(error);
+                    }
                 }}
             />}
 
