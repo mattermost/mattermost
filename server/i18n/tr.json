@@ -1592,7 +1592,7 @@
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": "Dosya ayarlarındaki sürücü adı geçersiz.  'local' ya da 'amazons3' olmalı."
+    "translation": "Dosya ayarlarındaki sürücü adı geçersiz.  'local' ya da 'amazons3' olmalıdır."
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
@@ -3104,11 +3104,11 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch toplayıcı işlemi bitiş zamanını işleyemedi"
+    "translation": "Elasticsearch dizine ekleme işlemi bitiş zamanını işleyemedi"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch toplayıcı işlemi başlangıç zamanını işleyemedi"
+    "translation": "Elasticsearch dizine ekleme işlemi başlangıç zamanını işleyemedi"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -3124,7 +3124,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Arama sonuçları eşleşmesi işlenemedi"
+    "translation": "Arama sonuçları eşleşmeleri işlenemedi"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -3160,7 +3160,7 @@
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "ldap arayüzü nil."
+    "translation": "LDAP arayüzü nil."
   },
   {
     "id": "ent.ldap.create_fail",
@@ -3224,11 +3224,11 @@
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "ldap grubu alınırken sorun çıktı"
+    "translation": "LDAP grubu alınırken sorun çıktı"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "ldap grupları alınırken sorun çıktı"
+    "translation": "LDAP grupları alınırken sorun çıktı"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
@@ -3256,7 +3256,7 @@
   },
   {
     "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Eml dosya verisi üretilemedi."
+    "translation": "Eml dosyası verileri üretilemedi."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -3312,7 +3312,7 @@
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
-    "translation": "Bu kullanıcı adı zaten başka bir Mattermost kullanıcısı tarafından kullanılıyor."
+    "translation": "Bu kullanıcı adı başka bir Mattermost kullanıcısı tarafından kullanılıyor."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -3492,7 +3492,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Güncelleme zamanı geçersiz."
+    "translation": "Güncellenme zamanı geçersiz."
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -3520,7 +3520,7 @@
   },
   {
     "id": "model.channel.is_valid.id.app_error",
-    "translation": "Kod geçersiz."
+    "translation": "Kimlik geçersiz."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
@@ -3532,7 +3532,7 @@
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
-    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+    "translation": "Güncellenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
@@ -3572,7 +3572,7 @@
   },
   {
     "id": "model.cluster.is_valid.id.app_error",
-    "translation": "Kod geçersiz."
+    "translation": "Kimlik geçersiz."
   },
   {
     "id": "model.cluster.is_valid.last_ping_at.app_error",
@@ -3580,11 +3580,11 @@
   },
   {
     "id": "model.cluster.is_valid.name.app_error",
-    "translation": "Küme adı ayarlanmalıdır."
+    "translation": "ClusterName ayarlanmalıdır."
   },
   {
     "id": "model.cluster.is_valid.type.app_error",
-    "translation": "Tür ayarlanmalıdır."
+    "translation": "Type ayarlanmalıdır."
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -3600,7 +3600,7 @@
   },
   {
     "id": "model.command.is_valid.id.app_error",
-    "translation": "Kod geçersiz."
+    "translation": "Kimlik geçersiz."
   },
   {
     "id": "model.command.is_valid.method.app_error",
@@ -3620,7 +3620,7 @@
   },
   {
     "id": "model.command.is_valid.update_at.app_error",
-    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+    "translation": "Güncellenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.command.is_valid.url.app_error",
@@ -3672,7 +3672,7 @@
   },
   {
     "id": "model.compliance.is_valid.id.app_error",
-    "translation": "Kod geçersiz."
+    "translation": "Kimlik geçersiz."
   },
   {
     "id": "model.compliance.is_valid.start_at.app_error",
@@ -3684,15 +3684,15 @@
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
-    "translation": "Alt etki alanları için çerezlere izin verilmesi için site adresinin ayarlanmış olması gereklidir."
+    "translation": "Alt etki alanlarında çerezlere izin verilmesi için site adresinin ayarlanmış olması gereklidir."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Atmos/camo için RemoteImageProxyOptions değeri geçersiz. Paylaşılmış anahtarınıza ayarlanmış olmalı."
+    "translation": "Atmos/camo için RemoteImageProxyOptions değeri geçersiz. Paylaşılmış anahtarınıza ayarlanmış olmalıdır."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Atmos/camo için RemoteImageProxyURL değeri geçersiz. Paylaşılmış anahtarınıza ayarlanmış olmalı."
+    "translation": "Atmos/camo için RemoteImageProxyURL değeri geçersiz. Paylaşılmış anahtarınıza ayarlanmış olmalıdır."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -3752,19 +3752,19 @@
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
-    "translation": "Bağlantı güvenliği e-posta ayarı geçersiz. '', 'TLS', ya da 'STARTTLS' seçeneklerinden biri olmalı."
+    "translation": "Bağlantı güvenliği e-posta ayarı geçersiz. '', 'TLS' ya da 'STARTTLS' olmalıdır."
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "REST şifreleme anahtarı SQL ayarı geçersiz. En az 32 karakter uzunluğunda olmalı."
+    "translation": "REST şifreleme anahtarı SQL ayarı geçersiz. En az 32 karakter uzunluğunda olmalıdır."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "Sürücü adı dosya ayarı geçersiz. 'local' ya da 'amazons3' seçeneklerinden biri olmalı."
+    "translation": "Sürücü adı dosya ayarı geçersiz. 'local' ya da 'amazons3' olmalıdır."
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
-    "translation": "Herkese açık bağlantı çeşnisi dosya ayarı geçersiz. En az 32 karakter uzunluğunda olmalı."
+    "translation": "Herkese açık bağlantı çeşnisi dosya ayarı geçersiz. En az 32 karakter uzunluğunda olmalıdır."
   },
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
@@ -3772,7 +3772,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Görsel vekil sunucu türü geçersiz. 'local' ya da 'atmos/camo' olmalı."
+    "translation": "Görsel vekil sunucu türü geçersiz. 'local' ya da 'atmos/camo' olmalıdır."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -3780,11 +3780,11 @@
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "\"E-posta Özniteliği\" AD/LDAP alanı zorunludur."
+    "translation": "\"Email Attribute\" AD/LDAP alanı zorunludur."
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "\"Kod özniteliği\" AD/LDAP alanı zorunludur."
+    "translation": "\"ID Attribute\" AD/LDAP alanı zorunludur."
   },
   {
     "id": "model.config.is_valid.ldap_login_id",
@@ -3796,11 +3796,11 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Bağlantı güvenliği AD/LDAP ayarı geçersiz. '', 'TLS', ya da 'STARTTLS' seçeneklerinden biri olmalı."
+    "translation": "Bağlantı güvenliği AD/LDAP ayarı geçersiz. '', 'TLS' ya da 'STARTTLS' olmalıdır."
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "\"AD/LDAP Sunucusu\" AD/LDAP alanı zorunludur."
+    "translation": "\"AD/LDAP Server\" AD/LDAP alanı zorunludur."
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -3808,11 +3808,11 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "\"Kullanıcı adı özniteliği\" AD/LDAP alanı zorunludur."
+    "translation": "\"Username Attribute\" AD/LDAP alanı zorunludur."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
-    "translation": "Dinleme adresi hizmet ayarı geçersiz. Ayarlanmalı."
+    "translation": "Dinleme adresi hizmet ayarı geçersiz. Ayarlanmalıdır."
   },
   {
     "id": "model.config.is_valid.localization.available_locales.app_error",
@@ -3860,7 +3860,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "İleti dışa aktarma görevinde ExportFormat 'actiance', 'csv' ya da 'globalrelay' seçeneklerinden biri olmalıdır."
+    "translation": "İleti dışa aktarma görevinde ExportFormat 'actiance', 'csv' ya da 'globalrelay' olmalıdır."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
@@ -3868,7 +3868,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "İleti dışa aktarma görevinde GlobalRelaySettings.CustomerType 'A9' ya da 'A10' seçeneklerinden biri olmalıdır."
+    "translation": "İleti dışa aktarma görevinde GlobalRelaySettings.CustomerType 'A9' ya da 'A10' olmalıdır."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -3884,7 +3884,7 @@
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
-    "translation": "En kısa parola uzunluğu {{.MinLength}} ile {{.MaxLength}} arasında bir tamsayı olmalıdır."
+    "translation": "En kısa parola uzunluğu {{.MinLength}} ile {{.MaxLength}} arasında bir tam sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
@@ -3900,7 +3900,7 @@
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
-    "translation": "Doğrudan ileti kısıtlaması geçersiz. 'any' ya da 'team' seçeneklerinden biri olmalıdır."
+    "translation": "Doğrudan ileti kısıtlaması geçersiz. 'any' ya da 'team' olmalıdır."
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
@@ -3908,7 +3908,7 @@
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
-    "translation": "E-posta özniteliği geçersiz. Ayarlanmalı."
+    "translation": "Email özniteliği geçersiz. Ayarlanmalıdır."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -3932,7 +3932,7 @@
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
-    "translation": "Kullanıcı adı özniteliği geçersiz. Ayarlanmalı."
+    "translation": "Username özniteliği geçersiz. Ayarlanmalı."
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
@@ -3948,31 +3948,31 @@
   },
   {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
-    "translation": "En uzun bağlantı ömrü SQL ayarı geçersiz. Negatif olmayan bir sayı olmalı."
+    "translation": "En uzun bağlantı ömrü SQL ayarı geçersiz. Negatif olmayan bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
-    "translation": "Veri kaynağı SQL ayarı geçersiz. Ayarlanması gerekiyor."
+    "translation": "Veri kaynağı SQL ayarı geçersiz. Ayarlanmalıdır."
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Sürücü adı SQL ayarı geçersiz. 'mysql' ya da 'postgres' seçeneklerinden biri olmalıdır."
+    "translation": "Sürücü adı SQL ayarı geçersiz. 'mysql' ya da 'postgres' olmalıdır."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
-    "translation": "En fazla boşta bağlantı sayısı SQL ayarı geçersiz. Pozitif bir sayı olmalı."
+    "translation": "En fazla boşta bağlantı sayısı SQL ayarı geçersiz. Pozitif bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
-    "translation": "En fazla açık bağlantı SQL ayarı geçersiz. Pozitif bir sayı olmalı."
+    "translation": "En fazla açık bağlantı SQL ayarı geçersiz. Pozitif bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "Sorgu zaman aşımı SQL ayarı geçersiz. Pozitif bir sayı olmalı."
+    "translation": "Sorgu zaman aşımı SQL ayarı geçersiz. Pozitif bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "Takım arkadaşı görünümü geçersiz. 'tam_ad', 'takma_ad_tam_ad' ya da 'kullaniciadi' seçeneklerinden biri olmalıdır."
+    "translation": "Takım arkadaşı görünümü geçersiz. 'full_name', 'nickname_full_name' ya da 'username' olmalıdır."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -4016,7 +4016,7 @@
   },
   {
     "id": "model.emoji.update_at.app_error",
-    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+    "translation": "Güncellenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.emoji.user_id.app_error",
@@ -4028,7 +4028,7 @@
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
-    "translation": "Kod değeri geçersiz."
+    "translation": "Kimlik değeri geçersiz."
   },
   {
     "id": "model.file_info.is_valid.path.app_error",
@@ -4040,7 +4040,7 @@
   },
   {
     "id": "model.file_info.is_valid.update_at.app_error",
-    "translation": "Güncelleme zamanı değeri geçersiz."
+    "translation": "Güncellenme zamanı değeri geçersiz."
   },
   {
     "id": "model.file_info.is_valid.user_id.app_error",
@@ -4112,7 +4112,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Kod geçersiz."
+    "translation": "Kimlik geçersiz."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4124,7 +4124,7 @@
   },
   {
     "id": "model.incoming_hook.update_at.app_error",
-    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+    "translation": "Güncellenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.incoming_hook.user_id.app_error",
@@ -4152,7 +4152,7 @@
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
-    "translation": "Yüklenen lisansın eklenme zamanı değeri geçersiz."
+    "translation": "Yüklenen lisansın create_at değeri geçersiz."
   },
   {
     "id": "model.license_record.is_valid.id.app_error",
@@ -4160,23 +4160,23 @@
   },
   {
     "id": "model.link_metadata.is_valid.data.app_error",
-    "translation": "Bağlantı üst verisi boş olamaz."
+    "translation": "Bağlantı üst verileri boş olamaz."
   },
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
-    "translation": "Bağlantı üst verisinin türü belirtilen tür ile aynı değil."
+    "translation": "Bağlantı üst verilerinin türü belirtilen tür ile aynı değil."
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
-    "translation": "Bağlantı üst verisi zaman damgası sıfırdan farklı ve en yakın saate yuvarlanmış olmalıdır."
+    "translation": "Bağlantı üst verileri zaman damgası sıfırdan farklı ve en yakın saate yuvarlanmış olmalıdır."
   },
   {
     "id": "model.link_metadata.is_valid.type.app_error",
-    "translation": "Bağlantı üst verisi türü geçersiz."
+    "translation": "Bağlantı üst verileri türü geçersiz."
   },
   {
     "id": "model.link_metadata.is_valid.url.app_error",
-    "translation": "Bağlantı üst verisi adresi ayarlanmış olmalıdır."
+    "translation": "Bağlantı üst verileri adresi ayarlanmalıdır."
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4216,7 +4216,7 @@
   },
   {
     "id": "model.oauth.is_valid.update_at.app_error",
-    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+    "translation": "Güncellenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",
@@ -4232,7 +4232,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.content_type.app_error",
-    "translation": "İçerik türü değeri geçersiz."
+    "translation": "content_type değeri geçersiz."
   },
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
@@ -4248,7 +4248,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
-    "translation": "Kod geçersiz."
+    "translation": "Kimlik geçersiz."
   },
   {
     "id": "model.outgoing_hook.is_valid.team_id.app_error",
@@ -4264,7 +4264,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
-    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+    "translation": "Güncellenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.outgoing_hook.is_valid.url.app_error",
@@ -4312,11 +4312,11 @@
   },
   {
     "id": "model.post.is_valid.hashtags.app_error",
-    "translation": "Hashtaglar geçersiz."
+    "translation": "Başlık etiketleri geçersiz."
   },
   {
     "id": "model.post.is_valid.id.app_error",
-    "translation": "Kod geçersiz."
+    "translation": "Kimlik geçersiz."
   },
   {
     "id": "model.post.is_valid.msg.app_error",
@@ -4340,7 +4340,7 @@
   },
   {
     "id": "model.post.is_valid.update_at.app_error",
-    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+    "translation": "Güncellenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.post.is_valid.user_id.app_error",
@@ -4384,11 +4384,11 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "Ad içinde 2 ya da daha fazla küçük alfasayısal karakter bulunmalıdır."
+    "translation": "Ad içinde 2 ya da daha fazla küçük harf ve rakam karakteri bulunmalıdır."
   },
   {
     "id": "model.team.is_valid.company.app_error",
-    "translation": "Kurum adı geçersiz."
+    "translation": "Kuruluş adı geçersiz."
   },
   {
     "id": "model.team.is_valid.create_at.app_error",
@@ -4408,7 +4408,7 @@
   },
   {
     "id": "model.team.is_valid.id.app_error",
-    "translation": "Kod geçersiz."
+    "translation": "Kimlik geçersiz."
   },
   {
     "id": "model.team.is_valid.name.app_error",
@@ -4416,7 +4416,7 @@
   },
   {
     "id": "model.team.is_valid.reserved.app_error",
-    "translation": "Adres kullanılamıyor. Lütfen yeniden deneyin."
+    "translation": "Bu adres kullanılamıyor. Lütfen yeniden deneyin."
   },
   {
     "id": "model.team.is_valid.type.app_error",
@@ -4424,7 +4424,7 @@
   },
   {
     "id": "model.team.is_valid.update_at.app_error",
-    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+    "translation": "Güncellenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.team.is_valid.url.app_error",
@@ -4440,7 +4440,7 @@
   },
   {
     "id": "model.token.is_valid.expiry",
-    "translation": "Kod sona erme süresi geçersiz"
+    "translation": "Kod geçerlilik süresi geçersiz"
   },
   {
     "id": "model.token.is_valid.size",
@@ -4472,11 +4472,11 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
-    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük ile bir büyük harf içermelidir."
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf ile bir büyük harf içermelidir."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
-    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük, bir büyük harf ve bir rakam içermelidir."
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf, bir büyük harf ve bir rakam içermelidir."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
@@ -4524,7 +4524,7 @@
   },
   {
     "id": "model.user_access_token.is_valid.id.app_error",
-    "translation": "Kod değeri geçersiz."
+    "translation": "Kimlik değeri geçersiz."
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
@@ -4560,7 +4560,7 @@
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
-    "translation": "HTML gövdesi içeriği eksik."
+    "translation": "HTML içeriği eksik."
   },
   {
     "id": "plugin_api.send_mail.missing_subject",
@@ -4612,7 +4612,7 @@
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
-    "translation": "Aynı kodlu bir takım üyesi zaten var."
+    "translation": "Aynı kimlikli bir takım üyesi zaten var."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
@@ -5000,7 +5000,7 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Elasticsearch sunucu sürümü alınamadı."
+    "translation": "Elasticsearch sunucusunun sürümü alınamadı."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5032,7 +5032,7 @@
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
-    "translation": "Otomatik tamamlama verileri geçersiz"
+    "translation": "AutocompleteData değeri geçersiz"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
@@ -5092,7 +5092,7 @@
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
-    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+    "translation": "Güncellenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
@@ -5368,7 +5368,7 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Elasticsearch sunucu sürümü işlenemedi."
+    "translation": "Elasticsearch sunucusunun sürümü işlenemedi."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -5392,7 +5392,7 @@
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": "Konuk özniteliği geçersiz. Öznitelikler 'alan=değer' çifti biçiminde olmalıdır."
+    "translation": "Guest özniteliği geçersiz. Öznitelikler 'alan=değer' çifti biçiminde olmalıdır."
   },
   {
     "id": "model.group.name.invalid_chars.app_error",
@@ -5404,7 +5404,7 @@
   },
   {
     "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
-    "translation": "Eski değer geçersiz. İşlem atomik değil ise ayarlanmamış olmalı."
+    "translation": "Eski değer geçersiz. İşlem atomik değil ise ayarlanmamış olmalıdır."
   },
   {
     "id": "model.post.channel_notifications_disabled_in_channel.message",
@@ -5428,7 +5428,7 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
-    "translation": "Son Chrome tarayıcı sürümünü alın"
+    "translation": "Güncel Chrome tarayıcı sürümünü edinin"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
@@ -5768,11 +5768,11 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
-    "translation": "Son Firefox tarayıcı sürümünü alın"
+    "translation": "Güncel Firefox tarayıcı sürümünü edinin"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
-    "translation": "Son Safari tarayıcı sürümünü alın"
+    "translation": "Güncel Safari tarayıcı sürümünü edinin"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.chrome",
@@ -5812,11 +5812,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 116+"
+    "translation": "Sürüm 120+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 116+"
+    "translation": "Sürüm 120+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -5848,7 +5848,7 @@
   },
   {
     "id": "model.group.name.invalid_length.app_error",
-    "translation": "Ad içinde 1 ile 64 arasında küçük alfasayısal karakterler kullanılmalıdır."
+    "translation": "Ad içinde 1 ile 64 arasında küçük harf ve rakam karakterleri kullanılmalıdır."
   },
   {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
@@ -6172,7 +6172,7 @@
   },
   {
     "id": "ent.message_export.run_export.app_error",
-    "translation": "İleti dışa aktarma verisi seçilemedi."
+    "translation": "İleti dışa aktarma verileri seçilemedi."
   },
   {
     "id": "app.compliance.save.saving.app_error",
@@ -6844,7 +6844,7 @@
   },
   {
     "id": "model.upload_session.is_valid.type.app_error",
-    "translation": "Kod değeri geçersiz"
+    "translation": "Type değeri geçersiz"
   },
   {
     "id": "model.upload_session.is_valid.path.app_error",
@@ -6852,11 +6852,11 @@
   },
   {
     "id": "model.upload_session.is_valid.id.app_error",
-    "translation": "Kod değeri geçersiz"
+    "translation": "Kimlik değeri geçersiz"
   },
   {
     "id": "model.upload_session.is_valid.create_at.app_error",
-    "translation": "Eklenme zamanı değeri geçersiz"
+    "translation": "CreateAt değeri geçersiz"
   },
   {
     "id": "app.upload.get.app_error",
@@ -7052,7 +7052,7 @@
   },
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
-    "translation": "IncludeDeletedChannels parametrelerinin tümünün değeri aynı olmalı."
+    "translation": "IncludeDeletedChannels parametrelerinin tümünün değeri aynı olmalıdır."
   },
   {
     "id": "ent.message_export.global_relay_export.get_attachment_error",
@@ -7228,7 +7228,7 @@
   },
   {
     "id": "app.upload.upload_data.first_part_too_small.app_error",
-    "translation": "Veriler yüklenemedi. İlk bölüm en az {{.Size}} bayt boyutunda olmalı."
+    "translation": "Veriler yüklenemedi. İlk bölüm en az {{.Size}} bayt boyutunda olmalıdır."
   },
   {
     "id": "app.upload.upload_data.concurrent.app_error",
@@ -7388,7 +7388,7 @@
   },
   {
     "id": "model.config.is_valid.import.directory.app_error",
-    "translation": "Klasör değeri geçersiz."
+    "translation": "Directory değeri geçersiz."
   },
   {
     "id": "import_process.worker.do_job.open_file",
@@ -7560,7 +7560,7 @@
   },
   {
     "id": "model.reaction.is_valid.update_at.app_error",
-    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+    "translation": "Güncellenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "error",
@@ -7628,11 +7628,11 @@
   },
   {
     "id": "model.config.is_valid.export.retention_days_too_low.app_error",
-    "translation": "RetentionDays değeri geçersiz. 0 değerinden büyük olmalı"
+    "translation": "RetentionDays değeri geçersiz. 0 değerinden büyük olmalıdır"
   },
   {
     "id": "model.config.is_valid.export.directory.app_error",
-    "translation": "Klasör değeri boş olamaz."
+    "translation": "Directory değeri boş olamaz."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
@@ -7760,7 +7760,7 @@
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": "Toplu dosyalar dizine eklenmek üzere alınamadı."
+    "translation": "Dizine eklenecek dosya topluluğu alınamadı."
   },
   {
     "id": "api.templates.welcome_body.serverURL",
@@ -8587,7 +8587,7 @@
   },
   {
     "id": "model.session.is_valid.create_at.app_error",
-    "translation": "Oturumun oluşturulma alanı geçersiz."
+    "translation": "Oturumun CreateAt alanı geçersiz."
   },
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
@@ -8735,7 +8735,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve toplu dizine ekleme işlem boyutu en az {{.BatchSize}} olmalıdır."
+    "translation": "Bleve Bulk Indexing Batch Size değeri en az {{.BatchSize}} olmalıdır."
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -8767,7 +8767,7 @@
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
-    "translation": "Ad en az 1 karakterden oluşmalıdır."
+    "translation": "Ad en az 1 küçük harf ya da rakam karakterinden oluşmalıdır."
   },
   {
     "id": "model.member.is_valid.emails.app_error",
@@ -9155,7 +9155,7 @@
   },
   {
     "id": "model.draft.is_valid.update_at.app_error",
-    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+    "translation": "Güncellenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.draft.is_valid.root_id.app_error",
@@ -9179,7 +9179,7 @@
   },
   {
     "id": "model.draft.is_valid.create_at.app_error",
-    "translation": "Oluşturulma zamanı geçerli bir zaman olmalıdır."
+    "translation": "Eklenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.draft.is_valid.channel_id.app_error",
@@ -9999,11 +9999,11 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
-    "translation": "Oluşturulma zamanı geçerli bir zaman olmalıdır."
+    "translation": "Eklenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
-    "translation": "Ekleyen kodu geçersiz."
+    "translation": "Ekleyen kimliği geçersiz."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
@@ -10207,7 +10207,7 @@
   },
   {
     "id": "model.channel_bookmark.is_valid.create_at.app_error",
-    "translation": "Oluşturulma zamanı geçerli bir zaman olmalıdır."
+    "translation": "Eklenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.channel_bookmark.is_valid.display_name.app_error",
@@ -10315,7 +10315,7 @@
   },
   {
     "id": "model.channel_bookmark.is_valid.update_at.app_error",
-    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+    "translation": "Güncellenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
@@ -10331,7 +10331,7 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
-    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+    "translation": "Güncellenme zamanı geçerli bir zaman olmalıdır."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
