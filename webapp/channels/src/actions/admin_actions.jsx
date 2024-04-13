@@ -49,13 +49,18 @@ export async function ldapTest(success, error) {
     }
 }
 
+/**
+ * @returns ThunkActionFunc<void>
+ */
 export async function invalidateAllCaches(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.invalidateCaches());
-    if (data && success) {
-        success(data);
-    } else if (err && error) {
-        error({id: err.server_error_id, ...err});
-    }
+    return async (dispatch) => {
+        const {data, error: err} = await dispatch(AdminActions.invalidateCaches());
+        if (data && success) {
+            success(data);
+        } else if (err && error) {
+            error({id: err.server_error_id, ...err});
+        }
+    };
 }
 
 export async function recycleDatabaseConnection(success, error) {
