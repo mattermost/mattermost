@@ -40,15 +40,6 @@ export function adminResetMfa(userId) {
     return UserActions.updateUserMfa(userId, false);
 }
 
-export async function getClusterStatus(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.getClusterStatus());
-    if (data && success) {
-        success(data);
-    } else if (err && error) {
-        error({id: err.server_error_id, ...err});
-    }
-}
-
 export async function ldapTest(success, error) {
     const {data, error: err} = await dispatch(AdminActions.testLdap());
     if (data && success) {

@@ -3,21 +3,28 @@
 
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {MouseEvent} from 'react';
+import {useDispatch} from 'react-redux';
 
 import type {ClusterInfo} from '@mattermost/types/admin';
 
-import {getClusterStatus} from 'actions/admin_actions.jsx';
+import {getClusterStatus} from 'mattermost-redux/actions/admin';
 
 import ClusterTable from './cluster_table';
 
 import LoadingScreen from '../loading_screen';
 
 const ClusterTableContainer = () => {
+    const dispatch = useDispatch();
+
     const interval = useRef<NodeJS.Timeout>();
     const [clusterInfos, setClusterInfos] = useState<ClusterInfo[] | null>(null);
 
-    const load = useCallback(() => {
-        getClusterStatus(setClusterInfos, null);
+    const load = useCallback(async () => {
+        const result = await dispatch(getClusterStatus());
+
+        if (result.data) {
+            setClusterInfos(result.data);
+        }
     }, []);
 
     useEffect(() => {
