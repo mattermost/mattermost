@@ -6,6 +6,7 @@ import {Overlay} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {Link} from 'react-router-dom';
+import type {Dispatch} from 'redux';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
@@ -60,6 +61,7 @@ type Props = {
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
     enterpriseReady: boolean;
+    dispatch: Dispatch;
 } & WrappedComponentProps
 
 type State = {
@@ -479,7 +481,12 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 sourceUrlKey = setting.sourceUrlKey;
             }
 
-            setting.action(successCallback, error, this.state[sourceUrlKey]);
+            const result = setting.action(successCallback, error, this.state[sourceUrlKey]);
+
+            // If setting.action returns something other than a Promise, it must've returned a Redux action
+            if (result && !(result instanceof Promise)) {
+                this.props.dispatch(result);
+            }
         };
 
         return (

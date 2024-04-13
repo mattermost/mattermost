@@ -7,6 +7,8 @@ import type {CloudState, Product} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {JobType} from '@mattermost/types/jobs';
 
+import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
+
 import type Constants from 'utils/constants';
 
 import type ValidationResult from './validation';
@@ -119,7 +121,10 @@ type AdminDefinitionSettingLanguage = AdminDefinitionSettingBase & {
 
 type AdminDefinitionSettingButton = AdminDefinitionSettingBase & {
     type: 'button';
-    action: (success: (data?: any) => void, error: (error: {message: string; detailed_error?: string}) => void, siteUrl: string) => void;
+    action: (
+        ((success: (data?: any) => void, error: (error: {message: string; detailed_error?: string}) => void, siteUrl: string) => void) |
+        ((success: (data?: any) => void, error: (error: {message: string; detailed_error?: string}) => void, siteUrl: string) => ThunkActionFunc<unknown>)
+    );
     loading?: string | MessageDescriptor;
     error_message: string | MessageDescriptor;
     success_message?: string | MessageDescriptor;

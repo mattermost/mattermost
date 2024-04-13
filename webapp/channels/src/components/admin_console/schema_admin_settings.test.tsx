@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import type {Dispatch} from 'redux';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
@@ -10,6 +11,7 @@ import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import SchemaText from 'components/admin_console/schema_text';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import SchemaAdminSettings from './schema_admin_settings';
 import type {SchemaAdminSettings as SchemaAdminSettingsClass} from './schema_admin_settings';
@@ -26,6 +28,7 @@ const DefaultProps = {
     license: {},
     roles: {},
     setNavigationBlocked: jest.fn(),
+    dispatch: jest.fn(),
 };
 
 describe('components/admin_console/SchemaAdminSettings', () => {
@@ -397,5 +400,125 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
         expect(instance.canSave()).toBe(true);
         expect(mockValidate).toHaveBeenCalled();
+    });
+
+    test('should trigger an action function when a button is clicked on', () => {
+        let resolveSuccessCallback: ((data: unknown) => void) | undefined;
+        const action = jest.fn((successCallback) => {
+            resolveSuccessCallback = successCallback;
+        });
+
+        const localSchema: AdminDefinitionSubSectionSchema = {
+            ...schema!,
+            settings: [
+                {
+                    key: 'TestSettings.button',
+                    label: 'test action button',
+                    type: 'button',
+                    action,
+                    error_message: 'button failed',
+                },
+            ],
+        };
+
+        const props = {
+            ...DefaultProps,
+            config,
+            environmentConfig,
+            schema: localSchema,
+            patchConfig: jest.fn(),
+        };
+
+        renderWithContext(
+            <SchemaAdminSettings
+                {...props}
+            />,
+        );
+
+        expect(screen.queryByText('test action button')).toBeInTheDocument();
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+
+        screen.getByText('test action button').click();
+
+        // Clicking on the button should call the action with the successCallback and set the button to say Loading...
+        expect(action).toHaveBeenCalled();
+
+        expect(resolveSuccessCallback).toBeDefined();
+        expect(screen.queryByText('test action button')).not.toBeInTheDocument();
+        expect(screen.queryByText('Loading...')).toBeInTheDocument();
+
+        // Resolving the successCallback should update the config and set the button text back to its original value
+        resolveSuccessCallback?.({});
+
+        expect(screen.queryByText('test action button')).toBeInTheDocument();
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    });
+
+    test('should dispatch a Redux action when a button is clicked on', async () => {
+        let resolveSuccessCallback: ((data: unknown) => void) | undefined;
+        const action = jest.fn((successCallback) => {
+            return (dispatch: Dispatch) => {
+                dispatch({type: 'action_dispatched'});
+
+                resolveSuccessCallback = successCallback;
+            };
+        });
+
+        const localSchema: AdminDefinitionSubSectionSchema = {
+            ...schema!,
+            settings: [
+                {
+                    key: 'TestSettings.button',
+                    label: 'test action button',
+                    type: 'button',
+                    action,
+                    error_message: 'button failed',
+                },
+            ],
+        };
+
+        // We can't rely on the dispatch provided by renderWithContext because SchemaAdminSettings doesn't access it
+        // using React Redux
+        const mockDispatch = jest.fn((action) => {
+            if (typeof action === 'function') {
+                action(mockDispatch);
+            }
+        });
+
+        const props = {
+            ...DefaultProps,
+            config,
+            environmentConfig,
+            schema: localSchema,
+            patchConfig: jest.fn(),
+            dispatch: mockDispatch,
+        };
+
+        renderWithContext(
+            <SchemaAdminSettings
+                {...props}
+            />,
+        );
+
+        expect(screen.queryByText('test action button')).toBeInTheDocument();
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+
+        screen.getByText('test action button').click();
+
+        // Clicking on the button should call the action with the successCallback, set the button to say Loading...,
+        // and dispatch the async action
+        expect(resolveSuccessCallback).toBeDefined();
+
+        expect(screen.queryByText('test action button')).not.toBeInTheDocument();
+        expect(screen.queryByText('Loading...')).toBeInTheDocument();
+
+        expect(mockDispatch).toHaveBeenCalledTimes(2);
+        expect(mockDispatch).toHaveBeenCalledWith({type: 'action_dispatched'});
+
+        // Resolving the successCallback should update the config and set the button text back to its original value
+        resolveSuccessCallback?.({});
+
+        expect(screen.queryByText('test action button')).toBeInTheDocument();
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     });
 });

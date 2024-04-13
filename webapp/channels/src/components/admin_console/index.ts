@@ -71,6 +71,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             selectTeam,
             setAdminConsoleUsersManagementTableProperties,
         }, dispatch),
+        dispatch,
     };
 }
 

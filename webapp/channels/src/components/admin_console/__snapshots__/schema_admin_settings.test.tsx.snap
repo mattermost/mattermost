@@ -27,6 +27,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
   }
   consoleAccess={Object {}}
   disabled={false}
+  dispatch={[MockFunction]}
   editRole={[MockFunction]}
   enterpriseReady={false}
   environmentConfig={

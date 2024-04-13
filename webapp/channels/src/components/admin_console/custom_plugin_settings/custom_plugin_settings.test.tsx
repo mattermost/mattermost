@@ -29,6 +29,7 @@ describe('components/admin_console/CustomPluginSettings', () => {
         consoleAccess: {read: {}, write: {}},
         isCurrentUserSystemAdmin: false,
         enterpriseReady: false,
+        dispatch: jest.fn(),
     };
     beforeEach(() => {
         plugin = {

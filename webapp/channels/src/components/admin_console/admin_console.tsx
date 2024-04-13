@@ -152,6 +152,7 @@ class AdminConsole extends React.PureComponent<Props, State> {
                             consoleAccess={this.props.consoleAccess}
                             schema={item.schema}
                             isDisabled={isItemDisabled}
+                            dispatch={this.props.dispatch}
                         />
                     )}
                 />
