@@ -2992,7 +2992,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "id={{ .id }} için küme yapılandırması değiştirildi. Küme artık kararlı olmayabilir ve bir yeniden başlatma gereklidir. Kümenin doğru olarak yapılandırıldığından emin olmak için hemen yeniden başlatın."
+    "translation": "id={{ .id }} için küme yapılandırması değiştirildi. Küme artık kararlı olmayabileceğinden bir yeniden başlatma gerekli. Kümenin doğru olarak yapılandırıldığından emin olmak için hemen yeniden başlatın."
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -5896,7 +5896,7 @@
   },
   {
     "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Kanal iletisi silinemedi"
+    "translation": "Kanal iletileri silinemedi"
   },
   {
     "id": "app.audit.save.saving.app_error",
