@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ChangeEvent, ReactNode, SyntheticEvent} from 'react';
 import React from 'react';
-import type {ChangeEvent, SyntheticEvent, ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Bot as BotType} from '@mattermost/types/bots';
 import type {Team} from '@mattermost/types/teams';
-import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
+import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 
+import {Bot as BotConstants} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
@@ -19,7 +20,11 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import * as Utils from 'utils/utils';
 
-export function matchesFilter(bot: BotType, filter?: string, owner?: UserProfile): boolean {
+export function matchesFilter(
+    bot: BotType,
+    filter?: string,
+    owner?: UserProfile,
+): boolean {
     if (!filter) {
         return true;
     }
@@ -31,37 +36,39 @@ export function matchesFilter(bot: BotType, filter?: string, owner?: UserProfile
     if (owner && owner.username) {
         ownerUsername = owner.username;
     }
-    return !(username.toLowerCase().indexOf(filter) === -1 &&
+    return !(
+        username.toLowerCase().indexOf(filter) === -1 &&
         displayName.toLowerCase().indexOf(filter) === -1 &&
         description.toLowerCase().indexOf(filter) === -1 &&
-        ownerUsername.toLowerCase().indexOf(filter) === -1);
+        ownerUsername.toLowerCase().indexOf(filter) === -1
+    );
 }
 
 type Props = {
 
     /**
-    *  Bot that we are displaying
-    */
+     *  Bot that we are displaying
+     */
     bot: BotType;
 
     /**
-    * Owner of the bot we are displaying
-    */
+     * Owner of the bot we are displaying
+     */
     owner?: UserProfile;
 
     /**
-    * User of the bot we are displaying
-    */
+     * User of the bot we are displaying
+     */
     user: UserProfile;
 
     /**
-    * The access tokens of the bot user
-    */
+     * The access tokens of the bot user
+     */
     accessTokens: Record<string, UserAccessToken>;
 
     /**
-    * String used for filtering bot items
-    */
+     * String used for filtering bot items
+     */
     filter?: string;
 
     /**
@@ -72,19 +79,22 @@ type Props = {
     actions: {
 
         /**
-        * Disable a bot
-        */
+         * Disable a bot
+         */
         disableBot: (userId: string) => Promise<ActionResult>;
 
         /**
-        * Enable a bot
-        */
+         * Enable a bot
+         */
         enableBot: (userId: string) => Promise<ActionResult>;
 
         /**
-        * Access token managment
-        */
-        createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
+         * Access token managment
+         */
+        createUserAccessToken: (
+            userId: string,
+            description: string
+        ) => Promise<ActionResult<UserAccessToken>>;
 
         revokeUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         enableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
@@ -92,17 +102,17 @@ type Props = {
     };
 
     /**
-    *  Only used for routing since backstage is team based.
-    */
+     *  Only used for routing since backstage is team based.
+     */
     team: Team;
-}
+};
 
 type State = {
     confirmingId: string;
     creatingTokenState: string;
     token: UserAccessToken | Record<string, any>;
     error: ReactNode;
-}
+};
 
 export default class Bot extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
@@ -166,7 +176,9 @@ export default class Bot extends React.PureComponent<Props, State> {
     handleUpdateDescription = (e: ChangeEvent<HTMLInputElement>): void => {
         const target = e.target as HTMLInputElement;
         this.setState({
-            token: Object.assign({}, this.state.token, {description: target.value}),
+            token: Object.assign({}, this.state.token, {
+                description: target.value,
+            }),
         });
     };
 
@@ -174,16 +186,21 @@ export default class Bot extends React.PureComponent<Props, State> {
         e.preventDefault();
 
         if (this.state.token.description === '') {
-            this.setState({error: (
-                <FormattedMessage
-                    id='bot.token.error.description'
-                    defaultMessage='Please enter a description.'
-                />
-            )});
+            this.setState({
+                error: (
+                    <FormattedMessage
+                        id='bot.token.error.description'
+                        defaultMessage='Please enter a description.'
+                    />
+                ),
+            });
             return;
         }
 
-        const {data, error} = await this.props.actions.createUserAccessToken(this.props.bot.user_id, this.state.token.description);
+        const {data, error} = await this.props.actions.createUserAccessToken(
+            this.props.bot.user_id,
+            this.state.token.description,
+        );
         if (data) {
             this.setState({creatingTokenState: 'CREATED', token: data});
         } else if (error) {
@@ -227,7 +244,8 @@ export default class Bot extends React.PureComponent<Props, State> {
                             id='user.settings.tokens.deactivate'
                             defaultMessage='Disable'
                         />
-                    </a>);
+                    </a>
+                );
             } else {
                 disableClass = 'light';
                 disabledText = (
@@ -305,7 +323,10 @@ export default class Bot extends React.PureComponent<Props, State> {
         });
 
         let options;
-        if (ownerUsername !== 'plugin') {
+        if (
+            ownerUsername !== 'plugin' &&
+            this.props.bot.username !== BotConstants.BOT_SYSTEM_BOT_USERNAME
+        ) {
             options = (
                 <div className='item-actions'>
                     <button
@@ -319,7 +340,9 @@ export default class Bot extends React.PureComponent<Props, State> {
                         />
                     </button>
                     {' - '}
-                    <Link to={`/${this.props.team.name}/integrations/bots/edit?id=${this.props.bot.user_id}`}>
+                    <Link
+                        to={`/${this.props.team.name}/integrations/bots/edit?id=${this.props.bot.user_id}`}
+                    >
                         <FormattedMessage
                             id='bots.manage.edit'
                             defaultMessage='Edit'
@@ -471,7 +494,10 @@ export default class Bot extends React.PureComponent<Props, State> {
             );
         }
 
-        const imageURL = Utils.imageURLForUser(this.props.user.id, this.props.user.last_picture_update);
+        const imageURL = Utils.imageURLForUser(
+            this.props.user.id,
+            this.props.user.last_picture_update,
+        );
 
         return (
             <div className='backstage-list__item'>
@@ -499,9 +525,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                         />
                         {ownerUsername}
                     </div>
-                    <div className='bot-list is-empty'>
-                        {tokenList}
-                    </div>
+                    <div className='bot-list is-empty'>{tokenList}</div>
                 </div>
                 <ConfirmModal
                     title={
