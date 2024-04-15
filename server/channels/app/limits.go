@@ -15,7 +15,7 @@ const (
 	maxUsersLimit     = 10_000
 	maxUsersHardLimit = 11_000
 
-	maxPostLimit = 5
+	maxPostLimit = 5_000_000
 )
 
 func (a *App) GetAppLimits() (*model.AppLimits, *model.AppError) {
