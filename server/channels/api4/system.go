@@ -89,15 +89,28 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// We support the existing API hence the logs are always included
+	// if nothing specified.
+	includeLogs := true
+	if r.FormValue("basic_server_logs") == "false" {
+		includeLogs = false
+	}
+	supportPacketOptions := &model.SupportPacketOptions{
+		IncludeLogs:   includeLogs,
+		PluginPackets: r.Form["plugin_packets"],
+	}
+
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
 	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.no_license", nil, "", http.StatusForbidden)
 		return
 	}
 
-	fileDatas := c.App.GenerateSupportPacket(c.AppContext)
+	fileDatas := c.App.GenerateSupportPacket(c.AppContext, supportPacketOptions)
 
 	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
+	// Note that this filename is also being checked at the webapp, please update the
+	// regex within the commercial_support_modal.tsx file if the naming convention ever changes.
 	now := time.Now()
 	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", now.Format("2006-01-02-03-04"))
 
