@@ -110,7 +110,7 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 
 	sessions, err := a.getMobileAppSessions(userID)
 	if err != nil {
-		a.Metrics().IncrementNotificationErrorCounter(model.NotificationTypePush, model.NotificationReasonFetchError)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonFetchError)
 		a.NotificationsLog().Error("Failed to send mobile app sessions",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("status", model.NotificationStatusError),
@@ -122,7 +122,7 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 	}
 
 	if msg == nil {
-		a.Metrics().IncrementNotificationErrorCounter(model.NotificationTypePush, model.NotificationReasonParseError)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonParseError)
 		a.NotificationsLog().Error("Failed to parse push notification",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("status", model.NotificationStatusError),
@@ -141,7 +141,7 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
 		if session.IsExpired() || (skipSessionId != "" && skipSessionId == session.Id) {
-			a.Metrics().IncrementNotificationNotSentCounter(model.NotificationTypePush, model.NotificationReasonSessionExpired)
+			a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, model.NotificationReasonSessionExpired)
 			a.NotificationsLog().Debug("Session expired or skipped",
 				mlog.String("type", model.NotificationTypePush),
 				mlog.String("status", model.NotificationStatusNotSent),
@@ -159,7 +159,7 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 
 		err := a.sendToPushProxy(tmpMessage, session)
 		if err != nil {
-			a.Metrics().IncrementNotificationErrorCounter(model.NotificationTypePush, model.NotificationReasonPushProxySendError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError)
 			a.NotificationsLog().Error("Failed to send to push proxy",
 				mlog.String("type", model.NotificationTypePush),
 				mlog.String("status", model.NotificationStatusNotSent),
@@ -549,7 +549,7 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 
 func (a *App) ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
 	if notifyPropsAllowedReason := DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM); notifyPropsAllowedReason != "" {
-		a.Metrics().IncrementNotificationNotSentCounter(model.NotificationTypePush, notifyPropsAllowedReason)
+		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, notifyPropsAllowedReason)
 		a.NotificationsLog().Debug("Notification not sent - notify props",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("post_id", post.Id),
@@ -562,7 +562,7 @@ func (a *App) ShouldSendPushNotification(user *model.User, channelNotifyProps mo
 	}
 
 	if statusAllowedReason := DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId); statusAllowedReason != "" {
-		a.Metrics().IncrementNotificationNotSentCounter(model.NotificationTypePush, statusAllowedReason)
+		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, statusAllowedReason)
 		a.NotificationsLog().Debug("Notification not sent - status",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("post_id", post.Id),
@@ -685,7 +685,7 @@ func (a *App) SendTestPushNotification(deviceID string) string {
 
 	pushResponse, err := a.rawSendToPushProxy(msg)
 	if err != nil {
-		a.Metrics().IncrementNotificationErrorCounter(model.NotificationTypePush, model.NotificationReasonPushProxySendError)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError)
 		a.NotificationsLog().Error("Failed to send test notification to push proxy",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("push_type", msg.Type),
@@ -701,7 +701,7 @@ func (a *App) SendTestPushNotification(deviceID string) string {
 	case model.PushStatusRemove:
 		return "false"
 	case model.PushStatusFail:
-		a.Metrics().IncrementNotificationErrorCounter(model.NotificationTypePush, model.NotificationReasonPushProxyError)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxyError)
 		a.NotificationsLog().Error("Push proxy failed to send test notification",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("push_type", msg.Type),

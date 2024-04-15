@@ -644,7 +644,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	err := c.App.SendAckToPushProxy(&ack)
 	if ack.IsIdLoaded {
 		if err != nil {
-			c.App.Metrics().IncrementNotificationErrorCounter(model.NotificationTypePush, model.NotificationReasonPushProxySendError)
+			c.App.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError)
 			c.App.NotificationsLog().Error("Notification ack not sent to push proxy",
 				mlog.String("type", model.NotificationTypePush),
 				mlog.String("status", model.NotificationStatusError),

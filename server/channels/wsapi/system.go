@@ -36,7 +36,7 @@ func (api *API) websocketNotificationAck(req *model.WebSocketRequest) (map[strin
 	)
 
 	// Count metrics for websocket acks
-	api.App.Metrics().IncrementNotificationAckCounter(model.NotificationTypeWebsocket)
+	api.App.CountNotificationAck(model.NotificationTypeWebsocket)
 
 	status := req.Data["status"]
 	reason := req.Data["reason"]
@@ -44,14 +44,7 @@ func (api *API) websocketNotificationAck(req *model.WebSocketRequest) (map[strin
 		return nil, nil
 	}
 
-	notificationReason := model.NotificationReason(reason.(string))
-	notificationStatus := model.NotificationStatus(status.(string))
-	switch notificationStatus {
-	case model.NotificationStatusError:
-		api.App.Metrics().IncrementNotificationErrorCounter(model.NotificationTypeWebsocket, notificationReason)
-	case model.NotificationStatusNotSent:
-		api.App.Metrics().IncrementNotificationNotSentCounter(model.NotificationTypeWebsocket, notificationReason)
-	}
+	api.App.CountNotificationReason(model.NotificationStatus(status.(string)), model.NotificationTypeWebsocket, model.NotificationReason(reason.(string)))
 
 	return nil, nil
 }
