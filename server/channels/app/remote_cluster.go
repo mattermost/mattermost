@@ -62,6 +62,15 @@ func (a *App) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (re
 		mlog.String("remote_id", rcSaved.RemoteId),
 	)
 
+	// ping the plugin remote immediately if the service is running
+	// If the service is not available the ping will happen once the
+	// service starts. This is expected since plugins start before the
+	// service.
+	rcService, _ := a.GetRemoteClusterService()
+	if rcService != nil {
+		rcService.PingNow(rcSaved)
+	}
+
 	return rcSaved.RemoteId, nil
 }
 
