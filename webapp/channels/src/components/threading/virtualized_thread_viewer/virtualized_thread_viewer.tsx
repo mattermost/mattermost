@@ -3,17 +3,14 @@
 
 import {DynamicSizeList} from 'dynamic-virtualized-list';
 import type {OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
-import React, {PureComponent, useMemo} from 'react';
+import React, {PureComponent} from 'react';
 import type {RefObject} from 'react';
-import {useSelector} from 'react-redux';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getNewMessagesIndex, isDateLine, isStartOfNewMessages, isCreateComment} from 'mattermost-redux/utils/post_list';
 
 import NewRepliesBanner from 'components/new_replies_banner';
@@ -25,7 +22,6 @@ import DelayedAction from 'utils/delayed_action';
 import {getPreviousPostId, getLatestPostId} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
 import type {PluginComponent} from 'types/store/plugins';
 import type {FakePost} from 'types/store/rhs';
 
@@ -353,19 +349,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         const isLastPost = itemId === this.props.lastPost.id;
         const isRootPost = itemId === this.props.selected.id;
 
-        /* eslint-disable react-hooks/rules-of-hooks */
-
-        // Temporarily allow these while MM-56831 is fixed
-        const post = useSelector((state: GlobalState) => getPost(state, this.props.selected.id));
-        const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, []);
-
-        const totalReplies = useSelector((state: GlobalState) => {
-            const thread = getThreadOrSynthetic(state, post);
-            return thread.reply_count || 0;
-        });
-
-        /* eslint-enable react-hooks/rules-of-hooks */
-
         if (!isDateLine(itemId) && !isStartOfNewMessages(itemId) && !isCreateComment(itemId) && !isRootPost) {
             a11yIndex++;
         }
@@ -395,7 +378,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     isRootPost={isRootPost}
                     isLastPost={isLastPost}
                     listId={itemId}
-                    replyCount={totalReplies}
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}
                     timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
