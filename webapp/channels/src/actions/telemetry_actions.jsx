@@ -21,6 +21,7 @@ const SUPPORTS_MEASURE_METHODS = isSupported([
 
 const HEADER_X_PAGE_LOAD_CONTEXT = 'X-Page-Load-Context';
 
+// TODO move me to mattermost-redux/selectors/entities/general
 export function isTelemetryEnabled(state) {
     const config = getConfig(state);
     return config.DiagnosticsEnabled === 'true';
@@ -107,8 +108,8 @@ export function measure(name1, name2) {
 
     const requestCount = getRequestCountAtMark(name2) - getRequestCountAtMark(name1);
 
-    // Clean up the measures we created
-    performance.clearMeasures(measurementName);
+    // // Clean up the measures we created
+    // performance.clearMeasures(measurementName);
 
     return {duration, requestCount, measurementName};
 }

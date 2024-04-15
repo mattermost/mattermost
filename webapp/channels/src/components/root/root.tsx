@@ -56,6 +56,7 @@ import A11yController from 'utils/a11y_controller';
 import {PageLoadContext, StoragePrefixes} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
+import PerformanceReporter from 'utils/performance_telemetry/reporter';
 import {getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
@@ -173,6 +174,8 @@ export default class Root extends React.PureComponent<Props, State> {
     // so we do need this.
     private a11yController: A11yController;
 
+    private performanceTelemetry: PerformanceReporter;
+
     constructor(props: Props) {
         super(props);
         this.mounted = false;
@@ -210,6 +213,8 @@ export default class Root extends React.PureComponent<Props, State> {
         this.a11yController = new A11yController();
 
         store.subscribe(() => applyLuxonDefaults(store.getState()));
+
+        this.performanceTelemetry = new PerformanceReporter(Client4, store);
     }
 
     onConfigLoaded = () => {

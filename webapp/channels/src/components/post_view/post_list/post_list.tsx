@@ -13,6 +13,7 @@ import LoadingScreen from 'components/loading_screen';
 import VirtPostList from 'components/post_view/post_list_virtualized/post_list_virtualized';
 
 import {PostRequestTypes} from 'utils/constants';
+import {measureAndReport} from 'utils/performance_telemetry';
 import {getOldestPostId, getLatestPostId} from 'utils/post_utils';
 
 const MAX_NUMBER_OF_AUTO_RETRIES = 3;
@@ -25,6 +26,10 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
 
     const {duration: dur1, requestCount: requestCount1} = measure('SidebarChannelLink#click', 'PostList#component');
     const {duration: dur2, requestCount: requestCount2} = measure('TeamLink#click', 'PostList#component');
+
+    // TODO figure out how to handle that one of these will always fail
+    measureAndReport('channel_switch', 'SidebarChannelLink#click', 'PostList#component');
+    measureAndReport('team_switch', 'TeamLink#click', 'PostList#component');
 
     clearMarks([
         'SidebarChannelLink#click',
