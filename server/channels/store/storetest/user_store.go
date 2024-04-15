@@ -2862,6 +2862,30 @@ func testUserStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 			[]*model.User{u3},
 		},
+		{
+			"search for Id of u1",
+			t1id,
+			u1.Id,
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+				Roles:          []string{},
+				TeamRoles:      []string{},
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search for partial Id of u1",
+			t1id,
+			u1.Id[:len(u1.Id)-1],
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+				Roles:          []string{},
+				TeamRoles:      []string{},
+			},
+			[]*model.User{},
+		},
 	}
 
 	for _, testCase := range testCases {

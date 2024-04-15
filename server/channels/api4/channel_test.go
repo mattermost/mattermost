@@ -144,6 +144,22 @@ func TestCreateChannel(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, *groupConstrainedChannel.GroupConstrained, *rchannel.GroupConstrained, "GroupConstrained flags do not match")
+
+	t.Run("Test create channel with missing team id", func(t *testing.T) {
+		channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: ""}
+
+		_, resp, err := client.CreateChannel(context.Background(), channel)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Test create channel with missing display name", func(t *testing.T) {
+		channel := &model.Channel{DisplayName: "", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+
+		_, resp, err := client.CreateChannel(context.Background(), channel)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestUpdateChannel(t *testing.T) {
