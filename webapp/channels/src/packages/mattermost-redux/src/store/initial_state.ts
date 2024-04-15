@@ -39,6 +39,8 @@ const state: GlobalState = {
             usersLimits: {
                 activeUserCount: 0,
                 maxUsersLimit: 0,
+                postCount: 0,
+                maxPostLimit: 0,
             },
         },
         teams: {
