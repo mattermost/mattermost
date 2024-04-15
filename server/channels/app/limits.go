@@ -12,32 +12,51 @@ import (
 )
 
 const (
-	maxUsersLimit     = 10
+	maxUsersLimit     = 10_000
 	maxUsersHardLimit = 11_000
 
-	maxPostLimit = 5_000_000
+	maxPostLimit = 5
 )
 
 func (a *App) GetAppLimits() (*model.AppLimits, *model.AppError) {
-	if !a.shouldShowUserLimits() {
-		return &model.AppLimits{}, nil
+	var limits = &model.AppLimits{}
+
+	if a.shouldShowUserLimits() {
+		activeUserCount, appErr := a.Srv().Store().User().Count(model.UserCountOptions{})
+		if appErr != nil {
+			mlog.Error("Failed to get active user count from database", mlog.String("error", appErr.Error()))
+			return nil, model.NewAppError("GetAppLimits", "app.limits.get_app_limits.user_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
+
+		limits.ActiveUserCount = activeUserCount
+		limits.MaxUsersLimit = maxUsersLimit
+		limits.MaxUsersHardLimit = maxUsersHardLimit
 	}
 
-	activeUserCount, appErr := a.Srv().Store().User().Count(model.UserCountOptions{})
-	if appErr != nil {
-		mlog.Error("Failed to get active user count from database", mlog.String("error", appErr.Error()))
-		return nil, model.NewAppError("GetUsersLimits", "app.limits.get_user_limits.user_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	if a.shouldShowPostLimits() {
+		postCount, appErr := a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
+		if appErr != nil {
+			mlog.Error("Failed to get post count from database", mlog.String("error", appErr.Error()))
+			return nil, model.NewAppError("GetAppLimits", "app.limits.get_app_limits.post_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
+
+		limits.MaxPostLimit = maxPostLimit
+		limits.PostCount = postCount
 	}
 
-	return &model.AppLimits{
-		ActiveUserCount:   activeUserCount,
-		MaxUsersLimit:     maxUsersLimit,
-		MaxUsersHardLimit: maxUsersHardLimit,
-	}, nil
+	return limits, nil
 }
 
 func (a *App) shouldShowUserLimits() bool {
 	if maxUsersLimit == 0 {
+		return false
+	}
+
+	return a.License() == nil
+}
+
+func (a *App) shouldShowPostLimits() bool {
+	if maxPostLimit == 0 {
 		return false
 	}
 
@@ -52,5 +71,3 @@ func (a *App) isHardUserLimitExceeded() (bool, *model.AppError) {
 
 	return userLimits.ActiveUserCount > userLimits.MaxUsersHardLimit, appErr
 }
-
-//func (a *App) GetPostLimits()

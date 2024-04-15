@@ -21,7 +21,7 @@ type Props = {
 
 const learnMoreExternalLink = 'https://mattermost.com/pl/error-code-error-safety-limits-exceeded';
 
-function UsersLimitsAnnouncementBar(props: Props) {
+function PostLimitsAnnouncementBar(props: Props) {
     const appLimits = useSelector(getUsersLimits);
 
     const handleCTAClick = useCallback(() => {
@@ -29,21 +29,21 @@ function UsersLimitsAnnouncementBar(props: Props) {
     }, []);
 
     const isLicensed = props?.license?.IsLicensed === 'true';
-    const maxUsersLimit = appLimits?.maxUsersLimit ?? 0;
-    const activeUserCount = appLimits?.activeUserCount ?? 0;
+    const maxPostLimit = appLimits?.maxPostLimit ?? 0;
+    const postCount = appLimits?.postCount ?? 0;
 
-    if (!shouldShowUserLimitsAnnouncementBar({userIsAdmin: props.userIsAdmin, isLicensed, maxUsersLimit, activeUserCount})) {
+    if (!shouldShowPostLimitsAnnouncementBar({userIsAdmin: props.userIsAdmin, isLicensed, maxPostLimit, postCount})) {
         return null;
     }
 
     return (
         <AnnouncementBar
-            id='users_limits_announcement_bar'
+            id='post_limits_announcement_bar'
             showCloseButton={false}
             message={
                 <FormattedMessage
-                    id='users_limits_announcement_bar.copyText'
-                    defaultMessage='User limits exceeded. Contact administrator with: ERROR_SAFETY_LIMITS_EXCEEDED'
+                    id='post_limits_announcement_bar.copyText'
+                    defaultMessage='Message limits exceeded. Contact administrator with: ERROR_SAFETY_LIMITS_EXCEEDED'
                 />
             }
             type={AnnouncementBarTypes.CRITICAL}
@@ -61,23 +61,23 @@ function UsersLimitsAnnouncementBar(props: Props) {
     );
 }
 
-export type ShouldShowingUserLimitsAnnouncementBarProps = {
+export type ShouldShowingPostLimitsAnnouncementBarProps = {
     userIsAdmin: boolean;
     isLicensed: boolean;
-    maxUsersLimit: number;
-    activeUserCount: number;
+    maxPostLimit: number;
+    postCount: number;
 };
 
-export function shouldShowUserLimitsAnnouncementBar({userIsAdmin, isLicensed, maxUsersLimit, activeUserCount}: ShouldShowingUserLimitsAnnouncementBarProps) {
+export function shouldShowPostLimitsAnnouncementBar({userIsAdmin, isLicensed, maxPostLimit, postCount}: ShouldShowingPostLimitsAnnouncementBarProps) {
     if (!userIsAdmin) {
         return false;
     }
 
-    if (maxUsersLimit === 0 || activeUserCount === 0) {
+    if (maxPostLimit === 0 || postCount === 0) {
         return false;
     }
 
-    return !isLicensed && activeUserCount >= maxUsersLimit;
+    return !isLicensed && postCount >= maxPostLimit;
 }
 
-export default UsersLimitsAnnouncementBar;
+export default PostLimitsAnnouncementBar;

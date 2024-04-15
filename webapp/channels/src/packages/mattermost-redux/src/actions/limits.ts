@@ -21,6 +21,8 @@ export function getAppLimits(): ActionFuncAsync<AppLimits> {
                 data: {
                     activeUserCount: 0,
                     maxUsersLimit: 0,
+                    postCount: 0,
+                    maxPostLimit: 0,
                 },
             };
         }
@@ -37,6 +39,8 @@ export function getAppLimits(): ActionFuncAsync<AppLimits> {
         const data: AppLimits = {
             activeUserCount: response?.data?.activeUserCount ?? 0,
             maxUsersLimit: response?.data?.maxUsersLimit ?? 0,
+            postCount: response?.data?.postCount ?? 0,
+            maxPostLimit: response?.data?.maxPostLimit ?? 0,
         };
 
         dispatch({type: LimitsTypes.RECIEVED_APP_LIMITS, data});
@@ -44,3 +48,4 @@ export function getAppLimits(): ActionFuncAsync<AppLimits> {
         return {data};
     };
 }
+
