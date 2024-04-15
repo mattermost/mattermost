@@ -97,8 +97,8 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 
 	if rejectionReason != "" {
 		// Notifications rejected by a plugin should not be considered errors
-		a.Metrics().IncrementNotificationNotSentCounter(model.NotificationTypePush, model.NotificationReasonRejectedByPlugin)
-		a.NotificationsLog().Info("Notification rejected by plugin",
+		// This is likely normal operation so no need for metrics here
+		a.NotificationsLog().Debug("Notification rejected by plugin",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("status", model.NotificationStatusNotSent),
 			mlog.String("reason", model.NotificationReasonRejectedByPlugin),

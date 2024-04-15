@@ -383,7 +383,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		for _, id := range emailRecipients {
 			if profileMap[id] == nil {
 				a.Metrics().IncrementNotificationErrorCounter(model.NotificationTypeEmail, model.NotificationReasonMissingProfile)
-				a.NotificationsLog().Warn("Missing profile",
+				a.NotificationsLog().Error("Missing profile",
 					mlog.String("type", model.NotificationTypeEmail),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusNotSent),
@@ -504,7 +504,8 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 		for _, id := range mentionedUsersList {
 			if profileMap[id] == nil {
-				a.NotificationsLog().Warn("Missing profile",
+				a.Metrics().IncrementNotificationErrorCounter(model.NotificationTypePush, model.NotificationReasonMissingProfile)
+				a.NotificationsLog().Error("Missing profile",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusNotSent),
@@ -555,10 +556,11 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 		for _, id := range allActivityPushUserIds {
 			if profileMap[id] == nil {
-				a.NotificationsLog().Warn("Missing profile",
+				a.Metrics().IncrementNotificationErrorCounter(model.NotificationTypePush, model.NotificationReasonMissingProfile)
+				a.NotificationsLog().Error("Missing profile",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
-					mlog.String("status", model.NotificationStatusNotSent),
+					mlog.String("status", model.NotificationStatusError),
 					mlog.String("reason", model.NotificationReasonMissingProfile),
 					mlog.String("sender_id", sender.Id),
 					mlog.String("receiver_id", id),
@@ -599,10 +601,10 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		for _, id := range notificationsForCRT.Push {
 			if profileMap[id] == nil {
 				a.Metrics().IncrementNotificationErrorCounter(model.NotificationTypePush, model.NotificationReasonMissingProfile)
-				a.NotificationsLog().Warn("Missing profile",
+				a.NotificationsLog().Error("Missing profile",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
-					mlog.String("status", model.NotificationStatusNotSent),
+					mlog.String("status", model.NotificationStatusError),
 					mlog.String("reason", model.NotificationReasonMissingProfile),
 					mlog.String("sender_id", sender.Id),
 					mlog.String("receiver_id", id),
@@ -738,10 +740,11 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			// A user following a thread but had left the channel won't get a notification
 			// https://mattermost.atlassian.net/browse/MM-36769
 			if profileMap[uid] == nil {
-				a.NotificationsLog().Warn("Missing profile",
+				a.Metrics().IncrementNotificationErrorCounter(model.NotificationTypeWebsocket, model.NotificationReasonMissingProfile)
+				a.NotificationsLog().Error("Missing profile",
 					mlog.String("type", model.NotificationTypeWebsocket),
 					mlog.String("post_id", post.Id),
-					mlog.String("status", model.NotificationStatusNotSent),
+					mlog.String("status", model.NotificationStatusError),
 					mlog.String("reason", model.NotificationReasonMissingProfile),
 					mlog.String("sender_id", sender.Id),
 					mlog.String("receiver_id", uid),
@@ -767,11 +770,12 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 						return nil, errors.Wrapf(err, "Missing thread membership for participant in notifications. user_id=%q thread_id=%q", uid, post.RootId)
 					}
 					if tm == nil {
+						a.Metrics().IncrementNotificationNotSentCounter(model.NotificationTypeWebsocket, model.NotificationReasonMissingThreadMembership)
 						a.NotificationsLog().Warn("Missing thread membership",
 							mlog.String("type", model.NotificationTypeWebsocket),
 							mlog.String("post_id", post.Id),
 							mlog.String("status", model.NotificationStatusNotSent),
-							mlog.String("reason", model.NotificationReasonFetchError),
+							mlog.String("reason", model.NotificationReasonMissingThreadMembership),
 							mlog.String("sender_id", sender.Id),
 							mlog.String("receiver_id", uid),
 						)

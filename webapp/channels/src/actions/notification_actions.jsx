@@ -92,7 +92,7 @@ export function sendDesktopNotification(post, msgProps) {
         const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
 
         if (!member) {
-            return {status: 'not_sent', reason: 'no_member'};
+            return {status: 'error', reason: 'no_member'};
         }
 
         if (isChannelMuted(member)) {
