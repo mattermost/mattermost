@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 export type LimitsState = {
-    usersLimits: UsersLimits;
+    usersLimits: AppLimits;
 };
 
-export type UsersLimits = {
+export type AppLimits = {
     activeUserCount: number;
     maxUsersLimit: number;
 };

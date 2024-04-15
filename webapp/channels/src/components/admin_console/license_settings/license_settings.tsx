@@ -7,7 +7,7 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 import type {StatusOK} from '@mattermost/types/client4';
 import type {ClientLicense} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
-import type {UsersLimits} from '@mattermost/types/limits';
+import type {AppLimits} from '@mattermost/types/limits';
 import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -55,7 +55,7 @@ type Props = {
         ping: () => Promise<{status: string}>;
         requestTrialLicense: (users: number, termsAccepted: boolean, receiveEmailsAccepted: boolean, featureName: string) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
-        getUsersLimits: () => Promise<ActionResult<UsersLimits, ServerError>>;
+        getUsersLimits: () => Promise<ActionResult<AppLimits, ServerError>>;
         getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
             data?: UsersStats;
             error?: ServerError;

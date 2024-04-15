@@ -12,13 +12,15 @@ import (
 )
 
 const (
-	maxUsersLimit     = 10000
-	maxUsersHardLimit = 11000
+	maxUsersLimit     = 10
+	maxUsersHardLimit = 11_000
+
+	maxPostLimit = 5_000_000
 )
 
-func (a *App) GetUserLimits() (*model.UserLimits, *model.AppError) {
+func (a *App) GetAppLimits() (*model.AppLimits, *model.AppError) {
 	if !a.shouldShowUserLimits() {
-		return &model.UserLimits{}, nil
+		return &model.AppLimits{}, nil
 	}
 
 	activeUserCount, appErr := a.Srv().Store().User().Count(model.UserCountOptions{})
@@ -27,7 +29,7 @@ func (a *App) GetUserLimits() (*model.UserLimits, *model.AppError) {
 		return nil, model.NewAppError("GetUsersLimits", "app.limits.get_user_limits.user_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	return &model.UserLimits{
+	return &model.AppLimits{
 		ActiveUserCount:   activeUserCount,
 		MaxUsersLimit:     maxUsersLimit,
 		MaxUsersHardLimit: maxUsersHardLimit,
@@ -43,10 +45,12 @@ func (a *App) shouldShowUserLimits() bool {
 }
 
 func (a *App) isHardUserLimitExceeded() (bool, *model.AppError) {
-	userLimits, appErr := a.GetUserLimits()
+	userLimits, appErr := a.GetAppLimits()
 	if appErr != nil {
 		return false, appErr
 	}
 
 	return userLimits.ActiveUserCount > userLimits.MaxUsersHardLimit, appErr
 }
+
+//func (a *App) GetPostLimits()
