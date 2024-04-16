@@ -499,7 +499,7 @@ export default class Client4 {
     }
 
     getServerLimitsRoute() {
-        return `${this.getLimitsRoute()}/app`;
+        return `${this.getLimitsRoute()}/server`;
     }
 
     getCSRFFromCookie() {

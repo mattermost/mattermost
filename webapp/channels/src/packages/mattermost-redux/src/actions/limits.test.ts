@@ -3,18 +3,22 @@
 
 import nock from 'nock';
 
+import type {ServerLimits} from '@mattermost/types/limits';
+
 import * as Actions from 'mattermost-redux/actions/limits';
 import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
 
-describe('getUsersLimits', () => {
-    const URL_USERS_LIMITS = '/limits/users';
+describe('getServerLimits', () => {
+    const URL_USERS_LIMITS = '/limits/server';
 
-    const defaultUserLimitsState = {
+    const defaultServerLimitsState: ServerLimits = {
         activeUserCount: 0,
         maxUsersLimit: 0,
+        maxPostLimit: 0,
+        postCount: 0,
     };
 
     let store = configureStore();
@@ -63,18 +67,20 @@ describe('getUsersLimits', () => {
         });
 
         const {data} = await store.dispatch(Actions.getServerLimits());
-        expect(data).toEqual(defaultUserLimitsState);
+        expect(data).toEqual(defaultServerLimitsState);
     });
 
     test('should not return default state for non admin users', async () => {
         const {data} = await store.dispatch(Actions.getServerLimits());
-        expect(data).not.toEqual(defaultUserLimitsState);
+        expect(data).not.toEqual(defaultServerLimitsState);
     });
 
     test('should return data if user is admin', async () => {
-        const userLimits = {
+        const userLimits: ServerLimits = {
             activeUserCount: 600,
-            maxUsersLimit: 10000,
+            maxUsersLimit: 10_000,
+            maxPostLimit: 5_000_000,
+            postCount: 10_000,
         };
 
         nock(Client4.getBaseRoute()).

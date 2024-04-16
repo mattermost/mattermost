@@ -4,6 +4,6 @@
 import type {ServerLimits} from '@mattermost/types/limits';
 import type {GlobalState} from '@mattermost/types/store';
 
-export function getUsersLimits(state: GlobalState): ServerLimits {
+export function getServerLimits(state: GlobalState): ServerLimits {
     return state.entities.limits.serverLimits;
 }

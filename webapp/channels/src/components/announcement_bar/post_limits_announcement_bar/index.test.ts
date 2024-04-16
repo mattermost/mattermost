@@ -60,8 +60,8 @@ describe('shouldShowPostLimitsAnnouncementBar', () => {
         const props: ShouldShowingPostLimitsAnnouncementBarProps = {
             ...defaultProps,
             isLicensed: false,
-            maxPostLimit: 10,
-            postCount: 5,
+            maxPostLimit: 5,
+            postCount: 10,
         };
         expect(shouldShowPostLimitsAnnouncementBar(props)).toBe(true);
     });

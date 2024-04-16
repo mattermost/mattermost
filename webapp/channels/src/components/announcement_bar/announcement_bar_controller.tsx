@@ -99,6 +99,14 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             );
         }
 
+        // The component specified further down takes priority over the component above it.
+        // For example, consider this-
+        // {
+        //    Foo
+        //    Bar
+        //    Baz
+        // }
+        // Even if all Foo, Bar and Baz render, only Baz is visible as it's further down.
         return (
             <>
                 {adminConfiguredAnnouncementBar}
