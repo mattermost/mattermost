@@ -16,6 +16,7 @@ import WithTooltip from 'components/with_tooltip';
 interface Props {
     fileInfo: FileInfo;
     canDownloadFiles: boolean;
+    handleCloseModal: () => void;
 }
 
 interface ScaleOption {
@@ -24,13 +25,14 @@ interface ScaleOption {
     key: string;
 }
 
-export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
+export default function ImagePreview({fileInfo, canDownloadFiles, handleCloseModal}: Props) {
     const isExternalFile = !fileInfo.id;
     const {formatMessage} = useIntl();
     const [scale, setScale] = React.useState(1);
     const [baseScale, setBaseScale] = React.useState(1);
     const [scaleOptions, setScaleOptions] = React.useState<ScaleOption[]>([]);
     const imageRef = React.useRef<HTMLImageElement>(null);
+    const containerRef = React.useRef<HTMLDivElement>(null);
     const transformWrapperRef = React.useRef<ReactZoomPanPinchRef | null>(null);
 
     const selectZoomLevel = (newScale: number) => {
@@ -114,6 +116,37 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
             ]);
         }
     }, [formatMessage]);
+
+    React.useEffect(() => {
+        function handleClickOutside(event: { clientX: number; clientY: number }) {
+            if (containerRef.current && imageRef.current) {
+                const linkRect = containerRef.current.getBoundingClientRect();
+                const imageRect = imageRef.current.getBoundingClientRect();
+
+                const insideLink = event.clientX >= linkRect.left &&
+                                  event.clientX <= linkRect.right &&
+                                  event.clientY >= linkRect.top &&
+                                  event.clientY <= linkRect.bottom;
+
+                const insideImage = event.clientX >= imageRect.left &&
+                                    event.clientX <= imageRect.right &&
+                                    event.clientY >= imageRect.top &&
+                                    event.clientY <= imageRect.bottom;
+
+                if (insideLink && !insideImage) {
+                    if (document.fullscreenElement) {
+                        document.exitFullscreen();
+                    }
+                    handleCloseModal();
+                }
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [handleCloseModal]);
 
     React.useEffect(() => {
         const imgEl = imageRef.current;
@@ -228,7 +261,10 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
                             </button>
                         </WithTooltip>
                     </div>
-                    <div className='image_preview__content'>
+                    <div
+                        className='image_preview__content'
+                        ref={containerRef}
+                    >
                         <a
                             className='image_preview'
                             href='#'
