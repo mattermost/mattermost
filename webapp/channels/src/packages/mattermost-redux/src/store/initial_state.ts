@@ -101,7 +101,6 @@ const state: GlobalState = {
         },
         admin: {
             logs: [],
-            allPlainLogs: [],
             plainLogs: [],
             audits: {},
             config: {},

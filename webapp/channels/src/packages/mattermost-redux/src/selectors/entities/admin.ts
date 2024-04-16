@@ -16,10 +16,6 @@ export function getPlainLogs(state: GlobalState) {
     return state.entities.admin.plainLogs;
 }
 
-export function getAllPlainLogs(state: GlobalState) {
-    return state.entities.admin.allPlainLogs;
-}
-
 export const getAllLogs = createSelector(
     'getAllLogs',
     getLogs,

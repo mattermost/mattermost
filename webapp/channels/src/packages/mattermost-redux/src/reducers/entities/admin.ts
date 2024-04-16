@@ -32,19 +32,6 @@ function logs(state: string[] = [], action: AnyAction) {
     }
 }
 
-function allPlainLogs(state: string[] = [], action: AnyAction) {
-    switch (action.type) {
-    case AdminTypes.RECEIVED_ALL_PLAIN_LOGS: {
-        return action.data;
-    }
-    case UserTypes.LOGOUT_SUCCESS:
-        return [];
-
-    default:
-        return state;
-    }
-}
-
 function plainLogs(state: string[] = [], action: AnyAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_PLAIN_LOGS: {
@@ -666,9 +653,6 @@ export default combineReducers({
 
     // array of LogObjects each representing a log entry (JSON)
     logs,
-
-    // array of strings each representing a log entry (legacy)
-    allPlainLogs,
 
     // array of strings each representing a log entry (legacy) with pagination
     plainLogs,

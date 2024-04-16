@@ -12,16 +12,17 @@ import type {
     LogServerNames,
 } from '@mattermost/types/admin';
 
+import {Client4} from 'mattermost-redux/client';
+
+import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import LogList from './log_list';
 import PlainLogList from './plain_log_list';
-import { Client4 } from 'mattermost-redux/client';
 
 type Props = {
     logs: LogObject[];
     plainLogs: string[];
-    allPlainLogs: string[];
     isPlainLogs: boolean;
     actions: {
         getLogs: (logFilter: LogFilter) => Promise<unknown>;
@@ -29,7 +30,6 @@ type Props = {
             page?: number | undefined,
             perPage?: number | undefined
         ) => Promise<unknown>;
-        getAllPlainLogs: () => Promise<unknown>;
     };
 };
 
@@ -158,16 +158,15 @@ export default class Logs extends React.PureComponent<Props, State> {
                             defaultMessage='Reload Logs'
                         />
                     </button>
-                    <a
+                    <ExternalLink
                         className='btn btn-primary'
                         href={Client4.getUrl() + '/api/v4/logs/download'}
-                        target='_blank'
                     >
                         <FormattedMessage
                             id='admin.logs.DownloadLogs'
                             defaultMessage='Download Logs'
                         />
-                    </a>
+                    </ExternalLink>
                 </div>
                 <PlainLogList
                     logs={this.props.plainLogs}
@@ -196,16 +195,15 @@ export default class Logs extends React.PureComponent<Props, State> {
                                 defaultMessage='Reload Logs'
                             />
                         </button>
-                        <a
+                        <ExternalLink
                             className='btn btn-primary'
                             href={Client4.getUrl() + '/api/v4/logs/download'}
-                            target='_blank'
                         >
                             <FormattedMessage
                                 id='admin.logs.DownloadLogs'
                                 defaultMessage='Download Logs'
                             />
-                        </a>
+                        </ExternalLink>
                     </div>
                 </div>
                 <LogList
