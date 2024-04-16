@@ -23,13 +23,13 @@ import (
 )
 
 type supervisor struct {
-	lock        sync.RWMutex
-	pluginID    string
-	appDriver   AppDriver
-	client      *plugin.Client
-	hooks       Hooks
-	implemented [TotalHooksID]bool
-	hooksClient *hooksRPCClient
+	lock         sync.RWMutex
+	pluginID     string
+	appDriver    AppDriver
+	client       *plugin.Client
+	hooks        Hooks
+	implemented  [TotalHooksID]bool
+	hooksClient  *hooksRPCClient
 	isReattached bool
 }
 
