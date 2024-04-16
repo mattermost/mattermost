@@ -87,7 +87,8 @@ func TestPostedAckHook_Process(t *testing.T) {
 	hook := &postedAckBroadcastHook{}
 	userID := model.NewId()
 	webConn := &platform.WebConn{
-		UserId: userID,
+		UserId:   userID,
+		Platform: &platform.PlatformService{},
 	}
 
 	t.Run("should ack if user is in the list of users to notify", func(t *testing.T) {
