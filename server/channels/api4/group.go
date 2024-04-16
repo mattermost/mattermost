@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 func (api *API) InitGroup() {
@@ -695,21 +696,10 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	appErr = licensedAndConfiguredForGroupBySource(c.App, group.Source)
+	appErr := hasPermissionToReadGroupMembers(c, c.Params.GroupId)
 	if appErr != nil {
 		appErr.Where = "Api4.getGroupMembers"
 		c.Err = appErr
-		return
-	}
-
-	if group.Source == model.GroupSourceLdap && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 		return
 	}
 
@@ -725,10 +715,7 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := json.Marshal(struct {
-		Members []*model.User `json:"members"`
-		Count   int           `json:"total_member_count"`
-	}{
+	b, err := json.Marshal(model.GroupMemberList{
 		Members: members,
 		Count:   count,
 	})
@@ -1374,6 +1361,26 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.Success()
 	w.Write(b)
+}
+
+// hasPermissionToReadGroupMembers check if a user has the permission to read the list of members of a given team.
+func hasPermissionToReadGroupMembers(c *web.Context, groupID string) *model.AppError {
+	group, err := c.App.GetGroup(groupID, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); lcErr != nil {
+		return lcErr
+	}
+
+	if group.Source == model.GroupSourceLdap && !group.AllowReference {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
+		}
+	}
+
+	return nil
 }
 
 // licensedAndConfiguredForGroupBySource returns an app error if not properly license or configured for the given group type. The returned app error

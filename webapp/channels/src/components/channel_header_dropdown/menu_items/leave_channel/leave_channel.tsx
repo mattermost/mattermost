@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo, useCallback} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -9,7 +10,6 @@ import LeaveChannelModal from 'components/leave_channel_modal';
 import Menu from 'components/widgets/menu/menu';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
 
@@ -36,22 +36,20 @@ interface Props extends PropsFromRedux {
     id?: string;
 }
 
-export default class LeaveChannel extends React.PureComponent<Props> {
-    static defaultProps = {
-        isDefault: true,
-        isGuestUser: false,
-    };
+const LeaveChannel = ({
+    isDefault = true,
+    isGuestUser = false,
+    channel,
+    actions: {
+        leaveChannel,
+        openModal,
+    },
+    id,
+}: Props) => {
+    const intl = useIntl();
 
-    handleLeave = (e: Event) => {
+    const handleLeave = useCallback((e: Event) => {
         e.preventDefault();
-
-        const {
-            channel,
-            actions: {
-                leaveChannel,
-                openModal,
-            },
-        } = this.props;
 
         if (channel.type === Constants.PRIVATE_CHANNEL) {
             openModal({
@@ -64,19 +62,17 @@ export default class LeaveChannel extends React.PureComponent<Props> {
         } else {
             leaveChannel(channel.id);
         }
-    };
+    }, [channel, leaveChannel, openModal]);
 
-    render() {
-        const {channel, isDefault, isGuestUser, id} = this.props;
+    return (
+        <Menu.ItemAction
+            id={id}
+            show={(!isDefault || isGuestUser) && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL}
+            onClick={handleLeave}
+            text={intl.formatMessage({id: 'channel_header.leave', defaultMessage: 'Leave Channel'})}
+            isDangerous={true}
+        />
+    );
+};
 
-        return (
-            <Menu.ItemAction
-                id={id}
-                show={(!isDefault || isGuestUser) && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL}
-                onClick={this.handleLeave}
-                text={localizeMessage('channel_header.leave', 'Leave Channel')}
-                isDangerous={true}
-            />
-        );
-    }
-}
+export default memo(LeaveChannel);

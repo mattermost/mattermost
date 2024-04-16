@@ -3049,3 +3049,16 @@ func TestRemoveNotifications(t *testing.T) {
 		require.Equal(t, int64(0), thread.UnreadReplies)
 	})
 }
+
+func TestShouldAckWebsocketNotification(t *testing.T) {
+	t.Run("should return true if channel notify level is ALL", func(t *testing.T) {
+		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyNone, model.ChannelNotifyAll))
+	})
+	t.Run("should return true if user notify level is ALL and the channel is unchanged", func(t *testing.T) {
+		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyAll, model.ChannelNotifyDefault))
+	})
+	t.Run("should return true if its a group channel, and the level is mention", func(t *testing.T) {
+		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyMention, model.ChannelNotifyDefault))
+		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyNone, model.ChannelNotifyMention))
+	})
+}
