@@ -34,7 +34,7 @@ func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
 	}
 
 	if a.shouldShowPostLimits() {
-		postCount, appErr := a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
+		postCount, appErr := a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true})
 		if appErr != nil {
 			mlog.Error("Failed to get post count from database", mlog.String("error", appErr.Error()))
 			return nil, model.NewAppError("GetServerLimits", "app.limits.get_server_limits.post_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)

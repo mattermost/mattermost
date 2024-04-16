@@ -154,7 +154,7 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(0), serverLimits.MaxUsersLimit)
 	})
 
-	t.Run("post count should increase on creating new post and NOT decrease on deleting post", func(t *testing.T) {
+	t.Run("post count should increase on creating new post and should decrease on deleting post", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -177,6 +177,6 @@ func TestGetServerLimits(t *testing.T) {
 
 		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(6), serverLimits.PostCount)
+		require.Equal(t, int64(5), serverLimits.PostCount)
 	})
 }
