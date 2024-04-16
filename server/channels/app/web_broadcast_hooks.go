@@ -86,7 +86,7 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	// This works since we currently do have an order for broadcast hooks, but this probably should be reworked going forward
 	if msg.Get("followers") != nil || msg.Get("mentions") != nil {
 		msg.Add("should_ack", true)
-		webConn.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket)
+		incrementWebsocketCounter(webConn)
 		return nil
 	}
 
@@ -108,7 +108,7 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	// Always ACK direct channels
 	if channelType == model.ChannelTypeDirect {
 		msg.Add("should_ack", true)
-		webConn.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket)
+		incrementWebsocketCounter(webConn)
 		return nil
 	}
 
@@ -119,10 +119,18 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 
 	if len(users) > 0 && slices.Contains(users, webConn.UserId) {
 		msg.Add("should_ack", true)
-		webConn.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket)
+		incrementWebsocketCounter(webConn)
 	}
 
 	return nil
+}
+
+func incrementWebsocketCounter(wc *platform.WebConn) {
+	if wc.Platform.Metrics() == nil {
+		return
+	}
+
+	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket)
 }
 
 // getTypedArg returns a correctly typed hook argument with the given key, reinterpreting the type using JSON encoding
