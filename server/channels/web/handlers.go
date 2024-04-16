@@ -430,9 +430,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				pageLoadContext = ""
 			}
 
-			originClient := string(originClient(r))
-
-			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, originClient, pageLoadContext, elapsed)
+			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, string(GetOriginClient(r)), pageLoadContext, elapsed)
 		}
 	}
 }
@@ -446,12 +444,12 @@ const (
 	OriginClientDesktop OriginClient = "desktop"
 )
 
-// originClient returns the device from which the provided request was issued. The algorithm roughly looks like:
+// GetOriginClient returns the device from which the provided request was issued. The algorithm roughly looks like:
 // - If the URL contains the query mobilev2=true, then it's mobile
 // - If the first field of the user agent starts with either "rnbeta" or "Mattermost", then it's mobile
 // - If the last field of the user agent starts with "Mattermost", then it's desktop
 // - Otherwise, it's web
-func originClient(r *http.Request) OriginClient {
+func GetOriginClient(r *http.Request) OriginClient {
 	userAgent := r.Header.Get("User-Agent")
 	fields := strings.Fields(userAgent)
 	if len(fields) < 1 {
