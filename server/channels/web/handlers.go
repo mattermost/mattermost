@@ -394,17 +394,16 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Block out detailed error when not in developer mode
 		if !*c.App.Config().ServiceSettings.EnableDeveloper {
-			c.Err.DetailedError = ""
+			c.Err.WipeDetailed()
 		}
 
 		// Sanitize all 5xx error messages in hardened mode
 		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err.StatusCode >= 500 {
 			c.Err.Id = ""
 			c.Err.Message = "Internal Server Error"
-			c.Err.DetailedError = ""
+			c.Err.WipeDetailed()
 			c.Err.StatusCode = 500
 			c.Err.Where = ""
-			c.Err.IsOAuth = false
 		}
 
 		if IsAPICall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthAPICall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {
@@ -431,9 +430,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				pageLoadContext = ""
 			}
 
-			originClient := string(originClient(r))
-
-			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, originClient, pageLoadContext, elapsed)
+			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, string(GetOriginClient(r)), pageLoadContext, elapsed)
 		}
 	}
 }
@@ -447,12 +444,12 @@ const (
 	OriginClientDesktop OriginClient = "desktop"
 )
 
-// originClient returns the device from which the provided request was issued. The algorithm roughly looks like:
+// GetOriginClient returns the device from which the provided request was issued. The algorithm roughly looks like:
 // - If the URL contains the query mobilev2=true, then it's mobile
 // - If the first field of the user agent starts with either "rnbeta" or "Mattermost", then it's mobile
 // - If the last field of the user agent starts with "Mattermost", then it's desktop
 // - Otherwise, it's web
-func originClient(r *http.Request) OriginClient {
+func GetOriginClient(r *http.Request) OriginClient {
 	userAgent := r.Header.Get("User-Agent")
 	fields := strings.Fields(userAgent)
 	if len(fields) < 1 {

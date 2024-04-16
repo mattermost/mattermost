@@ -45,7 +45,7 @@ export type Props = {
     onChange: (name: string, selected: string) => void;
     autoFocus?: boolean;
     actions: {
-        autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => (ActionResult | Promise<ActionResult | ActionResult[]>);
+        autocompleteActiveChannels: (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => (ActionResult | Promise<ActionResult | ActionResult[]>);
         autocompleteUsers: (search: string) => Promise<UserAutocomplete>;
     };
 }
@@ -66,7 +66,7 @@ export default class DialogElement extends React.PureComponent<Props, State> {
             if (props.dataSource === 'users') {
                 this.providers = [new GenericUserProvider(props.actions.autocompleteUsers)];
             } else if (props.dataSource === 'channels') {
-                this.providers = [new GenericChannelProvider(props.actions.autocompleteChannels)];
+                this.providers = [new GenericChannelProvider(props.actions.autocompleteActiveChannels)];
             } else if (props.options) {
                 this.providers = [new MenuActionProvider(props.options)];
             }
@@ -204,7 +204,7 @@ export default class DialogElement extends React.PureComponent<Props, State> {
                     label={displayNameContent}
                     value={boolValue || false}
                     helpText={helpTextContent}
-                    placeholder={placeholder}
+                    placeholder={placeholder || ''}
                     onChange={onChange}
                 />
             );

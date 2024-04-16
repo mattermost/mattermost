@@ -661,7 +661,8 @@ func HTTPGet(url string, httpClient *http.Client, authToken string, followRedire
 		}
 	}
 
-	if rp, err := httpClient.Do(rq); err != nil {
+	rp, err := httpClient.Do(rq)
+	if err != nil {
 		return nil, err
 	} else if rp.StatusCode == 304 {
 		return rp, nil
@@ -670,9 +671,8 @@ func HTTPGet(url string, httpClient *http.Client, authToken string, followRedire
 	} else if rp.StatusCode >= 300 {
 		defer closeBody(rp)
 		return rp, model.AppErrorFromJSON(rp.Body)
-	} else {
-		return rp, nil
 	}
+	return rp, nil
 }
 
 func closeBody(r *http.Response) {

@@ -94,6 +94,10 @@ type Params struct {
 	IncludeChannelMemberCount string
 	OutgoingOAuthConnectionID string
 
+	//Bookmarks
+	ChannelBookmarkId string
+	BookmarksSince    int64
+
 	// Cloud
 	InvoiceId string
 }
@@ -146,6 +150,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.RemoteId = props["remote_id"]
 	params.InvoiceId = props["invoice_id"]
 	params.OutgoingOAuthConnectionID = props["outgoing_oauth_connection_id"]
+	params.ChannelBookmarkId = props["bookmark_id"]
 	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
@@ -239,6 +244,12 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	params.FilterHasMember = query.Get("filter_has_member")
+
+	if val, err := strconv.ParseInt(query.Get("bookmarks_since"), 10, 64); err != nil || val < 0 {
+		params.BookmarksSince = 0
+	} else {
+		params.BookmarksSince = val
+	}
 
 	return params
 }

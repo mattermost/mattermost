@@ -1,0 +1,372 @@
+---
+name: E2E Tests Template
+on:
+  workflow_call:
+    inputs:
+      # NB: this does not support using branch names that belong to forks.
+      #     In those cases, you should specify directly the commit SHA that you want to test, or
+      #     some wrapper workflow that does it for you (e.g. the slash command for initiating a PR test)
+      commit_sha:
+        type: string
+        required: true
+      status_check_context:
+        type: string
+        required: true
+      workers_number:
+        type: string # Should ideally be a number; see https://github.com/orgs/community/discussions/67182
+        required: false
+        default: "1"
+      testcase_failure_fatal:
+        type: boolean
+        required: false
+        default: true
+      # NB: the following toggles will skip individual steps, rather than the whole jobs,
+      #     to let the dependent jobs run even if these are false
+      run_preflight_checks:
+        type: boolean
+        required: false
+        default: true
+      enable_reporting:
+        type: boolean
+        required: false
+        default: false
+      ENABLED_DOCKER_SERVICES:
+        type: string
+        required: false
+      TEST_FILTER:
+        type: string
+        required: false
+      MM_ENV:
+        type: string
+        required: false
+      BRANCH:
+        type: string
+        required: false
+      BUILD_ID:
+        type: string
+        required: false
+      REPORT_TYPE:
+        type: string
+        required: false
+    secrets:
+      MM_LICENSE:
+        required: false
+      AUTOMATION_DASHBOARD_URL:
+        required: false
+      AUTOMATION_DASHBOARD_TOKEN:
+        required: false
+      PUSH_NOTIFICATION_SERVER:
+        required: false
+      REPORT_WEBHOOK_URL:
+        required: false
+      REPORT_TM4J_API_KEY:
+        required: false
+      REPORT_TM4J_TEST_CYCLE_LINK_PREFIX:
+        required: false
+
+jobs:
+  update-initial-status:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha }}
+          context: ${{ inputs.status_check_context }}
+          description: E2E tests for mattermost server app
+          status: pending
+
+  cypress-check:
+    runs-on: ubuntu-22.04
+    needs:
+      - update-initial-status
+    defaults:
+      run:
+        working-directory: e2e-tests/cypress
+    steps:
+      - name: ci/checkout-repo
+        if: "${{ inputs.run_preflight_checks }}"
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        if: "${{ inputs.run_preflight_checks }}"
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        id: setup_node
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/cypress/npm-install
+        if: "${{ inputs.run_preflight_checks }}"
+        run: |
+          npm ci
+      - name: ci/cypress/npm-check
+        if: "${{ inputs.run_preflight_checks }}"
+        run: |
+          npm run check
+
+  playwright-check:
+    runs-on: ubuntu-22.04
+    needs:
+      - update-initial-status
+    defaults:
+      run:
+        working-directory: e2e-tests/playwright
+    steps:
+      - name: ci/checkout-repo
+        if: "${{ inputs.run_preflight_checks }}"
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        if: "${{ inputs.run_preflight_checks }}"
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        id: setup_node
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+      - name: ci/get-webapp-node-modules
+        if: "${{ inputs.run_preflight_checks }}"
+        working-directory: webapp
+        # requires build of client and types
+        run: |
+          make node_modules
+      - name: ci/playwright/npm-install
+        if: "${{ inputs.run_preflight_checks }}"
+        run: |
+          npm ci
+      - name: ci/playwright/npm-check
+        if: "${{ inputs.run_preflight_checks }}"
+        run: |
+          npm run check
+
+  generate-build-variables:
+    runs-on: ubuntu-22.04
+    needs:
+      - update-initial-status
+    outputs:
+      workers: "${{ steps.workers.outputs.workers }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/generate-workers
+        id: workers
+        env:
+          WORKERS: ${{ inputs.workers_number }}
+        run: |
+          [ "$WORKERS" -gt "0" ] # Assert that the workers number is an integer greater than 0
+          echo "workers="$(jq --slurp --compact-output '[range('"$WORKERS"')] | map(tostring)' /dev/null) >> $GITHUB_OUTPUT
+
+  generate-test-cycle:
+    runs-on: ubuntu-22.04
+    needs:
+      - update-initial-status
+    defaults:
+      run:
+        shell: bash
+        working-directory: e2e-tests
+    outputs:
+      status_check_url: "${{ steps.e2e-test-gencycle.outputs.status_check_url }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        id: setup_node
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/e2e-test-gencycle
+        id: e2e-test-gencycle
+        env:
+          AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
+          AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
+          BRANCH: "${{ inputs.BRANCH }}"
+          BUILD_ID: "${{ inputs.BUILD_ID }}"
+          TEST_FILTER: "${{ inputs.TEST_FILTER }}"
+        run: |
+          set -e -o pipefail
+          make generate-test-cycle | tee generate-test-cycle.out
+          # Extract cycle's dashboard URL, if present
+          TEST_CYCLE_ID=$(sed -nE "s/^.*id: '([^']+)'.*$/\1/p"  <generate-test-cycle.out)
+          if [ -n "$TEST_CYCLE_ID" ]; then
+            echo "status_check_url=https://automation-dashboard.vercel.app/cycles/${TEST_CYCLE_ID}" >> $GITHUB_OUTPUT
+          else
+            echo "status_check_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+          fi
+
+  test:
+    continue-on-error: true # Individual runner failures shouldn't prevent the completion of an E2E run
+    strategy:
+      fail-fast: false # Individual runner failures shouldn't prevent the completion of an E2E run
+      matrix:
+        #
+        # Note that E2E tests should be run only on ubuntu, for QA purposes.
+        # But it's useful to be able to run and debug the E2E tests for different OSes.
+        # Notes:
+        # - For MacOS: works on developer machines, but uses too many resources to be able to run on Github Actions
+        # - for Windows: cannot currently run on Github Actions, since the runners do not support running linux containers, at the moment
+        #
+        #os: [ubuntu-latest-8-cores, windows-2022, macos-12-xl]
+        os: [ubuntu-latest-8-cores]
+        worker_index: ${{ fromJSON(needs.generate-build-variables.outputs.workers) }} # https://docs.github.com/en/actions/learn-github-actions/expressions#example-returning-a-json-object
+    runs-on: "${{ matrix.os }}"
+    timeout-minutes: 60
+    needs:
+      - cypress-check
+      - playwright-check
+      - generate-build-variables
+      - generate-test-cycle
+    defaults:
+      run:
+        shell: bash
+        working-directory: e2e-tests
+    env:
+      AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
+      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
+      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
+      ENABLED_DOCKER_SERVICES: "${{ inputs.ENABLED_DOCKER_SERVICES }}"
+      TEST_FILTER: "${{ inputs.TEST_FILTER }}"
+      MM_ENV: "${{ inputs.MM_ENV }}"
+      BRANCH: "${{ inputs.BRANCH }}"
+      BUILD_ID: "${{ inputs.BUILD_ID }}"
+      CI_BASE_URL: "http://localhost:8065/?worker_index=${{ matrix.worker_index }}"
+      CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-macos-docker
+        if: runner.os == 'macos'
+        # https://github.com/actions/runner-images/issues/17#issuecomment-1537238473
+        run: |
+          brew install docker docker-compose
+          colima start
+          mkdir -p ~/.docker/cli-plugins
+          ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
+          sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
+      - name: ci/setup-node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        id: setup_node
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/e2e-test
+        run: |
+          make
+      - name: ci/e2e-test-store-results
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: e2e-test-results-${{ matrix.os }}-${{ matrix.worker_index }}
+          path: |
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
+
+  report:
+    runs-on: ubuntu-22.04
+    needs:
+      - test
+    defaults:
+      run:
+        shell: bash
+        working-directory: e2e-tests
+    outputs:
+      failures: "${{ steps.calculate-failures.outputs.failures }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/download-artifacts
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
+        with:
+          path: e2e-tests/cypress/
+          merge-multiple: true
+      - name: ci/report-calculate-failures
+        id: calculate-failures
+        run: |
+          FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
+          echo "failures=${FAILURES}" >> $GITHUB_OUTPUT
+          echo "Cypress run completed with $FAILURES failures"
+      - name: ci/e2e-test-assert-results
+        if: "${{ inputs.testcase_failure_fatal }}"
+        run: |
+          # Assert that the run contained 0 failures
+          [ "${{ steps.calculate-failures.outputs.failures }}" = "0" ]
+      - name: ci/setup-node
+        if: "${{ inputs.enable_reporting }}"
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        id: setup_node
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/publish-report
+        if: "${{ inputs.enable_reporting }}"
+        env:
+          TYPE: "${{ inputs.REPORT_TYPE }}"
+          WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
+          BRANCH: "${{ inputs.BRANCH }}"
+          BUILD_ID: "${{ inputs.BUILD_ID }}"
+          MM_ENV: "${{ inputs.MM_ENV }}"
+          TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
+          TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
+        run: |
+          make publish-report
+
+  update-failure-final-status:
+    runs-on: ubuntu-22.04
+    if: failure() || cancelled()
+    needs:
+      - generate-test-cycle
+      - test
+      - report
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha }}
+          context: ${{ inputs.status_check_context }}
+          description: |
+            Completed with ${{ needs.report.outputs.failures }} failures
+          status: failure
+          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
+
+  update-success-final-status:
+    runs-on: ubuntu-22.04
+    if: success()
+    needs:
+      - generate-test-cycle
+      - test
+      - report
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha }}
+          context: ${{ inputs.status_check_context }}
+          description: |
+            Completed with ${{ needs.report.outputs.failures }} failures
+          status: success
+          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"

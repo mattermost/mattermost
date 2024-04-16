@@ -50,6 +50,9 @@ type MetricsInterface interface {
 	DecrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
 	IncrementWebsocketReconnectEvent(eventType string)
 
+	IncrementHTTPWebSockets(originClient string)
+	DecrementHTTPWebSockets(originClient string)
+
 	AddMemCacheHitCounter(cacheName string, amount float64)
 	AddMemCacheMissCounter(cacheName string, amount float64)
 

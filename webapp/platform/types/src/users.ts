@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Audit} from './audits';
-import {Channel} from './channels';
-import {Group} from './groups';
-import {Session} from './sessions';
-import {Team} from './teams';
-import {IDMappedObjects, RelationOneToMany, RelationOneToManyUnique, RelationOneToOne} from './utilities';
+import type {Audit} from './audits';
+import type {Channel} from './channels';
+import type {Group} from './groups';
+import type {Session} from './sessions';
+import type {Team} from './teams';
+import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from './utilities';
 
 export type UserNotifyProps = {
     desktop: 'default' | 'all' | 'mention' | 'none';
@@ -82,6 +82,7 @@ export type UsersState = {
     filteredStats: Partial<UsersStats>;
     myUserAccessTokens: Record<string, UserAccessToken>;
     lastActivity: RelationOneToOne<UserProfile, number>;
+    dndEndTimes: RelationOneToOne<UserProfile, number>;
 };
 
 export type UserTimezone = {

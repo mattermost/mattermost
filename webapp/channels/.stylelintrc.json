@@ -1,7 +1,13 @@
 {
-    "extends": ["stylelint-config-recommended", "stylelint-config-standard", "stylelint-config-idiomatic-order", "stylelint-config-recommended-scss"],
+    "extends": [
+        "stylelint-config-idiomatic-order",
+        "stylelint-config-recommended-scss"
+    ],
+    "plugins": [
+        "@stylistic/stylelint-plugin"
+    ],
     "rules": {
-        "indentation": 4,
+        "@stylistic/indentation": 4,
         "no-descending-specificity": null,
         "font-family-no-missing-generic-family-keyword": null,
         "property-no-unknown": [
@@ -15,6 +21,8 @@
             {
                 "ignore": ["comments"]
             }
-        ]
+        ],
+        "scss/load-no-partial-leading-underscore": null,
+        "scss/at-extend-no-missing-placeholder": null
     }
 }

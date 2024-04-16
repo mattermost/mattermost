@@ -6,19 +6,21 @@ import type {ComponentProps} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
-export function getStringOrDescriptorComponent(v: string | MessageDescriptor | undefined, values?: ComponentProps<typeof FormattedMessage>['values']) {
+import {isMessageDescriptor} from 'utils/i18n';
+
+export function getAsFormattedMessage(v: string | MessageDescriptor | React.ReactElement | undefined, values?: ComponentProps<typeof FormattedMessage>['values']) {
     if (!v) {
         return undefined;
     }
 
-    if (typeof v === 'string') {
-        return v;
+    if (isMessageDescriptor(v)) {
+        return (
+            <FormattedMessage
+                {...v}
+                values={values}
+            />
+        );
     }
 
-    return (
-        <FormattedMessage
-            {...v}
-            values={values}
-        />
-    );
+    return v;
 }

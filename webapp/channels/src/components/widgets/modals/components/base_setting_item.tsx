@@ -16,8 +16,8 @@ type ExtendedMessageDescriptor = MessageDescriptor & {
 };
 
 export type BaseSettingItemProps = {
-    title?: ExtendedMessageDescriptor;
-    description?: ExtendedMessageDescriptor;
+    title?: string;
+    description?: string;
     error?: ExtendedMessageDescriptor;
 };
 
@@ -29,21 +29,22 @@ type Props = BaseSettingItemProps & {
 
 function BaseSettingItem({title, description, content, className, error, descriptionAboveContent = false}: Props): JSX.Element {
     const {formatMessage} = useIntl();
-    const Title = title && (
+
+    const titleComponent = title && (
         <h4
             data-testid='mm-modal-generic-section-item__title'
             className='mm-modal-generic-section-item__title'
         >
-            {formatMessage({id: title.id, defaultMessage: title.defaultMessage}, title.values)}
+            {title}
         </h4>
     );
 
-    const Description = description && (
+    const descriptionComponent = description && (
         <p
             data-testid='mm-modal-generic-section-item__description'
             className='mm-modal-generic-section-item__description'
         >
-            {formatMessage({id: description.id, defaultMessage: description.defaultMessage}, description.values)}
+            {description}
         </p>
     );
 
@@ -57,19 +58,17 @@ function BaseSettingItem({title, description, content, className, error, descrip
         </div>
     );
 
-    const getClassName = classNames('mm-modal-generic-section-item', className);
-
     return (
-        <div className={getClassName}>
-            {Title}
-            {descriptionAboveContent ? Description : undefined}
+        <div className={classNames('mm-modal-generic-section-item', className)}>
+            {titleComponent}
+            {descriptionAboveContent ? descriptionComponent : undefined}
             <div
                 data-testid='mm-modal-generic-section-item__content'
                 className='mm-modal-generic-section-item__content'
             >
                 {content}
             </div>
-            {descriptionAboveContent ? undefined : Description}
+            {descriptionAboveContent ? undefined : descriptionComponent}
             {Error}
         </div>
     );
