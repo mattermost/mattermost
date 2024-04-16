@@ -430,5 +430,193 @@
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
     "translation": "Ugyldig certifikat tekst."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Din licens giver ikke adgang til bogmærker i kanaler."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Det er ikke tilladt for brugeren at lave bogmærker i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke lave bogmærke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke lave bogmærke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunne ikke slette bogmærket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke slette bogmærket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke slette bogmærket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunne ikke opdatere bogmærket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke opdatere bogmærket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke opdatere bogmærket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunne ikke opdatere sorteringsrækkefølgen af bogmærker i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke opdatere sorteringsrækkefølgen af bogmærker i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Kunne ikke opdatere sorteringsrækkefølgen af bogmærker i kanalen."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "En direkte kanal kan ikke oprettes mellem disse brugere, da de ikke er i fælles team."
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Kan ikke oprette mere end {{.MaxChannelsPerTeam}} kanaler for det aktuelle team."
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "Irrelevant"
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "Torv"
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "Ugyldigt bruger ID til at oprette direkte kanaler."
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "Kanalen er blevet arkiveret eller slettet."
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Kan ikke fjerne en bruger fra en kanal med gruppemedlemsskab."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Følgende brugere kunne ikke fjernes fra kanalen på grund af grupperestriktioner: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Du kan ikke omdøbe en kanal til direkte beskeder."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Du kan ikke omdøbe en kanal til gruppebeskeder."
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "Kan ikke afarkivere kanalen. Kanalen er ikke arkiveret."
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} afarkiverede kanalen."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Ugyldig opdatering af kanalmedlem: En bruger skal være gæst eller bruger, men ikke begge dele."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Du kan ikke fjerne en bekræftelse i en arkiveret kanal."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Du kan ikke slette en bekræftelse efter 5 min."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Du kan ikke bekræfte i en arkiveret kanal."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "kunne ikke tilføje en bruger til group-teams og group-channels"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "Det er nødvendigt at bruge createDirectChannel API tjenesten, for at oprette kanaler til direkte beskeder."
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v har arkiveret kanalen."
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "Kan ikke fjerne standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Kanaler til gruppemeddelelser skal indeholde mindst 3 og højest 8 brugere."
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "En af de angivne brugere eksisterer ikke."
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "Forsøgte at udføre en ugyldig opdatering af standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "Kanalen er blevet arkiveret eller slettet."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Kanaltypen kan ikke opdateres."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Du har ikke tilladelse til at opdatere navn, visningsnavn og formål med direkte beskeder eller gruppebeskeder."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Ugyldig opdatering af kanalmedlem: Du kan ikke tilføje eller fjerne gæsterollen manuelt."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Ugyldig opdatering af kanalmedlem: En gæst kan ikke blive teammedlem eller teamadministrator, gør venligst gæsten til bruger først."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "Rollen administreres af et skema og kan derfor ikke anvendes direkte på et kanalmedlem."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Ugyldig opdatering af kanalmedlem: En gæst kan ikke gøres ansvarlig for en kanal. En systemadministrator skal først gøre gæsten til bruger."
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "Standardkanalen kan ikke gøres privat."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "Din licens tillader ikke opdatering af kanalens skema"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "Kan ikke indstille skemaet til kanalen, fordi det medfølgende skema ikke er et kanalskema."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Ugyldig opdatering af teammedlem: Du kan ikke tilføje eller fjerne gæsterollen manuelt."
   }
 ]

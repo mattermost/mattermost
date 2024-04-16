@@ -308,6 +308,14 @@
     "translation": "Unable to create more than {{.MaxChannelsPerTeam}} channels for current team."
   },
   {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Missing display_name in request body"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Missing team_id in request body"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "Off-Topic"
   },
@@ -4059,6 +4067,14 @@
     "translation": "not an ldap user"
   },
   {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Authentication Transfer is not available as email signup is disabled."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Authentication Transfer is not available as neither email login nor username login is enabled."
+  },
+  {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
     "translation": "Bad response from token request."
   },
@@ -4605,6 +4621,10 @@
   {
     "id": "api.websocket_handler.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Failed to parse request"
   },
   {
     "id": "app.acknowledgement.delete.app_error",
@@ -6281,6 +6301,10 @@
   {
     "id": "app.plugin.not_installed.app_error",
     "translation": "Plugin is not installed."
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Failed to reattach plugin"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -10133,6 +10157,14 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Missing TO address."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Missing manifest"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Missing plugin reattach config"
   },
   {
     "id": "searchengine.bleve.disabled.error",

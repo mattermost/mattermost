@@ -284,3 +284,10 @@ func (hooks *hooksTimerLayer) OnSharedChannelsProfileImageSyncMsg(user *model.Us
 	hooks.recordTime(startTime, "OnSharedChannelsProfileImageSyncMsg", _returnsA == nil)
 	return _returnsA
 }
+
+func (hooks *hooksTimerLayer) GenerateSupportData(c *Context) ([]*model.FileData, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.GenerateSupportData(c)
+	hooks.recordTime(startTime, "GenerateSupportData", _returnsB == nil)
+	return _returnsA, _returnsB
+}
