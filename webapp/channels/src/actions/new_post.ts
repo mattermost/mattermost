@@ -28,6 +28,7 @@ import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 import {updateThreadLastOpened} from 'actions/views/threads';
 import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
+import WebSocketClient from 'client/web_websocket_client';
 import {ActionTypes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -35,6 +36,7 @@ import type {GlobalState} from 'types/store';
 export type NewPostMessageProps = {
     mentions: string[];
     team_id: string;
+    should_ack: boolean;
 }
 
 export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): ActionFuncAsync<boolean, GlobalState> {
@@ -65,7 +67,8 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
             PostActions.receivedNewPost(post, collapsedThreadsEnabled),
         );
 
-        const isCRTReplyByCurrentUser = isCRTReply && post.user_id === getCurrentUserId(state);
+        const currentUserId = getCurrentUserId(state);
+        const isCRTReplyByCurrentUser = isCRTReply && post.user_id === currentUserId;
         if (!isCRTReplyByCurrentUser) {
             actions.push(
                 ...setChannelReadAndViewed(dispatch, getState, post as Post, websocketMessageProps, fetchedChannelMember),
@@ -77,7 +80,12 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
             dispatch(setThreadRead(post));
         }
 
-        dispatch(sendDesktopNotification(post, websocketMessageProps));
+        const {result, reason, data} = await dispatch(sendDesktopNotification(post, websocketMessageProps));
+
+        // Only ACK for posts that require it
+        if (websocketMessageProps.should_ack) {
+            WebSocketClient.acknowledgePostedNotification(post.id, result, reason, data);
+        }
 
         return {data: true};
     };
