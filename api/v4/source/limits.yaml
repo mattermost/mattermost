@@ -1,16 +1,16 @@
-  /api/v4/limits/app:
+  /api/v4/limits/server:
     get:
       tags:
         - users
-      summary: Gets the app limits for the server
+      summary: Gets the server limits for the server
       description: >
-        Gets the app limits for the server
+        Gets the server limits for the server
 
         ##### Permissions
 
         Requires `sysconsole_read_user_management_users`.
 
-      operationId: GetAppLimits
+      operationId: GetServerLimits
       responses:
         "200":
           description: App limits for server
@@ -19,7 +19,7 @@
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/AppLimits"
+                  $ref: "#/components/schemas/ServerLimits"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

@@ -5133,9 +5133,9 @@ func (a *OpenTracingAppLayer) GetAnalyticsForSupportPacket(rctx request.CTX) (mo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAppLimits() (*model.AppLimits, *model.AppError) {
+func (a *OpenTracingAppLayer) GetServerLimits() (*model.ServerLimits, *model.AppError) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAppLimits")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetServerLimits")
 
 	a.ctx = newCtx
 	a.app.Srv().Store().SetContext(newCtx)
@@ -5145,7 +5145,7 @@ func (a *OpenTracingAppLayer) GetAppLimits() (*model.AppLimits, *model.AppError)
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAppLimits()
+	resultVar0, resultVar1 := a.app.GetServerLimits()
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

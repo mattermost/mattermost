@@ -36,7 +36,7 @@ const state: GlobalState = {
             dndEndTimes: {},
         },
         limits: {
-            usersLimits: {
+            serverLimits: {
                 activeUserCount: 0,
                 maxUsersLimit: 0,
                 postCount: 0,

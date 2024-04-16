@@ -22,15 +22,15 @@ type Props = {
 const learnMoreExternalLink = 'https://mattermost.com/pl/error-code-error-safety-limits-exceeded';
 
 function PostLimitsAnnouncementBar(props: Props) {
-    const appLimits = useSelector(getUsersLimits);
+    const serverLimits = useSelector(getUsersLimits);
 
     const handleCTAClick = useCallback(() => {
         window.open(learnMoreExternalLink, '_blank');
     }, []);
 
     const isLicensed = props?.license?.IsLicensed === 'true';
-    const maxPostLimit = appLimits?.maxPostLimit ?? 0;
-    const postCount = appLimits?.postCount ?? 0;
+    const maxPostLimit = serverLimits?.maxPostLimit ?? 0;
+    const postCount = serverLimits?.postCount ?? 0;
 
     if (!shouldShowPostLimitsAnnouncementBar({userIsAdmin: props.userIsAdmin, isLicensed, maxPostLimit, postCount})) {
         return null;

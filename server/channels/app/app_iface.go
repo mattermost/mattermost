@@ -633,7 +633,7 @@ type AppIface interface {
 	GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSearch) (*model.TeamsWithCount, *model.AppError)
 	GetAnalytics(rctx request.CTX, name string, teamID string) (model.AnalyticsRows, *model.AppError)
 	GetAnalyticsForSupportPacket(rctx request.CTX) (model.AnalyticsRows, *model.AppError)
-	GetAppLimits() (*model.AppLimits, *model.AppError)
+	GetServerLimits() (*model.ServerLimits, *model.AppError)
 	GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError)
 	GetAudits(rctx request.CTX, userID string, limit int) (model.Audits, *model.AppError)
 	GetAuditsPage(rctx request.CTX, userID string, page int, perPage int) (model.Audits, *model.AppError)

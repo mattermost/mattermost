@@ -18,14 +18,14 @@ const (
 	maxPostLimit = 5_000_000
 )
 
-func (a *App) GetAppLimits() (*model.AppLimits, *model.AppError) {
-	var limits = &model.AppLimits{}
+func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
+	var limits = &model.ServerLimits{}
 
 	if a.shouldShowUserLimits() {
 		activeUserCount, appErr := a.Srv().Store().User().Count(model.UserCountOptions{})
 		if appErr != nil {
 			mlog.Error("Failed to get active user count from database", mlog.String("error", appErr.Error()))
-			return nil, model.NewAppError("GetAppLimits", "app.limits.get_app_limits.user_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+			return nil, model.NewAppError("GetServerLimits", "app.limits.get_app_limits.user_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
 
 		limits.ActiveUserCount = activeUserCount
@@ -37,7 +37,7 @@ func (a *App) GetAppLimits() (*model.AppLimits, *model.AppError) {
 		postCount, appErr := a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
 		if appErr != nil {
 			mlog.Error("Failed to get post count from database", mlog.String("error", appErr.Error()))
-			return nil, model.NewAppError("GetAppLimits", "app.limits.get_app_limits.post_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+			return nil, model.NewAppError("GetServerLimits", "app.limits.get_server_limits.post_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
 
 		limits.MaxPostLimit = maxPostLimit
@@ -64,7 +64,7 @@ func (a *App) shouldShowPostLimits() bool {
 }
 
 func (a *App) isHardUserLimitExceeded() (bool, *model.AppError) {
-	userLimits, appErr := a.GetAppLimits()
+	userLimits, appErr := a.GetServerLimits()
 	if appErr != nil {
 		return false, appErr
 	}

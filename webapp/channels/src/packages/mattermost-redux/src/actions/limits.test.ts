@@ -62,12 +62,12 @@ describe('getUsersLimits', () => {
             },
         });
 
-        const {data} = await store.dispatch(Actions.getAppLimits());
+        const {data} = await store.dispatch(Actions.getServerLimits());
         expect(data).toEqual(defaultUserLimitsState);
     });
 
     test('should not return default state for non admin users', async () => {
-        const {data} = await store.dispatch(Actions.getAppLimits());
+        const {data} = await store.dispatch(Actions.getServerLimits());
         expect(data).not.toEqual(defaultUserLimitsState);
     });
 
@@ -81,7 +81,7 @@ describe('getUsersLimits', () => {
             get(URL_USERS_LIMITS).
             reply(200, userLimits);
 
-        const {data} = await store.dispatch(Actions.getAppLimits());
+        const {data} = await store.dispatch(Actions.getServerLimits());
         expect(data).toEqual(userLimits);
     });
 
@@ -91,7 +91,7 @@ describe('getUsersLimits', () => {
             get(URL_USERS_LIMITS).
             reply(400, {message: errorMessage});
 
-        const {error} = await store.dispatch(Actions.getAppLimits());
+        const {error} = await store.dispatch(Actions.getServerLimits());
         console.log(error);
         expect(error.message).toEqual(errorMessage);
     });

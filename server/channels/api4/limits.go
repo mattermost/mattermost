@@ -13,22 +13,22 @@ import (
 )
 
 func (api *API) InitLimits() {
-	api.BaseRoutes.Limits.Handle("/app", api.APISessionRequired(getAppLimits)).Methods("GET")
+	api.BaseRoutes.Limits.Handle("/server", api.APISessionRequired(getServerLimits)).Methods("GET")
 }
 
-func getAppLimits(c *Context, w http.ResponseWriter, r *http.Request) {
+func getServerLimits(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !(c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
 		return
 	}
 
-	appLimits, err := c.App.GetAppLimits()
+	serverLimits, err := c.App.GetServerLimits()
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(appLimits); err != nil {
-		c.Logger.Error("Error writing app limits response", mlog.Err(err))
+	if err := json.NewEncoder(w).Encode(serverLimits); err != nil {
+		c.Logger.Error("Error writing server limits response", mlog.Err(err))
 	}
 }
