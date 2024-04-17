@@ -33,7 +33,7 @@ exports[`components/RhsThread should match snapshot 1`] = `
     fromSuppressed={false}
     isThreadView={false}
     rootPostId="id"
-    useRelativeTimestamp={false}
+    useRelativeTimestamp={true}
   />
 </div>
 `;

@@ -7352,6 +7352,36 @@ func (c *Client4) InstallMarketplacePlugin(ctx context.Context, request *Install
 	return &m, BuildResponse(r), nil
 }
 
+// ReattachPlugin asks the server to reattach to a plugin launched by another process.
+//
+// Only available in local mode, and currently only used for testing.
+func (c *Client4) ReattachPlugin(ctx context.Context, request *PluginReattachRequest) (*Response, error) {
+	buf, err := json.Marshal(request)
+	if err != nil {
+		return nil, NewAppError("ReattachPlugin", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPost(ctx, c.pluginsRoute()+"/reattach", string(buf))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
+// DetachPlugin detaches a previously reattached plugin.
+//
+// Only available in local mode, and currently only used for testing.
+func (c *Client4) DetachPlugin(ctx context.Context, pluginID string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.pluginRoute(pluginID)+"/detach", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
 // GetPlugins will return a list of plugin manifests for currently active plugins.
 func (c *Client4) GetPlugins(ctx context.Context) (*PluginsResponse, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.pluginsRoute(), "")
@@ -7658,6 +7688,19 @@ func (c *Client4) PatchGroup(ctx context.Context, groupID string, patch *GroupPa
 		return nil, nil, NewAppError("PatchGroup", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &g, BuildResponse(r), nil
+}
+
+func (c *Client4) GetGroupMembers(ctx context.Context, groupID string) (*GroupMemberList, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.groupRoute(groupID)+"/members", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var ml GroupMemberList
+	if err := json.NewDecoder(r.Body).Decode(&ml); err != nil {
+		return nil, nil, NewAppError("UpsertGroupMembers", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &ml, BuildResponse(r), nil
 }
 
 func (c *Client4) UpsertGroupMembers(ctx context.Context, groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
