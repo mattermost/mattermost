@@ -517,7 +517,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         } else if (setting.multiple) {
             value = this.state[setting.key] ? this.state[setting.key].join(',') : '';
         } else {
-            value = this.state[setting.key] || setting.default || '';
+            value = this.state[setting.key] ?? (setting.default || '');
         }
 
         let footer = null;

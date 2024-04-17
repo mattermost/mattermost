@@ -8,6 +8,7 @@ import type {OAuthApp} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
+import Constants from 'utils/constants';
 import type * as Utils from 'utils/utils';
 
 import {SecurityTab} from './user_settings_security';
@@ -37,7 +38,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         },
         canUseAccessTokens: true,
         enableOAuthServiceProvider: false,
-        enableSignUpWithEmail: true,
+        allowedToSwitchToEmail: true,
         enableSignUpWithGitLab: false,
         enableSignUpWithGoogle: true,
         enableSignUpWithOpenId: false,
@@ -75,6 +76,18 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
     test('should match snapshot, enable openID', () => {
         const props = {...requiredProps, enableSignUpWithGoogle: false, enableSaml: false, enableSignUpWithOpenId: true};
+
+        const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, to email', () => {
+        const user = {
+            id: 'user_id',
+            auth_service: Constants.OPENID_SERVICE,
+        };
+
+        const props = {...requiredProps, user: user as UserProfile};
 
         const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
         expect(wrapper).toMatchSnapshot();
