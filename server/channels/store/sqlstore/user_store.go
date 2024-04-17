@@ -1613,6 +1613,8 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 			}
 			termArgs = append(termArgs, fmt.Sprintf("%%%s%%", strings.TrimLeft(term, "@")))
 		}
+		searchFields = append(searchFields, "Id = ?")
+		termArgs = append(termArgs, strings.TrimLeft(term, "@"))
 		query = query.Where(fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")), termArgs...)
 	}
 

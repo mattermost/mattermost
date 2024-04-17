@@ -129,6 +129,8 @@ type AppIface interface {
 	// DemoteUserToGuest Convert user's roles and all his membership's roles from
 	// regular user roles to guest roles.
 	DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
+	// DetachPlugin allows the server to bind to an existing plugin instance launched elsewhere.
+	DetachPlugin(pluginId string) *model.AppError
 	// DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 	// Notifies cluster peers through config change.
 	DisablePlugin(id string) *model.AppError
@@ -303,6 +305,8 @@ type AppIface interface {
 	// PromoteGuestToUser Convert user's roles and all his membership's roles from
 	// guest roles to regular user roles.
 	PromoteGuestToUser(c request.CTX, user *model.User, requestorId string) *model.AppError
+	// ReattachPlugin allows the server to bind to an existing plugin instance launched elsewhere.
+	ReattachPlugin(manifest *model.Manifest, pluginReattachConfig *model.PluginReattachConfig) *model.AppError
 	// Removes a listener function by the unique ID returned when AddConfigListener was called
 	RemoveConfigListener(id string)
 	// RenameChannel is used to rename the channel Name and the DisplayName fields
@@ -543,7 +547,7 @@ type AppIface interface {
 	CreateUserFromSignup(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError)
 	CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, redirect string) (*model.User, *model.AppError)
 	CreateUserWithToken(c request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError)
-	CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError)
+	CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string, priority *model.PostPriority) (*model.Post, *model.AppError)
 	DBHealthCheckDelete() error
 	DBHealthCheckWrite() error
 	DataRetention() einterfaces.DataRetentionInterface
@@ -614,7 +618,7 @@ type AppIface interface {
 	GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError)
 	GeneratePresignURLForExport(name string) (*model.PresignURLResponse, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
-	GenerateSupportPacket(c request.CTX) []model.FileData
+	GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData
 	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
 	GetAcknowledgementsForPostList(postList *model.PostList) (map[string][]*model.PostAcknowledgement, *model.AppError)
 	GetActivePluginManifests() ([]*model.Manifest, *model.AppError)
@@ -628,6 +632,7 @@ type AppIface interface {
 	GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError)
 	GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSearch) (*model.TeamsWithCount, *model.AppError)
 	GetAnalytics(rctx request.CTX, name string, teamID string) (model.AnalyticsRows, *model.AppError)
+	GetAnalyticsForSupportPacket(rctx request.CTX) (model.AnalyticsRows, *model.AppError)
 	GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError)
 	GetAudits(rctx request.CTX, userID string, limit int) (model.Audits, *model.AppError)
 	GetAuditsPage(rctx request.CTX, userID string, page int, perPage int) (model.Audits, *model.AppError)

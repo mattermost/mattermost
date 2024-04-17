@@ -240,7 +240,7 @@ func fetchAndComplete[T any](f fetcher[T], m matcher[T]) validateArgsFn {
 
 		var page int
 		for {
-			entities, _, err := f(ctx, c, page, perPage)
+			entities, _, err := f(ctx, c, page, DefaultPageSize)
 			if err != nil {
 				// Return what we got so far
 				return res, cobra.ShellCompDirectiveNoFileComp
@@ -262,7 +262,7 @@ func fetchAndComplete[T any](f fetcher[T], m matcher[T]) validateArgsFn {
 				break
 			}
 
-			if len(entities) < perPage {
+			if len(entities) < DefaultPageSize {
 				break
 			}
 
