@@ -67,7 +67,7 @@ type MetricsInterfaceImpl struct {
 
 	HTTPRequestsCounter prometheus.Counter
 	HTTPErrorsCounter   prometheus.Counter
-	HTTPWebsocketsGauge prometheus.GaugeFunc
+	HTTPWebsocketsGauge *prometheus.GaugeVec
 
 	ClusterRequestsDuration prometheus.Histogram
 	ClusterRequestsCounter  prometheus.Counter
@@ -375,13 +375,13 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 
 	// HTTP Subsystem
 
-	m.HTTPWebsocketsGauge = prometheus.NewGaugeFunc(prometheus.GaugeOpts{
+	m.HTTPWebsocketsGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace:   MetricsNamespace,
 		Subsystem:   MetricsSubsystemHTTP,
 		Name:        "websockets_total",
 		Help:        "The total number of websocket connections to this server.",
 		ConstLabels: additionalLabels,
-	}, func() float64 { return float64(m.Platform.TotalWebsocketConnections()) })
+	}, []string{"origin_client"})
 	m.Registry.MustRegister(m.HTTPWebsocketsGauge)
 
 	m.HTTPRequestsCounter = prometheus.NewCounter(prometheus.CounterOpts{
@@ -1553,6 +1553,15 @@ func (mi *MetricsInterfaceImpl) IncrementNotificationErrorCounter(notificationTy
 
 func (mi *MetricsInterfaceImpl) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
 	mi.NotificationNotSentCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason)}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementHTTPWebSockets(originClient string) {
+	mi.HTTPWebsocketsGauge.With(prometheus.Labels{"origin_client": originClient}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) DecrementHTTPWebSockets(originClient string) {
+	mi.HTTPWebsocketsGauge.With(prometheus.Labels{"origin_client": originClient}).Dec()
+
 }
 
 func extractDBCluster(driver, connectionString string) (string, error) {
