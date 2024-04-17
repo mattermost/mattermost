@@ -651,7 +651,7 @@ func (a *App) getAddExperimentalSubsectionPermissions() (permissionsMap, error) 
 	// Give the ancillary permissions MANAGE_JOBS and PURGE_BLEVE_INDEXES to anyone with WRITE_EXPERIMENTAL_BLEVE
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(model.PermissionSysconsoleWriteExperimentalBleve.Id),
-		Add: []string{model.PermissionCreatePostBleveIndexesJob.Id, model.PermissionPurgeBleveIndexes.Id},
+		Add: []string{model.PermissionCreatePostBleveIndexesJob.Id, model.PermissionPurgeBleveIndexes.Id, model.PermissionManagePostBleveIndexesJob.Id},
 	})
 
 	return transformations, nil
@@ -726,7 +726,7 @@ func (a *App) getAddComplianceSubsectionPermissions() (permissionsMap, error) {
 	// Ancillary permissions
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id),
-		Add: []string{model.PermissionCreateDataRetentionJob.Id},
+		Add: []string{model.PermissionCreateDataRetentionJob.Id, model.PermissionManageDataRetentionJob.Id},
 	})
 
 	transformations = append(transformations, permissionTransformation{
@@ -736,7 +736,7 @@ func (a *App) getAddComplianceSubsectionPermissions() (permissionsMap, error) {
 
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(model.PermissionSysconsoleWriteComplianceComplianceExport.Id),
-		Add: []string{model.PermissionCreateComplianceExportJob.Id, model.PermissionDownloadComplianceExportResult.Id},
+		Add: []string{model.PermissionCreateComplianceExportJob.Id, model.PermissionManageComplianceExportJob.Id, model.PermissionDownloadComplianceExportResult.Id},
 	})
 
 	transformations = append(transformations, permissionTransformation{
@@ -829,7 +829,9 @@ func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
 		Add: []string{
 			model.PermissionTestElasticsearch.Id,
 			model.PermissionCreateElasticsearchPostIndexingJob.Id,
+			model.PermissionManageElasticsearchPostIndexingJob.Id,
 			model.PermissionCreateElasticsearchPostAggregationJob.Id,
+			model.PermissionManageElasticsearchPostAggregationJob.Id,
 			model.PermissionPurgeElasticsearchIndexes.Id,
 		},
 	})
@@ -934,7 +936,7 @@ func (a *App) getAddAuthenticationSubsectionPermissions() (permissionsMap, error
 	// Give the ancillary permissions for LDAP to anyone with WRITE_AUTHENTICATION_LDAP
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(model.PermissionSysconsoleWriteAuthenticationLdap.Id),
-		Add: []string{model.PermissionCreateLdapSyncJob.Id, model.PermissionTestLdap.Id, model.PermissionAddLdapPublicCert.Id, model.PermissionAddLdapPrivateCert.Id, model.PermissionRemoveLdapPublicCert.Id, model.PermissionRemoveLdapPrivateCert.Id},
+		Add: []string{model.PermissionCreateLdapSyncJob.Id, model.PermissionManageLdapSyncJob.Id, model.PermissionTestLdap.Id, model.PermissionAddLdapPublicCert.Id, model.PermissionAddLdapPrivateCert.Id, model.PermissionRemoveLdapPublicCert.Id, model.PermissionRemoveLdapPrivateCert.Id},
 	})
 
 	// Give the ancillary permissions PERMISSION_TEST_LDAP to anyone with READ_AUTHENTICATION_LDAP

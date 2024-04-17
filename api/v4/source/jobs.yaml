@@ -26,6 +26,16 @@
           schema:
             type: integer
             default: 60
+        - name: job_type
+          in: query
+          description: The type of jobs to fetch.
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: The status of jobs to fetch.
+          schema:
+            type: string
       responses:
         "200":
           description: Job list retrieval successful

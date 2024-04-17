@@ -158,7 +158,7 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobsByType(context.TODO(), model.JobTypeImportProcess, 0, perPage).
+			GetJobs(context.TODO(), 0, perPage, model.JobTypeImportProcess, "").
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -191,7 +191,7 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobsByType(context.TODO(), model.JobTypeImportProcess, 0, perPage).
+			GetJobs(context.TODO(), 0, perPage, model.JobTypeImportProcess, "").
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
