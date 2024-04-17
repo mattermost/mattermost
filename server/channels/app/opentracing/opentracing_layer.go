@@ -166,7 +166,7 @@ func (a *OpenTracingAppLayer) AddConfigListener(listener func(*model.Config, *mo
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) AddCursorIdsForPostList(originalList *model.PostList, afterPost string, beforePost string, since int64, page int, perPage int, collapsedThreads bool) {
+func (a *OpenTracingAppLayer) AddCursorIdsForPostList(originalList *model.PostList, afterPost string, beforePost string, since int64, page int, perPage int, collapsedThreads bool, excludeTypes []string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddCursorIdsForPostList")
 
@@ -178,7 +178,7 @@ func (a *OpenTracingAppLayer) AddCursorIdsForPostList(originalList *model.PostLi
 	}()
 
 	defer span.Finish()
-	a.app.AddCursorIdsForPostList(originalList, afterPost, beforePost, since, page, perPage, collapsedThreads)
+	a.app.AddCursorIdsForPostList(originalList, afterPost, beforePost, since, page, perPage, collapsedThreads, excludeTypes)
 }
 
 func (a *OpenTracingAppLayer) AddDirectChannels(c request.CTX, teamID string, user *model.User) *model.AppError {
@@ -7633,7 +7633,7 @@ func (a *OpenTracingAppLayer) GetNewUsersForTeamPage(rctx request.CTX, teamID st
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetNextPostIdFromPostList(postList *model.PostList, collapsedThreads bool) string {
+func (a *OpenTracingAppLayer) GetNextPostIdFromPostList(postList *model.PostList, collapsedThreads bool, excludeTypes []string) string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetNextPostIdFromPostList")
 
@@ -7645,7 +7645,7 @@ func (a *OpenTracingAppLayer) GetNextPostIdFromPostList(postList *model.PostList
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetNextPostIdFromPostList(postList, collapsedThreads)
+	resultVar0 := a.app.GetNextPostIdFromPostList(postList, collapsedThreads, excludeTypes)
 
 	return resultVar0
 }
@@ -8300,7 +8300,7 @@ func (a *OpenTracingAppLayer) GetPluginsEnvironment() *plugin.Environment {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostAfterTime(channelID string, time int64, collapsedThreads bool, excludedTypes []string) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostAfterTime")
 
@@ -8312,7 +8312,7 @@ func (a *OpenTracingAppLayer) GetPostAfterTime(channelID string, time int64, col
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostAfterTime(channelID, time, collapsedThreads)
+	resultVar0, resultVar1 := a.app.GetPostAfterTime(channelID, time, collapsedThreads, excludedTypes)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8322,7 +8322,7 @@ func (a *OpenTracingAppLayer) GetPostAfterTime(channelID string, time int64, col
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool, excludeTypes []string) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostIdAfterTime")
 
@@ -8334,7 +8334,7 @@ func (a *OpenTracingAppLayer) GetPostIdAfterTime(channelID string, time int64, c
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostIdAfterTime(channelID, time, collapsedThreads)
+	resultVar0, resultVar1 := a.app.GetPostIdAfterTime(channelID, time, collapsedThreads, excludeTypes)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8344,7 +8344,7 @@ func (a *OpenTracingAppLayer) GetPostIdAfterTime(channelID string, time int64, c
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool, excludeTypes []string) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostIdBeforeTime")
 
@@ -8356,7 +8356,7 @@ func (a *OpenTracingAppLayer) GetPostIdBeforeTime(channelID string, time int64, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostIdBeforeTime(channelID, time, collapsedThreads)
+	resultVar0, resultVar1 := a.app.GetPostIdBeforeTime(channelID, time, collapsedThreads, excludeTypes)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8559,7 +8559,7 @@ func (a *OpenTracingAppLayer) GetPostsEtag(channelID string, collapsedThreads bo
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(c request.CTX, channelID string, userID string, limitBefore int, limitAfter int, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(c request.CTX, channelID string, userID string, limitBefore int, limitAfter int, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool, excludeTypes []string) (*model.PostList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsForChannelAroundLastUnread")
 
@@ -8571,7 +8571,7 @@ func (a *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(c request.CTX, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostsForChannelAroundLastUnread(c, channelID, userID, limitBefore, limitAfter, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+	resultVar0, resultVar1 := a.app.GetPostsForChannelAroundLastUnread(c, channelID, userID, limitBefore, limitAfter, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, excludeTypes)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8713,7 +8713,7 @@ func (a *OpenTracingAppLayer) GetPreferencesForUser(c request.CTX, userID string
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPrevPostIdFromPostList(postList *model.PostList, collapsedThreads bool) string {
+func (a *OpenTracingAppLayer) GetPrevPostIdFromPostList(postList *model.PostList, collapsedThreads bool, excludeTypes []string) string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPrevPostIdFromPostList")
 
@@ -8725,7 +8725,7 @@ func (a *OpenTracingAppLayer) GetPrevPostIdFromPostList(postList *model.PostList
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetPrevPostIdFromPostList(postList, collapsedThreads)
+	resultVar0 := a.app.GetPrevPostIdFromPostList(postList, collapsedThreads, excludeTypes)
 
 	return resultVar0
 }

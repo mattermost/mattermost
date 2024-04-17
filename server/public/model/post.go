@@ -361,6 +361,7 @@ type GetPostsOptions struct {
 	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
 	IncludeDeleted           bool
 	IncludePostPriority      bool
+	ExcludePostTypes         []string
 }
 
 type PostCountOptions struct {

@@ -574,13 +574,20 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 	)
 	var post postWithExtra
 
-	postFetchQuery, args, err := s.getQueryBuilder().
+	pfq := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", userID).
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
-		Where(sq.Eq{"Posts.Id": id}).ToSql()
+		Where(sq.Eq{"Posts.Id": id})
+
+	if opts.ExcludePostTypes != nil {
+		pfq = pfq.Where(sq.NotEq{"Posts.Type": opts.ExcludePostTypes})
+	}
+
+	postFetchQuery, args, err := pfq.ToSql()
+
 	if err != nil {
 		return nil, errors.Wrap(err, "getPostWithCollapsedThreads_ToSql2")
 	}
@@ -647,6 +654,11 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 
 	if opts.PerPage != 0 {
 		query = query.Limit(uint64(opts.PerPage + 1))
+	}
+
+	// left this here in the event a post type can have threads
+	if opts.ExcludePostTypes != nil {
+		query = query.Where(sq.NotEq{"Posts.Type": opts.ExcludePostTypes})
 	}
 
 	sql, args, err := query.ToSql()
@@ -793,6 +805,10 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 
 		if opts.PerPage != 0 {
 			query = query.Limit(uint64(opts.PerPage + 1))
+		}
+
+		if opts.ExcludePostTypes != nil {
+			query = query.Where(sq.NotEq{"p.Type": opts.ExcludePostTypes})
 		}
 
 		sql, args, err := query.ToSql()
@@ -1201,7 +1217,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 	var posts []*postWithExtra
 	offset := options.PerPage * options.Page
 
-	postFetchQuery, args, _ := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Posts.Id").
@@ -1211,7 +1227,13 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		Where(sq.Eq{"Posts.RootId": ""}).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset)).
-		OrderBy("Posts.CreateAt DESC").ToSql()
+		OrderBy("Posts.CreateAt DESC")
+
+	if options.ExcludePostTypes != nil {
+		query = query.Where(sq.NotEq{"Posts.Type": options.ExcludePostTypes})
+	}
+
+	postFetchQuery, args, _ := query.ToSql()
 
 	err := s.GetReplicaX().Select(&posts, postFetchQuery, args...)
 	if err != nil {
@@ -1549,6 +1571,10 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		conditions = append(conditions, sq.Eq{"p.DeleteAt": int(0)})
 	}
 
+	if options.ExcludePostTypes != nil {
+		conditions = append(conditions, sq.NotEq{"p.Type": options.ExcludePostTypes})
+	}
+
 	if options.CollapsedThreads {
 		conditions = append(conditions, sq.Eq{"RootId": ""})
 		query = query.LeftJoin("Threads ON Threads.PostId = p.Id").LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = p.Id AND ThreadMemberships.UserId=?", options.UserId)
@@ -1624,15 +1650,15 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64, collapsedThreads bool) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads)
+func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64, collapsedThreads bool, excludeTypes []string) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads, excludeTypes)
 }
 
-func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64, collapsedThreads bool) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads)
+func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64, collapsedThreads bool, excludeTypes []string) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads, excludeTypes)
 }
 
-func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool) (string, error) {
+func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool, excludeTypes []string) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
 	if before {
@@ -1659,6 +1685,9 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 	if collapsedThreads {
 		conditions = sq.And{conditions, sq.Eq{"Posts.RootId": ""}}
 	}
+	if excludeTypes != nil {
+		conditions = sq.And{conditions, sq.NotEq{"Posts.Type": excludeTypes}}
+	}
 	query := s.getQueryBuilder().
 		Select("Id").
 		From(table).
@@ -1684,7 +1713,7 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 	return postId, nil
 }
 
-func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedThreads bool) (*model.Post, error) {
+func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedThreads bool, excludeTypes []string) (*model.Post, error) {
 	table := "Posts"
 	// We force MySQL to use the right index to prevent it from accidentally
 	// using the index_merge_intersection optimization.
@@ -1699,6 +1728,9 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedT
 	}
 	if collapsedThreads {
 		conditions = sq.And{conditions, sq.Eq{"RootId": ""}}
+	}
+	if excludeTypes != nil {
+		conditions = sq.And{conditions, sq.NotEq{"Posts.Type": excludeTypes}}
 	}
 	query := s.getQueryBuilder().
 		Select("*").

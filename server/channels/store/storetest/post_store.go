@@ -1750,7 +1750,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, rctx request.CTX, ss store.S
 	require.Equal(t, r1.Order[2], o3.Id, "invalid order")
 	require.Equal(t, r1.Order[3], o2a.Id, "invalid order")
 
-	//the last 4, + o1 (o2a and o3's parent) + o2 (in same thread as o2a and o3)
+	// the last 4, + o1 (o2a and o3's parent) + o2 (in same thread as o2a and o3)
 	require.Len(t, r1.Posts, 6, "wrong size")
 
 	require.Equal(t, r1.Posts[o1.Id].Message, o1.Message, "Missing parent")
@@ -1763,7 +1763,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, rctx request.CTX, ss store.S
 	require.Equal(t, r2.Order[2], o3.Id, "invalid order")
 	require.Equal(t, r2.Order[3], o2a.Id, "invalid order")
 
-	//the last 4, + o1 (o2a and o3's parent) + o2 (in same thread as o2a and o3)
+	// the last 4, + o1 (o2a and o3's parent) + o2 (in same thread as o2a and o3)
 	require.Len(t, r2.Posts, 6, "wrong size")
 
 	require.Equal(t, r2.Posts[o1.Id].Message, o1.Message, "Missing parent")
@@ -2632,39 +2632,39 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, rctx request.CTX, ss store.St
 	_, err = ss.Post().Save(rctx, o2a)
 	require.NoError(t, err)
 
-	rPostId1, err := ss.Post().GetPostIdBeforeTime(channelId, o0a.CreateAt, false)
+	rPostId1, err := ss.Post().GetPostIdBeforeTime(channelId, o0a.CreateAt, false, nil)
 	require.Equal(t, rPostId1, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
-	rPostId1, err = ss.Post().GetPostIdAfterTime(channelId, o0b.CreateAt, false)
+	rPostId1, err = ss.Post().GetPostIdAfterTime(channelId, o0b.CreateAt, false, nil)
 	require.Equal(t, rPostId1, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
-	rPost1, err := ss.Post().GetPostAfterTime(channelId, o0b.CreateAt, false)
+	rPost1, err := ss.Post().GetPostAfterTime(channelId, o0b.CreateAt, false, nil)
 	require.Equal(t, rPost1.Id, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
-	rPostId2, err := ss.Post().GetPostIdBeforeTime(channelId, o0.CreateAt, false)
+	rPostId2, err := ss.Post().GetPostIdBeforeTime(channelId, o0.CreateAt, false, nil)
 	require.Empty(t, rPostId2, "should return no post")
 	require.NoError(t, err)
 
-	rPostId2, err = ss.Post().GetPostIdAfterTime(channelId, o0.CreateAt, false)
+	rPostId2, err = ss.Post().GetPostIdAfterTime(channelId, o0.CreateAt, false, nil)
 	require.Equal(t, rPostId2, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
-	rPost2, err := ss.Post().GetPostAfterTime(channelId, o0.CreateAt, false)
+	rPost2, err := ss.Post().GetPostAfterTime(channelId, o0.CreateAt, false, nil)
 	require.Equal(t, rPost2.Id, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
-	rPostId3, err := ss.Post().GetPostIdBeforeTime(channelId, o2a.CreateAt, false)
+	rPostId3, err := ss.Post().GetPostIdBeforeTime(channelId, o2a.CreateAt, false, nil)
 	require.Equal(t, rPostId3, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
-	rPostId3, err = ss.Post().GetPostIdAfterTime(channelId, o2a.CreateAt, false)
+	rPostId3, err = ss.Post().GetPostIdAfterTime(channelId, o2a.CreateAt, false, nil)
 	require.Empty(t, rPostId3, "should return no post")
 	require.NoError(t, err)
 
-	rPost3, err := ss.Post().GetPostAfterTime(channelId, o2a.CreateAt, false)
+	rPost3, err := ss.Post().GetPostAfterTime(channelId, o2a.CreateAt, false, nil)
 	require.Empty(t, rPost3.Id, "should return no post")
 	require.NoError(t, err)
 }

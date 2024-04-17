@@ -5892,10 +5892,10 @@ func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterID string
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error) {
+func (s *TimerLayerPostStore) GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool, excludeTypes []string) (*model.Post, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetPostAfterTime(channelID, timestamp, collapsedThreads)
+	result, err := s.PostStore.GetPostAfterTime(channelID, timestamp, collapsedThreads, excludeTypes)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5908,10 +5908,10 @@ func (s *TimerLayerPostStore) GetPostAfterTime(channelID string, timestamp int64
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
+func (s *TimerLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool, excludeTypes []string) (string, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetPostIdAfterTime(channelID, timestamp, collapsedThreads)
+	result, err := s.PostStore.GetPostIdAfterTime(channelID, timestamp, collapsedThreads, excludeTypes)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5924,10 +5924,10 @@ func (s *TimerLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
+func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool, excludeTypes []string) (string, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetPostIdBeforeTime(channelID, timestamp, collapsedThreads)
+	result, err := s.PostStore.GetPostIdBeforeTime(channelID, timestamp, collapsedThreads, excludeTypes)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

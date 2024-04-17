@@ -7380,11 +7380,11 @@ func (s *RetryLayerPostStore) GetParentsForExportAfter(limit int, afterID string
 
 }
 
-func (s *RetryLayerPostStore) GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error) {
+func (s *RetryLayerPostStore) GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool, excludeTypes []string) (*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostAfterTime(channelID, timestamp, collapsedThreads)
+		result, err := s.PostStore.GetPostAfterTime(channelID, timestamp, collapsedThreads, excludeTypes)
 		if err == nil {
 			return result, nil
 		}
@@ -7401,11 +7401,11 @@ func (s *RetryLayerPostStore) GetPostAfterTime(channelID string, timestamp int64
 
 }
 
-func (s *RetryLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
+func (s *RetryLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool, excludeTypes []string) (string, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostIdAfterTime(channelID, timestamp, collapsedThreads)
+		result, err := s.PostStore.GetPostIdAfterTime(channelID, timestamp, collapsedThreads, excludeTypes)
 		if err == nil {
 			return result, nil
 		}
@@ -7422,11 +7422,11 @@ func (s *RetryLayerPostStore) GetPostIdAfterTime(channelID string, timestamp int
 
 }
 
-func (s *RetryLayerPostStore) GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error) {
+func (s *RetryLayerPostStore) GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool, excludeTypes []string) (string, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostIdBeforeTime(channelID, timestamp, collapsedThreads)
+		result, err := s.PostStore.GetPostIdBeforeTime(channelID, timestamp, collapsedThreads, excludeTypes)
 		if err == nil {
 			return result, nil
 		}
