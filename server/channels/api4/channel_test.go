@@ -145,6 +145,12 @@ func TestCreateChannel(t *testing.T) {
 
 	require.Equal(t, *groupConstrainedChannel.GroupConstrained, *rchannel.GroupConstrained, "GroupConstrained flags do not match")
 
+	// Test Channel Options
+	channelWithOptions := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id, Options: model.StringInterface{"excludedTypes": "system_join_message"}}
+	rchannel, _, err = client.CreateChannel(context.Background(), channelWithOptions)
+	require.NoError(t, err)
+	require.Equal(t, channelWithOptions.Options, rchannel.Options, "Channel Options do not match")
+
 	t.Run("Test create channel with missing team id", func(t *testing.T) {
 		channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: ""}
 
@@ -174,10 +180,11 @@ func TestUpdateChannel(t *testing.T) {
 	channel, _, _ = client.CreateChannel(context.Background(), channel)
 	private, _, _ = client.CreateChannel(context.Background(), private)
 
-	//Update a open channel
+	// Update a open channel
 	channel.DisplayName = "My new display name"
 	channel.Header = "My fancy header"
 	channel.Purpose = "Mattermost ftw!"
+	private.Options = model.StringInterface{"excludedTypes": "system_join_message"}
 
 	newChannel, _, err := client.UpdateChannel(context.Background(), channel)
 	require.NoError(t, err)
@@ -185,8 +192,8 @@ func TestUpdateChannel(t *testing.T) {
 	require.Equal(t, channel.DisplayName, newChannel.DisplayName, "Update failed for DisplayName")
 	require.Equal(t, channel.Header, newChannel.Header, "Update failed for Header")
 	require.Equal(t, channel.Purpose, newChannel.Purpose, "Update failed for Purpose")
+	require.Equal(t, channel.Options, newChannel.Options, "Update failed for Options")
 
-	// Test GroupConstrained flag
 	channel.GroupConstrained = model.NewBool(true)
 	rchannel, resp, err := client.UpdateChannel(context.Background(), channel)
 	require.NoError(t, err)
@@ -194,10 +201,11 @@ func TestUpdateChannel(t *testing.T) {
 
 	require.Equal(t, *channel.GroupConstrained, *rchannel.GroupConstrained, "GroupConstrained flags do not match")
 
-	//Update a private channel
+	// Update a private channel
 	private.DisplayName = "My new display name for private channel"
 	private.Header = "My fancy private header"
 	private.Purpose = "Mattermost ftw! in private mode"
+	private.Options = model.StringInterface{"excludedTypes": "system_join_message"}
 
 	newPrivateChannel, _, err := client.UpdateChannel(context.Background(), private)
 	require.NoError(t, err)
@@ -205,8 +213,9 @@ func TestUpdateChannel(t *testing.T) {
 	require.Equal(t, private.DisplayName, newPrivateChannel.DisplayName, "Update failed for DisplayName in private channel")
 	require.Equal(t, private.Header, newPrivateChannel.Header, "Update failed for Header in private channel")
 	require.Equal(t, private.Purpose, newPrivateChannel.Purpose, "Update failed for Purpose in private channel")
+	require.Equal(t, private.Options, newPrivateChannel.Options, "Update failed for Options in private channel")
 
-	//Test updating default channel's name and returns error
+	// Test updating default channel's name and returns error
 	defaultChannel, _ := th.App.GetChannelByName(th.Context, model.DefaultChannelName, team.Id, false)
 	defaultChannel.Name = "testing"
 	_, resp, err = client.UpdateChannel(context.Background(), defaultChannel)
@@ -225,19 +234,19 @@ func TestUpdateChannel(t *testing.T) {
 	_, _, err = client.UpdateChannel(context.Background(), private)
 	require.NoError(t, err)
 
-	//Non existing channel
+	// Non existing channel
 	channel1 := &model.Channel{DisplayName: "Test API Name for apiv4", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
 	_, resp, err = client.UpdateChannel(context.Background(), channel1)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	//Try to update with not logged user
+	// Try to update with not logged user
 	client.Logout(context.Background())
 	_, resp, err = client.UpdateChannel(context.Background(), channel)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	//Try to update using another user
+	// Try to update using another user
 	user := th.CreateUser()
 	client.Login(context.Background(), user.Email, user.Password)
 
@@ -354,11 +363,13 @@ func TestPatchChannel(t *testing.T) {
 		DisplayName: new(string),
 		Header:      new(string),
 		Purpose:     new(string),
+		Options:     new(model.StringInterface),
 	}
 	*patch.Name = model.NewId()
 	*patch.DisplayName = model.NewId()
 	*patch.Header = model.NewId()
 	*patch.Purpose = model.NewId()
+	*patch.Options = model.StringInterface{"excludedTypes": "system_join_message"}
 
 	channel, _, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
 	require.NoError(t, err)
@@ -367,6 +378,7 @@ func TestPatchChannel(t *testing.T) {
 	require.Equal(t, *patch.DisplayName, channel.DisplayName, "do not match")
 	require.Equal(t, *patch.Header, channel.Header, "do not match")
 	require.Equal(t, *patch.Purpose, channel.Purpose, "do not match")
+	require.Equal(t, *patch.Options, channel.Options, "do not match")
 
 	patch.Name = nil
 	oldName := channel.Name
@@ -375,7 +387,7 @@ func TestPatchChannel(t *testing.T) {
 
 	require.Equal(t, oldName, channel.Name, "should not have updated")
 
-	//Test updating default channel's name and returns error
+	// Test updating default channel's name and returns error
 	defaultChannel, _ := th.App.GetChannelByName(th.Context, model.DefaultChannelName, team.Id, false)
 	defaultChannelPatch := &model.ChannelPatch{
 		Name: new(string),
@@ -2984,7 +2996,7 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	assert.Equal(t, true, tm2.SchemeUser)
 	assert.Equal(t, false, tm2.SchemeAdmin)
 
-	//cannot set Guest to User for single channel
+	// cannot set Guest to User for single channel
 	resp, err := SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, guest.Id, s2)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
@@ -4102,7 +4114,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, timezone, 2, "should return 2 timezones")
 
-	//both users have same timezone
+	// both users have same timezone
 	user2.Timezone["automaticTimezone"] = "XOXO/BLABLA"
 	_, _, err = th.SystemAdminClient.UpdateUser(context.Background(), user2)
 	require.NoError(t, err)
@@ -4111,7 +4123,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, timezone, 1, "should return 1 timezone")
 
-	//no timezone set should return empty
+	// no timezone set should return empty
 	user2.Timezone["automaticTimezone"] = ""
 	_, _, err = th.SystemAdminClient.UpdateUser(context.Background(), user2)
 	require.NoError(t, err)

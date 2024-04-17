@@ -38,27 +38,28 @@ const (
 )
 
 type Channel struct {
-	Id                string         `json:"id"`
-	CreateAt          int64          `json:"create_at"`
-	UpdateAt          int64          `json:"update_at"`
-	DeleteAt          int64          `json:"delete_at"`
-	TeamId            string         `json:"team_id"`
-	Type              ChannelType    `json:"type"`
-	DisplayName       string         `json:"display_name"`
-	Name              string         `json:"name"`
-	Header            string         `json:"header"`
-	Purpose           string         `json:"purpose"`
-	LastPostAt        int64          `json:"last_post_at"`
-	TotalMsgCount     int64          `json:"total_msg_count"`
-	ExtraUpdateAt     int64          `json:"extra_update_at"`
-	CreatorId         string         `json:"creator_id"`
-	SchemeId          *string        `json:"scheme_id"`
-	Props             map[string]any `json:"props"`
-	GroupConstrained  *bool          `json:"group_constrained"`
-	Shared            *bool          `json:"shared"`
-	TotalMsgCountRoot int64          `json:"total_msg_count_root"`
-	PolicyID          *string        `json:"policy_id"`
-	LastRootPostAt    int64          `json:"last_root_post_at"`
+	Id                string          `json:"id"`
+	CreateAt          int64           `json:"create_at"`
+	UpdateAt          int64           `json:"update_at"`
+	DeleteAt          int64           `json:"delete_at"`
+	TeamId            string          `json:"team_id"`
+	Type              ChannelType     `json:"type"`
+	DisplayName       string          `json:"display_name"`
+	Name              string          `json:"name"`
+	Header            string          `json:"header"`
+	Purpose           string          `json:"purpose"`
+	LastPostAt        int64           `json:"last_post_at"`
+	TotalMsgCount     int64           `json:"total_msg_count"`
+	ExtraUpdateAt     int64           `json:"extra_update_at"`
+	CreatorId         string          `json:"creator_id"`
+	SchemeId          *string         `json:"scheme_id"`
+	Props             map[string]any  `json:"props"`
+	GroupConstrained  *bool           `json:"group_constrained"`
+	Shared            *bool           `json:"shared"`
+	TotalMsgCountRoot int64           `json:"total_msg_count_root"`
+	PolicyID          *string         `json:"policy_id"`
+	LastRootPostAt    int64           `json:"last_root_post_at"`
+	Options           StringInterface `json:"options"`
 }
 
 func (o *Channel) Auditable() map[string]interface{} {
@@ -79,6 +80,7 @@ func (o *Channel) Auditable() map[string]interface{} {
 		"total_msg_count_root": o.TotalMsgCountRoot,
 		"type":                 o.Type,
 		"update_at":            o.UpdateAt,
+		"options":              o.Options,
 	}
 }
 
@@ -99,11 +101,12 @@ type ChannelsWithCount struct {
 }
 
 type ChannelPatch struct {
-	DisplayName      *string `json:"display_name"`
-	Name             *string `json:"name"`
-	Header           *string `json:"header"`
-	Purpose          *string `json:"purpose"`
-	GroupConstrained *bool   `json:"group_constrained"`
+	DisplayName      *string          `json:"display_name"`
+	Name             *string          `json:"name"`
+	Header           *string          `json:"header"`
+	Purpose          *string          `json:"purpose"`
+	GroupConstrained *bool            `json:"group_constrained"`
+	Options          *StringInterface `json:"options"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]interface{} {
@@ -310,6 +313,10 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 	if patch.GroupConstrained != nil {
 		o.GroupConstrained = patch.GroupConstrained
+	}
+
+	if patch.Options != nil {
+		o.Options = *patch.Options
 	}
 }
 
