@@ -1561,7 +1561,6 @@ func (mi *MetricsInterfaceImpl) IncrementHTTPWebSockets(originClient string) {
 
 func (mi *MetricsInterfaceImpl) DecrementHTTPWebSockets(originClient string) {
 	mi.HTTPWebsocketsGauge.With(prometheus.Labels{"origin_client": originClient}).Dec()
-
 }
 
 func extractDBCluster(driver, connectionString string) (string, error) {
