@@ -40,11 +40,24 @@ func (api *API) websocketNotificationAck(req *model.WebSocketRequest) (map[strin
 
 	status := req.Data["status"]
 	reason := req.Data["reason"]
-	if status == nil || reason == nil {
+	if status == nil {
 		return nil, nil
 	}
 
-	api.App.CountNotificationReason(model.NotificationStatus(status.(string)), model.NotificationTypeWebsocket, model.NotificationReason(reason.(string)))
+	notificationStatus := model.NotificationStatus(status.(string))
+	if reason == nil && notificationStatus != model.NotificationStatusSuccess {
+		return nil, nil
+	}
+	var notificationReason model.NotificationReason
+	if reason != nil {
+		notificationReason = model.NotificationReason(reason.(string))
+	}
+
+	api.App.CountNotificationReason(
+		notificationStatus,
+		model.NotificationTypeWebsocket,
+		notificationReason,
+	)
 
 	return nil, nil
 }

@@ -95,6 +95,7 @@ type MetricsInterface interface {
 
 	IncrementNotificationCounter(notificationType model.NotificationType)
 	IncrementNotificationAckCounter(notificationType model.NotificationType)
+	IncrementNotificationSuccessCounter(notificationType model.NotificationType)
 	IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason)
 	IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason)
 }

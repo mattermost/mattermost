@@ -641,6 +641,8 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.App.CountNotificationAck(model.NotificationTypePush)
+
 	err := c.App.SendAckToPushProxy(&ack)
 	if ack.IsIdLoaded {
 		if err != nil {
@@ -657,6 +659,8 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 				mlog.Int("received_at", ack.ClientReceivedAt),
 				mlog.Err(err),
 			)
+		} else {
+			c.App.CountNotificationReason(model.NotificationStatusSuccess, model.NotificationTypePush, model.NotificationReason(""))
 		}
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
@@ -688,6 +692,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.App.CountNotificationReason(model.NotificationStatusSuccess, model.NotificationTypePush, model.NotificationReason(""))
 	ReturnStatusOK(w)
 }
 

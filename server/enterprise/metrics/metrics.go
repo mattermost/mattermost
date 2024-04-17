@@ -205,6 +205,7 @@ type MetricsInterfaceImpl struct {
 
 	NotificationTotalCounters   *prometheus.CounterVec
 	NotificationAckCounters     *prometheus.CounterVec
+	NotificationSuccessCounters *prometheus.CounterVec
 	NotificationErrorCounters   *prometheus.CounterVec
 	NotificationNotSentCounters *prometheus.CounterVec
 }
@@ -1072,6 +1073,18 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.NotificationAckCounters)
 
+	m.NotificationSuccessCounters = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemNotifications,
+			Name:        "success",
+			Help:        "Total number of successfully sent notifications",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"type"},
+	)
+	m.Registry.MustRegister(m.NotificationSuccessCounters)
+
 	m.NotificationErrorCounters = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace:   MetricsNamespace,
@@ -1528,6 +1541,10 @@ func (mi *MetricsInterfaceImpl) IncrementNotificationCounter(notificationType mo
 
 func (mi *MetricsInterfaceImpl) IncrementNotificationAckCounter(notificationType model.NotificationType) {
 	mi.NotificationAckCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementNotificationSuccessCounter(notificationType model.NotificationType) {
+	mi.NotificationSuccessCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
 }
 
 func (mi *MetricsInterfaceImpl) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason) {

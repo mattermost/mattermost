@@ -627,12 +627,12 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					model.CommentsNotifyCRT,
 				)
 			} else {
-				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, model.NotificationReasonUserStatus)
+				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, statusReason)
 				a.NotificationsLog().Debug("Notification not sent - status",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusNotSent),
-					mlog.String("reason", model.NotificationReasonUserStatus),
+					mlog.String("reason", statusReason),
 					mlog.String("status_reason", statusReason),
 					mlog.String("sender_id", post.UserId),
 					mlog.String("receiver_id", id),
@@ -1757,6 +1757,8 @@ func (a *App) CountNotificationReason(
 	}
 
 	switch notificationStatus {
+	case model.NotificationStatusSuccess:
+		a.Metrics().IncrementNotificationSuccessCounter(notificationType)
 	case model.NotificationStatusError:
 		a.Metrics().IncrementNotificationErrorCounter(notificationType, notificationReason)
 	case model.NotificationStatusNotSent:
