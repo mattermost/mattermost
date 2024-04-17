@@ -8,7 +8,6 @@ import QuickInput from 'components/quick_input';
 
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
@@ -276,12 +275,6 @@ export default class SuggestionBox extends React.PureComponent {
         // Focus is switching TO e.relatedTarget, so only treat this as a blur event if we're not switching
         // between children (like from the textbox to the suggestion list)
         if (this.container.contains(e.relatedTarget)) {
-            return;
-        }
-
-        if (UserAgent.isIos() && !e.relatedTarget) {
-            // On Safari and iOS classic app, the autocomplete stays open
-            // when you tap outside of the post textbox or search box.
             return;
         }
 
