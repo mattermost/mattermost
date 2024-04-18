@@ -4456,10 +4456,6 @@
     "translation": "Veuillez spécifier une adresse e-mail valide."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères et une lettre minuscule."
   },

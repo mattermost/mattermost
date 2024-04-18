@@ -4451,10 +4451,6 @@
     "translation": "Bitte gib eine gültige E-Mail-Adresse ein."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Dein Passwort muss mindestens {{.Min}} Zeichen lang sein."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Dein Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Kleinbuchstaben enthalten."
   },

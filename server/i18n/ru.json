@@ -4456,10 +4456,6 @@
     "translation": "Недопустимый адрес эл.почты."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов, а так же одну букву в нижнем регистре."
   },

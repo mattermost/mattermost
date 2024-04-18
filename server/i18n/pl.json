@@ -4456,10 +4456,6 @@
     "translation": "Proszę podać poprawny adres email."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Twoje hasło musi zawierać przynajmniej {{.Min}} znaków."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Twoje hasło musi zawierać co najmniej {{.Min}} znaków składających się z co najmniej jednej małej litery."
   },

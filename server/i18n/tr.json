@@ -4451,10 +4451,6 @@
     "translation": "E-posta adresi geçersiz."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalıdır."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf içermelidir."
   },

@@ -4446,10 +4446,6 @@
     "translation": "有効なメールアドレスを入力してください。"
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "パスワードは{{.Min}}文字以上に設定してください。"
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は英小文字にしてください。"
   },

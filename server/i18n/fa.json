@@ -1384,10 +1384,6 @@
     "translation": "رمز ورود شما باید حداقل شامل {{.Min}} نویسه باشد که حداقل از یک حرف کوچک تشکیل شده باشد."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "رمز ورود شما باید حداقل شامل {{.Min}} نویسه باشد."
-  },
-  {
     "id": "model.channel.is_valid.update_at.app_error",
     "translation": "به روزرسانی در باید یک زمان معتبر باشد."
   },

@@ -3196,10 +3196,6 @@
     "translation": "A jelszónak legalább {{.Min}} karakterből kell állnia, amely legalább egy kisbetűt tartalmaz."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "A jelszónak legalább {{.Min}} karaktert kell tartalmaznia."
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "Érvénytelen pozíció: nem lehet hosszabb 128 karakternél."
   },

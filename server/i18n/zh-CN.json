@@ -4446,10 +4446,6 @@
     "translation": "无效的邮箱。"
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "你的密码需要至少 {{.Min}} 字符。"
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "您的密码必须包含至少 {{.Min}} 字符元且至少有一个小写字母。"
   },

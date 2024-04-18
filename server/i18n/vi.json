@@ -2718,10 +2718,6 @@
     "translation": "Đã xảy ra lỗi trong khi tạo tin nhắn trực tiếp."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự."
-  },
-  {
     "id": "bleveengine.search_users_in_channel.uchan.error",
     "translation": "Tìm kiếm không hoàn thành"
   },

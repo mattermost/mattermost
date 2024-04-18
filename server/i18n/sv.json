@@ -1460,10 +1460,6 @@
     "translation": "Ditt lösenord måste innehålla minst {{.Min}} tecken med minst en liten bokstav och minst en siffra."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Ditt lösenord måste vara minst {{.Min}} tecken."
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "Ogiltig position: får inte vara längre än 128 tecken."
   },

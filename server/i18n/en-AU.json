@@ -348,10 +348,6 @@
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters."
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "Invalid position: must not be longer than 128 characters."
   },

@@ -4456,10 +4456,6 @@
     "translation": "Por favor entre um endereço de email válido."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Sua senha precisa conter no mínimo {{.Min}} caracteres."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula."
   },

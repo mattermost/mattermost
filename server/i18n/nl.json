@@ -4451,10 +4451,6 @@
     "translation": "Please enter a valid email address."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters en minimaal 1 kleine letter bestaan."
   },

@@ -4452,10 +4452,6 @@
     "translation": "Te rog introdu o adresa de email valida."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Parola dvs. trebuie să conțină cel puțin {{.Min}} caractere."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Parola ta trebuie să conțină cel puțin {{.Min}} Caractere alcătuite din cel puțin o literă mică."
   },
