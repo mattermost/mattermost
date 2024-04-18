@@ -8571,6 +8571,10 @@
     "translation": "Invalid creator id."
   },
   {
+    "id": "model.channel.is_valid.options.app_error",
+    "translation": "Invalid options."
+  },
+  {
     "id": "model.channel.is_valid.display_name.app_error",
     "translation": "Invalid display name."
   },
