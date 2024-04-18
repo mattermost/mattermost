@@ -126,6 +126,10 @@
 .get-app__preference {
     display: flex;
     margin-top: 23px;
+    gap: 7px;
+    cursor: pointer;
+    user-select: none;
+    align-items: center;
 
     > span {
         margin-top: -2px;
@@ -136,6 +140,14 @@
         line-height: 22px;
         opacity: 0.8;
     }
+
+    &.checked {
+        border: 0;
+
+        svg {
+            fill: #145dbf;
+        }
+    }
 }
 
 .get-app__checkbox {
@@ -144,19 +156,10 @@
     padding: 0;
     border: 2px solid $dark-gray;
     border-radius: 3px;
-    margin-right: 7px;
     background: none;
 
     > * {
         pointer-events: none;
-    }
-
-    &.checked {
-        border: 0;
-
-        svg {
-            fill: #145dbf;
-        }
     }
 }
 

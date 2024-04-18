@@ -208,7 +208,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
             );
         }
 
-        return null;
+        return (<div className='get-app__checkbox'/>);
     };
 
     renderGraphic = () => {
@@ -392,18 +392,20 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                         />
                     </a>
                 </div>
-                <div className='get-app__preference'>
-                    <button
-                        className={`get-app__checkbox ${this.state.rememberChecked ? 'checked' : ''}`}
-                        onClick={this.handleChecked}
-                    >
-                        {this.renderCheckboxIcon()}
-                    </button>
+                <label className={`get-app__preference ${this.state.rememberChecked ? 'checked' : ''}`}>
+                    <input
+                        type='checkbox'
+                        checked={this.state.rememberChecked}
+                        onChange={this.handleChecked}
+                        className='get-app__checkbox'
+                        style={{display: 'none'}}
+                    />
+                    {this.renderCheckboxIcon()}
                     <FormattedMessage
                         id='get_app.rememberMyPreference'
                         defaultMessage='Remember my preference'
                     />
-                </div>
+                </label>
                 {this.renderDownloadLinkSection()}
             </div>
         );
