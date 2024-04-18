@@ -231,7 +231,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             selectedChannelNeeded = true;
             content = (
                 <div className='post-right__container'>
-                    <FileUploadOverlay overlayType='right'/>                    <RhsThread previousRhsState={previousRhsState}/>
+                    <FileUploadOverlay overlayType='right'/>
+                    <RhsThread previousRhsState={previousRhsState}/>
                 </div>
             );
         } else if (postCardVisible) {
