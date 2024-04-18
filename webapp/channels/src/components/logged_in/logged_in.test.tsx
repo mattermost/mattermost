@@ -12,9 +12,20 @@ import BrowserStore from 'stores/browser_store';
 import LoggedIn from 'components/logged_in/logged_in';
 import type {Props} from 'components/logged_in/logged_in';
 
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+
 jest.mock('actions/websocket_actions.jsx', () => ({
     initialize: jest.fn(),
+    close: jest.fn(),
 }));
+
+const originalFetch = global.fetch;
+beforeAll(() => {
+    global.fetch = jest.fn();
+});
+afterAll(() => {
+    global.fetch = originalFetch;
+});
 
 BrowserStore.signalLogin = jest.fn();
 
@@ -178,5 +189,20 @@ describe('components/logged_in/LoggedIn', () => {
 
         shallow(<LoggedIn {...props}>{children}</LoggedIn>);
         expect(obj.emitBrowserFocus).toBeCalledTimes(1);
+    });
+
+    it('should not make viewChannel call on unload', () => {
+        const props = {
+            ...baseProps,
+            mfaRequired: false,
+            showTermsOfService: false,
+        };
+
+        renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+        fireEvent(window, new Event('beforeunload'));
+
+        expect(fetch).not.toHaveBeenCalledWith('/api/v4/channels/members/me/view');
+
+        expect(screen.getByText('Test')).toBeInTheDocument();
     });
 });
