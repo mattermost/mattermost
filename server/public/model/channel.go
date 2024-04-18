@@ -5,6 +5,7 @@ package model
 
 import (
 	"crypto/sha1"
+	"database/sql/driver"
 	"encoding/hex"
 	"encoding/json"
 	"io"
@@ -13,6 +14,8 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/pkg/errors"
 )
 
 type ChannelType string
@@ -37,29 +40,33 @@ const (
 	ChannelSortByStatus   = "status"
 )
 
+type ChannelOptions struct {
+	ExcludeTypes []string `json:"excludeTypes"`
+}
+
 type Channel struct {
-	Id                string          `json:"id"`
-	CreateAt          int64           `json:"create_at"`
-	UpdateAt          int64           `json:"update_at"`
-	DeleteAt          int64           `json:"delete_at"`
-	TeamId            string          `json:"team_id"`
-	Type              ChannelType     `json:"type"`
-	DisplayName       string          `json:"display_name"`
-	Name              string          `json:"name"`
-	Header            string          `json:"header"`
-	Purpose           string          `json:"purpose"`
-	LastPostAt        int64           `json:"last_post_at"`
-	TotalMsgCount     int64           `json:"total_msg_count"`
-	ExtraUpdateAt     int64           `json:"extra_update_at"`
-	CreatorId         string          `json:"creator_id"`
-	SchemeId          *string         `json:"scheme_id"`
-	Props             map[string]any  `json:"props"`
-	GroupConstrained  *bool           `json:"group_constrained"`
-	Shared            *bool           `json:"shared"`
-	TotalMsgCountRoot int64           `json:"total_msg_count_root"`
-	PolicyID          *string         `json:"policy_id"`
-	LastRootPostAt    int64           `json:"last_root_post_at"`
-	Options           StringInterface `json:"options"`
+	Id                string         `json:"id"`
+	CreateAt          int64          `json:"create_at"`
+	UpdateAt          int64          `json:"update_at"`
+	DeleteAt          int64          `json:"delete_at"`
+	TeamId            string         `json:"team_id"`
+	Type              ChannelType    `json:"type"`
+	DisplayName       string         `json:"display_name"`
+	Name              string         `json:"name"`
+	Header            string         `json:"header"`
+	Purpose           string         `json:"purpose"`
+	LastPostAt        int64          `json:"last_post_at"`
+	TotalMsgCount     int64          `json:"total_msg_count"`
+	ExtraUpdateAt     int64          `json:"extra_update_at"`
+	CreatorId         string         `json:"creator_id"`
+	SchemeId          *string        `json:"scheme_id"`
+	Props             map[string]any `json:"props"`
+	GroupConstrained  *bool          `json:"group_constrained"`
+	Shared            *bool          `json:"shared"`
+	TotalMsgCountRoot int64          `json:"total_msg_count_root"`
+	PolicyID          *string        `json:"policy_id"`
+	LastRootPostAt    int64          `json:"last_root_post_at"`
+	Options           ChannelOptions `json:"options"`
 }
 
 func (o *Channel) Auditable() map[string]interface{} {
@@ -101,12 +108,12 @@ type ChannelsWithCount struct {
 }
 
 type ChannelPatch struct {
-	DisplayName      *string          `json:"display_name"`
-	Name             *string          `json:"name"`
-	Header           *string          `json:"header"`
-	Purpose          *string          `json:"purpose"`
-	GroupConstrained *bool            `json:"group_constrained"`
-	Options          *StringInterface `json:"options"`
+	DisplayName      *string         `json:"display_name"`
+	Name             *string         `json:"name"`
+	Header           *string         `json:"header"`
+	Purpose          *string         `json:"purpose"`
+	GroupConstrained *bool           `json:"group_constrained"`
+	Options          *ChannelOptions `json:"options"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]interface{} {
@@ -263,6 +270,10 @@ func (o *Channel) IsValid() *AppError {
 		}
 	}
 
+	if _, err := json.Marshal(o.Options); err != nil {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.options.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -278,6 +289,7 @@ func (o *Channel) PreSave() {
 	}
 	o.UpdateAt = o.CreateAt
 	o.ExtraUpdateAt = 0
+
 }
 
 func (o *Channel) PreUpdate() {
@@ -407,4 +419,36 @@ type GroupMessageConversionRequestBody struct {
 	TeamID      string `json:"team_id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
+}
+
+func (co *ChannelOptions) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	buf, ok := value.([]byte)
+	if ok {
+		return json.Unmarshal(buf, co)
+	}
+
+	str, ok := value.(string)
+	if ok {
+		return json.Unmarshal([]byte(str), co)
+	}
+
+	return errors.New("received value is neither a byte slice nor string")
+}
+
+func (co ChannelOptions) Value() (driver.Value, error) {
+	j, err := json.Marshal(co)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(j) > maxPropSizeBytes {
+		return nil, ErrMaxPropSizeExceeded
+	}
+
+	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
+	return string(j), err
 }
