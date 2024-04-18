@@ -2851,7 +2851,7 @@ func (a *OpenTracingAppLayer) CreateUserWithToken(c request.CTX, user *model.Use
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text string, overrideUsername string, overrideIconURL string, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text string, overrideUsername string, overrideIconURL string, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string, priority *model.PostPriority) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateWebhookPost")
 
@@ -2863,7 +2863,7 @@ func (a *OpenTracingAppLayer) CreateWebhookPost(c request.CTX, userID string, ch
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateWebhookPost(c, userID, channel, text, overrideUsername, overrideIconURL, overrideIconEmoji, props, postType, postRootId)
+	resultVar0, resultVar1 := a.app.CreateWebhookPost(c, userID, channel, text, overrideUsername, overrideIconURL, overrideIconEmoji, props, postType, postRootId, priority)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4786,7 +4786,7 @@ func (a *OpenTracingAppLayer) GeneratePublicLink(siteURL string, info *model.Fil
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GenerateSupportPacket(c request.CTX) []model.FileData {
+func (a *OpenTracingAppLayer) GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GenerateSupportPacket")
 
@@ -4798,7 +4798,7 @@ func (a *OpenTracingAppLayer) GenerateSupportPacket(c request.CTX) []model.FileD
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GenerateSupportPacket(c)
+	resultVar0 := a.app.GenerateSupportPacket(c, options)
 
 	return resultVar0
 }
@@ -9463,6 +9463,28 @@ func (a *OpenTracingAppLayer) GetSchemesPage(scope string, page int, perPage int
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetServerLimits() (*model.ServerLimits, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetServerLimits")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetServerLimits()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetSession(token string) (*model.Session, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSession")
@@ -10842,28 +10864,6 @@ func (a *OpenTracingAppLayer) GetUserForLogin(c request.CTX, id string, loginId 
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetUserForLogin(c, id, loginId)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetUserLimits() (*model.UserLimits, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserLimits")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetUserLimits()
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
