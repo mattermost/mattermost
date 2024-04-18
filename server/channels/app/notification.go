@@ -1736,11 +1736,19 @@ func (a *App) CountNotification(notificationType model.NotificationType) {
 		return
 	}
 
+	if !a.Config().FeatureFlags.NotificationMonitoring {
+		return
+	}
+
 	a.Metrics().IncrementNotificationCounter(notificationType)
 }
 
 func (a *App) CountNotificationAck(notificationType model.NotificationType) {
 	if a.Metrics() == nil {
+		return
+	}
+
+	if !a.Config().FeatureFlags.NotificationMonitoring {
 		return
 	}
 
@@ -1753,6 +1761,10 @@ func (a *App) CountNotificationReason(
 	notificationReason model.NotificationReason,
 ) {
 	if a.Metrics() == nil {
+		return
+	}
+
+	if !a.Config().FeatureFlags.NotificationMonitoring {
 		return
 	}
 

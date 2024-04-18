@@ -130,6 +130,10 @@ func incrementWebsocketCounter(wc *platform.WebConn) {
 		return
 	}
 
+	if !wc.Platform.Config().FeatureFlags.NotificationMonitoring {
+		return
+	}
+
 	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket)
 }
 
