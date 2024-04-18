@@ -33,6 +33,7 @@ func TestPing(t *testing.T) {
 
 		wg := &sync.WaitGroup{}
 		wg.Add(NumRemotes)
+		var remotes []*model.RemoteCluster
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			defer wg.Done()
@@ -50,12 +51,21 @@ func TestPing(t *testing.T) {
 				return
 			}
 
+			// Only record pings from remotes that were added for this test.
+			if !hasRemoteID(frame.RemoteId, remotes) {
+				// add 1 to the waitgroup which will be decremented in the defer, resulting in
+				// no change to the waitgroup count.
+				wg.Add(1)
+				return
+			}
+
 			var ping model.RemoteClusterPing
 			err = json.Unmarshal(frame.Msg.Payload, &ping)
 			if err != nil {
 				merr.Append(err)
 				return
 			}
+
 			if !checkRecent(ping.SentAt, Recent) {
 				merr.Append(fmt.Errorf("timestamp out of range, got %d", ping.SentAt))
 				return
@@ -67,7 +77,8 @@ func TestPing(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL, false))
+		remotes = makeRemoteClusters(NumRemotes, ts.URL, false)
+		mockServer := newMockServer(t, remotes)
 		mockApp := newMockApp(t, nil)
 
 		service, err := NewRemoteClusterService(mockServer, mockApp)
@@ -92,6 +103,7 @@ func TestPing(t *testing.T) {
 
 		wg := &sync.WaitGroup{}
 		wg.Add(NumRemotes)
+		var remotes []*model.RemoteCluster
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			defer wg.Done()
@@ -102,6 +114,15 @@ func TestPing(t *testing.T) {
 			if err != nil {
 				merr.Append(err)
 			}
+
+			// Only record pings from remotes that were added for this test.
+			if !hasRemoteID(frame.RemoteId, remotes) {
+				// add 1 to the waitgroup which will be decremented in the defer, resulting in
+				// no change to the waitgroup count.
+				wg.Add(1)
+				return
+			}
+
 			var ping model.RemoteClusterPing
 			err = json.Unmarshal(frame.Msg.Payload, &ping)
 			if err != nil {
@@ -117,7 +138,8 @@ func TestPing(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL, false))
+		remotes = makeRemoteClusters(NumRemotes, ts.URL, false)
+		mockServer := newMockServer(t, remotes)
 		mockApp := newMockApp(t, nil)
 
 		service, err := NewRemoteClusterService(mockServer, mockApp)
@@ -168,4 +190,13 @@ func TestPing(t *testing.T) {
 func checkRecent(millis int64, within int64) bool {
 	now := model.GetMillis()
 	return millis > now-within && millis < now+within
+}
+
+func hasRemoteID(remoteID string, remotes []*model.RemoteCluster) bool {
+	for _, r := range remotes {
+		if r.RemoteId == remoteID {
+			return true
+		}
+	}
+	return false
 }
