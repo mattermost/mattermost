@@ -19,17 +19,17 @@ jest.mock('actions/websocket_actions.jsx', () => ({
     close: jest.fn(),
 }));
 
-const originalFetch = global.fetch;
-beforeAll(() => {
-    global.fetch = jest.fn();
-});
-afterAll(() => {
-    global.fetch = originalFetch;
-});
-
 BrowserStore.signalLogin = jest.fn();
 
 describe('components/logged_in/LoggedIn', () => {
+    const originalFetch = global.fetch;
+    beforeAll(() => {
+        global.fetch = jest.fn();
+    });
+    afterAll(() => {
+        global.fetch = originalFetch;
+    });
+
     const children = <span>{'Test'}</span>;
     const baseProps: Props = {
         currentUser: {} as UserProfile,
@@ -199,9 +199,9 @@ describe('components/logged_in/LoggedIn', () => {
         };
 
         renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
-        fireEvent(window, new Event('beforeunload'));
-
-        expect(fetch).not.toHaveBeenCalledWith('/api/v4/channels/members/me/view');
         expect(screen.getByText('Test')).toBeInTheDocument();
+
+        fireEvent(window, new Event('beforeunload'));
+        expect(fetch).not.toHaveBeenCalledWith('/api/v4/channels/members/me/view');
     });
 });
