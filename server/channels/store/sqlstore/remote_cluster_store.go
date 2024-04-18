@@ -191,6 +191,10 @@ func (s sqlRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]
 		query = query.Where(sq.Eq{"rc.PluginID": filter.PluginID})
 	}
 
+	if filter.OnlyPlugins {
+		query = query.Where(sq.NotEq{"rc.PluginID": ""})
+	}
+
 	if filter.RequireOptions != 0 {
 		query = query.Where(sq.NotEq{fmt.Sprintf("(rc.Options & %d)", filter.RequireOptions): 0})
 	}

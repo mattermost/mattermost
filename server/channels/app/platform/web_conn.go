@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -25,7 +26,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 const (
@@ -67,6 +67,7 @@ type WebConnConfig struct {
 	ConnectionID string
 	Active       bool
 	ReuseCount   int
+	OriginClient string
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int
@@ -114,6 +115,9 @@ type WebConn struct {
 	sessionToken atomic.Value
 	session      atomic.Pointer[model.Session]
 	connectionID atomic.Value
+
+	// The client type behind the connection (i.e. web, desktop or mobile)
+	originClient string
 
 	activeChannelID                 atomic.Value
 	activeTeamID                    atomic.Value
@@ -236,6 +240,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		pluginPosted:       make(chan pluginWSPostedHook, 10),
 		lastLogTimeSlow:    time.Now(),
 		lastLogTimeFull:    time.Now(),
+		originClient:       cfg.OriginClient,
 	}
 	wc.active.Store(cfg.Active)
 
@@ -877,7 +882,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		// For typing events, we don't send them to users who don't have
 		// that channel or thread opened.
 		if wc.Platform.Config().FeatureFlags.WebSocketEventScope &&
-			utils.Contains([]model.WebsocketEventType{
+			slices.Contains([]model.WebsocketEventType{
 				model.WebsocketEventTyping,
 				model.WebsocketEventReactionAdded,
 				model.WebsocketEventReactionRemoved,
@@ -954,11 +959,13 @@ func (wc *WebConn) logSocketErr(source string, err error) {
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 		mlog.Debug(source+": client side closed socket",
 			mlog.String("user_id", wc.UserId),
-			mlog.String("conn_id", wc.GetConnectionID()))
+			mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.String("origin_client", wc.originClient))
 	} else {
 		mlog.Debug(source+": closing websocket",
 			mlog.String("user_id", wc.UserId),
 			mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.String("origin_client", wc.originClient),
 			mlog.Err(err))
 	}
 }

@@ -3328,16 +3328,8 @@
     "translation": "Во время инициализации запроса к провайдеру идентификации произошла ошибка. Пожалуйста, обратитесь к системному администратору."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Во время кодирования запроса к провайдеру идентификации произошла ошибка. Пожалуйста, обратитесь к системному администратору."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Попытка входа с использованием SAML не удалась по причине отключенного шифрования. Пожалуйста, свяжитесь с системным администратором."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Публичный сертификат провайдера идентификации не найден. Пожалуйста, обратитесь к системному администратору."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3348,20 +3340,12 @@
     "translation": "Попытка входа с использованием SAML не удалась, так как ответ поставщика учетных записей не зашифрован. Пожалуйста, свяжитесь с системным администратором."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Попытка входа с использованием SAML не удалась из-за возникновения ошибки при расшифровке ответа от поставщика учетных записей. Пожалуйста, свяжитесь с системным администратором."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Получен пустой ответ от поставщика учетных записей."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Возникла ошибка по время разбора ответа от поставщика учетных записей. Пожалуйста, свяжитесь с системным администратором."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Возникла ошибка по время проверки ответа от поставщика учетных записей. Пожалуйста, свяжитесь с системным администратором."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -5469,7 +5453,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Превышен предел размера. Попробуйте проверить [максимальный размер страницы](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Превышен лимит размера. Попробуйте увеличить настройку \"Максимальный размер страницы\". Подробнее об этом читайте на сайте https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded."
   },
   {
     "id": "group_not_associated_to_synced_team",
@@ -9956,10 +9940,6 @@
     "translation": "Неверное обновление участника команды: Гость не может стать участником команды или администратором команды, пожалуйста, сначала повысьте статус пользователя."
   },
   {
-    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": "Неверное обновление участника команды: Пользователь не может быть одновременно назначен гостем и администратором."
-  },
-  {
     "id": "app.report.date_range.last_30_days",
     "translation": "последние 30 дней"
   },
@@ -10162,5 +10142,169 @@
   {
     "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
     "translation": "Возникла ошибка при получении исходящего oauth-соединения для аудитории."
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL слишком длинный"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Неверное обновление участника команды: гость не может быть установлен для команды, Системный администратор должен повышать или понижать пользователей до/из гостей."
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Взаимодействие с клиентским порталом Mattermost было отключено системным администратором."
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Недействительный реквизит (пользовательский статус)"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Ваша лицензия не поддерживает закладки каналов."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Пользователю запрещено создавать закладки на каналах."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Не удалось создать закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Не удалось создать закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Не удалось удалить закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Не удалось удалить закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Не удалось обновить закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Не удалось обновить закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Не удалось обновить закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Не удалось обновить порядок сортировки закладок канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Не удалось обновить порядок сортировки закладок канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Не удалось обновить порядок сортировки закладок канала."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Невозможно приглашение на канал: {{.Error}}"
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "Не удалось удалить закладку."
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "Не удалось получить закладку."
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "Не удалось заставить существующую закладку обновиться."
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "Не удалось сохранить закладку."
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "Не удалось обновить закладку."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "Не удалось отсортировать закладку."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "Не удалось отсортировать закладку. Неверный ввод."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "Не удалось отсортировать закладку. Не найдено."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "Недопустимый идентификатор канала"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "Отображаемое имя отсутствует."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "Идентификатор файла отсутствует или недействителен."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Недопустимый идентификатор"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "Неверный URL изображения."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "\"Создан в\" должно быть корректным временем."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "URL ссылки отсутствует или недействителен."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "Некорректный идентификатор оригинала."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "Неверный идентификатор владельца."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "Некорректный идентификатор родителя."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "\"Обновлено в\" должно быть корректным временем"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "Недопустимый тип."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Не удалось удалить закладку канала."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Невозможно установить ссылку и файл в одну и ту же закладку."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Неверное обновление участника канала: Гость не может стать участником команды или администратором команды, пожалуйста, сначала повысьте его до пользователя."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Неверное обновление участника канала: Гость не может быть установлен для одиночного канала, Системный администратор должен повышать или понижать пользователей до/из гостей."
   }
 ]

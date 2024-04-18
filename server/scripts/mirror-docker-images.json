@@ -16,7 +16,8 @@
     "1.4.0": "osixia/openldap:1.4.0@sha256:d5b2f2b816b25a1b57033b34f5d48c91cc3161a7d041811a9032604030bad9db"
   },
   "keycloak": {
-    "10.0.2": "jboss/keycloak:10.0.2@sha256:3720b5ace316b5790a58ce838f46e8cd44cedbdb7e35d3866311ddc5a5e71466"
+    "10.0.2": "quay.io/keycloak/keycloak:10.0.2@sha256:fa434fd4e96f03242295febb37fb648b9ee271315ba7380d06003b43a42b5195",
+    "23.0.7": "quay.io/keycloak/keycloak:23.0.7@sha256:14e99d6f5dd0516a5bdc82537b732cb85469ecdb15ad7fe5f11ff67521544db8"
   },
   "dejavu": {
     "3.4.2": "appbaseio/dejavu:3.4.2@sha256:8f2f4d45565da53c4235495737fff3921d302955daeb2f53a433c7b0e2044951"
@@ -36,6 +37,7 @@
     "16.17.0": "node:16.17.0",
     "18": "node:18@sha256:11e9c297fc51f6f65f7d0c7c8a8581e5721f2f16de43ceff1a199fd3ef609f95",
     "18.17": "node:18.17@sha256:11e9c297fc51f6f65f7d0c7c8a8581e5721f2f16de43ceff1a199fd3ef609f95",
-    "18.17.1": "node:18.17.1@sha256:11e9c297fc51f6f65f7d0c7c8a8581e5721f2f16de43ceff1a199fd3ef609f95"
+    "18.17.1": "node:18.17.1@sha256:11e9c297fc51f6f65f7d0c7c8a8581e5721f2f16de43ceff1a199fd3ef609f95",
+    "20.11": "node:20.11@sha256:e06aae17c40c7a6b5296ca6f942a02e6737ae61bbbf3e2158624bb0f887991b5"
   }
 }

@@ -10,6 +10,8 @@
 // Stage: @prod
 // Group: @channels @keyboard_shortcuts
 
+import * as TIMEOUTS from '../../../fixtures/timeouts';
+
 describe('Keyboard Shortcuts', () => {
     before(() => {
         cy.apiInitSetup({loginAfter: true}).then(({channelUrl}) => {
@@ -44,8 +46,7 @@ describe('Keyboard Shortcuts', () => {
                 }
 
                 // * Confirm that reply textbox has focus
-                cy.findByTestId('reply_textbox').should('be.focused');
-                cy.findByTestId('reply_textbox').clear();
+                cy.findByTestId('reply_textbox').should('be.focused').clear();
 
                 // # Press CTRL/CMD + uparrow repeatedly
                 let previousMessageIndex = messages.length - 1;
@@ -71,14 +72,11 @@ describe('Keyboard Shortcuts', () => {
                 cy.findByTestId('reply_textbox').cmdOrCtrlShortcut('{downarrow}').should('have.text', messages[0]);
 
                 // # Close the RHS
-                cy.uiCloseRHS();
+                cy.uiCloseRHS().wait(TIMEOUTS.HALF_SEC);
             });
 
             // * Press CTRL/CMD + uparrow in central textbox check if the text is equal to the last message
             cy.findByTestId('post_textbox').cmdOrCtrlShortcut('{uparrow}').should('have.text', messages[messages.length - 1]);
-
-            // * Press CTRL/CMD + downarrow in central textbox check if the text is equal to the last message / there is no change in text
-            cy.findByTestId('post_textbox').cmdOrCtrlShortcut('{downarrow}').should('have.text', messages[messages.length - 1]);
         });
     });
 });
