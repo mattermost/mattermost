@@ -202,7 +202,6 @@ describe('components/logged_in/LoggedIn', () => {
         fireEvent(window, new Event('beforeunload'));
 
         expect(fetch).not.toHaveBeenCalledWith('/api/v4/channels/members/me/view');
-
         expect(screen.getByText('Test')).toBeInTheDocument();
     });
 });
