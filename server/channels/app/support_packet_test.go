@@ -50,23 +50,91 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	license.Features.Users = model.NewInt(licenseUsers)
 	th.App.Srv().SetLicense(license)
 
-	t.Run("Happy path", func(t *testing.T) {
-		// Happy path where we have a support packet yaml file without any warnings
+	generateSupportPacket := func(t *testing.T) *model.SupportPacket {
+		t.Helper()
 
 		fileData, err := th.App.generateSupportPacketYaml(th.Context)
 		require.NotNil(t, fileData)
 		assert.Equal(t, "support_packet.yaml", fileData.Filename)
 		assert.Positive(t, len(fileData.Body))
 		assert.NoError(t, err)
+
 		var packet model.SupportPacket
 		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
+		require.NotNil(t, packet)
+		return &packet
+	}
 
-		assert.Equal(t, 3, packet.ActiveUsers) // from InitBasic.
-		assert.Equal(t, licenseUsers, packet.LicenseSupportedUsers)
-		assert.Equal(t, false, packet.LicenseIsTrial)
+	t.Run("Happy path", func(t *testing.T) {
+		// Happy path where we have a support packet yaml file without any warnings
+		packet := generateSupportPacket(t)
+
+		/* Build information */
+		assert.NotEmpty(t, packet.ServerOS)
+		assert.NotEmpty(t, packet.ServerArchitecture)
+		assert.Equal(t, model.CurrentVersion, packet.ServerVersion)
+		// BuildHash is not present in tests
+
+		/* DB */
+		assert.NotEmpty(t, packet.DatabaseType)
+		assert.NotEmpty(t, packet.DatabaseVersion)
+		assert.NotEmpty(t, packet.DatabaseSchemaVersion)
+		assert.Zero(t, packet.WebsocketConnections)
+		assert.NotZero(t, packet.MasterDbConnections)
+		assert.Zero(t, packet.ReplicaDbConnections)
+
+		/* Cluster */
 		assert.Empty(t, packet.ClusterID)
+
+		/* File store */
 		assert.Equal(t, "local", packet.FileDriver)
 		assert.Equal(t, "OK", packet.FileStatus)
+
+		/* LDAP */
+		assert.Empty(t, packet.LdapVendorName)
+		assert.Empty(t, packet.LdapVendorVersion)
+
+		/* Elastic Search */
+		assert.Empty(t, packet.ElasticServerVersion)
+		assert.Empty(t, packet.ElasticServerPlugins)
+
+		/* License */
+		assert.Equal(t, "My awesome Company", packet.LicenseTo)
+		assert.Equal(t, licenseUsers, packet.LicenseSupportedUsers)
+		assert.Equal(t, false, packet.LicenseIsTrial)
+
+		/* Server stats */
+		assert.Equal(t, 3, packet.ActiveUsers) // from InitBasic()
+		assert.Equal(t, 0, packet.DailyActiveUsers)
+		assert.Equal(t, 0, packet.MonthlyActiveUsers)
+		assert.Equal(t, 0, packet.InactiveUserCount)
+		assert.Equal(t, 5, packet.TotalPosts)    // from InitBasic()
+		assert.Equal(t, 3, packet.TotalChannels) // from InitBasic()
+		assert.Equal(t, 1, packet.TotalTeams)    // from InitBasic()
+
+		/* Jobs */
+		assert.Empty(t, packet.DataRetentionJobs)
+		assert.Empty(t, packet.MessageExportJobs)
+		assert.Empty(t, packet.ElasticPostIndexingJobs)
+		assert.Empty(t, packet.ElasticPostAggregationJobs)
+		assert.Empty(t, packet.BlevePostIndexingJobs)
+		assert.Empty(t, packet.LdapSyncJobs)
+		assert.Empty(t, packet.MigrationJobs)
+	})
+
+	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewInt(1)
+		})
+
+		for i := 0; i < 5; i++ {
+			p := th.CreatePost(th.BasicChannel)
+			require.NotNil(t, p)
+		}
+
+		// InitBasic() already creats 5 posts
+		packet := generateSupportPacket(t)
+		assert.Equal(t, 10, packet.TotalPosts)
 	})
 
 	t.Run("filestore fails", func(t *testing.T) {
@@ -75,13 +143,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		fb.On("DriverName").Return("mock")
 		fb.On("TestConnection").Return(errors.New("all broken"))
 
-		fileData, err := th.App.generateSupportPacketYaml(th.Context)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "support_packet.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
-		assert.NoError(t, err)
-		var packet model.SupportPacket
-		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
+		packet := generateSupportPacket(t)
 
 		assert.Equal(t, "mock", packet.FileDriver)
 		assert.Equal(t, "FAIL: all broken", packet.FileStatus)
@@ -106,55 +168,91 @@ func TestGenerateSupportPacket(t *testing.T) {
 	logLocation := config.GetLogFileLocation(dir)
 	notificationsLogLocation := config.GetNotificationsLogFileLocation(dir)
 
-	d1 := []byte("hello\ngo\n")
-	err = os.WriteFile(logLocation, d1, 0777)
-	require.NoError(t, err)
-	err = os.WriteFile(notificationsLogLocation, d1, 0777)
-	require.NoError(t, err)
-
-	fileDatas := th.App.GenerateSupportPacket(th.Context)
-	var rFileNames []string
-	testFiles := []string{
-		"support_packet.yaml",
-		"plugins.json",
-		"sanitized_config.json",
-		"mattermost.log",
-		"notifications.log",
-		"cpu.prof",
-		"heap.prof",
-		"goroutines",
+	genMockLogFiles := func() {
+		d1 := []byte("hello\ngo\n")
+		genErr := os.WriteFile(logLocation, d1, 0777)
+		require.NoError(t, genErr)
+		genErr = os.WriteFile(notificationsLogLocation, d1, 0777)
+		require.NoError(t, genErr)
 	}
-	for _, fileData := range fileDatas {
-		require.NotNil(t, fileData)
-		assert.Positive(t, len(fileData.Body))
+	genMockLogFiles()
 
-		rFileNames = append(rFileNames, fileData.Filename)
-	}
-	assert.ElementsMatch(t, testFiles, rFileNames)
+	t.Run("generate support packet with logs", func(t *testing.T) {
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: true,
+		})
+		var rFileNames []string
+		testFiles := []string{
+			"support_packet.yaml",
+			"plugins.json",
+			"sanitized_config.json",
+			"mattermost.log",
+			"notifications.log",
+			"cpu.prof",
+			"heap.prof",
+			"goroutines",
+		}
+		for _, fileData := range fileDatas {
+			require.NotNil(t, fileData)
+			assert.Positive(t, len(fileData.Body))
 
-	// Remove these two files and ensure that warning.txt file is generated
-	err = os.Remove(logLocation)
-	require.NoError(t, err)
-	err = os.Remove(notificationsLogLocation)
-	require.NoError(t, err)
-	fileDatas = th.App.GenerateSupportPacket(th.Context)
-	testFiles = []string{
-		"support_packet.yaml",
-		"plugins.json",
-		"sanitized_config.json",
-		"cpu.prof",
-		"heap.prof",
-		"warning.txt",
-		"goroutines",
-	}
-	rFileNames = nil
-	for _, fileData := range fileDatas {
-		require.NotNil(t, fileData)
-		assert.Positive(t, len(fileData.Body))
+			rFileNames = append(rFileNames, fileData.Filename)
+		}
+		assert.ElementsMatch(t, testFiles, rFileNames)
+	})
 
-		rFileNames = append(rFileNames, fileData.Filename)
-	}
-	assert.ElementsMatch(t, testFiles, rFileNames)
+	t.Run("generate support packet without logs", func(t *testing.T) {
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: false,
+		})
+
+		testFiles := []string{
+			"support_packet.yaml",
+			"plugins.json",
+			"sanitized_config.json",
+			"cpu.prof",
+			"heap.prof",
+			"goroutines",
+		}
+		var rFileNames []string
+		for _, fileData := range fileDatas {
+			require.NotNil(t, fileData)
+			assert.Positive(t, len(fileData.Body))
+
+			rFileNames = append(rFileNames, fileData.Filename)
+		}
+		assert.ElementsMatch(t, testFiles, rFileNames)
+	})
+
+	t.Run("remove the log files and ensure that warning.txt file is generated", func(t *testing.T) {
+		// Remove these two files and ensure that warning.txt file is generated
+		err = os.Remove(logLocation)
+		require.NoError(t, err)
+		err = os.Remove(notificationsLogLocation)
+		require.NoError(t, err)
+		t.Cleanup(genMockLogFiles)
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: true,
+		})
+		testFiles := []string{
+			"support_packet.yaml",
+			"plugins.json",
+			"sanitized_config.json",
+			"cpu.prof",
+			"heap.prof",
+			"warning.txt",
+			"goroutines",
+		}
+		var rFileNames []string
+		for _, fileData := range fileDatas {
+			require.NotNil(t, fileData)
+			assert.Positive(t, len(fileData.Body))
+
+			rFileNames = append(rFileNames, fileData.Filename)
+		}
+		assert.ElementsMatch(t, testFiles, rFileNames)
+	})
 
 	t.Run("steps that generated an error should still return file data", func(t *testing.T) {
 		mockStore := smocks.Store{}
@@ -179,7 +277,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("GetDbVersion", false).Return("1.0.0", nil)
 		th.App.Srv().SetStore(&mockStore)
 
-		fileDatas := th.App.GenerateSupportPacket(th.Context)
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: false,
+		})
 
 		var rFileNames []string
 		for _, fileData := range fileDatas {
