@@ -8953,20 +8953,20 @@ func (c *Client4) SubmitTrueUpReview(ctx context.Context, req map[string]any) (*
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) GetUserLimits(ctx context.Context) (*UserLimits, *Response, error) {
+func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var userLimits UserLimits
+	var serverLimits ServerLimits
 	if r.StatusCode == http.StatusNotModified {
-		return &userLimits, BuildResponse(r), nil
+		return &serverLimits, BuildResponse(r), nil
 	}
-	if err := json.NewDecoder(r.Body).Decode(&userLimits); err != nil {
-		return nil, nil, NewAppError("GetUserLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := json.NewDecoder(r.Body).Decode(&serverLimits); err != nil {
+		return nil, nil, NewAppError("GetServerLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return &userLimits, BuildResponse(r), nil
+	return &serverLimits, BuildResponse(r), nil
 }
 
 // CreateChannelBookmark creates a channel bookmark based on the provided struct.

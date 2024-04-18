@@ -103,7 +103,7 @@ import type {
     SubmitDialogResponse,
 } from '@mattermost/types/integrations';
 import type {Job, JobTypeBase} from '@mattermost/types/jobs';
-import type {UsersLimits} from '@mattermost/types/limits';
+import type {ServerLimits} from '@mattermost/types/limits';
 import type {
     MarketplaceApp,
     MarketplacePlugin,
@@ -498,8 +498,8 @@ export default class Client4 {
         return `${this.getBaseRoute()}/limits`;
     }
 
-    getUsersLimitsRoute() {
-        return `${this.getLimitsRoute()}/users`;
+    getServerLimitsRoute() {
+        return `${this.getLimitsRoute()}/server`;
     }
 
     getCSRFFromCookie() {
@@ -1220,9 +1220,9 @@ export default class Client4 {
 
     // Limits Routes
 
-    getUsersLimits = () => {
-        return this.doFetchWithResponse<UsersLimits>(
-            `${this.getUsersLimitsRoute()}`,
+    getServerLimits = () => {
+        return this.doFetchWithResponse<ServerLimits>(
+            `${this.getServerLimitsRoute()}`,
             {
                 method: 'get',
             },
