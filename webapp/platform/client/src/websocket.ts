@@ -412,11 +412,11 @@ export default class WebSocketClient {
         this.sendMessage('user_update_active_status', data, callback);
     }
 
-    acknowledgePostedNotification(postId: string, result: 'error' | 'not_sent' | 'unsupported' | 'success', reason?: string, postedData?: string) {
+    acknowledgePostedNotification(postId: string, status: string, reason?: string, postedData?: string) {
         const data = {
             post_id: postId,
             user_agent: window.navigator.userAgent,
-            result,
+            status,
             reason,
             data: postedData,
         };
