@@ -65,7 +65,7 @@ export function redirectToOnboardingOrDefaultTeam(history: History): ThunkAction
 
 export function handleLoginLogoutSignal(e: StorageEvent): ThunkActionFunc<void> {
     return (dispatch, getState) => {
-    // when one tab on a browser logs out, it sets __logout__ in localStorage to trigger other tabs to log out
+        // when one tab on a browser logs out, it sets __logout__ in localStorage to trigger other tabs to log out
         const isNewLocalStorageEvent = (event: StorageEvent) => event.storageArea === localStorage && event.newValue;
 
         if (e.key === StoragePrefixes.LOGOUT && isNewLocalStorageEvent(e)) {
