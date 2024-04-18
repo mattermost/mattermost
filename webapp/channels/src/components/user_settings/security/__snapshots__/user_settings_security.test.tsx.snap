@@ -646,27 +646,51 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, to email 1`] = `
 <div>
-  <SettingMobileHeader
-    closeModal={[MockFunction]}
-    collapseModal={[MockFunction]}
-    text={
-      <Memo(MemoizedFormattedMessage)
+  <div
+    className="modal-header"
+  >
+    <button
+      aria-label="Close"
+      className="close"
+      data-dismiss="modal"
+      onClick={[MockFunction]}
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+      >
+        ×
+      </span>
+    </button>
+    <h4
+      className="modal-title"
+    >
+      <div
+        className="modal-back"
+      >
+        <i
+          className="fa fa-angle-left"
+          onClick={[MockFunction]}
+          title="Collapse Icon"
+        />
+      </div>
+      <MemoizedFormattedMessage
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
-    }
-  />
+    </h4>
+  </div>
   <div
     className="user-settings"
   >
-    <SettingDesktopHeader
-      text={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Security Settings"
-          id="user.settings.security.title"
-        />
-      }
-    />
+    <h3
+      className="tab-header"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Security Settings"
+        id="user.settings.security.title"
+      />
+    </h3>
     <div
       className="divider-dark first"
     />
