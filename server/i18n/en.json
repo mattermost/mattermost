@@ -5411,12 +5411,16 @@
     "translation": "Error reading the file at: \"{{.FilePath}}\""
   },
   {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Error reading the file status: \"{{.FilePath}}\""
+  },
+  {
     "id": "app.import.attachment.file_upload.error",
     "translation": "Error uploading the file: \"{{.FilePath}}\""
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Failed to read file attachment during import."
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Error seeking the file: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
