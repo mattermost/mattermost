@@ -2255,7 +2255,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "未能升级 WebSocket 连接。"
+    "translation": "URL由于CORS而被阻止。URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -10336,5 +10336,41 @@
   {
     "id": "app.user.update_active.user_limit.exceeded",
     "translation": "无法激活用户。服务器超过安全用户限制。联系您的管理员，并附上：ERROR_SAFETY_LIMITS_EXCEEDED。"
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "请求体中缺少 display_name 属性"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "请求体中缺少 team_id 属性"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "身份验证转移不可用，因为使用电子邮件注册已被禁用。"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "身份验证转移不可用，因为既未启用使用电子邮件登录也未启用使用用户名登录。"
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "解析请求失败"
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "您的密码不能超过72个字符。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "您的密码必须至少包含{{.Min}}个字符。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} 和 @{{.LastUsername}} 没有收到此提及的通知，因为他们不是该团队的成员。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} 没有收到此提及的通知，因为他不是该团队的成员。"
   }
 ]
