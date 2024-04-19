@@ -234,6 +234,9 @@ exports[`components/ChannelHeader should match snapshot with last active display
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "status": "offline",
@@ -281,6 +284,9 @@ exports[`components/ChannelHeader should match snapshot with last active display
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "status": "offline",
@@ -508,6 +514,9 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "status": "offline",
@@ -555,6 +564,9 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "status": "offline",
@@ -748,6 +760,9 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -794,6 +809,9 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -986,6 +1004,9 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -1032,6 +1053,9 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -1224,6 +1248,9 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -1270,6 +1297,9 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -1462,6 +1492,9 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -1508,6 +1541,9 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -1700,6 +1736,9 @@ exports[`components/ChannelHeader should render archived view 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -1746,6 +1785,9 @@ exports[`components/ChannelHeader should render archived view 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -1970,6 +2012,9 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -2016,6 +2061,9 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -2208,6 +2256,9 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -2254,6 +2305,9 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -2498,6 +2552,9 @@ exports[`components/ChannelHeader should render properly when custom status is e
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "status": "offline",
@@ -2545,6 +2602,9 @@ exports[`components/ChannelHeader should render properly when custom status is e
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "status": "offline",
@@ -2810,6 +2870,9 @@ exports[`components/ChannelHeader should render properly when custom status is s
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "status": "offline",
@@ -2857,6 +2920,9 @@ exports[`components/ChannelHeader should render properly when custom status is s
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "status": "offline",
@@ -3050,6 +3116,9 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -3096,6 +3165,9 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -3288,6 +3360,9 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -3334,6 +3409,9 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -3538,6 +3616,9 @@ exports[`components/ChannelHeader should render properly when populated with cha
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "props": Object {
             "channel_mentions": Object {
               "test": Object {
@@ -3591,6 +3672,9 @@ exports[`components/ChannelHeader should render properly when populated with cha
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "props": Object {
             "channel_mentions": Object {
               "test": Object {
@@ -3790,6 +3874,9 @@ exports[`components/ChannelHeader should render shared view 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "shared": true,
@@ -3837,6 +3924,9 @@ exports[`components/ChannelHeader should render shared view 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "shared": true,
@@ -4038,6 +4128,9 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -4084,6 +4177,9 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "Test",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",

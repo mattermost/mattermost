@@ -59,6 +59,9 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "channel-3",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "channel-3-purpose",
           "scheme_id": "id",
           "team_id": "team_1",
@@ -76,6 +79,9 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",

@@ -120,6 +120,9 @@ exports[`components/ChannelSelectorModal exclude already selected 1`] = `
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_display_name": "teamDisplayName",
@@ -270,6 +273,9 @@ exports[`components/ChannelSelectorModal should match snapshot 1`] = `
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_display_name": "teamDisplayName",
@@ -292,6 +298,9 @@ exports[`components/ChannelSelectorModal should match snapshot 1`] = `
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_display_name": "teamDisplayName",

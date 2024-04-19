@@ -34,6 +34,9 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -56,6 +59,9 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -105,6 +111,9 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "town-square",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -127,6 +136,9 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "town-square",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -176,6 +188,9 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -198,6 +213,9 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -247,6 +265,9 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "user_id_1__user_id_2",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -269,6 +290,9 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "user_id_1__user_id_2",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",

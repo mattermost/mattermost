@@ -18,6 +18,9 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -339,6 +342,9 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",

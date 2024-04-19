@@ -15,6 +15,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         "last_post_at": 0,
         "last_root_post_at": 0,
         "name": "DN",
+        "options": Object {
+          "excludeTypes": Array [],
+        },
         "purpose": "purpose",
         "scheme_id": "id",
         "team_id": "team_id",
@@ -37,6 +40,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         "last_post_at": 0,
         "last_root_post_at": 0,
         "name": "DN",
+        "options": Object {
+          "excludeTypes": Array [],
+        },
         "purpose": "purpose",
         "scheme_id": "id",
         "team_id": "team_id",
@@ -61,6 +67,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -84,6 +93,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -107,6 +119,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -180,6 +195,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -256,6 +274,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
               "last_post_at": 0,
               "last_root_post_at": 0,
               "name": "DN",
+              "options": Object {
+                "excludeTypes": Array [],
+              },
               "purpose": "purpose",
               "scheme_id": "id",
               "team_id": "team_id",
@@ -310,6 +331,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -376,6 +400,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -412,6 +439,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -440,6 +470,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -475,6 +508,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -521,6 +557,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
               "last_post_at": 0,
               "last_root_post_at": 0,
               "name": "DN",
+              "options": Object {
+                "excludeTypes": Array [],
+              },
               "purpose": "purpose",
               "scheme_id": "id",
               "team_id": "team_id",
@@ -556,6 +595,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
               "last_post_at": 0,
               "last_root_post_at": 0,
               "name": "DN",
+              "options": Object {
+                "excludeTypes": Array [],
+              },
               "purpose": "purpose",
               "scheme_id": "id",
               "team_id": "team_id",
@@ -591,6 +633,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
               "last_post_at": 0,
               "last_root_post_at": 0,
               "name": "DN",
+              "options": Object {
+                "excludeTypes": Array [],
+              },
               "purpose": "purpose",
               "scheme_id": "id",
               "team_id": "team_id",
@@ -611,6 +656,30 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         modalId="rename_channel"
         show={true}
         text="Rename Channel"
+      />
+      <Connect(MuteJoinLeaveMessages)
+        channel={
+          Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
       />
     </Connect(Component)>
     <Connect(Component)
@@ -656,6 +725,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -691,6 +763,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
               "last_post_at": 0,
               "last_root_post_at": 0,
               "name": "DN",
+              "options": Object {
+                "excludeTypes": Array [],
+              },
               "purpose": "purpose",
               "scheme_id": "id",
               "team_id": "team_id",
@@ -727,6 +802,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -806,6 +884,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
               "last_post_at": 0,
               "last_root_post_at": 0,
               "name": "DN",
+              "options": Object {
+                "excludeTypes": Array [],
+              },
               "purpose": "purpose",
               "scheme_id": "id",
               "team_id": "team_id",
@@ -847,6 +928,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         "last_post_at": 0,
         "last_root_post_at": 0,
         "name": "DN",
+        "options": Object {
+          "excludeTypes": Array [],
+        },
         "purpose": "purpose",
         "scheme_id": "id",
         "team_id": "team_id",
@@ -869,6 +953,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         "last_post_at": 0,
         "last_root_post_at": 0,
         "name": "DN",
+        "options": Object {
+          "excludeTypes": Array [],
+        },
         "purpose": "purpose",
         "scheme_id": "id",
         "team_id": "team_id",
@@ -893,6 +980,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -916,6 +1006,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -939,6 +1032,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -1012,6 +1108,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -1088,6 +1187,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
               "last_post_at": 0,
               "last_root_post_at": 0,
               "name": "DN",
+              "options": Object {
+                "excludeTypes": Array [],
+              },
               "purpose": "purpose",
               "scheme_id": "id",
               "team_id": "team_id",
@@ -1142,6 +1244,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -1208,6 +1313,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -1244,6 +1352,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -1272,6 +1383,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -1307,6 +1421,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "purpose",
             "scheme_id": "id",
             "team_id": "team_id",
@@ -1353,6 +1470,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
               "last_post_at": 0,
               "last_root_post_at": 0,
               "name": "DN",
+              "options": Object {
+                "excludeTypes": Array [],
+              },
               "purpose": "purpose",
               "scheme_id": "id",
               "team_id": "team_id",
@@ -1388,6 +1508,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
               "last_post_at": 0,
               "last_root_post_at": 0,
               "name": "DN",
+              "options": Object {
+                "excludeTypes": Array [],
+              },
               "purpose": "purpose",
               "scheme_id": "id",
               "team_id": "team_id",
@@ -1423,6 +1546,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
               "last_post_at": 0,
               "last_root_post_at": 0,
               "name": "DN",
+              "options": Object {
+                "excludeTypes": Array [],
+              },
               "purpose": "purpose",
               "scheme_id": "id",
               "team_id": "team_id",
@@ -1443,6 +1569,30 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         modalId="rename_channel"
         show={true}
         text="Rename Channel"
+      />
+      <Connect(MuteJoinLeaveMessages)
+        channel={
+          Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
       />
     </Connect(Component)>
     <Connect(Component)
@@ -1488,6 +1638,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -1523,6 +1676,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
               "last_post_at": 0,
               "last_root_post_at": 0,
               "name": "DN",
+              "options": Object {
+                "excludeTypes": Array [],
+              },
               "purpose": "purpose",
               "scheme_id": "id",
               "team_id": "team_id",
@@ -1559,6 +1715,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "last_post_at": 0,
           "last_root_post_at": 0,
           "name": "DN",
+          "options": Object {
+            "excludeTypes": Array [],
+          },
           "purpose": "purpose",
           "scheme_id": "id",
           "team_id": "team_id",
@@ -1653,6 +1812,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
               "last_post_at": 0,
               "last_root_post_at": 0,
               "name": "DN",
+              "options": Object {
+                "excludeTypes": Array [],
+              },
               "purpose": "purpose",
               "scheme_id": "id",
               "team_id": "team_id",

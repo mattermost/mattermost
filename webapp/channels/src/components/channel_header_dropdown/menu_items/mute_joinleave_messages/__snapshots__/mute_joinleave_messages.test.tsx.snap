@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages should match snapshot 1`] = `
+<MenuItemAction
+  onClick={[Function]}
+  show={true}
+  text=""
+/>
+`;
+
+exports[`components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages should read "hide join/leave messages" 1`] = `
+<MenuItemAction
+  onClick={[Function]}
+  show={true}
+  text=""
+/>
+`;
+
+exports[`components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages should read "show join/leave messages" 1`] = `
+<MenuItemAction
+  onClick={[Function]}
+  show={true}
+  text=""
+/>
+`;

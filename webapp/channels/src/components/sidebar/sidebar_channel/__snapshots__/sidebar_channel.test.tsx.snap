@@ -20,6 +20,9 @@ exports[`components/sidebar/sidebar_channel should match snapshot 1`] = `
         "last_post_at": 0,
         "last_root_post_at": 0,
         "name": "",
+        "options": Object {
+          "excludeTypes": Array [],
+        },
         "purpose": "",
         "scheme_id": "",
         "team_id": "",
@@ -52,6 +55,9 @@ exports[`components/sidebar/sidebar_channel should match snapshot when DM channe
         "last_post_at": 0,
         "last_root_post_at": 0,
         "name": "",
+        "options": Object {
+          "excludeTypes": Array [],
+        },
         "purpose": "",
         "scheme_id": "",
         "team_id": "",
@@ -84,6 +90,9 @@ exports[`components/sidebar/sidebar_channel should match snapshot when GM channe
         "last_post_at": 0,
         "last_root_post_at": 0,
         "name": "",
+        "options": Object {
+          "excludeTypes": Array [],
+        },
         "purpose": "",
         "scheme_id": "",
         "team_id": "",
@@ -116,6 +125,9 @@ exports[`components/sidebar/sidebar_channel should match snapshot when active 1`
         "last_post_at": 0,
         "last_root_post_at": 0,
         "name": "",
+        "options": Object {
+          "excludeTypes": Array [],
+        },
         "purpose": "",
         "scheme_id": "",
         "team_id": "",
@@ -148,6 +160,9 @@ exports[`components/sidebar/sidebar_channel should match snapshot when collapsed
         "last_post_at": 0,
         "last_root_post_at": 0,
         "name": "",
+        "options": Object {
+          "excludeTypes": Array [],
+        },
         "purpose": "",
         "scheme_id": "",
         "team_id": "",
@@ -180,6 +195,9 @@ exports[`components/sidebar/sidebar_channel should match snapshot when unread 1`
         "last_post_at": 0,
         "last_root_post_at": 0,
         "name": "",
+        "options": Object {
+          "excludeTypes": Array [],
+        },
         "purpose": "",
         "scheme_id": "",
         "team_id": "",

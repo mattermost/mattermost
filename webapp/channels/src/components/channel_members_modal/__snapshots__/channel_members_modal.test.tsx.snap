@@ -81,6 +81,9 @@ exports[`components/ChannelMembersModal should match snapshot 1`] = `
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "",
             "scheme_id": "",
             "team_id": "",
@@ -164,6 +167,9 @@ exports[`components/ChannelMembersModal should match snapshot with archived chan
             "last_post_at": 0,
             "last_root_post_at": 0,
             "name": "",
+            "options": Object {
+              "excludeTypes": Array [],
+            },
             "purpose": "",
             "scheme_id": "",
             "team_id": "",

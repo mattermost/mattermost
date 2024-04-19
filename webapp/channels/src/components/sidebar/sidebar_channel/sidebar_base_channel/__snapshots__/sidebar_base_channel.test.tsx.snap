@@ -15,6 +15,9 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
       "last_post_at": 0,
       "last_root_post_at": 0,
       "name": "",
+      "options": Object {
+        "excludeTypes": Array [],
+      },
       "purpose": "",
       "scheme_id": "",
       "team_id": "",
@@ -48,6 +51,9 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
       "last_post_at": 0,
       "last_root_post_at": 0,
       "name": "",
+      "options": Object {
+        "excludeTypes": Array [],
+      },
       "purpose": "",
       "scheme_id": "",
       "team_id": "",
@@ -81,6 +87,9 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
       "last_post_at": 0,
       "last_root_post_at": 0,
       "name": "",
+      "options": Object {
+        "excludeTypes": Array [],
+      },
       "purpose": "",
       "scheme_id": "",
       "shared": true,
@@ -117,6 +126,9 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
       "last_post_at": 0,
       "last_root_post_at": 0,
       "name": "",
+      "options": Object {
+        "excludeTypes": Array [],
+      },
       "purpose": "",
       "scheme_id": "",
       "shared": true,
