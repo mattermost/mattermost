@@ -24,9 +24,6 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 	info, err := os.Stat(importFilePath)
 	s.Require().NoError(err)
 
-	info, err := os.Stat(importFilePath)
-	s.Require().NoError(err)
-
 	s.Run("no permissions", func() {
 		printer.Clean()
 
