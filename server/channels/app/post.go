@@ -1187,8 +1187,8 @@ func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*m
 	return postList, nil
 }
 
-func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bool, excludedTypes []string) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store().Post().GetPostAfterTime(channelID, time, collapsedThreads, excludedTypes)
+func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bool, excludeTypes []string) (*model.Post, *model.AppError) {
+	post, err := a.Srv().Store().Post().GetPostAfterTime(channelID, time, collapsedThreads, excludeTypes)
 	if err != nil {
 		return nil, model.NewAppError("GetPostAfterTime", "app.post.get_post_after_time.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1316,7 +1316,6 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("postList1:", postList)
 	// Reset order to only include the last unread post: if the thread appears in the centre
 	// channel organically, those replies will be added below.
 	postList.Order = []string{}
@@ -1339,7 +1338,6 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 	}
 
 	postList.SortByCreateAt()
-	fmt.Println("postList:", postList)
 	return postList, nil
 }
 

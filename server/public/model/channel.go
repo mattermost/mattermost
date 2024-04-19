@@ -290,6 +290,9 @@ func (o *Channel) PreSave() {
 	o.UpdateAt = o.CreateAt
 	o.ExtraUpdateAt = 0
 
+	if o.Options.ExcludeTypes == nil {
+		o.Options.ExcludeTypes = []string{}
+	}
 }
 
 func (o *Channel) PreUpdate() {
@@ -328,6 +331,9 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 	}
 
 	if patch.Options != nil {
+		if patch.Options.ExcludeTypes == nil {
+			patch.Options.ExcludeTypes = []string{}
+		}
 		o.Options = *patch.Options
 	}
 }

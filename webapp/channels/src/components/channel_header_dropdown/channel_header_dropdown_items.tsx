@@ -34,6 +34,7 @@ import type {PluginComponent} from 'types/store/plugins';
 import MenuItemCloseChannel from './menu_items/close_channel';
 import MenuItemCloseMessage from './menu_items/close_message';
 import MenuItemLeaveChannel from './menu_items/leave_channel';
+import MenuItemMuteJoinLeave from './menu_items/mute_joinleave_messages';
 import MenuItemOpenMembersRHS from './menu_items/open_members_rhs';
 import MenuItemToggleFavoriteChannel from './menu_items/toggle_favorite_channel';
 import MenuItemToggleInfo from './menu_items/toggle_info';
@@ -263,6 +264,10 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                             dialogProps={{channel}}
                             text={localizeMessage('channel_header.rename', 'Rename Channel')}
                         />
+                        <MenuItemMuteJoinLeave
+                            channel={channel}
+                        />
+
                     </ChannelPermissionGate>
                     <ChannelPermissionGate
                         channelId={channel.id}

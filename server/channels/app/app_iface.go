@@ -759,7 +759,7 @@ type AppIface interface {
 	GetPinnedPosts(c request.CTX, channelID string) (*model.PostList, *model.AppError)
 	GetPluginKey(pluginID string, key string) ([]byte, *model.AppError)
 	GetPlugins() (*model.PluginsResponse, *model.AppError)
-	GetPostAfterTime(channelID string, time int64, collapsedThreads bool, excludedTypes []string) (*model.Post, *model.AppError)
+	GetPostAfterTime(channelID string, time int64, collapsedThreads bool, excludeTypes []string) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool, excludeTypes []string) (string, *model.AppError)
 	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool, excludeTypes []string) (string, *model.AppError)
 	GetPostIfAuthorized(c request.CTX, postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError)

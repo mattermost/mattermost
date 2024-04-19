@@ -3100,6 +3100,8 @@
   "channel_header.pinnedPosts": "Pinned messages",
   "channel_header.recentMentions": "Recent mentions",
   "channel_header.rename": "Rename Channel",
+  "channel_header.hideJoinLeaveMessages": "Hide Join/Leave Messages",
+  "channel_header.showJoinLeaveMessages": "Show Join/Leave Messages",
   "channel_header.search": "Search",
   "channel_header.setConversationHeader": "Edit Conversation Header",
   "channel_header.setHeader": "Edit Channel Header",

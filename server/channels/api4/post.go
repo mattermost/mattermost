@@ -255,7 +255,10 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	perPage := c.Params.PerPage
 
 	excludeTypes := r.URL.Query().Get("excludeTypes")
-	excludeTypesList := strings.Split(excludeTypes, ",")
+	var excludeTypesList []string
+	if len(excludeTypes) > 0 {
+		excludeTypesList = strings.Split(excludeTypes, ",")
+	}
 
 	if !c.IsSystemAdmin() && includeDeleted {
 		c.SetPermissionError(model.PermissionReadDeletedPosts)
@@ -267,12 +270,16 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	channel, err := c.App.GetChannel(c.AppContext, channelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if excludeTypesList == nil && channel.Options.ExcludeTypes != nil {
+		excludeTypesList = channel.Options.ExcludeTypes
+	}
+
 	if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
-		channel, err := c.App.GetChannel(c.AppContext, channelId)
-		if err != nil {
-			c.Err = err
-			return
-		}
 		if channel.DeleteAt != 0 {
 			c.Err = model.NewAppError("Api4.getPostsForChannel", "api.user.view_archived_channels.get_posts_for_channel.app_error", nil, "", http.StatusForbidden)
 			return
@@ -280,11 +287,10 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var list *model.PostList
-	var err *model.AppError
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
+		list, err = c.App.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, ExcludePostTypes: excludeTypesList})
 	} else if afterPost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -357,11 +363,27 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	excludeTypes := r.URL.Query().Get("excludeTypes")
-	excludeTypesList := strings.Split(excludeTypes, ",")
+	var excludeTypesList []string
+	if len(excludeTypes) > 0 {
+		excludeTypesList = strings.Split(excludeTypes, ",")
+	}
 
 	skipFetchThreads := r.URL.Query().Get("skipFetchThreads") == "true"
 	collapsedThreads := r.URL.Query().Get("collapsedThreads") == "true"
 	collapsedThreadsExtended := r.URL.Query().Get("collapsedThreadsExtended") == "true"
+
+	// only bringing in the exclude if it doesn't come from the API so it's not overwritten
+	if excludeTypesList == nil {
+
+		channel, err := c.App.GetChannel(c.AppContext, channelId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		if channel.Options.ExcludeTypes != nil {
+			excludeTypesList = channel.Options.ExcludeTypes
+		}
+	}
 
 	postList, err := c.App.GetPostsForChannelAroundLastUnread(c.AppContext, channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, excludeTypesList)
 	if err != nil {

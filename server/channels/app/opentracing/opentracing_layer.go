@@ -8300,7 +8300,7 @@ func (a *OpenTracingAppLayer) GetPluginsEnvironment() *plugin.Environment {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetPostAfterTime(channelID string, time int64, collapsedThreads bool, excludedTypes []string) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostAfterTime(channelID string, time int64, collapsedThreads bool, excludeTypes []string) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostAfterTime")
 
@@ -8312,7 +8312,7 @@ func (a *OpenTracingAppLayer) GetPostAfterTime(channelID string, time int64, col
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostAfterTime(channelID, time, collapsedThreads, excludedTypes)
+	resultVar0, resultVar1 := a.app.GetPostAfterTime(channelID, time, collapsedThreads, excludeTypes)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

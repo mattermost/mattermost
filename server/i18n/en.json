@@ -4563,6 +4563,10 @@
     "translation": "Cannot retrieve posts for an archived channel"
   },
   {
+    "id": "api.user.invalid_excluded_types.get_posts_for_channel.app_error",
+    "translation": "Excluded types is not a string array"
+  },
+  {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
     "translation": "Cannot retrieve users for an archived channel"
   },
