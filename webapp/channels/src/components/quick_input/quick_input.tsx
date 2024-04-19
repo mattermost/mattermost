@@ -214,6 +214,7 @@ export class QuickInput extends React.PureComponent<Props> {
                     <span
                         className='input-clear-x'
                         aria-hidden='true'
+                        data-testid='quick-input-clear'
                     >
                         <i className='icon icon-close-circle'/>
                     </span>

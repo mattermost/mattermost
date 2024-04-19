@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import {QuickInput} from './quick_input';
 
@@ -14,16 +15,16 @@ describe('components/QuickInput', () => {
         ['when value undefined', {clearable: true, onClear: () => {}}],
         ['when value empty', {value: '', clearable: true, onClear: () => {}}],
     ])('should not render clear button', (description, props) => {
-        const wrapper = mount(
+        renderWithContext(
             <QuickInput {...props}/>,
         );
 
-        expect(wrapper.find('.input-clear').exists()).toBe(false);
+        expect(screen.queryByTestId('quick-input-clear')).not.toBeInTheDocument();
     });
 
     describe('should render clear button', () => {
-        test('with default tooltip text', () => {
-            const wrapper = mount(
+        test('with default tooltip text', async () => {
+            renderWithContext(
                 <QuickInput
                     value='mock'
                     clearable={true}
@@ -31,60 +32,87 @@ describe('components/QuickInput', () => {
                 />,
             );
 
-            expect(wrapper.find('.input-clear')).toMatchSnapshot();
+            expect(screen.queryByText('Clear')).not.toBeInTheDocument();
+
+            userEvent.hover(screen.getByTestId('quick-input-clear'));
+
+            expect(await screen.findByText('Clear')).toBeVisible();
         });
 
-        test('with customized tooltip text', () => {
-            const wrapper = mount(
+        test('with customized tooltip text', async () => {
+            renderWithContext(
                 <QuickInput
                     value='mock'
                     clearable={true}
-                    clearableTooltipText='Custom'
+                    clearableTooltipText='Custom text'
                     onClear={() => {}}
                 />,
             );
 
-            expect(wrapper.find('.input-clear')).toMatchSnapshot();
+            expect(screen.queryByText('Custom text')).not.toBeInTheDocument();
+
+            userEvent.hover(screen.getByTestId('quick-input-clear'));
+
+            expect(await screen.findByText('Custom text')).toBeVisible();
         });
 
-        test('with customized tooltip component', () => {
-            const wrapper = mount(
+        test('with customized tooltip component', async () => {
+            renderWithContext(
                 <QuickInput
                     value='mock'
                     clearable={true}
                     clearableTooltipText={
-                        <span>{'Custom'}</span>
+                        <span>{'Custom component'}</span>
                     }
                     onClear={() => {}}
                 />,
             );
 
-            expect(wrapper.find('.input-clear')).toMatchSnapshot();
+            expect(screen.queryByText('Custom component')).not.toBeInTheDocument();
+
+            userEvent.hover(screen.getByTestId('quick-input-clear'));
+
+            expect(await screen.findByText('Custom component')).toBeVisible();
         });
     });
 
     test('should dismiss clear button', () => {
+        const handleClear = jest.fn();
         const focusFn = jest.fn();
-        class MockComp extends React.PureComponent {
-            focus = focusFn;
-            render() {
-                return <div/>;
-            }
-        }
-        const wrapper = mount(
+
+        const MockComp = React.forwardRef((props: {defaultValue?: string}, ref: React.Ref<HTMLInputElement>) => (
+            <input
+                ref={ref}
+                defaultValue={props.defaultValue}
+                onFocus={focusFn}
+            />
+        ));
+
+        const {rerender} = renderWithContext(
             <QuickInput
                 value='mock'
                 clearable={true}
-                onClear={() => {}}
+                onClear={handleClear}
                 inputComponent={MockComp}
             />,
         );
 
-        wrapper.setProps({onClear: () => wrapper.setProps({value: ''})});
-        expect(wrapper.find('.input-clear').exists()).toBe(true);
+        expect(screen.queryByTestId('quick-input-clear')).toBeVisible();
 
-        wrapper.find('.input-clear').simulate('mousedown');
-        expect(wrapper.find('.input-clear').exists()).toBe(false);
-        expect(focusFn).toBeCalled();
+        userEvent.click(screen.getByTestId('quick-input-clear'));
+
+        expect(focusFn).toHaveBeenCalled();
+        expect(handleClear).toHaveBeenCalled();
+
+        rerender(
+            <QuickInput
+                value=''
+                clearable={true}
+                onClear={handleClear}
+                inputComponent={MockComp}
+            />,
+        );
+
+        expect(screen.queryByTestId('quick-input-clear')).not.toBeInTheDocument();
     });
 });
