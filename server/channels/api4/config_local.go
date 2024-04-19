@@ -21,6 +21,7 @@ func (api *API) InitConfigLocal() {
 	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APILocal(localPatchConfig)).Methods("PUT")
 	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APILocal(configReload)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APILocal(localMigrateConfig)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/config/client", api.APILocal(localGetClientConfig)).Methods("GET")
 }
 
 func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -172,4 +173,25 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func localGetClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("localGetClientConfig", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	format := r.URL.Query().Get("format")
+
+	if format == "" {
+		c.Err = model.NewAppError("getClientConfig", "api.config.client.old_format.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if format != "old" {
+		c.SetInvalidParam("format")
+		return
+	}
+
+	auditRec.Success()
+
+	w.Write([]byte(model.MapToJSON(c.App.Srv().Platform().ClientConfigWithComputed())))
 }
