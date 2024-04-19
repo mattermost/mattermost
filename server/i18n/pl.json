@@ -10362,5 +10362,37 @@
   {
     "id": "api.channel.create_channel.missing_team_id.error",
     "translation": "Brakujące id_zespołu w treści żądania"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Transfer uwierzytelniania nie jest dostępny, ponieważ nie włączono ani logowania przez e-mail, ani logowania przez nazwę użytkownika."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Nie udało się przeanalizować żądania"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Ponowne dołączenie wtyczki nie powiodło się"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Brakujący manifest"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Brakująca konfiguracja ponownego dołączenia wtyczki"
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Twoje hasło musi zawierać przynajmniej {{.Min}} znaków."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Transfer uwierzytelniania nie jest dostępny, ponieważ rejestracja przez e-mail jest wyłączona."
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Twoje hasło nie może zawierać więcej niż 72 znaki."
   }
 ]
