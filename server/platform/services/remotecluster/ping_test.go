@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -28,17 +27,14 @@ func TestPing(t *testing.T) {
 	disablePing = false
 
 	t.Run("No error", func(t *testing.T) {
-		var countWebReq int32
 		merr := merror.New()
 
-		wg := &sync.WaitGroup{}
-		wg.Add(NumRemotes)
 		var remotes []*model.RemoteCluster
+		pingsReceived := make(map[string]struct{})
+		var mux sync.Mutex
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			defer wg.Done()
 			defer w.WriteHeader(200)
-			atomic.AddInt32(&countWebReq, 1)
 
 			var frame model.RemoteClusterFrame
 			err := json.NewDecoder(r.Body).Decode(&frame)
@@ -51,11 +47,9 @@ func TestPing(t *testing.T) {
 				return
 			}
 
-			// Only record pings from remotes that were added for this test.
+			// Make sure ping is from a remote that was added for this test.
 			if !hasRemoteID(frame.RemoteId, remotes) {
-				// add 1 to the waitgroup which will be decremented in the defer, resulting in
-				// no change to the waitgroup count.
-				wg.Add(1)
+				merr.Append(fmt.Errorf("RemoteID not in list of remotes for this test; remote_id=%s", frame.RemoteId))
 				return
 			}
 
@@ -74,6 +68,10 @@ func TestPing(t *testing.T) {
 				merr.Append(fmt.Errorf("timestamp should be 0, got %d", ping.RecvAt))
 				return
 			}
+
+			mux.Lock()
+			defer mux.Unlock()
+			pingsReceived[frame.RemoteId] = struct{}{}
 		}))
 		defer ts.Close()
 
@@ -88,38 +86,34 @@ func TestPing(t *testing.T) {
 		require.NoError(t, err)
 		defer service.Shutdown()
 
-		wg.Wait()
+		// wait up to 10 seconds for all remotes to get pinged. This will normally take less than 1 second
+		// until the server is very busy.
+		assert.Eventually(t, func() bool {
+			mux.Lock()
+			defer mux.Unlock()
+			return len(pingsReceived) == NumRemotes
+		}, time.Second*10, time.Millisecond*50, "all remotes must get pinged")
 
 		assert.NoError(t, merr.ErrorOrNil())
-
-		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countWebReq))
-		t.Logf("%d web requests counted;  %d expected",
-			atomic.LoadInt32(&countWebReq), NumRemotes)
 	})
 
 	t.Run("HTTP errors", func(t *testing.T) {
-		var countWebReq int32
 		merr := merror.New()
 
-		wg := &sync.WaitGroup{}
-		wg.Add(NumRemotes)
 		var remotes []*model.RemoteCluster
+		pingsReceived := make(map[string]struct{})
+		var mux sync.Mutex
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			defer wg.Done()
-			atomic.AddInt32(&countWebReq, 1)
-
 			var frame model.RemoteClusterFrame
 			err := json.NewDecoder(r.Body).Decode(&frame)
 			if err != nil {
 				merr.Append(err)
 			}
 
-			// Only record pings from remotes that were added for this test.
+			// Make sure ping is from a remote that was added for this test.
 			if !hasRemoteID(frame.RemoteId, remotes) {
-				// add 1 to the waitgroup which will be decremented in the defer, resulting in
-				// no change to the waitgroup count.
-				wg.Add(1)
+				merr.Append(fmt.Errorf("RemoteID not in list of remotes for this test; remote_id=%s", frame.RemoteId))
 				return
 			}
 
@@ -134,7 +128,12 @@ func TestPing(t *testing.T) {
 			if ping.RecvAt != 0 {
 				merr.Append(fmt.Errorf("timestamp should be 0, got %d", ping.RecvAt))
 			}
+
 			w.WriteHeader(500)
+
+			mux.Lock()
+			defer mux.Unlock()
+			pingsReceived[frame.RemoteId] = struct{}{}
 		}))
 		defer ts.Close()
 
@@ -149,13 +148,15 @@ func TestPing(t *testing.T) {
 		require.NoError(t, err)
 		defer service.Shutdown()
 
-		wg.Wait()
+		// wait up to 10 seconds for all remotes to get pinged. This will normally take less than 1 second
+		// until the server is very busy.
+		assert.Eventually(t, func() bool {
+			mux.Lock()
+			defer mux.Unlock()
+			return len(pingsReceived) == NumRemotes
+		}, time.Second*10, time.Millisecond*50, "all remotes must get pinged")
 
 		assert.NoError(t, merr.ErrorOrNil())
-
-		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countWebReq))
-		t.Logf("%d web requests counted;  %d expected",
-			atomic.LoadInt32(&countWebReq), NumRemotes)
 	})
 
 	t.Run("Plugin ping", func(t *testing.T) {
