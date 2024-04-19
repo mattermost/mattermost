@@ -295,6 +295,10 @@ export default class Textbox extends React.PureComponent<Props> {
                     />
                 </div>
                 <SuggestionBox
+
+                    // This causes the SuggestionBox to be remounted when changing channels
+                    key={this.props.channelId}
+
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     ref={this.message}
@@ -321,7 +325,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     value={this.props.value}
                     renderDividers={ALL}
                     disabled={this.props.disabled}
-                    contextId={this.props.channelId}
                     openWhenEmpty={this.props.openWhenEmpty}
                     alignWithTextbox={this.props.alignWithTextbox}
                 />

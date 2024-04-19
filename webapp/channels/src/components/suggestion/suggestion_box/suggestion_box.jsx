@@ -128,12 +128,6 @@ export default class SuggestionBox extends React.PureComponent {
         replaceAllInputOnSelect: PropTypes.bool,
 
         /**
-         * An optional, opaque identifier that distinguishes the context in which the suggestion
-         * box is rendered. This allows the reused component to otherwise respond to changes.
-         */
-        contextId: PropTypes.string,
-
-        /**
          * Allows parent to access received suggestions
          */
         onSuggestionsReceived: PropTypes.func,
@@ -230,20 +224,12 @@ export default class SuggestionBox extends React.PureComponent {
         this.handlePretextChanged(this.pretext);
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate() {
         const {value} = this.props;
 
         // Post was just submitted, update pretext property.
         if (value === '' && this.pretext !== value) {
             this.handlePretextChanged(value);
-            return;
-        }
-
-        if (prevProps.contextId !== this.props.contextId) {
-            const textbox = this.getTextbox();
-            const pretext = textbox.value.substring(0, textbox.selectionEnd).toLowerCase();
-
-            this.handlePretextChanged(pretext);
         }
     }
 
@@ -800,7 +786,6 @@ export default class SuggestionBox extends React.PureComponent {
         Reflect.deleteProperty(props, 'containerClass');
         Reflect.deleteProperty(props, 'replaceAllInputOnSelect');
         Reflect.deleteProperty(props, 'renderDividers');
-        Reflect.deleteProperty(props, 'contextId');
         Reflect.deleteProperty(props, 'forceSuggestionsWhenBlur');
         Reflect.deleteProperty(props, 'onSuggestionsReceived');
         Reflect.deleteProperty(props, 'actions');
