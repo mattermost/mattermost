@@ -2,17 +2,19 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import type {Dispatch} from 'redux';
 import {bindActionCreators} from 'redux';
 
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 
 import SuggestionBox from './suggestion_box';
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             addMessageIntoHistory,
         }, dispatch),
     };
 }
+
 export default connect(null, mapDispatchToProps, null, {forwardRef: true})(SuggestionBox);
