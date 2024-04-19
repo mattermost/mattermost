@@ -87,7 +87,7 @@ func TestPing(t *testing.T) {
 		defer service.Shutdown()
 
 		// wait up to 10 seconds for all remotes to get pinged. This will normally take less than 1 second
-		// until the server is very busy.
+		// unless the server is very busy.
 		assert.Eventually(t, func() bool {
 			mux.Lock()
 			defer mux.Unlock()
