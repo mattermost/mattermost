@@ -811,7 +811,7 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 		var isErr *upgrader.InvalidSignature
 		switch {
 		case errors.As(err, &isErr):
-			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.app_error", nil, "", http.StatusBadRequest).Wrap(isErr)
 			s = map[string]any{"percentage": 0, "error": appErr.Message}
 		default:
 			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.signature.app_error", nil, "", http.StatusBadRequest).Wrap(err)
