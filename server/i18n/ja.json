@@ -10352,5 +10352,37 @@
   {
     "id": "api.channel.create_channel.missing_team_id.error",
     "translation": "リクエストボディにteam_idがありません"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "電子メールによる利用登録が無効化されているため、認証転送は利用できません。"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "電子メールログインもユーザー名ログインも無効化されているため、認証転送は利用できません。"
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "リクエストを解析できませんでした"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "プラグインをreattachできませんでした"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "マニフェストが見つかりません"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "プラグインのreattach設定が見つかりません"
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "パスワードは72文字以内でなければなりません。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "パスワードは{{.Min}}文字以上でなければなりません。"
   }
 ]
