@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import QuickInput from 'components/quick_input';
+import SuggestionDate from 'components/suggestion/suggestion_date';
 
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -31,11 +32,6 @@ export default class SuggestionBox extends React.PureComponent {
          * The input component to render (it is passed through props to the QuickInput)
          */
         inputComponent: PropTypes.elementType,
-
-        /**
-         * The date component to render
-         */
-        dateComponent: PropTypes.any,
 
         /**
          * The value of in the input
@@ -758,7 +754,6 @@ export default class SuggestionBox extends React.PureComponent {
 
     render() {
         const {
-            dateComponent,
             listComponent,
             listPosition,
             renderNoResults,
@@ -794,7 +789,6 @@ export default class SuggestionBox extends React.PureComponent {
 
         // This needs to be upper case so React doesn't think it's an html tag
         const SuggestionListComponent = listComponent;
-        const SuggestionDateComponent = dateComponent;
 
         return (
             <div
@@ -842,7 +836,7 @@ export default class SuggestionBox extends React.PureComponent {
                     />
                 )}
                 {(this.props.openWhenEmpty || this.props.value.length >= this.props.requiredCharacters) && this.state.presentationType === 'date' &&
-                    <SuggestionDateComponent
+                    <SuggestionDate
                         items={this.state.items}
                         terms={this.state.terms}
                         components={this.state.components}
