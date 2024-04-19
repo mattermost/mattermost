@@ -401,7 +401,7 @@ func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
 		s.Require().Equal(struct {
 			UnusedAttachments []string `json:"unused_attachments"`
 		}{
-			UnusedAttachments: []string{"data/test2.png"},
+			UnusedAttachments: []string{"data/test2.png", "data/test_img_diff_A.png", "data/test_img_diff_B.png"},
 		}, printer.GetLines()[1].(struct {
 			UnusedAttachments []string `json:"unused_attachments"`
 		}))
