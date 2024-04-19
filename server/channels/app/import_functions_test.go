@@ -4746,9 +4746,9 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	t.Run("import existing post with different attachment's content", func(t *testing.T) {
 		var fileA, fileB *zip.File
 		for _, f := range testZipReader.File {
-			if f.Name == "attachments/test_img_diff_A.png" {
+			if f.Name == "data/test_img_diff_A.png" {
 				fileA = f
-			} else if f.Name == "attachments/test_img_diff_B.png" {
+			} else if f.Name == "data/test_img_diff_B.png" {
 				fileB = f
 			}
 		}
