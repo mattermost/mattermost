@@ -7,6 +7,8 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Intersection} from '@mattermost/types/utilities';
+
 import AutosizeTextarea from 'components/autosize_textarea';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
@@ -82,8 +84,8 @@ export type Props = {
     autoFocus?: boolean;
     type?: string;
     id?: string;
-    onInput?: (e?: React.FormEvent<HTMLInputElement>) => void;
-}
+    onInput?: (e: React.FormEvent<HTMLInputElement>) => void;
+} & Intersection<React.HTMLProps<HTMLTextAreaElement>, React.HTMLProps<HTMLDivElement>>;
 
 // A component that can be used to make controlled inputs that function properly in certain
 // environments (ie. IE11) where typing quickly would sometimes miss inputs
