@@ -3,12 +3,11 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
+import {TestHelper} from 'utils/test_helper';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import {loadProfilesForSidebar} from 'actions/user_actions';
-
-import {TestHelper} from 'utils/test_helper';
 
 import DataPrefetch from './data_prefetch';
 
@@ -51,6 +50,9 @@ describe('/components/data_prefetch', () => {
             group_constrained: false,
             last_post_at: 1234,
             last_root_post_at: 1234,
+            options: {
+                excludeTypes: [],
+            },
         }), TestHelper.getChannelMock({
             id: 'unreadChannel',
             display_name: 'unreadChannel',
@@ -67,6 +69,9 @@ describe('/components/data_prefetch', () => {
             group_constrained: false,
             last_post_at: 1235,
             last_root_post_at: 1235,
+            options: {
+                excludeTypes: [],
+            },
         })],
     };
 
@@ -276,6 +281,9 @@ describe('/components/data_prefetch', () => {
                 group_constrained: false,
                 last_post_at: 12345,
                 last_root_post_at: 12345,
+                options: {
+                    excludeTypes: [],
+                },
             }],
         };
         const wrapper = shallow(
@@ -323,6 +331,9 @@ describe('/components/data_prefetch', () => {
                 group_constrained: false,
                 last_post_at: 12345,
                 last_root_post_at: 12345,
+                options: {
+                    excludeTypes: [],
+                },
             }],
         };
         const wrapper = shallow<DataPrefetch>(

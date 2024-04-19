@@ -4,15 +4,14 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 import type {MovementMode, DropResult} from 'react-beautiful-dnd';
+import {DraggingStates, DraggingStateTypes} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {TeamType} from '@mattermost/types/teams';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-
-import {DraggingStates, DraggingStateTypes} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
 
 import SidebarList from './sidebar_list';
 
@@ -35,7 +34,7 @@ describe('SidebarList', () => {
         group_constrained: false,
     });
 
-    const unreadChannel = {
+    const unreadChannel: Channel = {
         id: 'channel_id_2',
         display_name: 'channel_display_name_2',
         create_at: 0,
@@ -51,6 +50,9 @@ describe('SidebarList', () => {
         creator_id: '',
         scheme_id: '',
         group_constrained: false,
+        options: {
+            excludeTypes: [],
+        },
     };
 
     const baseProps = {

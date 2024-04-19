@@ -3,10 +3,6 @@
 
 import React from 'react';
 import {act} from 'react-dom/test-utils';
-
-import {createChannel} from 'mattermost-redux/actions/channels';
-import Permissions from 'mattermost-redux/constants/permissions';
-
 import {
     render,
     renderWithContext,
@@ -16,6 +12,9 @@ import {
 } from 'tests/react_testing_utils';
 import {suitePluginIds} from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
+
+import {createChannel} from 'mattermost-redux/actions/channels';
+import Permissions from 'mattermost-redux/constants/permissions';
 
 import type {GlobalState} from 'types/store';
 
@@ -448,6 +447,9 @@ describe('components/new_channel_modal', () => {
             team_id: 'current_team_id',
             type: 'O',
             update_at: 0,
+            options: {
+                excludeTypes: [],
+            },
         }, '');
     });
 });

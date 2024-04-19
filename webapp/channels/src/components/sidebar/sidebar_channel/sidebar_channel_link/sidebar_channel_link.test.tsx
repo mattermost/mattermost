@@ -26,6 +26,9 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             creator_id: '',
             scheme_id: '',
             group_constrained: false,
+            options: {
+                excludeTypes: [],
+            },
         },
         link: 'http://a.fake.link',
         label: 'channel_label',

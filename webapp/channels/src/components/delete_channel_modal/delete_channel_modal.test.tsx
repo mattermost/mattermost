@@ -4,13 +4,12 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
+import {getHistory} from 'utils/browser_history';
 
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 
 import DeleteChannelModal from 'components/delete_channel_modal/delete_channel_modal';
 import type {Props} from 'components/delete_channel_modal/delete_channel_modal';
-
-import {getHistory} from 'utils/browser_history';
 
 describe('components/delete_channel_modal', () => {
     const channel: Channel = {
@@ -29,6 +28,9 @@ describe('components/delete_channel_modal', () => {
         creator_id: 'zaktnt8bpbgu8mb6ez9k64r7sa',
         scheme_id: '',
         group_constrained: false,
+        options: {
+            excludeTypes: [],
+        },
     };
 
     const currentTeamDetails = {

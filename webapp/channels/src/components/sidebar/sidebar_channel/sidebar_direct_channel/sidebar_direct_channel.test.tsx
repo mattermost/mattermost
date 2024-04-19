@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {TestHelper} from 'utils/test_helper';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarDirectChannel from 'components/sidebar/sidebar_channel/sidebar_direct_channel/sidebar_direct_channel';
-
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {TestHelper} from 'utils/test_helper';
 
 describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
     const baseProps = {
@@ -28,6 +27,9 @@ describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
             creator_id: '',
             scheme_id: '',
             group_constrained: false,
+            options: {
+                excludeTypes: [],
+            },
         },
         teammate: TestHelper.getUserMock(),
         currentTeamName: 'team_name',

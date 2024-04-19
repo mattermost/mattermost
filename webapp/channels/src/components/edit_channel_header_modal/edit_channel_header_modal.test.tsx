@@ -19,7 +19,7 @@ const KeyCodes = Constants.KeyCodes;
 
 describe('components/EditChannelHeaderModal', () => {
     const timestamp = Utils.getTimestamp();
-    const channel = {
+    const channel: Channel = {
         id: 'fake-id',
         create_at: timestamp,
         update_at: timestamp,
@@ -35,6 +35,9 @@ describe('components/EditChannelHeaderModal', () => {
         scheme_id: 'fake-scheme-id',
         group_constrained: false,
         last_root_post_at: timestamp,
+        options: {
+            excludeTypes: [],
+        },
     };
 
     const serverError = {

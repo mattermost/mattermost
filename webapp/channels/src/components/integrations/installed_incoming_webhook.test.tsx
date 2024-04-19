@@ -71,6 +71,9 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
                     creator_id: 'id',
                     scheme_id: 'id',
                     group_constrained: false,
+                    options: {
+                        excludeTypes: [],
+                    },
                 }}
             />,
         );
@@ -120,6 +123,9 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
                     creator_id: 'id',
                     scheme_id: 'id',
                     group_constrained: false,
+                    options: {
+                        excludeTypes: [],
+                    },
                 }}
             />,
         );
@@ -169,6 +175,9 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
                     creator_id: 'id',
                     scheme_id: 'id',
                     group_constrained: false,
+                    options: {
+                        excludeTypes: [],
+                    },
                 }}
             />,
         );
@@ -219,6 +228,9 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
                     creator_id: 'id',
                     scheme_id: 'id',
                     group_constrained: false,
+                    options: {
+                        excludeTypes: [],
+                    },
                 }}
             />,
         );
@@ -270,6 +282,9 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
                     creator_id: 'id',
                     scheme_id: 'id',
                     group_constrained: false,
+                    options: {
+                        excludeTypes: [],
+                    },
                 }}
             />,
         );
@@ -319,6 +334,9 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
                     creator_id: 'id',
                     scheme_id: 'id',
                     group_constrained: false,
+                    options: {
+                        excludeTypes: [],
+                    },
                 }}
             />,
         );
@@ -368,6 +386,9 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
                     creator_id: 'id',
                     scheme_id: 'id',
                     group_constrained: false,
+                    options: {
+                        excludeTypes: [],
+                    },
                 }}
             />,
         );

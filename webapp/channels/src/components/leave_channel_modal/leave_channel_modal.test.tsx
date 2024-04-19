@@ -4,13 +4,13 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import type {ChannelType} from '@mattermost/types/channels';
+import type {ChannelType, Channel} from '@mattermost/types/channels';
 
 import ConfirmModal from 'components/confirm_modal';
 import LeaveChannelModal from 'components/leave_channel_modal/leave_channel_modal';
 
 describe('components/LeaveChannelModal', () => {
-    const channels = {
+    const channels: Record<string, Channel> = {
         'channel-1': {
             id: 'channel-1',
             name: 'test-channel-1',
@@ -27,6 +27,9 @@ describe('components/LeaveChannelModal', () => {
             delete_at: 0,
             last_post_at: 0,
             last_root_post_at: 0,
+            options: {
+                excludeTypes: [],
+            },
         },
         'channel-2': {
             id: 'channel-2',
@@ -44,6 +47,9 @@ describe('components/LeaveChannelModal', () => {
             delete_at: 0,
             last_post_at: 0,
             last_root_post_at: 0,
+            options: {
+                excludeTypes: [],
+            },
         },
         'town-square': {
             id: 'town-square-id',
@@ -61,6 +67,9 @@ describe('components/LeaveChannelModal', () => {
             delete_at: 0,
             last_post_at: 0,
             last_root_post_at: 0,
+            options: {
+                excludeTypes: [],
+            },
         },
     };
 

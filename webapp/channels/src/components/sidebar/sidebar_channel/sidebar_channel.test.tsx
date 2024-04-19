@@ -26,6 +26,9 @@ describe('components/sidebar/sidebar_channel', () => {
             creator_id: '',
             scheme_id: '',
             group_constrained: false,
+            options: {
+                excludeTypes: [],
+            },
         },
         channelId: 'channel_id',
         isDraggable: false,

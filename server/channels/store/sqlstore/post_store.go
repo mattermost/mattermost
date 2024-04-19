@@ -1352,6 +1352,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	var query string
 	var params []any
 
+	// todo - need to see if adding the excludedPostsType check here is needed.
 	// union of IDs and then join to get full posts is faster in mysql
 	if s.DriverName() == model.DatabaseDriverMysql {
 		query = `SELECT *` + replyCountQuery1 + ` FROM Posts p1 JOIN (
