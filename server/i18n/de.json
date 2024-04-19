@@ -10360,5 +10360,37 @@
   {
     "id": "api.channel.create_channel.missing_team_id.error",
     "translation": "Fehlende team_id im Anfragebody"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Die Authentifizierungsübertragung ist nicht verfügbar, da die E-Mail-Anmeldung deaktiviert ist."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Die Authentifizierungsübertragung ist nicht verfügbar, da weder die Anmeldung per E-Mail noch die Anmeldung per Benutzername aktiviert ist."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Anfrage konnte nicht geparst werden"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Plugin kann nicht wieder angehängt werden"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Fehlendes Manifest"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Fehlende Plugin reattach Konfiguration"
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Dein Passwort darf nicht mehr als 72 Zeichen enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Dein Passwort muss mindestens {{.Min}} Zeichen lang sein."
   }
 ]
