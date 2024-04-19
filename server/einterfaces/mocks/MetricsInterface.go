@@ -163,6 +163,31 @@ func (_m *MetricsInterface) IncrementMemCacheMissCounterSession() {
 	_m.Called()
 }
 
+// IncrementNotificationAckCounter provides a mock function with given fields: notificationType
+func (_m *MetricsInterface) IncrementNotificationAckCounter(notificationType model.NotificationType) {
+	_m.Called(notificationType)
+}
+
+// IncrementNotificationCounter provides a mock function with given fields: notificationType
+func (_m *MetricsInterface) IncrementNotificationCounter(notificationType model.NotificationType) {
+	_m.Called(notificationType)
+}
+
+// IncrementNotificationErrorCounter provides a mock function with given fields: notificationType, errorReason
+func (_m *MetricsInterface) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason) {
+	_m.Called(notificationType, errorReason)
+}
+
+// IncrementNotificationNotSentCounter provides a mock function with given fields: notificationType, notSentReason
+func (_m *MetricsInterface) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
+	_m.Called(notificationType, notSentReason)
+}
+
+// IncrementNotificationSuccessCounter provides a mock function with given fields: notificationType
+func (_m *MetricsInterface) IncrementNotificationSuccessCounter(notificationType model.NotificationType) {
+	_m.Called(notificationType)
+}
+
 // IncrementPostBroadcast provides a mock function with given fields:
 func (_m *MetricsInterface) IncrementPostBroadcast() {
 	_m.Called()
