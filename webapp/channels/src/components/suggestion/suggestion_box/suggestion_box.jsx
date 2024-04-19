@@ -91,8 +91,6 @@ export default class SuggestionBox extends React.PureComponent {
         onKeyPress: PropTypes.func,
         onComposition: PropTypes.func,
 
-        onSearchTypeSelected: PropTypes.func,
-
         /**
          * Function called when an item is selected
          */
