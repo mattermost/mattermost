@@ -8,6 +8,10 @@ import {AnnouncementBarTypes} from 'utils/constants';
 
 import AnnouncementBar from '../default_announcement_bar';
 
+const reloadPage = () => {
+    window.location.reload();
+};
+
 interface Props {
     buildHash?: string;
 }
@@ -17,47 +21,43 @@ const VersionBar = ({
 }: Props) => {
     const [buildHashOnAppLoad, setBuildHashOnAppLoad] = useState(buildHash);
 
-    const reloadPage = () => {
-        window.location.reload();
-    };
-
     useEffect(() => {
         if (!buildHashOnAppLoad && buildHash) {
             setBuildHashOnAppLoad(buildHash);
         }
-    }, [buildHash, buildHashOnAppLoad]);
+    }, [buildHash]);
 
     if (!buildHashOnAppLoad) {
         return null;
     }
 
-    if (buildHashOnAppLoad !== buildHash) {
-        return (
-            <AnnouncementBar
-                type={AnnouncementBarTypes.ANNOUNCEMENT}
-                message={
-                    <React.Fragment>
-                        <FormattedMessage
-                            id='version_bar.new'
-                            defaultMessage='A new version of Mattermost is available.'
-                        />
-                        <a
-                            onClick={reloadPage}
-                            style={{marginLeft: '.5rem'}}
-                        >
-                            <FormattedMessage
-                                id='version_bar.refresh'
-                                defaultMessage='Refresh the app now'
-                            />
-                        </a>
-                        {'.'}
-                    </React.Fragment>
-                }
-            />
-        );
+    if (buildHashOnAppLoad === buildHash) {
+        return null;
     }
 
-    return null;
+    return (
+        <AnnouncementBar
+            type={AnnouncementBarTypes.ANNOUNCEMENT}
+            message={
+                <React.Fragment>
+                    <FormattedMessage
+                        id='version_bar.new'
+                        defaultMessage='A new version of Mattermost is available.'
+                    />
+                    <a
+                        onClick={reloadPage}
+                        style={{marginLeft: '.5rem'}}
+                    >
+                        <FormattedMessage
+                            id='version_bar.refresh'
+                            defaultMessage='Refresh the app now'
+                        />
+                    </a>
+                    {'.'}
+                </React.Fragment>
+            }
+        />
+    );
 };
 
 export default memo(VersionBar);
