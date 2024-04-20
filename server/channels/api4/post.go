@@ -290,7 +290,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, ExcludePostTypes: excludeTypesList})
+		list, err = c.App.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 	} else if afterPost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 

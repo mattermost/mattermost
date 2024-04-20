@@ -33,7 +33,7 @@ export type ChannelNotifyProps = {
 };
 
 export type ChannelOptions = {
-    excludeTypes: string[] | null;
+    excludeTypes: string[];
 }
 
 export type Channel = {

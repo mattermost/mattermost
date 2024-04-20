@@ -4,7 +4,7 @@ exports[`components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages should 
 <MenuItemAction
   onClick={[Function]}
   show={true}
-  text=""
+  text="Hide Join/Leave Messages"
 />
 `;
 
@@ -12,7 +12,7 @@ exports[`components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages should 
 <MenuItemAction
   onClick={[Function]}
   show={true}
-  text=""
+  text="Hide Join/Leave Messages"
 />
 `;
 
@@ -20,6 +20,6 @@ exports[`components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages should 
 <MenuItemAction
   onClick={[Function]}
   show={true}
-  text=""
+  text="Show Join/Leave Messages"
 />
 `;
