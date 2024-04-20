@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
@@ -12,43 +12,44 @@ import GroupRow from './group_row';
 
 import type {PropsFromRedux, OwnProps} from './index';
 
-const Header = () => (
-    <div className='groups-list--header'>
-        <div className='group-name group-name-adjusted'>
-            <FormattedMessage
-                id='admin.team_channel_settings.group_list.nameHeader'
-                defaultMessage='Group Name'
-            />
-        </div>
-        <div className='group-content'>
-            <div className='group-description group-description-adjusted'>
+const Header = () => {
+    return (
+        <div className='groups-list--header'>
+            <div className='group-name group-name-adjusted'>
                 <FormattedMessage
-                    id='admin.team_channel_settings.group_list.membersHeader'
-                    defaultMessage='Member Count'
+                    id='admin.team_channel_settings.group_list.nameHeader'
+                    defaultMessage='Group Name'
                 />
             </div>
-            <div className='group-description group-description-adjusted'>
-                <FormattedMessage
-                    id='admin.team_channel_settings.group_list.rolesHeader'
-                    defaultMessage='Roles'
-                />
+            <div className='group-content'>
+                <div className='group-description group-description-adjusted'>
+                    <FormattedMessage
+                        id='admin.team_channel_settings.group_list.membersHeader'
+                        defaultMessage='Member Count'
+                    />
+                </div>
+                <div className='group-description group-description-adjusted'>
+                    <FormattedMessage
+                        id='admin.team_channel_settings.group_list.rolesHeader'
+                        defaultMessage='Roles'
+                    />
+                </div>
+                <div className='group-actions'/>
             </div>
-            <div className='group-actions'/>
         </div>
-    </div>
-);
+    );
+};
 
 type Props = OwnProps & PropsFromRedux;
 
-const GroupList = (props: Props) => {
-    const {
-        removeGroup,
-        setNewGroupRole,
-        type,
-        isDisabled,
-    } = props;
-
-    const renderRow = (item: Partial<Group>) => {
+const GroupList = ({
+    removeGroup,
+    setNewGroupRole,
+    type,
+    isDisabled,
+    ...restProps
+}: Props) => {
+    const renderRow = useCallback((item: Partial<Group>) => {
         return (
             <GroupRow
                 key={item.id}
@@ -59,13 +60,13 @@ const GroupList = (props: Props) => {
                 isDisabled={isDisabled}
             />
         );
-    };
+    }, [isDisabled, removeGroup, setNewGroupRole, type]);
 
     return (
         <AbstractList
             header={<Header/>}
             renderRow={renderRow}
-            {...props}
+            {...restProps}
         />
     );
 };
