@@ -10,7 +10,7 @@ import MainMenu from 'components/main_menu';
 
 import {Constants} from 'utils/constants';
 
-import {ANIMATION_DURATION} from './constant';
+import {TRANSITION_TIMEOUT} from './constant';
 
 type Props = {
     isMobileView: boolean;
@@ -56,10 +56,7 @@ const SidebarRightMenu = ({
                     exit={true}
                     mountOnEnter={true}
                     unmountOnExit={true}
-                    timeout={{
-                        enter: ANIMATION_DURATION,
-                        exit: ANIMATION_DURATION,
-                    }}
+                    timeout={TRANSITION_TIMEOUT}
                 >
                     <MainMenu mobile={true}/>
                 </CSSTransition>
