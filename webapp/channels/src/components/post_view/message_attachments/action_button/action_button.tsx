@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, useCallback} from 'react';
 import styled, {css} from 'styled-components';
 
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
@@ -11,6 +11,22 @@ import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+
+const getStatusColors = (theme: Theme) => {
+    return {
+        good: '#339970',
+        warning: '#CC8F00',
+        danger: theme.errorTextColor,
+        default: theme.centerChannelColor,
+        primary: theme.buttonBg,
+        success: '#339970',
+    } as Record<string, string>;
+};
+const markdownOptions = {
+    mentionHighlight: false,
+    markdown: false,
+    autolinkedUrlSchemes: [],
+};
 
 type Props = {
     action: PostAction;
@@ -29,17 +45,7 @@ const ActionButton = ({
     actionExecuting,
     actionExecutingMessage,
 }: Props) => {
-    const getStatusColors = (theme: Theme) => {
-        return {
-            good: '#339970',
-            warning: '#CC8F00',
-            danger: theme.errorTextColor,
-            default: theme.centerChannelColor,
-            primary: theme.buttonBg,
-            success: '#339970',
-        } as Record<string, string>;
-    };
-
+    const handleActionClick = useCallback((e) => handleAction(e, action.options), [action.options, handleAction]);
     let hexColor: string | null | undefined;
 
     if (action.style) {
@@ -56,7 +62,7 @@ const ActionButton = ({
             data-action-cookie={action.cookie}
             disabled={disabled}
             key={action.id}
-            onClick={(e) => handleAction(e, action.options)}
+            onClick={handleActionClick}
             className='btn btn-sm'
             hexColor={hexColor}
         >
@@ -66,11 +72,7 @@ const ActionButton = ({
             >
                 <Markdown
                     message={action.name}
-                    options={{
-                        mentionHighlight: false,
-                        markdown: false,
-                        autolinkedUrlSchemes: [],
-                    }}
+                    options={markdownOptions}
                 />
             </LoadingWrapper>
         </ActionBtn>
