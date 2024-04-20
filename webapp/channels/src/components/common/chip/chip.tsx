@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
@@ -52,6 +52,8 @@ const StyledChip = styled.button<{ otherOption?: boolean }>`
     }
 `;
 
+const emojiStyles = {marginRight: '11px'};
+
 const Chip = ({
     onClick,
     otherOption,
@@ -62,10 +64,10 @@ const Chip = ({
     values,
     additionalMarkup,
 }: Props) => {
-    const handleClick = (e: React.MouseEvent) => {
+    const handleClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
         onClick?.();
-    };
+    }, [onClick]);
 
     return (
         <StyledChip
@@ -76,7 +78,7 @@ const Chip = ({
             {leadingIcon && (
                 <RenderEmoji
                     emojiName={leadingIcon}
-                    emojiStyle={{marginRight: '11px'}}
+                    emojiStyle={emojiStyles}
                 />
             )}
             {(id && defaultMessage && values) && (
