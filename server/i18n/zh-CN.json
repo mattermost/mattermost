@@ -2255,7 +2255,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "URL由于CORS而被阻止。URL: {{.BlockedOrigin}}"
+    "translation": "URL 由于 CORS 而被阻止。Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -10359,11 +10359,11 @@
   },
   {
     "id": "model.user.is_valid.pwd_max_length.app_error",
-    "translation": "您的密码不能超过72个字符。"
+    "translation": "您的密码不能超过 72 个字符。"
   },
   {
     "id": "model.user.is_valid.pwd_min_length.app_error",
-    "translation": "您的密码必须至少包含{{.Min}}个字符。"
+    "translation": "您的密码必须至少包含 {{.Min}} 个字符。"
   },
   {
     "id": "api.post.check_for_out_of_team_mentions.message.multiple",
@@ -10372,5 +10372,17 @@
   {
     "id": "api.post.check_for_out_of_team_mentions.message.one",
     "translation": "@{{.Username}} 没有收到此提及的通知，因为他不是该团队的成员。"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "重新连接插件失败"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "缺少清单"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "缺少插件重新连接配置"
   }
 ]
