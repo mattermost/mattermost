@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -34,20 +35,13 @@ const SaveButton = ({
         />
     ),
     saving,
-    ...props
+    ...restProps
 }: Props) => {
-    let className = 'btn';
-    if (!btnClass) {
-        className += ' btn-primary';
-    }
-
-    if (!disabled || saving) {
-        className += ' ' + btnClass;
-    }
-
-    if (extraClasses) {
-        className += ' ' + extraClasses;
-    }
+    const className = classNames('btn', {
+        'btn-primary': !btnClass,
+        [btnClass]: !disabled || saving,
+        [extraClasses]: extraClasses,
+    });
 
     return (
         <button
@@ -56,7 +50,7 @@ const SaveButton = ({
             id='saveSetting'
             className={className}
             disabled={disabled}
-            {...props}
+            {...restProps}
         >
             <LoadingWrapper
                 loading={saving}
