@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactNode, RefObject} from 'react';
+import React, {useEffect, useRef} from 'react';
+import type {ReactNode} from 'react';
 
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
@@ -41,37 +41,43 @@ type Props = {
     collapsedEditButtonWhenDisabled?: ReactNode;
 }
 
-export default class SettingItem extends React.PureComponent<Props> {
-    minRef: RefObject<SettingItemMinComponent>;
+const SettingItem = ({
+    active,
+    areAllSectionsInactive,
+    max,
+    title,
+    updateSection,
+    describe,
+    section,
+    isDisabled,
+    collapsedEditButtonWhenDisabled,
+}: Props) => {
+    const minRef = useRef<SettingItemMinComponent>(null);
 
-    constructor(props: Props) {
-        super(props);
-
-        this.minRef = React.createRef();
-    }
-
-    componentDidUpdate(prevProps: Props) {
-        // We want to bring back focus to the edit button when the section is opened and then closed along with all sections are closed
-        if (!this.props.active && prevProps.active && this.props.areAllSectionsInactive) {
-            this.minRef.current?.focus();
+    useEffect(() => {
+        if (!active && prevActive.current && areAllSectionsInactive) {
+            minRef.current?.focus();
         }
+        prevActive.current = active;
+    }, [active, areAllSectionsInactive]);
+
+    const prevActive = useRef<boolean>(active);
+
+    if (active) {
+        return max;
     }
 
-    render() {
-        if (this.props.active) {
-            return this.props.max;
-        }
+    return (
+        <SettingItemMin
+            ref={minRef}
+            title={title}
+            updateSection={updateSection}
+            describe={describe}
+            section={section}
+            isDisabled={isDisabled}
+            collapsedEditButtonWhenDisabled={collapsedEditButtonWhenDisabled}
+        />
+    );
+};
 
-        return (
-            <SettingItemMin
-                ref={this.minRef}
-                title={this.props.title}
-                updateSection={this.props.updateSection}
-                describe={this.props.describe}
-                section={this.props.section}
-                isDisabled={this.props.isDisabled}
-                collapsedEditButtonWhenDisabled={this.props.collapsedEditButtonWhenDisabled}
-            />
-        );
-    }
-}
+export default SettingItem;
