@@ -11,10 +11,10 @@ import ReplyIcon from 'components/widgets/icons/reply_icon';
 import type {Locations} from 'utils/constants';
 
 type Props = {
-    location: keyof typeof Locations;
-    handleCommentClick: React.EventHandler<React.MouseEvent>;
-    searchStyle: string;
-    commentCount: number;
+    location?: keyof typeof Locations;
+    handleCommentClick?: React.EventHandler<React.MouseEvent>;
+    searchStyle?: string;
+    commentCount?: number;
     postId?: string;
     extraClass: string;
 }
