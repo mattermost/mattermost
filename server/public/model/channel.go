@@ -423,19 +423,29 @@ type GroupMessageConversionRequestBody struct {
 
 func (co *ChannelOptions) Scan(value any) error {
 	if value == nil {
+		co.ExcludeTypes = make([]string, 0)
 		return nil
 	}
 
 	buf, ok := value.([]byte)
 	if ok {
-		return json.Unmarshal(buf, co)
+		err := json.Unmarshal(buf, co)
+		if err != nil {
+			co.ExcludeTypes = make([]string, 0)
+		}
+		return err
 	}
 
 	str, ok := value.(string)
 	if ok {
-		return json.Unmarshal([]byte(str), co)
+		err := json.Unmarshal([]byte(str), co)
+		if err != nil {
+			co.ExcludeTypes = make([]string, 0)
+		}
+		return err
 	}
 
+	co.ExcludeTypes = make([]string, 0)
 	return errors.New("received value is neither a byte slice nor string")
 }
 
