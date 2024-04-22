@@ -58,18 +58,18 @@ func (a *App) elasticsearchChannelIndexCheckWithRetry() {
 		// using progressive retry because ES client may take some time to connect and be ready.
 		_ = utils.LongProgressiveRetry(func() error {
 			if !*a.Config().ElasticsearchSettings.EnableIndexing {
-				mlog.Debug("elasticsearchChannelIndexCheckWithRetry: skipping because elasticsearch indexing is disabled")
+				a.Log().Debug("elasticsearchChannelIndexCheckWithRetry: skipping because elasticsearch indexing is disabled")
 				return nil
 			}
 
 			elastic := a.SearchEngine().ElasticsearchEngine
 			if elastic == nil {
-				mlog.Debug("elasticsearchChannelIndexCheckWithRetry: skipping because elastic engine is nil")
+				a.Log().Debug("elasticsearchChannelIndexCheckWithRetry: skipping because elastic engine is nil")
 				return errors.New("retry")
 			}
 
 			if !elastic.IsActive() {
-				mlog.Debug("elasticsearchChannelIndexCheckWithRetry: skipping because elastic.IsActive is false")
+				a.Log().Debug("elasticsearchChannelIndexCheckWithRetry: skipping because elastic.IsActive is false")
 				return errors.New("retry")
 			}
 
