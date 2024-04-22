@@ -32,7 +32,7 @@ export type Props = {
     isExpanded: boolean;
     isOpen: boolean;
     channel: Channel;
-    team: Team;
+    team?: Team;
     teamId: Team['id'];
     productId: ProductIdentifier;
     postRightVisible: boolean;
