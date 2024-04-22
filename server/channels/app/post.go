@@ -357,11 +357,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if rpost.RootId != "" {
 		if appErr := a.ResolvePersistentNotification(c, parentPostList.Posts[post.RootId], rpost.UserId); appErr != nil {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError)
 			a.NotificationsLog().Error("Error resolving persistent notification",
 				mlog.String("sender_id", rpost.UserId),
 				mlog.String("post_id", post.RootId),
-				mlog.String("status", model.StatusServerError),
-				mlog.String("reason", model.ReasonFetchError),
+				mlog.String("status", model.NotificationStatusError),
+				mlog.String("reason", model.NotificationReasonResolvePersistentNotificationError),
 				mlog.Err(appErr),
 			)
 			return nil, appErr
@@ -487,10 +488,11 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	if channel.TeamId != "" {
 		t, err := a.Srv().Store().Team().Get(channel.TeamId)
 		if err != nil {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
 			a.NotificationsLog().Error("Missing team",
 				mlog.String("post_id", post.Id),
-				mlog.String("status", model.StatusServerError),
-				mlog.String("reason", model.ReasonFetchError),
+				mlog.String("status", model.NotificationStatusError),
+				mlog.String("reason", model.NotificationReasonFetchError),
 				mlog.Err(err),
 			)
 			return err
@@ -777,21 +779,16 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	if val, ok := post.GetProp(model.PostPropsPreviewedPost).(string); ok {
 		previewedPostID = val
 	} else {
-		a.NotificationsLog().Warn("Failed to get permalink post prop",
-			mlog.String("type", model.TypeWebsocket),
-			mlog.String("post_id", post.Id),
-			mlog.String("status", model.StatusServerError),
-			mlog.String("reason", model.ReasonServerError),
-		)
 		return false, nil
 	}
 
 	if !model.IsValidId(previewedPostID) {
-		a.NotificationsLog().Warn("Invalid post prop id for permalink post",
-			mlog.String("type", model.TypeWebsocket),
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError)
+		a.NotificationsLog().Error("Invalid post prop id for permalink post",
+			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
-			mlog.String("status", model.StatusServerError),
-			mlog.String("reason", model.ReasonServerError),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonParseError),
 			mlog.String("prop_value", previewedPostID),
 		)
 		c.Logger().Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewedPostID))
@@ -801,12 +798,14 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	previewedPost, err := a.GetSinglePost(previewedPostID, false)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
-			a.NotificationsLog().Warn("permalink post not found",
-				mlog.String("type", model.TypeWebsocket),
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+			a.NotificationsLog().Error("permalink post not found",
+				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
-				mlog.String("status", model.StatusServerError),
-				mlog.String("reason", model.ReasonServerError),
+				mlog.String("status", model.NotificationStatusError),
+				mlog.String("reason", model.NotificationReasonFetchError),
 				mlog.String("referenced_post_id", previewedPostID),
+				mlog.Err(err),
 			)
 			c.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))
 			return false, nil
@@ -816,12 +815,29 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 
 	userIDs, nErr := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(post.ChannelId)
 	if nErr != nil {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+		a.NotificationsLog().Error("Cannot get channel members",
+			mlog.String("type", model.NotificationTypeWebsocket),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonFetchError),
+			mlog.String("referenced_post_id", previewedPostID),
+			mlog.Err(nErr),
+		)
 		return false, model.NewAppError("publishWebsocketEventForPermalinkPost", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	permalinkPreviewedChannel, err := a.GetChannel(c, previewedPost.ChannelId)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+			a.NotificationsLog().Error("Cannot get channel",
+				mlog.String("type", model.NotificationTypeWebsocket),
+				mlog.String("post_id", post.Id),
+				mlog.String("status", model.NotificationStatusError),
+				mlog.String("reason", model.NotificationReasonFetchError),
+				mlog.String("referenced_post_id", previewedPostID),
+			)
 			c.Logger().Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
 			return false, nil
 		}
@@ -1766,17 +1782,6 @@ func (a *App) GetFileInfosForPost(rctx request.CTX, postID string, fromMaster bo
 	return fileInfos, firstInaccessibleFileTime, nil
 }
 
-func (a *App) getFileInfosForPostIgnoreCloudLimit(rctx request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
-	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, fromMaster, includeDeleted, true)
-	if err != nil {
-		return nil, model.NewAppError("getFileInfosForPostIgnoreCloudLimit", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	a.generateMiniPreviewForInfos(rctx, fileInfos)
-
-	return fileInfos, nil
-}
-
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
 	if f := a.ImageProxyAdder(); f != nil {
 		return post.WithRewrittenImageURLs(f)
@@ -2194,9 +2199,10 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 }
 
 func (a *App) CheckPostReminders(rctx request.CTX) {
+	rctx = rctx.WithLogger(rctx.Logger().With(mlog.String("component", "post_reminders")))
 	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
-		mlog.Error("Failed to get system bot", mlog.Err(appErr))
+		rctx.Logger().Error("Failed to get system bot", mlog.Err(appErr))
 		return
 	}
 
@@ -2207,7 +2213,7 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 	// MM-45595.
 	reminders, err := a.Srv().Store().Post().GetPostReminders(time.Now().UTC().Unix())
 	if err != nil {
-		mlog.Error("Failed to get post reminders", mlog.Err(err))
+		rctx.Logger().Error("Failed to get post reminders", mlog.Err(err))
 		return
 	}
 
@@ -2225,14 +2231,14 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 	for userID, postIDs := range groupedReminders {
 		ch, appErr := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), userID, systemBot.UserId)
 		if appErr != nil {
-			mlog.Error("Failed to get direct channel", mlog.Err(appErr))
+			rctx.Logger().Error("Failed to get direct channel", mlog.Err(appErr))
 			return
 		}
 
 		for _, postID := range postIDs {
 			metadata, err := a.Srv().Store().Post().GetPostReminderMetadata(postID)
 			if err != nil {
-				mlog.Error("Failed to get post reminder metadata", mlog.Err(err), mlog.String("post_id", postID))
+				rctx.Logger().Error("Failed to get post reminder metadata", mlog.Err(err), mlog.String("post_id", postID))
 				continue
 			}
 
@@ -2255,7 +2261,7 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 			}
 
 			if _, err := a.CreatePost(request.EmptyContext(a.Log()), dm, ch, false, true); err != nil {
-				mlog.Error("Failed to post reminder message", mlog.Err(err))
+				rctx.Logger().Error("Failed to post reminder message", mlog.Err(err))
 			}
 		}
 	}

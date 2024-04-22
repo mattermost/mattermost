@@ -88,6 +88,7 @@ type Client interface {
 	MoveCommand(ctx context.Context, teamID string, commandID string) (*model.Response, error)
 	DeleteCommand(ctx context.Context, commandID string) (*model.Response, error)
 	GetConfig(ctx context.Context) (*model.Config, *model.Response, error)
+	GetOldClientConfig(ctx context.Context, etag string) (map[string]string, *model.Response, error)
 	UpdateConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
 	PatchConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
 	ReloadConfig(ctx context.Context) (*model.Response, error)

@@ -318,7 +318,8 @@ func checkCmdF(command *cobra.Command, args []string) error {
 }
 
 func addDynamicallyGeneratedStrings(i18nStrings map[string]bool) {
-	i18nStrings["model.user.is_valid.pwd.app_error"] = true
+	i18nStrings["model.user.is_valid.pwd_min_length.app_error"] = true
+	i18nStrings["model.user.is_valid.pwd_max_length.app_error"] = true
 	i18nStrings["model.user.is_valid.pwd_lowercase.app_error"] = true
 	i18nStrings["model.user.is_valid.pwd_lowercase_number.app_error"] = true
 	i18nStrings["model.user.is_valid.pwd_lowercase_number_symbol.app_error"] = true

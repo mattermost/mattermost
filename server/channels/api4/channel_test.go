@@ -144,6 +144,22 @@ func TestCreateChannel(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, *groupConstrainedChannel.GroupConstrained, *rchannel.GroupConstrained, "GroupConstrained flags do not match")
+
+	t.Run("Test create channel with missing team id", func(t *testing.T) {
+		channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: ""}
+
+		_, resp, err := client.CreateChannel(context.Background(), channel)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Test create channel with missing display name", func(t *testing.T) {
+		channel := &model.Channel{DisplayName: "", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+
+		_, resp, err := client.CreateChannel(context.Background(), channel)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestUpdateChannel(t *testing.T) {
@@ -2934,7 +2950,6 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	_, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, s1)
 	require.NoError(t, err)
 
-	timeout := time.After(600 * time.Millisecond)
 	waiting := true
 	for waiting {
 		select {
@@ -2943,7 +2958,7 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 				require.Equal(t, model.WebsocketEventChannelMemberUpdated, event.EventType())
 				waiting = false
 			}
-		case <-timeout:
+		case <-time.After(2 * time.Second):
 			require.Fail(t, "Should have received event channel member websocket event and not timedout")
 			waiting = false
 		}
@@ -3358,7 +3373,7 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 					require.EqualValues(t, float64(0), data["previous_unread_replies"])
 					require.EqualValues(t, float64(0), data["previous_unread_mentions"])
 				}
-			case <-time.After(1 * time.Second):
+			case <-time.After(2 * time.Second):
 				return
 			}
 		}

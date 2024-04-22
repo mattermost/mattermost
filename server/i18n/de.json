@@ -2260,7 +2260,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Fehler beim Hochstufen der Websocket-Verbindung."
+    "translation": "URL aufgrund von CORS blockiert. Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -10324,5 +10324,45 @@
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
     "translation": "Der angegebene unbekannte Index konnte nicht gelöscht werden"
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Die Seite mit den Schemata kann nicht aufgerufen werden."
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Die zuletzt verwendeten Sitzungen können nicht abgerufen werden."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Benutzer kann nicht aktiviert werden. Der Server überschreitet das Limit für sichere Benutzer. Kontaktiere deinen Administrator mit: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Ungültiges Schema."
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Benutzer kann nicht erstellt werden. Der Server überschreitet das Limit für sichere Benutzer. Kontaktiere deinen Administrator mit: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Die Importdatenzeile hat den Typ \"role\", aber das role-Objekt ist null."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} und @{{.LastUsername}} wurden von dieser Erwähnung nicht benachrichtigt, weil sie nicht zu diesem Team gehören."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} wurde durch diese Erwähnung nicht benachrichtigt, weil sie kein Mitglied dieses Teams sind."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Fehlender display_name im Anfragebody"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Fehlende team_id im Anfragebody"
   }
 ]
