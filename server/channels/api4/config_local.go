@@ -72,7 +72,7 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	diffs, diffErr := config.Diff(oldCfg, newCfg)
 	if diffErr != nil {
-		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(diffErr)
 		return
 	}
 	auditRec.AddEventPriorState(&diffs)
@@ -113,7 +113,7 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 
 	if mergeErr != nil {
-		c.Err = model.NewAppError("patchConfig", "api.config.update_config.restricted_merge.app_error", nil, mergeErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(mergeErr)
 		return
 	}
 
@@ -167,7 +167,7 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	err := config.Migrate(from, to)
 	if err != nil {
-		c.Err = model.NewAppError("migrateConfig", "api.config.migrate_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("migrateConfig", "api.config.migrate_config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
