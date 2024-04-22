@@ -208,7 +208,7 @@ func (s *MmctlE2ETestSuite) TestLdapJobShowCmdF() {
 		printer.Clean()
 
 		err := ldapJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job.Id})
-		s.Require().EqualError(err, "failed to get LDAP sync job: : You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to get LDAP sync job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -217,7 +217,7 @@ func (s *MmctlE2ETestSuite) TestLdapJobShowCmdF() {
 		printer.Clean()
 
 		err := ldapJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
-		s.Require().ErrorContains(err, "failed to get LDAP sync job: : Unable to get the job.")
+		s.Require().ErrorContains(err, "failed to get LDAP sync job: Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
