@@ -6279,7 +6279,7 @@ const AdminDefinition: AdminDefinitionType = {
             audit_logging: {
                 url: 'experimental/audit_logging',
                 title: defineMessage({id: 'admin.sidebar.audit_logging_experimental', defaultMessage: 'Audit Logging'}),
-                isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)), it.configIsFalse('FeatureFlags', 'ExperimentalAuditSettingsSystemConsoleUI')),
+                isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)), it.configIsFalse('FeatureFlags', 'ExperimentalAuditSettingsSystemConsoleUI'), it.not(it.licensedForSku('enterprise'))),
                 schema: {
                     id: 'ExperimentalAuditSettings',
                     name: 'Audit Log Settings (Experimental)',
