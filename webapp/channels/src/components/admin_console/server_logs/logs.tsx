@@ -154,10 +154,11 @@ export default class Logs extends React.PureComponent<Props, State> {
 
     render() {
         const ToggleView = (
+            this.props.logs.length > 0 &&
             <div className='logs-banner'>
                 <Toggle
-                    onText='Formatted'
-                    offText='Plain'
+                    onText='Plain'
+                    offText='Formatted'
                     toggled={this.state.isLocalFormattedView}
                     onToggle={this.toggleMode}
                 />
@@ -180,8 +181,8 @@ export default class Logs extends React.PureComponent<Props, State> {
                             defaultMessage='Reload Logs'
                         />
                     </button>
+                    {ToggleView}
                 </div>
-                {ToggleView}
                 <PlainLogList
                     logs={this.props.plainLogs}
                     nextPage={this.nextPage}
@@ -208,8 +209,8 @@ export default class Logs extends React.PureComponent<Props, State> {
                             defaultMessage='Reload Logs'
                         />
                     </button>
+                    {ToggleView}
                 </div>
-                {ToggleView}
                 <LogList
                     loading={this.state.loadingLogs}
                     logs={this.state.search ? this.state.filteredLogs : this.props.logs}
