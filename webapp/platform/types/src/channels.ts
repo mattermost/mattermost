@@ -32,10 +32,6 @@ export type ChannelNotifyProps = {
     channel_auto_follow_threads: 'off' | 'on';
 };
 
-export type ChannelOptions = {
-    excludeTypes: string[];
-}
-
 export type Channel = {
     id: string;
     create_at: number;
@@ -51,13 +47,13 @@ export type Channel = {
     last_root_post_at: number;
     creator_id: string;
     scheme_id: string;
-    options: ChannelOptions;
     teammate_id?: string;
     status?: string;
     group_constrained: boolean;
     shared?: boolean;
     props?: Record<string, any>;
     policy_id?: string | null;
+    excluded_post_types: string[];
 };
 
 export type ServerChannel = Channel & {
