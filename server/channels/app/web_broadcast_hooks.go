@@ -82,6 +82,11 @@ func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channe
 }
 
 func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	// Don't ACK mobile app websocket events at this time
+	if webConn.GetSession().IsMobile() {
+		return nil
+	}
+
 	postedUserId, err := getTypedArg[string](args, "posted_user_id")
 	if err != nil {
 		return errors.Wrap(err, "Invalid posted_user_id value passed to postedAckBroadcastHook")
