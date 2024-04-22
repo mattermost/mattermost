@@ -42,7 +42,7 @@ function makeMapStateToProps() {
         return {
             channel,
             isCurrentChannel: channel.id === currentChannelId,
-            currentTeamName: currentTeam.name,
+            currentTeamName: currentTeam?.name,
             unreadMentions: unreadCount.mentions,
             isUnread: unreadCount.showUnread,
             draggingState: getDraggingState(state),
