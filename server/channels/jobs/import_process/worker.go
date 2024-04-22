@@ -55,7 +55,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			// We simply read the file from the local filesystem.
 			info, err := os.Stat(importFileName)
 			if errors.Is(err, os.ErrNotExist) {
-				return fmt.Errorf("file %s doesn't exist.", importFile)
+				return fmt.Errorf("file %s doesn't exist.", importFileName)
 			}
 
 			importFileSize = info.Size()

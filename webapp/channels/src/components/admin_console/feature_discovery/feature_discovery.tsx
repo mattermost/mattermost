@@ -12,7 +12,6 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import {EmbargoedEntityTrialError} from 'components/admin_console/license_settings/trial_banner/trial_banner';
 import AlertBanner from 'components/alert_banner';
-import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
 import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import ExternalLink from 'components/external_link';
@@ -138,9 +137,6 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                                 defaultMessage='Purchase a license'
                             />
                         }
-                    />
-                    <ContactUsButton
-                        eventID='post_trial_contact_sales'
                     />
                 </>
 

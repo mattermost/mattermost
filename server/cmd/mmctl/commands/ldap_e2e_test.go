@@ -52,7 +52,7 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 	configForLdap(s.th)
 
-	s.Run("MM-T3971 Should not allow regular user to sync LDAP groups", func() {
+	s.Run("MM-T3971 Should not allow regular user to start LDAP sync job", func() {
 		printer.Clean()
 
 		err := ldapSyncCmdF(s.th.Client, &cobra.Command{}, nil)
@@ -61,7 +61,7 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("MM-T2529 Should sync LDAP groups", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T2529 Should start LDAP sync job", func(c client.Client) {
 		printer.Clean()
 
 		jobs, appErr := s.th.App.GetJobsByTypePage(s.th.Context, model.JobTypeLdapSync, 0, 100)
@@ -125,5 +125,110 @@ func (s *MmctlE2ETestSuite) TestLdapIDMigrateCmd() {
 		updatedUser, appErr := s.th.App.GetUser(ldapUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal("Dev1", *updatedUser.AuthData)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestLdapJobListCmd() {
+	s.SetupEnterpriseTestHelper().InitBasic()
+	configForLdap(s.th)
+
+	s.Run("Should not allow regular user to list LDAP groups", func() {
+		printer.Clean()
+
+		err := ldapJobListCmdF(s.th.Client, &cobra.Command{}, nil)
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("No LDAP jobs", func(c client.Client) {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Int("page", 0, "")
+		cmd.Flags().Int("per-page", 200, "")
+		cmd.Flags().Bool("all", false, "")
+
+		err := ldapJobListCmdF(c, cmd, nil)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Empty(printer.GetErrorLines())
+		s.Equal("No jobs found", printer.GetLines()[0])
+	})
+
+	s.RunForSystemAdminAndLocal("get some LDAP sync jobs", func(c client.Client) {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		perPage := 2
+		cmd.Flags().Int("page", 0, "")
+		cmd.Flags().Int("per-page", perPage, "")
+		cmd.Flags().Bool("all", false, "")
+
+		_, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
+			Type: model.JobTypeLdapSync,
+		})
+		s.Require().Nil(appErr)
+
+		time.Sleep(time.Millisecond)
+
+		job2, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
+			Type: model.JobTypeLdapSync,
+		})
+		s.Require().Nil(appErr)
+
+		time.Sleep(time.Millisecond)
+
+		job3, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
+			Type: model.JobTypeLdapSync,
+		})
+		s.Require().Nil(appErr)
+
+		err := ldapJobListCmdF(c, cmd, nil)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), perPage)
+		s.Require().Empty(printer.GetErrorLines())
+		s.Require().Equal(job3, printer.GetLines()[0].(*model.Job))
+		s.Require().Equal(job2, printer.GetLines()[1].(*model.Job))
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestLdapJobShowCmdF() {
+	s.SetupEnterpriseTestHelper().InitBasic()
+	configForLdap(s.th)
+
+	job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
+		Type: model.JobTypeLdapSync,
+	})
+	s.Require().Nil(appErr)
+
+	time.Sleep(time.Millisecond)
+
+	s.Run("no permissions", func() {
+		printer.Clean()
+
+		err := ldapJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job.Id})
+		s.Require().EqualError(err, "failed to get LDAP sync job: You do not have the appropriate permissions.")
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("not found", func(c client.Client) {
+		printer.Clean()
+
+		err := ldapJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
+		s.Require().ErrorContains(err, "failed to get LDAP sync job: Unable to get the job.")
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("found", func(c client.Client) {
+		printer.Clean()
+
+		err := ldapJobShowCmdF(c, &cobra.Command{}, []string{job.Id})
+		s.Require().Nil(err)
+		s.Require().Empty(printer.GetErrorLines())
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(job, printer.GetLines()[0].(*model.Job))
 	})
 }
