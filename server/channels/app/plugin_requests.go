@@ -161,6 +161,12 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 				r.ParseForm()
 				sentToken = r.FormValue("csrf")
 				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+				if sentToken == "" {
+					if csrfCookie, _ := r.Cookie(model.SessionCookieCsrf); csrfCookie != nil {
+						sentToken = csrfCookie.Value
+					}
+				}
 			} else {
 				sentToken = r.Header.Get(model.HeaderCsrfToken)
 			}
