@@ -19,20 +19,26 @@ const ProfilePopoverFullName = ({
         return null;
     }
 
+    let sharedIcon = null;
+    if (remoteId) {
+        sharedIcon = (
+            <SharedUserIndicator
+                id={`sharedUserIndicator-${username}`}
+                className='shared-user-icon'
+                withTooltip={true}
+            />
+        );
+    }
+
     return (
         <div
             data-testid={`popover-fullname-${username}`}
             className='user-profile-popover__heading'
         >
-            <span title={fullname}>
-                {fullname}
-            </span>
-            {remoteId && (
-                <SharedUserIndicator
-                    className='shared-user-icon'
-                />
-            )}
+            <span className='user-profile-popover__heading'>{fullname}</span>
+            {sharedIcon}
         </div>
     );
 };
+
 export default ProfilePopoverFullName;

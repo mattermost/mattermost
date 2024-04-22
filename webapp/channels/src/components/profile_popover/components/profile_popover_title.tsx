@@ -26,6 +26,27 @@ type Props = {
     channelId?: string;
 }
 
+function getIsTeamAdmin(state: GlobalState, userId: string) {
+    const team = getCurrentTeam(state);
+    const teamMember = team ? getTeamMember(state, team.id, userId) : undefined;
+
+    return Boolean(teamMember && teamMember.scheme_admin);
+}
+
+function getIsChannelAdmin(state: GlobalState, userId: string, channelId?: string) {
+    if (!channelId) {
+        return false;
+    }
+
+    const channelMember = getChannelMember(state, channelId, userId);
+
+    if (getRhsState(state) !== 'search' && channelMember != null && channelMember.scheme_admin) {
+        return true;
+    }
+
+    return false;
+}
+
 const ProfilePopoverTitle = ({
     isBot,
     roles,
@@ -95,7 +116,7 @@ const ProfilePopoverTitle = ({
     }
 
     return (
-        <div className={'user-profile-popover-title'}>
+        <div className='user-profile-popover-title'>
             {roleTitle}
             <button
                 className='btn btn-icon btn-sm'
@@ -106,26 +127,5 @@ const ProfilePopoverTitle = ({
         </div>
     );
 };
-
-function getIsTeamAdmin(state: GlobalState, userId: string) {
-    const team = getCurrentTeam(state);
-    const teamMember = getTeamMember(state, team.id, userId);
-
-    return Boolean(teamMember && teamMember.scheme_admin);
-}
-
-function getIsChannelAdmin(state: GlobalState, userId: string, channelId?: string) {
-    if (!channelId) {
-        return false;
-    }
-
-    const channelMember = getChannelMember(state, channelId, userId);
-
-    if (getRhsState(state) !== 'search' && channelMember != null && channelMember.scheme_admin) {
-        return true;
-    }
-
-    return false;
-}
 
 export default ProfilePopoverTitle;

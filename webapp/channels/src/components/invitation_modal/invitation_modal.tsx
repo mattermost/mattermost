@@ -59,7 +59,7 @@ export type Props = {
             message: string,
         ) => Promise<ActionResult<InviteResults>>;
     };
-    currentTeam: Team;
+    currentTeam?: Team;
     currentChannel: Channel;
     townSquareDisplayName: string;
     invitableChannels: Channel[];
@@ -159,6 +159,9 @@ export class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     invite = async () => {
+        if (!this.props.currentTeam) {
+            return;
+        }
         const roleForTrackFlow = getRoleForTrackFlow();
         const inviteAs = this.state.invite.inviteType;
         if (inviteAs === InviteType.MEMBER && this.props.isCloud) {
@@ -246,7 +249,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
         }));
     };
 
-    debouncedSearchChannels = debounce((term) => this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
+    debouncedSearchChannels = debounce((term) => this.props.currentTeam && this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
 
     channelsLoader = async (value: string) => {
         if (!value) {
@@ -357,6 +360,10 @@ export class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     render() {
+        if (!this.props.currentTeam) {
+            return null;
+        }
+
         let view = (
             <InviteView
                 setInviteAs={this.setInviteAs}

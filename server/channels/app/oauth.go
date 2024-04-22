@@ -383,6 +383,11 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 }
 
 func (a *App) newSession(c request.CTX, app *model.OAuthApp, user *model.User) (*model.Session, *model.AppError) {
+	if err := a.limitNumberOfSessions(c, user.Id); err != nil {
+		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil,
+			"", http.StatusInternalServerError).Wrap(err)
+	}
+
 	// Set new token an session
 	session := &model.Session{UserId: user.Id, Roles: user.Roles, IsOAuth: true}
 	session.GenerateCSRF()
@@ -979,6 +984,14 @@ func (a *App) SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.R
 func (a *App) SwitchOAuthToEmail(c request.CTX, email, password, requesterId string) (string, *model.AppError) {
 	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("oauthToEmail", "api.user.oauth_to_email.not_available.app_error", nil, "", http.StatusForbidden)
+	}
+
+	if !*a.Config().EmailSettings.EnableSignUpWithEmail {
+		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.auth_switch.not_available.email_signup_disabled.app_error", nil, "", http.StatusForbidden)
+	}
+
+	if !*a.Config().EmailSettings.EnableSignInWithEmail && !*a.Config().EmailSettings.EnableSignInWithUsername {
+		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.auth_switch.not_available.login_disabled.app_error", nil, "", http.StatusForbidden)
 	}
 
 	user, err := a.GetUserByEmail(email)

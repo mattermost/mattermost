@@ -308,6 +308,14 @@
     "translation": "Unable to create more than {{.MaxChannelsPerTeam}} channels for current team."
   },
   {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Missing display_name in request body"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Missing team_id in request body"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "Off-Topic"
   },
@@ -2501,6 +2509,14 @@
     "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
   },
   {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} didn't get notified by this mention because they aren't members of this team."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} didn't get notified by this mention because they aren't a member of this team."
+  },
+  {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
     "translation": "Can not post to deleted channel."
   },
@@ -4051,6 +4067,14 @@
     "translation": "not an ldap user"
   },
   {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Authentication Transfer is not available as email signup is disabled."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Authentication Transfer is not available as neither email login nor username login is enabled."
+  },
+  {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
     "translation": "Bad response from token request."
   },
@@ -4177,6 +4201,10 @@
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "The signup link does not appear to be valid."
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Can't create user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
@@ -4540,7 +4568,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Failed to upgrade websocket connection."
+    "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -4593,6 +4621,10 @@
   {
     "id": "api.websocket_handler.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Failed to parse request"
   },
   {
     "id": "app.acknowledgement.delete.app_error",
@@ -5379,12 +5411,16 @@
     "translation": "Error reading the file at: \"{{.FilePath}}\""
   },
   {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Error reading the file status: \"{{.FilePath}}\""
+  },
+  {
     "id": "app.import.attachment.file_upload.error",
     "translation": "Error uploading the file: \"{{.FilePath}}\""
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Failed to read file attachment during import."
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Error seeking the file: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -5469,6 +5505,10 @@
   {
     "id": "app.import.import_line.null_post.error",
     "translation": "Import data line has type \"post\" but the post object is null."
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Import data line has type \"role\" but the role object is null."
   },
   {
     "id": "app.import.import_line.null_scheme.error",
@@ -6003,8 +6043,12 @@
     "translation": "No license present"
   },
   {
-    "id": "app.limits.get_user_limits.user_count.store_error",
+    "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Failed to get user count"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "Failed to get post count"
   },
   {
     "id": "app.login.doLogin.updateLastLogin.error",
@@ -6265,6 +6309,10 @@
   {
     "id": "app.plugin.not_installed.app_error",
     "translation": "Plugin is not installed."
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Failed to reattach plugin"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -6659,6 +6707,10 @@
     "translation": "Unable to get the scheme."
   },
   {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Unable to get page of schemes."
+  },
+  {
     "id": "app.scheme.permanent_delete_all.app_error",
     "translation": "We could not permanently delete the schemes."
   },
@@ -6689,6 +6741,10 @@
   {
     "id": "app.session.get.app_error",
     "translation": "We encountered an error finding the session."
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Unable to get least recently used sessions."
   },
   {
     "id": "app.session.get_sessions.app_error",
@@ -7173,6 +7229,10 @@
   {
     "id": "app.user.update.finding.app_error",
     "translation": "We encountered an error finding the account."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Can't activate user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "app.user.update_active_for_multiple_users.updating.app_error",
@@ -9779,6 +9839,10 @@
     "translation": "Date range provided is invalid."
   },
   {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Invalid scheme."
+  },
+  {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
     "translation": "All IncludeDeletedChannels params should have the same value."
   },
@@ -9963,10 +10027,6 @@
     "translation": "Invalid position: must not be longer than 128 characters."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
   },
@@ -9997,6 +10057,14 @@
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Your password must contain no more than 72 characters."
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters."
   },
   {
     "id": "model.user.is_valid.pwd_number.app_error",
@@ -10101,6 +10169,14 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Missing TO address."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Missing manifest"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Missing plugin reattach config"
   },
   {
     "id": "searchengine.bleve.disabled.error",

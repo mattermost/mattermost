@@ -85,6 +85,7 @@ export default function UserProfile({
             </ProfilePopoverController>
             {(isShared) &&
             <SharedUserIndicator
+                id={`sharedUserIndicator-${userId}`}
                 className='shared-user-icon'
             />
             }

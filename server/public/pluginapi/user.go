@@ -244,3 +244,12 @@ func (u *UserService) CreateAccessToken(userID, description string) (*model.User
 func (u *UserService) RevokeAccessToken(tokenID string) error {
 	return normalizeAppErr(u.api.RevokeUserAccessToken(tokenID))
 }
+
+// UpdateRoles updates the roles for a user.
+//
+// Minimum server version: 9.8
+func (u *UserService) UpdateRoles(userID, newRoles string) (*model.User, error) {
+	user, appErr := u.api.UpdateUserRoles(userID, newRoles)
+
+	return user, normalizeAppErr(appErr)
+}

@@ -315,7 +315,7 @@ func init() {
 	DeleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
 
 	ListUsersCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
-	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
+	ListUsersCmd.Flags().Int("per-page", DefaultPageSize, "Number of users to be fetched")
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
 	ListUsersCmd.Flags().String("team", "", "If supplied, only users belonging to this team will be listed")
 
@@ -1024,21 +1024,26 @@ func migrateAuthToLdapCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 }
 
 func promoteGuestToUserCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
+	var errs *multierror.Error
 	for i, user := range getUsersFromUserArgs(c, userArgs) {
 		if user == nil {
-			printer.PrintError(fmt.Sprintf("can't find guest '%v'", userArgs[i]))
+			err := fmt.Errorf("can't find guest '%s'", userArgs[i])
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
 			continue
 		}
 
 		if _, err := c.PromoteGuestToUser(context.TODO(), user.Id); err != nil {
-			printer.PrintError(fmt.Sprintf("unable to promote guest %s: %s", userArgs[i], err))
+			err = fmt.Errorf("unable to promote guest %s: %w", userArgs[i], err)
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
 			continue
 		}
 
 		printer.PrintT("User {{.Username}} promoted.", user)
 	}
 
-	return nil
+	return errs.ErrorOrNil()
 }
 
 func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {

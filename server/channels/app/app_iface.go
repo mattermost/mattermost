@@ -129,6 +129,8 @@ type AppIface interface {
 	// DemoteUserToGuest Convert user's roles and all his membership's roles from
 	// regular user roles to guest roles.
 	DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
+	// DetachPlugin allows the server to bind to an existing plugin instance launched elsewhere.
+	DetachPlugin(pluginId string) *model.AppError
 	// DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 	// Notifies cluster peers through config change.
 	DisablePlugin(id string) *model.AppError
@@ -192,6 +194,9 @@ type AppIface interface {
 	// relationship with a user. That means any user sharing any channel, including
 	// direct and group channels.
 	GetKnownUsers(userID string) ([]string, *model.AppError)
+	// GetLRUSessions returns the Least Recently Used sessions for userID, skipping over the newest 'offset'
+	// number of sessions. E.g., if userID has 100 sessions, offset 98 will return the oldest 2 sessions.
+	GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, *model.AppError)
 	// GetLastAccessibleFileTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
 	GetLastAccessibleFileTime() (int64, *model.AppError)
 	// GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
@@ -300,6 +305,8 @@ type AppIface interface {
 	// PromoteGuestToUser Convert user's roles and all his membership's roles from
 	// guest roles to regular user roles.
 	PromoteGuestToUser(c request.CTX, user *model.User, requestorId string) *model.AppError
+	// ReattachPlugin allows the server to bind to an existing plugin instance launched elsewhere.
+	ReattachPlugin(manifest *model.Manifest, pluginReattachConfig *model.PluginReattachConfig) *model.AppError
 	// Removes a listener function by the unique ID returned when AddConfigListener was called
 	RemoveConfigListener(id string)
 	// RenameChannel is used to rename the channel Name and the DisplayName fields
@@ -466,7 +473,7 @@ type AppIface interface {
 	BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError)
 	BulkExport(ctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError
 	BulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int)
-	BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
+	BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (*model.AppError, int)
 	CanNotifyAdmin(trial bool) bool
 	CancelJob(c request.CTX, jobId string) *model.AppError
 	ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError)
@@ -506,6 +513,9 @@ type AppIface interface {
 	ConvertGroupMessageToChannel(c request.CTX, convertedByUserId string, gmConversionRequest *model.GroupMessageConversionRequestBody) (*model.Channel, *model.AppError)
 	CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) ([]string, *model.AppError)
 	CopyWranglerPostlist(c request.CTX, wpl *model.WranglerPostList, targetChannel *model.Channel) (*model.Post, *model.AppError)
+	CountNotification(notificationType model.NotificationType)
+	CountNotificationAck(notificationType model.NotificationType)
+	CountNotificationReason(notificationStatus model.NotificationStatus, notificationType model.NotificationType, notificationReason model.NotificationReason)
 	CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError)
 	CreateChannelBookmark(c request.CTX, newBookmark *model.ChannelBookmark, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
@@ -540,7 +550,7 @@ type AppIface interface {
 	CreateUserFromSignup(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError)
 	CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, redirect string) (*model.User, *model.AppError)
 	CreateUserWithToken(c request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError)
-	CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError)
+	CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string, priority *model.PostPriority) (*model.Post, *model.AppError)
 	DBHealthCheckDelete() error
 	DBHealthCheckWrite() error
 	DataRetention() einterfaces.DataRetentionInterface
@@ -587,8 +597,8 @@ type AppIface interface {
 	DoPostActionWithCookie(c request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
 	DoSubscriptionRenewalCheck()
 	DoSystemConsoleRolesCreationMigration()
-	DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError)
-	DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError)
+	DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, *model.AppError)
+	DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, []byte, *model.AppError)
 	DownloadFromURL(downloadURL string) ([]byte, error)
 	EnableUserAccessToken(c request.CTX, token *model.UserAccessToken) *model.AppError
 	EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any
@@ -611,7 +621,7 @@ type AppIface interface {
 	GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError)
 	GeneratePresignURLForExport(name string) (*model.PresignURLResponse, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
-	GenerateSupportPacket(c request.CTX) []model.FileData
+	GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData
 	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
 	GetAcknowledgementsForPostList(postList *model.PostList) (map[string][]*model.PostAcknowledgement, *model.AppError)
 	GetActivePluginManifests() ([]*model.Manifest, *model.AppError)
@@ -625,6 +635,7 @@ type AppIface interface {
 	GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError)
 	GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSearch) (*model.TeamsWithCount, *model.AppError)
 	GetAnalytics(rctx request.CTX, name string, teamID string) (model.AnalyticsRows, *model.AppError)
+	GetAnalyticsForSupportPacket(rctx request.CTX) (model.AnalyticsRows, *model.AppError)
 	GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError)
 	GetAudits(rctx request.CTX, userID string, limit int) (model.Audits, *model.AppError)
 	GetAuditsPage(rctx request.CTX, userID string, page int, perPage int) (model.Audits, *model.AppError)
@@ -798,6 +809,7 @@ type AppIface interface {
 	GetSchemeRolesForTeam(teamID string) (string, string, string, *model.AppError)
 	GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError)
 	GetSchemesPage(scope string, page int, perPage int) ([]*model.Scheme, *model.AppError)
+	GetServerLimits() (*model.ServerLimits, *model.AppError)
 	GetSession(token string) (*model.Session, *model.AppError)
 	GetSessionById(c request.CTX, sessionID string) (*model.Session, *model.AppError)
 	GetSessions(c request.CTX, userID string) ([]*model.Session, *model.AppError)
@@ -856,7 +868,6 @@ type AppIface interface {
 	GetUserByUsername(username string) (*model.User, *model.AppError)
 	GetUserCountForReport(filter *model.UserReportOptions) (*int64, *model.AppError)
 	GetUserForLogin(c request.CTX, id, loginId string) (*model.User, *model.AppError)
-	GetUserLimits() (*model.UserLimits, *model.AppError)
 	GetUserTermsOfService(userID string) (*model.UserTermsOfService, *model.AppError)
 	GetUsers(userIDs []string) ([]*model.User, *model.AppError)
 	GetUsersByGroupChannelIds(c request.CTX, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError)

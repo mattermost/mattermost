@@ -261,6 +261,10 @@ func (rcs *Service) resume() {
 	rcs.done = make(chan struct{})
 
 	if !disablePing {
+		// first ping all the plugin remotes immediately, synchronously.
+		rcs.pingAllNow(model.RemoteClusterQueryFilter{OnlyPlugins: true})
+
+		// start the async ping loop
 		rcs.pingLoop(rcs.done)
 	}
 
