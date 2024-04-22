@@ -4444,10 +4444,6 @@
     "translation": "Please enter a valid email address."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
   },
