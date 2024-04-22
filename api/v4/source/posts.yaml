@@ -675,7 +675,7 @@
           description: Whether to return the associated users as part of the response or not
           schema:
             type: boolean
-            default: false                    
+            default: false
       responses:
         "200":
           description: Post list retrieval successful
@@ -967,7 +967,7 @@
         Acknowledge a post that has a request for acknowledgements.
 
         ##### Permissions
- 
+
         Must have `read_channel` permission for the channel the post is in.<br/>
         Must be logged in as the user or have `edit_other_users` permission.
 
@@ -1052,7 +1052,7 @@
         - posts
       summary: Move a post (and any posts within that post's thread)
       description: >
-        Move a post/thread to another channel. 
+        Move a post/thread to another channel.
 
         THIS IS A BETA FEATURE. The API is subject to change without notice.
 
