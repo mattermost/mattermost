@@ -211,7 +211,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oldChannel.Header = channel.Header
 	oldChannel.Purpose = channel.Purpose
-	oldChannel.Options = channel.Options
+	oldChannel.ExcludePostTypes = channel.ExcludePostTypes
 
 	oldChannelDisplayName := oldChannel.DisplayName
 

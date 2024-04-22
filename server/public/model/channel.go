@@ -5,7 +5,6 @@ package model
 
 import (
 	"crypto/sha1"
-	"database/sql/driver"
 	"encoding/hex"
 	"encoding/json"
 	"io"
@@ -14,8 +13,6 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/pkg/errors"
 )
 
 type ChannelType string
@@ -40,10 +37,6 @@ const (
 	ChannelSortByStatus   = "status"
 )
 
-type ChannelOptions struct {
-	ExcludeTypes []string `json:"excludeTypes"`
-}
-
 type Channel struct {
 	Id                string         `json:"id"`
 	CreateAt          int64          `json:"create_at"`
@@ -66,7 +59,7 @@ type Channel struct {
 	TotalMsgCountRoot int64          `json:"total_msg_count_root"`
 	PolicyID          *string        `json:"policy_id"`
 	LastRootPostAt    int64          `json:"last_root_post_at"`
-	Options           ChannelOptions `json:"options"`
+	ExcludePostTypes  StringArray    `json:"excludePostTypes"`
 }
 
 func (o *Channel) Auditable() map[string]interface{} {
@@ -108,12 +101,12 @@ type ChannelsWithCount struct {
 }
 
 type ChannelPatch struct {
-	DisplayName      *string         `json:"display_name"`
-	Name             *string         `json:"name"`
-	Header           *string         `json:"header"`
-	Purpose          *string         `json:"purpose"`
-	GroupConstrained *bool           `json:"group_constrained"`
-	Options          *ChannelOptions `json:"options"`
+	DisplayName       *string     `json:"display_name"`
+	Name              *string     `json:"name"`
+	Header            *string     `json:"header"`
+	Purpose           *string     `json:"purpose"`
+	GroupConstrained  *bool       `json:"group_constrained"`
+	ExcludedPostTypes StringArray `json:"excluded_post_types"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]interface{} {
@@ -419,46 +412,4 @@ type GroupMessageConversionRequestBody struct {
 	TeamID      string `json:"team_id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
-}
-
-func (co *ChannelOptions) Scan(value any) error {
-	if value == nil {
-		co.ExcludeTypes = make([]string, 0)
-		return nil
-	}
-
-	buf, ok := value.([]byte)
-	if ok {
-		err := json.Unmarshal(buf, co)
-		if err != nil {
-			co.ExcludeTypes = make([]string, 0)
-		}
-		return err
-	}
-
-	str, ok := value.(string)
-	if ok {
-		err := json.Unmarshal([]byte(str), co)
-		if err != nil {
-			co.ExcludeTypes = make([]string, 0)
-		}
-		return err
-	}
-
-	co.ExcludeTypes = make([]string, 0)
-	return errors.New("received value is neither a byte slice nor string")
-}
-
-func (co ChannelOptions) Value() (driver.Value, error) {
-	j, err := json.Marshal(co)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(j) > maxPropSizeBytes {
-		return nil, ErrMaxPropSizeExceeded
-	}
-
-	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
-	return string(j), err
 }

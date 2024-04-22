@@ -146,19 +146,17 @@ func TestCreateChannel(t *testing.T) {
 	require.Equal(t, *groupConstrainedChannel.GroupConstrained, *rchannel.GroupConstrained, "GroupConstrained flags do not match")
 
 	// Test Channel Options
-	channelWithOptions := &model.Channel{
-		DisplayName: "Test API Name",
-		Name:        GenerateTestChannelName(),
-		Type:        model.ChannelTypeOpen,
-		TeamId:      team.Id,
-		Options: model.ChannelOptions{
-			ExcludeTypes: []string{"system_join_channel", "system_leave_channel"},
-		},
+	channelWithExcludedTypes := &model.Channel{
+		DisplayName:      "Test API Name",
+		Name:             GenerateTestChannelName(),
+		Type:             model.ChannelTypeOpen,
+		TeamId:           team.Id,
+		ExcludePostTypes: []string{"system_join_channel", "system_leave_channel"},
 	}
 
-	optionsChannel, _, err := client.CreateChannel(context.Background(), channelWithOptions)
+	optionsChannel, _, err := client.CreateChannel(context.Background(), channelWithExcludedTypes)
 	require.NoError(t, err)
-	require.Equal(t, channelWithOptions.Options, optionsChannel.Options, "Channel Options do not match")
+	require.Equal(t, channelWithExcludedTypes.ExcludePostTypes, optionsChannel.ExcludePostTypes, "Channel Options do not match")
 
 	t.Run("Test create channel with missing team id", func(t *testing.T) {
 		channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: ""}
@@ -193,9 +191,7 @@ func TestUpdateChannel(t *testing.T) {
 	channel.DisplayName = "My new display name"
 	channel.Header = "My fancy header"
 	channel.Purpose = "Mattermost ftw!"
-	private.Options = model.ChannelOptions{
-		ExcludeTypes: []string{"system_join_channel", "system_leave_channel"},
-	}
+	channel.ExcludePostTypes = []string{"system_join_channel", "system_leave_channel"}
 
 	newChannel, _, err := client.UpdateChannel(context.Background(), channel)
 	require.NoError(t, err)
@@ -203,7 +199,7 @@ func TestUpdateChannel(t *testing.T) {
 	require.Equal(t, channel.DisplayName, newChannel.DisplayName, "Update failed for DisplayName")
 	require.Equal(t, channel.Header, newChannel.Header, "Update failed for Header")
 	require.Equal(t, channel.Purpose, newChannel.Purpose, "Update failed for Purpose")
-	require.Equal(t, channel.Options, newChannel.Options, "Update failed for Options")
+	require.Equal(t, channel.ExcludePostTypes, newChannel.ExcludePostTypes, "Update failed for Options")
 
 	channel.GroupConstrained = model.NewBool(true)
 	rchannel, resp, err := client.UpdateChannel(context.Background(), channel)
@@ -216,9 +212,7 @@ func TestUpdateChannel(t *testing.T) {
 	private.DisplayName = "My new display name for private channel"
 	private.Header = "My fancy private header"
 	private.Purpose = "Mattermost ftw! in private mode"
-	private.Options = model.ChannelOptions{
-		ExcludeTypes: []string{"system_join_channel", "system_leave_channel"},
-	}
+	private.ExcludePostTypes = []string{"system_join_channel", "system_leave_channel"}
 
 	newPrivateChannel, _, err := client.UpdateChannel(context.Background(), private)
 	require.NoError(t, err)
@@ -226,7 +220,7 @@ func TestUpdateChannel(t *testing.T) {
 	require.Equal(t, private.DisplayName, newPrivateChannel.DisplayName, "Update failed for DisplayName in private channel")
 	require.Equal(t, private.Header, newPrivateChannel.Header, "Update failed for Header in private channel")
 	require.Equal(t, private.Purpose, newPrivateChannel.Purpose, "Update failed for Purpose in private channel")
-	require.Equal(t, private.Options, newPrivateChannel.Options, "Update failed for Options in private channel")
+	require.Equal(t, private.ExcludePostTypes, newPrivateChannel.ExcludePostTypes, "Update failed for Options in private channel")
 
 	// Test updating default channel's name and returns error
 	defaultChannel, _ := th.App.GetChannelByName(th.Context, model.DefaultChannelName, team.Id, false)
@@ -372,19 +366,17 @@ func TestPatchChannel(t *testing.T) {
 	CheckBadRequestStatus(t, nullResp)
 
 	patch := &model.ChannelPatch{
-		Name:        new(string),
-		DisplayName: new(string),
-		Header:      new(string),
-		Purpose:     new(string),
-		Options:     new(model.ChannelOptions),
+		Name:              new(string),
+		DisplayName:       new(string),
+		Header:            new(string),
+		Purpose:           new(string),
+		ExcludedPostTypes: model.StringArray{},
 	}
 	*patch.Name = model.NewId()
 	*patch.DisplayName = model.NewId()
 	*patch.Header = model.NewId()
 	*patch.Purpose = model.NewId()
-	*patch.Options = model.ChannelOptions{
-		ExcludeTypes: []string{"system_join_channel", "system_leave_channel"},
-	}
+	patch.ExcludedPostTypes = model.StringArray{"system_join_channel", "system_leave_channel"}
 
 	channel, _, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
 	require.NoError(t, err)
@@ -393,7 +385,7 @@ func TestPatchChannel(t *testing.T) {
 	require.Equal(t, *patch.DisplayName, channel.DisplayName, "do not match")
 	require.Equal(t, *patch.Header, channel.Header, "do not match")
 	require.Equal(t, *patch.Purpose, channel.Purpose, "do not match")
-	require.Equal(t, *patch.Options, channel.Options, "do not match")
+	require.Equal(t, patch.ExcludedPostTypes, channel.ExcludePostTypes, "do not match")
 
 	patch.Name = nil
 	oldName := channel.Name
