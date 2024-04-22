@@ -41,6 +41,7 @@ export type RhsViewState = {
     isMenuOpen: boolean;
     editChannelMembers: boolean;
     size: SidebarSize;
+    shouldFocusRHS: boolean;
 };
 
 export type RhsState = typeof RHSStates[keyof typeof RHSStates] | null;
