@@ -403,7 +403,6 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	lines, _ := c.App.GetLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage)
 
 	var buf bytes.Buffer
@@ -415,7 +414,6 @@ func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	reader := bytes.NewReader(buf.Bytes())
-
 	web.WriteFileResponse("mattermost.log",
 		"text/plain",
 		int64(buf.Len()),
