@@ -7886,10 +7886,6 @@
     "translation": "Fehler beim Generieren des Passworts."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Fehlschlag beim Lesen des Dateianhangs während des Imports."
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "Gruppenmitglied existiert bereits"
   },
@@ -9868,10 +9864,6 @@
   {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Es ist nicht möglich, so viele Rollen nach Namen zu erhalten. Es können nur {{.MaxNames}} Rollen auf einmal angefordert werden."
-  },
-  {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "Benutzeranzahl konnte nicht ermittelt werden"
   },
   {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",

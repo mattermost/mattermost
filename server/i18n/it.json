@@ -8092,10 +8092,6 @@
     "translation": " "
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": " "
-  },
-  {
     "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
     "translation": " "
   },

@@ -8516,10 +8516,6 @@
     "translation": "Błąd generowania hasła."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Nie udało się odczytać załącznika pliku podczas importu."
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "członek grupy już istnieje"
   },
@@ -9874,10 +9870,6 @@
   {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Nie można uzyskać tylu ról według nazwy. Jednocześnie można zażądać tylko {{.MaxNames}} ról."
-  },
-  {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "Nie udało się uzyskać liczby użytkowników"
   },
   {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",

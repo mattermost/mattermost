@@ -7700,10 +7700,6 @@
     "translation": "Não foi possível obter o lote de arquivos para indexação."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Falha ao ler o anexo do arquivo durante a importação."
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": "Falha ao adicionar arquivo ao arquivo zip durante a exportação."
   },

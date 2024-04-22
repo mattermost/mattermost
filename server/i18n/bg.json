@@ -7632,10 +7632,6 @@
     "translation": "Неуспешно свързване с smtp сървър"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Неуспешно четене на прикачения файл при вноса."
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": "Неуспешно добавяне на файл в zip архива при износа."
   },

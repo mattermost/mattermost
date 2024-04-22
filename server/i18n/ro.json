@@ -7620,10 +7620,6 @@
     "translation": "Firul utilizatorului nu există sau nu este urmat"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Nu s-a citit atașamentul fișierului în timpul importului."
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": "Nu s-a putut adăuga fișierul la arhiva zip în timpul exportului."
   },

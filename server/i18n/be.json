@@ -4256,10 +4256,6 @@
     "translation": "Памылка чытання імпартнага файла."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Не ўдалося прачытаць аттачмент пры імпарце."
-  },
-  {
     "id": "app.import.attachment.file_upload.error",
     "translation": "Памылка пры загрузцы файла: \"{{.FilePath}}\""
   },

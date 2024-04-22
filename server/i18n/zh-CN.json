@@ -7642,10 +7642,6 @@
     "translation": "无法批量获取要建立索引的文件。"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "导入期间读取文件附件失败。"
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": "导出期间添加文件到 zip 归档失败。"
   },
@@ -9824,10 +9820,6 @@
   {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "无法通过名称获取过多的角色。每次只能请求 {{.MaxNames}} 个角色。"
-  },
-  {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "获取用户数量失败"
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.multiple_messages",

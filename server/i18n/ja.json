@@ -7642,10 +7642,6 @@
     "translation": "インデックス付与中にファイルを一括取得できませんでした。"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "インポート中に添付ファイルを読み込めませんでした。"
-  },
-  {
     "id": "app.export.export_attachment.zip_create_header.error",
     "translation": "エクスポート中にZIPヘッダーを作成できませんでした。"
   },
@@ -9780,10 +9776,6 @@
   {
     "id": "api.getUsersForReporting.invalid_active_filter",
     "translation": "アクティブなユーザーと非アクティブなユーザーの両方を非表示にすることはできません。"
-  },
-  {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "ユーザー数を取得できませんでした"
   },
   {
     "id": "app.post.move_thread_command.error",

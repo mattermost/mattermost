@@ -7508,10 +7508,6 @@
     "translation": "Error al generar la contraseña."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "No se ha podido leer el archivo adjunto durante la importación."
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": "No se ha podido añadir un fichero al archivo zip durante la exportación."
   },

@@ -7388,10 +7388,6 @@
     "translation": "Une erreur s'est produite lors de la génération du mot de passe."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Impossible de lire le fichier joint lors de l'importation."
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "le membre du groupe existe déjà"
   },

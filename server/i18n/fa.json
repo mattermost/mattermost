@@ -2628,10 +2628,6 @@
     "translation": "خطا در خواندن پرونده واردات داده."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "در حین import کردن، پیوست فایل خوانده نشد."
-  },
-  {
     "id": "app.import.attachment.file_upload.error",
     "translation": "خطا در بارگذاری پرونده: \"{{.FilePath}}\""
   },

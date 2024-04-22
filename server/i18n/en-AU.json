@@ -2564,10 +2564,6 @@
     "translation": "Error reading import data file."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Failed to read file attachment during import."
-  },
-  {
     "id": "app.import.attachment.file_upload.error",
     "translation": "Error uploading the file: '{{.FilePath}}'"
   },
@@ -9937,10 +9933,6 @@
   {
     "id": "app.channel.patch_channel_members_notify_props.too_many",
     "translation": "Unable to update that many channel members. Only {{.Max}} channel members can be updated at once."
-  },
-  {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "Failed to get user count"
   },
   {
     "id": "api.getUsersForReporting.invalid_page_size",

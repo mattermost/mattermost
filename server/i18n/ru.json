@@ -7532,10 +7532,6 @@
     "translation": "ошибка insert"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Не удалось прочитать аттачмент при импорте."
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "участник группы уже существует"
   },
@@ -9874,10 +9870,6 @@
   {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Невозможно получить такое количество ролей по имени. Одновременно можно запросить только {{.MaxNames}} ролей."
-  },
-  {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "Не удалось получить количество пользователей"
   },
   {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
