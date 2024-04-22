@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable max-lines */
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
@@ -961,8 +960,6 @@ export function getPostsAround(channelId: string, postId: string, perPage = Post
  * (see the actions/websocket_actions/handleNewPostEvents function in the webapp)
 * */
 export function getPostThreads(posts: Post[], fetchThreads = true): ThunkActionFunc<unknown> {
-    const rootPostIds = new Set<string>();
-
     return (dispatch, getState) => {
         if (!Array.isArray(posts) || !posts.length) {
             return {data: true};
@@ -972,6 +969,8 @@ export function getPostThreads(posts: Post[], fetchThreads = true): ThunkActionF
         const currentChannelId = getCurrentChannelId(state);
 
         const getPostThreadPromises: Array<Promise<ActionResult<PostList>>> = [];
+
+        const rootPostIds = new Set<string>();
 
         for (const post of posts) {
             if (!post.root_id) {
@@ -994,8 +993,6 @@ export function getPostThreads(posts: Post[], fetchThreads = true): ThunkActionF
                 getPostThreadPromises.push(dispatch(getPostThread(post.root_id, fetchThreads)));
             }
         }
-
-        rootPostIds.clear();
 
         return Promise.all(getPostThreadPromises);
     };

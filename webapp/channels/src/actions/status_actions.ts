@@ -16,13 +16,13 @@ import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions'
 import type {GlobalState} from 'types/store';
 
 export function loadStatusesForChannelAndSidebar(): ActionFunc<boolean, GlobalState> {
-    const userIds = new Set<string>();
-
     return (dispatch, getState) => {
         const state = getState();
 
         const channelId = getCurrentChannelId(state);
         const postsInChannel = getPostsInCurrentChannel(state);
+
+        const userIds = new Set<string>();
 
         if (postsInChannel) {
             const posts = postsInChannel.slice(0, state.views.channel.postVisibility[channelId] || 0);
@@ -45,7 +45,6 @@ export function loadStatusesForChannelAndSidebar(): ActionFunc<boolean, GlobalSt
         userIds.add(currentUserId);
 
         dispatch(loadStatusesByIds(Array.from(userIds)));
-        userIds.clear();
 
         return {data: true};
     };
