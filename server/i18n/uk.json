@@ -4452,10 +4452,6 @@
     "translation": "Будь ласка, введіть дійсну адресу електронної пошти."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі."
   },
