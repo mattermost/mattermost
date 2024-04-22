@@ -289,6 +289,5 @@
   "user.settings.general.field_handled_externally": "നിങ്ങളുടെ ലോഗിൻ പ്രൊവൈഡർ വഴിയാണ് ഈ ഫീൽഡ് കൈകാര്യം ചെയ്യുന്നത്. നിങ്ങൾക്ക് ഇത് മാറ്റണമെങ്കിൽ, നിങ്ങളുടെ ലോഗിൻ പ്രൊവൈഡർ വഴി അത് മാറ്റേണ്ടതുണ്ട്.",
   "user.settings.general.username": "ഉപയോക്തൃനാമം",
   "user.settings.modal.notifications": "അറിയിപ്പുകൾ",
-  "user.settings.notifications.allActivity": "എല്ലാ പ്രവർത്തനത്തിനും",
   "web.root.signup_info": "എല്ലാ ടീം ആശയവിനിമയങ്ങളും ഒരിടത്ത്, തിരയാനും എവിടെയും ആക്‌സസ് ചെയ്യാനും കഴിയും"
 }

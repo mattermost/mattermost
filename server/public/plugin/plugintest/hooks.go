@@ -121,6 +121,10 @@ func (_m *Hooks) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, fil
 func (_m *Hooks) GenerateSupportData(c *plugin.Context) ([]*model.FileData, error) {
 	ret := _m.Called(c)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GenerateSupportData")
+	}
+
 	var r0 []*model.FileData
 	var r1 error
 	if rf, ok := ret.Get(0).(func(*plugin.Context) ([]*model.FileData, error)); ok {
