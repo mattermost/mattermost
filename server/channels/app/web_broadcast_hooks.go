@@ -82,14 +82,6 @@ func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channe
 }
 
 func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
-	// Add if we have mentions or followers
-	// This works since we currently do have an order for broadcast hooks, but this probably should be reworked going forward
-	if msg.Get("followers") != nil || msg.Get("mentions") != nil {
-		msg.Add("should_ack", true)
-		incrementWebsocketCounter(webConn)
-		return nil
-	}
-
 	postedUserId, err := getTypedArg[string](args, "posted_user_id")
 	if err != nil {
 		return errors.Wrap(err, "Invalid posted_user_id value passed to postedAckBroadcastHook")
@@ -97,6 +89,14 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 
 	// Don't ACK your own posts
 	if postedUserId == webConn.UserId {
+		return nil
+	}
+
+	// Add if we have mentions or followers
+	// This works since we currently do have an order for broadcast hooks, but this probably should be reworked going forward
+	if msg.Get("followers") != nil || msg.Get("mentions") != nil {
+		msg.Add("should_ack", true)
+		incrementWebsocketCounter(webConn)
 		return nil
 	}
 
