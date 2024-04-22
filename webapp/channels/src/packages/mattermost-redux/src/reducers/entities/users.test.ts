@@ -1118,7 +1118,7 @@ describe('dndEndTimes', () => {
 
     test('should store the dnd end time', () => {
         const action1 = {
-            type: UserTypes.RECEIVED_DND_END_TIME,
+            type: UserTypes.RECEIVED_DND_END_TIMES,
             data: {
                 test_user_id: 123456789,
             },
@@ -1133,7 +1133,7 @@ describe('dndEndTimes', () => {
             },
         }) as UsersState;
         const action2 = {
-            type: UserTypes.RECEIVED_DND_END_TIME,
+            type: UserTypes.RECEIVED_DND_END_TIMES,
             data: {
                 test_user_id: 987654321,
             },
@@ -1145,7 +1145,7 @@ describe('dndEndTimes', () => {
 
     test('should store the dnd end time for multiple users', () => {
         const action1 = {
-            type: UserTypes.RECEIVED_DND_END_TIME,
+            type: UserTypes.RECEIVED_DND_END_TIMES,
             data: {
                 test_user_id: 123456789,
                 test_user_id_2: 987654321,
@@ -1164,7 +1164,7 @@ describe('dndEndTimes', () => {
             },
         }) as UsersState;
         const action2 = {
-            type: UserTypes.RECEIVED_DND_END_TIME,
+            type: UserTypes.RECEIVED_DND_END_TIMES,
             data: {
                 test_user_id: 10,
                 test_user_id_2: 20,
@@ -1197,7 +1197,7 @@ describe('statuses', () => {
 
     test('should store the status', () => {
         const action1 = {
-            type: UserTypes.RECEIVED_STATUS,
+            type: UserTypes.RECEIVED_STATUSES,
             data: {
                 test_user_id: 'away',
             },
@@ -1212,7 +1212,7 @@ describe('statuses', () => {
             },
         }) as UsersState;
         const action2 = {
-            type: UserTypes.RECEIVED_STATUS,
+            type: UserTypes.RECEIVED_STATUSES,
             data: {
                 test_user_id: 'dnd',
             },
@@ -1276,7 +1276,7 @@ describe('isManualStatus', () => {
 
     test('should store the isManualStatus', () => {
         const action1 = {
-            type: UserTypes.RECEIVED_STATUS_IS_MANUAL,
+            type: UserTypes.RECEIVED_STATUSES_IS_MANUAL,
             data: {
                 test_user_id: true,
             },
@@ -1291,7 +1291,7 @@ describe('isManualStatus', () => {
             },
         }) as UsersState;
         const action2 = {
-            type: UserTypes.RECEIVED_STATUS_IS_MANUAL,
+            type: UserTypes.RECEIVED_STATUSES_IS_MANUAL,
             data: {
                 test_user_id: true,
             },
@@ -1319,7 +1319,7 @@ describe('lastActivity', () => {
 
     test('should store the last activity', () => {
         const action1 = {
-            type: UserTypes.RECEIVED_LAST_ACTIVITY,
+            type: UserTypes.RECEIVED_LAST_ACTIVITIES,
             data: {
                 test_user_id: 123456789,
             },
@@ -1334,7 +1334,7 @@ describe('lastActivity', () => {
             },
         }) as UsersState;
         const action2 = {
-            type: UserTypes.RECEIVED_LAST_ACTIVITY,
+            type: UserTypes.RECEIVED_LAST_ACTIVITIES,
             data: {
                 test_user_id: 987654321,
             },

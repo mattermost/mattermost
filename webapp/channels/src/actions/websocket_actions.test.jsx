@@ -506,7 +506,7 @@ describe('handleNewPostEvent', () => {
         testStore.dispatch(handleNewPostEvent(msg));
 
         expect(testStore.getActions()).toContainEqual({
-            type: UserTypes.RECEIVED_STATUS,
+            type: UserTypes.RECEIVED_STATUSES,
             data: [{[post.user_id]: UserStatuses.ONLINE}],
         });
     });

@@ -652,14 +652,14 @@ export function setStatus(status: UserStatus): ActionFuncAsync<UserStatus> {
             return {error};
         }
 
-        const updatedStatus = {[recievedStatus.user_id]: recievedStatus?.status ?? ''};
+        const updatedStatus = {[recievedStatus.user_id]: recievedStatus.status};
         const dndEndTimes = {[recievedStatus.user_id]: recievedStatus?.dnd_end_time ?? 0};
         const isManualStatus = {[recievedStatus.user_id]: recievedStatus?.manual ?? false};
         const lastActivity = {[recievedStatus.user_id]: recievedStatus?.last_activity_at ?? 0};
 
         dispatch(batchActions([
             {
-                type: UserTypes.RECEIVED_STATUS,
+                type: UserTypes.RECEIVED_STATUSES,
                 data: updatedStatus,
             },
             {
@@ -667,11 +667,11 @@ export function setStatus(status: UserStatus): ActionFuncAsync<UserStatus> {
                 data: dndEndTimes,
             },
             {
-                type: UserTypes.RECEIVED_STATUS_IS_MANUAL,
+                type: UserTypes.RECEIVED_STATUSES_IS_MANUAL,
                 data: isManualStatus,
             },
             {
-                type: UserTypes.RECEIVED_LAST_ACTIVITY,
+                type: UserTypes.RECEIVED_LAST_ACTIVITIES,
                 data: lastActivity,
             },
         ], 'BATCHING_STATUS'));
