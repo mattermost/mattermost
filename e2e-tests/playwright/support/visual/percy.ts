@@ -16,8 +16,8 @@ export default async function snapshotWithPercy(name: string, testArgs: TestArgs
         try {
             await percySnapshot(page, name, {widths: [viewport.width], minHeight: viewport.height});
         } catch (error) {
-            console.error('Check if token is properly set by "export PERCY_TOKEN=<change_me>"');
-            console.error(error);
+            // eslint-disable-next-line no-console
+            console.error(`${error}\nIn addition, check if token is properly set by "export PERCY_TOKEN=<change_me>"`);
         }
     }
 }
