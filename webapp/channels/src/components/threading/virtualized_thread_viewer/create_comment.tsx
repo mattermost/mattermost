@@ -21,7 +21,6 @@ import Constants from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 type Props = {
-    focusOnMount: boolean;
     teammate?: UserProfile;
     threadId: string;
     latestPostId: Post['id'];
@@ -30,7 +29,6 @@ type Props = {
 };
 
 const CreateComment = forwardRef<HTMLDivElement, Props>(({
-    focusOnMount,
     teammate,
     threadId,
     latestPostId,
@@ -98,7 +96,6 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
         >
             <AdvancedCreateComment
                 placeholder={placeholder}
-                focusOnMount={focusOnMount}
                 channelId={channel.id}
                 latestPostId={latestPostId}
                 rootDeleted={rootDeleted}

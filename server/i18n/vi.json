@@ -2718,10 +2718,6 @@
     "translation": "Đã xảy ra lỗi trong khi tạo tin nhắn trực tiếp."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự."
-  },
-  {
     "id": "bleveengine.search_users_in_channel.uchan.error",
     "translation": "Tìm kiếm không hoàn thành"
   },
@@ -9304,10 +9300,6 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "thành viên nhóm đã tồn tại"
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Không thể đọc tệp đính kèm trong quá trình nhập."
   },
   {
     "id": "app.import.generate_password.app_error",
