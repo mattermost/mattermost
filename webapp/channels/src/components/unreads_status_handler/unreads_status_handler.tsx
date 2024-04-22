@@ -41,7 +41,7 @@ type Props = {
     unreadStatus: BasicUnreadStatus;
     siteName?: string;
     currentChannel?: Channel;
-    currentTeam: Team;
+    currentTeam?: Team;
     currentTeammate: Channel | null;
     inGlobalThreads: boolean;
     inDrafts: boolean;

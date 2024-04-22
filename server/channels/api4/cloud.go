@@ -90,7 +90,7 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	subscription, err := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -324,7 +324,7 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 	// get the cloud customer email to validate if is a valid business email
 	cloudCustomer, err := c.App.Cloud().GetCloudCustomer(user.Id)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	emailErr := c.App.Cloud().ValidateBusinessEmail(user.Id, cloudCustomer.Email)
@@ -334,7 +334,7 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 		// grab the current admin email and validate it
 		errValidatingAdminEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, user.Email)
 		if errValidatingAdminEmail != nil {
-			c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, errValidatingAdminEmail.Error(), http.StatusForbidden)
+			c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, "", http.StatusForbidden).Wrap(errValidatingAdminEmail)
 			emailResp := model.ValidateBusinessEmailResponse{IsValid: false}
 			if err := json.NewEncoder(w).Encode(emailResp); err != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -767,7 +767,7 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 
 	pdfData, filename, appErr := c.App.Cloud().GetInvoicePDF(c.AppContext.Session().UserId, c.Params.InvoiceId)
 	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getSubscriptionInvoicePDF", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getSubscriptionInvoicePDF", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		return
 	}
 
@@ -797,14 +797,14 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	defer r.Body.Close()
 
 	var event *model.CWSWebhookPayload
 	if err = json.Unmarshal(bodyBytes, &event); err != nil || event == nil {
-		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -826,14 +826,14 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		if event.Subscription != nil && event.CloudWorkspaceOwner != nil {
 			user, appErr := c.App.GetUserByUsername(event.CloudWorkspaceOwner.UserName)
 			if appErr != nil {
-				c.Err = model.NewAppError("Api4.handleCWSWebhook", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+				c.Err = model.NewAppError("Api4.handleCWSWebhook", appErr.Id, nil, "", appErr.StatusCode).Wrap(appErr)
 				return
 			}
 
 			// Get the current cloud product to determine whether it's a monthly or yearly product
 			product, err := c.App.Cloud().GetCloudProduct(user.Id, event.Subscription.ProductID)
 			if err != nil {
-				c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+				c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 				return
 			}
 			isYearly = product.IsYearly()
@@ -846,13 +846,13 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.EventTypeSendAdminWelcomeEmail:
 		user, appErr := c.App.GetUserByUsername(event.CloudWorkspaceOwner.UserName)
 		if appErr != nil {
-			c.Err = model.NewAppError("Api4.handleCWSWebhook", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", appErr.Id, nil, "", appErr.StatusCode).Wrap(appErr)
 			return
 		}
 
 		teams, appErr := c.App.GetAllTeams()
 		if appErr != nil {
-			c.Err = model.NewAppError("Api4.handleCWSWebhook", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", appErr.Id, nil, "", appErr.StatusCode).Wrap(appErr)
 			return
 		}
 
@@ -860,12 +860,12 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		subscription, err := c.App.Cloud().GetSubscription(user.Id)
 		if err != nil {
-			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 
 		if err := c.App.Srv().EmailService.SendCloudWelcomeEmail(user.Email, user.Locale, team.InviteId, subscription.GetWorkSpaceNameFromDNS(), subscription.DNS, *c.App.Config().ServiceSettings.SiteURL); err != nil {
-			c.Err = model.NewAppError("SendCloudWelcomeEmail", "api.user.send_cloud_welcome_email.error", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("SendCloudWelcomeEmail", "api.user.send_cloud_welcome_email.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 	case model.EventTypeTriggerDelinquencyEmail:
@@ -911,7 +911,7 @@ func selfServeDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.selfServeDeleteWorkspace", "api.cloud.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("Api4.selfServeDeleteWorkspace", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	defer r.Body.Close()
@@ -923,7 +923,7 @@ func selfServeDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request
 
 	var deleteRequest *model.WorkspaceDeletionRequest
 	if err = json.Unmarshal(bodyBytes, &deleteRequest); err != nil || deleteRequest == nil {
-		c.Err = model.NewAppError("Api4.selfServeDeleteWorkspace", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.selfServeDeleteWorkspace", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

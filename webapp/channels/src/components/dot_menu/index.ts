@@ -66,9 +66,9 @@ function makeMapStateToProps() {
         const config = getConfig(state);
         const userId = getCurrentUserId(state);
         const channel = getChannel(state, post.channel_id);
-        const currentTeam = getCurrentTeam(state) || {};
+        const currentTeam = getCurrentTeam(state);
         const team = getTeam(state, channel.team_id);
-        const teamUrl = `${getSiteURL()}/${team?.name || currentTeam.name}`;
+        const teamUrl = `${getSiteURL()}/${team?.name || currentTeam?.name}`;
         const isMilitaryTime = getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false);
 
         const systemMessage = isSystemMessage(post);

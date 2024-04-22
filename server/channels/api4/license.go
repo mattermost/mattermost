@@ -92,7 +92,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	file, err := fileData.Open()
 	if err != nil {
-		c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	defer file.Close()
@@ -201,7 +201,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	canStartTrialLicense, err := c.App.Srv().Platform().LicenseManager().CanStartTrial()
 	if err != nil {
-		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.can-start-trial.error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.can-start-trial.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -267,7 +267,7 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	// check if it is possible to renew license on the portal with generated token
 	status, e := c.App.Cloud().GetLicenseSelfServeStatus(c.AppContext.Session().UserId, token)
 	if e != nil {
-		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.cannot_renew_on_cws", nil, e.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.cannot_renew_on_cws", nil, "", http.StatusInternalServerError).Wrap(e)
 		return
 	}
 
@@ -281,7 +281,7 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	_, werr := w.Write([]byte(fmt.Sprintf(`{"renewal_link": "%s"}`, renewalLink)))
 	if werr != nil {
-		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.app_error", nil, werr.Error(), http.StatusForbidden)
+		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.app_error", nil, "", http.StatusForbidden).Wrap(werr)
 		return
 	}
 }
@@ -355,7 +355,7 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := c.App.Cloud().CheckCWSConnection(c.AppContext.Session().UserId); err == nil {
 		err = c.App.Cloud().SubmitTrueUpReview(c.AppContext.Session().UserId, profileMap)
 		if err != nil {
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.failed_to_submit", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.failed_to_submit", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 	}
