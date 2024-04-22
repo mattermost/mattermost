@@ -97,7 +97,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License().IsCloud() {
 		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
 		if err != nil {
-			c.Err = model.NewAppError("Api4.createTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("Api4.createTeam", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 
@@ -292,7 +292,7 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License().IsCloud() {
 		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
 		if err != nil {
-			c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 
@@ -741,7 +741,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
 			} else {
-				c.Err = model.NewAppError("addTeamMember", "api.team.add_members.error", nil, err.Error(), http.StatusBadRequest)
+				c.Err = model.NewAppError("addTeamMember", "api.team.add_members.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 			return
 		}
@@ -1285,7 +1285,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseMultipartForm(MaximumBulkImportSize); err != nil {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.parse.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("importTeam", "api.team.import_team.parse.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -1327,7 +1327,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileData, err := fileInfo.Open()
 	if err != nil {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.open.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("importTeam", "api.team.import_team.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	defer fileData.Close()
@@ -1445,7 +1445,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		// we then manually schedule the job to send another invite after 48 hours
 		_, appErr = c.App.Srv().Jobs.CreateJob(c.AppContext, model.JobTypeResendInvitationEmail, jobData)
 		if appErr != nil {
-			c.Err = model.NewAppError("Api4.inviteUsersToTeam", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+			c.Err = model.NewAppError("Api4.inviteUsersToTeam", appErr.Id, nil, "", appErr.StatusCode).Wrap(appErr)
 			return
 		}
 
@@ -1672,7 +1672,7 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
-		c.Err = model.NewAppError("setTeamIcon", "api.team.set_team_icon.parse.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("setTeamIcon", "api.team.set_team_icon.parse.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 

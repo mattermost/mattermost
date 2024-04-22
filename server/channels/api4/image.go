@@ -18,7 +18,7 @@ func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	actualURL := r.URL.Query().Get("url")
 	parsedURL, err := url.Parse(actualURL)
 	if err != nil {
-		c.Err = model.NewAppError("getImage", "api.image.get.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("getImage", "api.image.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	} else if parsedURL.Opaque != "" {
 		c.Err = model.NewAppError("getImage", "api.image.get.app_error", nil, "", http.StatusBadRequest)
@@ -26,7 +26,7 @@ func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	siteURL, err := url.Parse(*c.App.Config().ServiceSettings.SiteURL)
 	if err != nil {
-		c.Err = model.NewAppError("getImage", "model.config.is_valid.site_url.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getImage", "model.config.is_valid.site_url.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
