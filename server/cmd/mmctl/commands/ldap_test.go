@@ -234,7 +234,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 
 			s.client.
 				EXPECT().
-				GetJobsByType(context.Background(), model.JobTypeLdapSync, 0, perPage).
+				GetJobsByType(context.Background(), model.JobTypeLdapSync, 0, DefaultPageSize).
 				Return(mockJobs, &model.Response{}, nil).
 				Times(1)
 
@@ -258,7 +258,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 
 			s.client.
 				EXPECT().
-				GetJobsByType(context.Background(), model.JobTypeLdapSync, 0, perPage).
+				GetJobsByType(context.Background(), model.JobTypeLdapSync, 0, DefaultPageSize).
 				Return(mockJobs, &model.Response{}, nil).
 				Times(1)
 
