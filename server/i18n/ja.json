@@ -2255,7 +2255,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "ウェブソケット接続をアップグレードできませんでした。"
+    "translation": "CORSによりブロックされたURLです。Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -10340,5 +10340,21 @@
   {
     "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
     "translation": "チャンネルメンバーの不正な更新: ゲストを単一のチャンネルに設定することはできません。システム管理者がユーザーをゲストに設定する必要があります。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} と @{{.LastUsername}} はこのチームのメンバーではないため、このメンションによる通知は行われませんでした。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} はこのチームのメンバーではないため、このメンションによる通知は行われませんでした。"
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "リクエストボディにdisplay_nameがありません"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "リクエストボディにteam_idがありません"
   }
 ]

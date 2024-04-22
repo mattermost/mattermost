@@ -280,7 +280,7 @@ func selfHostedInvoicePDF(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	pdfData, filename, appErr := c.App.Cloud().GetSelfHostedInvoicePDF(c.Params.InvoiceId)
 	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getSubscriptionInvoicePDF", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getSubscriptionInvoicePDF", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		return
 	}
 

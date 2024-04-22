@@ -62,7 +62,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		c.Err = model.NewAppError("getConfig", "api.config.get_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getConfig", "api.config.get_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -72,7 +72,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License().IsCloud() {
 		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
 		if jsonErr != nil {
-			c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			return
 		}
 		w.Write(js)
@@ -98,7 +98,7 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.App.ReloadConfig(); err != nil {
-		c.Err = model.NewAppError("configReload", "api.config.reload_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("configReload", "api.config.reload_config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

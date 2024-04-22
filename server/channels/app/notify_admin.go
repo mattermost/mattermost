@@ -65,9 +65,9 @@ func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdm
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("SaveAdminNotifyData", "app.notify_admin.save.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("SaveAdminNotifyData", "app.notify_admin.save.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, model.NewAppError("SaveAdminNotifyData", "app.notify_admin.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SaveAdminNotifyData", "app.notify_admin.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -107,7 +107,7 @@ func (a *App) SendNotifyAdminPosts(c request.CTX, workspaceName string, currentS
 
 	data, err := a.Srv().Store().NotifyAdmin().Get(trial)
 	if err != nil {
-		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	data = filterNotificationData(data, func(nad *model.NotifyAdminData) bool { return nad.RequiredPlan != currentSKU })
