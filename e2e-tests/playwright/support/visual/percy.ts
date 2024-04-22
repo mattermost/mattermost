@@ -10,14 +10,12 @@ export default async function snapshotWithPercy(name: string, testArgs: TestArgs
     if (testArgs.browserName === 'chromium' && testConfig.percyEnabled && testArgs.viewport) {
         const {page, viewport} = testArgs;
 
-        // Ignore since percy is using Playwright.Page
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         try {
             await percySnapshot(page, name, {widths: [viewport.width], minHeight: viewport.height});
         } catch (error) {
+            // log an error for debugging
             // eslint-disable-next-line no-console
-            console.error(`${error}\nIn addition, check if token is properly set by "export PERCY_TOKEN=<change_me>"`);
+            console.log(`${error}\nIn addition, check if token is properly set by "export PERCY_TOKEN=<change_me>"`);
         }
     }
 }
