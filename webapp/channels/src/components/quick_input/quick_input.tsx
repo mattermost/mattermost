@@ -6,7 +6,6 @@ import type {ReactComponentLike} from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import AutosizeTextarea from 'components/autosize_textarea';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
@@ -180,11 +179,6 @@ export default class QuickInput<InputElement extends HTMLInputElement | HTMLText
         Reflect.deleteProperty(props, 'clearClassName');
         Reflect.deleteProperty(props, 'tooltipPosition');
         Reflect.deleteProperty(props, 'inputRef');
-
-        if (inputComponent !== AutosizeTextarea) {
-            Reflect.deleteProperty(props, 'onHeightChange');
-            Reflect.deleteProperty(props, 'onWidthChange');
-        }
 
         const inputElement = React.createElement(
             inputComponent || 'input',

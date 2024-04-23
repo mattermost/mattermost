@@ -275,6 +275,14 @@ export default class Textbox extends React.PureComponent<Props> {
             textboxClassName += ' textarea--has-labels';
         }
 
+        let autosizeInputProps = {};
+        if (this.props.inputComponent !== AutosizeTextarea) {
+            autosizeInputProps = {
+                onHeightChange: this.props.onHeightChange,
+                onWidthChange: this.props.onWidthChange,
+            };
+        }
+
         return (
             <div
                 ref={this.wrapper}
@@ -314,8 +322,7 @@ export default class Textbox extends React.PureComponent<Props> {
                     onComposition={this.props.onComposition}
                     onBlur={this.handleBlur}
                     onFocus={this.props.onFocus}
-                    onHeightChange={this.props.onHeightChange}
-                    onWidthChange={this.props.onWidthChange}
+                    {...autosizeInputProps}
                     onPaste={this.props.onPaste}
                     style={this.getStyle()}
                     inputComponent={this.props.inputComponent}
