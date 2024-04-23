@@ -89,7 +89,10 @@ export default function TeamButton({
             teamClass = 'unread';
 
             badge = (
-                <span className={'unread-badge'}/>
+                <span
+                    data-testid={'team-badge-' + teamId}
+                    className={'unread-badge'}
+                />
             );
         } else if (isNotCreateTeamButton) {
             teamClass = '';
@@ -115,7 +118,12 @@ export default function TeamButton({
             });
 
             badge = (
-                <span className={classNames('badge badge-max-number pull-right small', {urgent: otherProps.hasUrgent})}>{mentions > 99 ? '99+' : mentions}</span>
+                <span
+                    data-testid={'team-badge-' + teamId}
+                    className={classNames('badge badge-max-number pull-right small', {urgent: otherProps.hasUrgent})}
+                >
+                    {mentions > 99 ? '99+' : mentions}
+                </span>
             );
         }
     }
@@ -192,9 +200,9 @@ export default function TeamButton({
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
+                        tabIndex={-1}
                     >
                         <div
-
                             className={classNames([`team-container ${teamClass}`, {isDragging: snapshot.isDragging}])}
                         >
                             {teamButton}
@@ -205,7 +213,10 @@ export default function TeamButton({
             }}
         </Draggable>
     ) : (
-        <div className={`team-container ${teamClass}`}>
+        <div
+            data-testid={'team-container-' + teamId}
+            className={`team-container ${teamClass}`}
+        >
             {teamButton}
             {orderIndicator}
         </div>

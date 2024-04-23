@@ -1280,10 +1280,6 @@
     "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter."
-  },
-  {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Nama tidak valid"
   },
