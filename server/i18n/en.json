@@ -2301,14 +2301,6 @@
     "translation": "Could not get true up status records"
   },
   {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "True up review requires a license"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "True up review is not allowed for cloud instances"
-  },
-  {
     "id": "api.license.true_up_review.user_count_fail",
     "translation": "Could not get the total active users count"
   },
