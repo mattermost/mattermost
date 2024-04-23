@@ -41,6 +41,7 @@ const (
 	PostTypeDisplaynameChange    = "system_displayname_change"
 	PostTypeConvertChannel       = "system_convert_channel"
 	PostTypePurposeChange        = "system_purpose_change"
+	PostTypeExcludedPostsChange  = "system_excluded_change"
 	PostTypeChannelDeleted       = "system_channel_deleted"
 	PostTypeChannelRestored      = "system_channel_restored"
 	PostTypeEphemeral            = "system_ephemeral"
@@ -440,6 +441,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeSlackAttachment,
 		PostTypeHeaderChange,
 		PostTypePurposeChange,
+		PostTypeExcludedPostsChange,
 		PostTypeDisplaynameChange,
 		PostTypeConvertChannel,
 		PostTypeChannelDeleted,

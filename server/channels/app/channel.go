@@ -830,6 +830,7 @@ func (a *App) PatchChannel(c request.CTX, channel *model.Channel, patch *model.C
 	oldChannelDisplayName := channel.DisplayName
 	oldChannelHeader := channel.Header
 	oldChannelPurpose := channel.Purpose
+	oldChannelExcluded := channel.ExcludePostTypes
 
 	channel.Patch(patch)
 	channel, err := a.UpdateChannel(c, channel)
@@ -851,6 +852,12 @@ func (a *App) PatchChannel(c request.CTX, channel *model.Channel, patch *model.C
 
 	if channel.Purpose != oldChannelPurpose {
 		if err = a.PostUpdateChannelPurposeMessage(c, userID, channel, oldChannelPurpose, channel.Purpose); err != nil {
+			c.Logger().Warn(err.Error())
+		}
+	}
+
+	if !channel.ExcludePostTypes.Equals(oldChannelExcluded) {
+		if err = a.PostUpdateChannelPostExcludeMessage(c, userID, channel, oldChannelExcluded, channel.ExcludePostTypes); err != nil {
 			c.Logger().Warn(err.Error())
 		}
 	}
@@ -1760,6 +1767,39 @@ func (a *App) PostUpdateChannelPurposeMessage(c request.CTX, userID string, chan
 	}
 	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
 		return model.NewAppError("", "app.channel.post_update_channel_purpose_message.post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (a *App) PostUpdateChannelPostExcludeMessage(c request.CTX, userID string, channel *model.Channel, oldChannelExcluded []string, newChannelExcluded []string) *model.AppError {
+	user, err := a.Srv().Store().User().Get(context.Background(), userID)
+	if err != nil {
+		return model.NewAppError("PostUpdateChannelPurposeMessage", "app.channel.post_update_channel_excluded_posts_message.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	var message string
+	if len(oldChannelExcluded) == 0 {
+		message = fmt.Sprintf(i18n.T("app.channel.post_update_channel_excluded_posts_message.updated_to"), user.Username, strings.Join(newChannelExcluded, ", "))
+	} else if len(newChannelExcluded) == 0 {
+		message = fmt.Sprintf(i18n.T("app.channel.post_update_channel_excluded_posts_message.removed"), user.Username, strings.Join(oldChannelExcluded, ", "))
+	} else {
+		message = fmt.Sprintf(i18n.T("app.channel.post_update_channel_excluded_posts_message.updated_from"), user.Username, strings.Join(oldChannelExcluded, ", "), strings.Join(newChannelExcluded, ", "))
+	}
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   message,
+		Type:      model.PostTypeExcludedPostsChange,
+		UserId:    userID,
+		Props: model.StringInterface{
+			"username":     user.Username,
+			"old_excluded": oldChannelExcluded,
+			"new_excluded": newChannelExcluded,
+		},
+	}
+	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
+		return model.NewAppError("", "app.channel.post_update_channel_excluded_posts_message.post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil

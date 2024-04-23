@@ -5011,6 +5011,26 @@
     "translation": "%s updated the channel purpose to: %s"
   },
   {
+    "id": "app.channel.post_update_channel_excluded_posts_message.post.error",
+    "translation": "Failed to post channel excluded types message"
+  },
+  {
+    "id": "app.channel.post_update_channel_excluded_posts_message.removed",
+    "translation": "%s removed the channel excluded post types (was: %s). \nThis will be reflected on the next reload of this channel."
+  },
+  {
+    "id": "app.channel.post_update_channel_excluded_posts_message.retrieve_user.error",
+    "translation": "Failed to retrieve user while updating channel excluded post types %v."
+  },
+  {
+    "id": "app.channel.post_update_channel_excluded_posts_message.updated_from",
+    "translation": "%s updated the channel excluded post types from: %s to: %s. \nThis will be reflected on the next reload of this channel."
+  },
+  {
+    "id": "app.channel.post_update_channel_excluded_posts_message.updated_to",
+    "translation": "%s updated the channel excluded post types to: %s \n This will be reflected on the next reload of this channel."
+  },
+  {
     "id": "app.channel.remove_all_deactivated_members.app_error",
     "translation": "We could not remove the deactivated users from the channel."
   },
