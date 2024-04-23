@@ -90,12 +90,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             preferences: {
                 myPreferences: {},
             },
-            cloud: {
-                subscriptionStats: {
-                    is_expandable: false,
-                    getRequestState: 'IDLE',
-                },
-            },
+            cloud: {},
             hostedCustomer: {
                 products: {
                     productsLoaded: true,
@@ -226,10 +221,6 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
 
         store.entities.cloud = {
             ...store.entities.cloud,
-            subscriptionStats: {
-                is_expandable: false,
-                getRequestState: 'OK',
-            },
         };
 
         renderWithContext(
@@ -336,10 +327,6 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
 
         store.entities.cloud = {
             ...store.entities.cloud,
-            subscriptionStats: {
-                is_expandable: false,
-                getRequestState: 'OK',
-            },
         };
 
         renderWithContext(
@@ -456,10 +443,6 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
 
         store.entities.cloud = {
             ...store.entities.cloud,
-            subscriptionStats: {
-                is_expandable: true,
-                getRequestState: 'OK',
-            },
         };
 
         renderWithContext(
@@ -488,10 +471,6 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
 
         store.entities.cloud = {
             ...store.entities.cloud,
-            subscriptionStats: {
-                is_expandable: true,
-                getRequestState: 'OK',
-            },
         };
 
         renderWithContext(
@@ -520,10 +499,6 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
 
         store.entities.cloud = {
             ...store.entities.cloud,
-            subscriptionStats: {
-                is_expandable: false,
-                getRequestState: 'OK',
-            },
         };
         store.entities.general.license.IsGovSku = 'true';
 

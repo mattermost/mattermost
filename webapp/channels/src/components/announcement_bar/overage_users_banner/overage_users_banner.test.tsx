@@ -5,7 +5,6 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {getLicenseSelfServeStatus} from 'mattermost-redux/actions/cloud';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General} from 'mattermost-redux/constants';
 
@@ -98,10 +97,6 @@ describe('components/overage_users_banner', () => {
                 myPreferences: {},
             },
             cloud: {
-                subscriptionStats: {
-                    is_expandable: false,
-                    getRequestState: 'IDLE',
-                },
             },
             hostedCustomer: {
                 products: {
@@ -134,7 +129,6 @@ describe('components/overage_users_banner', () => {
         renderWithContext(<OverageUsersBanner/>);
 
         expect(screen.queryByText('(Only visible to admins) Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
-        expect(getLicenseSelfServeStatus).not.toBeCalled();
     });
 
     it('should not render the banner because we are not admins', () => {
@@ -154,7 +148,6 @@ describe('components/overage_users_banner', () => {
         renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.queryByText('Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
-        expect(getLicenseSelfServeStatus).not.toBeCalled();
     });
 
     it('should not render the banner because it\'s cloud licenese', () => {
@@ -168,7 +161,6 @@ describe('components/overage_users_banner', () => {
         renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.queryByText('Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
-        expect(getLicenseSelfServeStatus).not.toBeCalled();
     });
 
     it('should not render the 5% banner because we have dissmised it', () => {
@@ -194,7 +186,6 @@ describe('components/overage_users_banner', () => {
         renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.queryByText(text5PercentageState)).not.toBeInTheDocument();
-        expect(getLicenseSelfServeStatus).not.toBeCalled();
     });
 
     it('should render the banner because we are over 5% and we don\'t have any preferences', () => {

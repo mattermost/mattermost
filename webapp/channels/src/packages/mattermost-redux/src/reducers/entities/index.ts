@@ -13,7 +13,6 @@ import emojis from './emojis';
 import files from './files';
 import general from './general';
 import groups from './groups';
-import hostedCustomer from './hosted_customer';
 import integrations from './integrations';
 import jobs from './jobs';
 import limits from './limits';
@@ -52,5 +51,4 @@ export default combineReducers({
     apps,
     cloud,
     usage,
-    hostedCustomer,
 });
