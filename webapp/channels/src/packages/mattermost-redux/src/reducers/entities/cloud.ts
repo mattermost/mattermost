@@ -68,10 +68,12 @@ export interface LimitsReducer {
     limits: Limits;
     limitsLoaded: boolean;
 }
+
 const emptyLimits = {
     limits: {},
     limitsLoaded: false,
 };
+
 export function limits(state: LimitsReducer = emptyLimits, action: AnyAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_LIMITS: {
@@ -87,6 +89,7 @@ export function limits(state: LimitsReducer = emptyLimits, action: AnyAction) {
         return state;
     }
 }
+
 export interface ErrorsReducer {
     subscription?: true;
     products?: true;

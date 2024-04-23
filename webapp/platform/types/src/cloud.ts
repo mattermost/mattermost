@@ -69,9 +69,6 @@ export type AddOn = {
     price_per_seat: number;
 };
 
-
-
-
 // Customer model represents a customer on the system.
 export type CloudCustomer = {
     id: string;
@@ -86,8 +83,6 @@ export type CloudCustomer = {
     company_address: Address;
     payment_method: PaymentMethod;
 }
-
-
 
 // CustomerPatch model represents a customer patch on the system.
 export type CloudCustomerPatch = {
