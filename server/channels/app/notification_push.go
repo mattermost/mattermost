@@ -185,6 +185,10 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 		if a.Metrics() != nil {
 			a.Metrics().IncrementPostSentPush()
 		}
+
+		if msg.Type == model.PushTypeMessage {
+			a.CountNotification(model.NotificationTypePush)
+		}
 	}
 
 	return nil
