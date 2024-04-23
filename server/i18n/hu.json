@@ -2512,10 +2512,6 @@
     "translation": "Hiba történt az import adatfájl olvasása közben."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Nem sikerült olvasni a fájl mellékletet import közben."
-  },
-  {
     "id": "app.import.attachment.file_upload.error",
     "translation": "Hiba a fájl feltöltésekor: \"{{.FilePath}}\""
   },
@@ -3194,10 +3190,6 @@
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "A jelszónak legalább {{.Min}} karakterből kell állnia, amely legalább egy kisbetűt tartalmaz."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "A jelszónak legalább {{.Min}} karaktert kell tartalmaznia."
   },
   {
     "id": "model.user.is_valid.position.app_error",

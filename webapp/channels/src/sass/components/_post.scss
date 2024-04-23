@@ -2058,6 +2058,12 @@
                 }
             }
         }
+
+        .post-message__text {
+            span.emoticon[style]:hover {
+                cursor: pointer;
+            }
+        }
     }
 
     &.post-message--overflow {

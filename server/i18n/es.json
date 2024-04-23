@@ -4452,10 +4452,6 @@
     "translation": "Por favor, ingresa una dirección válida de correo electrónico."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "La contraseña debe contener al menos {{.Min}} caracteres."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula."
   },
@@ -7510,10 +7506,6 @@
   {
     "id": "app.import.generate_password.app_error",
     "translation": "Error al generar la contraseña."
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "No se ha podido leer el archivo adjunto durante la importación."
   },
   {
     "id": "app.export.zip_create.error",

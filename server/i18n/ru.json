@@ -2265,7 +2265,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Не удалось обновить соединение с web-сокетом."
+    "translation": "URL заблокирован из-за CORS. Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -4454,10 +4454,6 @@
   {
     "id": "model.user.is_valid.email.app_error",
     "translation": "Недопустимый адрес эл.почты."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
@@ -7536,10 +7532,6 @@
     "translation": "ошибка insert"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Не удалось прочитать аттачмент при импорте."
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "участник группы уже существует"
   },
@@ -9880,10 +9872,6 @@
     "translation": "Невозможно получить такое количество ролей по имени. Одновременно можно запросить только {{.MaxNames}} ролей."
   },
   {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "Не удалось получить количество пользователей"
-  },
-  {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
     "translation": "Произошла ошибка при удалении исходящего oauth-соединения."
   },
@@ -10306,5 +10294,97 @@
   {
     "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
     "translation": "Неверное обновление участника канала: Гость не может быть установлен для одиночного канала, Системный администратор должен повышать или понижать пользователей до/из гостей."
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Строка импортируемых данных имеет тип \"роль\", но объект роли равен null."
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Невозможно получить страницу со схемами."
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "Не удалось удалить указанный неизвестный индекс"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Передача аутентификации недоступна, так как регистрация по электронной почте отключена."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Не удалось разобрать запрос"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Не удалось повторно подключить плагин"
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Невозможно получить последние наименее использованные сеансы."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Невозможно активировать пользователя. На сервере превышен лимит безопасных пользователей. Обратись к своему администратору с сообщением: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "Функция очищения списка недоступна для Bleve."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Неверная схема."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Отсутствующий манифест"
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Невозможно создать пользователя. На сервере превышен лимит безопасных пользователей. Обратись к своему администратору с сообщением: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "Не удалось удалить индекс Elasticsearch"
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Отсутствует конфигурация повторного подключения плагина"
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Ваш пароль должен содержать не более 72 символов."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Передача аутентификации недоступна, так как не включен ни вход по электронной почте, ни вход по имени пользователя."
+  },
+  {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "Схема индекса Elasticsearch для вашего канала устарела. Рекомендуется перегенерировать индекс каналов.\nНажмите кнопку `Rebuild Channels Index` в разделе [Elasticsearch в Системной консоли]({{.ElasticsearchSection}}), чтобы исправить проблему.\nБолее подробную информацию смотрите в журнале изменений Mattermost."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} и @{{.LastUsername}} не получили уведомлений об этом упоминании, потому что они не являются участниками этой команды."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} не получил уведомления об этом упоминании, потому что он не является участником этой команды."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Отсутствует display_name в теле запроса"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Отсутствует team_id в теле запроса"
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Автозаполнение каналов не может быть включено, так как схема индекса каналов устарела. Рекомендуется перегенерировать индекс каналов. Более подробную информацию можно найти в журнале изменений Mattermost"
   }
 ]
