@@ -2073,6 +2073,21 @@ func (mr *MockClientMockRecorder) UpdateIncomingWebhook(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateIncomingWebhook", reflect.TypeOf((*MockClient)(nil).UpdateIncomingWebhook), arg0, arg1)
 }
 
+// UpdateJobStatus mocks base method.
+func (m *MockClient) UpdateJobStatus(arg0 context.Context, arg1, arg2 string, arg3 bool) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateJobStatus", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateJobStatus indicates an expected call of UpdateJobStatus.
+func (mr *MockClientMockRecorder) UpdateJobStatus(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateJobStatus", reflect.TypeOf((*MockClient)(nil).UpdateJobStatus), arg0, arg1, arg2, arg3)
+}
+
 // UpdateOutgoingWebhook mocks base method.
 func (m *MockClient) UpdateOutgoingWebhook(arg0 context.Context, arg1 *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()

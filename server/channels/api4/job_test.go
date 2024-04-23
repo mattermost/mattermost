@@ -361,3 +361,61 @@ func TestCancelJob(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
+
+func TestUpdateJobStatus(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	jobType := model.JobTypeDataRetention
+	jobs := []*model.Job{
+		{
+			Id:     model.NewId(),
+			Type:   jobType,
+			Status: model.JobStatusPending,
+		},
+		{
+			Id:     model.NewId(),
+			Type:   jobType,
+			Status: model.JobStatusInProgress,
+		},
+		{
+			Id:     model.NewId(),
+			Type:   jobType,
+			Status: model.JobStatusSuccess,
+		},
+	}
+
+	for _, job := range jobs {
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		defer th.App.Srv().Store().Job().Delete(job.Id)
+	}
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PermissionManageDataRetentionJob.Id, model.SystemAdminRoleId)
+
+	t.Run("Fail to update job status without permission", func(t *testing.T) {
+		resp, err := th.Client.UpdateJobStatus(context.Background(), jobs[0].Id, model.JobStatusCancelRequested, false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Change a pending job to cancel requested without force", func(t *testing.T) {
+		_, err := th.SystemAdminClient.UpdateJobStatus(context.Background(), jobs[0].Id, model.JobStatusCancelRequested, false)
+		require.NoError(t, err)
+	})
+
+	t.Run("Fail to change a pending job to canceled without force", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.UpdateJobStatus(context.Background(), jobs[0].Id, model.JobStatusCanceled, false)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Change a pending job to canceled with force", func(t *testing.T) {
+		_, err := th.SystemAdminClient.UpdateJobStatus(context.Background(), jobs[0].Id, model.JobStatusCanceled, true)
+		require.NoError(t, err)
+	})
+}

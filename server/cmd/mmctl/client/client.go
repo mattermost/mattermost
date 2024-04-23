@@ -130,6 +130,7 @@ type Client interface {
 	GetJobsByType(ctx context.Context, jobType string, page int, perPage int) ([]*model.Job, *model.Response, error)
 	CreateJob(ctx context.Context, job *model.Job) (*model.Job, *model.Response, error)
 	CancelJob(ctx context.Context, jobID string) (*model.Response, error)
+	UpdateJobStatus(ctx context.Context, jobId string, status string, force bool) (*model.Response, error)
 	CreateIncomingWebhook(ctx context.Context, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.Response, error)
 	UpdateIncomingWebhook(ctx context.Context, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.Response, error)
 	GetIncomingWebhooks(ctx context.Context, page int, perPage int, etag string) ([]*model.IncomingWebhook, *model.Response, error)

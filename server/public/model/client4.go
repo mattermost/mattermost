@@ -7072,6 +7072,23 @@ func (c *Client4) DownloadJob(ctx context.Context, jobId string) ([]byte, *Respo
 	return data, BuildResponse(r), nil
 }
 
+// UpdateJobStatus updates the status of a job
+func (c *Client4) UpdateJobStatus(ctx context.Context, jobId string, status string, force bool) (*Response, error) {
+	buf, err := json.Marshal(map[string]any{
+		"status": status,
+		"force":  force,
+	})
+	if err != nil {
+		return nil, NewAppError("UpdateJobStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPatchBytes(ctx, c.jobsRoute()+fmt.Sprintf("/%v/status", jobId), buf)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // Roles Section
 
 // GetAllRoles returns a list of all the roles.

@@ -171,3 +171,23 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 		}
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestUpdateJobCmdF() {
+	s.Run("update job status", func() {
+		printer.Clean()
+		id := model.NewId()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("status", model.JobStatusPending, "")
+		cmd.Flags().Bool("force", true, "")
+
+		s.client.
+			EXPECT().
+			UpdateJobStatus(context.TODO(), id, model.JobStatusPending, true).
+			Return(&model.Response{}, nil).
+			Times(1)
+
+		err := updateJobCmdF(s.client, cmd, []string{id})
+		s.Require().Nil(err)
+	})
+}

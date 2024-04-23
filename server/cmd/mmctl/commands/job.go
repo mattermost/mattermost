@@ -29,6 +29,14 @@ var listJobsCmd = &cobra.Command{
 	RunE:    withClient(listJobsCmdF),
 }
 
+var updateJobCmd = &cobra.Command{
+	Use:     "update [job] [status]",
+	Short:   "Update the status of a job",
+	Example: "  job update pending",
+	Args:    cobra.MinimumNArgs(2),
+	RunE:    withClient(updateJobCmdF),
+}
+
 func init() {
 	listJobsCmd.Flags().Int("page", 0, "Page number to fetch for the list of import jobs")
 	listJobsCmd.Flags().Int("per-page", 5, "Number of import jobs to be fetched")
@@ -37,8 +45,11 @@ func init() {
 	listJobsCmd.Flags().String("status", "", "Job status")
 	listJobsCmd.Flags().String("type", "", "Job type")
 
+	updateJobCmd.Flags().Bool("force", false, "We generally restrict what statuses you can set but using --force will give you more freedom")
+
 	JobCmd.AddCommand(
 		listJobsCmd,
+		updateJobCmd,
 	)
 
 	RootCmd.AddCommand(JobCmd)
@@ -67,6 +78,20 @@ func listJobsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	return jobListCmdF(c, cmd, jobType, status)
+}
+
+func updateJobCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	force, _ := cmd.Flags().GetBool("force")
+
+	jobId := args[0]
+	status := args[1]
+
+	_, err := c.UpdateJobStatus(context.TODO(), jobId, status, force)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func jobListCmdF(c client.Client, command *cobra.Command, jobType string, status string) error {

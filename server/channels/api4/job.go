@@ -23,7 +23,7 @@ func (api *API) InitJob() {
 	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadJob)).Methods("GET")
 	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.APISessionRequired(cancelJob)).Methods("POST")
 	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.APISessionRequired(getJobsByType)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/status/{job_id:[A-Za-z0-9]+}", api.APISessionRequired(updateJobStatus)).Methods("PATCH")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/status", api.APISessionRequired(updateJobStatus)).Methods("PATCH")
 }
 
 func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -279,11 +279,6 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	var patch model.Job
-	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
-		c.SetInvalidParamWithErr("job", jsonErr)
-		return
-	}
 	c.RequireJobId()
 	if c.Err != nil {
 		return
@@ -292,6 +287,20 @@ func updateJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateJobStatus", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "job_id", c.Params.JobId)
+
+	props := model.StringInterfaceFromJSON(r.Body)
+	res2B, _ := json.Marshal(props)
+	mlog.Warn(string(res2B))
+	status, ok := props["status"].(string)
+	if !ok {
+		c.SetInvalidParam("status")
+		return
+	}
+
+	force, ok := props["force"].(bool)
+	if !ok {
+		force = false
+	}
 
 	job, err := c.App.GetJob(c.AppContext, c.Params.JobId)
 	if err != nil {
@@ -313,7 +322,12 @@ func updateJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.UpdateJobStatus(c.AppContext, job, patch.Status); err != nil {
+	if !force && !isValidStatusChange(job.Status, status) {
+		c.Err = model.NewAppError("updateJobStatus", "api.job.status.invalid", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if err := c.App.UpdateJobStatus(c.AppContext, job, status); err != nil {
 		c.Err = err
 		return
 	}
@@ -321,4 +335,21 @@ func updateJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	ReturnStatusOK(w)
+}
+
+func isValidStatusChange(currentStatus string, newStatus string) bool {
+	if currentStatus == model.JobStatusInProgress {
+		switch newStatus {
+		case model.JobStatusPending:
+			return true
+		case model.JobStatusCancelRequested:
+			return true
+		}
+	}
+
+	if currentStatus == model.JobStatusPending && newStatus == model.JobStatusCancelRequested {
+		return true
+	}
+
+	return currentStatus == model.JobStatusCancelRequested && newStatus == model.JobStatusCanceled
 }
