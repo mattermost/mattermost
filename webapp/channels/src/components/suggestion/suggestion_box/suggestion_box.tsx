@@ -3,8 +3,6 @@
 
 import React from 'react';
 
-import type {Intersection} from '@mattermost/types/utilities';
-
 import QuickInput from 'components/quick_input';
 import type Provider from 'components/suggestion/provider';
 import type {ProviderResult, ResultsCallback} from 'components/suggestion/provider';
@@ -142,14 +140,26 @@ type Props = {
         addMessageIntoHistory: () => void;
     };
 
+    // Props passed onto the input
+    className?: string;
+    maxLength?: number;
+    id?: string;
+    placeholder?: string;
+    spellCheck?: string;
+    style?: React.CSSProperties;
+    tabIndex?: number;
+    type?: string;
+
+    // Props from QuickInput
     delayInputUpdate?: boolean;
     clearable?: boolean;
     onClear?: () => void;
 
+    // Props from AutosizeTextarea
     onHeightChange?: () => void;
     onWidthChange?: () => void;
 
-} & Intersection<React.HTMLProps<HTMLTextAreaElement>, React.HTMLProps<HTMLDivElement>>
+};
 
 type State = {
     focused: boolean;

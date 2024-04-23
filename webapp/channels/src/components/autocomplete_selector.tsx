@@ -33,7 +33,7 @@ type Props = {
     disabled?: boolean;
     toggleFocus?: ((focus: boolean) => void) | null;
     listComponent: typeof SuggestionList | typeof ModalSuggestionList;
-    listPosition: string;
+    listPosition: 'top' | 'bottom';
 };
 
 type State = {

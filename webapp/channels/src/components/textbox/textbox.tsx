@@ -74,8 +74,8 @@ export type Props = {
     hasLabels?: boolean;
 };
 
-const VISIBLE = {visibility: 'visible'};
-const HIDDEN = {visibility: 'hidden'};
+const VISIBLE = {visibility: 'visible' as const};
+const HIDDEN = {visibility: 'hidden' as const};
 
 export default class Textbox extends React.PureComponent<Props> {
     private readonly suggestionProviders: Provider[];
