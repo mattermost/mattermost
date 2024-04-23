@@ -236,7 +236,7 @@ func validateSidebarCategories(c *Context, teamId, userId string, categories []*
 		LastDeleteAt:   0,
 	})
 	if err != nil {
-		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	for _, category := range categories {

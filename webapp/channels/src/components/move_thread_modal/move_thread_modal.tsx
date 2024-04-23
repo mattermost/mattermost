@@ -103,11 +103,11 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
     const previewMetaData: PostPreviewMetadata = useMemo(() => ({
         post,
         post_id: post.id,
-        team_name: currentTeam.name,
+        team_name: currentTeam?.name || '',
         channel_display_name: originalChannel.display_name,
         channel_type: originalChannel.type,
         channel_id: originalChannel.id,
-    }), [post, currentTeam.name, originalChannel.display_name, originalChannel.type, originalChannel.id]);
+    }), [post, currentTeam?.name, originalChannel.display_name, originalChannel.type, originalChannel.id]);
 
     const notificationText = formatMessage({
         id: 'move_thread_modal.notification.dm_or_gm',

@@ -36,7 +36,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		params := map[string]any{
 			"BlockedOrigin": r.Header.Get("Origin"),
 		}
-		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", params, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", params, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 

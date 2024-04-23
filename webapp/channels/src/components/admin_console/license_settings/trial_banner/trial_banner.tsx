@@ -6,13 +6,9 @@ import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
-
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
+import {getBool as getBoolPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import store from 'stores/redux_store';
 
 import AlertBanner from 'components/alert_banner';
 import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
@@ -93,14 +89,9 @@ const TrialBanner = ({
     let gettingTrialErrorMsg;
 
     const {formatMessage} = useIntl();
-    const state = store.getState();
-    const getCategory = makeGetCategory();
-    const preferences = getCategory(state, Preferences.UNIQUE);
-    const restartedAfterUpgradePrefValue = preferences.find((pref: PreferenceType) => pref.name === Unique.REQUEST_TRIAL_AFTER_SERVER_UPGRADE);
-    const clickedUpgradeAndStartTrialBtn = preferences.find((pref: PreferenceType) => pref.name === Unique.CLICKED_UPGRADE_AND_TRIAL_BTN);
 
-    const restartedAfterUpgradePrefs = restartedAfterUpgradePrefValue?.value === 'true';
-    const clickedUpgradeAndTrialBtn = clickedUpgradeAndStartTrialBtn?.value === 'true';
+    const restartedAfterUpgradePrefs = useSelector<GlobalState>((state) => getBoolPreference(state, Preferences.UNIQUE, Unique.REQUEST_TRIAL_AFTER_SERVER_UPGRADE));
+    const clickedUpgradeAndTrialBtn = useSelector<GlobalState>((state) => getBoolPreference(state, Preferences.UNIQUE, Unique.CLICKED_UPGRADE_AND_TRIAL_BTN));
 
     const userId = useSelector((state: GlobalState) => getCurrentUserId(state));
 

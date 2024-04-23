@@ -29,7 +29,7 @@ func (api *API) InitPluginLocal() {
 func reattachPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	var pluginReattachRequest model.PluginReattachRequest
 	if err := json.NewDecoder(r.Body).Decode(&pluginReattachRequest); err != nil {
-		c.Err = model.NewAppError("reattachPlugin", "api4.plugin.reattachPlugin.invalid_request", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("reattachPlugin", "api4.plugin.reattachPlugin.invalid_request", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
