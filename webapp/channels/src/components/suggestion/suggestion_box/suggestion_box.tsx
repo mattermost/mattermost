@@ -124,9 +124,9 @@ type Props = {
     className?: string;
     maxLength?: number;
     id?: string;
-    onBlur?: React.FocusEventHandler<InputElement>;
+    onBlur?: () => void;
     onChange?: React.ChangeEventHandler<InputElement>;
-    onFocus?: React.FocusEventHandler<InputElement>;
+    onFocus?: () => void;
     onKeyDown?: React.KeyboardEventHandler<InputElement>;
     onKeyPress?: React.KeyboardEventHandler<InputElement>;
     onKeyUp?: React.KeyboardEventHandler<InputElement>;
@@ -254,7 +254,7 @@ export default class SuggestionBox extends React.PureComponent<Props, State> {
         this.preventSuggestionListCloseFlag = true;
     };
 
-    private handleFocusOut: React.FocusEventHandler = (e) => {
+    private handleFocusOut = (e: FocusEvent) => {
         if (this.preventSuggestionListCloseFlag) {
             this.preventSuggestionListCloseFlag = false;
             return;
@@ -262,7 +262,7 @@ export default class SuggestionBox extends React.PureComponent<Props, State> {
 
         // Focus is switching TO e.relatedTarget, so only treat this as a blur event if we're not switching
         // between children (like from the textbox to the suggestion list)
-        if (this.container.contains(e.relatedTarget)) {
+        if (this.container.contains(e.relatedTarget as (Node | null))) {
             return;
         }
 
@@ -277,12 +277,12 @@ export default class SuggestionBox extends React.PureComponent<Props, State> {
         }
     };
 
-    private handleFocusIn = (e: React.FocusEvent<HTMLDivElement>) => {
+    private handleFocusIn = (e: FocusEvent) => {
         // Focus is switching FROM e.relatedTarget, so only treat this as a focus event if we're not switching
         // between children (like from the textbox to the suggestion list). PreventSuggestionListCloseFlag is
         // checked because if true, it means that the focusIn comes from a click in the suggestion box, an
         // option choice, so we don't want the focus event to be triggered
-        if (this.container.contains(e.relatedTarget) || this.preventSuggestionListCloseFlag) {
+        if (this.container.contains(e.relatedTarget as (Node | null)) || this.preventSuggestionListCloseFlag) {
             return;
         }
 

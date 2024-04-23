@@ -45,8 +45,8 @@ export type Props = {
     onKeyDown?: React.KeyboardEventHandler;
     onMouseUp?: (e: React.MouseEvent<TextboxElement>) => void;
     onKeyUp?: (e: React.KeyboardEvent<TextboxElement>) => void;
-    onBlur?: React.FocusEventHandler;
-    onFocus?: React.FocusEventHandler;
+    onBlur?: () => void;
+    onFocus?: () => void;
     supportsCommands?: boolean;
     handlePostError?: (message: JSX.Element | null) => void;
     onPaste?: React.ClipboardEventHandler;
@@ -231,9 +231,9 @@ export default class Textbox extends React.PureComponent<Props> {
 
     handleKeyUp = (e: KeyboardEvent<TextboxElement>) => this.props.onKeyUp?.(e);
 
-    handleBlur: React.FocusEventHandler = (e) => {
+    handleBlur = () => {
         // since we do only handle the sending when in preview mode this is fine to be casted
-        this.props.onBlur?.(e);
+        this.props.onBlur?.();
     };
 
     getInputBox = () => {
