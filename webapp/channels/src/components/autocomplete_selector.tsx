@@ -7,6 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import SuggestionBox from 'components/suggestion/suggestion_box';
+import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
 
 import type ModalSuggestionList from './suggestion/modal_suggestion_list';
@@ -54,7 +55,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         listPosition: 'top',
     };
 
-    suggestionRef?: HTMLElement;
+    suggestionRef?: SuggestionBoxComponent;
 
     constructor(props: Props) {
         super(props);
@@ -86,7 +87,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         });
     };
 
-    setSuggestionRef = (ref: HTMLElement) => {
+    setSuggestionRef = (ref: SuggestionBoxComponent) => {
         this.suggestionRef = ref;
     };
 
@@ -156,8 +157,6 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
                 {labelContent}
                 <div className={inputClassName}>
                     <SuggestionBox
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
                         ref={this.setSuggestionRef}
                         placeholder={placeholder}
                         listComponent={listComponent}

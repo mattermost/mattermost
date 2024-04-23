@@ -258,8 +258,6 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
 
         const content = (
             <SuggestionBox
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
                 ref={this.setSearchBoxRef}
                 className='form-control focused'
                 onChange={this.onInputChange}

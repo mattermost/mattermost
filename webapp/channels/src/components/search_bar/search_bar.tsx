@@ -149,8 +149,6 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
                     </div>
                 )}
                 <SuggestionBox
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
                     ref={getSearch}
                     id={props.isSideBarRight ? 'sbrSearchBox' : 'searchBox'}
                     tabIndex='0'

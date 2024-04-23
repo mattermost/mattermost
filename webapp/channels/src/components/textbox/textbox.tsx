@@ -307,8 +307,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     // This causes the SuggestionBox to be remounted when changing channels
                     key={this.props.channelId}
 
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
                     ref={this.message}
                     id={this.props.id}
                     className={textboxClassName}
