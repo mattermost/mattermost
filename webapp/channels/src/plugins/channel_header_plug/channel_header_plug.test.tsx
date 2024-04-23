@@ -8,7 +8,7 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import ChannelHeaderPlug from 'plugins/channel_header_plug/channel_header_plug';
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {PluginComponent} from 'types/store/plugins';
 
@@ -22,8 +22,8 @@ describe('plugins/ChannelHeaderPlug', () => {
         tooltipText: 'some tooltip text',
     } as PluginComponent;
 
-    test('should match snapshot with no extended component', () => {
-        const wrapper = mountWithIntl(
+    test('should not render anything with no extended component', () => {
+        const {asFragment} = renderWithContext(
             <ChannelHeaderPlug
                 components={[]}
                 channel={{} as Channel}
@@ -40,11 +40,11 @@ describe('plugins/ChannelHeaderPlug', () => {
                 shouldShowAppBar={false}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(asFragment()).toMatchSnapshot();
     });
 
     test('should match snapshot with one extended component', () => {
-        const wrapper = mountWithIntl(
+        const {asFragment} = renderWithContext(
             <ChannelHeaderPlug
                 components={[testPlug]}
                 channel={{} as Channel}
@@ -61,11 +61,11 @@ describe('plugins/ChannelHeaderPlug', () => {
                 shouldShowAppBar={false}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(asFragment()).toMatchSnapshot();
     });
 
     test('should match snapshot with six extended components', () => {
-        const wrapper = mountWithIntl(
+        const {asFragment} = renderWithContext(
             <ChannelHeaderPlug
                 components={[
                     testPlug,
@@ -98,11 +98,11 @@ describe('plugins/ChannelHeaderPlug', () => {
                 shouldShowAppBar={false}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(asFragment()).toMatchSnapshot();
     });
 
-    test('should match snapshot when the App Bar is visible', () => {
-        const wrapper = mountWithIntl(
+    test('should not render anything when the App Bar is visible', () => {
+        const {asFragment} = renderWithContext(
             <ChannelHeaderPlug
                 components={[
                     testPlug,
@@ -124,6 +124,6 @@ describe('plugins/ChannelHeaderPlug', () => {
                 shouldShowAppBar={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(asFragment()).toMatchSnapshot();
     });
 });

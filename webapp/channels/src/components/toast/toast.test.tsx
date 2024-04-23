@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import type {ReactWrapper} from 'enzyme';
 import React from 'react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import * as Utils from 'utils/utils';
 
 import Toast from './toast';
@@ -45,12 +44,14 @@ describe('components/Toast', () => {
     test('should dismiss', () => {
         defaultProps.onDismiss = jest.fn();
 
-        const wrapper: ReactWrapper<any, any, React.Component> = mountWithIntl(<Toast {... defaultProps}><span>{'child'}</span></Toast>);
-        const toast = wrapper.find(Toast).instance();
+        renderWithContext(
+            <Toast {... defaultProps}>
+                <span>{'child'}</span>
+            </Toast>,
+        );
 
-        if (toast instanceof Toast) {
-            toast.handleDismiss();
-        }
+        screen.getByTestId('dismissToast').click();
+
         expect(defaultProps.onDismiss).toHaveBeenCalledTimes(1);
     });
 
