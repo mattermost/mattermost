@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Invoice, Product} from '@mattermost/types/cloud';
-import type {SelfHostedSignupProgress, HostedCustomerState, TrueUpReviewProfileReducer, TrueUpReviewStatusReducer} from '@mattermost/types/hosted_customer';
+import type {SelfHostedSignupProgress, HostedCustomerState} from '@mattermost/types/hosted_customer';
 import type {GlobalState} from '@mattermost/types/store';
 import type {ValueOf} from '@mattermost/types/utilities';
 
@@ -24,12 +24,4 @@ export function getSelfHostedInvoices(state: GlobalState): Record<string, Invoic
 
 export function getSelfHostedErrors(state: GlobalState): HostedCustomerState['errors'] {
     return state.entities.hostedCustomer.errors;
-}
-
-export function getTrueUpReviewProfile(state: GlobalState): TrueUpReviewProfileReducer {
-    return state.entities.hostedCustomer.trueUpReviewProfile;
-}
-
-export function getTrueUpReviewStatus(state: GlobalState): TrueUpReviewStatusReducer {
-    return state.entities.hostedCustomer.trueUpReviewStatus;
 }

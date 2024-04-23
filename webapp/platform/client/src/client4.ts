@@ -4329,20 +4329,6 @@ export default class Client4 {
         );
     };
 
-    submitTrueUpReview = () => {
-        return this.doFetch(
-            `${this.getBaseRoute()}/license/review`,
-            {method: 'post'},
-        );
-    };
-
-    getTrueUpReviewStatus = () => {
-        return this.doFetch(
-            `${this.getBaseRoute()}/license/review/status`,
-            {method: 'get'},
-        );
-    };
-
     cwsAvailabilityCheck = () => {
         return this.doFetchWithResponse(
             `${this.getCloudRoute()}/check-cws-connection`,

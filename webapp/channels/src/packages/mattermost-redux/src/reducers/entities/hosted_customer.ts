@@ -6,7 +6,6 @@ import {combineReducers} from 'redux';
 
 import type {Invoice, Product} from '@mattermost/types/cloud';
 import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
-import type {TrueUpReviewProfileReducer, TrueUpReviewStatusReducer} from '@mattermost/types/hosted_customer';
 import type {ValueOf} from '@mattermost/types/utilities';
 
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
@@ -122,51 +121,9 @@ export function errors(state: ErrorsReducer = emptyErrors, action: AnyAction) {
     }
 }
 
-function trueUpReviewProfile(state: TrueUpReviewProfileReducer | null = null, action: AnyAction) {
-    switch (action.type) {
-    case HostedCustomerTypes.RECEIVED_TRUE_UP_REVIEW_BUNDLE: {
-        return {
-            ...state,
-            getRequestState: 'OK',
-            ...action.data,
-        };
-    }
-    case HostedCustomerTypes.TRUE_UP_REVIEW_PROFILE_REQUEST: {
-        return {
-            ...state,
-            getRequestState: 'LOADING',
-        };
-    }
-    default:
-        return state;
-    }
-}
-
-function trueUpReviewStatus(state: TrueUpReviewStatusReducer | null = null, action: AnyAction) {
-    switch (action.type) {
-    case HostedCustomerTypes.RECEIVED_TRUE_UP_REVIEW_STATUS: {
-        return {
-            ...state,
-            getRequestState: 'OK',
-            ...action.data,
-        };
-    }
-    case HostedCustomerTypes.TRUE_UP_REVIEW_STATUS_REQUEST: {
-        return {
-            ...state,
-            getRequestState: 'LOADING',
-        };
-    }
-    default:
-        return state;
-    }
-}
-
 export default combineReducers({
     products,
     invoices,
     signupProgress,
     errors,
-    trueUpReviewProfile,
-    trueUpReviewStatus,
 });
