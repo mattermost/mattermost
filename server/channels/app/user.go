@@ -333,7 +333,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		}(ruser.Id)
 	}
 
-	userLimits, limitErr := a.GetUserLimits()
+	userLimits, limitErr := a.GetServerLimits()
 	if limitErr != nil {
 		// we don't want to break the create user flow just because of this.
 		// So, we log the error, not return
@@ -1070,7 +1070,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	}
 
 	if active {
-		userLimits, appErr := a.GetUserLimits()
+		userLimits, appErr := a.GetServerLimits()
 		if appErr != nil {
 			mlog.Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
 		} else {

@@ -7,11 +7,11 @@ import {Provider} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
 
+import {General} from 'mattermost-redux/constants';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import store from 'stores/redux_store';
-
 import {mountWithThemedIntl} from 'tests/helpers/themed-intl-test-helper';
+import mockStore from 'tests/test_store';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
@@ -47,6 +47,7 @@ const defaultProps: Props = deepFreeze({
     intl: {} as IntlShape,
     townSquareDisplayName: '',
     onExited: jest.fn(),
+    roleForTrackFlow: {started_by_role: General.SYSTEM_USER_ROLE},
 });
 
 let props = defaultProps;
@@ -107,7 +108,7 @@ describe('InvitationModal', () => {
         },
     };
 
-    store.getState = () => (state);
+    const store = mockStore(state);
 
     beforeEach(() => {
         props = defaultProps;

@@ -73,7 +73,7 @@ func listOAuthAppsCmdF(c client.Client, command *cobra.Command, args []string) e
 
 func init() {
 	ListOAuthAppsCmd.Flags().Int("page", 0, "Page number to fetch for the list of OAuth2 apps")
-	ListOAuthAppsCmd.Flags().Int("per-page", 200, "Number of OAuth2 apps to be fetched")
+	ListOAuthAppsCmd.Flags().Int("per-page", DefaultPageSize, "Number of OAuth2 apps to be fetched")
 
 	OAuthCmd.AddCommand(
 		ListOAuthAppsCmd,

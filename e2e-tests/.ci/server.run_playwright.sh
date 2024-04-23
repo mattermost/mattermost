@@ -12,6 +12,10 @@ mkdir -p logs
 touch logs/mattermost.log
 EOF
 
+# Install webapp dependencies
+mme2e_log "Prepare Playwright: install webapp dependencies"
+${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "cd webapp && npm install --cache /tmp/empty-cache"
+
 # Install Playwright dependencies
 mme2e_log "Prepare Playwright: install dependencies"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && rm -rf node_modules && PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install --cache /tmp/empty-cache"

@@ -221,7 +221,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     copyText = (e: ChangeEvent) => {
-        Utils.copyToClipboard(this.props.post.message);
+        Utils.copyToClipboard(this.props.post.message_source || this.props.post.message);
         trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_TEXT);
     };
 

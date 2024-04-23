@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 const (
@@ -32,7 +33,10 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", nil, err.Error(), http.StatusBadRequest)
+		params := map[string]any{
+			"BlockedOrigin": r.Header.Get("Origin"),
+		}
+		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", params, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -44,6 +48,13 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		TFunc:     c.AppContext.T,
 		Locale:    "",
 		Active:    true,
+	}
+	// The WebSocket upgrade request coming from mobile is missing the
+	// user agent so we need to fallback on the session's metadata.
+	if c.AppContext.Session().IsMobileApp() {
+		cfg.OriginClient = "mobile"
+	} else {
+		cfg.OriginClient = string(web.GetOriginClient(r))
 	}
 
 	cfg.ConnectionID = r.URL.Query().Get(connectionIDParam)

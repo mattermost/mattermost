@@ -6,7 +6,9 @@ package model
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/md5"
 	"crypto/rand"
+	"encoding/base32"
 	"encoding/json"
 	"errors"
 	"io"
@@ -80,7 +82,11 @@ func (rc *RemoteCluster) Auditable() map[string]interface{} {
 
 func (rc *RemoteCluster) PreSave() {
 	if rc.RemoteId == "" {
-		rc.RemoteId = NewId()
+		if rc.PluginID != "" {
+			rc.RemoteId = newIDFromBytes([]byte(rc.PluginID))
+		} else {
+			rc.RemoteId = NewId()
+		}
 	}
 
 	if rc.DisplayName == "" {
@@ -118,6 +124,16 @@ func (rc *RemoteCluster) IsValid() *AppError {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "creator_id="+rc.CreatorId, http.StatusBadRequest)
 	}
 	return nil
+}
+
+func newIDFromBytes(b []byte) string {
+	hash := md5.New()
+	_, _ = hash.Write(b)
+	buf := hash.Sum(nil)
+
+	var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPadding(base32.NoPadding)
+	id := encoding.EncodeToString(buf)
+	return id[:26]
 }
 
 func (rc *RemoteCluster) IsOptionFlagSet(flag Bitmask) bool {
@@ -385,5 +401,6 @@ type RemoteClusterQueryFilter struct {
 	CreatorId      string
 	OnlyConfirmed  bool
 	PluginID       string
+	OnlyPlugins    bool
 	RequireOptions Bitmask
 }

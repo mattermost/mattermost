@@ -112,7 +112,7 @@ func init() {
 	ExportDownloadCmd.Flags().Int("num-retries", 5, "Number of retries to do to resume a download.")
 
 	ExportJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of export jobs")
-	ExportJobListCmd.Flags().Int("per-page", 200, "Number of export jobs to be fetched")
+	ExportJobListCmd.Flags().Int("per-page", DefaultPageSize, "Number of export jobs to be fetched")
 	ExportJobListCmd.Flags().Bool("all", false, "Fetch all export jobs. --page flag will be ignore if provided")
 
 	ExportJobCmd.AddCommand(
