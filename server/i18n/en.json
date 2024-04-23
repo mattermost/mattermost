@@ -2289,30 +2289,6 @@
     "translation": "We were unable to process the request due to limitations for embargoed countries. [Learn more in our documentation](https://mattermost.com/pl/limitations-for-embargoed-countries), or reach out to legal@mattermost.com for questions around export limitations."
   },
   {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Could not create true up status record"
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Failed to submit true up review profile to CWS."
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Could not get true up status records"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Could not get the total active users count"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Could not get the total incoming webhook count"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Could not get the total outgoing webhook count"
-  },
-  {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Feature requires an upgrade to Enterprise Edition."
   },
