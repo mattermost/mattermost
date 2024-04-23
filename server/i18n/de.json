@@ -10384,5 +10384,21 @@
   {
     "id": "model.user.is_valid.pwd_min_length.app_error",
     "translation": "Dein Passwort muss mindestens {{.Min}} Zeichen lang sein."
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Fehler beim Lesen des Dateistatus: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Fehler beim Suchen der Datei: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Benutzeranzahl konnte nicht ermittelt werden"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "Anzahl der Beiträge konnte nicht ermittelt werden"
   }
 ]
