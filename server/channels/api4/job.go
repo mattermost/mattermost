@@ -289,8 +289,6 @@ func updateJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "job_id", c.Params.JobId)
 
 	props := model.StringInterfaceFromJSON(r.Body)
-	res2B, _ := json.Marshal(props)
-	mlog.Warn(string(res2B))
 	status, ok := props["status"].(string)
 	if !ok {
 		c.SetInvalidParam("status")

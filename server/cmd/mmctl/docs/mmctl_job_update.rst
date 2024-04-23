@@ -1,12 +1,13 @@
 .. _mmctl_job_update:
 
 mmctl job update
----------------------
+----------------
 
 Update the status of a job
 
 Synopsis
 ~~~~~~~~
+
 
 Update the status of a job
 
@@ -19,15 +20,15 @@ Examples
 
 ::
 
-    job update i1tbyyaqoi88jnc1pph9chrb8r pending
+    job update pending
 
 Options
 ~~~~~~~
 
 ::
 
-      --force          Set this to true to bypass status restrictions
-  -h, --help           help for list
+      --force   We generally restrict what statuses you can set but using --force will give you more freedom
+  -h, --help    help for update
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -43,3 +44,9 @@ Options inherited from parent commands
       --quiet                        prevent mmctl to generate output for the commands
       --strict                       will only run commands if the mmctl version matches the server one
       --suppress-warnings            disables printing warning messages
+
+SEE ALSO
+~~~~~~~~
+
+* `mmctl job <mmctl_job.rst>`_ 	 - Management of jobs
+

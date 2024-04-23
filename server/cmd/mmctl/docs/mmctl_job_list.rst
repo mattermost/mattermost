@@ -1,7 +1,7 @@
 .. _mmctl_job_list:
 
 mmctl job list
----------------------
+--------------
 
 List jobs
 
@@ -27,13 +27,13 @@ Options
 
 ::
 
-      --all            Fetch all jobs. --page flag will be ignored if provided
-  -h, --help           help for list
-      --page int       Page number to fetch for the list of jobs
-      --per-page int   Number of jobs to be fetched (default 200)
-      --ids strings    Comma separated list of Job Ids, all other flags are ignored
-      --status string  Status of the jobs you want to view
-      --type string    Type of the jobs you want to view
+      --all             Fetch all import jobs. --page flag will be ignored if provided
+  -h, --help            help for list
+      --ids strings     Comma-separated list of job IDs to which the operation will be applied. All other flags are ignored
+      --page int        Page number to fetch for the list of import jobs
+      --per-page int    Number of import jobs to be fetched (default 5)
+      --status string   Job status
+      --type string     Job type
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,3 +49,9 @@ Options inherited from parent commands
       --quiet                        prevent mmctl to generate output for the commands
       --strict                       will only run commands if the mmctl version matches the server one
       --suppress-warnings            disables printing warning messages
+
+SEE ALSO
+~~~~~~~~
+
+* `mmctl job <mmctl_job.rst>`_ 	 - Management of jobs
+
