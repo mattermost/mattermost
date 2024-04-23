@@ -77,6 +77,7 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: E2E tests for mattermost server app
           status: pending
+          target_url: "https://automation-dashboard.vercel.app/cycles/"
 
   cypress-check:
     runs-on: ubuntu-22.04
