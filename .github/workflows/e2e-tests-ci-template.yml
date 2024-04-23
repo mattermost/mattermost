@@ -68,7 +68,7 @@ jobs:
   update-initial-status:
     runs-on: ubuntu-22.04
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
+      - uses: mattermost/actions/delivery/update-commit-status@fix-update-commit-status-pt2
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
