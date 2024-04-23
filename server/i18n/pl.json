@@ -10386,5 +10386,21 @@
   {
     "id": "model.user.is_valid.pwd_max_length.app_error",
     "translation": "Twoje hasło nie może zawierać więcej niż 72 znaki."
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Błąd odczytu statusu pliku: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Błąd wyszukiwania pliku: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Nie udało się uzyskać liczby użytkowników"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "Nie udało się uzyskać liczby postów"
   }
 ]
