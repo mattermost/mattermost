@@ -41,10 +41,6 @@ type State = {
     focused?: boolean;
 };
 
-type ChangeEvent = {
-    target: HTMLInputElement;
-}
-
 export default class AutocompleteSelector extends React.PureComponent<Props, State> {
     static defaultProps = {
         id: '',
@@ -65,7 +61,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         };
     }
 
-    onChange = (e: ChangeEvent) => {
+    onChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
         if (!e || !e.target) {
             return;
         }

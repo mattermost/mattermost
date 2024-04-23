@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useEffect, useRef} from 'react';
-import type {ChangeEvent, CSSProperties, FormEvent} from 'react';
+import type {CSSProperties} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type Provider from 'components/suggestion/provider';
@@ -24,9 +24,9 @@ const style: Record<string, CSSProperties> = {
 type Props = {
     searchTerms: string;
     updateHighlightedSearchHint: (indexDelta: number, changedViaKeyPress?: boolean) => void;
-    handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
-    handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
-    handleEnterKey: (e: ChangeEvent<HTMLInputElement>) => void;
+    handleChange: React.ChangeEventHandler;
+    handleSubmit: React.FormEventHandler<HTMLFormElement>;
+    handleEnterKey: React.KeyboardEventHandler<HTMLInputElement>;
     handleClear: () => void;
     handleFocus: () => void;
     handleBlur: () => void;
@@ -70,28 +70,28 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
         }
     }, [searchTerms]);
 
-    const handleKeyDown = (e: ChangeEvent<HTMLInputElement>): void => {
-        if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
+    const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+        if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
             searchRef.current?.blur();
             e.stopPropagation();
             e.preventDefault();
         }
 
-        if (Keyboard.isKeyPressed(e as any, KeyCodes.DOWN)) {
+        if (Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
             e.preventDefault();
             props.updateHighlightedSearchHint(1, true);
         }
 
-        if (Keyboard.isKeyPressed(e as any, KeyCodes.UP)) {
+        if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
             e.preventDefault();
             props.updateHighlightedSearchHint(-1, true);
         }
 
-        if (Keyboard.isKeyPressed(e as any, KeyCodes.ENTER)) {
+        if (Keyboard.isKeyPressed(e, KeyCodes.ENTER)) {
             props.handleEnterKey(e);
         }
 
-        if (Keyboard.isKeyPressed(e as any, KeyCodes.BACKSPACE) && !searchTerms) {
+        if (Keyboard.isKeyPressed(e, KeyCodes.BACKSPACE) && !searchTerms) {
             if (props.clearSearchType) {
                 props.clearSearchType();
             }

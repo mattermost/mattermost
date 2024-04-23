@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {ChangeEvent, ElementType, FocusEvent, KeyboardEvent, MouseEvent} from 'react';
+import type {ElementType, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -36,20 +36,20 @@ export type Props = {
     rootId?: string;
     tabIndex?: number;
     value: string;
-    onChange: (e: ChangeEvent<TextboxElement>) => void;
-    onKeyPress: (e: KeyboardEvent<any>) => void;
+    onChange: React.ChangeEventHandler;
+    onKeyPress: React.KeyboardEventHandler;
     onComposition?: () => void;
     onHeightChange?: (height: number, maxHeight: number) => void;
     onWidthChange?: (width: number) => void;
     createMessage: string;
-    onKeyDown?: (e: KeyboardEvent<TextboxElement>) => void;
+    onKeyDown?: React.KeyboardEventHandler;
     onMouseUp?: (e: React.MouseEvent<TextboxElement>) => void;
     onKeyUp?: (e: React.KeyboardEvent<TextboxElement>) => void;
-    onBlur?: (e: FocusEvent<TextboxElement>) => void;
-    onFocus?: (e: FocusEvent<TextboxElement>) => void;
+    onBlur?: React.FocusEventHandler;
+    onFocus?: React.FocusEventHandler;
     supportsCommands?: boolean;
     handlePostError?: (message: JSX.Element | null) => void;
-    onPaste?: (e: ClipboardEvent) => void;
+    onPaste?: React.ClipboardEventHandler;
     suggestionList?: React.ComponentProps<typeof SuggestionBox>['listComponent'];
     suggestionListPosition?: React.ComponentProps<typeof SuggestionList>['position'];
     alignWithTextbox?: boolean;
@@ -231,10 +231,9 @@ export default class Textbox extends React.PureComponent<Props> {
 
     handleKeyUp = (e: KeyboardEvent<TextboxElement>) => this.props.onKeyUp?.(e);
 
-    // adding in the HTMLDivElement to support event handling in preview state
-    handleBlur = (e: FocusEvent<TextboxElement | HTMLDivElement>) => {
+    handleBlur: React.FocusEventHandler = (e) => {
         // since we do only handle the sending when in preview mode this is fine to be casted
-        this.props.onBlur?.(e as FocusEvent<TextboxElement>);
+        this.props.onBlur?.(e);
     };
 
     getInputBox = () => {

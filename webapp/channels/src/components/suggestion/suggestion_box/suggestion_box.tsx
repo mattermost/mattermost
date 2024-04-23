@@ -69,26 +69,6 @@ type Props = {
      */
     completeOnTab?: boolean;
 
-    /**
-     * Function called when input box gains focus
-     */
-    onFocus?: () => void;
-
-    /**
-     * Function called when input box loses focus
-     */
-    onBlur?: () => void;
-
-    /**
-     * Function called when input box value changes
-     */
-    onChange?: () => void;
-
-    /**
-     * Function called when a key is pressed and the input box is in focus
-     */
-    onKeyDown?: () => void;
-    onKeyPress?: () => void;
     onComposition?: () => void;
 
     /**
@@ -144,6 +124,14 @@ type Props = {
     className?: string;
     maxLength?: number;
     id?: string;
+    onBlur?: React.FocusEventHandler<InputElement>;
+    onChange?: React.ChangeEventHandler<InputElement>;
+    onFocus?: React.FocusEventHandler<InputElement>;
+    onKeyDown?: React.KeyboardEventHandler<InputElement>;
+    onKeyPress?: React.KeyboardEventHandler<InputElement>;
+    onKeyUp?: React.KeyboardEventHandler<InputElement>;
+    onMouseUp?: React.MouseEventHandler<InputElement>;
+    onPaste?: React.ClipboardEventHandler<InputElement>;
     placeholder?: string;
     spellCheck?: string;
     style?: React.CSSProperties;
@@ -319,7 +307,7 @@ export default class SuggestionBox extends React.PureComponent<Props, State> {
         }
     };
 
-    private handleChange: React.ChangeEventHandler = (e) => {
+    private handleChange: React.FormEventHandler = (e) => {
         const textbox = this.getTextbox();
         const pretext = this.props.shouldSearchCompleteText ? textbox.value.trim() : textbox.value.substring(0, textbox.selectionEnd);
 
@@ -328,7 +316,9 @@ export default class SuggestionBox extends React.PureComponent<Props, State> {
         }
 
         if (this.props.onChange) {
-            this.props.onChange(e);
+            // For historical reasons (https://github.com/mattermost/mattermost/pull/4315), SuggestionBox's onChange is a
+            // FormEventHandler instead of a ChangeEventHandler.
+            this.props.onChange(e as React.ChangeEvent<InputElement>);
         }
     };
 

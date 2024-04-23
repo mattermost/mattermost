@@ -248,7 +248,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         setIndexChangedViaKeyPress(changedViaKeyPress);
     };
 
-    const handleEnterKey = (e: ChangeEvent<HTMLInputElement>): void => {
+    const handleEnterKey: React.KeyboardEventHandler = (e) => {
         // only prevent default-behaviour, when one of the conditions is true
         // when both are false just submit the form (default behaviour) with
         // `handleSubmit` function called from the `form`
