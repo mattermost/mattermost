@@ -385,3 +385,18 @@ func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *
 
 	return false
 }
+
+func (a *App) HasPermissionToChannelMemberCount(c request.CTX, userID string, channel *model.Channel) bool {
+	if !*a.Config().TeamSettings.ExperimentalViewArchivedChannels && channel.DeleteAt != 0 {
+		return false
+	}
+	if a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) {
+		return true
+	}
+
+	if channel.Type == model.ChannelTypeOpen {
+		return a.HasPermissionToTeam(c, userID, channel.TeamId, model.PermissionListTeamChannels)
+	}
+
+	return false
+}

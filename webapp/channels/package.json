@@ -161,7 +161,6 @@
     "jest-cli": "29.7.0",
     "jest-environment-jsdom": "29.7.0",
     "jest-junit": "16.0.0",
-    "jest-styled-components": "7.2.0",
     "jest-watch-typeahead": "2.2.2",
     "mmjstool": "github:mattermost/mattermost-utilities#73e61d2ede0ebf802492df4cfbac481d35efed54",
     "nock": "13.2.8",
