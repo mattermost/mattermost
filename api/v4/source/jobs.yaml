@@ -233,3 +233,51 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/jobs/{job_id}/status":
+    patch:
+      tags:
+        - jobs
+      summary: Update the status of a job
+      description: >
+        Update the status of a job. Valid status updates:
+        - 'in_progress' -> 'pending'
+        - 'in_progress' | 'pending' -> 'cancel_requested'
+        - 'cancel_requested' -> 'canceled'
+
+        Add force to the body of the PATCH request to bypass the given rules.
+      operationId: UpdateJobStatus
+      parameters:
+        - name: job_id
+          in: path
+          description: Job GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  description: The status you want to set
+                force:
+                  type: boolean
+                  description: Set this to true to bypass status restrictions
+      responses:
+        "200":
+          description: Status successfully set.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
