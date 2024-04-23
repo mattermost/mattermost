@@ -313,6 +313,8 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
 		}
+
+		list, err = c.App.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted, ExcludePostTypes: excludePostTypesList})
 	}
 
 	if err != nil {
