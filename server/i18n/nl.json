@@ -10396,5 +10396,21 @@
   {
     "id": "api.channel.create_channel.missing_team_id.error",
     "translation": "Team_id ontbreekt in de request body"
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Fout bij het lezen van de bestandsstatus: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Fout bij het zoeken naar het bestand: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Fout bij het ophalen van het aantal gebruikers"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "Fout bij het ophalen van het aantal berichten"
   }
 ]
