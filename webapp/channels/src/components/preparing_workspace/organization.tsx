@@ -49,7 +49,7 @@ const Organization = (props: Props) => {
     const dispatch = useDispatch();
 
     const [triedNext, setTriedNext] = useState(false);
-    const inputRef = useRef<HTMLInputElement>();
+    const inputRef = useRef<HTMLInputElement>(null);
     const validation = teamNameToUrl(props.organization || '');
     const teamApiError = useRef<typeof TeamApiError | null>(null);
 
@@ -180,10 +180,10 @@ const Organization = (props: Props) => {
                                     }
                                     className='Organization__input'
                                     value={props.organization || ''}
-                                    onChange={(e) => handleOnChange(e)}
+                                    onChange={handleOnChange}
                                     onKeyUp={onNext}
                                     autoFocus={true}
-                                    ref={inputRef as unknown as any}
+                                    inputRef={inputRef}
                                 />
                                 {triedNext ? <OrganizationStatus error={validation.error || teamApiError.current}/> : null}
                             </PageBody>

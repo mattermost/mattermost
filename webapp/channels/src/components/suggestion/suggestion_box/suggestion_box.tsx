@@ -182,7 +182,7 @@ export default class SuggestionBox extends React.PureComponent<Props, State> {
     };
 
     private container?: HTMLDivElement;
-    private inputRef = React.createRef<HTMLInputElement | HTMLTextAreaElement>();
+    private inputRef = React.createRef<InputElement>();
     private suggestionReadOut = React.createRef<HTMLDivElement>();
 
     /**
