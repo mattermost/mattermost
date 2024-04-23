@@ -412,6 +412,18 @@ export default class WebSocketClient {
         this.sendMessage('user_update_active_status', data, callback);
     }
 
+    acknowledgePostedNotification(postId: string, status: string, reason?: string, postedData?: string) {
+        const data = {
+            post_id: postId,
+            user_agent: window.navigator.userAgent,
+            status,
+            reason,
+            data: postedData,
+        };
+
+        this.sendMessage('posted_notify_ack', data);
+    }
+
     getStatuses(callback?: () => void) {
         this.sendMessage('get_statuses', null, callback);
     }

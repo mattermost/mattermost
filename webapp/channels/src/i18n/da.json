@@ -689,7 +689,6 @@
   "user.settings.mfa.title": "Multi-faktor Autentificering",
   "user.settings.notifications.emailNotifications": "Aktivér E-mail Notifikationer: ",
   "user.settings.notifications.icon": "Ikon til Indstillinger for notifikationer",
-  "user.settings.notifications.push": "Aktivér E-mail Notifikationer: ",
   "user.settings.notifications.title": "Indstillinger For Notifikationer",
   "user.settings.security.logoutActiveSessions.icon": "Aktive sessioner ikon",
   "user.settings.security.passwordError": "Et trigger ord skal indeholde mellem {min} og {max} karakterer.",

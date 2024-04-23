@@ -36,31 +36,35 @@ exports[`component/add_users_to_group_modal should match snapshot 1`] = `
     closeButton={true}
     closeLabel="Close"
   >
-    <button
-      aria-label="Back"
-      className="modal-header-back-button btn btn-icon"
-      onClick={[Function]}
-      type="button"
+    <div
+      className="d-flex align-items-center"
     >
-      <i
-        className="icon icon-arrow-left"
-      />
-    </button>
-    <ModalTitle
-      bsClass="modal-title"
-      componentClass="h1"
-      id="addUsersToGroupsModalLabel"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Add people to {group}"
-        id="user_groups_modal.addPeopleTitle"
-        values={
-          Object {
-            "group": "Group Name",
+      <button
+        aria-label="Back"
+        className="modal-header-back-button btn btn-icon"
+        onClick={[Function]}
+        type="button"
+      >
+        <i
+          className="icon icon-arrow-left"
+        />
+      </button>
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h1"
+        id="addUsersToGroupsModalLabel"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Add people to {group}"
+          id="user_groups_modal.addPeopleTitle"
+          values={
+            Object {
+              "group": "Group Name",
+            }
           }
-        }
-      />
-    </ModalTitle>
+        />
+      </ModalTitle>
+    </div>
   </ModalHeader>
   <ModalBody
     bsClass="modal-body"
