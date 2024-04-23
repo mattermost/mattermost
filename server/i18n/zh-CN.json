@@ -10376,5 +10376,21 @@
   {
     "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
     "translation": "缺少插件重新连接配置"
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "读取文件状态时出现错误：\"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "寻找文件时出现错误：\"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "获取用户计数失败"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "获取消息计数失败"
   }
 ]
