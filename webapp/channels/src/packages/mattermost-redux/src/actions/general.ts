@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {LogLevel} from '@mattermost/types/client4';
+import type {ClientConfig} from '@mattermost/types/config';
 import type {SystemSetting} from '@mattermost/types/general';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
@@ -12,7 +13,7 @@ import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 import {loadRolesIfNeeded} from './roles';
 
-export function getClientConfig(): ActionFuncAsync {
+export function getClientConfig(): ActionFuncAsync<ClientConfig> {
     return async (dispatch, getState) => {
         let data;
         try {

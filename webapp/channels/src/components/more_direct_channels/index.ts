@@ -71,8 +71,8 @@ const makeMapStateToProps = () => {
         const stats = getTotalUsersStatsSelector(state) || {total_users_count: 0};
 
         return {
-            currentTeamId: team.id,
-            currentTeamName: team.name,
+            currentTeamId: team?.id,
+            currentTeamName: team?.name,
             searchTerm,
             users,
             currentChannelMembers,

@@ -28,6 +28,7 @@ import {
 import {makeAsyncComponent} from 'components/async_load';
 
 import {Constants} from 'utils/constants';
+import {getRoleForTrackFlow} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -63,14 +64,14 @@ export function mapStateToProps(state: GlobalState, props: OwnProps) {
             return false;
         }
         if (channel.type === Constants.PRIVATE_CHANNEL) {
-            return haveIChannelPermission(state, currentTeam.id, channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS);
+            return haveIChannelPermission(state, currentTeam?.id, channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS);
         }
-        return haveIChannelPermission(state, currentTeam.id, channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS);
+        return haveIChannelPermission(state, currentTeam?.id, channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS);
     });
     const guestAccountsEnabled = config.EnableGuestAccounts === 'true';
     const emailInvitationsEnabled = config.EnableEmailInvitations === 'true';
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
-    const isGroupConstrained = Boolean(currentTeam.group_constrained);
+    const isGroupConstrained = Boolean(currentTeam?.group_constrained);
     const canInviteGuests = !isGroupConstrained && isEnterpriseReady && guestAccountsEnabled && haveICurrentTeamPermission(state, Permissions.INVITE_GUEST);
     const isCloud = license.Cloud === 'true';
 
@@ -86,6 +87,7 @@ export function mapStateToProps(state: GlobalState, props: OwnProps) {
         isAdmin: isAdmin(getCurrentUser(state).roles),
         currentChannel,
         townSquareDisplayName,
+        roleForTrackFlow: getRoleForTrackFlow(state),
     };
 }
 

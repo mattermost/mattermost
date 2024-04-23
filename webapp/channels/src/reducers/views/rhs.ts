@@ -13,7 +13,7 @@ import {
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
-import {ActionTypes, RHSStates} from 'utils/constants';
+import {ActionTypes, RHSStates, Threads} from 'utils/constants';
 
 import type {RhsState} from 'types/store/rhs';
 
@@ -380,6 +380,21 @@ function editChannelMembers(state = false, action: AnyAction) {
     }
 }
 
+function shouldFocusRHS(state = false, action: AnyAction) {
+    switch (action.type) {
+    case ActionTypes.SELECT_POST:
+        return Boolean(action.postId);
+    case Threads.CHANGED_SELECTED_THREAD:
+        return Boolean(action.data.thread_id);
+    case ActionTypes.HIGHLIGHT_REPLY:
+        return false;
+    case ActionTypes.RHS_FOCUSED:
+        return false;
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     selectedPostId,
     selectedPostFocussedAt,
@@ -400,4 +415,5 @@ export default combineReducers({
     isSidebarExpanded,
     isMenuOpen,
     editChannelMembers,
+    shouldFocusRHS,
 });
