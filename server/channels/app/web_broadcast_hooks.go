@@ -83,8 +83,10 @@ func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channe
 
 func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	// Don't ACK mobile app websocket events at this time, we may revisit this when we can add this to mobile app
-	if webConn.GetSession().IsMobile() {
-		return nil
+	if session := webConn.GetSession(); session != nil {
+		if session.IsMobile() {
+			return nil
+		}
 	}
 
 	postedUserId, err := getTypedArg[string](args, "posted_user_id")
