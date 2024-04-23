@@ -3,9 +3,10 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-import {TestHelper} from 'utils/test_helper';
 
 import Menu from 'components/widgets/menu/menu';
+
+import {TestHelper} from 'utils/test_helper';
 
 import MuteJoinLeaveMessages from './mute_joinleave_messages';
 

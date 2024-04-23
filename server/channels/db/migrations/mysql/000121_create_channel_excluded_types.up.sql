@@ -1,2 +1,14 @@
-ALTER TABLE Channels ADD COLUMN IF NOT EXISTS ExcludePostTypes JSONB NOT NULL DEFAULT '[]';
+SET @preparedStatement = (SELECT IF(
+	NOT EXISTS(
+	SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+	WHERE table_name = 'Channels'
+	AND table_schema = DATABASE()
+	AND column_name = 'ExcludePostTypes'
+	),
+	'ALTER TABLE Channels ADD COLUMN ExcludePostTypes json NOT NULL DEFAULT "[]";',
+	'SELECT 1;'
+	));
 
+PREPARE addColumnIfNotExists FROM @preparedStatement;
+EXECUTE addColumnIfNotExists;
+DEALLOCATE PREPARE addColumnIfNotExists;

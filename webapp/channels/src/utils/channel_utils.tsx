@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
-import * as Utils from 'utils/utils';
-
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
@@ -19,6 +16,9 @@ import {openModal} from 'actions/views/modals';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import JoinPrivateChannelModal from 'components/join_private_channel_modal';
+
+import Constants, {ModalIdentifiers} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
