@@ -618,7 +618,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				status = &model.Status{UserId: id, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
-			if statusReason := DoesStatusAllowPushNotification(profileMap[id].NotifyProps, status, post.ChannelId); statusReason == "" {
+			if statusReason := DoesStatusAllowPushNotification(profileMap[id].NotifyProps, status, post.ChannelId, true); statusReason == "" {
 				a.sendPushNotification(
 					notification,
 					profileMap[id],

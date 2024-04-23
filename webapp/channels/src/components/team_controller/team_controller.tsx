@@ -3,11 +3,13 @@
 
 import iNoBounce from 'inobounce';
 import React, {lazy, memo, useEffect, useRef, useState} from 'react';
+import {useDispatch} from 'react-redux';
 import {Route, Switch, useHistory, useParams} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 
+import {unsetActiveChannelOnServer} from 'mattermost-redux/actions/channels';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {reconnect} from 'actions/websocket_actions.jsx';
@@ -49,6 +51,8 @@ function TeamController(props: Props) {
 
     const blurTime = useRef(Date.now());
     const lastTime = useRef(Date.now());
+
+    const dispatch = useDispatch();
 
     useTelemetryIdentitySync();
 
@@ -100,6 +104,7 @@ function TeamController(props: Props) {
         function handleBlur() {
             window.isActive = false;
             blurTime.current = Date.now();
+            dispatch(unsetActiveChannelOnServer());
         }
 
         function handleKeydown(event: KeyboardEvent) {

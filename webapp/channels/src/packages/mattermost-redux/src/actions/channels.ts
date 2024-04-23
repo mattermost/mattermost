@@ -30,6 +30,7 @@ import {
     getRedirectChannelNameForTeam,
     isManuallyUnread,
 } from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import type {GetStateFunc, ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
@@ -697,6 +698,27 @@ export function updateApproximateViewTime(channelId: string): ActionFuncAsync {
             ];
             dispatch(savePreferences(currentUserId, preferences));
         }
+        return {data: true};
+    };
+}
+
+export function unsetActiveChannelOnServer(): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const currentUser = getCurrentUserId(state);
+        if (!currentUser) {
+            return {data: true};
+        }
+
+        try {
+            // The view channel api in the server handles the active channel
+            await Client4.viewMyChannel('');
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {data: false};
+        }
+
         return {data: true};
     };
 }
