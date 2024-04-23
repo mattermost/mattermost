@@ -811,8 +811,8 @@ export default class SuggestionBox extends React.PureComponent<Props, State> {
                     role='alert'
                     className='sr-only'
                 />
-                <QuickInput
-                    ref={this.inputRef}
+                <QuickInput<InputElement>
+                    inputRef={this.inputRef}
                     autoComplete='off'
                     {...props}
                     onInput={this.handleChange}

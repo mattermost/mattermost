@@ -12,7 +12,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {QuickInput} from 'components/quick_input/quick_input';
+import QuickInput from 'components/quick_input';
 import GroupMemberList from 'components/user_group_popover/group_member_list';
 import UserGroupsModal from 'components/user_groups_modal';
 import ViewUserGroupModal from 'components/view_user_group_modal';

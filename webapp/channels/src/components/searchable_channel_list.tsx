@@ -416,7 +416,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 </span>
                 <QuickInput
                     id='searchChannelsTextbox'
-                    ref={this.filter}
+                    inputRef={this.filter}
                     className='form-control filter-textbox'
                     placeholder={this.props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search channels'})}
                     onInput={this.handleChange}

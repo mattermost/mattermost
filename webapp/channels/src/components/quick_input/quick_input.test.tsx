@@ -5,7 +5,7 @@ import React from 'react';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
-import {QuickInput} from './quick_input';
+import QuickInput from './quick_input';
 
 describe('components/QuickInput', () => {
     test.each([

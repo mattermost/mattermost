@@ -4,10 +4,7 @@
 import classNames from 'classnames';
 import type {ReactComponentLike} from 'prop-types';
 import React from 'react';
-import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import type {Intersection} from '@mattermost/types/utilities';
 
 import AutosizeTextarea from 'components/autosize_textarea';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -15,7 +12,7 @@ import Tooltip from 'components/tooltip';
 
 import Constants from 'utils/constants';
 
-export type Props = {
+type Props<InputElement extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement> = {
 
     /**
      * Whether to delay updating the value of the textbox from props. Should only be used
@@ -27,6 +24,11 @@ export type Props = {
      * An optional React component that will be used instead of an HTML input when rendering
      */
     inputComponent?: ReactComponentLike;
+
+    /**
+     * A ref pointing to the underlying input
+     */
+    inputRef?: React.ForwardedRef<InputElement>;
 
     /**
      * The string value displayed in this input
@@ -43,7 +45,7 @@ export type Props = {
      * The optional tooltip text to display on the X shown when clearable. Pass a components
      * such as FormattedMessage to localize.
      */
-    clearableTooltipText?: string | ReactNode;
+    clearableTooltipText?: React.ReactNode;
 
     /**
      * Callback to clear the input value, and used in tandem with the clearable prop above.
@@ -61,41 +63,37 @@ export type Props = {
     tooltipPosition?: 'top' | 'bottom';
 
     /**
-     * Callback to handle the change event of the input
-     */
-    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-
-    /**
-     * Callback to handle the key up of the input
-     */
-    onKeyUp?: (event: React.KeyboardEvent) => void;
-
-    /**
      * When true, and an onClear callback is defined, show an X on the input field even if
      * the input is empty.
      */
     clearableWithoutValue?: boolean;
 
-    forwardedRef?: ((instance: HTMLInputElement | HTMLTextAreaElement | null) => void) | React.MutableRefObject<HTMLInputElement | HTMLTextAreaElement | null> | null;
-
-    maxLength?: number;
-    className?: string;
-    placeholder?: string;
+    // Props from input/textarea
+    autoComplete?: string;
     autoFocus?: boolean;
-    type?: string;
+    className?: string;
     id?: string;
-    onInput?: (e: React.FormEvent<HTMLInputElement>) => void;
-} & Intersection<React.HTMLProps<HTMLTextAreaElement>, React.HTMLProps<HTMLDivElement>>;
+    onChange?: React.ChangeEventHandler<InputElement>;
+    onCompositionEnd?: React.CompositionEventHandler<InputElement>;
+    onCompositionStart?: React.CompositionEventHandler<InputElement>;
+    onCompositionUpdate?: React.CompositionEventHandler<InputElement>;
+    onInput?: React.FormEventHandler<InputElement>;
+    onKeyDown?: React.KeyboardEventHandler<InputElement>;
+    onKeyPress?: React.KeyboardEventHandler<InputElement>;
+    onKeyUp?: React.KeyboardEventHandler<InputElement>;
+    onMouseUp?: React.MouseEventHandler<InputElement>;
+    maxLength?: number;
+    placeholder?: string;
+    type?: string;
+};
 
 // A component that can be used to make controlled inputs that function properly in certain
 // environments (ie. IE11) where typing quickly would sometimes miss inputs
-export class QuickInput extends React.PureComponent<Props> {
-    private input?: HTMLInputElement | HTMLTextAreaElement;
+export default class QuickInput<InputElement extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement> extends React.PureComponent<Props<InputElement>> {
+    private input?: InputElement;
 
     static defaultProps = {
-        delayInputUpdate: false,
         value: '',
-        clearable: false,
         tooltipPosition: 'bottom',
     };
 
@@ -107,7 +105,7 @@ export class QuickInput extends React.PureComponent<Props> {
         }
     }
 
-    componentDidUpdate(prevProps: Props) {
+    componentDidUpdate(prevProps: Props<InputElement>) {
         if (prevProps.value !== this.props.value) {
             if (this.props.delayInputUpdate) {
                 requestAnimationFrame(this.updateInputFromProps);
@@ -122,15 +120,15 @@ export class QuickInput extends React.PureComponent<Props> {
             return;
         }
 
-        this.input.value = this.props.value;
+        this.input.value = this.props.value ?? '';
     };
 
-    private setInputRef = (input: HTMLInputElement) => {
-        if (this.props.forwardedRef) {
-            if (typeof this.props.forwardedRef === 'function') {
-                this.props.forwardedRef(input);
+    private setInputRef = (input: InputElement) => {
+        if (this.props.inputRef) {
+            if (typeof this.props.inputRef === 'function') {
+                this.props.inputRef(input);
             } else {
-                this.props.forwardedRef.current = input;
+                this.props.inputRef.current = input;
             }
         }
 
@@ -181,7 +179,7 @@ export class QuickInput extends React.PureComponent<Props> {
         Reflect.deleteProperty(props, 'channelId');
         Reflect.deleteProperty(props, 'clearClassName');
         Reflect.deleteProperty(props, 'tooltipPosition');
-        Reflect.deleteProperty(props, 'forwardedRef');
+        Reflect.deleteProperty(props, 'inputRef');
 
         if (inputComponent !== AutosizeTextarea) {
             Reflect.deleteProperty(props, 'onHeightChange');
@@ -224,15 +222,3 @@ export class QuickInput extends React.PureComponent<Props> {
         </div>);
     }
 }
-
-type ForwardedProps = Omit<React.ComponentPropsWithoutRef<typeof QuickInput>, 'forwardedRef'>;
-
-const forwarded = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, ForwardedProps>((props, ref) => (
-    <QuickInput
-        forwardedRef={ref}
-        {...props}
-    />
-));
-forwarded.displayName = 'QuickInput';
-
-export default forwarded;

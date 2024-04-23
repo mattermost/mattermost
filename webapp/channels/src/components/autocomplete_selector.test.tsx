@@ -96,7 +96,7 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
             </div>
         `);
 
-        wrapper.instance().onChange(({target: {value: 'value from input'} as HTMLInputElement}));
+        wrapper.instance().onChange(({target: {value: 'value from input'}} as React.ChangeEvent<HTMLInputElement>));
         wrapper.instance().onFocus();
 
         expect(wrapper).toMatchInlineSnapshot(`

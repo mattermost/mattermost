@@ -291,7 +291,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                             />
                         </label>
                         <QuickInput
-                            ref={this.filterRef}
+                            inputRef={this.filterRef}
                             id='searchUsersInput'
                             className='form-control filter-textbox'
                             placeholder={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
