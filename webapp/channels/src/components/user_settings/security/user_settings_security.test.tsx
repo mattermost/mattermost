@@ -84,7 +84,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         const props = {...requiredProps, user: user as UserProfile};
 
-        const wrapper = shallow<SecurityTab>(<SecurityTab {...props}/>);
+        const wrapper = shallow<UserSettingsSecurity>(<UserSettingsSecurity {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
