@@ -185,6 +185,10 @@ func (_m *JobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status 
 func (_m *JobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, offset int, limit int) ([]*model.Job, error) {
 	ret := _m.Called(c, jobType, status, offset, limit)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllByTypeAndStatusPage")
+	}
+
 	var r0 []*model.Job
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, []string, string, int, int) ([]*model.Job, error)); ok {

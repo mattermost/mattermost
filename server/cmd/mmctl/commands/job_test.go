@@ -178,7 +178,6 @@ func (s *MmctlUnitTestSuite) TestUpdateJobCmdF() {
 		id := model.NewId()
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("status", model.JobStatusPending, "")
 		cmd.Flags().Bool("force", true, "")
 
 		s.client.
@@ -187,7 +186,7 @@ func (s *MmctlUnitTestSuite) TestUpdateJobCmdF() {
 			Return(&model.Response{}, nil).
 			Times(1)
 
-		err := updateJobCmdF(s.client, cmd, []string{id})
+		err := updateJobCmdF(s.client, cmd, []string{id, model.JobStatusPending})
 		s.Require().Nil(err)
 	})
 }
