@@ -1115,7 +1115,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace:   MetricsNamespace,
 			Subsystem:   MetricsSubsystemNotifications,
 			Name:        "unsupported",
-			Help:        "Total number of notifications the system deliberately did not send",
+			Help:        "Total number of untrackable notifications due to an unsupported app version",
 			ConstLabels: additionalLabels,
 		},
 		[]string{"type", "reason"},
