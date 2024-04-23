@@ -31,7 +31,7 @@ const joinLeavePostTypes = [
 
 const hasMutedJoinLeave = (channel: Channel): boolean => {
     return joinLeavePostTypes.every(
-        (type) => channel.options.excludeTypes!.includes(type),
+        (type) => channel.exclude_post_types!.includes(type),
     );
 };
 
@@ -49,19 +49,17 @@ const MuteJoinLeaveMessages = ({
             e.preventDefault();
         }
 
-        const options = {...channel.options};
-
-        options.excludeTypes = options.excludeTypes.filter(
+        const excludedTypes = channel.exclude_post_types.filter(
             (type) => !joinLeavePostTypes.includes(type),
         );
 
         // if it's not muted we'll add the types to exclude
         if (!isMuted) {
-            options.excludeTypes.push(...joinLeavePostTypes);
+            excludedTypes.push(...joinLeavePostTypes);
         }
 
         await patchChannel(channel.id, {
-            options,
+            exclude_post_types: excludedTypes,
         });
     };
 

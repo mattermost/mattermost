@@ -696,6 +696,7 @@ func (s SqlChannelStore) Update(rctx request.CTX, channel *model.Channel) (_ *mo
 	}
 	defer finalizeTransactionX(transaction, &err)
 
+	fmt.Println("channel 1", channel.ExcludePostTypes)
 	updatedChannel, err := s.updateChannelT(transaction, channel)
 	if err != nil {
 		return nil, err
@@ -722,6 +723,8 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 	if err := channel.IsValid(); err != nil {
 		return nil, err
 	}
+
+	fmt.Println(channel.ExcludePostTypes)
 
 	res, err := transaction.NamedExec(`UPDATE Channels
 		SET CreateAt=:CreateAt,

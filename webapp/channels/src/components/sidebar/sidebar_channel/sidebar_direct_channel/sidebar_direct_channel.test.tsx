@@ -27,9 +27,7 @@ describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
             creator_id: '',
             scheme_id: '',
             group_constrained: false,
-            options: {
-                excludeTypes: [],
-            },
+            exclude_post_types: [],
         },
         teammate: TestHelper.getUserMock(),
         currentTeamName: 'team_name',

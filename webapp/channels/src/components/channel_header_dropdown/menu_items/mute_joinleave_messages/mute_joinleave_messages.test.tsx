@@ -30,9 +30,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages', () =
             ...baseProps,
             channel: {
                 ...baseProps.channel,
-                options: {
-                    excludeTypes: ['system_join_channel', 'system_leave_channel'],
-                },
+                exclude_post_types: ['system_join_channel', 'system_leave_channel'],
             },
         };
         const wrapper = shallow<typeof MuteJoinLeaveMessages>(<MuteJoinLeaveMessages {...props}/>);
@@ -44,9 +42,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages', () =
             ...baseProps,
             channel: {
                 ...baseProps.channel,
-                options: {
-                    excludeTypes: [],
-                },
+                exclude_post_types: [],
             },
         };
         const wrapper = shallow<typeof MuteJoinLeaveMessages>(<MuteJoinLeaveMessages {...props}/>);
@@ -58,9 +54,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages', () =
             ...baseProps,
             channel: {
                 ...baseProps.channel,
-                options: {
-                    excludeTypes: [],
-                },
+                exclude_post_types: [],
             },
             actions: {...baseProps.actions},
         };
@@ -70,9 +64,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages', () =
             preventDefault: jest.fn(),
         });
         expect(props.actions.patchChannel).toHaveBeenCalledWith(props.channel.id, {
-            options: {
-                excludeTypes: ['system_join_channel', 'system_leave_channel'],
-            },
+            exclude_post_types: ['system_join_channel', 'system_leave_channel'],
         });
     });
     it('should run patchChannel function on click to set as unmuted', () => {
@@ -80,9 +72,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages', () =
             ...baseProps,
             channel: {
                 ...baseProps.channel,
-                options: {
-                    excludeTypes: ['system_join_channel', 'system_leave_channel'],
-                },
+                exclude_post_types: ['system_join_channel', 'system_leave_channel'],
             },
             actions: {...baseProps.actions},
         };
@@ -92,9 +82,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages', () =
             preventDefault: jest.fn(),
         });
         expect(props.actions.patchChannel).toHaveBeenCalledWith(props.channel.id, {
-            options: {
-                excludeTypes: [],
-            },
+            exclude_post_types: [],
         });
     });
     it('should run patchChannel function on click to set as unmuted and persist other exclude types', () => {
@@ -102,9 +90,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages', () =
             ...baseProps,
             channel: {
                 ...baseProps.channel,
-                options: {
-                    excludeTypes: ['system_join_channel', 'system_leave_channel', 'another_one'],
-                },
+                exclude_post_types: ['system_join_channel', 'system_leave_channel', 'another_one'],
             },
             actions: {...baseProps.actions},
         };
@@ -114,9 +100,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.MuteJoinLeaveMessages', () =
             preventDefault: jest.fn(),
         });
         expect(props.actions.patchChannel).toHaveBeenCalledWith(props.channel.id, {
-            options: {
-                excludeTypes: ['another_one'],
-            },
+            exclude_post_types: ['another_one'],
         });
     });
 });

@@ -48,9 +48,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             creator_id: 'id',
             scheme_id: 'id',
             group_constrained: false,
-            options: {
-                excludeTypes: [],
-            },
+            exclude_post_types: [],
         };
         const team: Partial<Team> = {
             display_name: 'test',
@@ -175,9 +173,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             creator_id: 'id',
             scheme_id: 'id',
             group_constrained: false,
-            options: {
-                excludeTypes: [],
-            },
+            exclude_post_types: [],
         };
         const team: Partial<Team> = {
             display_name: 'test',
@@ -303,9 +299,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             creator_id: 'id',
             scheme_id: 'id',
             group_constrained: false,
-            options: {
-                excludeTypes: [],
-            },
+            exclude_post_types: [],
         };
         const team: Partial<Team> = {
             display_name: 'test',

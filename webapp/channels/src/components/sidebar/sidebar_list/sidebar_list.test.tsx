@@ -8,7 +8,7 @@ import {DraggingStates, DraggingStateTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
-import type {ChannelType} from '@mattermost/types/channels';
+import type {ChannelType, Channel} from '@mattermost/types/channels';
 import type {TeamType} from '@mattermost/types/teams';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
@@ -50,9 +50,7 @@ describe('SidebarList', () => {
         creator_id: '',
         scheme_id: '',
         group_constrained: false,
-        options: {
-            excludeTypes: [],
-        },
+        exclude_post_types: [],
     };
 
     const baseProps = {

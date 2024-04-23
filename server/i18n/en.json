@@ -8576,7 +8576,7 @@
   },
   {
     "id": "model.channel.is_valid.options.app_error",
-    "translation": "Invalid options."
+    "translation": "Invalid excluded post types."
   },
   {
     "id": "model.channel.is_valid.display_name.app_error",

@@ -129,8 +129,6 @@ export function makeNewEmptyChannel(displayName: string, teamId: string): Channe
         last_root_post_at: 0,
         scheme_id: '',
         update_at: 0,
-        options: {
-            excludeTypes: [],
-        },
+        exclude_post_types: [],
     };
 }

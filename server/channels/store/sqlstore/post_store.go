@@ -1352,7 +1352,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	var query string
 	var params []any
 
-	// todo - need to see if adding the excludedPostsType check here is needed.
+	// todo - need to see if adding the excludePostsType check here is needed.
 	// union of IDs and then join to get full posts is faster in mysql
 	if s.DriverName() == model.DatabaseDriverMysql {
 		query = `SELECT *` + replyCountQuery1 + ` FROM Posts p1 JOIN (
@@ -1651,15 +1651,15 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64, collapsedThreads bool, excludeTypes []string) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads, excludeTypes)
+func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64, collapsedThreads bool, excludePostTypes []string) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads, excludePostTypes)
 }
 
-func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64, collapsedThreads bool, excludeTypes []string) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads, excludeTypes)
+func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64, collapsedThreads bool, excludePostTypes []string) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads, excludePostTypes)
 }
 
-func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool, excludeTypes []string) (string, error) {
+func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool, excludePostTypes []string) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
 	if before {
@@ -1686,8 +1686,8 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 	if collapsedThreads {
 		conditions = sq.And{conditions, sq.Eq{"Posts.RootId": ""}}
 	}
-	if excludeTypes != nil {
-		conditions = sq.And{conditions, sq.NotEq{"Posts.Type": excludeTypes}}
+	if excludePostTypes != nil {
+		conditions = sq.And{conditions, sq.NotEq{"Posts.Type": excludePostTypes}}
 	}
 	query := s.getQueryBuilder().
 		Select("Id").
@@ -1714,7 +1714,7 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 	return postId, nil
 }
 
-func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedThreads bool, excludeTypes []string) (*model.Post, error) {
+func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedThreads bool, excludePostTypes []string) (*model.Post, error) {
 	table := "Posts"
 	// We force MySQL to use the right index to prevent it from accidentally
 	// using the index_merge_intersection optimization.
@@ -1730,8 +1730,8 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedT
 	if collapsedThreads {
 		conditions = sq.And{conditions, sq.Eq{"RootId": ""}}
 	}
-	if excludeTypes != nil {
-		conditions = sq.And{conditions, sq.NotEq{"Posts.Type": excludeTypes}}
+	if excludePostTypes != nil {
+		conditions = sq.And{conditions, sq.NotEq{"Posts.Type": excludePostTypes}}
 	}
 	query := s.getQueryBuilder().
 		Select("*").

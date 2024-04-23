@@ -59,7 +59,7 @@ type Channel struct {
 	TotalMsgCountRoot int64          `json:"total_msg_count_root"`
 	PolicyID          *string        `json:"policy_id"`
 	LastRootPostAt    int64          `json:"last_root_post_at"`
-	ExcludePostTypes  StringArray    `json:"excludePostTypes"`
+	ExcludePostTypes  StringArray    `json:"exclude_post_types"`
 }
 
 func (o *Channel) Auditable() map[string]interface{} {
@@ -80,7 +80,7 @@ func (o *Channel) Auditable() map[string]interface{} {
 		"total_msg_count_root": o.TotalMsgCountRoot,
 		"type":                 o.Type,
 		"update_at":            o.UpdateAt,
-		"options":              o.Options,
+		"exclude_post_types":   o.ExcludePostTypes,
 	}
 }
 
@@ -101,12 +101,12 @@ type ChannelsWithCount struct {
 }
 
 type ChannelPatch struct {
-	DisplayName       *string     `json:"display_name"`
-	Name              *string     `json:"name"`
-	Header            *string     `json:"header"`
-	Purpose           *string     `json:"purpose"`
-	GroupConstrained  *bool       `json:"group_constrained"`
-	ExcludedPostTypes StringArray `json:"excluded_post_types"`
+	DisplayName      *string     `json:"display_name"`
+	Name             *string     `json:"name"`
+	Header           *string     `json:"header"`
+	Purpose          *string     `json:"purpose"`
+	GroupConstrained *bool       `json:"group_constrained"`
+	ExcludePostTypes StringArray `json:"exclude_post_types"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]interface{} {
@@ -263,8 +263,8 @@ func (o *Channel) IsValid() *AppError {
 		}
 	}
 
-	if _, err := json.Marshal(o.Options); err != nil {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.options.app_error", nil, err.Error(), http.StatusBadRequest)
+	if _, err := json.Marshal(o.ExcludePostTypes); err != nil {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.exclude_post_types.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	return nil
@@ -283,8 +283,8 @@ func (o *Channel) PreSave() {
 	o.UpdateAt = o.CreateAt
 	o.ExtraUpdateAt = 0
 
-	if o.Options.ExcludeTypes == nil {
-		o.Options.ExcludeTypes = []string{}
+	if o.ExcludePostTypes == nil {
+		o.ExcludePostTypes = []string{}
 	}
 }
 
@@ -323,11 +323,8 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 		o.GroupConstrained = patch.GroupConstrained
 	}
 
-	if patch.Options != nil {
-		if patch.Options.ExcludeTypes == nil {
-			patch.Options.ExcludeTypes = []string{}
-		}
-		o.Options = *patch.Options
+	if patch.ExcludePostTypes != nil {
+		o.ExcludePostTypes = patch.ExcludePostTypes
 	}
 }
 

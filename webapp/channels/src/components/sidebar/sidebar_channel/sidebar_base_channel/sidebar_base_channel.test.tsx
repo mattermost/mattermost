@@ -26,9 +26,7 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             creator_id: '',
             scheme_id: '',
             group_constrained: false,
-            options: {
-                excludeTypes: [],
-            },
+            exclude_post_types: [],
         },
         currentTeamName: 'team_name',
         actions: {

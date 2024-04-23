@@ -370,9 +370,7 @@ class TestHelper {
             last_root_post_at: 0,
             creator_id: 'id',
             group_constrained: false,
-            options: {
-                excludeTypes: [],
-            },
+            exclude_post_types: [],
         };
     };
 
@@ -393,9 +391,7 @@ class TestHelper {
             last_root_post_at: 0,
             creator_id: '',
             group_constrained: false,
-            options: {
-                excludeTypes: [],
-            },
+            exclude_post_types: [],
             ...override,
         };
     };

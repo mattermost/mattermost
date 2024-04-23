@@ -366,17 +366,17 @@ func TestPatchChannel(t *testing.T) {
 	CheckBadRequestStatus(t, nullResp)
 
 	patch := &model.ChannelPatch{
-		Name:              new(string),
-		DisplayName:       new(string),
-		Header:            new(string),
-		Purpose:           new(string),
-		ExcludedPostTypes: model.StringArray{},
+		Name:             new(string),
+		DisplayName:      new(string),
+		Header:           new(string),
+		Purpose:          new(string),
+		ExcludePostTypes: model.StringArray{},
 	}
 	*patch.Name = model.NewId()
 	*patch.DisplayName = model.NewId()
 	*patch.Header = model.NewId()
 	*patch.Purpose = model.NewId()
-	patch.ExcludedPostTypes = model.StringArray{"system_join_channel", "system_leave_channel"}
+	patch.ExcludePostTypes = model.StringArray{"system_join_channel", "system_leave_channel"}
 
 	channel, _, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
 	require.NoError(t, err)
@@ -385,7 +385,7 @@ func TestPatchChannel(t *testing.T) {
 	require.Equal(t, *patch.DisplayName, channel.DisplayName, "do not match")
 	require.Equal(t, *patch.Header, channel.Header, "do not match")
 	require.Equal(t, *patch.Purpose, channel.Purpose, "do not match")
-	require.Equal(t, patch.ExcludedPostTypes, channel.ExcludePostTypes, "do not match")
+	require.Equal(t, patch.ExcludePostTypes, channel.ExcludePostTypes, "do not match")
 
 	patch.Name = nil
 	oldName := channel.Name

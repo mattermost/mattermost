@@ -1187,8 +1187,8 @@ func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*m
 	return postList, nil
 }
 
-func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bool, excludeTypes []string) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store().Post().GetPostAfterTime(channelID, time, collapsedThreads, excludeTypes)
+func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bool, excludePostTypes []string) (*model.Post, *model.AppError) {
+	post, err := a.Srv().Store().Post().GetPostAfterTime(channelID, time, collapsedThreads, excludePostTypes)
 	if err != nil {
 		return nil, model.NewAppError("GetPostAfterTime", "app.post.get_post_after_time.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1198,8 +1198,8 @@ func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bo
 	return post, nil
 }
 
-func (a *App) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool, excludeTypes []string) (string, *model.AppError) {
-	postID, err := a.Srv().Store().Post().GetPostIdAfterTime(channelID, time, collapsedThreads, excludeTypes)
+func (a *App) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool, excludePostTypes []string) (string, *model.AppError) {
+	postID, err := a.Srv().Store().Post().GetPostIdAfterTime(channelID, time, collapsedThreads, excludePostTypes)
 	if err != nil {
 		return "", model.NewAppError("GetPostIdAfterTime", "app.post.get_post_id_around.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1207,8 +1207,8 @@ func (a *App) GetPostIdAfterTime(channelID string, time int64, collapsedThreads 
 	return postID, nil
 }
 
-func (a *App) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool, excludeTypes []string) (string, *model.AppError) {
-	postID, err := a.Srv().Store().Post().GetPostIdBeforeTime(channelID, time, collapsedThreads, excludeTypes)
+func (a *App) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool, excludePostTypes []string) (string, *model.AppError) {
+	postID, err := a.Srv().Store().Post().GetPostIdBeforeTime(channelID, time, collapsedThreads, excludePostTypes)
 	if err != nil {
 		return "", model.NewAppError("GetPostIdBeforeTime", "app.post.get_post_id_around.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1216,11 +1216,11 @@ func (a *App) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads
 	return postID, nil
 }
 
-func (a *App) GetNextPostIdFromPostList(postList *model.PostList, collapsedThreads bool, excludeTypes []string) string {
+func (a *App) GetNextPostIdFromPostList(postList *model.PostList, collapsedThreads bool, excludePostTypes []string) string {
 	if len(postList.Order) > 0 {
 		firstPostId := postList.Order[0]
 		firstPost := postList.Posts[firstPostId]
-		nextPostId, err := a.GetPostIdAfterTime(firstPost.ChannelId, firstPost.CreateAt, collapsedThreads, excludeTypes)
+		nextPostId, err := a.GetPostIdAfterTime(firstPost.ChannelId, firstPost.CreateAt, collapsedThreads, excludePostTypes)
 		if err != nil {
 			mlog.Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
 		}
@@ -1231,11 +1231,11 @@ func (a *App) GetNextPostIdFromPostList(postList *model.PostList, collapsedThrea
 	return ""
 }
 
-func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, collapsedThreads bool, excludeTypes []string) string {
+func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, collapsedThreads bool, excludePostTypes []string) string {
 	if len(postList.Order) > 0 {
 		lastPostId := postList.Order[len(postList.Order)-1]
 		lastPost := postList.Posts[lastPostId]
-		previousPostId, err := a.GetPostIdBeforeTime(lastPost.ChannelId, lastPost.CreateAt, collapsedThreads, excludeTypes)
+		previousPostId, err := a.GetPostIdBeforeTime(lastPost.ChannelId, lastPost.CreateAt, collapsedThreads, excludePostTypes)
 		if err != nil {
 			mlog.Warn("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Err(err))
 		}
@@ -1249,7 +1249,7 @@ func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, collapsedThrea
 // AddCursorIdsForPostList adds NextPostId and PrevPostId as cursor to the PostList.
 // The conditional blocks ensure that it sets those cursor IDs immediately as afterPost, beforePost or empty,
 // and only query to database whenever necessary.
-func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int, collapsedThreads bool, excludeTypes []string) {
+func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int, collapsedThreads bool, excludePostTypes []string) {
 	prevPostIdSet := false
 	prevPostId := ""
 	nextPostIdSet := false
@@ -1279,17 +1279,17 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	}
 
 	if !nextPostIdSet {
-		nextPostId = a.GetNextPostIdFromPostList(originalList, collapsedThreads, excludeTypes)
+		nextPostId = a.GetNextPostIdFromPostList(originalList, collapsedThreads, excludePostTypes)
 	}
 
 	if !prevPostIdSet {
-		prevPostId = a.GetPrevPostIdFromPostList(originalList, collapsedThreads, excludeTypes)
+		prevPostId = a.GetPrevPostIdFromPostList(originalList, collapsedThreads, excludePostTypes)
 	}
 
 	originalList.NextPostId = nextPostId
 	originalList.PrevPostId = prevPostId
 }
-func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool, excludeTypes []string) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool, excludePostTypes []string) (*model.PostList, *model.AppError) {
 	var lastViewedAt int64
 	var err *model.AppError
 	if lastViewedAt, err = a.Srv().getChannelMemberLastViewedAt(c, channelID, userID); err != nil {
@@ -1298,7 +1298,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 		return model.NewPostList(), nil
 	}
 
-	lastUnreadPostId, err := a.GetPostIdAfterTime(channelID, lastViewedAt, collapsedThreads, excludeTypes)
+	lastUnreadPostId, err := a.GetPostIdAfterTime(channelID, lastViewedAt, collapsedThreads, excludePostTypes)
 	if err != nil {
 		return nil, err
 	} else if lastUnreadPostId == "" {
@@ -1309,7 +1309,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 		SkipFetchThreads:         skipFetchThreads,
 		CollapsedThreads:         collapsedThreads,
 		CollapsedThreadsExtended: collapsedThreadsExtended,
-		ExcludePostTypes:         excludeTypes,
+		ExcludePostTypes:         excludePostTypes,
 	}
 
 	postList, err := a.GetPostThread(lastUnreadPostId, opts, userID)
@@ -1331,7 +1331,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 		}
 	}
 
-	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID, ExcludePostTypes: excludeTypes}); err != nil {
+	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID, ExcludePostTypes: excludePostTypes}); err != nil {
 		return nil, err
 	} else if postListAfter != nil {
 		postList.Extend(postListAfter)

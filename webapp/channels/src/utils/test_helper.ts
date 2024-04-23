@@ -134,9 +134,7 @@ export class TestHelper {
             creator_id: 'id',
             scheme_id: 'id',
             group_constrained: false,
-            options: {
-                excludeTypes: [],
-            },
+            exclude_post_types: [],
         };
         return Object.assign({}, defaultChannel, override);
     }
@@ -161,9 +159,7 @@ export class TestHelper {
             team_display_name: 'teamDisplayName',
             team_name: 'teamName',
             team_update_at: 0,
-            options: {
-                excludeTypes: [],
-            },
+            exclude_post_types: [],
         };
         return Object.assign({}, defaultChannel, override);
     }
