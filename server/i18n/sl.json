@@ -248,10 +248,6 @@
     "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov, sestavljenih iz vsaj ene male črke."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Vaše geslo mora vsebovati vsaj {{.Min}} znakov."
-  },
-  {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Neveljavno uporabniško ime."
   },

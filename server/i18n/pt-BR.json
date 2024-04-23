@@ -4456,10 +4456,6 @@
     "translation": "Por favor entre um endereço de email válido."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Sua senha precisa conter no mínimo {{.Min}} caracteres."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Sua senha deve conter no mínimo {{.Min}} caracteres composta de pelo menos uma letra minúscula."
   },
@@ -7702,10 +7698,6 @@
   {
     "id": "app.post.get_files_batch_for_indexing.get.app_error",
     "translation": "Não foi possível obter o lote de arquivos para indexação."
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Falha ao ler o anexo do arquivo durante a importação."
   },
   {
     "id": "app.export.zip_create.error",

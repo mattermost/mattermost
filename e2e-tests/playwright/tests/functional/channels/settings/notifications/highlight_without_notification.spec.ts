@@ -40,19 +40,19 @@ test('MM-T5465-1 Should add the keyword when enter, comma or tab is pressed on t
     const keywordsInput = await channelPage.settingsModal.notificationsSettings.getKeywordsInput();
 
     // # Enter keyword 1
-    await keywordsInput.type(keywords[0]);
+    await keywordsInput.fill(keywords[0]);
 
     // # Press Comma on the textbox
     await keywordsInput.press(',');
 
     // # Enter keyword 2
-    await keywordsInput.type(keywords[1]);
+    await keywordsInput.fill(keywords[1]);
 
     // # Press Tab on the textbox
     await keywordsInput.press('Tab');
 
     // # Enter keyword 3
-    await keywordsInput.type(keywords[2]);
+    await keywordsInput.fill(keywords[2]);
 
     // # Press Enter on the textbox
     await keywordsInput.press('Enter');
@@ -94,7 +94,7 @@ test('MM-T5465-2 Should highlight the keywords when a message is sent with the k
 
     // # Enter the keyword
     const keywordsInput = await channelPage.settingsModal.notificationsSettings.getKeywordsInput();
-    await keywordsInput.type(keywords[3]);
+    await keywordsInput.fill(keywords[3]);
     await keywordsInput.press('Tab');
 
     // # Save the keyword
@@ -150,7 +150,7 @@ test('MM-T5465-3 Should highlight the keywords when a message is sent with the k
 
     // # Enter the keyword
     const keywordsInput = await channelPage.settingsModal.notificationsSettings.getKeywordsInput();
-    await keywordsInput.type(keywords[3]);
+    await keywordsInput.fill(keywords[3]);
     await keywordsInput.press('Tab');
 
     // # Save the keyword
@@ -208,7 +208,7 @@ test('MM-T5465-4 Highlighted keywords should not appear in the Recent Mentions',
 
     // # Enter the keyword
     const keywordsInput = await channelPage.settingsModal.notificationsSettings.getKeywordsInput();
-    await keywordsInput.type(keywords[0]);
+    await keywordsInput.fill(keywords[0]);
     await keywordsInput.press('Tab');
 
     // # Save the keyword
@@ -270,7 +270,7 @@ test('MM-T5465-5 Should highlight keywords in message sent from another user', a
 
     // # Enter the keyword
     const keywordsInput = await channelPage.settingsModal.notificationsSettings.getKeywordsInput();
-    await keywordsInput.type(keywords[0]);
+    await keywordsInput.fill(keywords[0]);
     await keywordsInput.press('Tab');
 
     // # Save the keyword

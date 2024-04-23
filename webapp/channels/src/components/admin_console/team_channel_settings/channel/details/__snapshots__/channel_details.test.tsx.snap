@@ -51,7 +51,21 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         onToggleArchive={[Function]}
         team={
           Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
             "display_name": "test",
+            "email": "",
+            "group_constrained": false,
+            "id": "team_id",
+            "invite_id": "",
+            "name": "DN",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
           }
         }
       />
@@ -238,7 +252,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         isArchived={false}
         isDisabled={false}
         onToggleArchive={[Function]}
-        team={Object {}}
       />
       <ConfirmModal
         confirmButtonClass="btn btn-primary"
@@ -425,7 +438,21 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         onToggleArchive={[Function]}
         team={
           Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
             "display_name": "test",
+            "email": "",
+            "group_constrained": false,
+            "id": "team_id",
+            "invite_id": "",
+            "name": "DN",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
           }
         }
       />
@@ -563,7 +590,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         isArchived={false}
         isDisabled={false}
         onToggleArchive={[Function]}
-        team={Object {}}
       />
       <ConfirmModal
         confirmButtonClass="btn btn-primary"
@@ -701,7 +727,21 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         onToggleArchive={[Function]}
         team={
           Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
             "display_name": "test",
+            "email": "",
+            "group_constrained": false,
+            "id": "team_id",
+            "invite_id": "",
+            "name": "DN",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
           }
         }
       />
@@ -839,7 +879,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         isArchived={false}
         isDisabled={false}
         onToggleArchive={[Function]}
-        team={Object {}}
       />
       <ConfirmModal
         confirmButtonClass="btn btn-primary"
