@@ -3,7 +3,6 @@
 
 import {connect} from 'react-redux';
 
-import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
@@ -20,7 +19,7 @@ import type {FakePost} from 'types/store/rhs';
 import ThreadViewerVirtualized from './virtualized_thread_viewer';
 
 type OwnProps = {
-    channel: Channel;
+    channelId: string;
     postIds: Array<Post['id'] | FakePost['id']>;
     selected: Post | FakePost;
     useRelativeTimestamp: boolean;
@@ -32,12 +31,12 @@ function makeMapStateToProps() {
     const getThreadLastViewedAt = makeGetThreadLastViewedAt();
 
     return (state: GlobalState, ownProps: OwnProps) => {
-        const {postIds, useRelativeTimestamp, selected, channel} = ownProps;
+        const {postIds, useRelativeTimestamp, selected, channelId} = ownProps;
 
         const collapsedThreads = isCollapsedThreadsEnabled(state);
         const currentUserId = getCurrentUserId(state);
         const lastViewedAt = getThreadLastViewedAt(state, selected.id);
-        const directTeammate = getDirectTeammate(state, channel.id);
+        const directTeammate = getDirectTeammate(state, channelId);
 
         const lastPost = getPost(state, postIds[0]);
 

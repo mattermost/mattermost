@@ -7,7 +7,6 @@ import React, {PureComponent} from 'react';
 import type {RefObject} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
-import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -29,7 +28,6 @@ import CreateComment from './create_comment';
 import Row from './thread_viewer_row';
 
 type Props = {
-    channel: Channel;
     currentUserId: string;
     directTeammate: UserProfile | undefined;
     highlightedPostId?: Post['id'];
@@ -43,14 +41,12 @@ type Props = {
     isThreadView: boolean;
     newMessagesSeparatorActions: PluginComponent[];
     inputPlaceholder?: string;
-    fromSuppressed?: boolean;
 }
 
 type State = {
     createCommentHeight: number;
     isScrolling: boolean;
     topRhsPostId?: string;
-    userScrolled: boolean;
     userScrolledToBottom: boolean;
     lastViewedBottom: number;
     visibleStartIndex?: number;
@@ -114,7 +110,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         this.state = {
             createCommentHeight: 0,
             isScrolling: false,
-            userScrolled: false,
             userScrolledToBottom: false,
             topRhsPostId: undefined,
             lastViewedBottom: Date.now(),
@@ -195,7 +190,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         if (!scrollUpdateWasRequested) {
             this.scrollShortCircuit = 0;
 
-            updatedState.userScrolled = true;
             updatedState.userScrolledToBottom = userScrolledToBottom;
 
             if (this.props.isMobileView) {
@@ -357,7 +351,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             return (
                 <CreateComment
                     placeholder={this.props.inputPlaceholder}
-                    focusOnMount={!this.props.fromSuppressed && !this.props.isThreadView && (this.state.userScrolledToBottom || (!this.state.userScrolled && this.getInitialPostIndex() === 0))}
                     isThreadView={this.props.isThreadView}
                     latestPostId={this.props.lastPost.id}
                     ref={this.postCreateContainerRef}
