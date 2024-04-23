@@ -16,7 +16,7 @@ const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_C
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 const KeyCodes = Constants.KeyCodes;
 
-type Props = {
+type Props<InputElement extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement> = {
 
     /**
      * The list component to render, usually SuggestionList
@@ -74,7 +74,7 @@ type Props = {
     /**
      * Function called when an item is selected
      */
-    onItemSelected?: () => void;
+    onItemSelected?: (item: any) => void;
 
     /**
      * The number of characters required to show the suggestion list, defaults to 1
@@ -163,7 +163,7 @@ type State = {
     suggestionBoxAlgn: ReturnType<typeof Utils.getSuggestionBoxAlgn> | undefined;
 }
 
-export default class SuggestionBox extends React.PureComponent<Props, State> {
+export default class SuggestionBox<InputElement extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement> extends React.PureComponent<Props<InputElement>, State> {
     static defaultProps = {
         listPosition: 'top',
         containerClass: '',
@@ -200,7 +200,7 @@ export default class SuggestionBox extends React.PureComponent<Props, State> {
      */
     private preventSuggestionListCloseFlag = false;
 
-    constructor(props: Props) {
+    constructor(props: Props<InputElement>) {
         super(props);
 
         // pretext: the text before the cursor
@@ -383,7 +383,7 @@ export default class SuggestionBox extends React.PureComponent<Props, State> {
 
         if (this.props.onChange) {
             // fake an input event to send back to parent components
-            const e = {
+            const e: React.ChangeEvent = {
                 target: textbox,
             };
 
@@ -405,7 +405,7 @@ export default class SuggestionBox extends React.PureComponent<Props, State> {
 
         if (this.props.onChange) {
             // fake an input event to send back to parent components
-            const e = {
+            const e: React.ChangeEvent = {
                 target: textbox,
             };
 
