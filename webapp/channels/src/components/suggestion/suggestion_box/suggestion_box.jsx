@@ -666,15 +666,16 @@ export default class SuggestionBox extends React.PureComponent {
     };
 
     makeHandleReceivedSuggestionsAndComplete = () => {
-        let firstCall = true;
+        let firstComplete = true;
         return (suggestions) => {
-            if (!firstCall) {
-                return;
-            }
-
-            firstCall = false;
 
             const {selection, matchedPretext} = this.handleReceivedSuggestions(suggestions);
+
+            if (!firstComplete) {
+                return;
+            }
+            firstComplete = false;
+
             if (selection) {
                 this.handleCompleteWord(selection, matchedPretext);
             }
