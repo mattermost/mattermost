@@ -20,7 +20,8 @@ import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import ThemeSetting from 'components/user_settings/display/user_settings_theme';
 
-import * as I18n from 'i18n/i18n.jsx';
+import type {Language} from 'i18n/i18n';
+import {getLanguageInfo} from 'i18n/i18n';
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getBrowserTimezone} from 'utils/timezone';
@@ -104,7 +105,8 @@ type Props = {
     userTimezone: UserTimezone;
     allowCustomThemes: boolean;
     enableLinkPreviews: boolean;
-    defaultClientLocale: string;
+    locales: Record<string, Language>;
+    userLocale: string;
     enableThemeSelection: boolean;
     configTeammateNameDisplay: string;
     currentUserTimezone: string;
@@ -1015,11 +1017,8 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         });
 
         let languagesSection;
-        let userLocale = this.props.user.locale;
-        if (!I18n.isLanguageAvailable(userLocale)) {
-            userLocale = this.props.defaultClientLocale;
-        }
-        const localeName = I18n.getLanguageInfo(userLocale).name;
+        const userLocale = this.props.userLocale;
+        const localeName = getLanguageInfo(userLocale).name;
 
         languagesSection = (
             <div>
@@ -1047,7 +1046,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             </div>
         );
 
-        if (Object.keys(I18n.getLanguages()).length === 1) {
+        if (Object.keys(this.props.locales).length === 1) {
             languagesSection = null;
         }
 

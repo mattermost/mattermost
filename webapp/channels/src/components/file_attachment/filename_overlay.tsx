@@ -71,7 +71,6 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
                     overlay={<Tooltip id='file-name__tooltip'>{fileName}</Tooltip>}
                 >
                     <a
-                        id='file-attachment-link'
                         href='#'
                         onClick={handleImageClick}
                         className='post-image__name'

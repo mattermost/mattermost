@@ -1460,10 +1460,6 @@
     "translation": "Ditt lösenord måste innehålla minst {{.Min}} tecken med minst en liten bokstav och minst en siffra."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Ditt lösenord måste vara minst {{.Min}} tecken."
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "Ogiltig position: får inte vara längre än 128 tecken."
   },
@@ -7647,10 +7643,6 @@
     "translation": "Det gick inte att ansluta till SMTP-servern"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Misslyckades att läsa bifogade filer vid export."
-  },
-  {
     "id": "app.export.export_attachment.zip_create_header.error",
     "translation": "Misslyckades att skapa zip-arkivet vid export."
   },
@@ -9920,10 +9912,6 @@
   {
     "id": "model.user_report_options.is_valid.invalid_sort_column",
     "translation": "Den angivna sorteringskolumnen är inte giltig."
-  },
-  {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "Misslyckades att hämta antal användare"
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.one_message",

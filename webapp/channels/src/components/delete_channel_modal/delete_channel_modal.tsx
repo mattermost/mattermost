@@ -15,7 +15,7 @@ import Constants from 'utils/constants';
 export type Props = {
     onExited: () => void;
     channel: Channel;
-    currentTeamDetails: {name: string};
+    currentTeamDetails?: {name: string};
     canViewArchivedChannels?: boolean;
     penultimateViewedChannelName: string;
     actions: {
@@ -39,7 +39,9 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
         }
         if (!this.props.canViewArchivedChannels) {
             const {penultimateViewedChannelName} = this.props;
-            getHistory().push('/' + this.props.currentTeamDetails.name + '/channels/' + penultimateViewedChannelName);
+            if (this.props.currentTeamDetails) {
+                getHistory().push('/' + this.props.currentTeamDetails.name + '/channels/' + penultimateViewedChannelName);
+            }
         }
         this.props.actions.deleteChannel(this.props.channel.id);
         this.onHide();

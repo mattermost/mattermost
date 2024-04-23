@@ -202,7 +202,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 
 			s.client.
 				EXPECT().
-				GetUsersWithCustomQueryParameters(context.Background(), 0, perPage, "inactive=true", "").
+				GetUsersWithCustomQueryParameters(context.Background(), 0, DefaultPageSize, "inactive=true", "").
 				Return(mockUsers, &model.Response{}, nil).
 				Times(1)
 

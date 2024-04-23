@@ -6,6 +6,7 @@ package app
 import (
 	"archive/zip"
 	"context"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 func TestImportImportScheme(t *testing.T) {
@@ -4383,6 +4385,85 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		assert.Contains(t, attachments[0].Path, "noteam")
 		AssertFileIdsInPost(attachments, th, t)
 	})
+
+	t.Run("import existing post with different attachment's content", func(t *testing.T) {
+		tmpDir := os.TempDir()
+		filePath := filepath.Join(tmpDir, "test_diff.png")
+
+		t.Run("different size", func(t *testing.T) {
+			testImage := filepath.Join(testsDir, "test.png")
+			imageData, err := os.ReadFile(testImage)
+			require.NoError(t, err)
+			err = os.WriteFile(filePath, imageData, 0644)
+			require.NoError(t, err)
+
+			data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &filePath}}
+			data.Post.Replies = nil
+			data.Post.Message = model.NewString("new post")
+			errLine, appErr := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+			require.Nil(t, appErr)
+			require.Equal(t, 0, errLine)
+
+			attachments := GetAttachments(user3.Id, th, t)
+			require.Len(t, attachments, 2)
+			assert.Contains(t, attachments[1].Path, team.Id)
+			AssertFileIdsInPost(attachments[1:], th, t)
+
+			testImage = filepath.Join(testsDir, "test-data-graph.png")
+			imageData, err = os.ReadFile(testImage)
+			require.NoError(t, err)
+			err = os.WriteFile(filePath, imageData, 0644)
+			require.NoError(t, err)
+
+			data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &filePath}}
+			data.Post.Replies = nil
+			errLine, appErr = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+			require.Nil(t, appErr)
+			require.Equal(t, 0, errLine)
+
+			attachments2 := GetAttachments(user3.Id, th, t)
+			require.NotEqual(t, attachments, attachments2)
+			require.Len(t, attachments2, 2)
+			assert.Contains(t, attachments2[1].Path, team.Id)
+			AssertFileIdsInPost(attachments2[1:], th, t)
+		})
+
+		t.Run("same size", func(t *testing.T) {
+			imageData, err := os.ReadFile(filepath.Join(testsDir, "test_img_diff_A.png"))
+			require.NoError(t, err)
+			err = os.WriteFile(filePath, imageData, 0644)
+			require.NoError(t, err)
+
+			data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &filePath}}
+			data.Post.Replies = nil
+			data.Post.Message = model.NewString("new post2")
+			errLine, appErr := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+			require.Nil(t, appErr)
+			require.Equal(t, 0, errLine)
+
+			attachments := GetAttachments(user3.Id, th, t)
+			require.Len(t, attachments, 3)
+			assert.Contains(t, attachments[2].Path, team.Id)
+			AssertFileIdsInPost(attachments[2:], th, t)
+
+			imageData, err = os.ReadFile(filepath.Join(testsDir, "test_img_diff_B.png"))
+			require.NoError(t, err)
+			err = os.WriteFile(filePath, imageData, 0644)
+			require.NoError(t, err)
+
+			data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &filePath}}
+			data.Post.Replies = nil
+			errLine, appErr = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+			require.Nil(t, appErr)
+			require.Equal(t, 0, errLine)
+
+			attachments2 := GetAttachments(user3.Id, th, t)
+			require.NotEqual(t, attachments, attachments2)
+			require.Len(t, attachments2, 3)
+			assert.Contains(t, attachments2[2].Path, team.Id)
+			AssertFileIdsInPost(attachments2[2:], th, t)
+		})
+	})
 }
 
 func TestImportDirectPostWithAttachments(t *testing.T) {
@@ -4574,7 +4655,6 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	require.NotEmpty(t, testZipReader.File)
 	imageData := testZipReader.File[0]
-	require.NoError(t, err, "failed to copy test Image file into zip")
 
 	testMarkDown := filepath.Join(testsDir, "test-attachments.md")
 	data := imports.LineImportWorkerData{
@@ -4661,5 +4741,328 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 		require.Len(t, attachments, 1)
 		assert.Contains(t, attachments[0].Path, "noteam")
 		AssertFileIdsInPost(attachments, th, t)
+	})
+
+	t.Run("import existing post with different attachment's content", func(t *testing.T) {
+		var fileA, fileB *zip.File
+		for _, f := range testZipReader.File {
+			if f.Name == "data/test_img_diff_A.png" {
+				fileA = f
+			} else if f.Name == "data/test_img_diff_B.png" {
+				fileB = f
+			}
+		}
+
+		require.NotNil(t, fileA)
+		require.NotNil(t, fileB)
+
+		data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &fileA.Name, Data: fileA}}
+		data.Post.Message = model.NewString("new post")
+		data.Post.Replies = nil
+		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		attachments := GetAttachments(user3.Id, th, t)
+		require.Len(t, attachments, 2)
+		assert.Contains(t, attachments[1].Path, team.Id)
+		AssertFileIdsInPost(attachments[1:], th, t)
+
+		fileB.Name = fileA.Name
+		data.Post.Attachments = &[]imports.AttachmentImportData{{Path: &fileA.Name, Data: fileB}}
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		attachments = GetAttachments(user3.Id, th, t)
+		require.Len(t, attachments, 2)
+		assert.Contains(t, attachments[1].Path, team.Id)
+		AssertFileIdsInPost(attachments[1:], th, t)
+	})
+}
+
+func TestCompareFilesContent(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		ok, err := compareFilesContent(strings.NewReader(""), strings.NewReader(""), 0)
+		require.NoError(t, err)
+		require.True(t, ok)
+	})
+
+	t.Run("no match", func(t *testing.T) {
+		ok, err := compareFilesContent(strings.NewReader("fileA"), strings.NewReader("fileB"), 0)
+		require.NoError(t, err)
+		require.False(t, ok)
+	})
+
+	t.Run("match", func(t *testing.T) {
+		ok, err := compareFilesContent(strings.NewReader("fileA"), strings.NewReader("fileA"), 0)
+		require.NoError(t, err)
+		require.True(t, ok)
+	})
+}
+
+func BenchmarkCompareFilesContent(b *testing.B) {
+	tmpDir := os.TempDir()
+	fileAPath := filepath.Join(tmpDir, "fileA")
+	fileBPath := filepath.Join(tmpDir, "fileB")
+
+	fileA, err := os.Create(fileAPath)
+	require.NoError(b, err)
+	defer fileA.Close()
+	defer os.Remove(fileAPath)
+
+	fileB, err := os.Create(fileBPath)
+	require.NoError(b, err)
+	defer fileB.Close()
+	defer os.Remove(fileBPath)
+
+	fileSize := int64(1024 * 1024 * 1024) // 1GB
+
+	err = fileA.Truncate(fileSize)
+	require.NoError(b, err)
+	err = fileB.Truncate(fileSize)
+	require.NoError(b, err)
+
+	bufSizesMap := map[string]int64{
+		"32KB":  1024 * 32, // current default of io.Copy
+		"128KB": 1024 * 128,
+		"1MB":   1024 * 1024,
+		"2MB":   1024 * 1024 * 2,
+		"4MB":   1024 * 1024 * 4,
+		"8MB":   1024 * 1024 * 8,
+	}
+
+	fileSizesMap := map[string]int64{
+		"512KB": 1024 * 512,
+		"1MB":   1024 * 1024,
+		"10MB":  1024 * 1024 * 10,
+		"100MB": 1024 * 1024 * 100,
+		"1GB":   1024 * 1024 * 1000,
+	}
+
+	// To force order
+	bufSizeLabels := []string{"32KB", "128KB", "1MB", "2MB", "4MB", "8MB"}
+	fileSizeLabels := []string{"512KB", "1MB", "10MB", "100MB", "1GB"}
+
+	b.Run("plain", func(b *testing.B) {
+		b.Run("local", func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+			b.StopTimer()
+
+			for i := 0; i < b.N; i++ {
+				_, err := fileA.Seek(0, io.SeekStart)
+				require.NoError(b, err)
+				_, err = fileB.Seek(0, io.SeekStart)
+				require.NoError(b, err)
+
+				b.StartTimer()
+				ok, err := compareFilesContent(fileA, fileB, 0)
+				b.StopTimer()
+				require.NoError(b, err)
+				require.True(b, ok)
+			}
+		})
+
+		b.Run("s3", func(b *testing.B) {
+			th := SetupConfig(b, func(cfg *model.Config) {
+				cfg.FileSettings = model.FileSettings{
+					DriverName:                         model.NewString(model.ImageDriverS3),
+					AmazonS3AccessKeyId:                model.NewString(model.MinioAccessKey),
+					AmazonS3SecretAccessKey:            model.NewString(model.MinioSecretKey),
+					AmazonS3Bucket:                     model.NewString("comparefilescontentbucket"),
+					AmazonS3Endpoint:                   model.NewString("localhost:9000"),
+					AmazonS3Region:                     model.NewString(""),
+					AmazonS3PathPrefix:                 model.NewString(""),
+					AmazonS3SSL:                        model.NewBool(false),
+					AmazonS3RequestTimeoutMilliseconds: model.NewInt64(300 * 1000),
+				}
+			})
+			defer th.TearDown()
+
+			err := th.App.Srv().FileBackend().(*filestore.S3FileBackend).TestConnection()
+			require.NoError(b, err)
+
+			_, err = fileA.Seek(0, io.SeekStart)
+			require.NoError(b, err)
+			_, err = fileB.Seek(0, io.SeekStart)
+			require.NoError(b, err)
+
+			_, appErr := th.App.WriteFile(fileA, "compareFileA")
+			require.Nil(b, appErr)
+			defer th.App.RemoveFile("compareFileA")
+
+			_, appErr = th.App.WriteFile(fileB, "compareFileB")
+			require.Nil(b, appErr)
+			defer th.App.RemoveFile("compareFileB")
+
+			rdA, appErr := th.App.FileReader("compareFileA")
+			require.Nil(b, appErr)
+			defer rdA.Close()
+
+			rdB, appErr := th.App.FileReader("compareFileB")
+			require.Nil(b, appErr)
+			defer rdB.Close()
+
+			b.ResetTimer()
+
+			for _, fileSizeLabel := range fileSizeLabels {
+				fileSize := fileSizesMap[fileSizeLabel]
+				for _, bufSizeLabel := range bufSizeLabels {
+					bufSize := bufSizesMap[bufSizeLabel]
+					b.Run("bufSize-fileSize"+fileSizeLabel+"-bufSize"+bufSizeLabel, func(b *testing.B) {
+						b.ReportAllocs()
+						b.StopTimer()
+						for i := 0; i < b.N; i++ {
+							_, err := rdA.Seek(0, io.SeekStart)
+							require.NoError(b, err)
+							_, err = rdB.Seek(0, io.SeekStart)
+							require.NoError(b, err)
+
+							b.StartTimer()
+							ok, err := compareFilesContent(&io.LimitedReader{
+								R: rdA,
+								N: fileSize,
+							}, &io.LimitedReader{
+								R: rdB,
+								N: fileSize,
+							}, bufSize)
+							b.StopTimer()
+							require.NoError(b, err)
+							require.True(b, ok)
+						}
+					})
+				}
+			}
+		})
+	})
+
+	b.Run("zip", func(b *testing.B) {
+		zipFilePath := filepath.Join(tmpDir, "compareFiles.zip")
+		zipFile, err := os.Create(zipFilePath)
+		require.NoError(b, err)
+		defer zipFile.Close()
+		defer os.Remove(zipFilePath)
+
+		zipWr := zip.NewWriter(zipFile)
+
+		fileAZipWr, err := zipWr.CreateHeader(&zip.FileHeader{
+			Name:   "compareFileA",
+			Method: zip.Store,
+		})
+		require.NoError(b, err)
+		_, err = io.Copy(fileAZipWr, fileA)
+		require.NoError(b, err)
+
+		fileBZipWr, err := zipWr.CreateHeader(&zip.FileHeader{
+			Name:   "compareFileB",
+			Method: zip.Store,
+		})
+		require.NoError(b, err)
+		_, err = io.Copy(fileBZipWr, fileB)
+		require.NoError(b, err)
+
+		err = zipWr.Close()
+		require.NoError(b, err)
+
+		info, err := zipFile.Stat()
+		require.NoError(b, err)
+
+		zipFileSize := info.Size()
+
+		b.Run("local", func(b *testing.B) {
+			b.ResetTimer()
+
+			for _, label := range bufSizeLabels {
+				bufSize := bufSizesMap[label]
+				b.Run("bufSize-"+label, func(b *testing.B) {
+					b.ReportAllocs()
+					b.StopTimer()
+					for i := 0; i < b.N; i++ {
+						_, err := zipFile.Seek(0, io.SeekStart)
+						require.NoError(b, err)
+						zipRd, err := zip.NewReader(zipFile, zipFileSize)
+						require.NoError(b, err)
+
+						zipFileA, err := zipRd.Open("compareFileA")
+						require.NoError(b, err)
+
+						zipFileB, err := zipRd.Open("compareFileB")
+						require.NoError(b, err)
+
+						b.StartTimer()
+						ok, err := compareFilesContent(zipFileA, zipFileB, bufSize)
+						b.StopTimer()
+						require.NoError(b, err)
+						require.True(b, ok)
+					}
+				})
+			}
+		})
+
+		b.Run("s3", func(b *testing.B) {
+			th := SetupConfig(b, func(cfg *model.Config) {
+				cfg.FileSettings = model.FileSettings{
+					DriverName:                         model.NewString(model.ImageDriverS3),
+					AmazonS3AccessKeyId:                model.NewString(model.MinioAccessKey),
+					AmazonS3SecretAccessKey:            model.NewString(model.MinioSecretKey),
+					AmazonS3Bucket:                     model.NewString("comparefilescontentbucket"),
+					AmazonS3Endpoint:                   model.NewString("localhost:9000"),
+					AmazonS3Region:                     model.NewString(""),
+					AmazonS3PathPrefix:                 model.NewString(""),
+					AmazonS3SSL:                        model.NewBool(false),
+					AmazonS3RequestTimeoutMilliseconds: model.NewInt64(300 * 1000),
+				}
+			})
+			defer th.TearDown()
+
+			err := th.App.Srv().FileBackend().(*filestore.S3FileBackend).TestConnection()
+			require.NoError(b, err)
+
+			_, appErr := th.App.WriteFile(zipFile, "compareFiles.zip")
+			require.Nil(b, appErr)
+			defer th.App.RemoveFile("compareFiles.zip")
+
+			zipFileRd, appErr := th.App.FileReader("compareFiles.zip")
+			require.Nil(b, appErr)
+			defer zipFileRd.Close()
+
+			b.ResetTimer()
+
+			for _, fileSizeLabel := range fileSizeLabels {
+				fileSize := fileSizesMap[fileSizeLabel]
+				for _, bufSizeLabel := range bufSizeLabels {
+					bufSize := bufSizesMap[bufSizeLabel]
+					b.Run("bufSize-fileSize"+fileSizeLabel+"-bufSize"+bufSizeLabel, func(b *testing.B) {
+						b.ReportAllocs()
+						b.StopTimer()
+						for i := 0; i < b.N; i++ {
+							_, err := zipFileRd.Seek(0, io.SeekStart)
+							require.NoError(b, err)
+							zipRd, err := zip.NewReader(zipFileRd.(io.ReaderAt), zipFileSize)
+							require.NoError(b, err)
+
+							zipFileA, err := zipRd.Open("compareFileA")
+							require.NoError(b, err)
+
+							zipFileB, err := zipRd.Open("compareFileB")
+							require.NoError(b, err)
+
+							b.StartTimer()
+							ok, err := compareFilesContent(&io.LimitedReader{
+								R: zipFileA,
+								N: fileSize,
+							}, &io.LimitedReader{
+								R: zipFileB,
+								N: fileSize,
+							}, bufSize)
+							b.StopTimer()
+							require.NoError(b, err)
+							require.True(b, ok)
+						}
+					})
+				}
+			}
+		})
 	})
 }

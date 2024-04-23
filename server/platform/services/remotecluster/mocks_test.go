@@ -73,7 +73,7 @@ type mockApp struct {
 	pingCounts      map[string]int
 }
 
-func newMockApp(t *testing.T, offlinePluginIDs []string) *mockApp {
+func newMockApp(_ *testing.T, offlinePluginIDs []string) *mockApp {
 	return &mockApp{
 		offlinePluginIDs: offlinePluginIDs,
 		pingCounts:       make(map[string]int),
