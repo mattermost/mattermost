@@ -14,7 +14,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import ExternalLink from 'components/external_link';
 import SettingItemMax from 'components/setting_item_max';
 
-import * as I18n from 'i18n/i18n.jsx';
+import type {Language} from 'i18n/i18n';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -26,6 +26,7 @@ type Props = {
     intl: IntlShape;
     user: UserProfile;
     locale: string;
+    locales: Record<string, Language>;
     updateSection: (section: string) => void;
     actions: Actions;
 };
@@ -47,11 +48,10 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
     reactSelectContainer: React.RefObject<HTMLDivElement>;
     constructor(props: Props) {
         super(props);
-        const locales: any = I18n.getLanguages();
         const userLocale = props.locale;
         const selectedOption = {
-            value: locales[userLocale].value,
-            label: locales[userLocale].name,
+            value: props.locales[userLocale].value,
+            label: props.locales[userLocale].name,
         };
         this.reactSelectContainer = React.createRef();
 
@@ -155,7 +155,8 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {intl} = this.props;
+        const {intl, locales} = this.props;
+
         let serverError;
         if (this.state.serverError) {
             serverError = (
@@ -164,7 +165,6 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
         }
 
         const options: SelectedOption[] = [];
-        const locales: any = I18n.getLanguages();
 
         const languages = Object.keys(locales).
             map((l) => {
