@@ -5628,6 +5628,8 @@
   "user.settings.notifications.desktopAndMobile.onlyMentions": "Vermeldingen, privé-berichten en groepsberichten",
   "user.settings.notifications.desktopAndMobile.pushNotification": "Trigger mobiele meldingen als mijn status is ingesteld op:",
   "user.settings.notifications.desktopAndMobile.pushNotificationsDisabled": "Mobiele pushmeldingen zijn niet ingeschakeld door je systeembeheerder.",
+  "user.settings.notifications.desktopAndMobile.sendDesktopNotificationFor": "Meldingen verzenden voor:",
+  "user.settings.notifications.desktopAndMobile.sendMobileNotificationsFor": "Stuur mobiele meldingen voor:",
   "user.settings.notifications.email.disabled": "E-mailmeldingen zijn niet ingeschakeld",
   "user.settings.notifications.email.disabled_long": "E-mailmeldingen zijn niet ingeschakeld door de Systeembeheerder.",
   "user.settings.notifications.email.everyHour": "Elk uur",
