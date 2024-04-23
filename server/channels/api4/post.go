@@ -256,7 +256,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	excludePostTypes := r.URL.Query().Get("excludePostTypes")
 	var excludePostTypesList []string
-	if len(excludePostTypes) > 0 {
+	if excludePostTypes != "" {
 		excludePostTypesList = strings.Split(excludePostTypes, ",")
 	}
 
@@ -313,7 +313,6 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
 		}
-
 	}
 
 	if err != nil {
@@ -363,7 +362,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 
 	excludePostTypes := r.URL.Query().Get("excludePostTypes")
 	var excludePostTypesList []string
-	if len(excludePostTypes) > 0 {
+	if excludePostTypes != "" {
 		excludePostTypesList = strings.Split(excludePostTypes, ",")
 	}
 
