@@ -262,7 +262,7 @@ export default class SuggestionBox extends React.PureComponent<Props, State> {
 
         // Focus is switching TO e.relatedTarget, so only treat this as a blur event if we're not switching
         // between children (like from the textbox to the suggestion list)
-        if (this.container.contains(e.relatedTarget as (Node | null))) {
+        if (this.container?.contains(e.relatedTarget as (Node | null))) {
             return;
         }
 
@@ -282,7 +282,7 @@ export default class SuggestionBox extends React.PureComponent<Props, State> {
         // between children (like from the textbox to the suggestion list). PreventSuggestionListCloseFlag is
         // checked because if true, it means that the focusIn comes from a click in the suggestion box, an
         // option choice, so we don't want the focus event to be triggered
-        if (this.container.contains(e.relatedTarget as (Node | null)) || this.preventSuggestionListCloseFlag) {
+        if (this.container?.contains(e.relatedTarget as (Node | null)) || this.preventSuggestionListCloseFlag) {
             return;
         }
 
