@@ -6,7 +6,6 @@ package api4
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -22,7 +21,6 @@ func (api *API) InitLicense() {
 	api.BaseRoutes.APIRoot.Handle("/trial-license/prev", api.APISessionRequired(getPrevTrialLicense)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(addLicense, handlerParamFileAPI)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(removeLicense)).Methods("DELETE")
-	api.BaseRoutes.APIRoot.Handle("/license/renewal", api.APISessionRequired(requestRenewalLink)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/license/client", api.APIHandler(getClientLicense)).Methods("GET")
 }
 
@@ -233,54 +231,6 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	ReturnStatusOK(w)
-}
-
-func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("requestRenewalLink", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	c.LogAudit("attempt")
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
-		c.SetPermissionError(model.PermissionManageLicenseInformation)
-		return
-	}
-
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("requestRenewalLink", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-		return
-	}
-
-	renewalLink, token, err := c.App.Srv().GenerateLicenseRenewalLink()
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if c.App.Cloud() == nil {
-		c.Err = model.NewAppError("requestRenewalLink", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	// check if it is possible to renew license on the portal with generated token
-	status, e := c.App.Cloud().GetLicenseSelfServeStatus(c.AppContext.Session().UserId, token)
-	if e != nil {
-		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.cannot_renew_on_cws", nil, "", http.StatusInternalServerError).Wrap(e)
-		return
-	}
-
-	if !status.IsRenewable {
-		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.cannot_renew_on_cws", nil, "License is not self-serve renewable", http.StatusBadRequest)
-		return
-	}
-
-	auditRec.Success()
-	c.LogAudit("success")
-
-	_, werr := w.Write([]byte(fmt.Sprintf(`{"renewal_link": "%s"}`, renewalLink)))
-	if werr != nil {
-		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.app_error", nil, "", http.StatusForbidden).Wrap(werr)
-		return
-	}
 }
 
 func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {

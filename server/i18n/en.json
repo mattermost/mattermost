@@ -2273,14 +2273,6 @@
     "translation": "Failed to apply new trial license. You have previously applied a trial license to this Mattermost instance.. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Error getting the license renewal link"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Renewing this license on the portal is not possible"
-  },
-  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
@@ -2821,10 +2813,6 @@
   {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal unavailable for self-hosted signup."
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Failed to generate the license renewal link"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -3459,20 +3447,12 @@
     "translation": "Contact sales"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Renew now"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "Your license is up for renewal"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, your subscription is set to expire in {{.Days}} days. We hope you’re experiencing the flexible, secure team collaboration that Mattermost enables. Renew soon to ensure your team can keep enjoying these benefits."
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Log in to your Customer Account to renew"
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
@@ -3521,10 +3501,6 @@
   {
     "id": "api.templates.questions_footer.title",
     "translation": "Questions?"
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License Now"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
