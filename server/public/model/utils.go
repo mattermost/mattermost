@@ -415,6 +415,11 @@ func GetTimeForMillis(millis int64) time.Time {
 	return time.UnixMilli(millis)
 }
 
+// MillisToString returns a given milliseconds since epoch as a string using [time.Time.String].
+func MillisToString(millis int64) string {
+	return time.UnixMilli(millis).String()
+}
+
 // PadDateStringZeros is a convenience method to pad 2 digit date parts with zeros to meet ISO 8601 format
 func PadDateStringZeros(dateString string) string {
 	parts := strings.Split(dateString, "-")
