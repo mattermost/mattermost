@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAuditable(t *testing.T) {
+func TestGroupAuditable(t *testing.T) {
 	t.Run("zero value", func(t *testing.T) {
 		var g Group
 		m := g.Auditable()
@@ -49,7 +49,7 @@ func TestAuditable(t *testing.T) {
 	})
 }
 
-func TestLogClone(t *testing.T) {
+func TestGroupLogClone(t *testing.T) {
 	t.Run("zero value", func(t *testing.T) {
 		var g Group
 		l := g.LogClone()
