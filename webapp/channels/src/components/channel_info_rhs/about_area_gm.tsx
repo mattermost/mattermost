@@ -12,7 +12,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import Markdown from 'components/markdown';
 import ProfilePicture from 'components/profile_picture';
-import UserProfileComponent from 'components/user_profile';
+import UserProfileElement from 'components/user_profile';
 
 import EditableArea from './components/editable_area';
 import LineLimiter from './components/linelimiter';
@@ -96,7 +96,7 @@ const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
                 <Usernames>
                     {gmUsers.map((user, i, {length}) => (
                         <React.Fragment key={user.id}>
-                            <UserProfileComponent
+                            <UserProfileElement
                                 userId={user.id}
                                 channelId={channel.id}
                             />
