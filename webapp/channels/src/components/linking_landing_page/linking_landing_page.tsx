@@ -100,6 +100,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
 
     handleChecked = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({rememberChecked: e.target.checked});
+
         // If it was checked, and now we're unchecking it, clear the preference
         if (!e.target.checked) {
             BrowserStore.clearLandingPreference(this.props.siteUrl);
