@@ -15,10 +15,8 @@
         height: 100%;
         align-items: center;
         justify-content: center;
-        padding: 48px;
         @media screen and (max-width: 768px) {
             height: calc(100% - 154px);
-            padding: 0;
             background: rgb(0, 0, 0);
         }
     }
@@ -41,7 +39,6 @@
         display: flex;
         justify-content: center;
         color: white;
-        margin-bottom: 8px;
         padding: 4px;
         background: rgba(61, 60, 64, 0.75);
     }

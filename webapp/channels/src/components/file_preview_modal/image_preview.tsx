@@ -28,8 +28,8 @@ interface ScaleOption {
 export default function ImagePreview({fileInfo, canDownloadFiles, handleCloseModal}: Props) {
     const isExternalFile = !fileInfo.id;
     const {formatMessage} = useIntl();
-    const [scale, setScale] = React.useState(1);
-    const [baseScale, setBaseScale] = React.useState(1);
+    const [scale, setScale] = React.useState(0.8);
+    const [baseScale, setBaseScale] = React.useState(0.8);
     const [scaleOptions, setScaleOptions] = React.useState<ScaleOption[]>([]);
     const imageRef = React.useRef<HTMLImageElement>(null);
     const containerRef = React.useRef<HTMLDivElement>(null);
@@ -96,7 +96,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles, handleCloseMod
         const imgEl = imageRef.current;
 
         if (imgEl) {
-            setBaseScale(imgEl.naturalWidth / imgEl.clientWidth);
+            setBaseScale((imgEl.naturalWidth / imgEl.clientWidth) * 0.8);
             setScaleOptions([
                 {
                     key: 'auto',
@@ -189,6 +189,8 @@ export default function ImagePreview({fileInfo, canDownloadFiles, handleCloseMod
             onTransformed={handleTransformed}
             ref={transformWrapperRef}
             centerOnInit={true}
+            initialScale={0.8}
+            minScale={0.8}
         >
             {({zoomIn, zoomOut}) => (
                 <div className='image_preview_wrapper'>
