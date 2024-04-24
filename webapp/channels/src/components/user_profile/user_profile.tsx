@@ -75,7 +75,7 @@ export default function UserProfile({
                     style: userStyle,
                 }}
                 userId={userId}
-                userProfileSrc={profileImg}
+                src={profileImg}
                 channelId={channelId}
                 hideStatus={hideStatus}
                 overwriteIcon={overwriteIcon}

@@ -135,7 +135,7 @@ export const AtMention = (props: Props) => {
                         className: classNames({'mention--highlight': highlightMention}),
                     }}
                     userId={user.id}
-                    userProfileSrc={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
+                    src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
                     channelId={props.channelId}
                 >
                     {/* <Overlay

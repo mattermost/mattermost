@@ -46,7 +46,7 @@ function ProfilePicture(props: Props) {
                     className: classNames('status-wrapper', props.wrapperClass),
                 }}
                 userId={props.userId}
-                userProfileSrc={profileSrc}
+                src={profileSrc}
                 channelId={props.channelId}
                 hideStatus={hideStatus}
                 overwriteIcon={props.overwriteIcon}

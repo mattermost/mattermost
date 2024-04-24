@@ -28,6 +28,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
       userId="1"
     >
       <ProfilePopoverController
+        src="/api/v4/users/1/image?_=0"
         triggerComponentRootProps={
           Object {
             "as": "button",
@@ -35,7 +36,6 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
           }
         }
         userId="1"
-        userProfileSrc="/api/v4/users/1/image?_=0"
       >
         <button
           aria-expanded="false"
@@ -169,6 +169,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
       userId="6"
     >
       <ProfilePopoverController
+        src="/api/v4/users/6/image?_=0"
         triggerComponentRootProps={
           Object {
             "as": "button",
@@ -176,7 +177,6 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
           }
         }
         userId="6"
-        userProfileSrc="/api/v4/users/6/image?_=0"
       >
         <button
           aria-expanded="false"
@@ -310,6 +310,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
       userId="7"
     >
       <ProfilePopoverController
+        src="/api/v4/users/7/image?_=0"
         triggerComponentRootProps={
           Object {
             "as": "button",
@@ -317,7 +318,6 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
           }
         }
         userId="7"
-        userProfileSrc="/api/v4/users/7/image?_=0"
       >
         <button
           aria-expanded="false"
@@ -576,6 +576,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
       userId="1"
     >
       <ProfilePopoverController
+        src="/api/v4/users/1/image?_=0"
         triggerComponentRootProps={
           Object {
             "as": "button",
@@ -583,7 +584,6 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
           }
         }
         userId="1"
-        userProfileSrc="/api/v4/users/1/image?_=0"
       >
         <button
           aria-expanded="false"
@@ -717,6 +717,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
       userId="2"
     >
       <ProfilePopoverController
+        src="/api/v4/users/2/image?_=0"
         triggerComponentRootProps={
           Object {
             "as": "button",
@@ -724,7 +725,6 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
           }
         }
         userId="2"
-        userProfileSrc="/api/v4/users/2/image?_=0"
       >
         <button
           aria-expanded="false"
@@ -858,6 +858,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
       userId="3"
     >
       <ProfilePopoverController
+        src="/api/v4/users/3/image?_=0"
         triggerComponentRootProps={
           Object {
             "as": "button",
@@ -865,7 +866,6 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
           }
         }
         userId="3"
-        userProfileSrc="/api/v4/users/3/image?_=0"
       >
         <button
           aria-expanded="false"
@@ -1122,6 +1122,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
       userId="1"
     >
       <ProfilePopoverController
+        src="/api/v4/users/1/image?_=0"
         triggerComponentRootProps={
           Object {
             "as": "button",
@@ -1129,7 +1130,6 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
           }
         }
         userId="1"
-        userProfileSrc="/api/v4/users/1/image?_=0"
       >
         <button
           aria-expanded="false"
@@ -1263,6 +1263,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
       userId="2"
     >
       <ProfilePopoverController
+        src="/api/v4/users/2/image?_=0"
         triggerComponentRootProps={
           Object {
             "as": "button",
@@ -1270,7 +1271,6 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
           }
         }
         userId="2"
-        userProfileSrc="/api/v4/users/2/image?_=0"
       >
         <button
           aria-expanded="false"
@@ -1404,6 +1404,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
       userId="3"
     >
       <ProfilePopoverController
+        src="/api/v4/users/3/image?_=0"
         triggerComponentRootProps={
           Object {
             "as": "button",
@@ -1411,7 +1412,6 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
           }
         }
         userId="3"
-        userProfileSrc="/api/v4/users/3/image?_=0"
       >
         <button
           aria-expanded="false"

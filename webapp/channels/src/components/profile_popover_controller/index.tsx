@@ -39,7 +39,7 @@ interface Props<TriggerComponentType> {
     /**
      * Source URL from the image to display in the popover
      */
-    userProfileSrc: string;
+    src: string;
 
     /**
      * This should be the trigger button for the popover, Do note that the root element of the trigger component should be passed in triggerComponentRoot
@@ -140,7 +140,7 @@ function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props:
                             >
                                 <ProfilePopover
                                     userId={props.userId}
-                                    userProfileSrc={props.userProfileSrc}
+                                    src={props.src}
                                     channelId={props.channelId}
                                     hideStatus={props.hideStatus}
                                     fromWebhook={props.fromWebhook}

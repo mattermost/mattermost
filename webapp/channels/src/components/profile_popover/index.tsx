@@ -39,7 +39,7 @@ import './profile_popover.scss';
 
 export interface Props {
     userId: string;
-    userProfileSrc: string;
+    src: string;
     channelId?: string;
     hideStatus?: boolean;
     fromWebhook?: boolean;
@@ -61,7 +61,7 @@ function getDefaultChannelId(state: GlobalState) {
  */
 const ProfilePopover = ({
     userId,
-    userProfileSrc,
+    src,
     channelId: channelIdProp,
     hideStatus,
     fromWebhook,
@@ -149,7 +149,7 @@ const ProfilePopover = ({
         return null;
     }
 
-    const urlSrc = overwriteIcon || userProfileSrc;
+    const urlSrc = overwriteIcon || src;
     const haveOverrideProp = Boolean(overwriteIcon || overwriteName);
     const fullname = overwriteName || Utils.getFullName(user);
 

@@ -116,13 +116,13 @@ exports[`components/AtMention should match snapshot when mentioning all with mix
 exports[`components/AtMention should match snapshot when mentioning current user 1`] = `
 <Fragment>
   <ProfilePopoverController
+    src="/api/v4/users/abc1/image"
     triggerComponentRootProps={
       Object {
         "className": "mention--highlight",
       }
     }
     userId="abc1"
-    userProfileSrc="/api/v4/users/abc1/image"
   >
     <a
       className="mention-link"
@@ -140,13 +140,13 @@ exports[`components/AtMention should match snapshot when mentioning current user
 exports[`components/AtMention should match snapshot when mentioning user 1`] = `
 <Fragment>
   <ProfilePopoverController
+    src="/api/v4/users/abc2/image"
     triggerComponentRootProps={
       Object {
         "className": "",
       }
     }
     userId="abc2"
-    userProfileSrc="/api/v4/users/abc2/image"
   >
     <a
       className="mention-link"
@@ -164,13 +164,13 @@ exports[`components/AtMention should match snapshot when mentioning user 1`] = `
 exports[`components/AtMention should match snapshot when mentioning user containing and followed by punctuation 1`] = `
 <Fragment>
   <ProfilePopoverController
+    src="/api/v4/users/abc3/image"
     triggerComponentRootProps={
       Object {
         "className": "",
       }
     }
     userId="abc3"
-    userProfileSrc="/api/v4/users/abc3/image"
   >
     <a
       className="mention-link"
@@ -189,13 +189,13 @@ exports[`components/AtMention should match snapshot when mentioning user contain
 exports[`components/AtMention should match snapshot when mentioning user containing punctuation 1`] = `
 <Fragment>
   <ProfilePopoverController
+    src="/api/v4/users/abc3/image"
     triggerComponentRootProps={
       Object {
         "className": "",
       }
     }
     userId="abc3"
-    userProfileSrc="/api/v4/users/abc3/image"
   >
     <a
       className="mention-link"
@@ -213,13 +213,13 @@ exports[`components/AtMention should match snapshot when mentioning user contain
 exports[`components/AtMention should match snapshot when mentioning user followed by punctuation 1`] = `
 <Fragment>
   <ProfilePopoverController
+    src="/api/v4/users/abc2/image"
     triggerComponentRootProps={
       Object {
         "className": "",
       }
     }
     userId="abc2"
-    userProfileSrc="/api/v4/users/abc2/image"
   >
     <a
       className="mention-link"
@@ -238,13 +238,13 @@ exports[`components/AtMention should match snapshot when mentioning user followe
 exports[`components/AtMention should match snapshot when mentioning user with different teammate name display setting 1`] = `
 <Fragment>
   <ProfilePopoverController
+    src="/api/v4/users/abc2/image"
     triggerComponentRootProps={
       Object {
         "className": "",
       }
     }
     userId="abc2"
-    userProfileSrc="/api/v4/users/abc2/image"
   >
     <a
       className="mention-link"
@@ -262,13 +262,13 @@ exports[`components/AtMention should match snapshot when mentioning user with di
 exports[`components/AtMention should match snapshot when mentioning user with mixed case 1`] = `
 <Fragment>
   <ProfilePopoverController
+    src="/api/v4/users/abc2/image"
     triggerComponentRootProps={
       Object {
         "className": "",
       }
     }
     userId="abc2"
-    userProfileSrc="/api/v4/users/abc2/image"
   >
     <a
       className="mention-link"

@@ -144,7 +144,7 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
         },
     };
     const props: Props = {
-        userProfileSrc: 'src',
+        src: 'src',
         userId: user.id,
         hide: jest.fn(),
         channelId: 'channelId',

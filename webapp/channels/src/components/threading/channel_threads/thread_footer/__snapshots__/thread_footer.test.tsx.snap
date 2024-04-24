@@ -74,6 +74,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
           userId="5"
         >
           <ProfilePopoverController
+            src="/api/v4/users/5/image?_=0"
             triggerComponentRootProps={
               Object {
                 "as": "button",
@@ -81,7 +82,6 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               }
             }
             userId="5"
-            userProfileSrc="/api/v4/users/5/image?_=0"
           >
             <button
               aria-expanded="false"
@@ -215,6 +215,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
           userId="4"
         >
           <ProfilePopoverController
+            src="/api/v4/users/4/image?_=0"
             triggerComponentRootProps={
               Object {
                 "as": "button",
@@ -222,7 +223,6 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               }
             }
             userId="4"
-            userProfileSrc="/api/v4/users/4/image?_=0"
           >
             <button
               aria-expanded="false"
@@ -356,6 +356,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
           userId="3"
         >
           <ProfilePopoverController
+            src="/api/v4/users/3/image?_=0"
             triggerComponentRootProps={
               Object {
                 "as": "button",
@@ -363,7 +364,6 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               }
             }
             userId="3"
-            userProfileSrc="/api/v4/users/3/image?_=0"
           >
             <button
               aria-expanded="false"
@@ -955,6 +955,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           userId="5"
         >
           <ProfilePopoverController
+            src="/api/v4/users/5/image?_=0"
             triggerComponentRootProps={
               Object {
                 "as": "button",
@@ -962,7 +963,6 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               }
             }
             userId="5"
-            userProfileSrc="/api/v4/users/5/image?_=0"
           >
             <button
               aria-expanded="false"
@@ -1096,6 +1096,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           userId="4"
         >
           <ProfilePopoverController
+            src="/api/v4/users/4/image?_=0"
             triggerComponentRootProps={
               Object {
                 "as": "button",
@@ -1103,7 +1104,6 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               }
             }
             userId="4"
-            userProfileSrc="/api/v4/users/4/image?_=0"
           >
             <button
               aria-expanded="false"
@@ -1237,6 +1237,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           userId="3"
         >
           <ProfilePopoverController
+            src="/api/v4/users/3/image?_=0"
             triggerComponentRootProps={
               Object {
                 "as": "button",
@@ -1244,7 +1245,6 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               }
             }
             userId="3"
-            userProfileSrc="/api/v4/users/3/image?_=0"
           >
             <button
               aria-expanded="false"

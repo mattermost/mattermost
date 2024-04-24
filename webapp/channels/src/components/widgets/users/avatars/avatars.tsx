@@ -67,7 +67,7 @@ function UserAvatar({
                 className: 'style--none rounded-button',
             }}
             userId={userId}
-            userProfileSrc={profilePictureURL}
+            src={profilePictureURL}
         >
             <WithTooltip
                 id={`tooltip-name-${userId}`}

@@ -5,6 +5,7 @@ exports[`components/UserProfile should match snapshot 1`] = `
   <ProfilePopoverController
     hideStatus={false}
     overwriteName=""
+    src="/api/v4/users/undefined/image?_=0"
     triggerComponentRootProps={
       Object {
         "as": "button",
@@ -13,7 +14,6 @@ exports[`components/UserProfile should match snapshot 1`] = `
       }
     }
     userId="user_id"
-    userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
     nickname
   </ProfilePopoverController>
@@ -25,6 +25,7 @@ exports[`components/UserProfile should match snapshot, when displayUsername is e
   <ProfilePopoverController
     hideStatus={false}
     overwriteName=""
+    src="/api/v4/users/undefined/image?_=0"
     triggerComponentRootProps={
       Object {
         "as": "button",
@@ -33,7 +34,6 @@ exports[`components/UserProfile should match snapshot, when displayUsername is e
       }
     }
     userId="user_id"
-    userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
     @username
   </ProfilePopoverController>
@@ -53,6 +53,7 @@ exports[`components/UserProfile should match snapshot, when user is shared 1`] =
   <ProfilePopoverController
     hideStatus={false}
     overwriteName=""
+    src="/api/v4/users/undefined/image?_=0"
     triggerComponentRootProps={
       Object {
         "as": "button",
@@ -61,7 +62,6 @@ exports[`components/UserProfile should match snapshot, when user is shared 1`] =
       }
     }
     userId="user_id"
-    userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
     nickname
   </ProfilePopoverController>
@@ -77,6 +77,7 @@ exports[`components/UserProfile should match snapshot, with colorization 1`] = `
   <ProfilePopoverController
     hideStatus={false}
     overwriteName=""
+    src="/api/v4/users/undefined/image?_=0"
     triggerComponentRootProps={
       Object {
         "as": "button",
@@ -87,7 +88,6 @@ exports[`components/UserProfile should match snapshot, with colorization 1`] = `
       }
     }
     userId="user_id"
-    userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
     nickname
   </ProfilePopoverController>

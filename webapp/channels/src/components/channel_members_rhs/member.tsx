@@ -124,7 +124,7 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                         className: 'profileSpan_userInfo',
                     }}
                     userId={member.user.id}
-                    userProfileSrc={userProfileSrc}
+                    src={userProfileSrc}
                     hideStatus={member.user.is_bot}
                 >
                     <DisplayName>
