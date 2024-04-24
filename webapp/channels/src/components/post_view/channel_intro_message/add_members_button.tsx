@@ -22,7 +22,6 @@ import ToggleModalButton from 'components/toggle_modal_button';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 import './add_members_button.scss';
 
@@ -83,7 +82,7 @@ const LessThanMaxFreeUsers = ({setHeader, pluginButtons}: {setHeader: React.Reac
                         defaultMessage='Let’s add some people to the workspace!'
                     />
                     <ToggleModalButton
-                        ariaLabel={localizeMessage('intro_messages.inviteOthers', 'Invite others to the workspace')}
+                        ariaLabel={formatMessage({id: 'intro_messages.inviteOthers', defaultMessage: 'Invite others to the workspace'})}
                         id='introTextInvite'
                         className='intro-links color--link cursor--pointer'
                         modalId={ModalIdentifiers.INVITATION}

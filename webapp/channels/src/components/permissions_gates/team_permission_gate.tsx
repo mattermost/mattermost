@@ -2,6 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useSelector} from 'react-redux';
+
+import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
 
@@ -16,11 +21,6 @@ type Props = {
     permissions: string[];
 
     /**
-     * Has permission
-     */
-    hasPermission: boolean;
-
-    /**
      * Invert the permission (used for else)
      */
     invert?: boolean;
@@ -31,7 +31,26 @@ type Props = {
     children: React.ReactNode;
 };
 
-const TeamPermissionGate = ({invert = false, hasPermission, children}: Props) => {
+const TeamPermissionGate = ({
+    teamId,
+    permissions,
+    invert = false,
+    children,
+}: Props) => {
+    const hasPermission = useSelector((state: GlobalState) => {
+        if (!teamId) {
+            return false;
+        }
+
+        for (const permission of permissions) {
+            if (haveITeamPermission(state, teamId, permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    });
+
     if (hasPermission !== invert) {
         return <>{children}</>;
     }
