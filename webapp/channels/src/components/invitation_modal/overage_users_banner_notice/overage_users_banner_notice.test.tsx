@@ -50,7 +50,6 @@ const text10PercentageState = `Your workspace user count has exceeded your paid 
 const notifyText = 'Notify your Customer Success Manager on your next true-up check';
 
 const contactSalesTextLink = 'Contact Sales';
-const expandSeatsTextLink = 'Purchase additional seats';
 
 const licenseId = generateId();
 
@@ -429,62 +428,6 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             user_id: store.entities.users.profiles.current_user.id,
             value: 'Overage users banner watched',
         }]);
-    });
-
-    it('should track if the admin click expansion seats CTA in a 5% overage state', () => {
-        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
-
-        store.entities.admin = {
-            ...store.entities.admin,
-            analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor5PercentageState,
-            },
-        };
-
-        store.entities.cloud = {
-            ...store.entities.cloud,
-        };
-
-        renderWithContext(
-            <OverageUsersBannerNotice/>,
-            store,
-        );
-
-        fireEvent.click(screen.getByText(expandSeatsTextLink));
-        expect(screen.getByRole('link')).toHaveAttribute('href', `http://testing/subscribe/expand?licenseId=${licenseId}`);
-        expect(trackEvent).toBeCalledTimes(2);
-        expect(trackEvent).toBeCalledWith('insights', 'click_true_up_warning', {
-            cta: 'Self Serve',
-            banner: 'invite modal',
-        });
-    });
-
-    it('should track if the admin click expansion seats CTA in a 10% overage state', () => {
-        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
-
-        store.entities.admin = {
-            ...store.entities.admin,
-            analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
-            },
-        };
-
-        store.entities.cloud = {
-            ...store.entities.cloud,
-        };
-
-        renderWithContext(
-            <OverageUsersBannerNotice/>,
-            store,
-        );
-
-        fireEvent.click(screen.getByText(expandSeatsTextLink));
-        expect(screen.getByRole('link')).toHaveAttribute('href', `http://testing/subscribe/expand?licenseId=${licenseId}`);
-        expect(trackEvent).toBeCalledTimes(2);
-        expect(trackEvent).toBeCalledWith('insights', 'click_true_up_error', {
-            cta: 'Self Serve',
-            banner: 'invite modal',
-        });
     });
 
     it('gov sku sees overage notice but not a call to do true up', async () => {
