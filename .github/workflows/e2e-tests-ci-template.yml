@@ -68,7 +68,7 @@ jobs:
   update-initial-status:
     runs-on: ubuntu-22.04
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@fix-update-commit-status-pt2
+      - uses: mattermost/actions/delivery/update-commit-status@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -77,7 +77,6 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: E2E tests for mattermost server app
           status: pending
-          target_url: "https://automation-dashboard.vercel.app/cycles/"
 
   cypress-check:
     runs-on: ubuntu-22.04
