@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -48,6 +49,10 @@ const (
 
 const websocketMessagePluginPrefix = "custom_"
 
+// UnsetPresenceIndicator is the value that gets set initially for active channel/
+// thread/team. This is done to differentiate it from an explicitly set empty value.
+const UnsetPresenceIndicator = "<>"
+
 type pluginWSPostedHook struct {
 	connectionID string
 	userID       string
@@ -62,6 +67,7 @@ type WebConnConfig struct {
 	ConnectionID string
 	Active       bool
 	ReuseCount   int
+	OriginClient string
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int
@@ -105,17 +111,22 @@ type WebConn struct {
 	// a reused connection.
 	// It's theoretically possible for this number to wrap around. But we
 	// leave that as an edge-case.
-	reuseCount                      int
-	sessionToken                    atomic.Value
-	session                         atomic.Pointer[model.Session]
-	connectionID                    atomic.Value
+	reuseCount   int
+	sessionToken atomic.Value
+	session      atomic.Pointer[model.Session]
+	connectionID atomic.Value
+
+	// The client type behind the connection (i.e. web, desktop or mobile)
+	originClient string
+
 	activeChannelID                 atomic.Value
 	activeTeamID                    atomic.Value
 	activeRHSThreadChannelID        atomic.Value
 	activeThreadViewThreadChannelID atomic.Value
-	endWritePump                    chan struct{}
-	pumpFinished                    chan struct{}
-	pluginPosted                    chan pluginWSPostedHook
+
+	endWritePump chan struct{}
+	pumpFinished chan struct{}
+	pluginPosted chan pluginWSPostedHook
 
 	// These counters are to suppress spammy websocket.slow
 	// and websocket.full logs which happen continuously, if they
@@ -229,6 +240,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		pluginPosted:       make(chan pluginWSPostedHook, 10),
 		lastLogTimeSlow:    time.Now(),
 		lastLogTimeFull:    time.Now(),
+		originClient:       cfg.OriginClient,
 	}
 	wc.active.Store(cfg.Active)
 
@@ -236,10 +248,12 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	wc.SetSessionToken(cfg.Session.Token)
 	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
 	wc.SetConnectionID(cfg.ConnectionID)
-	wc.SetActiveChannelID("")
-	wc.SetActiveTeamID("")
-	wc.SetActiveRHSThreadChannelID("")
-	wc.SetActiveThreadViewThreadChannelID("")
+	// <> means unset. This is to differentiate from empty value.
+	// Because we need to support mobile clients where the value might be unset.
+	wc.SetActiveChannelID(UnsetPresenceIndicator)
+	wc.SetActiveTeamID(UnsetPresenceIndicator)
+	wc.SetActiveRHSThreadChannelID(UnsetPresenceIndicator)
+	wc.SetActiveThreadViewThreadChannelID(UnsetPresenceIndicator)
 
 	ps.Go(func() {
 		runner.RunMultiHook(func(hooks plugin.Hooks) bool {
@@ -305,6 +319,9 @@ func (wc *WebConn) SetActiveChannelID(id string) {
 
 // GetActiveChannelID returns the active channel id of the connection.
 func (wc *WebConn) GetActiveChannelID() string {
+	if wc.activeChannelID.Load() == nil {
+		return UnsetPresenceIndicator
+	}
 	return wc.activeChannelID.Load().(string)
 }
 
@@ -315,11 +332,17 @@ func (wc *WebConn) SetActiveTeamID(id string) {
 
 // GetActiveTeamID returns the active team id of the connection.
 func (wc *WebConn) GetActiveTeamID() string {
+	if wc.activeTeamID.Load() == nil {
+		return UnsetPresenceIndicator
+	}
 	return wc.activeTeamID.Load().(string)
 }
 
 // GetActiveRHSThreadChannelID returns the channel id of the active thread of the connection.
 func (wc *WebConn) GetActiveRHSThreadChannelID() string {
+	if wc.activeRHSThreadChannelID.Load() == nil {
+		return UnsetPresenceIndicator
+	}
 	return wc.activeRHSThreadChannelID.Load().(string)
 }
 
@@ -330,12 +353,20 @@ func (wc *WebConn) SetActiveRHSThreadChannelID(id string) {
 
 // GetActiveThreadViewThreadChannelID returns the channel id of the active thread of the connection.
 func (wc *WebConn) GetActiveThreadViewThreadChannelID() string {
+	if wc.activeThreadViewThreadChannelID.Load() == nil {
+		return UnsetPresenceIndicator
+	}
 	return wc.activeThreadViewThreadChannelID.Load().(string)
 }
 
 // SetActiveThreadViewThreadChannelID sets the channel id of the active thread of the connection.
 func (wc *WebConn) SetActiveThreadViewThreadChannelID(id string) {
 	wc.activeThreadViewThreadChannelID.Store(id)
+}
+
+// isSet is a helper to check if a value is unset or not.
+func (wc *WebConn) isSet(val string) bool {
+	return val != UnsetPresenceIndicator
 }
 
 // areAllInactive returns whether all of the connections
@@ -442,6 +473,10 @@ func (wc *WebConn) readPump() {
 		if err != nil {
 			wc.logSocketErr("websocket.cloneRequest", err)
 			continue
+		}
+
+		if session := wc.GetSession(); session != nil {
+			clonedReq.Session.Id = session.Id
 		}
 
 		wc.pluginPosted <- pluginWSPostedHook{wc.GetConnectionID(), wc.UserId, clonedReq}
@@ -843,7 +878,18 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	}
 
 	// Only report events to users who are in the channel for the event
-	if msg.GetBroadcast().ChannelId != "" {
+	if chID := msg.GetBroadcast().ChannelId; chID != "" {
+		// For typing events, we don't send them to users who don't have
+		// that channel or thread opened.
+		if wc.Platform.Config().FeatureFlags.WebSocketEventScope &&
+			slices.Contains([]model.WebsocketEventType{
+				model.WebsocketEventTyping,
+				model.WebsocketEventReactionAdded,
+				model.WebsocketEventReactionRemoved,
+			}, msg.EventType()) && wc.notInChannel(chID) && wc.notInThread(chID) {
+			return false
+		}
+
 		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
 			wc.allChannelMembers = nil
 			wc.lastAllChannelMembersTime = 0
@@ -859,7 +905,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 			wc.lastAllChannelMembersTime = model.GetMillis()
 		}
 
-		if _, ok := wc.allChannelMembers[msg.GetBroadcast().ChannelId]; ok {
+		if _, ok := wc.allChannelMembers[chID]; ok {
 			return true
 		}
 		return false
@@ -875,6 +921,15 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	}
 
 	return true
+}
+
+func (wc *WebConn) notInChannel(val string) bool {
+	return (wc.isSet(wc.GetActiveChannelID()) && val != wc.GetActiveChannelID())
+}
+
+func (wc *WebConn) notInThread(val string) bool {
+	return (wc.isSet(wc.GetActiveRHSThreadChannelID()) && val != wc.GetActiveRHSThreadChannelID()) &&
+		(wc.isSet(wc.GetActiveThreadViewThreadChannelID()) && val != wc.GetActiveThreadViewThreadChannelID())
 }
 
 // IsMemberOfTeam returns whether the user of the WebConn
@@ -904,11 +959,13 @@ func (wc *WebConn) logSocketErr(source string, err error) {
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 		mlog.Debug(source+": client side closed socket",
 			mlog.String("user_id", wc.UserId),
-			mlog.String("conn_id", wc.GetConnectionID()))
+			mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.String("origin_client", wc.originClient))
 	} else {
 		mlog.Debug(source+": closing websocket",
 			mlog.String("user_id", wc.UserId),
 			mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.String("origin_client", wc.originClient),
 			mlog.Err(err))
 	}
 }

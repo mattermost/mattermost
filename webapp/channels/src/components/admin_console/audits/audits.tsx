@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {CSSProperties} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {Audit} from '@mattermost/types/audits';
 
@@ -26,6 +26,14 @@ type Props = {
 type State = {
     loadingAudits: boolean;
 };
+
+const messages = defineMessages({
+    reload: {id: 'admin.audits.reload', defaultMessage: 'Reload User Activity Logs'},
+});
+
+export const searchableStrings = [
+    messages.reload,
+];
 
 export default class Audits extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
@@ -71,10 +79,7 @@ export default class Audits extends React.PureComponent<Props, State> {
                     onClick={this.reload}
                 >
                     <ReloadIcon/>
-                    <FormattedMessage
-                        id='admin.audits.reload'
-                        defaultMessage='Reload User Activity Logs'
-                    />
+                    <FormattedMessage {...messages.reload}/>
                 </button>
             </div>
         );

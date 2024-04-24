@@ -157,6 +157,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		th.App.SetSearchEngine(searchEngine)
 	}
 
+	th.App.Srv().SetLicense(getLicense(enterprise, memoryConfig))
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
@@ -186,12 +188,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	web.New(th.App.Srv())
 	wsapi.Init(th.App.Srv())
 
-	if enterprise {
-		th.App.Srv().SetLicense(model.NewTestLicense())
-	} else {
-		th.App.Srv().SetLicense(nil)
-	}
-
 	th.Client = th.CreateClient()
 	th.SystemAdminClient = th.CreateClient()
 	th.SystemManagerClient = th.CreateClient()
@@ -213,6 +209,16 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	return th
+}
+
+func getLicense(enterprise bool, cfg *model.Config) *model.License {
+	if *cfg.ExperimentalSettings.EnableRemoteClusterService || *cfg.ExperimentalSettings.EnableSharedChannels {
+		return model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
+	}
+	if enterprise {
+		return model.NewTestLicense()
+	}
+	return nil
 }
 
 func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
@@ -285,6 +291,7 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(dbStore, searchEngine, false, true, updateConfig, nil)
 	th.InitLogin()
@@ -292,8 +299,7 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	setupOptions := []app.Option{app.SkipProductsInitialization()}
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig, setupOptions)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -307,8 +313,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	setupOptions := []app.Option{app.SkipProductsInitialization()}
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, setupOptions)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -322,8 +327,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHelper {
-	setupOptions := append(options, app.SkipProductsInitialization())
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, setupOptions)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, options)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -481,9 +485,9 @@ func (th *TestHelper) InitBasic() *TestHelper {
 }
 
 func (th *TestHelper) DeleteBots() *TestHelper {
-	preexistingBots, _ := th.App.GetBots(&model.BotGetOptions{Page: 0, PerPage: 100})
+	preexistingBots, _ := th.App.GetBots(th.Context, &model.BotGetOptions{Page: 0, PerPage: 100})
 	for _, bot := range preexistingBots {
-		th.App.PermanentDeleteBot(bot.UserId)
+		th.App.PermanentDeleteBot(th.Context, bot.UserId)
 	}
 	return th
 }
@@ -617,6 +621,41 @@ func (th *TestHelper) CreateUserWithAuth(authService string) *model.User {
 		panic(err)
 	}
 	return user
+}
+
+// CreateGuestAndClient creates a guest user, adds them to the basic
+// team, basic channel and basic private channel, and generates an API
+// client ready to use
+func (th *TestHelper) CreateGuestAndClient() (*model.User, *model.Client4) {
+	id := model.NewId()
+
+	// create a guest user and add it to the basic team and public/private channels
+	guest, cgErr := th.App.CreateGuest(th.Context, &model.User{
+		Email:         "test_guest" + id + "@sample.com",
+		Username:      "guest_" + id,
+		Nickname:      "guest_" + id,
+		Password:      "Password1",
+		EmailVerified: true,
+	})
+	if cgErr != nil {
+		panic(cgErr)
+	}
+
+	_, _, tErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, th.SystemAdminUser.Id)
+	if tErr != nil {
+		panic(tErr)
+	}
+	th.AddUserToChannel(guest, th.BasicChannel)
+	th.AddUserToChannel(guest, th.BasicPrivateChannel)
+
+	// create a client and login the guest
+	guestClient := th.CreateClient()
+	_, _, lErr := guestClient.Login(context.Background(), guest.Username, "Password1")
+	if lErr != nil {
+		panic(lErr)
+	}
+
+	return guest, guestClient
 }
 
 func (th *TestHelper) SetupLdapConfig() {
@@ -782,7 +821,7 @@ func (th *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 }
 
 func (th *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
-	post, err := th.App.Srv().Store().Post().Save(&model.Post{
+	post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   message,
@@ -803,6 +842,23 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 		panic(err)
 	}
 	return channel
+}
+
+func (th *TestHelper) PatchChannelModerationsForMembers(channelId, name string, val bool) {
+	patch := []*model.ChannelModerationPatch{{
+		Name:  &name,
+		Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(val)},
+	}}
+
+	channel, err := th.App.GetChannel(th.Context, channelId)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = th.App.PatchChannelModerationsForChannel(th.Context, channel, patch)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (th *TestHelper) LoginBasic() {

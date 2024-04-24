@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
@@ -25,8 +26,6 @@ import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_to
 import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
 
 import {PermissionsScope, ModalIdentifiers, DocLinks} from 'utils/constants';
-import {t} from 'utils/i18n';
-import {localizeMessage} from 'utils/utils';
 
 import TeamInList from './team_in_list';
 
@@ -46,7 +45,6 @@ export type Props = {
     teams: Team[] | null;
     isDisabled: boolean;
     config: Partial<ClientConfig>;
-    intl: IntlShape;
     actions: {
         loadRolesIfNeeded: (roles: Iterable<string>) => Promise<ActionResult>;
         loadScheme: (schemeId: string) => Promise<ActionResult>;
@@ -57,7 +55,7 @@ export type Props = {
         createScheme: (scheme: Scheme) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
-}
+} & WrappedComponentProps;
 
 type State = {
     saving: boolean;
@@ -81,7 +79,7 @@ type State = {
     schemeDescription: string | undefined;
 };
 
-export class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComponentProps, State> {
+class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComponentProps, State> {
     constructor(props: Props & RouteComponentProps) {
         super(props);
         this.state = {
@@ -633,10 +631,8 @@ export class PermissionTeamSchemeSettings extends React.PureComponent<Props & Ro
                         </div>
 
                         <AdminPanel
-                            titleId={t('admin.permissions.teamScheme.schemeDetailsTitle')}
-                            titleDefault='Scheme Details'
-                            subtitleId={t('admin.permissions.teamScheme.schemeDetailsDescription')}
-                            subtitleDefault='Set the name and description for this scheme.'
+                            title={defineMessage({id: 'admin.permissions.teamScheme.schemeDetailsTitle', defaultMessage: 'Scheme Details'})}
+                            subtitle={defineMessage({id: 'admin.permissions.teamScheme.schemeDetailsDescription', defaultMessage: 'Set the name and description for this scheme.'})}
                         >
                             <div className='team-scheme-details'>
                                 <div className='form-group'>
@@ -674,7 +670,7 @@ export class PermissionTeamSchemeSettings extends React.PureComponent<Props & Ro
                                         className='form-control'
                                         rows={5}
                                         value={schemeDescription}
-                                        placeholder={localizeMessage('admin.permissions.teamScheme.schemeDescriptionPlaceholder', 'Scheme Description')}
+                                        placeholder={this.props.intl.formatMessage({id: 'admin.permissions.teamScheme.schemeDescriptionPlaceholder', defaultMessage: 'Scheme Description'})}
                                         onChange={this.handleDescriptionChange}
                                         disabled={this.props.isDisabled}
                                     />
@@ -684,13 +680,10 @@ export class PermissionTeamSchemeSettings extends React.PureComponent<Props & Ro
 
                         <AdminPanelWithButton
                             className='permissions-block'
-                            titleId={t('admin.permissions.teamScheme.selectTeamsTitle')}
-                            titleDefault='Select teams to override permissions'
-                            subtitleId={t('admin.permissions.teamScheme.selectTeamsDescription')}
-                            subtitleDefault='Select teams where permission exceptions are required.'
+                            title={defineMessage({id: 'admin.permissions.teamScheme.selectTeamsTitle', defaultMessage: 'Select teams to override permissions'})}
+                            subtitle={defineMessage({id: 'admin.permissions.teamScheme.selectTeamsDescription', defaultMessage: 'Select teams where permission exceptions are required.'})}
                             onButtonClick={this.openAddTeam}
-                            buttonTextId={t('admin.permissions.teamScheme.addTeams')}
-                            buttonTextDefault='Add Teams'
+                            buttonText={defineMessage({id: 'admin.permissions.teamScheme.addTeams', defaultMessage: 'Add Teams'})}
                             disabled={this.props.isDisabled}
                         >
                             <div className='teams-list'>
@@ -718,11 +711,8 @@ export class PermissionTeamSchemeSettings extends React.PureComponent<Props & Ro
                                 open={this.state.openRoles.guests}
                                 id='guests'
                                 onToggle={() => this.toggleRole('guests')}
-                                titleId={t('admin.permissions.systemScheme.GuestsTitle')}
-                                titleDefault='Guests'
-                                subtitleId={t('admin.permissions.systemScheme.GuestsDescription')}
-                                subtitleDefault='Permissions granted to guest users.'
-                                isDisabled={this.props.isDisabled}
+                                title={defineMessage({id: 'admin.permissions.systemScheme.GuestsTitle', defaultMessage: 'Guests'})}
+                                subtitle={defineMessage({id: 'admin.permissions.systemScheme.GuestsDescription', defaultMessage: 'Permissions granted to guest users.'})}
                             >
                                 <GuestPermissionsTree
                                     selected={this.state.selectedPermission}
@@ -740,11 +730,8 @@ export class PermissionTeamSchemeSettings extends React.PureComponent<Props & Ro
                             open={this.state.openRoles.all_users}
                             id='all_users'
                             onToggle={() => this.toggleRole('all_users')}
-                            titleId={t('admin.permissions.systemScheme.allMembersTitle')}
-                            titleDefault='All Members'
-                            subtitleId={t('admin.permissions.systemScheme.allMembersDescription')}
-                            subtitleDefault='Permissions granted to all members, including administrators and newly created users.'
-                            isDisabled={this.props.isDisabled}
+                            title={defineMessage({id: 'admin.permissions.systemScheme.allMembersTitle', defaultMessage: 'All Members'})}
+                            subtitle={defineMessage({id: 'admin.permissions.systemScheme.allMembersDescription', defaultMessage: 'Permissions granted to all members, including administrators and newly created users.'})}
                         >
                             <PermissionsTree
                                 selected={this.state.selectedPermission}
@@ -760,11 +747,8 @@ export class PermissionTeamSchemeSettings extends React.PureComponent<Props & Ro
                             className='permissions-block channel_admin'
                             open={this.state.openRoles.channel_admin}
                             onToggle={() => this.toggleRole('channel_admin')}
-                            titleId={t('admin.permissions.systemScheme.channelAdminsTitle')}
-                            titleDefault='Channel Administrators'
-                            subtitleId={t('admin.permissions.systemScheme.channelAdminsDescription')}
-                            subtitleDefault='Permissions granted to channel creators and any users promoted to Channel Administrator.'
-                            isDisabled={this.props.isDisabled}
+                            title={defineMessage({id: 'admin.permissions.systemScheme.channelAdminsTitle', defaultMessage: 'Channel Administrators'})}
+                            subtitle={defineMessage({id: 'admin.permissions.systemScheme.channelAdminsDescription', defaultMessage: 'Permissions granted to channel creators and any users promoted to Channel Administrator.'})}
                         >
                             <PermissionsTree
                                 parentRole={roles?.all_users}
@@ -780,11 +764,8 @@ export class PermissionTeamSchemeSettings extends React.PureComponent<Props & Ro
                             className='permissions-block'
                             open={this.state.openRoles.playbook_admin}
                             onToggle={() => this.toggleRole('playbook_admin')}
-                            titleId={t('admin.permissions.systemScheme.playbookAdmin')}
-                            titleDefault='Playbook Administrator'
-                            subtitleId={t('admin.permissions.systemScheme.playbookAdminSubtitle')}
-                            subtitleDefault='Permissions granted to administrators of a playbook.'
-                            isDisabled={this.props.isDisabled}
+                            title={defineMessage({id: 'admin.permissions.systemScheme.playbookAdmin', defaultMessage: 'Playbook Administrator'})}
+                            subtitle={defineMessage({id: 'admin.permissions.systemScheme.playbookAdminSubtitle', defaultMessage: 'Permissions granted to administrators of a playbook.'})}
                         >
                             <PermissionsTreePlaybooks
                                 parentRole={roles?.all_users}
@@ -801,11 +782,8 @@ export class PermissionTeamSchemeSettings extends React.PureComponent<Props & Ro
                             className='permissions-block team_admin'
                             open={this.state.openRoles.team_admin}
                             onToggle={() => this.toggleRole('team_admin')}
-                            titleId={t('admin.permissions.systemScheme.teamAdminsTitle')}
-                            titleDefault='Team Administrators'
-                            subtitleId={t('admin.permissions.systemScheme.teamAdminsDescription')}
-                            subtitleDefault='Permissions granted to team creators and any users promoted to Team Administrator.'
-                            isDisabled={this.props.isDisabled}
+                            title={defineMessage({id: 'admin.permissions.systemScheme.teamAdminsTitle', defaultMessage: 'Team Administrators'})}
+                            subtitle={defineMessage({id: 'admin.permissions.systemScheme.teamAdminsDescription', defaultMessage: 'Permissions granted to team creators and any users promoted to Team Administrator.'})}
                         >
                             <PermissionsTree
                                 parentRole={roles?.all_users}
@@ -824,7 +802,7 @@ export class PermissionTeamSchemeSettings extends React.PureComponent<Props & Ro
                         saving={this.state.saving}
                         disabled={this.props.isDisabled || !this.state.saveNeeded}
                         onClick={this.handleSubmit}
-                        savingMessage={localizeMessage('admin.saving', 'Saving Config...')}
+                        savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
                     <BlockableLink
                         className='cancel-button'

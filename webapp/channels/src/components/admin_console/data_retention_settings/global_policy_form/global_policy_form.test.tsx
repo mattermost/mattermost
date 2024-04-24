@@ -21,7 +21,7 @@ describe('components/PluginManagement', () => {
         fileRetentionHours: '2400',
         environmentConfig: {},
         actions: {
-            updateConfig: jest.fn(),
+            patchConfig: jest.fn(),
             setNavigationBlocked: jest.fn(),
         },
     };

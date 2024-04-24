@@ -4,7 +4,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
 <div
   className="admin-sidebar"
 >
-  <Connect(SidebarHeader) />
+  <Connect(Component) />
   <div
     className="filter-container"
   >
@@ -43,8 +43,8 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
     <div
       className="nav-pills__container"
     >
-      <Highlight
-        filter="autolink"
+      <SearchKeywordMarking
+        keyword="autolink"
       >
         <ul
           className="nav nav-pills nav-stacked"
@@ -74,7 +74,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
             />
           </AdminSidebarCategory>
         </ul>
-      </Highlight>
+      </SearchKeywordMarking>
     </div>
   </Scrollbars>
 </div>
@@ -84,7 +84,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
 <div
   className="admin-sidebar"
 >
-  <Connect(SidebarHeader) />
+  <Connect(Component) />
   <div
     className="filter-container"
   >
@@ -123,8 +123,8 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
     <div
       className="nav-pills__container"
     >
-      <Highlight
-        filter=""
+      <SearchKeywordMarking
+        keyword=""
       >
         <ul
           className="nav nav-pills nav-stacked"
@@ -481,7 +481,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             />
           </AdminSidebarCategory>
         </ul>
-      </Highlight>
+      </SearchKeywordMarking>
     </div>
   </Scrollbars>
 </div>
@@ -491,7 +491,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
 <div
   className="admin-sidebar"
 >
-  <Connect(SidebarHeader) />
+  <Connect(Component) />
   <div
     className="filter-container"
   >
@@ -530,8 +530,8 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
     <div
       className="nav-pills__container"
     >
-      <Highlight
-        filter=""
+      <SearchKeywordMarking
+        keyword=""
       >
         <ul
           className="nav nav-pills nav-stacked"
@@ -1157,7 +1157,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Feature Flags"
+                  defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -1175,7 +1175,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             />
           </AdminSidebarCategory>
         </ul>
-      </Highlight>
+      </SearchKeywordMarking>
     </div>
   </Scrollbars>
 </div>
@@ -1185,7 +1185,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
 <div
   className="admin-sidebar"
 >
-  <Connect(SidebarHeader) />
+  <Connect(Component) />
   <div
     className="filter-container"
   >
@@ -1224,8 +1224,8 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
     <div
       className="nav-pills__container"
     >
-      <Highlight
-        filter=""
+      <SearchKeywordMarking
+        keyword=""
       >
         <ul
           className="nav nav-pills nav-stacked"
@@ -1851,7 +1851,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Feature Flags"
+                  defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -1869,7 +1869,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             />
           </AdminSidebarCategory>
         </ul>
-      </Highlight>
+      </SearchKeywordMarking>
     </div>
   </Scrollbars>
 </div>
@@ -1879,7 +1879,7 @@ exports[`components/AdminSidebar should match snapshot, no access 1`] = `
 <div
   className="admin-sidebar"
 >
-  <Connect(SidebarHeader) />
+  <Connect(Component) />
   <div
     className="filter-container"
   >
@@ -1918,13 +1918,13 @@ exports[`components/AdminSidebar should match snapshot, no access 1`] = `
     <div
       className="nav-pills__container"
     >
-      <Highlight
-        filter=""
+      <SearchKeywordMarking
+        keyword=""
       >
         <ul
           className="nav nav-pills nav-stacked"
         />
-      </Highlight>
+      </SearchKeywordMarking>
     </div>
   </Scrollbars>
 </div>
@@ -1934,7 +1934,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
 <div
   className="admin-sidebar"
 >
-  <Connect(SidebarHeader) />
+  <Connect(Component) />
   <div
     className="filter-container"
   >
@@ -1973,8 +1973,8 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
     <div
       className="nav-pills__container"
     >
-      <Highlight
-        filter=""
+      <SearchKeywordMarking
+        keyword=""
       >
         <ul
           className="nav nav-pills nav-stacked"
@@ -2600,7 +2600,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Feature Flags"
+                  defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -2618,7 +2618,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             />
           </AdminSidebarCategory>
         </ul>
-      </Highlight>
+      </SearchKeywordMarking>
     </div>
   </Scrollbars>
 </div>
@@ -2628,7 +2628,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
 <div
   className="admin-sidebar"
 >
-  <Connect(SidebarHeader) />
+  <Connect(Component) />
   <div
     className="filter-container"
   >
@@ -2667,8 +2667,8 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
     <div
       className="nav-pills__container"
     >
-      <Highlight
-        filter=""
+      <SearchKeywordMarking
+        keyword=""
       >
         <ul
           className="nav nav-pills nav-stacked"
@@ -3294,7 +3294,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Feature Flags"
+                  defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -3312,7 +3312,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             />
           </AdminSidebarCategory>
         </ul>
-      </Highlight>
+      </SearchKeywordMarking>
     </div>
   </Scrollbars>
 </div>
@@ -3322,7 +3322,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
 <div
   className="admin-sidebar"
 >
-  <Connect(SidebarHeader) />
+  <Connect(Component) />
   <div
     className="filter-container"
   >
@@ -3361,8 +3361,8 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
     <div
       className="nav-pills__container"
     >
-      <Highlight
-        filter=""
+      <SearchKeywordMarking
+        keyword=""
       >
         <ul
           className="nav nav-pills nav-stacked"
@@ -4150,7 +4150,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Feature Flags"
+                  defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -4168,7 +4168,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             />
           </AdminSidebarCategory>
         </ul>
-      </Highlight>
+      </SearchKeywordMarking>
     </div>
   </Scrollbars>
 </div>
@@ -4178,7 +4178,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
 <div
   className="admin-sidebar"
 >
-  <Connect(SidebarHeader) />
+  <Connect(Component) />
   <div
     className="filter-container"
   >
@@ -4217,8 +4217,8 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
     <div
       className="nav-pills__container"
     >
-      <Highlight
-        filter=""
+      <SearchKeywordMarking
+        keyword=""
       >
         <ul
           className="nav nav-pills nav-stacked"
@@ -5103,7 +5103,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Feature Flags"
+                  defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -5121,7 +5121,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             />
           </AdminSidebarCategory>
         </ul>
-      </Highlight>
+      </SearchKeywordMarking>
     </div>
   </Scrollbars>
 </div>

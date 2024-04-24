@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {cloneDeep} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -41,7 +41,7 @@ import SaveChangesPanel from '../../save_changes_panel';
 export interface ChannelDetailsProps {
     channelID: string;
     channel: Channel;
-    team: Partial<Team>;
+    team?: Team;
     groups: Group[];
     totalGroups: number;
     allGroups: Record<string, Group>;
@@ -145,7 +145,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         }
 
         // If we don't have the team and channel on mount, we need to request the team after we load the channel
-        if (!prevProps.team.id && !prevProps.channel.team_id && channel.team_id) {
+        if (!prevProps.team?.id && !prevProps.channel.team_id && channel.team_id) {
             actions.getTeam(channel.team_id).
                 then(async (data: any) => {
                     if (data.data && data.data.scheme_id) {

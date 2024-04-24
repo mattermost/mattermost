@@ -3,7 +3,8 @@
 
 import React from 'react';
 import type {ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor, WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages, injectIntl} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
@@ -13,7 +14,6 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {DocLinks, JobTypes, exportFormats} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
-import * as Utils from 'utils/utils';
 
 import type {BaseProps, BaseState} from './admin_settings';
 import AdminSettings from './admin_settings';
@@ -37,7 +37,45 @@ interface State extends BaseState {
     globalRelaySMTPServerTimeout: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['SMTPServerTimeout'];
 }
 
-export default class MessageExportSettings extends AdminSettings<BaseProps, State> {
+const messages = defineMessages({
+    globalRelayCustomerType_title: {id: 'admin.complianceExport.globalRelayCustomerType.title', defaultMessage: 'Customer Type:'},
+    globalRelayCustomerType_description: {id: 'admin.complianceExport.globalRelayCustomerType.description', defaultMessage: 'The type of GlobalRelay customer account that your organization has.'},
+    globalRelaySMTPUsername_title: {id: 'admin.complianceExport.globalRelaySMTPUsername.title', defaultMessage: 'SMTP Username:'},
+    globalRelaySMTPUsername_description: {id: 'admin.complianceExport.globalRelaySMTPUsername.description', defaultMessage: 'The username that is used to authenticate against the GlobalRelay SMTP server.'},
+    globalRelaySMTPPassword_title: {id: 'admin.complianceExport.globalRelaySMTPPassword.title', defaultMessage: 'SMTP Password:'},
+    globalRelaySMTPPassword_description: {id: 'admin.complianceExport.globalRelaySMTPPassword.description', defaultMessage: 'The password that is used to authenticate against the GlobalRelay SMTP server.'},
+    globalRelayEmailAddress_title: {id: 'admin.complianceExport.globalRelayEmailAddress.title', defaultMessage: 'Email Address:'},
+    globalRelayEmailAddress_description: {id: 'admin.complianceExport.globalRelayEmailAddress.description', defaultMessage: 'The email address that your GlobalRelay server monitors for incoming Compliance Exports.'},
+    complianceExportTitle: {id: 'admin.service.complianceExportTitle', defaultMessage: 'Enable Compliance Export:'},
+    complianceExportDesc: {id: 'admin.service.complianceExportDesc', defaultMessage: 'When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more.'},
+    exportJobStartTime_title: {id: 'admin.complianceExport.exportJobStartTime.title', defaultMessage: 'Compliance Export Time:'},
+    exportJobStartTime_description: {id: 'admin.complianceExport.exportJobStartTime.description', defaultMessage: 'Set the start time of the daily scheduled compliance export job. Choose a time when fewer people are using your system. Must be a 24-hour time stamp in the form HH:MM.'},
+    exportFormat_title: {id: 'admin.complianceExport.exportFormat.title', defaultMessage: 'Export Format:'},
+    exportFormat_description: {id: 'admin.complianceExport.exportFormat.description', defaultMessage: 'Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address.'},
+    createJob_title: {id: 'admin.complianceExport.createJob.title', defaultMessage: 'Run Compliance Export Job Now'},
+    createJob_help: {id: 'admin.complianceExport.createJob.help', defaultMessage: 'Initiates a Compliance Export job immediately.'},
+});
+
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+    [messages.exportFormat_description, {siteURL: ''}],
+    messages.complianceExportTitle,
+    messages.complianceExportDesc,
+    messages.exportJobStartTime_title,
+    messages.exportJobStartTime_description,
+    messages.exportFormat_title,
+    messages.createJob_title,
+    messages.createJob_help,
+    messages.globalRelayCustomerType_title,
+    messages.globalRelayCustomerType_description,
+    messages.globalRelaySMTPUsername_title,
+    messages.globalRelaySMTPUsername_description,
+    messages.globalRelaySMTPPassword_title,
+    messages.globalRelaySMTPPassword_description,
+    messages.globalRelayEmailAddress_title,
+    messages.globalRelayEmailAddress_description,
+];
+
+export class MessageExportSettings extends AdminSettings<BaseProps & WrappedComponentProps, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.MessageExportSettings.EnableExport = this.state.enableComplianceExport;
         config.MessageExportSettings.ExportFormat = this.state.exportFormat;
@@ -142,9 +180,9 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
 
     renderSettings = () => {
         const exportFormatOptions = [
-            {value: exportFormats.EXPORT_FORMAT_ACTIANCE, text: Utils.localizeMessage('admin.complianceExport.exportFormat.actiance', 'Actiance XML')},
-            {value: exportFormats.EXPORT_FORMAT_CSV, text: Utils.localizeMessage('admin.complianceExport.exportFormat.csv', 'CSV')},
-            {value: exportFormats.EXPORT_FORMAT_GLOBALRELAY, text: Utils.localizeMessage('admin.complianceExport.exportFormat.globalrelay', 'GlobalRelay EML')},
+            {value: exportFormats.EXPORT_FORMAT_ACTIANCE, text: this.props.intl.formatMessage({id: 'admin.complianceExport.exportFormat.actiance', defaultMessage: 'Actiance XML'})},
+            {value: exportFormats.EXPORT_FORMAT_CSV, text: this.props.intl.formatMessage({id: 'admin.complianceExport.exportFormat.csv', defaultMessage: 'CSV'})},
+            {value: exportFormats.EXPORT_FORMAT_GLOBALRELAY, text: this.props.intl.formatMessage({id: 'admin.complianceExport.exportFormat.globalrelay', defaultMessage: 'GlobalRelay EML'})},
         ];
 
         // if the export format is globalrelay, the user needs to set some additional parameters
@@ -154,22 +192,12 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
                 <RadioSetting
                     id='globalRelayCustomerType'
                     values={[
-                        {value: 'A9', text: Utils.localizeMessage('admin.complianceExport.globalRelayCustomerType.a9.description', 'A9/Type 9')},
-                        {value: 'A10', text: Utils.localizeMessage('admin.complianceExport.globalRelayCustomerType.a10.description', 'A10/Type 10')},
-                        {value: 'CUSTOM', text: Utils.localizeMessage('admin.complianceExport.globalRelayCustomerType.custom.description', 'Custom')},
+                        {value: 'A9', text: this.props.intl.formatMessage({id: 'admin.complianceExport.globalRelayCustomerType.a9.description', defaultMessage: 'A9/Type 9'})},
+                        {value: 'A10', text: this.props.intl.formatMessage({id: 'admin.complianceExport.globalRelayCustomerType.a10.description', defaultMessage: 'A10/Type 10'})},
+                        {value: 'CUSTOM', text: this.props.intl.formatMessage({id: 'admin.complianceExport.globalRelayCustomerType.custom.description', defaultMessage: 'Custom'})},
                     ]}
-                    label={
-                        <FormattedMessage
-                            id='admin.complianceExport.globalRelayCustomerType.title'
-                            defaultMessage='Customer Type:'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.complianceExport.globalRelayCustomerType.description'
-                            defaultMessage='The type of GlobalRelay customer account that your organization has.'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.globalRelayCustomerType_title}/>}
+                    helpText={<FormattedMessage {...messages.globalRelayCustomerType_description}/>}
                     value={this.state.globalRelayCustomerType ? this.state.globalRelayCustomerType : ''}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.CustomerType')}
@@ -180,19 +208,9 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
             const globalRelaySMTPUsername = (
                 <TextSetting
                     id='globalRelaySMTPUsername'
-                    label={
-                        <FormattedMessage
-                            id='admin.complianceExport.globalRelaySMTPUsername.title'
-                            defaultMessage='SMTP Username:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.complianceExport.globalRelaySMTPUsername.example', 'E.g.: "globalRelayUser"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.complianceExport.globalRelaySMTPUsername.description'
-                            defaultMessage='The username that is used to authenticate against the GlobalRelay SMTP server.'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.globalRelaySMTPUsername_title}/>}
+                    placeholder={defineMessage({id: 'admin.complianceExport.globalRelaySMTPUsername.example', defaultMessage: 'E.g.: "globalRelayUser"'})}
+                    helpText={<FormattedMessage {...messages.globalRelaySMTPUsername_description}/>}
                     value={this.state.globalRelaySMTPUsername ? this.state.globalRelaySMTPUsername : ''}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.SMTPUsername')}
@@ -203,19 +221,9 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
             const globalRelaySMTPPassword = (
                 <TextSetting
                     id='globalRelaySMTPPassword'
-                    label={
-                        <FormattedMessage
-                            id='admin.complianceExport.globalRelaySMTPPassword.title'
-                            defaultMessage='SMTP Password:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.complianceExport.globalRelaySMTPPassword.example', 'E.g.: "globalRelayPassword"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.complianceExport.globalRelaySMTPPassword.description'
-                            defaultMessage='The password that is used to authenticate against the GlobalRelay SMTP server.'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.globalRelaySMTPPassword_title}/>}
+                    placeholder={defineMessage({id: 'admin.complianceExport.globalRelaySMTPPassword.example', defaultMessage: 'E.g.: "globalRelayPassword"'})}
+                    helpText={<FormattedMessage {...messages.globalRelaySMTPPassword_description}/>}
                     value={this.state.globalRelaySMTPPassword ? this.state.globalRelaySMTPPassword : ''}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.SMTPPassword')}
@@ -226,19 +234,9 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
             const globalRelayEmail = (
                 <TextSetting
                     id='globalRelayEmailAddress'
-                    label={
-                        <FormattedMessage
-                            id='admin.complianceExport.globalRelayEmailAddress.title'
-                            defaultMessage='Email Address:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.complianceExport.globalRelayEmailAddress.example', 'E.g.: "globalrelay@mattermost.com"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.complianceExport.globalRelayEmailAddress.description'
-                            defaultMessage='The email address that your GlobalRelay server monitors for incoming Compliance Exports.'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.globalRelayEmailAddress_title}/>}
+                    placeholder={defineMessage({id: 'admin.complianceExport.globalRelayEmailAddress.example', defaultMessage: 'E.g.: "globalrelay@mattermost.com"'})}
+                    helpText={<FormattedMessage {...messages.globalRelayEmailAddress_description}/>}
                     value={this.state.globalRelayEmailAddress ? this.state.globalRelayEmailAddress : ''}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.EmailAddress')}
@@ -255,7 +253,7 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
                             defaultMessage='SMTP Server Name:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.complianceExport.globalRelayCustomSMTPServerName.example', 'E.g.: "feeds.globalrelay.com"')}
+                    placeholder={defineMessage({id: 'admin.complianceExport.globalRelayCustomSMTPServerName.example', defaultMessage: 'E.g.: "feeds.globalrelay.com"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.complianceExport.globalRelayCustomSMTPServerName.description'
@@ -278,7 +276,7 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
                             defaultMessage='SMTP Server Port:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.complianceExport.globalRelayCustomSMTPPort.example', 'E.g.: "25"')}
+                    placeholder={defineMessage({id: 'admin.complianceExport.globalRelayCustomSMTPPort.example', defaultMessage: 'E.g.: "25"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.complianceExport.globalRelayCustomSMTPPort.description'
@@ -312,9 +310,11 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
 
         const dropdownHelpText = (
             <FormattedMarkdownMessage
-                id='admin.complianceExport.exportFormat.description'
-                defaultMessage='Format of the compliance export. Corresponds to the system that you want to import the data into.\n \nFor Actiance XML, compliance export files are written to the \"exports\" subdirectory of the configured [Local Storage Directory]({siteURL}/admin_console/environment/file_storage). For Global Relay EML, they are emailed to the configured email address.'
-                values={{siteURL: getSiteURL()}}
+                {...messages.exportFormat_description}
+                values={{
+                    url: `${getSiteURL()}/admin_console/environment/file_storage`,
+                    lineBreak: '\n',
+                }}
             />
         );
 
@@ -322,16 +322,10 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
             <SettingsGroup>
                 <BooleanSetting
                     id='enableComplianceExport'
-                    label={
-                        <FormattedMessage
-                            id='admin.service.complianceExportTitle'
-                            defaultMessage='Enable Compliance Export:'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.complianceExportTitle}/>}
                     helpText={
                         <FormattedMessage
-                            id='admin.service.complianceExportDesc'
-                            defaultMessage='When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more.'
+                            {...messages.complianceExportDesc}
                             values={{
                                 link: (msg: ReactNode) => (
                                     <ExternalLink
@@ -352,19 +346,9 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
 
                 <TextSetting
                     id='exportJobStartTime'
-                    label={
-                        <FormattedMessage
-                            id='admin.complianceExport.exportJobStartTime.title'
-                            defaultMessage='Compliance Export Time:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.complianceExport.exportJobStartTime.example', 'E.g.: "02:00"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.complianceExport.exportJobStartTime.description'
-                            defaultMessage='Set the start time of the daily scheduled compliance export job. Choose a time when fewer people are using your system. Must be a 24-hour time stamp in the form HH:MM.'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.exportJobStartTime_title}/>}
+                    placeholder={defineMessage({id: 'admin.complianceExport.exportJobStartTime.example', defaultMessage: 'E.g.: "02:00"'})}
+                    helpText={<FormattedMessage {...messages.exportJobStartTime_description}/>}
                     value={this.state.exportJobStartTime}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('DataRetentionSettings.DailyRunTime')}
@@ -374,12 +358,7 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
                 <DropdownSetting
                     id='exportFormat'
                     values={exportFormatOptions}
-                    label={
-                        <FormattedMessage
-                            id='admin.complianceExport.exportFormat.title'
-                            defaultMessage='Export Format:'
-                        />
-                    }
+                    label={<FormattedMessage {...messages.exportFormat_title}/>}
                     helpText={dropdownHelpText}
                     value={this.state.exportFormat}
                     onChange={this.handleChange}
@@ -391,18 +370,8 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
 
                 <JobsTable
                     jobType={JobTypes.MESSAGE_EXPORT}
-                    createJobButtonText={
-                        <FormattedMessage
-                            id='admin.complianceExport.createJob.title'
-                            defaultMessage='Run Compliance Export Job Now'
-                        />
-                    }
-                    createJobHelpText={
-                        <FormattedMessage
-                            id='admin.complianceExport.createJob.help'
-                            defaultMessage='Initiates a Compliance Export job immediately.'
-                        />
-                    }
+                    createJobButtonText={<FormattedMessage {...messages.createJob_title}/>}
+                    createJobHelpText={<FormattedMessage {...messages.createJob_help}/>}
                     getExtraInfoText={this.getJobDetails}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
@@ -410,3 +379,5 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
         );
     };
 }
+
+export default injectIntl(MessageExportSettings);

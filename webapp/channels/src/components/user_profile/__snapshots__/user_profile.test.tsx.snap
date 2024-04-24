@@ -5,12 +5,10 @@ exports[`components/UserProfile should match snapshot 1`] = `
   <OverlayTrigger
     defaultOverlayShown={false}
     overlay={
-      <Memo(Connect(injectIntl(ProfilePopover)))
+      <Memo(ProfilePopover)
         className="user-profile-popover"
-        hasMention={false}
         hide={[Function]}
         hideStatus={false}
-        isBusy={false}
         overwriteName=""
         src="/api/v4/users/undefined/image?_=0"
         userId="user_id"
@@ -39,12 +37,10 @@ exports[`components/UserProfile should match snapshot, when displayUsername is e
   <OverlayTrigger
     defaultOverlayShown={false}
     overlay={
-      <Memo(Connect(injectIntl(ProfilePopover)))
+      <Memo(ProfilePopover)
         className="user-profile-popover"
-        hasMention={false}
         hide={[Function]}
         hideStatus={false}
-        isBusy={false}
         overwriteName=""
         src="/api/v4/users/undefined/image?_=0"
         userId="user_id"
@@ -81,12 +77,10 @@ exports[`components/UserProfile should match snapshot, when user is shared 1`] =
   <OverlayTrigger
     defaultOverlayShown={false}
     overlay={
-      <Memo(Connect(injectIntl(ProfilePopover)))
+      <Memo(ProfilePopover)
         className="user-profile-popover"
-        hasMention={false}
         hide={[Function]}
         hideStatus={false}
-        isBusy={false}
         overwriteName=""
         src="/api/v4/users/undefined/image?_=0"
         userId="user_id"
@@ -109,6 +103,7 @@ exports[`components/UserProfile should match snapshot, when user is shared 1`] =
   </OverlayTrigger>
   <SharedUserIndicator
     className="shared-user-icon"
+    id="sharedUserIndicator-user_id"
     withTooltip={true}
   />
 </Fragment>
@@ -119,12 +114,10 @@ exports[`components/UserProfile should match snapshot, with colorization 1`] = `
   <OverlayTrigger
     defaultOverlayShown={false}
     overlay={
-      <Memo(Connect(injectIntl(ProfilePopover)))
+      <Memo(ProfilePopover)
         className="user-profile-popover"
-        hasMention={false}
         hide={[Function]}
         hideStatus={false}
-        isBusy={false}
         overwriteName=""
         src="/api/v4/users/undefined/image?_=0"
         userId="user_id"

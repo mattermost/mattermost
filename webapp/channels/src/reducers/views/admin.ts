@@ -1,20 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
+import {CursorPaginationDirection} from '@mattermost/types/reports';
+
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 
-const initialState = {
+import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
+
+const navigationBlockInitialState = {
     blocked: false,
     onNavigationConfirmed: null,
     showNavigationPrompt: false,
 };
 
-function navigationBlock(state = initialState, action: GenericAction) {
+function navigationBlock(state = navigationBlockInitialState, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.SET_NAVIGATION_BLOCKED:
         return {...state, blocked: action.blocked};
@@ -39,13 +43,13 @@ function navigationBlock(state = initialState, action: GenericAction) {
         };
 
     case UserTypes.LOGOUT_SUCCESS:
-        return initialState;
+        return navigationBlockInitialState;
     default:
         return state;
     }
 }
 
-export function needsLoggedInLimitReachedCheck(state = false, action: GenericAction) {
+export function needsLoggedInLimitReachedCheck(state = false, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.NEEDS_LOGGED_IN_LIMIT_REACHED_CHECK:
         return action.data;
@@ -54,7 +58,36 @@ export function needsLoggedInLimitReachedCheck(state = false, action: GenericAct
     }
 }
 
+export const adminConsoleUserManagementTablePropertiesInitialState: AdminConsoleUserManagementTableProperties = {
+    sortColumn: '',
+    sortIsDescending: false,
+    pageSize: 0,
+    pageIndex: 0,
+    cursorDirection: CursorPaginationDirection.next,
+    cursorUserId: '',
+    cursorColumnValue: '',
+    columnVisibility: {},
+    searchTerm: '',
+    filterTeam: '',
+    filterTeamLabel: '',
+    filterStatus: '',
+    filterRole: '',
+};
+
+export function adminConsoleUserManagementTableProperties(state = adminConsoleUserManagementTablePropertiesInitialState, action: AnyAction) {
+    switch (action.type) {
+    case ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: {
+        return {...state, ...action.data};
+    }
+    case ActionTypes.CLEAR_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES:
+        return adminConsoleUserManagementTablePropertiesInitialState;
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     navigationBlock,
     needsLoggedInLimitReachedCheck,
+    adminConsoleUserManagementTableProperties,
 });

@@ -383,6 +383,11 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 }
 
 func (a *App) newSession(c request.CTX, app *model.OAuthApp, user *model.User) (*model.Session, *model.AppError) {
+	if err := a.limitNumberOfSessions(c, user.Id); err != nil {
+		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil,
+			"", http.StatusInternalServerError).Wrap(err)
+	}
+
 	// Set new token an session
 	session := &model.Session{UserId: user.Id, Roles: user.Roles, IsOAuth: true}
 	session.GenerateCSRF()
@@ -822,17 +827,19 @@ func (a *App) AuthorizeOAuthUser(c request.CTX, w http.ResponseWriter, r *http.R
 	stateEmail := stateProps["email"]
 	stateAction := stateProps["action"]
 	if stateAction == model.OAuthActionEmailToSSO && stateEmail == "" {
-		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest)
+		err := errors.New("No email provided in state when trying to switch from email to SSO")
+		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	cookie, cookieErr := r.Cookie(CookieOAuth)
 	if cookieErr != nil {
-		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest)
+		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest).Wrap(cookieErr)
 	}
 
 	expectedTokenExtra := generateOAuthStateTokenExtra(stateEmail, stateAction, cookie.Value)
 	if expectedTokenExtra != expectedToken.Extra {
-		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest)
+		err := errors.New("Extra token value does not match token generated from state")
+		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	appErr = a.DeleteToken(expectedToken)
@@ -958,7 +965,12 @@ func (a *App) SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.R
 	stateProps["email"] = email
 
 	if service == model.UserAuthServiceSaml {
-		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OAuthActionEmailToSSO + "&email=" + utils.URLEncode(email), nil
+		samlToken, samlErr := a.CreateSamlRelayToken(email)
+		if samlErr != nil {
+			return "", samlErr
+		}
+
+		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OAuthActionEmailToSSO + "&email_token=" + utils.URLEncode(samlToken.Token), nil
 	}
 
 	authURL, err := a.GetAuthorizationCode(c, w, r, service, stateProps, "")
@@ -972,6 +984,14 @@ func (a *App) SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.R
 func (a *App) SwitchOAuthToEmail(c request.CTX, email, password, requesterId string) (string, *model.AppError) {
 	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("oauthToEmail", "api.user.oauth_to_email.not_available.app_error", nil, "", http.StatusForbidden)
+	}
+
+	if !*a.Config().EmailSettings.EnableSignUpWithEmail {
+		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.auth_switch.not_available.email_signup_disabled.app_error", nil, "", http.StatusForbidden)
+	}
+
+	if !*a.Config().EmailSettings.EnableSignInWithEmail && !*a.Config().EmailSettings.EnableSignInWithUsername {
+		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.auth_switch.not_available.login_disabled.app_error", nil, "", http.StatusForbidden)
 	}
 
 	user, err := a.GetUserByEmail(email)

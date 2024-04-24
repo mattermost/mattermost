@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/golang/mock/gomock"
-	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 
@@ -30,7 +29,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPlugin(context.Background(), gomock.AssignableToTypeOf(tmpFile)).
+			UploadPlugin(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
 			Return(&model.Manifest{}, &model.Response{}, nil).
 			Times(1)
 
@@ -50,7 +49,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPluginForced(context.Background(), gomock.AssignableToTypeOf(tmpFile)).
+			UploadPluginForced(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
 			Return(&model.Manifest{}, &model.Response{}, nil).
 			Times(1)
 
@@ -81,12 +80,12 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPlugin(context.Background(), gomock.AssignableToTypeOf(tmpFile)).
+			UploadPlugin(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
 			Return(&model.Manifest{}, &model.Response{}, mockError).
 			Times(1)
 
 		err = pluginAddCmdF(s.client, &cobra.Command{}, []string{pluginName})
-		s.Require().NoError(err)
+		s.Require().ErrorContains(err, "plugin add error")
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "Unable to add plugin: "+pluginName+". Error: "+mockError.Error())
 	})
@@ -103,13 +102,13 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 			if arg == "fail" {
 				s.client.
 					EXPECT().
-					UploadPlugin(context.Background(), gomock.AssignableToTypeOf(tmpFile)).
+					UploadPlugin(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
 					Return(nil, &model.Response{}, mockError).
 					Times(1)
 			} else {
 				s.client.
 					EXPECT().
-					UploadPlugin(context.Background(), gomock.AssignableToTypeOf(tmpFile)).
+					UploadPlugin(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
 					Return(&model.Manifest{}, &model.Response{}, nil).
 					Times(1)
 			}
@@ -117,7 +116,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 		}
 
 		err := pluginAddCmdF(s.client, &cobra.Command{}, args)
-		s.Require().NoError(err)
+		s.Require().ErrorContains(err, "plugin add error")
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "Added plugin: "+args[1])
 		s.Require().Len(printer.GetErrorLines(), 2)
@@ -138,13 +137,13 @@ func (s *MmctlUnitTestSuite) TestPluginInstallUrlCmd() {
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(context.Background(), pluginURL1, false).
+			InstallPluginFromURL(context.TODO(), pluginURL1, false).
 			Return(manifest1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(context.Background(), pluginURL2, false).
+			InstallPluginFromURL(context.TODO(), pluginURL2, false).
 			Return(manifest2, &model.Response{}, nil).
 			Times(1)
 
@@ -164,7 +163,7 @@ func (s *MmctlUnitTestSuite) TestPluginInstallUrlCmd() {
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(context.Background(), pluginURL, true).
+			InstallPluginFromURL(context.TODO(), pluginURL, true).
 			Return(manifest, &model.Response{}, nil).
 			Times(1)
 
@@ -188,21 +187,18 @@ func (s *MmctlUnitTestSuite) TestPluginInstallUrlCmd() {
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(context.Background(), pluginURL1, false).
+			InstallPluginFromURL(context.TODO(), pluginURL1, false).
 			Return(manifest1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(context.Background(), pluginURL2, false).
+			InstallPluginFromURL(context.TODO(), pluginURL2, false).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		var expected error
-		expected = multierror.Append(expected, errors.New("mock error"))
-
 		err := pluginInstallURLCmdF(s.client, &cobra.Command{}, args)
-		s.Require().EqualError(err, expected.Error())
+		s.Require().ErrorContains(err, "mock error")
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to install plugin from URL \"https://example.com/plugin2.tar.gz\". Error: mock error", printer.GetErrorLines()[0])
 		s.Require().Len(printer.GetLines(), 1)
@@ -217,7 +213,7 @@ func (s *MmctlUnitTestSuite) TestPluginDisableCmd() {
 
 		s.client.
 			EXPECT().
-			DisablePlugin(context.Background(), arg).
+			DisablePlugin(context.TODO(), arg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -235,12 +231,12 @@ func (s *MmctlUnitTestSuite) TestPluginDisableCmd() {
 
 		s.client.
 			EXPECT().
-			DisablePlugin(context.Background(), arg).
+			DisablePlugin(context.TODO(), arg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
 		err := pluginDisableCmdF(s.client, &cobra.Command{}, []string{arg})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "mock error")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "Unable to disable plugin: "+arg+". Error: "+mockError.Error())
@@ -255,20 +251,20 @@ func (s *MmctlUnitTestSuite) TestPluginDisableCmd() {
 			if strings.HasPrefix(arg, "fail") {
 				s.client.
 					EXPECT().
-					DisablePlugin(context.Background(), arg).
+					DisablePlugin(context.TODO(), arg).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 					Times(1)
 			} else {
 				s.client.
 					EXPECT().
-					DisablePlugin(context.Background(), arg).
+					DisablePlugin(context.TODO(), arg).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 					Times(1)
 			}
 		}
 
 		err := pluginDisableCmdF(s.client, &cobra.Command{}, args)
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "mock error")
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(printer.GetLines()[0], "Disabled plugin: "+args[1])
 		s.Require().Equal(printer.GetLines()[1], "Disabled plugin: "+args[2])
@@ -285,7 +281,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 
 		s.client.
 			EXPECT().
-			EnablePlugin(context.Background(), pluginArg).
+			EnablePlugin(context.TODO(), pluginArg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -303,7 +299,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 		for _, plugin := range plugins {
 			s.client.
 				EXPECT().
-				EnablePlugin(context.Background(), plugin).
+				EnablePlugin(context.TODO(), plugin).
 				Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 				Times(1)
 		}
@@ -324,12 +320,12 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 
 		s.client.
 			EXPECT().
-			EnablePlugin(context.Background(), pluginArg).
+			EnablePlugin(context.TODO(), pluginArg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 			Times(1)
 
 		err := pluginEnableCmdF(s.client, &cobra.Command{}, []string{pluginArg})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "mock error")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "Unable to enable plugin: "+pluginArg+". Error: "+mockErr.Error())
@@ -347,7 +343,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 		for _, plugin := range okPlugins {
 			s.client.
 				EXPECT().
-				EnablePlugin(context.Background(), plugin).
+				EnablePlugin(context.TODO(), plugin).
 				Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 				Times(1)
 		}
@@ -355,13 +351,13 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 		for _, plugin := range failPlugins {
 			s.client.
 				EXPECT().
-				EnablePlugin(context.Background(), plugin).
+				EnablePlugin(context.TODO(), plugin).
 				Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 				Times(1)
 		}
 
 		err := pluginEnableCmdF(s.client, &cobra.Command{}, allPlugins)
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "mock error")
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(printer.GetLines()[0], "Enabled plugin: "+okPlugins[0])
 		s.Require().Equal(printer.GetLines()[1], "Enabled plugin: "+okPlugins[1])
@@ -424,23 +420,24 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		s.client.
 			EXPECT().
-			GetPlugins(context.Background()).
+			GetPlugins(context.TODO()).
 			Return(mockList, &model.Response{}, nil).
 			Times(1)
 
 		err := pluginListCmdF(s.client, &cobra.Command{}, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Len(printer.GetLines(), 8)
+		s.Require().Len(printer.GetLines(), 9)
 
 		s.Require().Equal("Listing enabled plugins", printer.GetLines()[0])
 		for i, plugin := range mockList.Active {
 			s.Require().Equal(plugin, printer.GetLines()[i+1])
 		}
 
-		s.Require().Equal("Listing disabled plugins", printer.GetLines()[4])
+		s.Require().Equal("", printer.GetLines()[4])
+		s.Require().Equal("Listing disabled plugins", printer.GetLines()[5])
 		for i, plugin := range mockList.Inactive {
-			s.Require().Equal(plugin, printer.GetLines()[i+5])
+			s.Require().Equal(plugin, printer.GetLines()[i+6])
 		}
 	})
 
@@ -499,23 +496,24 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		s.client.
 			EXPECT().
-			GetPlugins(context.Background()).
+			GetPlugins(context.TODO()).
 			Return(mockList, &model.Response{}, nil).
 			Times(1)
 
 		err := pluginListCmdF(s.client, &cobra.Command{}, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Len(printer.GetLines(), 8)
+		s.Require().Len(printer.GetLines(), 9)
 
 		s.Require().Equal("Listing enabled plugins", printer.GetLines()[0])
 		for i, plugin := range mockList.Active {
 			s.Require().Equal(plugin.Id+": "+plugin.Name+", Version: "+plugin.Version, printer.GetLines()[i+1])
 		}
 
-		s.Require().Equal("Listing disabled plugins", printer.GetLines()[4])
+		s.Require().Equal("", printer.GetLines()[4])
+		s.Require().Equal("Listing disabled plugins", printer.GetLines()[5])
 		for i, plugin := range mockList.Inactive {
-			s.Require().Equal(plugin.Id+": "+plugin.Name+", Version: "+plugin.Version, printer.GetLines()[i+5])
+			s.Require().Equal(plugin.Id+": "+plugin.Name+", Version: "+plugin.Version, printer.GetLines()[i+6])
 		}
 	})
 
@@ -525,12 +523,13 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		s.client.
 			EXPECT().
-			GetPlugins(context.Background()).
+			GetPlugins(context.TODO()).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		err := pluginListCmdF(s.client, &cobra.Command{}, nil)
 		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
 		s.Require().EqualError(err, "Unable to list plugins. Error: "+mockError.Error())
 	})
 }
@@ -543,12 +542,12 @@ func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
 
 		s.client.
 			EXPECT().
-			RemovePlugin(context.Background(), args).
+			RemovePlugin(context.TODO(), args).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
 		err := pluginDeleteCmdF(s.client, &cobra.Command{}, []string{args})
-		s.Require().NoError(err)
+		s.Require().ErrorContains(err, "mock error")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to delete plugin: "+args+". Error: "+mockError.Error(), printer.GetErrorLines()[0])
@@ -560,7 +559,7 @@ func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
 
 		s.client.
 			EXPECT().
-			RemovePlugin(context.Background(), args).
+			RemovePlugin(context.TODO(), args).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -586,30 +585,30 @@ func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
 
 		s.client.
 			EXPECT().
-			RemovePlugin(context.Background(), args[0]).
+			RemovePlugin(context.TODO(), args[0]).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemovePlugin(context.Background(), args[1]).
+			RemovePlugin(context.TODO(), args[1]).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErrors[0]).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemovePlugin(context.Background(), args[2]).
+			RemovePlugin(context.TODO(), args[2]).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErrors[1]).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemovePlugin(context.Background(), args[3]).
+			RemovePlugin(context.TODO(), args[3]).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := pluginDeleteCmdF(s.client, &cobra.Command{}, args)
-		s.Require().NoError(err)
+		s.Require().ErrorContains(err, "mock error")
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal("Deleted plugin: "+args[0], printer.GetLines()[0])
 		s.Require().Equal("Deleted plugin: "+args[3], printer.GetLines()[1])

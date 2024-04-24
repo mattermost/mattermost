@@ -53,7 +53,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
             this.props.actions.loadIncomingHooksAndProfilesForTeam(
                 this.props.team.id,
                 Constants.Integrations.START_PAGE_NUM,
-                Constants.Integrations.PAGE_SIZE as any, // HARRISONTODO PAGE_SIZE doesn't seem like it should be a string
+                Constants.Integrations.PAGE_SIZE,
             ).then(
                 () => this.setState({loading: false}),
             );

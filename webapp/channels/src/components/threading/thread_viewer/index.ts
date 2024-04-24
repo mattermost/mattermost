@@ -6,6 +6,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {ClientConfig} from '@mattermost/types/config';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
@@ -13,12 +14,12 @@ import {getNewestPostThread, getPostThread} from 'mattermost-redux/actions/posts
 import {getThread as fetchThread, updateThreadRead} from 'mattermost-redux/actions/threads';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost, makeGetPostIdsForThread} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {selectPostCard} from 'actions/views/rhs';
 import {updateThreadLastOpened} from 'actions/views/threads';
@@ -44,6 +45,8 @@ function makeMapStateToProps() {
         const socketStatus = getSocketStatus(state);
         const highlightedPostId = getHighlightedPostId(state);
         const selectedPostFocusedAt = getSelectedPostFocussedAt(state);
+        const config: Partial<ClientConfig> = getConfig(state);
+        const enableWebSocketEventScope = config.FeatureFlagWebSocketEventScope === 'true';
 
         let postIds: string[] = [];
         let userThread: UserThread | null = null;
@@ -67,11 +70,12 @@ function makeMapStateToProps() {
             channel,
             highlightedPostId,
             selectedPostFocusedAt,
+            enableWebSocketEventScope,
         };
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             fetchRHSAppsBindings,

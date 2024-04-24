@@ -38,8 +38,10 @@ const (
 	MetricsSubsystemSearch             = "search"
 	MetricsSubsystemLogging            = "logging"
 	MetricsSubsystemRemoteCluster      = "remote_cluster"
+	MetricsSubsystemSharedChannels     = "shared_channels"
 	MetricsSubsystemSystem             = "system"
 	MetricsSubsystemJobs               = "jobs"
+	MetricsSubsystemNotifications      = "notifications"
 	MetricsCloudInstallationLabel      = "installationId"
 	MetricsCloudDatabaseClusterLabel   = "databaseClusterName"
 	MetricsCloudInstallationGroupLabel = "installationGroupId"
@@ -65,7 +67,7 @@ type MetricsInterfaceImpl struct {
 
 	HTTPRequestsCounter prometheus.Counter
 	HTTPErrorsCounter   prometheus.Counter
-	HTTPWebsocketsGauge prometheus.GaugeFunc
+	HTTPWebsocketsGauge *prometheus.GaugeVec
 
 	ClusterRequestsDuration prometheus.Histogram
 	ClusterRequestsCounter  prometheus.Counter
@@ -189,9 +191,23 @@ type MetricsInterfaceImpl struct {
 	RemoteClusterClockSkewHistograms    *prometheus.HistogramVec
 	RemoteClusterConnStateChangeCounter *prometheus.CounterVec
 
+	SharedChannelsSyncCount                   *prometheus.CounterVec
+	SharedChannelsTaskInQueueHistogram        prometheus.Histogram
+	SharedChannelsQueueSize                   prometheus.Gauge
+	SharedChannelsSyncCollectionHistogram     *prometheus.HistogramVec
+	SharedChannelsSyncSendHistogram           *prometheus.HistogramVec
+	SharedChannelsSyncCollectionStepHistogram *prometheus.HistogramVec
+	SharedChannelsSyncSendStepHistogram       *prometheus.HistogramVec
+
 	ServerStartTime prometheus.Gauge
 
 	JobsActive *prometheus.GaugeVec
+
+	NotificationTotalCounters   *prometheus.CounterVec
+	NotificationAckCounters     *prometheus.CounterVec
+	NotificationSuccessCounters *prometheus.CounterVec
+	NotificationErrorCounters   *prometheus.CounterVec
+	NotificationNotSentCounters *prometheus.CounterVec
 }
 
 func init() {
@@ -359,13 +375,13 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 
 	// HTTP Subsystem
 
-	m.HTTPWebsocketsGauge = prometheus.NewGaugeFunc(prometheus.GaugeOpts{
+	m.HTTPWebsocketsGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace:   MetricsNamespace,
 		Subsystem:   MetricsSubsystemHTTP,
 		Name:        "websockets_total",
 		Help:        "The total number of websocket connections to this server.",
 		ConstLabels: additionalLabels,
-	}, func() float64 { return float64(m.Platform.TotalWebsocketConnections()) })
+	}, []string{"origin_client"})
 	m.Registry.MustRegister(m.HTTPWebsocketsGauge)
 
 	m.HTTPRequestsCounter = prometheus.NewCounter(prometheus.CounterOpts{
@@ -853,7 +869,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.LoggerBlockedCounters.counter)
 
-	// Remote Cluster subsystem
+	// Remote Cluster service
 
 	m.RemoteClusterMsgSentCounters = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -927,6 +943,90 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.RemoteClusterConnStateChangeCounter)
 
+	// Shared Channel service
+
+	m.SharedChannelsSyncCount = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "sync_count",
+			Help:        "Count of sync events processed for each remote",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"remote_id"},
+	)
+	m.Registry.MustRegister(m.SharedChannelsSyncCount)
+
+	m.SharedChannelsTaskInQueueHistogram = prometheus.NewHistogram(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "task_in_queue_duration_seconds",
+			Help:        "Duration tasks spend in queue (seconds)",
+			ConstLabels: additionalLabels,
+		},
+	)
+	m.Registry.MustRegister(m.SharedChannelsTaskInQueueHistogram)
+
+	m.SharedChannelsQueueSize = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "task_queue_size",
+			Help:        "Current number of tasks in queue",
+			ConstLabels: additionalLabels,
+		},
+	)
+	m.Registry.MustRegister(m.SharedChannelsQueueSize)
+
+	m.SharedChannelsSyncCollectionHistogram = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "sync_collection_duration_seconds",
+			Help:        "Duration tasks spend collecting sync data (seconds)",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"remote_id"},
+	)
+	m.Registry.MustRegister(m.SharedChannelsSyncCollectionHistogram)
+
+	m.SharedChannelsSyncSendHistogram = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "sync_send_duration_seconds",
+			Help:        "Duration tasks spend sending sync data (seconds)",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"remote_id"},
+	)
+	m.Registry.MustRegister(m.SharedChannelsSyncSendHistogram)
+
+	m.SharedChannelsSyncCollectionStepHistogram = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "sync_collection_step_duration_seconds",
+			Help:        "Duration tasks spend in each step collecting data (seconds)",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"remote_id", "step"},
+	)
+	m.Registry.MustRegister(m.SharedChannelsSyncCollectionStepHistogram)
+
+	m.SharedChannelsSyncSendStepHistogram = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "sync_send_step_duration_seconds",
+			Help:        "Duration tasks spend in each step sending data (seconds)",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"remote_id", "step"},
+	)
+	m.Registry.MustRegister(m.SharedChannelsSyncSendStepHistogram)
+
 	m.ServerStartTime = prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace:   MetricsNamespace,
 		Subsystem:   MetricsSubsystemSystem,
@@ -948,6 +1048,67 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"type"},
 	)
 	m.Registry.MustRegister(m.JobsActive)
+
+	m.NotificationTotalCounters = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemNotifications,
+			Name:        "total",
+			Help:        "Total number of notification events",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"type"},
+	)
+	m.Registry.MustRegister(m.NotificationTotalCounters)
+
+	m.NotificationAckCounters = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemNotifications,
+			Name:        "total_ack",
+			Help:        "Total number of notification events acknowledged",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"type"},
+	)
+	m.Registry.MustRegister(m.NotificationAckCounters)
+
+	m.NotificationSuccessCounters = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemNotifications,
+			Name:        "success",
+			Help:        "Total number of successfully sent notifications",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"type"},
+	)
+	m.Registry.MustRegister(m.NotificationSuccessCounters)
+
+	m.NotificationErrorCounters = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemNotifications,
+			Name:        "error",
+			Help:        "Total number of errors that stop the notification flow",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"type", "reason"},
+	)
+	m.Registry.MustRegister(m.NotificationErrorCounters)
+
+	m.NotificationNotSentCounters = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemNotifications,
+			Name:        "not_sent",
+			Help:        "Total number of notifications the system deliberately did not send",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"type", "reason"},
+	)
+	m.Registry.MustRegister(m.NotificationNotSentCounters)
+
 	return m
 }
 
@@ -1324,6 +1485,46 @@ func (mi *MetricsInterfaceImpl) IncrementRemoteClusterConnStateChangeCounter(rem
 	}).Inc()
 }
 
+func (mi *MetricsInterfaceImpl) IncrementSharedChannelsSyncCounter(remoteID string) {
+	mi.SharedChannelsSyncCount.With(prometheus.Labels{
+		"remote_id": remoteID,
+	}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) ObserveSharedChannelsTaskInQueueDuration(elapsed float64) {
+	mi.SharedChannelsTaskInQueueHistogram.Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveSharedChannelsQueueSize(size int64) {
+	mi.SharedChannelsQueueSize.Set(float64(size))
+}
+
+func (mi *MetricsInterfaceImpl) ObserveSharedChannelsSyncCollectionDuration(remoteID string, elapsed float64) {
+	mi.SharedChannelsSyncCollectionHistogram.With(prometheus.Labels{
+		"remote_id": remoteID,
+	}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveSharedChannelsSyncSendDuration(remoteID string, elapsed float64) {
+	mi.SharedChannelsSyncSendHistogram.With(prometheus.Labels{
+		"remote_id": remoteID,
+	}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveSharedChannelsSyncCollectionStepDuration(remoteID string, step string, elapsed float64) {
+	mi.SharedChannelsSyncCollectionStepHistogram.With(prometheus.Labels{
+		"remote_id": remoteID,
+		"step":      step,
+	}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveSharedChannelsSyncSendStepDuration(remoteID string, step string, elapsed float64) {
+	mi.SharedChannelsSyncSendStepHistogram.With(prometheus.Labels{
+		"remote_id": remoteID,
+		"step":      step,
+	}).Observe(elapsed)
+}
+
 // SetReplicaLagAbsolute sets the absolute replica lag for a given node.
 func (mi *MetricsInterfaceImpl) SetReplicaLagAbsolute(node string, value float64) {
 	mi.DbReplicaLagGaugeAbs.With(prometheus.Labels{"node": node}).Set(value)
@@ -1332,6 +1533,34 @@ func (mi *MetricsInterfaceImpl) SetReplicaLagAbsolute(node string, value float64
 // SetReplicaLagTime sets the time-based replica lag for a given node.
 func (mi *MetricsInterfaceImpl) SetReplicaLagTime(node string, value float64) {
 	mi.DbReplicaLagGaugeTime.With(prometheus.Labels{"node": node}).Set(value)
+}
+
+func (mi *MetricsInterfaceImpl) IncrementNotificationCounter(notificationType model.NotificationType) {
+	mi.NotificationTotalCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementNotificationAckCounter(notificationType model.NotificationType) {
+	mi.NotificationAckCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementNotificationSuccessCounter(notificationType model.NotificationType) {
+	mi.NotificationSuccessCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason) {
+	mi.NotificationErrorCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(errorReason)}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
+	mi.NotificationNotSentCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason)}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementHTTPWebSockets(originClient string) {
+	mi.HTTPWebsocketsGauge.With(prometheus.Labels{"origin_client": originClient}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) DecrementHTTPWebSockets(originClient string) {
+	mi.HTTPWebsocketsGauge.With(prometheus.Labels{"origin_client": originClient}).Dec()
 }
 
 func extractDBCluster(driver, connectionString string) (string, error) {

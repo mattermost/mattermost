@@ -91,7 +91,7 @@ describe('Actions.Threads', () => {
                 },
                 channels: {
                     channelsInTeam: {
-                        [currentTeamId]: [channel.id],
+                        [currentTeamId]: new Set([channel.id]),
                     },
                     channels: {
                         [channel.id]: channel,

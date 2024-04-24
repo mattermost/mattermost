@@ -153,12 +153,19 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud restore sho
     }
   >
     <AdminPanel
-      className=""
       id="team_profile"
-      subtitleDefault="Summary of the team, including team name and description."
-      subtitleId="admin.team_settings.team_detail.profileDescription"
-      titleDefault="Team Profile"
-      titleId="admin.team_settings.team_detail.profileTitle"
+      subtitle={
+        Object {
+          "defaultMessage": "Summary of the team, including team name and description.",
+          "id": "admin.team_settings.team_detail.profileDescription",
+        }
+      }
+      title={
+        Object {
+          "defaultMessage": "Team Profile",
+          "id": "admin.team_settings.team_detail.profileTitle",
+        }
+      }
     >
       <div
         className="AdminPanel clearfix "
@@ -384,12 +391,19 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
     }
   >
     <AdminPanel
-      className=""
       id="team_profile"
-      subtitleDefault="Summary of the team, including team name and description."
-      subtitleId="admin.team_settings.team_detail.profileDescription"
-      titleDefault="Team Profile"
-      titleId="admin.team_settings.team_detail.profileTitle"
+      subtitle={
+        Object {
+          "defaultMessage": "Summary of the team, including team name and description.",
+          "id": "admin.team_settings.team_detail.profileDescription",
+        }
+      }
+      title={
+        Object {
+          "defaultMessage": "Team Profile",
+          "id": "admin.team_settings.team_detail.profileTitle",
+        }
+      }
     >
       <div
         className="AdminPanel clearfix "
@@ -551,104 +565,26 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
             <div
               className="AdminChannelDetails_archiveContainer"
             >
-              <OverlayTrigger
-                defaultOverlayShown={false}
-                delay={400}
-                disabled={false}
-                overlay={
-                  <Tooltip
-                    id="sharedTooltip"
-                  >
-                    <div
-                      className="tooltip-title"
-                    >
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="Upgrade to Unarchive"
-                        id="workspace_limits.teams_limit_reached.upgrade_to_unarchive"
-                      />
-                    </div>
-                    <div
-                      className="tooltip-body"
-                    >
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="You've reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams"
-                        id="workspace_limits.teams_limit_reached.tool_tip"
-                      />
-                    </div>
-                  </Tooltip>
+              <WithTooltip
+                hint={
+                  Object {
+                    "defaultMessage": "You've reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams",
+                    "id": "workspace_limits.teams_limit_reached.tool_tip",
+                  }
                 }
+                id="sharedTooltip"
                 placement="bottom"
-                trigger={
-                  Array [
-                    "hover",
-                    "focus",
-                  ]
+                title={
+                  Object {
+                    "defaultMessage": "Upgrade to Unarchive",
+                    "id": "workspace_limits.teams_limit_reached.upgrade_to_unarchive",
+                  }
                 }
               >
                 <OverlayTrigger
                   defaultOverlayShown={false}
                   delay={400}
-                  overlay={
-                    <OverlayWrapper
-                      id="sharedTooltip"
-                      intl={
-                        Object {
-                          "$t": [Function],
-                          "defaultFormats": Object {},
-                          "defaultLocale": "en",
-                          "defaultRichTextElements": undefined,
-                          "fallbackOnEmptyString": true,
-                          "formatDate": [Function],
-                          "formatDateTimeRange": [Function],
-                          "formatDateToParts": [Function],
-                          "formatDisplayName": [Function],
-                          "formatList": [Function],
-                          "formatListToParts": [Function],
-                          "formatMessage": [Function],
-                          "formatNumber": [Function],
-                          "formatNumberToParts": [Function],
-                          "formatPlural": [Function],
-                          "formatRelativeTime": [Function],
-                          "formatTime": [Function],
-                          "formatTimeToParts": [Function],
-                          "formats": Object {},
-                          "formatters": Object {
-                            "getDateTimeFormat": [Function],
-                            "getDisplayNames": [Function],
-                            "getListFormat": [Function],
-                            "getMessageFormat": [Function],
-                            "getNumberFormat": [Function],
-                            "getPluralRules": [Function],
-                            "getRelativeTimeFormat": [Function],
-                          },
-                          "locale": "en",
-                          "messages": Object {},
-                          "onError": [Function],
-                          "onWarn": [Function],
-                          "textComponent": "span",
-                          "timeZone": "Etc/UTC",
-                          "wrapRichTextChunksInFragment": undefined,
-                        }
-                      }
-                    >
-                      <div
-                        className="tooltip-title"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="Upgrade to Unarchive"
-                          id="workspace_limits.teams_limit_reached.upgrade_to_unarchive"
-                        />
-                      </div>
-                      <div
-                        className="tooltip-body"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="You've reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams"
-                          id="workspace_limits.teams_limit_reached.tool_tip"
-                        />
-                      </div>
-                    </OverlayWrapper>
-                  }
+                  overlay={<Unknown />}
                   placement="bottom"
                   trigger={
                     Array [
@@ -657,40 +593,95 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
                     ]
                   }
                 >
-                  <div
-                    className="disabled-overlay-wrapper"
-                    onBlur={[Function]}
-                    onClick={null}
-                    onFocus={[Function]}
-                    onMouseOut={[Function]}
-                    onMouseOver={[Function]}
-                  >
-                    <button
-                      className="btn btn-danger ArchiveButton ArchiveButton___archived cloud-limits-disabled"
-                      disabled={true}
-                      onClick={[Function]}
-                      style={
-                        Object {
-                          "pointerEvents": "none",
+                  <OverlayTrigger
+                    defaultOverlayShown={false}
+                    delay={400}
+                    overlay={
+                      <OverlayWrapper
+                        intl={
+                          Object {
+                            "$t": [Function],
+                            "defaultFormats": Object {},
+                            "defaultLocale": "en",
+                            "defaultRichTextElements": undefined,
+                            "fallbackOnEmptyString": true,
+                            "formatDate": [Function],
+                            "formatDateTimeRange": [Function],
+                            "formatDateToParts": [Function],
+                            "formatDisplayName": [Function],
+                            "formatList": [Function],
+                            "formatListToParts": [Function],
+                            "formatMessage": [Function],
+                            "formatNumber": [Function],
+                            "formatNumberToParts": [Function],
+                            "formatPlural": [Function],
+                            "formatRelativeTime": [Function],
+                            "formatTime": [Function],
+                            "formatTimeToParts": [Function],
+                            "formats": Object {},
+                            "formatters": Object {
+                              "getDateTimeFormat": [Function],
+                              "getDisplayNames": [Function],
+                              "getListFormat": [Function],
+                              "getMessageFormat": [Function],
+                              "getNumberFormat": [Function],
+                              "getPluralRules": [Function],
+                              "getRelativeTimeFormat": [Function],
+                            },
+                            "locale": "en",
+                            "messages": Object {},
+                            "onError": [Function],
+                            "onWarn": [Function],
+                            "textComponent": "span",
+                            "timeZone": "Etc/UTC",
+                            "wrapRichTextChunksInFragment": undefined,
+                          }
                         }
-                      }
-                      type="button"
-                    >
-                      <i
-                        className="icon icon-archive-arrow-up-outline"
                       />
-                      <FormattedMessage
-                        defaultMessage="Unarchive Team"
-                        id="admin.team_settings.team_details.unarchiveTeam"
+                    }
+                    placement="bottom"
+                    trigger={
+                      Array [
+                        "hover",
+                        "focus",
+                      ]
+                    }
+                  >
+                    <div
+                      className="disabled-overlay-wrapper"
+                      onBlur={[Function]}
+                      onClick={null}
+                      onFocus={[Function]}
+                      onMouseOut={[Function]}
+                      onMouseOver={[Function]}
+                    >
+                      <button
+                        className="btn btn-danger ArchiveButton ArchiveButton___archived cloud-limits-disabled"
+                        disabled={true}
+                        onClick={[Function]}
+                        style={
+                          Object {
+                            "pointerEvents": "none",
+                          }
+                        }
+                        type="button"
                       >
-                        <span>
-                          Unarchive Team
-                        </span>
-                      </FormattedMessage>
-                    </button>
-                  </div>
+                        <i
+                          className="icon icon-archive-arrow-up-outline"
+                        />
+                        <FormattedMessage
+                          defaultMessage="Unarchive Team"
+                          id="admin.team_settings.team_details.unarchiveTeam"
+                        >
+                          <span>
+                            Unarchive Team
+                          </span>
+                        </FormattedMessage>
+                      </button>
+                    </div>
+                  </OverlayTrigger>
                 </OverlayTrigger>
-              </OverlayTrigger>
+              </WithTooltip>
               <button
                 className="btn btn-secondary upgrade-options-button"
                 onClick={[Function]}
@@ -751,12 +742,19 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
     }
   >
     <AdminPanel
-      className=""
       id="team_profile"
-      subtitleDefault="Summary of the team, including team name and description."
-      subtitleId="admin.team_settings.team_detail.profileDescription"
-      titleDefault="Team Profile"
-      titleId="admin.team_settings.team_detail.profileTitle"
+      subtitle={
+        Object {
+          "defaultMessage": "Summary of the team, including team name and description.",
+          "id": "admin.team_settings.team_detail.profileDescription",
+        }
+      }
+      title={
+        Object {
+          "defaultMessage": "Team Profile",
+          "id": "admin.team_settings.team_detail.profileTitle",
+        }
+      }
     >
       <div
         className="AdminPanel clearfix "

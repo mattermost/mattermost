@@ -5,23 +5,22 @@ import type {Bot, BotPatch} from '@mattermost/types/bots';
 
 import {BotTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc} from './helpers';
 
 const BOTS_PER_PAGE_DEFAULT = 20;
 
-export function createBot(bot: Partial<Bot>): NewActionFuncAsync<Bot> {
+export function createBot(bot: Partial<Bot>) {
     return bindClientFunc({
         clientFunc: Client4.createBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,
         params: [
             bot,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function patchBot(botUserId: string, botPatch: Partial<BotPatch>): NewActionFuncAsync<Bot> {
+export function patchBot(botUserId: string, botPatch: Partial<BotPatch>) {
     return bindClientFunc({
         clientFunc: Client4.patchBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,
@@ -29,10 +28,10 @@ export function patchBot(botUserId: string, botPatch: Partial<BotPatch>): NewAct
             botUserId,
             botPatch,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function loadBot(botUserId: string): ActionFunc {
+export function loadBot(botUserId: string) {
     return bindClientFunc({
         clientFunc: Client4.getBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,
@@ -42,7 +41,7 @@ export function loadBot(botUserId: string): ActionFunc {
     });
 }
 
-export function loadBots(page = 0, perPage = BOTS_PER_PAGE_DEFAULT): NewActionFuncAsync<Bot[]> {
+export function loadBots(page = 0, perPage = BOTS_PER_PAGE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getBotsIncludeDeleted,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNTS,
@@ -50,30 +49,30 @@ export function loadBots(page = 0, perPage = BOTS_PER_PAGE_DEFAULT): NewActionFu
             page,
             perPage,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function disableBot(botUserId: string): NewActionFuncAsync<Bot> {
+export function disableBot(botUserId: string) {
     return bindClientFunc({
         clientFunc: Client4.disableBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,
         params: [
             botUserId,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function enableBot(botUserId: string): NewActionFuncAsync<Bot> {
+export function enableBot(botUserId: string) {
     return bindClientFunc({
         clientFunc: Client4.enableBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,
         params: [
             botUserId,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function assignBot(botUserId: string, newOwnerId: string): ActionFunc {
+export function assignBot(botUserId: string, newOwnerId: string) {
     return bindClientFunc({
         clientFunc: Client4.assignBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,

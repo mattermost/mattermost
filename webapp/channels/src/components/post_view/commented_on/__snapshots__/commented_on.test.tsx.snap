@@ -16,7 +16,6 @@ exports[`components/post_view/CommentedOn should match snapshot 1`] = `
           >
             <Memo(Connect(UserProfile))
               disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,
@@ -49,7 +48,6 @@ exports[`components/post_view/CommentedOn should match snapshot 2`] = `
           >
             <Memo(Connect(UserProfile))
               disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,
@@ -82,7 +80,6 @@ exports[`components/post_view/CommentedOn should match snapshot 3`] = `
           >
             <Memo(Connect(UserProfile))
               disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,
@@ -117,7 +114,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
           >
             <Memo(Connect(UserProfile))
               disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,
@@ -150,7 +146,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
           >
             <Memo(Connect(UserProfile))
               disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,
@@ -183,7 +178,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
           >
             <Memo(Connect(UserProfile))
               disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,
@@ -216,7 +210,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
           >
             <Memo(Connect(UserProfile))
               disablePopover={false}
-              hasMention={true}
               userId=""
             />
           </a>,

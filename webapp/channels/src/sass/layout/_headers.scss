@@ -53,11 +53,18 @@
         color: var(--center-channel-color);
         float: left;
 
+        i {
+            position: relative;
+            top: -1px;
+            font-size: 18px;
+            opacity: 0.64;
+        }
+
         &:hover {
             background: rgba(v(center-channel-color-rgb), 0.08);
 
             i {
-                opacity: 0.72;
+                opacity: 0.8;
             }
         }
 
@@ -72,13 +79,6 @@
                 opacity: 1;
             }
         }
-
-        i {
-            position: relative;
-            top: -1px;
-            font-size: 18px;
-            opacity: 0.56;
-        }
     }
 
     .channel-header__mute {
@@ -86,8 +86,8 @@
         z-index: 1;
         height: 24px;
         padding: 4px;
-        margin-left: 4px;
         border-radius: 4px;
+        margin-left: 4px;
         color: v(center-channel-color);
         float: left;
 
@@ -95,7 +95,7 @@
             background: rgba(v(center-channel-color-rgb), 0.08);
 
             i {
-                opacity: 0.72;
+                opacity: 0.73;
             }
         }
 
@@ -115,7 +115,7 @@
             position: relative;
             top: -2px;
             font-size: 16px;
-            opacity: 0.56;
+            opacity: 0.75;
         }
     }
 
@@ -161,8 +161,8 @@
             width: 20px;
             height: 20px;
             margin-right: 8px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            fill: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            fill: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 1.6rem;
             text-align: center;
 
@@ -430,7 +430,11 @@
             opacity: 1;
 
             button {
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+
+                i {
+                    color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
+                }
 
                 .edit-icon {
                     display: none;
@@ -438,8 +442,12 @@
 
                 &:focus,
                 &:hover {
-                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                    color: rgba(var(--center-channel-color-rgb), 0.88);
                     text-decoration: none;
+
+                    i {
+                        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
+                    }
                 }
 
                 &:hover {
@@ -482,7 +490,7 @@
         line-height: 16px;
 
         span.last-active__text {
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         .custom-emoji__wrapper {
@@ -512,62 +520,117 @@
 }
 
 .channel-intro {
-    padding: 110px 15px 0;
+    max-width: 648px;
+    padding: 120px 24px 32px 24px;
     margin: 0 auto 10px;
-
-    &.channel-intro--centered {
-        max-width: 1020px;
-    }
-
-    .intro-links {
-        display: flex;
-        align-items: center;
-        padding: 8px 16px;
-        margin-bottom: 10px;
-
-        .fa,
-        svg,
-        i {
-            margin-right: 5px;
-        }
-    }
+    text-align: center;
 
     .channel-intro-profile {
-        margin: 0 0 4px;
-        gap: 8px;
+        margin-bottom: 16px;
+        font-size: 36px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 44px;
+        text-align: center;
 
         .user-popover {
             overflow: hidden;
             max-width: calc(100% - 100px);
-            font-family: Metropolis, sans-serif;
-            font-size: 28px;
-            font-weight: 600;
             text-overflow: ellipsis;
         }
     }
 
     .channel-intro-img {
-        .status-wrapper {
-            height: 50px;
-            margin: 0 10px 10px 0;
+        position: relative;
+
+        button {
+            border: solid 2px var(--center-channel-bg);
         }
 
-        img {
-            border-radius: 100px;
+        &__group button {
+            margin: 0 -8px;
+        }
+
+        .status-wrapper {
+            width: auto;
+            height: auto;
+
+            .status {
+                position: absolute;
+                top: 70px;
+                right: 4px;
+                width: 24px;
+                height: 24px;
+
+                svg {
+                    width: 20px;
+                    height: 20px;
+                    max-height: 20px;
+                }
+            }
         }
     }
 
     .channel-intro__title {
-        margin-bottom: 15px;
-        font-size: 28px;
+        margin-top: 16px;
+        margin-bottom: 16px;
+        font-size: 36px;
         font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 40px;
+
+        @media screen and (max-width: 768px) and (min-width: 414px) {
+            font-size: 32px;
+        }
+
+        @media screen and (max-width: 414px) {
+            font-size: 28px;
+        }
+
+        span,
+        button {
+            font-size: inherit;
+            font-weight: inherit;
+            letter-spacing: inherit;
+            line-height: inherit;
+        }
+
+        .Tag {
+            position: relative;
+            display: inline-block;
+            height: auto;
+            padding: 4px;
+            margin-left: 8px;
+            font-size: 14px;
+            line-height: 1;
+        }
     }
 
-    .channel-intro__content {
-        padding: 10px 15px;
-        background: $bg--gray;
-        border-radius: 3px;
+    .channel-intro__created {
+        margin-bottom: 20px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 11px;
+        line-height: 1.4;
+        text-align: center;
+
+        svg {
+            position: relative;
+            top: 2px;
+            display: inline;
+            margin-right: 4px;
+        }
+    }
+
+    .channel-intro__text {
+        margin-bottom: 24px;
+        text-align: center;
         word-break: break-word;
+    }
+
+    .channel-intro__actions {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
     }
 }
 

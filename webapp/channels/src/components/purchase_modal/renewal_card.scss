@@ -1,0 +1,257 @@
+.PurchaseModal {
+    .RenewalRHS {
+        position: sticky;
+        display: flex;
+        width: 25%;
+        flex-direction: column;
+        padding-top: 80px;
+
+        .RenewalCard {
+            max-width: 353px;
+            padding: 28px 32px;
+            border: 1px solid var(--light-8-center-channel-text, rgba(61, 60, 64, 0.08));
+            border-radius: 4px;
+            background: var(--light-center-channel-bg, #fff);
+            box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.08);
+
+            .SeatsCalculator {
+                padding: 0;
+
+                .SeatsCalculator__seats-item.SeatsCalculator__seats-item--input {
+                    padding: 0;
+                }
+            }
+
+            .RenewalSummary {
+                width: 332px;
+                padding: 28px 32px;
+                border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+                border-radius: 4px;
+                margin-left: 20px;
+                background-color: var(--sys-center-channel-bg);
+                box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
+            }
+
+            .RenewalSummary__noBillingHistory {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                justify-content: flex-start;
+            }
+
+            .RenewalSummary__noBillingHistory-title {
+                margin-top: 32px;
+                font-size: 16px;
+                font-weight: 600;
+                line-height: 24px;
+            }
+
+            .RenewalSummary__noBillingHistory-message {
+                margin-top: 8px;
+                color: var(--sys-center-channel-color);
+                font-size: 14px;
+                line-height: 20px;
+            }
+
+            .RenewalSummary__noBillingHistory-link {
+                margin-top: 16px;
+                margin-bottom: 24px;
+                color: var(--sys-button-bg);
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            .RenewalSummary__lastInvoice {
+                color: var(--sys-center-channel-color);
+
+                hr {
+                    border-color: rgba(var(--sys-center-channel-color-rgb), 0.32);
+                    margin: 12px 0;
+                }
+            }
+
+            .RenewalSummary__lastInvoice-header {
+                display: flex;
+                align-items: center;
+            }
+
+            .RenewalSummary__lastInvoice-headerTitle {
+                font-size: 20px;
+                font-weight: 600;
+                line-height: 28px;
+            }
+
+            .BillingSummary__lastInvoice-headerStatus {
+                display: flex;
+                align-items: center;
+                margin-left: auto;
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 16px;
+
+                &.paid {
+                    color: var(--sys-online-indicator);
+                }
+
+                &.failed {
+                    color: var(--sys-error-text);
+                }
+
+                &.pending {
+                    color: #f58b00;
+                }
+
+                svg {
+                    width: 16px;
+                    height: 16px;
+                    margin-left: 4px;
+                    font-size: 14.4px;
+
+                    &::before {
+                        margin: 0 auto;
+                    }
+                }
+
+                span {
+                    margin-left: 4px;
+                }
+            }
+
+            .RenewalSummary__upcomingInvoice-due-date {
+                margin-top: 8px;
+                color: var(--light-72-center-channel-text, rgba(61, 60, 64, 0.72));
+                font-size: 14px;
+                font-style: normal;
+                font-weight: 400;
+                line-height: 20px;
+            }
+
+            .RenewalSummary__lastInvoice-productName {
+                margin-top: 32px;
+                font-size: 16px;
+                font-weight: 600;
+                line-height: 24px;
+            }
+
+            .RenewalSummary__upcomingInvoice-charge {
+                display: flex;
+                margin: 12px 0;
+                color: var(--center-channel-color);
+                font-size: 12px;
+                font-weight: 400;
+                line-height: 20px;
+
+                &.total {
+                    font-size: 14px;
+                    font-weight: 600;
+                }
+            }
+
+            .RenewalSummary__upcomingInvoice-hasMoreItems {
+                display: flex;
+                align-items: center;
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                font-size: 14px;
+                font-weight: 400;
+
+                .RenewalSummary__upcomingInvoice-chargeDescription {
+                    &:hover {
+                        cursor: pointer;
+                        text-decoration: underline;
+                    }
+                }
+            }
+
+            .RenewalSummary__upcomingInvoice-ellipses {
+                display: flex;
+                align-items: center;
+                align-self: stretch;
+                justify-content: center;
+                fill: #d9d9d9;
+            }
+
+            .RenewalSummary__lastInvoice-chargeAmount {
+                margin-left: auto;
+            }
+
+            .RenewalSummary__lastInvoice-partialCharges {
+                color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+                font-size: 12px;
+                line-height: 16px;
+
+                & + .RenewalSummary__lastInvoice-charge {
+                    margin-top: 4px;
+                }
+            }
+
+            .RenewalSummary__lastInvoice-download {
+                margin-top: 32px;
+                margin-bottom: 16px;
+            }
+
+            .RenewalSummary__upcomingInvoice-renew-button {
+                display: flex;
+                width: 100%;
+                align-items: center;
+                justify-content: center;
+                padding: 11px 20px;
+                border-radius: 4px;
+                background: var(--sys-button-bg);
+                color: var(--sys-button-color);
+
+                &:hover:not(:disabled) {
+                    background: linear-gradient(0deg, rgba(var(--sys-center-channel-color-rgb), 0.16), rgba(var(--sys-center-channel-color-rgb), 0.16)), var(--sys-button-bg);
+                    color: var(--sys-button-color);
+                    cursor: pointer;
+                    text-decoration: none;
+                }
+
+                &:disabled {
+                    background: rgba(var(--sys-center-channel-color-rgb), 0.08);
+                    color: rgba(var(--sys-center-channel-color-rgb), 0.32);
+                    cursor: not-allowed;
+                }
+
+                >span {
+                    margin-left: 6px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    line-height: 14px;
+                }
+            }
+
+            .RenewalSummary__upcomingInvoice-viewInvoiceLink {
+                display: block;
+                width: 100%;
+                height: 16px;
+                margin-bottom: 12px;
+                background: none;
+                color: var(--link-color, #1c58d9);
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 9.5px;
+                text-align: center;
+            }
+
+            .RenewalSummary__upcomingInvoice-viewInvoice {
+                display: block;
+                width: 100%;
+                background: none;
+                color: var(--link-color, #1c58d9);
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 9.5px;
+                text-align: center;
+            }
+
+            .RenewalSummary__disclaimer {
+                margin-top: 16px;
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                font-size: 12px;
+                font-style: normal;
+                font-weight: 400;
+                line-height: 16px;
+            }
+        }
+    }
+}

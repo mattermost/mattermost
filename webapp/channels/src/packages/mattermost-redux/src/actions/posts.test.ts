@@ -1131,87 +1131,115 @@ describe('Actions.Posts', () => {
         expect(state.entities.teams.myMembers[teamId].mention_count).toBe(1);
     });
 
-    it('pinPost', async () => {
-        const {dispatch, getState} = store;
+    describe('pinPost', () => {
+        test('should update post and channel stats', async () => {
+            nock(Client4.getBaseRoute()).
+                get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
+                reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
+            await store.dispatch(getChannelStats(TestHelper.basicChannel!.id));
 
-        nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
-            reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
+            const post = TestHelper.fakePostWithId(TestHelper.basicChannel!.id);
+            store.dispatch(Actions.receivedPost(post));
 
-        await dispatch(getChannelStats(TestHelper.basicChannel!.id));
+            nock(Client4.getBaseRoute()).
+                post(`/posts/${post.id}/pin`).
+                reply(200, OK_RESPONSE);
 
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, TestHelper.fakePostWithId(TestHelper.basicChannel!.id));
-        const post1 = await Client4.createPost(
-            TestHelper.fakePost(TestHelper.basicChannel!.id),
-        );
+            const result = await store.dispatch(Actions.pinPost(post.id));
+            expect(result.error).toBeUndefined();
 
-        const postList = {order: [post1.id], posts: {}} as PostList;
-        postList.posts[post1.id] = post1;
+            const state = store.getState();
+            expect(state.entities.posts.posts[post.id].is_pinned).toBe(true);
+            expect(state.entities.channels.stats[TestHelper.basicChannel!.id].pinnedpost_count).toBe(1);
+        });
 
-        nock(Client4.getBaseRoute()).
-            get(`/posts/${post1.id}/thread?skipFetchThreads=false&collapsedThreads=true&collapsedThreadsExtended=false&direction=down&perPage=60`).
-            reply(200, postList);
-        await dispatch(Actions.getPostThread(post1.id));
+        test('MM-14115 should not clobber reactions on pinned post', async () => {
+            const post = TestHelper.getPostMock({
+                id: TestHelper.generateId(),
+                metadata: {
+                    embeds: [],
+                    emojis: [],
+                    files: [],
+                    images: {},
+                    reactions: [
+                        TestHelper.getReactionMock({emoji_name: 'test'}),
+                    ],
+                },
+            });
 
-        nock(Client4.getBaseRoute()).
-            post(`/posts/${post1.id}/pin`).
-            reply(200, OK_RESPONSE);
-        await dispatch(Actions.pinPost(post1.id));
+            store.dispatch(Actions.receivedPost(post));
 
-        const state = getState();
-        const {stats} = state.entities.channels;
-        const post = state.entities.posts.posts[post1.id];
-        const pinnedPostCount = stats[TestHelper.basicChannel!.id].pinnedpost_count;
+            let state = store.getState();
+            expect(state.entities.posts.posts[post.id].is_pinned).toBe(false);
+            expect(Object.keys(state.entities.posts.reactions[post.id])).toHaveLength(1);
 
-        expect(post).toBeTruthy();
-        expect(post.is_pinned === true).toBeTruthy();
-        expect(pinnedPostCount === 1).toBeTruthy();
+            nock(Client4.getBaseRoute()).
+                post(`/posts/${post.id}/pin`).
+                reply(200, OK_RESPONSE);
+
+            const result = await store.dispatch(Actions.pinPost(post.id));
+            expect(result.error).toBeUndefined();
+
+            state = store.getState();
+            expect(state.entities.posts.posts[post.id].is_pinned).toBe(true);
+            expect(Object.keys(state.entities.posts.reactions[post.id])).toHaveLength(1);
+        });
     });
 
-    it('unpinPost', async () => {
-        const {dispatch, getState} = store;
+    describe('unpinPost', () => {
+        test('should update post and channel stats', async () => {
+            nock(Client4.getBaseRoute()).
+                get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
+                reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 1});
+            await store.dispatch(getChannelStats(TestHelper.basicChannel!.id));
 
-        nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
-            reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1, pinnedpost_count: 0});
+            const post = TestHelper.fakePostWithId(TestHelper.basicChannel!.id);
+            store.dispatch(Actions.receivedPost(post));
 
-        await dispatch(getChannelStats(TestHelper.basicChannel!.id));
+            nock(Client4.getBaseRoute()).
+                post(`/posts/${post.id}/unpin`).
+                reply(200, OK_RESPONSE);
 
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, TestHelper.fakePostWithId(TestHelper.basicChannel!.id));
-        const post1 = await Client4.createPost(
-            TestHelper.fakePost(TestHelper.basicChannel!.id),
-        );
+            const result = await store.dispatch(Actions.unpinPost(post.id));
+            expect(result.error).toBeUndefined();
 
-        const postList = {order: [post1.id], posts: {}} as PostList;
-        postList.posts[post1.id] = post1;
+            const state = store.getState();
+            expect(state.entities.posts.posts[post.id].is_pinned).toBe(false);
+            expect(state.entities.channels.stats[TestHelper.basicChannel!.id].pinnedpost_count).toBe(0);
+        });
 
-        nock(Client4.getBaseRoute()).
-            get(`/posts/${post1.id}/thread?skipFetchThreads=false&collapsedThreads=true&collapsedThreadsExtended=false&direction=down&perPage=60`).
-            reply(200, postList);
-        await dispatch(Actions.getPostThread(post1.id));
+        test('MM-14115 should not clobber reactions on pinned post', async () => {
+            const post = TestHelper.getPostMock({
+                id: TestHelper.generateId(),
+                is_pinned: true,
+                metadata: {
+                    embeds: [],
+                    emojis: [],
+                    files: [],
+                    images: {},
+                    reactions: [
+                        TestHelper.getReactionMock({emoji_name: 'test'}),
+                    ],
+                },
+            });
 
-        nock(Client4.getBaseRoute()).
-            post(`/posts/${post1.id}/pin`).
-            reply(200, OK_RESPONSE);
-        await dispatch(Actions.pinPost(post1.id));
+            store.dispatch(Actions.receivedPost(post));
 
-        nock(Client4.getBaseRoute()).
-            post(`/posts/${post1.id}/unpin`).
-            reply(200, OK_RESPONSE);
-        await dispatch(Actions.unpinPost(post1.id));
+            let state = store.getState();
+            expect(state.entities.posts.posts[post.id].is_pinned).toBe(true);
+            expect(Object.keys(state.entities.posts.reactions[post.id])).toHaveLength(1);
 
-        const state = getState();
-        const {stats} = state.entities.channels;
-        const post = state.entities.posts.posts[post1.id];
-        const pinnedPostCount = stats[TestHelper.basicChannel!.id].pinnedpost_count;
+            nock(Client4.getBaseRoute()).
+                post(`/posts/${post.id}/unpin`).
+                reply(200, OK_RESPONSE);
 
-        expect(post).toBeTruthy();
-        expect(post.is_pinned === false).toBeTruthy();
-        expect(pinnedPostCount === 0).toBeTruthy();
+            const result = await store.dispatch(Actions.unpinPost(post.id));
+            expect(result.error).toBeUndefined();
+
+            state = store.getState();
+            expect(state.entities.posts.posts[post.id].is_pinned).toBe(false);
+            expect(Object.keys(state.entities.posts.reactions[post.id])).toHaveLength(1);
+        });
     });
 
     it('addReaction', async () => {
@@ -1275,46 +1303,6 @@ describe('Actions.Posts', () => {
         const reactions = state.entities.posts.reactions[post1.id];
         expect(reactions).toBeTruthy();
         expect(!reactions[TestHelper.basicUser!.id + '-' + emojiName]).toBeTruthy();
-    });
-
-    it('getReactionsForPost', async () => {
-        const {dispatch, getState} = store;
-
-        TestHelper.mockLogin();
-        store.dispatch({
-            type: UserTypes.LOGIN_SUCCESS,
-        });
-        await store.dispatch(loadMe());
-
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, TestHelper.fakePostWithId(TestHelper.basicChannel!.id));
-        const post1 = await Client4.createPost(
-            TestHelper.fakePost(TestHelper.basicChannel!.id),
-        );
-
-        const emojiName = '+1';
-
-        nock(Client4.getBaseRoute()).
-            post('/reactions').
-            reply(201, {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721});
-        await dispatch(Actions.addReaction(post1.id, emojiName));
-
-        dispatch({
-            type: PostTypes.REACTION_DELETED,
-            data: {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName},
-        });
-
-        nock(Client4.getBaseRoute()).
-            get(`/posts/${post1.id}/reactions`).
-            reply(200, [{user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721}]);
-        await dispatch(Actions.getReactionsForPost(post1.id));
-
-        const state = getState();
-        const reactions = state.entities.posts.reactions[post1.id];
-
-        expect(reactions).toBeTruthy();
-        expect(reactions[TestHelper.basicUser!.id + '-' + emojiName]).toBeTruthy();
     });
 
     it('getCustomEmojiForReaction', async () => {

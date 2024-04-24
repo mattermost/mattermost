@@ -10,6 +10,7 @@ import type {ValueType} from 'react-select';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
@@ -26,7 +27,7 @@ type Props = {
     active: boolean;
     areAllSectionsInactive: boolean;
     currentUserId: string;
-    savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<{data: boolean}>;
+    savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
     dmGmLimit: number;
     updateSection: (section: string) => void;
 }

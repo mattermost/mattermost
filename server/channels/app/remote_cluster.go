@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (a *App) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error) {
@@ -27,6 +28,11 @@ func (a *App) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (re
 
 	// if plugin is already registered then treat this as an update.
 	if rc != nil {
+		a.Log().Debug("Plugin already registered for Shared Channels",
+			mlog.String("plugin_id", opts.PluginID),
+			mlog.String("remote_id", rc.RemoteId),
+		)
+
 		rc.DisplayName = opts.Displayname
 		rc.Options = opts.GetOptionFlags()
 
@@ -49,6 +55,20 @@ func (a *App) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (re
 	rcSaved, err := a.Srv().Store().RemoteCluster().Save(rc)
 	if err != nil {
 		return "", err
+	}
+
+	a.Log().Debug("Registered new plugin for Shared Channels",
+		mlog.String("plugin_id", opts.PluginID),
+		mlog.String("remote_id", rcSaved.RemoteId),
+	)
+
+	// ping the plugin remote immediately if the service is running
+	// If the service is not available the ping will happen once the
+	// service starts. This is expected since plugins start before the
+	// service.
+	rcService, _ := a.GetRemoteClusterService()
+	if rcService != nil {
+		rcService.PingNow(rcSaved)
 	}
 
 	return rcSaved.RemoteId, nil

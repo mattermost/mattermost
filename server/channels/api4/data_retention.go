@@ -264,7 +264,7 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	teamIDs, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	teamIDs, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("addTeamsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -291,7 +291,7 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	teamIDs, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	teamIDs, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("removeTeamsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -373,7 +373,7 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	channelsJSON, jsonErr := json.Marshal(channels)
 	if jsonErr != nil {
-		c.Err = model.NewAppError("searchChannelsInPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("searchChannelsInPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 
@@ -383,7 +383,7 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	channelIDs, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	channelIDs, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("addChannelsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -411,7 +411,7 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	channelIDs, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	channelIDs, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("removeChannelsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -458,7 +458,7 @@ func getTeamPoliciesForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	js, jsonErr := json.Marshal(policies)
 	if jsonErr != nil {
-		c.Err = model.NewAppError("getTeamPoliciesForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getTeamPoliciesForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 	w.Write(js)
@@ -486,7 +486,7 @@ func getChannelPoliciesForUser(c *Context, w http.ResponseWriter, r *http.Reques
 
 	js, jsonErr := json.Marshal(policies)
 	if jsonErr != nil {
-		c.Err = model.NewAppError("getChannelPoliciesForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getChannelPoliciesForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 	w.Write(js)

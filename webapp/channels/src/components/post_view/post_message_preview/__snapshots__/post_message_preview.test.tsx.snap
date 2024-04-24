@@ -34,7 +34,6 @@ exports[`PostMessagePreview direct and group messages should render preview for 
       >
         <Connect(UserProfile)
           disablePopover={true}
-          hasMention={true}
           overwriteName=""
           userId="user_1"
         />
@@ -121,7 +120,6 @@ exports[`PostMessagePreview direct and group messages should render preview for 
       >
         <Connect(UserProfile)
           disablePopover={true}
-          hasMention={true}
           overwriteName=""
           userId="user_1"
         />
@@ -208,7 +206,6 @@ exports[`PostMessagePreview nested previews should render file preview 1`] = `
       >
         <Connect(UserProfile)
           disablePopover={true}
-          hasMention={true}
           overwriteName=""
           userId="user_1"
         />
@@ -315,7 +312,6 @@ exports[`PostMessagePreview nested previews should render opengraph preview 1`] 
       >
         <Connect(UserProfile)
           disablePopover={true}
-          hasMention={true}
           overwriteName=""
           userId="user_1"
         />
@@ -430,7 +426,6 @@ exports[`PostMessagePreview should not render bot icon 1`] = `
       >
         <Connect(UserProfile)
           disablePopover={true}
-          hasMention={true}
           overwriteName=""
           userId="user_1"
         />
@@ -522,7 +517,6 @@ exports[`PostMessagePreview should render bot icon 1`] = `
       >
         <Connect(UserProfile)
           disablePopover={true}
-          hasMention={true}
           overwriteName=""
           userId="user_1"
         />
@@ -614,7 +608,6 @@ exports[`PostMessagePreview should render correctly 1`] = `
       >
         <Connect(UserProfile)
           disablePopover={true}
-          hasMention={true}
           overwriteName=""
           userId="user_1"
         />
@@ -703,7 +696,6 @@ exports[`PostMessagePreview show render without preview when preview posts becom
       >
         <Connect(UserProfile)
           disablePopover={true}
-          hasMention={true}
           overwriteName=""
           userId="user_1"
         />

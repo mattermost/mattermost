@@ -3,8 +3,8 @@
         width: 100%;
         height: '463px';
         border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
-        background-color: var(--sys-center-channel-bg);
         border-radius: 4px;
+        background-color: var(--sys-center-channel-bg);
         box-shadow: var(--elevation-1);
         color: var(--sys-center-channel-color);
     }
@@ -38,7 +38,7 @@
 
     &__dueDate {
         :first-child {
-            color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+            color: rgba(var(--sys-center-channel-color-rgb), 0.75);
         }
     }
 

@@ -6,7 +6,7 @@ import React from 'react';
 import type {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
 
 import {ToPaidPlanBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_paid_plan_nudge_banner';
-import {ToYearlyNudgeBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_yearly_nudge_banner';
+import PostLimitsAnnouncementBar from 'components/announcement_bar/post_limits_announcement_bar';
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 
 import CloudAnnualRenewalAnnouncementBar from './cloud_annual_renewal';
@@ -15,21 +15,19 @@ import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
 import ConfigurationAnnouncementBar from './configuration_bar';
 import AnnouncementBar from './default_announcement_bar';
-import NotifyAdminDowngradeDelinquencyBar from './notify_admin_downgrade_delinquency_bar';
 import OverageUsersBanner from './overage_users_banner';
 import PaymentAnnouncementBar from './payment_announcement_bar';
 import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal';
 import ShowThreeDaysLeftTrialModal from './show_tree_days_left_trial_modal/show_three_days_left_trial_modal';
 import TextDismissableBar from './text_dismissable_bar';
+import UsersLimitsAnnouncementBar from './users_limits_announcement_bar';
 import VersionBar from './version_bar';
 
 type Props = {
     license?: ClientLicense;
     config?: Partial<ClientConfig>;
     canViewSystemErrors: boolean;
-    isCloud: boolean;
     userIsAdmin: boolean;
-    subscription?: Subscription;
     latestError?: {
         error: any;
     };
@@ -72,8 +70,8 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         let cloudTrialEndAnnouncementBar = null;
         let cloudDelinquencyAnnouncementBar = null;
         let cloudRenewalAnnouncementBar = null;
-        let notifyAdminDowngradeDelinquencyBar = null;
-        let toYearlyNudgeBannerDismissable = null;
+        const notifyAdminDowngradeDelinquencyBar = null;
+        const toYearlyNudgeBannerDismissable = null;
         let toPaidPlanNudgeBannerDismissable = null;
         if (this.props.license?.Cloud === 'true') {
             paymentAnnouncementBar = (
@@ -91,10 +89,6 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             cloudRenewalAnnouncementBar = (
                 <CloudAnnualRenewalAnnouncementBar/>
             );
-            notifyAdminDowngradeDelinquencyBar = (
-                <NotifyAdminDowngradeDelinquencyBar/>
-            );
-            toYearlyNudgeBannerDismissable = (<ToYearlyNudgeBannerDismissable/>);
             toPaidPlanNudgeBannerDismissable = (<ToPaidPlanBannerDismissable/>);
         }
 
@@ -105,10 +99,26 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             );
         }
 
+        // The component specified further down takes priority over the component above it.
+        // For example, consider this-
+        // {
+        //    Foo
+        //    Bar
+        //    Baz
+        // }
+        // Even if all Foo, Bar and Baz render, only Baz is visible as it's further down.
         return (
             <>
                 {adminConfiguredAnnouncementBar}
                 {errorBar}
+                <PostLimitsAnnouncementBar
+                    license={this.props.license}
+                    userIsAdmin={this.props.userIsAdmin}
+                />
+                <UsersLimitsAnnouncementBar
+                    license={this.props.license}
+                    userIsAdmin={this.props.userIsAdmin}
+                />
                 {paymentAnnouncementBar}
                 {cloudTrialAnnouncementBar}
                 {cloudTrialEndAnnouncementBar}

@@ -28,6 +28,7 @@ const (
 	DefaultMetricsUpdateFreqMillis = 15000
 )
 
+// LoggerIFace should be abbreviated as `logger`.
 type LoggerIFace interface {
 	IsLevelEnabled(Level) bool
 	Trace(string, ...Field)
@@ -169,6 +170,8 @@ func Map[M ~map[K]V, K comparable, V any](key string, val M) Field {
 // so that there are no allocations on the heap each interface method invocation. Normally not
 // something to be concerned about, but logging calls for disabled levels should have as little CPU
 // and memory impact as possible. Most of these wrapper calls will be inlined as well.
+//
+// Logger should be abbreviated as `logger`.
 type Logger struct {
 	log        *logr.Logger
 	lockConfig *int32
@@ -245,7 +248,7 @@ func (l *Logger) Configure(cfgFile string, cfgEscaped string, factories *Factori
 }
 
 // ConfigureTargets provides a new configuration for this logger via a `LoggerConfig` map.
-// Typically `mlog.Configure` is used instead which accepts JSON formatted configuration.
+// `Logger.Configure` can be used instead which accepts JSON formatted configuration.
 // An optional set of factories can be provided which will be called to create any target
 // types or formatters not built-in.
 func (l *Logger) ConfigureTargets(cfg LoggerConfiguration, factories *Factories) error {

@@ -5,9 +5,9 @@
     padding-top: 8px;
     padding-bottom: 2px !important;
     padding-left: 12px;
+    border-radius: 4px;
     background-color: var(--center-channel-bg);
     background-image: none;
-    border-radius: 4px;
     box-shadow: none;
     color: var(--center-channel-color);
     font-family: 'Open Sans';
@@ -21,7 +21,7 @@
 }
 
 .StripeElement::placeholder {
-    color: rgba(var(--center-channel-color-rgb), 0.72);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 14px;
     opacity: 0.5;
 }

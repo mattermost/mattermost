@@ -5,12 +5,13 @@ package model
 
 import (
 	"net/http"
+	"slices"
+	"strconv"
 	"time"
-
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 )
 
 const (
+	ReportDurationAllTime       = "all_time"
 	ReportDurationLast30Days    = "last_30_days"
 	ReportDurationPreviousMonth = "previous_month"
 	ReportDurationLast6Months   = "last_6_months"
@@ -19,8 +20,14 @@ const (
 )
 
 var (
+	ReportExportFormats = []string{"csv"}
+
 	UserReportSortColumns = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email", "Roles"}
 )
+
+type ReportableObject interface {
+	ToReport() []string
+}
 
 type ReportingBaseOptions struct {
 	SortDesc        bool
@@ -34,19 +41,25 @@ type ReportingBaseOptions struct {
 	EndAt           int64
 }
 
-func (options *ReportingBaseOptions) PopulateDateRange(now time.Time) {
+func GetReportDateRange(dateRange string, now time.Time) (int64, int64) {
 	startAt := int64(0)
 	endAt := int64(0)
 
-	if options.DateRange == ReportDurationLast30Days {
+	if dateRange == ReportDurationLast30Days {
 		startAt = now.AddDate(0, 0, -30).UnixMilli()
-	} else if options.DateRange == ReportDurationPreviousMonth {
+	} else if dateRange == ReportDurationPreviousMonth {
 		startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.Local)
 		startAt = startOfMonth.AddDate(0, -1, 0).UnixMilli()
 		endAt = startOfMonth.UnixMilli()
-	} else if options.DateRange == ReportDurationLast6Months {
+	} else if dateRange == ReportDurationLast6Months {
 		startAt = now.AddDate(0, -6, -0).UnixMilli()
 	}
+
+	return startAt, endAt
+}
+
+func (options *ReportingBaseOptions) PopulateDateRange(now time.Time) {
+	startAt, endAt := GetReportDateRange(options.DateRange, now)
 
 	options.StartAt = startAt
 	options.EndAt = endAt
@@ -70,6 +83,43 @@ type UserReport struct {
 	UserPostStats
 }
 
+func (u *UserReport) ToReport() []string {
+	lastStatusAt := ""
+	if u.LastStatusAt != nil {
+		lastStatusAt = time.UnixMilli(*u.LastStatusAt).String()
+	}
+	lastPostDate := ""
+	if u.LastPostDate != nil {
+		lastPostDate = time.UnixMilli(*u.LastPostDate).String()
+	}
+	daysActive := ""
+	if u.DaysActive != nil {
+		daysActive = strconv.Itoa(*u.DaysActive)
+	}
+	totalPosts := ""
+	if u.TotalPosts != nil {
+		totalPosts = strconv.Itoa(*u.TotalPosts)
+	}
+	lastLogin := ""
+	if u.LastLogin > 0 {
+		lastLogin = time.UnixMilli(u.LastLogin).String()
+	}
+
+	return []string{
+		u.Id,
+		u.Username,
+		u.Email,
+		time.UnixMilli(u.CreateAt).String(),
+		u.User.GetDisplayName(ShowNicknameFullName),
+		u.Roles,
+		lastLogin,
+		lastStatusAt,
+		lastPostDate,
+		daysActive,
+		totalPosts,
+	}
+}
+
 type UserReportOptions struct {
 	ReportingBaseOptions
 	Role         string
@@ -86,7 +136,7 @@ func (u *UserReportOptions) IsValid() *AppError {
 	}
 
 	// Validate against the columns we allow sorting for
-	if !pUtils.Contains(UserReportSortColumns, u.SortColumn) {
+	if !slices.Contains(UserReportSortColumns, u.SortColumn) {
 		return NewAppError("UserReportOptions.IsValid", "model.user_report_options.is_valid.invalid_sort_column", nil, "", http.StatusBadRequest)
 	}
 
@@ -94,8 +144,19 @@ func (u *UserReportOptions) IsValid() *AppError {
 }
 
 func (u *UserReportQuery) ToReport() *UserReport {
+	u.ClearNonProfileFields()
 	return &UserReport{
 		User:          u.User,
 		UserPostStats: u.UserPostStats,
 	}
+}
+
+func IsValidReportExportFormat(format string) bool {
+	for _, fmt := range ReportExportFormats {
+		if format == fmt {
+			return true
+		}
+	}
+
+	return false
 }

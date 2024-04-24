@@ -9,7 +9,7 @@ import {CloudBanners, CloudProducts, Preferences} from 'utils/constants';
 
 import CloudAnnualRenewalAnnouncementBar, {getCurrentYearAsString} from './index';
 
-describe('components/announcement_bar/cloud_delinquency', () => {
+describe('components/announcement_bar/cloud_annual_renewal', () => {
     const initialState = {
         views: {
             announcementBar: {
@@ -110,7 +110,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             state,
         );
 
-        expect(getByText('Your annual subscription expires in 56 days. Please renew to avoid any disruption.')).toBeInTheDocument();
+        expect(getByText('Your annual subscription expires in 55 days. Please renew to avoid any disruption.')).toBeInTheDocument();
     });
 
     it('Should NOT show 60 day banner to non-admin when cancel_at time is set accordingly', () => {
@@ -149,7 +149,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             state,
         );
 
-        expect(getByText('Your annual subscription expires in 26 days. Please renew to avoid any disruption.')).toBeInTheDocument();
+        expect(getByText('Your annual subscription expires in 25 days. Please renew to avoid any disruption.')).toBeInTheDocument();
     });
 
     it('Should NOT show 30 day banner to non-admin when cancel_at time is set accordingly', () => {
@@ -188,7 +188,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             state,
         );
 
-        expect(getByText('Your annual subscription expires in 6 days. Failure to renew will result in your workspace being deleted.')).toBeInTheDocument();
+        expect(getByText('Your annual subscription expires in 5 days. Failure to renew will result in your workspace being deleted.')).toBeInTheDocument();
     });
 
     it('Should NOT show 7 day banner to non admin when cancel_at time is set accordingly', () => {
@@ -309,7 +309,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             state,
         );
 
-        expect(queryByText('Your annual subscription expires in 56 days. Please renew to avoid any disruption.')).toBeInTheDocument();
+        expect(queryByText('Your annual subscription expires in 55 days. Please renew to avoid any disruption.')).toBeInTheDocument();
     });
 
     it('Should show 30 day banner to admin in 2023 when they dismissed the banner in 2022', () => {
@@ -336,7 +336,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             state,
         );
 
-        expect(queryByText('Your annual subscription expires in 26 days. Please renew to avoid any disruption.')).toBeInTheDocument();
+        expect(queryByText('Your annual subscription expires in 25 days. Please renew to avoid any disruption.')).toBeInTheDocument();
     });
 
     it('Should NOT show any banner if renewal date is more than 60 days away"', () => {

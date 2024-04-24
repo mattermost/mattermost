@@ -98,7 +98,9 @@ type PlatformService struct {
 	goroutineBuffered   chan struct{}
 
 	additionalClusterHandlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
-	sharedChannelService      SharedChannelServiceIFace
+
+	shareChannelServiceMux sync.RWMutex
+	sharedChannelService   SharedChannelServiceIFace
 
 	pluginEnv HookRunner
 }
@@ -273,6 +275,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	// Needed before loading license
 	ps.statusCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
+		Name:           "Status",
 		Size:           model.StatusCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
@@ -367,9 +370,7 @@ func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error 
 
 		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
 		message.Add("license", ps.GetSanitizedClientLicense())
-		ps.Go(func() {
-			ps.Publish(message)
-		})
+		ps.Publish(message)
 	})
 	return nil
 }
@@ -473,7 +474,15 @@ func (ps *PlatformService) SetSqlStore(s *sqlstore.SqlStore) {
 }
 
 func (ps *PlatformService) SetSharedChannelService(s SharedChannelServiceIFace) {
+	ps.shareChannelServiceMux.Lock()
+	defer ps.shareChannelServiceMux.Unlock()
 	ps.sharedChannelService = s
+}
+
+func (ps *PlatformService) GetSharedChannelService() SharedChannelServiceIFace {
+	ps.shareChannelServiceMux.RLock()
+	defer ps.shareChannelServiceMux.RUnlock()
+	return ps.sharedChannelService
 }
 
 func (ps *PlatformService) SetPluginsEnvironment(runner HookRunner) {

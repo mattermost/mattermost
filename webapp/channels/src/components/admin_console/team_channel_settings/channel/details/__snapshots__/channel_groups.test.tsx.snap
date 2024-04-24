@@ -44,12 +44,19 @@ exports[`admin_console/team_channel_settings/channel/ChannelGroups should match 
       />
     </ToggleModalButton>
   }
-  className=""
   id="channel_groups"
-  subtitleDefault="Add and remove channel members based on their group membership."
-  subtitleId="admin.channel_settings.channel_detail.syncedGroupsDescription"
-  titleDefault="Synced Groups"
-  titleId="admin.channel_settings.channel_detail.syncedGroupsTitle"
+  subtitle={
+    Object {
+      "defaultMessage": "Add and remove channel members based on their group membership.",
+      "id": "admin.channel_settings.channel_detail.syncedGroupsDescription",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Synced Groups",
+      "id": "admin.channel_settings.channel_detail.syncedGroupsTitle",
+    }
+  }
 >
   <Connect(GroupList)
     channel={

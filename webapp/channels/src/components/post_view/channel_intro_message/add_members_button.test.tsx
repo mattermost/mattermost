@@ -66,7 +66,7 @@ describe('components/post_view/AddMembersButton', () => {
             initialState,
         );
 
-        expect(screen.queryByText('Let’s add some people to the workspace!')).toBeInTheDocument();
+        expect(screen.queryByText('Invite others to the workspace')).toBeInTheDocument();
     });
 
     test('should match snapshot, more than limit', () => {
@@ -80,7 +80,7 @@ describe('components/post_view/AddMembersButton', () => {
             initialState,
         );
 
-        expect(screen.queryByText('Add members to this channel')).toBeInTheDocument();
+        expect(screen.queryByText('Add people')).toBeInTheDocument();
     });
 
     test('should match snapshot, setHeader and pluginButtons', () => {
@@ -91,17 +91,10 @@ describe('components/post_view/AddMembersButton', () => {
             </button>
         );
 
-        const HEADER_TEXT = 'Create a board header';
-        const setHeader = (
-            <button>
-                {HEADER_TEXT}
-            </button>
-        );
         const props = {
             totalUsers: 100,
             usersLimit: 10,
             channel,
-            setHeader,
             pluginButtons,
         };
         renderWithContext(
@@ -110,6 +103,5 @@ describe('components/post_view/AddMembersButton', () => {
         );
 
         expect(screen.queryByText(PLUGIN_TEXT)).toBeInTheDocument();
-        expect(screen.queryByText(HEADER_TEXT)).toBeInTheDocument();
     });
 });

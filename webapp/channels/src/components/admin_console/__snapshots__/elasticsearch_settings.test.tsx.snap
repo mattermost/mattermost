@@ -15,7 +15,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         id="admin.elasticsearch.title"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <BooleanSetting
         disabled={false}
         falseText={
@@ -26,19 +26,11 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         }
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Elasticsearch for search queries\\" is enabled. {documentationLink}"
+            defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Elasticsearch for search queries\\" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>"
             id="admin.elasticsearch.enableIndexingDescription"
             values={
               Object {
-                "documentationLink": <ExternalLink
-                  href="https://mattermost.com/pl/setup-elasticsearch"
-                  location="elasticsearch_settings"
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Learn more about Elasticsearch in our documentation."
-                    id="admin.elasticsearch.enableIndexingDescription.documentationLinkText"
-                  />
-                </ExternalLink>,
+                "link": [Function],
               }
             }
           />
@@ -64,19 +56,11 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         disabled={true}
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="The address of the Elasticsearch server. {documentationLink}"
+            defaultMessage="The address of the Elasticsearch server. <link>Please see documentation with server setup instructions.</link>"
             id="admin.elasticsearch.connectionUrlDescription"
             values={
               Object {
-                "documentationLink": <ExternalLink
-                  href="https://mattermost.com/pl/setup-elasticsearch"
-                  location="elasticsearch_settings"
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Please see documentation with server setup instructions."
-                    id="admin.elasticsearch.connectionUrlExample.documentationLinkText"
-                  />
-                </ExternalLink>,
+                "link": [Function],
               }
             }
           />
@@ -89,7 +73,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"https://elasticsearch.example.org:9200\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"https://elasticsearch.example.org:9200\\"",
+            "id": "admin.elasticsearch.connectionUrlExample",
+          }
+        }
         setByEnv={false}
         value="test"
       />
@@ -109,7 +98,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"./elasticsearch/ca.pem\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"./elasticsearch/ca.pem\\"",
+            "id": "admin.elasticsearch.caExample",
+          }
+        }
         setByEnv={false}
         value="test.ca"
       />
@@ -129,7 +123,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"./elasticsearch/client-cert.pem\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"./elasticsearch/client-cert.pem\\"",
+            "id": "admin.elasticsearch.clientCertExample",
+          }
+        }
         setByEnv={false}
         value="test.crt"
       />
@@ -149,7 +148,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"./elasticsearch/client-key.pem\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"./elasticsearch/client-key.pem\\"",
+            "id": "admin.elasticsearch.clientKeyExample",
+          }
+        }
         setByEnv={false}
         value="test.key"
       />
@@ -200,7 +204,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"elastic\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"elastic\\"",
+            "id": "admin.elasticsearch.usernameExample",
+          }
+        }
         setByEnv={false}
         value="test"
       />
@@ -220,7 +229,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"yourpassword\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"yourpassword\\"",
+            "id": "admin.elasticsearch.password",
+          }
+        }
         setByEnv={false}
         value="test"
       />
@@ -327,6 +341,50 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       <RequestButton
         buttonText={
           <Memo(MemoizedFormattedMessage)
+            defaultMessage="Rebuild Channels Index"
+            id="admin.elasticsearch.rebuildChannelsIndex.title"
+          />
+        }
+        disabled={true}
+        errorMessage={
+          Object {
+            "defaultMessage": "Failed to trigger channels index rebuild job: {error}",
+            "id": "admin.elasticsearch.rebuildIndexSuccessfully.error",
+          }
+        }
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
+<b>Note- Please ensure no other indexing job is in progress in the table above.</b>"
+            id="admin.elasticsearch.rebuildChannelsIndex.helpText"
+            values={
+              Object {
+                "b": [Function],
+              }
+            }
+          />
+        }
+        id="rebuildChannelsIndexButton"
+        includeDetailedError={false}
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Rebuild Channels Index"
+            id="admin.elasticsearch.rebuildChannelsIndex.title"
+          />
+        }
+        requestAction={[MockFunction]}
+        saveNeeded={false}
+        showSuccessMessage={true}
+        successMessage={
+          Object {
+            "defaultMessage": "Channels index rebuild job triggered successfully.",
+            "id": "admin.elasticsearch.rebuildIndexSuccessfully.success",
+          }
+        }
+      />
+      <RequestButton
+        buttonText={
+          <Memo(MemoizedFormattedMessage)
             defaultMessage="Purge Index"
             id="admin.elasticsearch.purgeIndexesButton"
           />
@@ -378,7 +436,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: .opendistro*,.security*"
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: .opendistro*,.security*",
+            "id": "admin.elasticsearch.ignoredPurgeIndexesDescription.example",
+          }
+        }
         setByEnv={false}
       />
       <BooleanSetting
@@ -443,7 +506,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         }
         value={false}
       />
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >
@@ -502,7 +565,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         id="admin.elasticsearch.title"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <BooleanSetting
         disabled={false}
         falseText={
@@ -513,19 +576,11 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         }
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Elasticsearch for search queries\\" is enabled. {documentationLink}"
+            defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Elasticsearch for search queries\\" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>"
             id="admin.elasticsearch.enableIndexingDescription"
             values={
               Object {
-                "documentationLink": <ExternalLink
-                  href="https://mattermost.com/pl/setup-elasticsearch"
-                  location="elasticsearch_settings"
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Learn more about Elasticsearch in our documentation."
-                    id="admin.elasticsearch.enableIndexingDescription.documentationLinkText"
-                  />
-                </ExternalLink>,
+                "link": [Function],
               }
             }
           />
@@ -551,19 +606,11 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         disabled={false}
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="The address of the Elasticsearch server. {documentationLink}"
+            defaultMessage="The address of the Elasticsearch server. <link>Please see documentation with server setup instructions.</link>"
             id="admin.elasticsearch.connectionUrlDescription"
             values={
               Object {
-                "documentationLink": <ExternalLink
-                  href="https://mattermost.com/pl/setup-elasticsearch"
-                  location="elasticsearch_settings"
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Please see documentation with server setup instructions."
-                    id="admin.elasticsearch.connectionUrlExample.documentationLinkText"
-                  />
-                </ExternalLink>,
+                "link": [Function],
               }
             }
           />
@@ -576,7 +623,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"https://elasticsearch.example.org:9200\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"https://elasticsearch.example.org:9200\\"",
+            "id": "admin.elasticsearch.connectionUrlExample",
+          }
+        }
         setByEnv={false}
         value="test"
       />
@@ -596,7 +648,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"./elasticsearch/ca.pem\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"./elasticsearch/ca.pem\\"",
+            "id": "admin.elasticsearch.caExample",
+          }
+        }
         setByEnv={false}
         value="test.ca"
       />
@@ -616,7 +673,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"./elasticsearch/client-cert.pem\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"./elasticsearch/client-cert.pem\\"",
+            "id": "admin.elasticsearch.clientCertExample",
+          }
+        }
         setByEnv={false}
         value="test.crt"
       />
@@ -636,7 +698,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"./elasticsearch/client-key.pem\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"./elasticsearch/client-key.pem\\"",
+            "id": "admin.elasticsearch.clientKeyExample",
+          }
+        }
         setByEnv={false}
         value="test.key"
       />
@@ -687,7 +754,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"elastic\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"elastic\\"",
+            "id": "admin.elasticsearch.usernameExample",
+          }
+        }
         setByEnv={false}
         value="test"
       />
@@ -707,7 +779,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"yourpassword\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"yourpassword\\"",
+            "id": "admin.elasticsearch.password",
+          }
+        }
         setByEnv={false}
         value="test"
       />
@@ -813,6 +890,50 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       <RequestButton
         buttonText={
           <Memo(MemoizedFormattedMessage)
+            defaultMessage="Rebuild Channels Index"
+            id="admin.elasticsearch.rebuildChannelsIndex.title"
+          />
+        }
+        disabled={false}
+        errorMessage={
+          Object {
+            "defaultMessage": "Failed to trigger channels index rebuild job: {error}",
+            "id": "admin.elasticsearch.rebuildIndexSuccessfully.error",
+          }
+        }
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
+<b>Note- Please ensure no other indexing job is in progress in the table above.</b>"
+            id="admin.elasticsearch.rebuildChannelsIndex.helpText"
+            values={
+              Object {
+                "b": [Function],
+              }
+            }
+          />
+        }
+        id="rebuildChannelsIndexButton"
+        includeDetailedError={false}
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Rebuild Channels Index"
+            id="admin.elasticsearch.rebuildChannelsIndex.title"
+          />
+        }
+        requestAction={[MockFunction]}
+        saveNeeded={false}
+        showSuccessMessage={true}
+        successMessage={
+          Object {
+            "defaultMessage": "Channels index rebuild job triggered successfully.",
+            "id": "admin.elasticsearch.rebuildIndexSuccessfully.success",
+          }
+        }
+      />
+      <RequestButton
+        buttonText={
+          <Memo(MemoizedFormattedMessage)
             defaultMessage="Purge Index"
             id="admin.elasticsearch.purgeIndexesButton"
           />
@@ -864,7 +985,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: .opendistro*,.security*"
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: .opendistro*,.security*",
+            "id": "admin.elasticsearch.ignoredPurgeIndexesDescription.example",
+          }
+        }
         setByEnv={false}
       />
       <BooleanSetting
@@ -929,7 +1055,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         }
         value={false}
       />
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >

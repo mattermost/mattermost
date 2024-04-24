@@ -11,7 +11,7 @@ import * as TeamActions from 'mattermost-redux/actions/teams';
 import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {addUsersToTeam} from 'actions/team_actions';
@@ -22,7 +22,7 @@ import {ConsolePages} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
 
-export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[]): NewActionFuncAsync<InviteResults> {
+export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[]): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
         if (users.length > 0) {
             await dispatch(TeamActions.getTeamMembersByIds(teamId, users.map((u) => u.id)));
@@ -68,7 +68,7 @@ export function sendMembersInvites(teamId: string, users: UserProfile[], emails:
                     data: emails.map((email) => ({
                         email,
                         error: {error: localizeMessage('invite.members.unable-to-add-the-user-to-the-team', 'Unable to add the user to the team.')},
-                    })) as any, // HARRISONTODO These error handling cases return slightly different types
+                    })) as unknown as TeamInviteWithError[],
                 };
             }
             const invitesWithErrors = response.data || [];
@@ -158,7 +158,7 @@ export function sendGuestsInvites(
     users: UserProfile[],
     emails: string[],
     message: string,
-): NewActionFuncAsync<InviteResults> {
+): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
         const state = getState();
         const sent = [];
@@ -184,8 +184,8 @@ export function sendGuestsInvites(
                     data: emails.map((email) => ({
                         email,
                         error: {error: localizeMessage('invite.guests.unable-to-add-the-user-to-the-channels', 'Unable to add the guest to the channels.')},
-                    })),
-                } as any; // HARRISONTODO These error handling cases return slightly different types
+                    })) as unknown as TeamInviteWithError[],
+                };
             }
 
             if (response.error) {
@@ -226,7 +226,7 @@ export function sendMembersInvitesToChannels(
     users: UserProfile[],
     emails: string[],
     message: string,
-): NewActionFuncAsync<InviteResults> {
+): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
         if (users.length > 0) {
             // used to preload in the global store the teammembers info, used later to validate
@@ -281,7 +281,7 @@ export function sendMembersInvitesToChannels(
                     data: emails.map((email) => ({
                         email,
                         error: {error: localizeMessage('invite.members.unable-to-add-the-user-to-the-team', 'Unable to add the user to the team.')},
-                    })) as any, // HARRISONTODO These error handling cases return slightly different types
+                    })) as unknown as TeamInviteWithError[],
                 };
             }
             const invitesWithErrors = response.data || [];

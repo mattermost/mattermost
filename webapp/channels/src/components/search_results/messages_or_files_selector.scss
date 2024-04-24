@@ -12,17 +12,17 @@
     .tab {
         padding: 4px 12px;
         border: 0;
+        border-radius: 4px;
         margin-right: 4px;
         background-color: rgba(var(--center-channel-bg-rgb), 1);
-        border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         cursor: pointer;
         font-weight: 600;
         text-decoration: none;
 
         &.active {
-            background-color: rgba(var(--button-bg-rgb), 0.08);
             border-radius: 4px;
+            background-color: rgba(var(--button-bg-rgb), 0.08);
             color: var(--button-bg);
 
             .counter {
@@ -34,9 +34,9 @@
             position: relative;
             bottom: 1px;
             padding: 1px 6px;
+            border-radius: 8px;
             margin-left: 4px;
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            border-radius: 8px;
             font-size: 10px;
             font-weight: 700;
         }

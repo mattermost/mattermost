@@ -12,7 +12,7 @@ import {getCurrentChannel, getChannel as getChannelFromRedux} from 'mattermost-r
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
@@ -33,8 +33,8 @@ type Option = {
     skipRedirectReplyPermalink: boolean;
 }
 
-function focusRootPost(post: Post, channel: Channel) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function focusRootPost(post: Post, channel: Channel): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const postURL = getPostURL(getState() as GlobalState, post);
 
         dispatch(selectChannel(channel.id));
@@ -49,11 +49,11 @@ function focusRootPost(post: Post, channel: Channel) {
     };
 }
 
-function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: string, option: Option) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: string, option: Option): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const {data} = await dispatch(getPostThread(post.root_id));
 
-        if (data.first_inaccessible_post_time) {
+        if (data!.first_inaccessible_post_time) {
             getHistory().replace(`/error?type=${ErrorPageTypes.CLOUD_ARCHIVED}&returnTo=${returnTo}`);
             return {data: false};
         }
@@ -63,7 +63,7 @@ function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: 
         const team = getTeam(state, channel.team_id || teamId);
         const currentChannel = getCurrentChannel(state);
 
-        const sameTeam = currentChannel && currentChannel.team_id === team.id;
+        const sameTeam = currentChannel && currentChannel.team_id === team?.id;
 
         const {skipRedirectReplyPermalink} = option;
 
@@ -83,8 +83,8 @@ function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: 
     };
 }
 
-export function focusPost(postId: string, returnTo = '', currentUserId: string, option: Option = {skipRedirectReplyPermalink: false}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function focusPost(postId: string, returnTo = '', currentUserId: string, option: Option = {skipRedirectReplyPermalink: false}): ThunkActionFunc<Promise<void>> {
+    return async (dispatch, getState) => {
         // Ignore if prompt is still visible
         if (privateChannelJoinPromptVisible) {
             return;
@@ -100,6 +100,9 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
 
         const state = getState();
         const currentTeam = getCurrentTeam(state);
+        if (!currentTeam) {
+            return;
+        }
 
         if (!postInfo.has_joined_channel) {
             // Prompt system admin before joining the private channel
@@ -108,7 +111,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
                 privateChannelJoinPromptVisible = true;
                 const joinPromptResult = await dispatch(joinPrivateChannelPrompt(currentTeam, postInfo.channel_display_name));
                 privateChannelJoinPromptVisible = false;
-                if ('data' in joinPromptResult && !joinPromptResult.data.join) {
+                if ('data' in joinPromptResult && !joinPromptResult.data!.join) {
                     return;
                 }
             }
@@ -155,7 +158,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
 
             const membership = await dispatch(getChannelMember(channel.id, currentUserId));
             if ('data' in membership) {
-                myMember = membership.data;
+                myMember = membership.data!;
             }
 
             if (!myMember) {

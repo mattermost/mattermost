@@ -66,9 +66,6 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise", api.APISessionRequired(upgradeToEnterprise)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise/status", api.APISessionRequired(upgradeToEnterpriseStatus)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/restart", api.APISessionRequired(restart)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/status", api.APISessionRequired(getWarnMetricsStatus)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(sendWarnMetricAckEmail)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
 	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
@@ -92,15 +89,28 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// We support the existing API hence the logs are always included
+	// if nothing specified.
+	includeLogs := true
+	if r.FormValue("basic_server_logs") == "false" {
+		includeLogs = false
+	}
+	supportPacketOptions := &model.SupportPacketOptions{
+		IncludeLogs:   includeLogs,
+		PluginPackets: r.Form["plugin_packets"],
+	}
+
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
 	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.no_license", nil, "", http.StatusForbidden)
 		return
 	}
 
-	fileDatas := c.App.GenerateSupportPacket(c.AppContext)
+	fileDatas := c.App.GenerateSupportPacket(c.AppContext, supportPacketOptions)
 
 	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
+	// Note that this filename is also being checked at the webapp, please update the
+	// regex within the commercial_support_modal.tsx file if the naming convention ever changes.
 	now := time.Now()
 	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", now.Format("2006-01-02-03-04"))
 
@@ -111,14 +121,14 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	outputDirectoryToUse := OutputDirectory + "_" + model.NewId()
 	err := c.App.CreateZipFileAndAddFiles(fileStorageBackend, fileDatas, outputZipFilename, outputDirectoryToUse)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_create_zip_file", nil, err.Error(), http.StatusForbidden)
+		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_create_zip_file", nil, "", http.StatusForbidden).Wrap(err)
 		return
 	}
 
 	fileBytes, err := fileStorageBackend.ReadFile(path.Join(outputDirectoryToUse, outputZipFilename))
 	defer fileStorageBackend.RemoveDirectory(outputDirectoryToUse)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_read_file_from_backend", nil, err.Error(), http.StatusForbidden)
+		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_read_file_from_backend", nil, "", http.StatusForbidden).Wrap(err)
 		return
 	}
 	fileBytesReader := bytes.NewReader(fileBytes)
@@ -179,6 +189,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		s[filestoreStatusKey] = model.StatusOk
 		appErr := c.App.TestFileStoreConnection()
 		if appErr != nil {
+			c.Logger.Warn("Unable to test filestore connection.", mlog.Err(appErr))
 			s[filestoreStatusKey] = model.StatusUnhealthy
 			s[model.STATUS] = model.StatusUnhealthy
 		}
@@ -194,7 +205,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	s["ActiveSearchBackend"] = c.App.ActiveSearchBackend()
 
-	if s[model.STATUS] != model.StatusOk {
+	if s[model.STATUS] != model.StatusOk && r.FormValue("use_rest_semantics") != "true" {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	w.Write([]byte(model.MapToJSON(s)))
@@ -465,7 +476,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, appErr := c.App.GetAnalytics(name, teamId)
+	rows, appErr := c.App.GetAnalytics(c.AppContext, name, teamId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -534,11 +545,6 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
 		c.SetPermissionError(model.PermissionTestS3)
-		return
-	}
-
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("testS3", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -635,18 +641,27 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.App.CountNotificationAck(model.NotificationTypePush)
+
 	err := c.App.SendAckToPushProxy(&ack)
 	if ack.IsIdLoaded {
 		if err != nil {
-			// Log the error only, then continue to fetch notification message
+			c.App.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError)
 			c.App.NotificationsLog().Error("Notification ack not sent to push proxy",
-				mlog.String("ackId", ack.Id),
-				mlog.String("type", ack.NotificationType),
-				mlog.String("postId", ack.PostId),
-				mlog.String("status", err.Error()),
+				mlog.String("type", model.NotificationTypePush),
+				mlog.String("status", model.NotificationStatusError),
+				mlog.String("reason", model.NotificationReasonPushProxySendError),
+				mlog.String("ack_id", ack.Id),
+				mlog.String("push_type", ack.NotificationType),
+				mlog.String("post_id", ack.PostId),
+				mlog.String("ack_type", ack.NotificationType),
+				mlog.String("device_type", ack.ClientPlatform),
+				mlog.Int("received_at", ack.ClientReceivedAt),
+				mlog.Err(err),
 			)
+		} else {
+			c.App.CountNotificationReason(model.NotificationStatusSuccess, model.NotificationTypePush, model.NotificationReason(""))
 		}
-
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
 			if _, appErr := c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
@@ -663,7 +678,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			msg, appError := notificationInterface.GetNotificationMessage(c.AppContext, &ack, c.AppContext.Session().UserId)
 			if appError != nil {
-				c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
+				c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, "", http.StatusInternalServerError).Wrap(appError)
 				return
 			}
 			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
@@ -673,10 +688,11 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		return
 	} else if err != nil {
-		c.Err = model.NewAppError("pushNotificationAck", "api.push_notifications_ack.forward.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("pushNotificationAck", "api.push_notifications_ack.forward.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
+	c.App.CountNotificationReason(model.NotificationStatusSuccess, model.NotificationTypePush, model.NotificationReason(""))
 	ReturnStatusOK(w)
 }
 
@@ -779,16 +795,16 @@ func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
 				"Path":               ipErr.Path,
 			}
 			if ipErr.ErrType == "invalid-user-and-permission" {
-				c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.invalid-user-and-permission.app_error", params, err.Error(), http.StatusForbidden)
+				c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.invalid-user-and-permission.app_error", params, "", http.StatusForbidden).Wrap(err)
 			} else if ipErr.ErrType == "invalid-user" {
-				c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.invalid-user.app_error", params, err.Error(), http.StatusForbidden)
+				c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.invalid-user.app_error", params, "", http.StatusForbidden).Wrap(err)
 			} else if ipErr.ErrType == "invalid-permission" {
-				c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.invalid-permission.app_error", params, err.Error(), http.StatusForbidden)
+				c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.invalid-permission.app_error", params, "", http.StatusForbidden).Wrap(err)
 			}
 		case errors.As(err, &iaErr):
-			c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.system_not_supported.app_error", nil, err.Error(), http.StatusForbidden)
+			c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.system_not_supported.app_error", nil, "", http.StatusForbidden).Wrap(err)
 		default:
-			c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.generic_error.app_error", nil, err.Error(), http.StatusForbidden)
+			c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.generic_error.app_error", nil, "", http.StatusForbidden).Wrap(err)
 		}
 		return
 	}
@@ -814,10 +830,10 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 		var isErr *upgrader.InvalidSignature
 		switch {
 		case errors.As(err, &isErr):
-			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.app_error", nil, err.Error(), http.StatusBadRequest)
+			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.app_error", nil, "", http.StatusBadRequest).Wrap(isErr)
 			s = map[string]any{"percentage": 0, "error": appErr.Message}
 		default:
-			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.signature.app_error", nil, err.Error(), http.StatusBadRequest)
+			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.signature.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			s = map[string]any{"percentage": 0, "error": appErr.Message}
 		}
 	} else {
@@ -843,100 +859,6 @@ func restart(c *Context, w http.ResponseWriter, r *http.Request) {
 	go func() {
 		c.App.Srv().Restart()
 	}()
-}
-
-func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
-		c.SetPermissionError(model.SysconsoleReadPermissions...)
-		return
-	}
-
-	license := c.App.Channels().License()
-	if license != nil {
-		c.Logger.Debug("License is present, skip.")
-		return
-	}
-
-	status, appErr := c.App.GetWarnMetricsStatus(c.AppContext)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	js, err := json.Marshal(status)
-	if err != nil {
-		c.Err = model.NewAppError("getWarnMetricsStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	w.Write(js)
-}
-
-func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("sendWarnMetricAckEmail", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	c.LogAudit("attempt")
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	license := c.App.Channels().License()
-	if license != nil {
-		c.Logger.Debug("License is present, skip.")
-		return
-	}
-
-	user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	var ack model.SendWarnMetricAck
-	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
-		c.SetInvalidParamWithErr("ack", jsonErr)
-		return
-	}
-
-	appErr = c.App.NotifyAndSetWarnMetricAck(c.AppContext, c.Params.WarnMetricId, user, ack.ForceAck, false)
-	if appErr != nil {
-		c.Err = appErr
-	}
-
-	auditRec.Success()
-	ReturnStatusOK(w)
-}
-
-func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("requestTrialLicenseAndAckWarnMetric", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	c.LogAudit("attempt")
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	if model.BuildEnterpriseReady != "true" {
-		c.Logger.Debug("Not Enterprise Edition, skip.")
-		return
-	}
-
-	license := c.App.Channels().License()
-	if license != nil {
-		c.Logger.Debug("License is present, skip.")
-		return
-	}
-
-	if err := c.App.RequestLicenseAndAckWarnMetric(c.AppContext, c.Params.WarnMetricId, false); err != nil {
-		c.Err = err
-		return
-	}
-
-	auditRec.Success()
-	ReturnStatusOK(w)
 }
 
 func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -967,7 +889,7 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	ids, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	ids, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("updateViewedProductNotices", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CollapsedThreads} from '@mattermost/types/config';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Preferences} from 'mattermost-redux/constants';
@@ -68,11 +69,10 @@ describe('components/SwitchChannelProvider', () => {
                     },
                 },
                 channels: {
-                    direct_other_user: {
+                    direct_other_user: TestHelper.getChannelMock({
                         id: 'direct_other_user',
                         name: 'current_user_id__other_user',
-                    },
-                    myMembers: {},
+                    }),
                 },
                 messageCounts: {
                     direct_other_user: {
@@ -99,27 +99,26 @@ describe('components/SwitchChannelProvider', () => {
             },
             users: {
                 profiles: {
-                    current_user_id: {roles: 'system_role'},
-                    other_user1: {
+                    current_user_id: TestHelper.getUserMock({roles: 'system_role'}),
+                    other_user1: TestHelper.getUserMock({
                         id: 'other_user1',
-                        display_name: 'other_user1',
                         username: 'other_user1',
-                    },
+                    }),
                 },
                 currentUserId: 'current_user_id',
                 profilesInChannel: {
-                    current_user_id: ['user_1'],
+                    current_user_id: new Set(['user_1']),
                 },
             },
             teams: {
                 currentTeamId: 'currentTeamId',
                 teams: {
-                    currentTeamId: {
+                    currentTeamId: TestHelper.getTeamMock({
                         id: 'currentTeamId',
                         display_name: 'test',
                         type: 'O',
                         delete_at: 0,
-                    },
+                    }),
                 },
             },
             posts: {
@@ -152,6 +151,7 @@ describe('components/SwitchChannelProvider', () => {
             type: 'O',
             name: 'other_user',
             display_name: 'other_user',
+            update_at: 0,
             delete_at: 0,
         },
         {
@@ -159,6 +159,7 @@ describe('components/SwitchChannelProvider', () => {
             type: 'D',
             name: 'current_user_id__other_user',
             display_name: 'other_user',
+            update_at: 0,
             delete_at: 0,
         }];
         const searchText = 'other';
@@ -195,6 +196,7 @@ describe('components/SwitchChannelProvider', () => {
             type: 'O',
             name: 'other_user',
             display_name: 'other_user',
+            update_at: 0,
             delete_at: 0,
         }];
         const searchText = 'other';
@@ -227,6 +229,7 @@ describe('components/SwitchChannelProvider', () => {
             type: 'O',
             name: 'other_user',
             display_name: 'other_user',
+            update_at: 0,
             delete_at: 0,
         },
         {
@@ -234,6 +237,7 @@ describe('components/SwitchChannelProvider', () => {
             type: 'D',
             name: 'current_user_id__other_user',
             display_name: 'other_user',
+            update_at: 0,
             delete_at: 0,
         }];
         const searchText = 'something else';
@@ -294,7 +298,7 @@ describe('components/SwitchChannelProvider', () => {
                     },
                     currentUserId: 'current_user_id',
                     profilesInChannel: {
-                        current_user_id: ['user_1'],
+                        current_user_id: new Set(['user_1']),
                     },
                 },
             },
@@ -306,25 +310,29 @@ describe('components/SwitchChannelProvider', () => {
     });
 
     it('should sort results in aplhabetical order', () => {
-        const channels = [{
-            id: 'channel_other_user',
-            type: 'O',
-            name: 'blah_other_user',
-            display_name: 'blah_other_user',
-            delete_at: 0,
-        }, {
-            id: 'direct_other_user1',
-            type: 'D',
-            name: 'current_user_id__other_user1',
-            display_name: 'other_user1',
-            delete_at: 0,
-        }, {
-            id: 'direct_other_user2',
-            type: 'D',
-            name: 'current_user_id__other_user2',
-            display_name: 'other_user2',
-            delete_at: 0,
-        }];
+        const channels = [
+            TestHelper.getChannelMock({
+                id: 'channel_other_user',
+                type: 'O',
+                name: 'blah_other_user',
+                display_name: 'blah_other_user',
+                delete_at: 0,
+            }),
+            TestHelper.getChannelMock({
+                id: 'direct_other_user1',
+                type: 'D',
+                name: 'current_user_id__other_user1',
+                display_name: 'other_user1',
+                delete_at: 0,
+            }),
+            TestHelper.getChannelMock({
+                id: 'direct_other_user2',
+                type: 'D',
+                name: 'current_user_id__other_user2',
+                display_name: 'other_user2',
+                delete_at: 0,
+            }),
+        ];
 
         const users = [
             TestHelper.getUserMock({
@@ -411,31 +419,36 @@ describe('components/SwitchChannelProvider', () => {
             }),
         ];
 
-        const channels = [{
-            id: 'channel_other_user',
-            type: 'O',
-            name: 'blah_other_user',
-            display_name: 'blah_other_user',
-            delete_at: 0,
-        }, {
-            id: 'direct_other_user1',
-            type: 'D',
-            name: 'current_user_id__other_user1',
-            display_name: 'other_user1',
-            delete_at: 0,
-        }, {
-            id: 'direct_other_user2',
-            type: 'D',
-            name: 'current_user_id__other_user2',
-            display_name: 'other_user2',
-            delete_at: 0,
-        }, {
-            id: 'direct_other_user4',
-            type: 'D',
-            name: 'current_user_id__other_user4',
-            display_name: 'other_user4',
-            delete_at: 0,
-        }];
+        const channels = [
+            TestHelper.getChannelMock({
+                id: 'channel_other_user',
+                type: 'O',
+                name: 'blah_other_user',
+                display_name: 'blah_other_user',
+                delete_at: 0,
+            }),
+            TestHelper.getChannelMock({
+                id: 'direct_other_user1',
+                type: 'D',
+                name: 'current_user_id__other_user1',
+                display_name: 'other_user1',
+                delete_at: 0,
+            }),
+            TestHelper.getChannelMock({
+                id: 'direct_other_user2',
+                type: 'D',
+                name: 'current_user_id__other_user2',
+                display_name: 'other_user2',
+                delete_at: 0,
+            }),
+            TestHelper.getChannelMock({
+                id: 'direct_other_user4',
+                type: 'D',
+                name: 'current_user_id__other_user4',
+                display_name: 'other_user4',
+                delete_at: 0,
+            }),
+        ];
 
         const modifiedState = {
             ...defaultState,
@@ -528,7 +541,7 @@ describe('components/SwitchChannelProvider', () => {
                     channels: {
                         channel_other_user: {
                             id: 'channel_other_user',
-                            type: 'O',
+                            type: 'O' as const,
                             name: 'other_user',
                             display_name: 'other_user',
                             delete_at: 0,
@@ -536,16 +549,14 @@ describe('components/SwitchChannelProvider', () => {
                         },
                         other_gm_channel: {
                             id: 'other_gm_channel',
-                            msg_count: 1,
-                            last_viewed_at: 3,
-                            type: 'G',
+                            type: 'G' as const,
                             name: 'other_gm_channel',
                             delete_at: 0,
                             display_name: 'other_gm_channel',
                         },
                         other_user1: {
                             id: 'other_user1',
-                            type: 'D',
+                            type: 'D' as const,
                             name: 'current_user_id__other_user1',
                             display_name: 'current_user_id__other_user1',
                         },
@@ -601,7 +612,7 @@ describe('components/SwitchChannelProvider', () => {
                     channels: {
                         channel_other_user: {
                             id: 'channel_other_user',
-                            type: 'O',
+                            type: 'O' as const,
                             name: 'other_user',
                             display_name: 'other_user',
                             delete_at: 0,
@@ -609,16 +620,14 @@ describe('components/SwitchChannelProvider', () => {
                         },
                         other_gm_channel: {
                             id: 'other_gm_channel',
-                            msg_count: 1,
-                            last_viewed_at: 3,
-                            type: 'G',
+                            type: 'G' as const,
                             name: 'other_gm_channel',
                             delete_at: 0,
                             display_name: 'other.user1, other.user2',
                         },
                         other_user1: {
                             id: 'other_user1',
-                            type: 'D',
+                            type: 'D' as const,
                             name: 'current_user_id__other_user1',
                             display_name: 'other user1',
                         },
@@ -635,7 +644,7 @@ describe('components/SwitchChannelProvider', () => {
                     },
                     currentUserId: 'current_user_id',
                     profilesInChannel: {
-                        current_user_id: ['user_1'],
+                        current_user_id: new Set(['user_1']),
                     },
                 },
             },
@@ -701,7 +710,7 @@ describe('components/SwitchChannelProvider', () => {
                     channels: {
                         channel_other_user: {
                             id: 'channel_other_user',
-                            type: 'O',
+                            type: 'O' as const,
                             name: 'other_user',
                             display_name: 'other_user',
                             delete_at: 0,
@@ -709,22 +718,20 @@ describe('components/SwitchChannelProvider', () => {
                         },
                         other_gm_channel: {
                             id: 'other_gm_channel',
-                            msg_count: 1,
-                            last_viewed_at: 3,
-                            type: 'G',
+                            type: 'G' as const,
                             name: 'other_gm_channel',
                             delete_at: 0,
                             display_name: 'other_gm_channel',
                         },
                         other_user1: {
                             id: 'other_user1',
-                            type: 'D',
+                            type: 'D' as const,
                             name: 'current_user_id__other_user1',
                             display_name: 'current_user_id__other_user1',
                         },
                     },
                     channelsInTeam: {
-                        '': ['other_gm_channel'],
+                        '': new Set(['other_gm_channel']),
                     },
                 },
             },
@@ -776,24 +783,22 @@ describe('components/SwitchChannelProvider', () => {
                         },
                     },
                     channels: {
-                        other_gm_channel: {
+                        other_gm_channel: TestHelper.getChannelMock({
                             id: 'other_gm_channel',
-                            msg_count: 1,
-                            last_viewed_at: 3,
                             type: 'G',
                             name: 'other_gm_channel',
                             delete_at: 0,
                             display_name: 'other_gm_channel',
-                        },
-                        other_user1: {
+                        }),
+                        other_user1: TestHelper.getChannelMock({
                             id: 'other_user1',
                             type: 'D',
                             name: 'current_user_id__other_user1',
                             display_name: 'current_user_id__other_user1',
-                        },
+                        }),
                     },
                     channelsInTeam: {
-                        '': ['other_gm_channel'],
+                        '': new Set(['other_gm_channel']),
                     },
                 },
                 preferences: {
@@ -833,6 +838,7 @@ describe('components/SwitchChannelProvider', () => {
             type: 'G',
             name: 'other_gm_channel',
             delete_at: 0,
+            update_at: 0,
             display_name: 'other_user1, current_user_id',
         }];
 
@@ -860,22 +866,22 @@ describe('components/SwitchChannelProvider', () => {
                         channel_2: {},
                     },
                     channels: {
-                        channel_1: {
+                        channel_1: TestHelper.getChannelMock({
                             id: 'channel_1',
                             type: 'O',
                             name: 'channel_1',
                             display_name: 'channel 1',
                             delete_at: 0,
                             team_id: 'currentTeamId',
-                        },
-                        channel_2: {
+                        }),
+                        channel_2: TestHelper.getChannelMock({
                             id: 'channel_2',
                             type: 'O',
                             name: 'channel_2',
                             display_name: 'channel 2',
                             delete_at: 0,
                             team_id: 'archivedTeam',
-                        },
+                        }),
                     },
                 },
             },
@@ -905,7 +911,7 @@ describe('components/SwitchChannelProvider', () => {
                 ...defaultState.entities,
                 general: {
                     config: {
-                        CollapsedThreads: 'default_off',
+                        CollapsedThreads: CollapsedThreads.DEFAULT_OFF,
                     },
                 },
                 threads: {
@@ -953,16 +959,14 @@ describe('components/SwitchChannelProvider', () => {
                     channels: {
                         thread_gm_channel: {
                             id: 'thread_gm_channel',
-                            msg_count: 1,
-                            last_viewed_at: 3,
-                            type: 'G',
+                            type: 'G' as const,
                             name: 'thread_gm_channel',
                             delete_at: 0,
                             display_name: 'thread_gm_channel',
                         },
                     },
                     channelsInTeam: {
-                        '': ['thread_gm_channel'],
+                        '': new Set(['thread_gm_channel']),
                     },
                 },
             },

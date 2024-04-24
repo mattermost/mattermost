@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getInvoices} from 'mattermost-redux/actions/cloud';
@@ -23,6 +23,14 @@ import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
 import BillingHistoryTable from './billing_history_table';
 
 import './billing_history.scss';
+
+const messages = defineMessages({
+    title: {id: 'admin.billing.history.title', defaultMessage: 'Billing History'},
+});
+
+export const searchableStrings = [
+    messages.title,
+];
 
 interface NoBillingHistorySectionProps {
     selfHosted: boolean;
@@ -73,8 +81,7 @@ const BillingHistory = () => {
         <div className='wrapper--fixed BillingHistory'>
             <AdminHeader>
                 <FormattedMessage
-                    id='admin.billing.history.title'
-                    defaultMessage='Billing History'
+                    {...messages.title}
                 />
             </AdminHeader>
             <div className='admin-console__wrapper'>

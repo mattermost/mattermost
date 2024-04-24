@@ -83,7 +83,6 @@ func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session
 	}
 
 	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(session.UserId, true, true)
-
 	var channelRoles []string
 	if err == nil {
 		if roles, ok := ids[channelID]; ok {
@@ -172,7 +171,11 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 }
 
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId); err == nil {
+	if postID == "" {
+		return false
+	}
+
+	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId, *a.Config().TeamSettings.ExperimentalViewArchivedChannels); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
@@ -214,12 +217,12 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 	return false
 }
 
-func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userID string) bool {
+func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Session, userID string) bool {
 	if session.IsUnrestricted() {
 		return true
 	}
 
-	err := a.SessionHasPermissionToManageBot(session, userID)
+	err := a.SessionHasPermissionToManageBot(rctx, session, userID)
 	if err == nil {
 		return true
 	}
@@ -260,17 +263,22 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 		return false
 	}
 
-	channelMember, err := a.GetChannelMember(c, channelID, askingUserId)
+	// We call GetAllChannelMembersForUser instead of just getting
+	// a single member from the DB, because it's cache backed
+	// and this is a very frequent call.
+	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(askingUserId, true, true)
+	var channelRoles []string
 	if err == nil {
-		roles := channelMember.GetRoles()
-		if a.RolesGrantPermission(roles, permission.Id) {
-			return true
+		if roles, ok := ids[channelID]; ok {
+			channelRoles = strings.Fields(roles)
+			if a.RolesGrantPermission(channelRoles, permission.Id) {
+				return true
+			}
 		}
 	}
 
-	var channel *model.Channel
-	channel, err = a.GetChannel(c, channelID)
-	if err == nil {
+	channel, appErr := a.GetChannel(c, channelID)
+	if appErr == nil {
 		return a.HasPermissionToTeam(c, askingUserId, channel.TeamId, permission)
 	}
 
@@ -278,7 +286,7 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 }
 
 func (a *App) HasPermissionToChannelByPost(c request.CTX, askingUserId string, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId); err == nil {
+	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId, *a.Config().TeamSettings.ExperimentalViewArchivedChannels); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
@@ -331,8 +339,8 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 // SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.
 // This function deviates from other authorization checks in returning an error instead of just
 // a boolean, allowing the permission failure to be exposed with more granularity.
-func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError {
-	existingBot, err := a.GetBot(botUserId, true)
+func (a *App) SessionHasPermissionToManageBot(rctx request.CTX, session model.Session, botUserId string) *model.AppError {
+	existingBot, err := a.GetBot(rctx, botUserId, true)
 	if err != nil {
 		return err
 	}

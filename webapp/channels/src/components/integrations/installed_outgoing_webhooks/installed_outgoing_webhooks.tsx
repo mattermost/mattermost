@@ -99,7 +99,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
             this.props.actions.loadOutgoingHooksAndProfilesForTeam(
                 this.props.teamId,
                 Constants.Integrations.START_PAGE_NUM,
-                parseInt(Constants.Integrations.PAGE_SIZE, 10),
+                Constants.Integrations.PAGE_SIZE,
             ).then(
                 () => this.setState({loading: false}),
             );

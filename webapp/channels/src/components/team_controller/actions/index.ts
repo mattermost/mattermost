@@ -13,15 +13,16 @@ import {getTeamByName, selectTeam} from 'mattermost-redux/actions/teams';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
 import {addUserToTeam} from 'actions/team_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {isSuccess} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
-export function initializeTeam(team: Team): ActionFunc<Team, ServerError> {
+export function initializeTeam(team: Team): ActionFuncAsync<Team, GlobalState> {
     return async (dispatch, getState) => {
         dispatch(selectTeam(team.id));
 
@@ -76,7 +77,7 @@ export function initializeTeam(team: Team): ActionFunc<Team, ServerError> {
     };
 }
 
-export function joinTeam(teamname: string, joinedOnFirstLoad: boolean): ActionFunc<Team, ServerError> {
+export function joinTeam(teamname: string, joinedOnFirstLoad: boolean): ActionFuncAsync<Team, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUser = getCurrentUser(state);

@@ -9,7 +9,7 @@
         padding: 0;
         margin: 0 0 8px;
         color: var(--center-channel-color);
-        font-family: 'Open Sans', sans-serif;
+        font-family: "Open Sans", sans-serif;
         font-size: 14px;
         font-style: normal;
         font-weight: 600;
@@ -29,6 +29,24 @@
         line-height: 16px;
     }
 
+    &__error {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        margin: 12px 0 0 0;
+        color: var(--error-text);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 16px;
+
+        svg {
+            flex-shrink: 0;
+            margin-right: 6px;
+        }
+    }
+
     &__content {
         display: flex;
         flex-direction: column;
@@ -45,9 +63,12 @@
         align-items: center;
         cursor: pointer;
         font-size: 14px;
-        font-weight: 400;
         gap: 8px;
         line-height: 20px;
+
+        span {
+            font-weight: 400;
+        }
     }
 
     &__fieldset-radio {
@@ -61,6 +82,7 @@
         width: fit-content;
         flex-direction: row;
         align-items: center;
+        margin-bottom: 0;
         cursor: pointer;
         font-size: 14px;
         font-weight: 400;
@@ -80,11 +102,11 @@
     input[type=checkbox] {
         display: grid;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 3px;
         margin: 0;
         -webkit-appearance: none;
         appearance: none;
         background-color: transparent;
-        border-radius: 3px;
         color: rgba(var(--center-channel-color-rgb), 0.24);
         cursor: pointer;
         font: inherit;
@@ -120,11 +142,11 @@
         width: 1.6rem;
         height: 1.6rem;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 50%;
         margin: 0;
         -webkit-appearance: none;
         appearance: none;
         background-color: transparent;
-        border-radius: 50%;
         color: rgba(var(--center-channel-color-rgb), 0.24);
         cursor: pointer;
         font: inherit;
@@ -134,8 +156,8 @@
     input[type="radio"]::before {
         width: 8px;
         height: 8px;
-        background: var(--denim-button-bg);
         border-radius: 50%;
+        background: var(--denim-button-bg);
         content: '';
         transform: scale(0);
         transform-origin: center center;

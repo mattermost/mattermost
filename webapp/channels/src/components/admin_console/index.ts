@@ -6,7 +6,7 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getConfig, getEnvironmentConfig, updateConfig} from 'mattermost-redux/actions/admin';
+import {getConfig, getEnvironmentConfig, patchConfig} from 'mattermost-redux/actions/admin';
 import {loadRolesIfNeeded, editRole} from 'mattermost-redux/actions/roles';
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {General} from 'mattermost-redux/constants';
@@ -18,6 +18,7 @@ import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin, currentUserHasAnAdminRole, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setNavigationBlocked, deferNavigation, cancelNavigation, confirmNavigation} from 'actions/admin_actions.jsx';
+import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 import {selectLhsItem} from 'actions/views/lhs';
 import {getAdminDefinition, getConsoleAccess} from 'selectors/admin_console';
 import {showNavigationPrompt} from 'selectors/views/admin';
@@ -59,7 +60,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             getConfig,
             getEnvironmentConfig,
-            updateConfig,
+            patchConfig,
             setNavigationBlocked,
             deferNavigation,
             cancelNavigation,
@@ -68,6 +69,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             editRole,
             selectLhsItem,
             selectTeam,
+            setAdminConsoleUsersManagementTableProperties,
         }, dispatch),
     };
 }

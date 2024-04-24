@@ -212,7 +212,7 @@ describe('multiSelectChannelTo', () => {
                     }, {}),
                 },
                 channelsInTeam: {
-                    team1: channelIds.map((id) => `category1_${id}`).concat(channelIds.map((id) => `category2_${id}`)),
+                    team1: new Set(channelIds.map((id) => `category1_${id}`).concat(channelIds.map((id) => `category2_${id}`))),
                 },
             },
             teams: {

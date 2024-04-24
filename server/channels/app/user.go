@@ -230,12 +230,21 @@ func (a *App) CreateGuest(c request.CTX, user *model.User) (*model.User, *model.
 }
 
 func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*model.User, *model.AppError) {
+	exceeded, limitErr := a.isHardUserLimitExceeded()
+	if limitErr != nil {
+		return nil, limitErr
+	}
+
+	if exceeded {
+		return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.user_limits.exceeded", nil, "", http.StatusBadRequest)
+	}
+
 	if err := a.isUniqueToGroupNames(user.Username); err != nil {
 		err.Where = "createUserOrGuest"
 		return nil, err
 	}
 
-	ruser, nErr := a.ch.srv.userService.CreateUser(user, users.UserCreateOptions{Guest: guest})
+	ruser, nErr := a.ch.srv.userService.CreateUser(c, user, users.UserCreateOptions{Guest: guest})
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -263,9 +272,15 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		}
 	}
 
-	if user.EmailVerified {
-		a.InvalidateCacheForUser(ruser.Id)
+	// We always invalidate the user because we actually need to invalidate
+	// in case the user's EmailVerified is true, but we also always need to invalidate
+	// the GetAllProfiles cache.
+	// To have a proper fix would mean duplicating the invalidation of GetAllProfiles
+	// everywhere else. Therefore, to keep things simple we always invalidate both caches here.
+	// The performance penalty for invalidating the UserById cache is nil because the user was just created.
+	a.InvalidateCacheForUser(ruser.Id)
 
+	if user.EmailVerified {
 		nUser, err := a.ch.srv.userService.GetUser(ruser.Id)
 		if err != nil {
 			var nfErr *store.ErrNotFound
@@ -316,6 +331,17 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 				c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
 			}
 		}(ruser.Id)
+	}
+
+	userLimits, limitErr := a.GetServerLimits()
+	if limitErr != nil {
+		// we don't want to break the create user flow just because of this.
+		// So, we log the error, not return
+		mlog.Error("Error fetching user limits in createUserOrGuest", mlog.Err(limitErr))
+	} else {
+		if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
+			mlog.Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+		}
 	}
 
 	return ruser, nil
@@ -778,6 +804,25 @@ func (a *App) DeactivateMfa(userID string) *model.AppError {
 	return nil
 }
 
+// GetProfileImagePaths returns the paths to the profile images for the given user IDs if such a profile image exists.
+func (a *App) GetProfileImagePath(user *model.User) (string, *model.AppError) {
+	path := getProfileImagePath(user.Id)
+	exist, err := a.ch.srv.FileBackend().FileExists(path)
+	if err != nil {
+		return "", model.NewAppError(
+			"GetProfileImagePath",
+			"api.user.get_profile_image_path.app_error",
+			nil,
+			"",
+			http.StatusInternalServerError,
+		).Wrap(err)
+	}
+	if !exist {
+		return "", nil
+	}
+	return path, nil
+}
+
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	return a.ch.srv.GetProfileImage(user)
 }
@@ -967,6 +1012,17 @@ func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *
 }
 
 func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
+	if active {
+		exceeded, appErr := a.isHardUserLimitExceeded()
+		if appErr != nil {
+			return nil, appErr
+		}
+
+		if exceeded {
+			return nil, model.NewAppError("UpdateActive", "app.user.update_active.user_limit.exceeded", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	user.UpdateAt = model.GetMillis()
 	if active {
 		user.DeleteAt = 0
@@ -1011,6 +1067,17 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 				return true
 			}, plugin.UserHasBeenDeactivatedID)
 		})
+	}
+
+	if active {
+		userLimits, appErr := a.GetServerLimits()
+		if appErr != nil {
+			mlog.Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
+		} else {
+			if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
+				mlog.Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			}
+		}
 	}
 
 	return ruser, nil
@@ -2816,4 +2883,14 @@ func (a *App) UserIsFirstAdmin(user *model.User) bool {
 	}
 
 	return true
+}
+
+func (a *App) getAllSystemAdmins() ([]*model.User, *model.AppError) {
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  500,
+		Role:     model.SystemAdminRoleId,
+		Inactive: false,
+	}
+	return a.GetUsersFromProfiles(userOptions)
 }

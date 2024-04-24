@@ -41,7 +41,7 @@
 
 .backstage-sidebar {
     position: absolute;
-    width: 260px;
+    width: 270px;
     padding: 46px 20px;
     vertical-align: top;
 
@@ -52,10 +52,10 @@
 
     > ul {
         @include clearfix;
+        border-radius: 2px;
 
         border-right: 1px solid $light-gray;
         border-left: 1px solid $light-gray;
-        border-radius: 2px;
     }
 }
 
@@ -110,9 +110,9 @@
     .section-title,
     .subsection-title {
         display: block;
-        padding-left: 2em;
+        padding: 6px 12px 6px 34px;
         font-size: 0.95em;
-        line-height: 29px;
+        line-height: 20px;
         text-decoration: none;
     }
 
@@ -226,6 +226,10 @@
         text-overflow: ellipsis;
     }
 
+    .item-actions {
+        margin-left: 6px;
+    }
+
     .item-details__trigger {
         margin-left: 6px;
     }
@@ -335,9 +339,9 @@
     flex: 0 0 30%;
     padding: 20px;
     border: 1px solid $light-gray;
+    border-radius: 4px;
     margin: 0 30px 30px 0;
     background-color: $white;
-    border-radius: 4px;
     text-align: center;
     transition: all 0.2s ease;
 
@@ -422,8 +426,8 @@
 
 .bot-list {
     border: 1px solid rgba(0, 0, 0, 0.1);
-    margin-top: 12px;
     border-radius: 4px;
+    margin-top: 12px;
     line-height: 24px;
 }
 
@@ -442,8 +446,8 @@
 
     &.alert {
         padding: 12px;
-        margin: 0;
         border-radius: 0;
+        margin: 0;
     }
 
     .form-horizontal {
@@ -487,8 +491,8 @@
     width: 32px;
     height: 32px;
     flex: 0 0 32px;
-    margin-right: 15px;
     border-radius: 50%;
+    margin-right: 15px;
     float: left;
 }
 
@@ -501,8 +505,8 @@
     overflow: hidden;
     width: 129px;
     height: 129px;
-    margin-bottom: 20px;
     border-radius: 50%;
+    margin-bottom: 20px;
 }
 
 .bot-profile__remove {
@@ -514,8 +518,8 @@
     height: 26px;
     align-items: center;
     justify-content: center;
-    background: $black;
     border-radius: 50%;
+    background: $black;
     color: $white;
     text-decoration: none;
     transition: all 0.15s ease;
@@ -533,14 +537,77 @@
 
 .bot-list__disabled {
     .item-details {
-        color: rgba($black, 0.6);
+        color: rgba($black, 0.75);
     }
 
     .bot-list {
-        opacity: 0.6;
+        opacity: 0.73;
     }
 }
 
 .bot-token-has-error {
     color: #a94442;
+}
+
+.outgoing-oauth-connections-edit-secret {
+    position: absolute;
+    top: 8px;
+    right: 16px;
+    cursor: pointer;
+
+    .icon-pencil-outline {
+        opacity: 56%;
+    }
+}
+
+.outgoing-oauth-connection-validate-button-container {
+    height: 40px;
+    margin-top: 10px;
+}
+
+.outgoing-oauth-connection-validation-message {
+    &.validation-success {
+        color: #06d6a0;
+    }
+
+    &.validation-error {
+        color: #d24b4e;
+    }
+
+    svg {
+        margin-right: 5px;
+        // margin-top: 2px;
+    }
+
+    display: flex;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.outgoing-oauth-connections-docs-link {
+    margin-top: 40px;
+}
+
+.outgoing-oauth-audience-match-message-container {
+    height: 27px;
+
+    > span {
+        position: absolute;
+        top: 45px;
+    }
+
+    .outgoing-oauth-audience-match-message {
+        left: 42px;
+    }
+}
+
+#confirmModal.integrations-backstage-modal {
+    #confirmModalLabel,
+    #confirmModalBody {
+        color: rgb(51, 51, 51);
+    }
+
+    #confirmModalBody p {
+        height: 30px;
+    }
 }

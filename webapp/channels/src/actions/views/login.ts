@@ -9,10 +9,10 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-export function login(loginId: string, password: string, mfaToken = ''): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function login(loginId: string, password: string, mfaToken = ''): ActionFuncAsync {
+    return async (dispatch) => {
         dispatch({type: UserTypes.LOGIN_REQUEST, data: null});
 
         try {
@@ -45,8 +45,8 @@ export function login(loginId: string, password: string, mfaToken = ''): ActionF
     };
 }
 
-export function loginWithDesktopToken(token: string): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function loginWithDesktopToken(token: string): ActionFuncAsync {
+    return async (dispatch) => {
         dispatch({type: UserTypes.LOGIN_REQUEST, data: null});
 
         try {
@@ -79,8 +79,8 @@ export function loginWithDesktopToken(token: string): ActionFunc {
     };
 }
 
-export function loginById(id: string, password: string): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function loginById(id: string, password: string): ActionFuncAsync {
+    return async (dispatch) => {
         dispatch({type: UserTypes.LOGIN_REQUEST, data: null});
 
         try {

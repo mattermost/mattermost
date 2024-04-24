@@ -29,6 +29,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
         submitLabel: 'Yes',
         notifyOnCancel: true,
         state: 'some state',
+        introductionText: 'Some introduction text',
         onExited: jest.fn(),
         actions: {
             submitInteractiveDialog: jest.fn(),

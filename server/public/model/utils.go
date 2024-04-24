@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bytes"
 	"crypto/rand"
 	"database/sql/driver"
 	"encoding/base32"
@@ -11,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"net/http"
 	"net/mail"
 	"net/url"
 	"os"
@@ -235,7 +235,6 @@ type AppError struct {
 	RequestId       string `json:"request_id,omitempty"`  // The RequestId that's also set in the header
 	StatusCode      int    `json:"status_code,omitempty"` // The http status code
 	Where           string `json:"-"`                     // The function where it happened in the form of Struct.Func
-	IsOAuth         bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
 	SkipTranslation bool   `json:"-"`                     // Whether translation for the error should be skipped.
 	params          map[string]any
 	wrapped         error
@@ -336,22 +335,29 @@ func (er *AppError) Wrap(err error) *AppError {
 	return er
 }
 
-// AppErrorFromJSON will decode the input and return an AppError
-func AppErrorFromJSON(data io.Reader) *AppError {
-	str := ""
-	bytes, rerr := io.ReadAll(data)
-	if rerr != nil {
-		str = rerr.Error()
-	} else {
-		str = string(bytes)
+func (er *AppError) WipeDetailed() {
+	er.wrapped = nil
+	er.DetailedError = ""
+}
+
+// AppErrorFromJSON will try to decode the input into an AppError.
+func AppErrorFromJSON(r io.Reader) error {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return err
 	}
 
-	decoder := json.NewDecoder(strings.NewReader(str))
 	var er AppError
-	err := decoder.Decode(&er)
+	err = json.NewDecoder(bytes.NewReader(data)).Decode(&er)
 	if err != nil {
-		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError).Wrap(err)
+		// If the request exceeded FileSettings.MaxFileSize a plain error gets returned. Convert it into an AppError.
+		if string(data) == "http: request body too large\n" {
+			return errors.New("The request was too large. Consider asking your System Admin to raise the FileSettings.MaxFileSize setting.")
+		}
+
+		return errors.Wrapf(err, "failed to decode JSON payload into AppError. Body: %s", string(data))
 	}
+
 	return &er
 }
 
@@ -363,7 +369,6 @@ func NewAppError(where string, id string, params map[string]any, details string,
 		Where:         where,
 		DetailedError: details,
 		StatusCode:    status,
-		IsOAuth:       false,
 	}
 	ap.Translate(translateFunc)
 	return ap
@@ -397,17 +402,17 @@ func NewRandomString(length int) string {
 
 // GetMillis is a convenience method to get milliseconds since epoch.
 func GetMillis() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
+	return GetMillisForTime(time.Now())
 }
 
 // GetMillisForTime is a convenience method to get milliseconds since epoch for provided Time.
 func GetMillisForTime(thisTime time.Time) int64 {
-	return thisTime.UnixNano() / int64(time.Millisecond)
+	return thisTime.UnixMilli()
 }
 
 // GetTimeForMillis is a convenience method to get time.Time for milliseconds since epoch.
 func GetTimeForMillis(millis int64) time.Time {
-	return time.Unix(0, millis*int64(time.Millisecond))
+	return time.UnixMilli(millis)
 }
 
 // PadDateStringZeros is a convenience method to pad 2 digit date parts with zeros to meet ISO 8601 format
@@ -496,10 +501,9 @@ func ArrayFromJSON(data io.Reader) []string {
 	return objmap
 }
 
-func SortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
+func SortedArrayFromJSON(data io.Reader) ([]string, error) {
 	var obj []string
-	lr := io.LimitReader(data, maxBytes)
-	err := json.NewDecoder(lr).Decode(&obj)
+	err := json.NewDecoder(data).Decode(&obj)
 	if err != nil || obj == nil {
 		return nil, err
 	}
@@ -508,10 +512,9 @@ func SortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
 	return RemoveDuplicateStrings(obj), nil
 }
 
-func NonSortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
+func NonSortedArrayFromJSON(data io.Reader) ([]string, error) {
 	var obj []string
-	lr := io.LimitReader(data, maxBytes)
-	err := json.NewDecoder(lr).Decode(&obj)
+	err := json.NewDecoder(data).Decode(&obj)
 	if err != nil || obj == nil {
 		return nil, err
 	}
@@ -551,6 +554,15 @@ func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	}
 
 	return objmap
+}
+
+func StructFromJSONLimited[V any](data io.Reader, obj *V) error {
+	err := json.NewDecoder(data).Decode(&obj)
+	if err != nil || obj == nil {
+		return err
+	}
+
+	return nil
 }
 
 // ToJSON serializes an arbitrary data type to JSON, discarding the error.

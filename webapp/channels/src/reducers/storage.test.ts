@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import storageReducer from 'reducers/storage';
 
 import {StorageTypes} from 'utils/constants';
@@ -11,26 +9,6 @@ type ReducerState = ReturnType<typeof storageReducer>;
 
 describe('Reducers.Storage', () => {
     const now = new Date();
-
-    it('Storage.SET_ITEM', () => {
-        const nextState = storageReducer(
-            {
-                storage: {},
-            } as ReducerState,
-            {
-                type: StorageTypes.SET_ITEM,
-                data: {
-                    name: 'key',
-                    prefix: 'user_id_',
-                    value: 'value',
-                    timestamp: now,
-                },
-            },
-        );
-        expect(nextState.storage).toEqual({
-            user_id_key: {value: 'value', timestamp: now},
-        });
-    });
 
     it('Storage.SET_GLOBAL_ITEM', () => {
         const nextState = storageReducer(
@@ -49,37 +27,6 @@ describe('Reducers.Storage', () => {
         expect(nextState.storage).toEqual({
             key: {value: 'value', timestamp: now},
         });
-    });
-
-    it('Storage.REMOVE_ITEM', () => {
-        let nextState = storageReducer(
-            {
-                storage: {
-                    user_id_key: 'value',
-                },
-            } as unknown as ReducerState,
-            {
-                type: StorageTypes.REMOVE_ITEM,
-                data: {
-                    name: 'key',
-                    prefix: 'user_id_',
-                },
-            },
-        );
-        expect(nextState.storage).toEqual({});
-        nextState = storageReducer(
-            {
-                storage: {},
-            } as ReducerState,
-            {
-                type: StorageTypes.REMOVE_ITEM,
-                data: {
-                    name: 'key',
-                    prefix: 'user_id_',
-                },
-            },
-        );
-        expect(nextState.storage).toEqual({});
     });
 
     it('Storage.REMOVE_GLOBAL_ITEM', () => {
@@ -119,7 +66,7 @@ describe('Reducers.Storage', () => {
                     prefix_key2: {value: 2, timestamp: now},
                     not_prefix_key: {value: 3, timestamp: now},
                 },
-            } as unknown as ReducerState, {} as GenericAction);
+            } as unknown as ReducerState, {type: undefined});
 
             const nextState = storageReducer(state, {
                 type: StorageTypes.ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX,
@@ -144,7 +91,7 @@ describe('Reducers.Storage', () => {
                     prefix_key2: {value: 2, timestamp: now},
                     not_prefix_key: {value: 3, timestamp: now},
                 },
-            } as unknown as ReducerState, {} as GenericAction);
+            } as unknown as ReducerState, {type: undefined});
 
             const nextState = storageReducer(state, {
                 type: StorageTypes.ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX,

@@ -18,7 +18,9 @@ describe('handleUserTypingEvent', () => {
     const initialState = {
         entities: {
             general: {
-                config: {},
+                config: {
+                    EnableUserStatuses: 'true',
+                },
             },
             users: {
                 currentUserId: 'user',
@@ -79,6 +81,25 @@ describe('handleUserTypingEvent', () => {
         await Promise.resolve();
 
         expect(getStatusesByIds).toHaveBeenCalled();
+    });
+
+    test('should NOT load statuses for users if enableUserStatuses config is disabled', async () => {
+        const state = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableUserStatuses: 'false',
+                    },
+                },
+            },
+        });
+        const store = configureStore(state);
+        store.dispatch(userStartedTyping(userId, channelId, rootId, Date.now()));
+
+        // Wait for side effects to resolve
+        await Promise.resolve();
+
+        expect(getStatusesByIds).not.toHaveBeenCalled();
     });
 
     test('should not load statuses for users that are online', async () => {

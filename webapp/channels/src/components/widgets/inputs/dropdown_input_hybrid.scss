@@ -95,8 +95,8 @@
     .Input.form-control {
         height: 40px;
         border: none;
-        border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px 0 0 4px;
+        border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
 
         &::-webkit-outer-spin-button,
         &::-webkit-inner-spin-button {

@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {TeamTypes, UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {ActionTypes} from 'utils/constants';
 
-function isOpen(state = false, action: GenericAction) {
+function isOpen(state = false, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.TOGGLE_LHS:
         return !state;
@@ -32,7 +32,7 @@ function isOpen(state = false, action: GenericAction) {
     }
 }
 
-function size(state = SidebarSize.MEDIUM, action: GenericAction) {
+function size(state = SidebarSize.MEDIUM, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.SET_LHS_SIZE:
         return action.size;
@@ -41,7 +41,7 @@ function size(state = SidebarSize.MEDIUM, action: GenericAction) {
     }
 }
 
-function currentStaticPageId(state = '', action: GenericAction) {
+function currentStaticPageId(state = '', action: AnyAction) {
     switch (action.type) {
     case ActionTypes.SELECT_STATIC_PAGE:
         return action.data;

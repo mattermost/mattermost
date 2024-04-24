@@ -90,10 +90,9 @@
     width: 350px;
     flex-direction: column;
     border: 1px solid;
+    border-radius: var(--radius-s);
     margin-right: 3px;
     background: var(--center-channel-bg);
-    border-radius: $border-rad;
-    border-radius: 4px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     user-select: none;
 
@@ -158,10 +157,10 @@
                 a {
                     height: 34px;
                     padding-top: 9px;
+                    border-radius: 0;
                     margin-right: 5px;
                     margin-left: 5px;
                     background: transparent;
-                    border-radius: 0;
                     opacity: 1;
 
                     &:hover,
@@ -199,12 +198,12 @@
         align-items: center;
         justify-content: center;
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.48);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         text-decoration: none;
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.04);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), 0.8);
         }
 
         &:active {
@@ -213,8 +212,8 @@
         }
 
         &--selected {
-            background: rgba(var(--button-bg-rgb), 0.08);
             border-radius: 4px;
+            background: rgba(var(--button-bg-rgb), 0.08);
             color: var(--button-bg);
             fill: var(--button-bg);
         }
@@ -327,8 +326,8 @@
             opacity: 1;
 
             &:hover {
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
                 border-radius: 4px;
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
             }
 
             &:last-child {
@@ -397,13 +396,13 @@
         align-items: center;
         justify-content: center;
         border: none;
-        background: none;
         border-radius: 4px;
-        color: rgba(v(center-channel-color-rgb), 0.56);
+        background: none;
+        color: rgba(v(center-channel-color-rgb), 0.75);
 
         &:hover {
             background: rgba(v(center-channel-color-rgb), 0.08);
-            color: rgba(v(center-channel-color-rgb), 0.72);
+            color: rgba(v(center-channel-color-rgb), 0.75);
         }
 
         &:active,
@@ -422,8 +421,8 @@
         height: 32px;
         align-items: center;
         justify-content: center;
-        margin-left: 8px;
         border-radius: 4px;
+        margin-left: 8px;
         transition: all 0.35s ease;
 
         &:hover {
@@ -451,8 +450,8 @@
         height: 26px;
         padding: 4px 0 0 31px;
         border-width: 0;
-        background: var(--center-channel-bg);
         border-radius: inherit;
+        background: var(--center-channel-bg);
         font-size: 13px;
 
         &:focus {
@@ -599,8 +598,8 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 
     a,
     a:hover {
-        background: rgba(var(--button-bg-rgb), 0.08);
         border-radius: 4px;
+        background: rgba(var(--button-bg-rgb), 0.08);
         color: var(--button-bg) !important; // it gets overriden by link color
         fill: var(--button-bg);
         font-size: 12px;

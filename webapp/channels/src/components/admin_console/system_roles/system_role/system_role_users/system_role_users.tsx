@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import type {Role} from '@mattermost/types/roles';
 import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
@@ -17,7 +17,6 @@ import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import Tag from 'components/widgets/tag/tag';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import AddUsersToRoleModal from '../add_users_to_role_modal';
 
@@ -244,10 +243,8 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
 
             <AdminPanel
                 id='SystemRoleUsers'
-                titleId={t('admin.permissions.system_role_users.title')}
-                titleDefault='Assigned People'
-                subtitleId={t('admin.permissions.system_role_users.description')}
-                subtitleDefault='List of people assigned to this system role.'
+                title={defineMessage({id: 'admin.permissions.system_role_users.title', defaultMessage: 'Assigned People'})}
+                subtitle={defineMessage({id: 'admin.permissions.system_role_users.description', defaultMessage: 'List of people assigned to this system role.'})}
                 button={
                     <ToggleModalButton
                         id='addRoleMembers'

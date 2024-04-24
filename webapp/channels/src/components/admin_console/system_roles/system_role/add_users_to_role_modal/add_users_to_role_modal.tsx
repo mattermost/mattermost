@@ -22,6 +22,8 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 
 import {displayEntireNameForUser, localizeMessage} from 'utils/utils';
 
+import {rolesStrings} from '../../strings';
+
 const USERS_PER_PAGE = 50;
 const MAX_SELECTABLE_VALUES = 20;
 
@@ -219,6 +221,8 @@ export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
             return {label: user.username, value: user.id, ...user};
         });
 
+        const name = rolesStrings[this.props.role.name] ? <FormattedMessage {...rolesStrings[this.props.role.name].name}/> : this.props.role.name;
+
         return (
             <Modal
                 id='addUsersToRoleModal'
@@ -235,10 +239,7 @@ export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
                             values={{
                                 roleName: (
                                     <strong>
-                                        <FormattedMessage
-                                            id={`admin.permissions.roles.${this.props.role.name}.name`}
-                                            defaultMessage={this.props.role.name}
-                                        />
+                                        {name}
                                     </strong>
                                 ),
                             }}

@@ -7,11 +7,11 @@ import nock from 'nock';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
+import {UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/teams';
 import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {General, RequestStatus} from 'mattermost-redux/constants';
+import {RequestStatus} from 'mattermost-redux/constants';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
@@ -344,65 +344,6 @@ describe('Actions.Teams', () => {
         expect(patched.invite_id).toEqual(patchedInviteId);
     });
 
-    it('Join Open Team', async () => {
-        const client = TestHelper.createClient4();
-
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            query(true).
-            reply(201, TestHelper.fakeUserWithId());
-        const user = await client.createUser(
-            TestHelper.fakeUser(),
-            '',
-            '',
-            TestHelper.basicTeam!.invite_id,
-        );
-
-        nock(Client4.getBaseRoute()).
-            post('/users/login').
-            reply(200, user);
-        await client.login(user.email, 'password1');
-
-        nock(Client4.getBaseRoute()).
-            post('/teams').
-            reply(201, {...TestHelper.fakeTeamWithId(), allow_open_invite: true});
-        const team = await client.createTeam({...TestHelper.fakeTeam(), allow_open_invite: true});
-
-        store.dispatch({type: GeneralTypes.RECEIVED_SERVER_VERSION, data: '4.0.0'});
-
-        nock(Client4.getBaseRoute()).
-            post('/teams/members/invite').
-            query(true).
-            reply(201, {user_id: TestHelper.basicUser!.id, team_id: team.id});
-
-        nock(Client4.getBaseRoute()).
-            get(`/teams/${team.id}`).
-            reply(200, team);
-
-        nock(Client4.getUserRoute('me')).
-            get('/teams/members').
-            reply(200, [{user_id: TestHelper.basicUser!.id, roles: 'team_user', team_id: team.id}]);
-
-        nock(Client4.getUserRoute('me')).
-            get('/teams/unread').
-            query({params: {include_collapsed_threads: true}}).
-            reply(200, [{team_id: team.id, msg_count: 0, mention_count: 0}]);
-
-        await store.dispatch(Actions.joinTeam(team.invite_id, team.id));
-
-        const state = store.getState();
-
-        const request = state.requests.teams.joinTeam;
-
-        if (request.status !== RequestStatus.SUCCESS) {
-            throw new Error(JSON.stringify(request.error));
-        }
-
-        const {teams, myMembers} = state.entities.teams;
-        expect(teams[team.id]).toBeTruthy();
-        expect(myMembers[team.id]).toBeTruthy();
-    });
-
     it('getMyTeamMembers and getMyTeamUnreads', async () => {
         nock(Client4.getUserRoute('me')).
             get('/teams/members').
@@ -561,33 +502,6 @@ describe('Actions.Teams', () => {
         expect(members[TestHelper.basicTeam!.id][user.id]).toBeTruthy();
     });
 
-    it('addUsersToTeam', async () => {
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            reply(201, TestHelper.fakeUserWithId());
-        const user = await TestHelper.basicClient4!.createUser(TestHelper.fakeUser(), '', '');
-
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            reply(201, TestHelper.fakeUserWithId());
-        const user2 = await TestHelper.basicClient4!.createUser(TestHelper.fakeUser(), '', '');
-
-        nock(Client4.getTeamRoute(TestHelper.basicTeam!.id)).
-            post('/members/batch').
-            reply(201, [{user_id: user.id, team_id: TestHelper.basicTeam!.id}, {user_id: user2.id, team_id: TestHelper.basicTeam!.id}]);
-        await store.dispatch(Actions.addUsersToTeam(TestHelper.basicTeam!.id, [user.id, user2.id]));
-
-        const members = store.getState().entities.teams.membersInTeam;
-        const profilesInTeam = store.getState().entities.users.profilesInTeam;
-
-        expect(members[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(members[TestHelper.basicTeam!.id][user.id]).toBeTruthy();
-        expect(members[TestHelper.basicTeam!.id][user2.id]).toBeTruthy();
-        expect(profilesInTeam[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(profilesInTeam[TestHelper.basicTeam!.id].has(user.id)).toBeTruthy();
-        expect(profilesInTeam[TestHelper.basicTeam!.id].has(user2.id)).toBeTruthy();
-    });
-
     describe('removeUserFromTeam', () => {
         const team = {id: 'team'};
         const user = {id: 'user'};
@@ -682,31 +596,6 @@ describe('Actions.Teams', () => {
             const state = store.getState();
             expect(state.entities.channels.currentChannelId).toBe('');
         });
-    });
-
-    it('updateTeamMemberRoles', async () => {
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            reply(201, TestHelper.fakeUserWithId());
-        const user = await TestHelper.basicClient4!.createUser(TestHelper.fakeUser(), '', '');
-
-        nock(Client4.getTeamRoute(TestHelper.basicTeam!.id)).
-            post('/members').
-            reply(201, {user_id: user.id, team_id: TestHelper.basicTeam!.id});
-        await store.dispatch(Actions.addUserToTeam(TestHelper.basicTeam!.id, user.id));
-
-        const roles = General.TEAM_USER_ROLE + ' ' + General.TEAM_ADMIN_ROLE;
-
-        nock(Client4.getBaseRoute()).
-            put(`/teams/${TestHelper.basicTeam!.id}/members/${user.id}/roles`).
-            reply(200, {user_id: user.id, team_id: TestHelper.basicTeam!.id, roles});
-        await store.dispatch(Actions.updateTeamMemberRoles(TestHelper.basicTeam!.id, user.id, roles.split(' ')));
-
-        const members = store.getState().entities.teams.membersInTeam;
-
-        expect(members[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(members[TestHelper.basicTeam!.id][user.id]).toBeTruthy();
-        expect(members[TestHelper.basicTeam!.id][user.id].roles).toEqual(roles.split(' '));
     });
 
     it('sendEmailInvitesToTeam', async () => {

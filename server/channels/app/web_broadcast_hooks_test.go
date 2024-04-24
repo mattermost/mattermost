@@ -83,6 +83,63 @@ func TestAddFollowersHook_Process(t *testing.T) {
 	})
 }
 
+func TestPostedAckHook_Process(t *testing.T) {
+	hook := &postedAckBroadcastHook{}
+	userID := model.NewId()
+	webConn := &platform.WebConn{
+		UserId:   userID,
+		Platform: &platform.PlatformService{},
+	}
+
+	t.Run("should ack if user is in the list of users to notify", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		hook.Process(msg, webConn, map[string]any{
+			"posted_user_id": model.NewId(),
+			"channel_type":   model.ChannelTypeOpen,
+			"users":          []string{userID},
+		})
+
+		assert.True(t, msg.Event().GetData()["should_ack"].(bool))
+	})
+
+	t.Run("should not ack if user is not in the list of users to notify", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		hook.Process(msg, webConn, map[string]any{
+			"posted_user_id": model.NewId(),
+			"channel_type":   model.ChannelTypeOpen,
+			"users":          []string{},
+		})
+
+		assert.Nil(t, msg.Event().GetData()["should_ack"])
+	})
+
+	t.Run("should not ack if you are the user who posted", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		hook.Process(msg, webConn, map[string]any{
+			"posted_user_id": userID,
+			"channel_type":   model.ChannelTypeOpen,
+			"users":          []string{userID},
+		})
+
+		assert.Nil(t, msg.Event().GetData()["should_ack"])
+	})
+
+	t.Run("should ack if the channel is a DM", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		hook.Process(msg, webConn, map[string]any{
+			"posted_user_id": model.NewId(),
+			"channel_type":   model.ChannelTypeDirect,
+			"users":          []string{},
+		})
+
+		assert.True(t, msg.Event().GetData()["should_ack"].(bool))
+	})
+}
+
 func TestAddMentionsAndAddFollowersHooks(t *testing.T) {
 	addMentionsHook := &addMentionsBroadcastHook{}
 	addFollowersHook := &addFollowersBroadcastHook{}

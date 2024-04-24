@@ -49,7 +49,7 @@ describe('Selectors.Threads.getThreadOrderInCurrentTeam', () => {
                 },
                 channels: {
                     channelsInTeam: {
-                        [team1.id]: [post1.channel_id, post2.channel_id],
+                        [team1.id]: new Set([post1.channel_id, post2.channel_id]),
                     },
                     channels: {
                         [post1.channel_id]: {
@@ -116,7 +116,7 @@ describe('Selectors.Threads.getUnreadThreadOrderInCurrentTeam', () => {
                 },
                 channels: {
                     channelsInTeam: {
-                        [team1.id]: [post1.channel_id, post2.channel_id],
+                        [team1.id]: new Set([post1.channel_id, post2.channel_id]),
                     },
                     channels: {
                         [post1.channel_id]: {

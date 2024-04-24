@@ -92,8 +92,10 @@ func newWebHub(ps *PlatformService) *Hub {
 
 // hubStart starts all the hubs.
 func (ps *PlatformService) hubStart(broadcastHooks map[string]BroadcastHook) {
-	// Total number of hubs is twice the number of CPUs.
-	numberOfHubs := runtime.NumCPU() * 2
+	// After running some tests, we found using the same number of hubs
+	// as CPUs to be the ideal in terms of performance.
+	// https://github.com/mattermost/mattermost/pull/25798#issuecomment-1889386454
+	numberOfHubs := runtime.NumCPU()
 	ps.logger.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
 
 	hubs := make([]*Hub, numberOfHubs)
@@ -163,24 +165,12 @@ func (ps *PlatformService) HubUnregister(webConn *WebConn) {
 
 func (ps *PlatformService) InvalidateCacheForChannel(channel *model.Channel) {
 	ps.Store.Channel().InvalidateChannel(channel.Id)
-	ps.invalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
-
-	if ps.clusterIFace != nil {
-		nameMsg := &model.ClusterMessage{
-			Event:    model.ClusterEventInvalidateCacheForChannelByName,
-			SendType: model.ClusterSendBestEffort,
-			Props:    make(map[string]string),
-		}
-
-		nameMsg.Props["name"] = channel.Name
-		if channel.TeamId == "" {
-			nameMsg.Props["id"] = "dm"
-		} else {
-			nameMsg.Props["id"] = channel.TeamId
-		}
-
-		ps.clusterIFace.SendClusterMessage(nameMsg)
+	teamID := channel.TeamId
+	if teamID == "" {
+		teamID = "dm"
 	}
+
+	ps.Store.Channel().InvalidateChannelByName(teamID, channel.Name)
 }
 
 func (ps *PlatformService) InvalidateCacheForChannelMembers(channelID string) {
@@ -190,16 +180,7 @@ func (ps *PlatformService) InvalidateCacheForChannelMembers(channelID string) {
 }
 
 func (ps *PlatformService) InvalidateCacheForChannelMembersNotifyProps(channelID string) {
-	ps.invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelID)
-
-	if ps.clusterIFace != nil {
-		msg := &model.ClusterMessage{
-			Event:    model.ClusterEventInvalidateCacheForChannelMembersNotifyProps,
-			SendType: model.ClusterSendBestEffort,
-			Data:     []byte(channelID),
-		}
-		ps.clusterIFace.SendClusterMessage(msg)
-	}
+	ps.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelID)
 }
 
 func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
@@ -208,19 +189,11 @@ func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
 }
 
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
-	ps.InvalidateCacheForUserSkipClusterSend(userID)
+	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
+	ps.invalidateWebConnSessionCacheForUser(userID)
 
 	ps.Store.User().InvalidateProfilesInChannelCacheByUser(userID)
 	ps.Store.User().InvalidateProfileCacheForUser(userID)
-
-	if ps.clusterIFace != nil {
-		msg := &model.ClusterMessage{
-			Event:    model.ClusterEventInvalidateCacheForUser,
-			SendType: model.ClusterSendBestEffort,
-			Data:     []byte(userID),
-		}
-		ps.clusterIFace.SendClusterMessage(msg)
-	}
 }
 
 func (ps *PlatformService) InvalidateCacheForUserTeams(userID string) {
@@ -418,6 +391,9 @@ func (h *Hub) Start() {
 
 				connIndex.Add(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
+				if metrics := h.platform.metricsIFace; metrics != nil {
+					metrics.IncrementHTTPWebSockets(webConn.originClient)
+				}
 
 				if webConn.IsAuthenticated() && webConn.reuseCount == 0 {
 					// The hello message should only be sent when the reuseCount is 0.
@@ -432,6 +408,9 @@ func (h *Hub) Start() {
 				webConn.active.Store(false)
 
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
+				if metrics := h.platform.metricsIFace; metrics != nil {
+					metrics.DecrementHTTPWebSockets(webConn.originClient)
+				}
 
 				if webConn.UserId == "" {
 					continue

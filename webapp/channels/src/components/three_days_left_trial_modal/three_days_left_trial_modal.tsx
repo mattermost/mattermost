@@ -7,8 +7,6 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -35,7 +33,7 @@ type Props = {
 }
 
 function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const openPricingModal = useOpenPricingModal();
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.THREE_DAYS_LEFT_TRIAL_MODAL));

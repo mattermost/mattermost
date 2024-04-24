@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
@@ -145,6 +146,11 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, ldapId *stri
 
 	ldapUser, err := a.Ldap().DoLogin(rctx, *ldapId, password)
 	if err != nil {
+		// Log a info to make it easier to admin to spot that a user tried to log in with a legitimate user name.
+		if err.Id == "ent.ldap.do_login.invalid_password.app_error" {
+			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched an LDAP account, but the password was incorrect.", mlog.String("ldap_id", *ldapId))
+		}
+
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err
 	}
@@ -270,6 +276,10 @@ func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfa
 	}
 
 	if err := a.CheckPasswordAndAllCriteria(rctx, user, password, mfaToken); err != nil {
+		if err.Id == "api.user.check_user_password.invalid.app_error" {
+			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched a Mattermost account, but the password was incorrect.", mlog.String("username", user.Username))
+		}
+
 		err.StatusCode = http.StatusUnauthorized
 		return user, err
 	}

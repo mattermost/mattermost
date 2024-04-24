@@ -3,30 +3,23 @@
 
 import classNames from 'classnames';
 import deepEqual from 'fast-deep-equal';
+import type {History} from 'history';
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import type {ClientConfig} from '@mattermost/types/config';
 import {ServiceEnvironment} from '@mattermost/types/config';
-import type {UserProfile} from '@mattermost/types/users';
 
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
-import {General} from 'mattermost-redux/constants';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUser, isCurrentUserSystemAdmin, checkIsFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {loadRecentlyUsedCustomEmojis} from 'actions/emoji_actions';
-import * as GlobalActions from 'actions/global_actions';
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
-import store from 'stores/redux_store';
 
 import AccessProblem from 'components/access_problem';
 import AnnouncementBarController from 'components/announcement_bar';
@@ -53,7 +46,7 @@ import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import Pluggable from 'plugins/pluggable';
 import A11yController from 'utils/a11y_controller';
-import {PageLoadContext, StoragePrefixes} from 'utils/constants';
+import {PageLoadContext} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
@@ -62,7 +55,7 @@ import * as Utils from 'utils/utils';
 
 import type {ProductComponent, PluginComponent} from 'types/store/plugins';
 
-import {applyLuxonDefaults} from './effects';
+import LuxonController from './luxon_controller';
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
 
@@ -86,7 +79,6 @@ const LazyCreateTeam = React.lazy(() => import('components/create_team'));
 const LazyMfa = React.lazy(() => import('components/mfa/mfa_controller'));
 const LazyPreparingWorkspace = React.lazy(() => import('components/preparing_workspace'));
 const LazyTeamController = React.lazy(() => import('components/team_controller'));
-const LazyDelinquencyModalController = React.lazy(() => import('components/delinquency_modal'));
 const LazyOnBoardingTaskList = React.lazy(() => import('components/onboarding_tasklist'));
 
 const CreateTeam = makeAsyncComponent('CreateTeam', LazyCreateTeam);
@@ -107,7 +99,6 @@ const Authorize = makeAsyncComponent('Authorize', LazyAuthorize);
 const Mfa = makeAsyncComponent('Mfa', LazyMfa);
 const PreparingWorkspace = makeAsyncComponent('PreparingWorkspace', LazyPreparingWorkspace);
 const TeamController = makeAsyncComponent('TeamController', LazyTeamController);
-const DelinquencyModalController = makeAsyncComponent('DelinquencyModalController', LazyDelinquencyModalController);
 const OnBoardingTaskList = makeAsyncComponent('OnboardingTaskList', LazyOnBoardingTaskList);
 
 type LoggedInRouteProps = {
@@ -136,18 +127,23 @@ function LoggedInRoute(props: LoggedInRouteProps) {
 const noop = () => {};
 
 export type Actions = {
-    getFirstAdminSetupComplete: () => Promise<ActionResult>;
     getProfiles: (page?: number, pageSize?: number, options?: Record<string, any>) => Promise<ActionResult>;
+    loadRecentlyUsedCustomEmojis: () => Promise<unknown>;
     migrateRecentEmojis: () => void;
-    loadConfigAndMe: () => Promise<ActionResult>;
+    loadConfigAndMe: () => Promise<{config?: Partial<ClientConfig>; isMeLoaded: boolean}>;
     registerCustomPostRenderer: (type: string, component: any, id: string) => Promise<ActionResult>;
-    initializeProducts: () => Promise<ActionResult[]>;
+    initializeProducts: () => Promise<unknown>;
+    handleLoginLogoutSignal: (e: StorageEvent) => unknown;
+    redirectToOnboardingOrDefaultTeam: (history: History) => unknown;
 }
 
 type Props = {
     theme: Theme;
     telemetryEnabled: boolean;
     telemetryId?: string;
+    iosDownloadLink?: string;
+    androidDownloadLink?: string;
+    appDownloadLink?: string;
     noAccounts: boolean;
     showTermsOfService: boolean;
     permalinkRedirectTeamName: string;
@@ -207,12 +203,9 @@ export default class Root extends React.PureComponent<Props, State> {
         };
 
         this.a11yController = new A11yController();
-
-        store.subscribe(() => applyLuxonDefaults(store.getState()));
     }
 
-    onConfigLoaded = () => {
-        const config = getConfig(store.getState());
+    onConfigLoaded = (config: Partial<ClientConfig>) => {
         const telemetryId = this.props.telemetryId;
 
         const rudderUrl = 'https://pdat.matterlytics.com';
@@ -230,7 +223,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (rudderKey !== '' && this.props.telemetryEnabled) {
             const rudderCfg: {setCookieDomain?: string} = {};
-            const siteURL = getConfig(store.getState()).SiteURL;
+            const siteURL = config.SiteURL;
             if (siteURL !== '') {
                 try {
                     rudderCfg.setCookieDomain = new URL(siteURL || '').hostname;
@@ -292,30 +285,67 @@ export default class Root extends React.PureComponent<Props, State> {
         });
 
         this.props.actions.migrateRecentEmojis();
-        store.dispatch(loadRecentlyUsedCustomEmojis());
+        this.props.actions.loadRecentlyUsedCustomEmojis();
 
-        const iosDownloadLink = getConfig(store.getState()).IosAppDownloadLink;
-        const androidDownloadLink = getConfig(store.getState()).AndroidAppDownloadLink;
-        const desktopAppDownloadLink = getConfig(store.getState()).AppDownloadLink;
-
-        const toResetPasswordScreen = this.props.location.pathname === '/reset_password_complete';
-
-        // redirect to the mobile landing page if the user hasn't seen it before
-        let landing;
-        if (UserAgent.isAndroidWeb()) {
-            landing = androidDownloadLink;
-        } else if (UserAgent.isIosWeb()) {
-            landing = iosDownloadLink;
-        } else {
-            landing = desktopAppDownloadLink;
-        }
-
-        if (landing && !this.props.isCloud && !BrowserStore.hasSeenLandingPage() && !toResetPasswordScreen && !this.props.location.pathname.includes('/landing') && !window.location.hostname?.endsWith('.test.mattermost.com') && !UserAgent.isDesktopApp() && !UserAgent.isChromebook()) {
-            this.props.history.push('/landing#' + this.props.location.pathname + this.props.location.search);
-            BrowserStore.setLandingPageSeen(true);
-        }
+        this.showLandingPageIfNecessary();
 
         Utils.applyTheme(this.props.theme);
+    };
+
+    private showLandingPageIfNecessary = () => {
+        // We have nothing to redirect to if we're already on Desktop App
+        // Chromebook has no Desktop App to switch to
+        if (UserAgent.isDesktopApp() || UserAgent.isChromebook()) {
+            return;
+        }
+
+        // Nothing to link to if we've removed the Android App download link
+        if (UserAgent.isAndroidWeb() && !this.props.androidDownloadLink) {
+            return;
+        }
+
+        // Nothing to link to if we've removed the iOS App download link
+        if (UserAgent.isIosWeb() && !this.props.iosDownloadLink) {
+            return;
+        }
+
+        // Nothing to link to if we've removed the Desktop App download link
+        if (!this.props.appDownloadLink) {
+            return;
+        }
+
+        // Only show the landing page once
+        if (BrowserStore.hasSeenLandingPage()) {
+            return;
+        }
+
+        // We don't want to show when resetting the password
+        if (this.props.location.pathname === '/reset_password_complete') {
+            return;
+        }
+
+        // We don't want to show when we're doing Desktop App external login
+        if (this.props.location.pathname === '/login/desktop') {
+            return;
+        }
+
+        // Stop this infinitely redirecting
+        if (this.props.location.pathname.includes('/landing')) {
+            return;
+        }
+
+        // Disabled to avoid breaking the CWS flow
+        if (this.props.isCloud) {
+            return;
+        }
+
+        // Disable for Rainforest tests
+        if (window.location.hostname?.endsWith('.test.mattermost.com')) {
+            return;
+        }
+
+        this.props.history.push('/landing#' + this.props.location.pathname + this.props.location.search);
+        BrowserStore.setLandingPageSeen(true);
     };
 
     componentDidUpdate(prevProps: Props) {
@@ -336,50 +366,6 @@ export default class Root extends React.PureComponent<Props, State> {
         ) {
             this.setRootMeta();
         }
-    }
-
-    async redirectToOnboardingOrDefaultTeam() {
-        const storeState = store.getState();
-        const isUserAdmin = isCurrentUserSystemAdmin(storeState);
-        if (!isUserAdmin) {
-            GlobalActions.redirectUserToDefaultTeam();
-            return;
-        }
-
-        const teams = getActiveTeamsList(storeState);
-
-        const onboardingFlowEnabled = getIsOnboardingFlowEnabled(storeState);
-
-        if (teams.length > 0 || !onboardingFlowEnabled) {
-            GlobalActions.redirectUserToDefaultTeam();
-            return;
-        }
-
-        const firstAdminSetupComplete = await this.props.actions.getFirstAdminSetupComplete();
-        if (firstAdminSetupComplete?.data) {
-            GlobalActions.redirectUserToDefaultTeam();
-            return;
-        }
-
-        const profilesResult = await this.props.actions.getProfiles(0, General.PROFILE_CHUNK_SIZE, {roles: General.SYSTEM_ADMIN_ROLE});
-        if (profilesResult.error) {
-            GlobalActions.redirectUserToDefaultTeam();
-            return;
-        }
-        const currentUser = getCurrentUser(store.getState());
-        const adminProfiles = profilesResult.data.reduce(
-            (acc: Record<string, UserProfile>, curr: UserProfile) => {
-                acc[curr.id] = curr;
-                return acc;
-            },
-            {},
-        );
-        if (checkIsFirstAdmin(currentUser, adminProfiles)) {
-            this.props.history.push('/preparing-workspace');
-            return;
-        }
-
-        GlobalActions.redirectUserToDefaultTeam();
     }
 
     captureUTMParams() {
@@ -407,13 +393,15 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     initiateMeRequests = async () => {
-        const {data: isMeLoaded} = await this.props.actions.loadConfigAndMe();
+        const {config, isMeLoaded} = await this.props.actions.loadConfigAndMe();
 
         if (isMeLoaded && this.props.location.pathname === '/') {
-            this.redirectToOnboardingOrDefaultTeam();
+            this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history);
         }
 
-        this.onConfigLoaded();
+        if (config) {
+            this.onConfigLoaded(config);
+        }
     };
 
     componentDidMount() {
@@ -437,28 +425,7 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     handleLogoutLoginSignal = (e: StorageEvent) => {
-        // when one tab on a browser logs out, it sets __logout__ in localStorage to trigger other tabs to log out
-        const isNewLocalStorageEvent = (event: StorageEvent) => event.storageArea === localStorage && event.newValue;
-
-        if (e.key === StoragePrefixes.LOGOUT && isNewLocalStorageEvent(e)) {
-            console.log('detected logout from a different tab'); //eslint-disable-line no-console
-            GlobalActions.emitUserLoggedOutEvent('/', false, false);
-        }
-        if (e.key === StoragePrefixes.LOGIN && isNewLocalStorageEvent(e)) {
-            const isLoggedIn = getCurrentUser(store.getState());
-
-            // make sure this is not the same tab which sent login signal
-            // because another tabs will also send login signal after reloading
-            if (isLoggedIn) {
-                return;
-            }
-
-            // detected login from a different tab
-            function reloadOnFocus() {
-                location.reload();
-            }
-            window.addEventListener('focus', reloadOnFocus);
-        }
+        this.props.actions.handleLoginLogoutSignal(e);
     };
 
     setRootMeta = () => {
@@ -481,6 +448,7 @@ export default class Root extends React.PureComponent<Props, State> {
         return (
             <RootProvider>
                 <MobileViewWatcher/>
+                <LuxonController/>
                 <Switch>
                     <Route
                         path={'/error'}
@@ -583,7 +551,6 @@ export default class Root extends React.PureComponent<Props, State> {
                         <GlobalHeader/>
                         <CloudEffects/>
                         <TeamSidebar/>
-                        <DelinquencyModalController/>
                         <Switch>
                             {this.props.products?.filter((product) => Boolean(product.publicComponent)).map((product) => (
                                 <Route

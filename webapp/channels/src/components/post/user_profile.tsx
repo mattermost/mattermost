@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 
@@ -28,6 +28,7 @@ type Props = {
 };
 
 const PostUserProfile = (props: Props): JSX.Element | null => {
+    const intl = useIntl();
     const {post, compactDisplay, isMobileView, isConsecutivePost, enablePostUsernameOverride, isBot, isSystemMessage, colorizeUsernames} = props;
     const isFromAutoResponder = fromAutoResponder(post);
     const colorize = compactDisplay && colorizeUsernames;
@@ -55,7 +56,6 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 userId={post.user_id}
                 channelId={post.channel_id}
                 isRHS={isRHS}
-                hasMention={true}
                 colorize={colorize}
             />
         );
@@ -67,7 +67,6 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 userId={post.user_id}
                 channelId={post.channel_id}
                 isRHS={isRHS}
-                hasMention={true}
                 colorize={colorize}
             />
         );
@@ -77,7 +76,6 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 userId={post.user_id}
                 channelId={post.channel_id}
                 isRHS={isRHS}
-                hasMention={true}
                 colorize={colorize}
             />
         );
@@ -108,7 +106,6 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                         channelId={post.channel_id}
                         hideStatus={true}
                         isRHS={isRHS}
-                        hasMention={true}
                         colorize={colorize}
                     />
                 </span>
@@ -135,12 +132,10 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
         } else if (isSystemMessage) {
             userProfile = (
                 <UserProfile
-                    overwriteName={
-                        <FormattedMessage
-                            id='post_info.system'
-                            defaultMessage='System'
-                        />
-                    }
+                    overwriteName={intl.formatMessage({
+                        id: 'post_info.system',
+                        defaultMessage: 'System',
+                    })}
                     userId={post.user_id}
                     disablePopover={true}
                     channelId={post.channel_id}

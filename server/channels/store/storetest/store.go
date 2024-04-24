@@ -65,6 +65,7 @@ type Store struct {
 	PostPersistentNotificationStore mocks.PostPersistentNotificationStore
 	TrueUpReviewStore               mocks.TrueUpReviewStore
 	DesktopTokensStore              mocks.DesktopTokensStore
+	ChannelBookmarkStore            mocks.ChannelBookmarkStore
 }
 
 func (s *Store) SetContext(context context.Context)            { s.context = context }
@@ -110,13 +111,14 @@ func (s *Store) Draft() store.DraftStore                           { return &s.D
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
-func (s *Store) TrueUpReview() store.TrueUpReviewStore   { return &s.TrueUpReviewStore }
-func (s *Store) DesktopTokens() store.DesktopTokensStore { return &s.DesktopTokensStore }
-func (s *Store) NotifyAdmin() store.NotifyAdminStore     { return &s.NotifyAdminStore }
-func (s *Store) Group() store.GroupStore                 { return &s.GroupStore }
-func (s *Store) LinkMetadata() store.LinkMetadataStore   { return &s.LinkMetadataStore }
-func (s *Store) SharedChannel() store.SharedChannelStore { return &s.SharedChannelStore }
-func (s *Store) PostPriority() store.PostPriorityStore   { return &s.PostPriorityStore }
+func (s *Store) ChannelBookmark() store.ChannelBookmarkStore { return &s.ChannelBookmarkStore }
+func (s *Store) TrueUpReview() store.TrueUpReviewStore       { return &s.TrueUpReviewStore }
+func (s *Store) DesktopTokens() store.DesktopTokensStore     { return &s.DesktopTokensStore }
+func (s *Store) NotifyAdmin() store.NotifyAdminStore         { return &s.NotifyAdminStore }
+func (s *Store) Group() store.GroupStore                     { return &s.GroupStore }
+func (s *Store) LinkMetadata() store.LinkMetadataStore       { return &s.LinkMetadataStore }
+func (s *Store) SharedChannel() store.SharedChannelStore     { return &s.SharedChannelStore }
+func (s *Store) PostPriority() store.PostPriorityStore       { return &s.PostPriorityStore }
 func (s *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 	return &s.PostAcknowledgementStore
 }
@@ -187,5 +189,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.PostAcknowledgementStore,
 		&s.PostPersistentNotificationStore,
 		&s.DesktopTokensStore,
+		&s.ChannelBookmarkStore,
 	)
 }

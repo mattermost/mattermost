@@ -28,7 +28,7 @@
 
         .footer-text {
             .normal-payment-text {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 14px;
             }
 
@@ -48,7 +48,7 @@
 
         .fineprint-text {
             margin-top: 24px;
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 12px;
             line-height: 16px;
         }
@@ -90,9 +90,9 @@
                     box-sizing: border-box;
                     padding: 32px;
                     border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+                    border-radius: 4px;
                     margin: 24px 0;
                     background-color: #fff;
-                    border-radius: 4px;
                     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
 
                     .CardImage {
@@ -219,8 +219,8 @@
                     padding-bottom: 24px;
                     padding-left: 24px;
                     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-                    background-color: var(--center-channel-bg);
                     border-radius: 0 0 4px 4px;
+                    background-color: var(--center-channel-bg);
 
                     .enable_annual_sub {
                         margin-top: 12px;
@@ -231,8 +231,8 @@
                         height: 40px;
                         padding: 10px 24px;
                         border: none;
-                        background: none;
                         border-radius: 4px;
+                        background: none;
                         color: var(--denim-button-bg);
                         font-size: 14px;
                         font-weight: 700;
@@ -273,8 +273,8 @@
                         text-align: center;
 
                         .summary-section {
-                            background-color: rgba(var(--denim-button-bg-rgb), 0.08);
                             border-radius: 4px;
+                            background-color: rgba(var(--denim-button-bg-rgb), 0.08);
                             font-family: 'Metropolis';
 
                             .summary-title {
@@ -321,7 +321,7 @@
                         }
 
                         p {
-                            color: rgba(var(--center-channel-color-rgb), 0.72);
+                            color: rgba(var(--center-channel-color-rgb), 0.75);
                             font-family: 'Metropolis';
                             font-size: 18px;
                             font-style: normal;
@@ -338,7 +338,7 @@
                         text-align: center;
 
                         h4 {
-                            color: rgba(var(--center-channel-color-rgb), 0.72);
+                            color: rgba(var(--center-channel-color-rgb), 0.75);
                             font-family: 'Metropolis';
                             font-size: 20px;
                             font-style: normal;
@@ -365,7 +365,7 @@
                         }
 
                         p {
-                            color: rgba(var(--center-channel-color-rgb), 0.72);
+                            color: rgba(var(--center-channel-color-rgb), 0.75);
                             font-family: 'Metropolis';
                             font-size: 18px;
                             font-style: normal;
@@ -394,7 +394,7 @@
 
                         margin-top: 16px;
                         margin-bottom: 24px;
-                        color: rgba(var(--center-channel-color-rgb), 0.72);
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                         font-size: 12px;
                         font-style: normal;
                         font-weight: 400;
@@ -465,7 +465,7 @@
 
                             .icon-information-outline {
                                 margin: 0;
-                                color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
+                                color: rgba(var(--sys-denim-center-channel-text-rgb), 0.75);
                             }
                         }
 
@@ -490,7 +490,7 @@
                     display: flex;
                     flex-direction: column;
                     margin-top: 24px;
-                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
                     font-size: 12px;
                     font-style: normal;
                     font-weight: 400;
@@ -513,8 +513,8 @@
             width: fit-content;
             height: 40px;
             border: 0;
-            background: var(--button-bg);
             border-radius: 4px;
+            background: var(--button-bg);
             color: var(--button-color);
             font-size: 14px;
             font-weight: 600;
@@ -544,17 +544,4 @@
         top: 12px;
         right: 12px;
     }
-}
-
-.tooltipTitle {
-    font-weight: 700;
-}
-
-.tooltipText {
-    color: #9a9a9a !important;
-    text-align: left;
-}
-
-.proratedTooltip > .tooltip-inner {
-    min-width: 300px;
 }

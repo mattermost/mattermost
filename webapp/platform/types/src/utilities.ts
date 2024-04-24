@@ -14,14 +14,23 @@ export type RelationOneToManyUnique<E1 extends {id: string}, E2 extends {id: str
 export type IDMappedObjects<E extends {id: string}> = RelationOneToOne<E, E>;
 
 export type DeepPartial<T> = {
+
     // For each field of T, make it optional and...
-    [K in keyof T]?:
-        // If that field is an object, make it a deep partial object
-        T[K] extends object ? DeepPartial<T[K]> :
-        // Else if that field is an optional object, make that a deep partial object
-        T[K] extends object | undefined ? DeepPartial<T[K]> :
-        // Else leave it as an optional primitive
-        T[K];
+    [K in keyof T]?: (
+
+        // If that field is a Set or a Map, don't go further
+        T[K] extends Set<any> ? T[K] :
+            T[K] extends Map<any, any> ? T[K] :
+
+            // If that field is an object, make it a deep partial object
+                T[K] extends object ? DeepPartial<T[K]> :
+
+                // Else if that field is an optional object, make that a deep partial object
+                    T[K] extends object | undefined ? DeepPartial<T[K]> :
+
+                    // Else leave it as an optional primitive
+                        T[K]
+    );
 }
 
 export type ValueOf<T> = T[keyof T];

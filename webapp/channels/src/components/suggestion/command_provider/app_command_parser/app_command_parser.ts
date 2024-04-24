@@ -3,6 +3,8 @@
 
 /* eslint-disable max-lines */
 
+import type {Store} from 'redux';
+
 import {Constants} from 'utils/constants';
 
 import {
@@ -56,7 +58,6 @@ import type {
     AutocompleteSuggestion,
     AutocompleteStaticSelect,
     Channel,
-    Store,
     ExtendedAutocompleteSuggestion} from './app_command_parser_dependencies';
 
 export enum ParseState {
@@ -990,7 +991,7 @@ export class AppCommandParser {
                             // Silently fail on default value
                             break;
                         }
-                        user = dispatchResult.data;
+                        user = dispatchResult.data!;
                     }
                     parsed.values[f.name] = user.username;
                     break;
@@ -1004,7 +1005,7 @@ export class AppCommandParser {
                             // Silently fail on default value
                             break;
                         }
-                        channel = dispatchResult.data;
+                        channel = dispatchResult.data!;
                     }
                     parsed.values[f.name] = channel.name;
                     break;
@@ -1328,7 +1329,11 @@ export class AppCommandParser {
                 const getChannel = async (channelName: string) => {
                     let channel = selectChannelByName(this.store.getState(), channelName);
                     if (!channel) {
-                        const dispatchResult = await this.store.dispatch(getChannelByNameAndTeamName(getCurrentTeam(this.store.getState()).name, channelName) as any);
+                        const team = getCurrentTeam(this.store.getState());
+                        if (!team) {
+                            return null;
+                        }
+                        const dispatchResult = await this.store.dispatch(getChannelByNameAndTeamName(team.name, channelName) as any);
                         if ('error' in dispatchResult) {
                             return null;
                         }

@@ -49,7 +49,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.APISessionRequired(regenerateTeamInviteId)).Methods("POST")
 
 	api.BaseRoutes.Team.Handle("/image", api.APISessionRequiredTrustRequester(getTeamIcon)).Methods("GET")
-	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(setTeamIcon)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(setTeamIcon, handlerParamFileAPI)).Methods("POST")
 	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(removeTeamIcon)).Methods("DELETE")
 
 	api.BaseRoutes.TeamMembers.Handle("", api.APISessionRequired(getTeamMembers)).Methods("GET")
@@ -97,7 +97,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License().IsCloud() {
 		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
 		if err != nil {
-			c.Err = model.NewAppError("Api4.createTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("Api4.createTeam", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 
@@ -292,7 +292,7 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License().IsCloud() {
 		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
 		if err != nil {
-			c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 
@@ -644,7 +644,7 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIDs, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	userIDs, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("getTeamMembersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -741,7 +741,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
 			} else {
-				c.Err = model.NewAppError("addTeamMember", "api.team.add_members.error", nil, err.Error(), http.StatusBadRequest)
+				c.Err = model.NewAppError("addTeamMember", "api.team.add_members.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 			return
 		}
@@ -867,6 +867,12 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionAddUserToTeam) {
+		c.SetPermissionError(model.PermissionAddUserToTeam)
+		return
+	}
+
+	canInviteGuests := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest)
 	var userIDs []string
 	for _, member := range members {
 		if member.TeamId != c.Params.TeamId {
@@ -879,12 +885,19 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// if user cannot invite guests, check if any users are guest users.
+		if !canInviteGuests {
+			user, err := c.App.GetUser(member.UserId)
+			if err != nil {
+				c.Err = model.NewAppError("addTeamMembers", "api.team.user.missing_account", nil, "", http.StatusNotFound).Wrap(err)
+				return
+			}
+			if user.IsGuest() {
+				c.SetPermissionError(model.PermissionInviteGuest)
+				return
+			}
+		}
 		userIDs = append(userIDs, member.UserId)
-	}
-
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionAddUserToTeam) {
-		c.SetPermissionError(model.PermissionAddUserToTeam)
-		return
 	}
 
 	membersWithErrors, appErr := c.App.AddTeamMembers(c.AppContext, c.Params.TeamId, userIDs, c.AppContext.Session().UserId, graceful)
@@ -1272,7 +1285,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseMultipartForm(MaximumBulkImportSize); err != nil {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.parse.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("importTeam", "api.team.import_team.parse.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -1314,7 +1327,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileData, err := fileInfo.Open()
 	if err != nil {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.open.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("importTeam", "api.team.import_team.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	defer fileData.Close()
@@ -1362,14 +1375,10 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bf, err := io.ReadAll(r.Body)
+	memberInvite := &model.MemberInvite{}
+	err := model.StructFromJSONLimited(r.Body, memberInvite)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
-	memberInvite := &model.MemberInvite{}
-	if err := json.Unmarshal(bf, memberInvite); err != nil {
-		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -1436,7 +1445,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		// we then manually schedule the job to send another invite after 48 hours
 		_, appErr = c.App.Srv().Jobs.CreateJob(c.AppContext, model.JobTypeResendInvitationEmail, jobData)
 		if appErr != nil {
-			c.Err = model.NewAppError("Api4.inviteUsersToTeam", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+			c.Err = model.NewAppError("Api4.inviteUsersToTeam", appErr.Id, nil, "", appErr.StatusCode).Wrap(appErr)
 			return
 		}
 
@@ -1663,7 +1672,7 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
-		c.Err = model.NewAppError("setTeamIcon", "api.team.set_team_icon.parse.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("setTeamIcon", "api.team.set_team_icon.parse.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 

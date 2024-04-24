@@ -1,11 +1,6 @@
 @charset 'UTF-8';
 
 #browseChannelsModal {
-    .modal-content {
-        min-height: 600px;
-        max-height: calc(50vh - 240px);
-    }
-
     .modal-dialog {
         margin-top: calc(45vh - 240px) !important;
     }
@@ -21,9 +16,9 @@
 
         #searchIcon {
             position: absolute;
-            z-index: 1;
-            top: 15px;
-            left: 42px;
+            z-index: 2;
+            top: 16px;
+            left: 46px;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             pointer-events: none;
         }
@@ -54,7 +49,7 @@
         margin: 0;
 
         span {
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 12px;
             line-height: 16px;
         }
@@ -94,14 +89,14 @@
                 background-color: unset;
 
                 &[aria-expanded='true'] {
-                    background-color: rgba(var(--button-bg-rgb), 0.12);
                     border-radius: 4px;
+                    background-color: rgba(var(--button-bg-rgb), 0.12);
                 }
             }
 
             #menuWrapper:hover {
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
                 border-radius: 4px;
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
             }
         }
     }
@@ -119,7 +114,7 @@
 
             .more-modal__details {
                 padding-left: 0;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
 
                 svg {
                     flex-shrink: 0;
@@ -144,8 +139,8 @@
                         width: 3px;
                         height: 3px;
                         flex-shrink: 0;
-                        background-color: rgba(var(--center-channel-color-rgb), 0.56);
                         border-radius: 50%;
+                        background-color: rgba(var(--center-channel-color-rgb), 0.75);
                     }
 
                     .more-modal__description {
@@ -170,6 +165,15 @@
                         line-height: 12px;
                         opacity: 1;
                     }
+                }
+
+                .shared-channel-icon {
+                    width: 18px;
+                    height: 18px;
+                    margin-right: 6px;
+                    color: rgba(61, 60, 64, 0.75);
+                    font-size: 18px;
+                    line-height: 18px;
                 }
             }
 
@@ -219,19 +223,10 @@
             justify-content: space-between;
             padding-right: 4px;
         }
-
-        .close {
-            top: 22px;
-        }
     }
 
     .filter-controls {
-        padding: 0;
-
-        button {
-            min-width: 72px;
-            margin: 8px 32px;
-        }
+        padding-top: 24px;
     }
 }
 

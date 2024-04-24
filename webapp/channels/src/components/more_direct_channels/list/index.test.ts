@@ -216,7 +216,7 @@ describe('makeGetOptions', () => {
                         [gmChannel3.id]: gmChannel3,
                     },
                     channelsInTeam: {
-                        '': [gmChannel1.id, gmChannel2.id, gmChannel3.id],
+                        '': new Set([gmChannel1.id, gmChannel2.id, gmChannel3.id]),
                     },
                 },
                 users: {
@@ -291,7 +291,7 @@ describe('makeGetOptions', () => {
                         [gmChannel2.id]: gmChannel2,
                     },
                     channelsInTeam: {
-                        '': [gmChannel1.id, gmChannel2.id],
+                        '': new Set([gmChannel1.id, gmChannel2.id]),
                     },
                 },
                 users: {
@@ -378,7 +378,7 @@ describe('makeGetOptions', () => {
                         [gmChannel3.id]: gmChannel3,
                     },
                     channelsInTeam: {
-                        '': [gmChannel1.id, gmChannel2.id, gmChannel3.id],
+                        '': new Set([gmChannel1.id, gmChannel2.id, gmChannel3.id]),
                     },
                 },
                 users: {
@@ -480,7 +480,7 @@ describe('makeGetOptions', () => {
                         [gmChannel2.id]: gmChannel2,
                     },
                     channelsInTeam: {
-                        '': [gmChannel1.id, gmChannel2.id],
+                        '': new Set([gmChannel1.id, gmChannel2.id]),
                     },
                 },
                 users: {
@@ -591,7 +591,7 @@ describe('makeGetOptions', () => {
                         [dm1.id]: dm1,
                     },
                     channelsInTeam: {
-                        '': [dm1.id],
+                        '': new Set([dm1.id]),
                     },
                 },
                 users: {

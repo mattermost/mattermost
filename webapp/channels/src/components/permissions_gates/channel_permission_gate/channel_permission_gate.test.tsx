@@ -18,7 +18,7 @@ describe('components/permissions_gates', () => {
                     channel_id: {channel_id: 'channel_id', roles: 'channel_role'},
                 },
                 roles: {
-                    channel_id: ['channel_role'],
+                    channel_id: new Set(['channel_role']),
                 },
             },
             teams: {

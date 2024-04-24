@@ -11,7 +11,6 @@
 // Group: @channels @team_settings
 
 import {getRandomId, stubClipboard} from '../../../utils';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Team Settings', () => {
     const randomId = getRandomId();
@@ -47,14 +46,21 @@ describe('Team Settings', () => {
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
-            // # Click on the 'Allow only users with a specific email domain to join this team' edit button
-            cy.get('#allowed_domainsEdit').should('be.visible').click();
+            // # Go to Access section
+            cy.get('#accessButton').click();
 
-            // # Set 'sample.mattermost.com' as the only allowed email domain, save then close
-            cy.wait(TIMEOUTS.HALF_SEC);
-            cy.focused().type(emailDomain);
-            cy.uiSaveAndClose();
+            // # Click on the 'Allow only users with a specific email domain to join this team' edit button
+            cy.get('.access-allowed-domains-section').should('exist').within(() => {
+                // # Click on the 'Allow only users with a specific email domain to join this team' checkbox
+                cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
+            });
+
+            // # Set 'sample.mattermost.com' as the only allowed email domain and save
+            cy.get('#allowedDomains').click().type(emailDomain).type(' ');
+            cy.findByText('Save').should('be.visible').click();
         });
+
+        cy.uiClose();
 
         // # Open team menu and click 'Invite People'
         cy.uiOpenTeamMenu('Invite People');
@@ -92,26 +98,26 @@ describe('Team Settings', () => {
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
-            // # Click on the 'Allow any user with an account on this server to join this team' edit button
-            cy.get('#open_inviteEdit').should('be.visible').click();
+            // # Go to Access section
+            cy.get('#accessButton').click();
 
-            // # Enable any user with an account on the server to join the team
-            cy.get('#teamOpenInvite').should('be.visible').check();
-
-            // # Save and verify it took effect
-            cy.uiSave();
-            cy.get('#open_inviteDesc').should('be.visible').and('have.text', 'Yes');
+            cy.get('.access-invite-domains-section').should('exist').within(() => {
+                // # Enable any user with an account on the server to join the team
+                cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
+            });
 
             // # Click on the 'Allow only users with a specific email domain to join this team' edit button
-            cy.get('#allowed_domainsEdit').should('be.visible').click();
+            cy.get('.access-allowed-domains-section').should('exist').within(() => {
+                // # Click on the 'Allow only users with a specific email domain to join this team' checkbox
+                cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
+            });
 
             // # Set 'sample.mattermost.com' as the only allowed email domain and save
-            cy.wait(TIMEOUTS.HALF_SEC);
-            cy.findByRole('textbox', {name: 'Allowed Domains'}).should('be.visible').and('be.focused').type(emailDomain);
+            cy.get('#allowedDomains').click().type(emailDomain).type(' ');
+            cy.findByText('Save').should('be.visible').click();
 
             // # Save and verify it took effect
             cy.uiSave();
-            cy.get('#allowed_domainsDesc').should('be.visible').and('have.text', emailDomain);
 
             // # Close the modal
             cy.uiClose();

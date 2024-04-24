@@ -142,6 +142,19 @@ export default class TeamList extends React.PureComponent<Props, State> {
         }
     };
 
+    private renderRow = (item: TeamWithMembership): JSX.Element => {
+        return (
+            <TeamRow
+                key={item.id}
+                team={item}
+                doRemoveUserFromTeam={this.doRemoveUserFromTeam}
+                doMakeUserTeamAdmin={this.doMakeUserTeamAdmin}
+                doMakeUserTeamMember={this.doMakeUserTeamMember}
+                readOnly={this.props.readOnly}
+            />
+        );
+    };
+
     public render(): JSX.Element {
         let serverError = null;
         if (this.state.serverError) {
@@ -167,17 +180,4 @@ export default class TeamList extends React.PureComponent<Props, State> {
             </React.Fragment>
         );
     }
-
-    private renderRow = (item: TeamWithMembership): JSX.Element => {
-        return (
-            <TeamRow
-                key={item.id}
-                team={item}
-                doRemoveUserFromTeam={this.doRemoveUserFromTeam}
-                doMakeUserTeamAdmin={this.doMakeUserTeamAdmin}
-                doMakeUserTeamMember={this.doMakeUserTeamMember}
-                readOnly={this.props.readOnly}
-            />
-        );
-    };
 }

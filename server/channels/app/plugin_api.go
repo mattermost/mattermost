@@ -621,6 +621,11 @@ func (api *PluginAPI) UpdateChannelMemberNotifications(channelID, userID string,
 	return api.app.UpdateChannelMemberNotifyProps(api.ctx, notifications, channelID, userID)
 }
 
+func (api *PluginAPI) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifications map[string]string) *model.AppError {
+	_, err := api.app.PatchChannelMembersNotifyProps(api.ctx, members, notifications)
+	return err
+}
+
 func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppError {
 	return api.app.LeaveChannel(api.ctx, channelID, userID)
 }
@@ -988,6 +993,10 @@ func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId stri
 	return api.app.RolesGrantPermission(roleNames, permissionId)
 }
 
+func (api *PluginAPI) UpdateUserRoles(userID string, newRoles string) (*model.User, *model.AppError) {
+	return api.app.UpdateUserRoles(api.ctx, userID, newRoles, true)
+}
+
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...any) {
 	api.logger.Debugw(msg, keyValuePairs...)
 }
@@ -1022,11 +1031,11 @@ func (api *PluginAPI) PatchBot(userID string, botPatch *model.BotPatch) (*model.
 }
 
 func (api *PluginAPI) GetBot(userID string, includeDeleted bool) (*model.Bot, *model.AppError) {
-	return api.app.GetBot(userID, includeDeleted)
+	return api.app.GetBot(api.ctx, userID, includeDeleted)
 }
 
 func (api *PluginAPI) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
-	bots, err := api.app.GetBots(options)
+	bots, err := api.app.GetBots(api.ctx, options)
 
 	return []*model.Bot(bots), err
 }
@@ -1036,7 +1045,7 @@ func (api *PluginAPI) UpdateBotActive(userID string, active bool) (*model.Bot, *
 }
 
 func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
-	return api.app.PermanentDeleteBot(userID)
+	return api.app.PermanentDeleteBot(api.ctx, userID)
 }
 
 func (api *PluginAPI) EnsureBotUser(bot *model.Bot) (string, error) {
@@ -1300,7 +1309,7 @@ func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
 
 func (api *PluginAPI) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	scShared, err := api.app.ShareChannel(api.ctx, sc)
-	if errors.Is(err, ErrChannelAlreadyShared) {
+	if errors.Is(err, model.ErrChannelAlreadyShared) {
 		// sharing an already shared channel is not an error; treat as idempotent and return the existing shared channel
 		return api.app.GetSharedChannel(sc.ChannelId)
 	}
@@ -1323,8 +1332,8 @@ func (api *PluginAPI) SyncSharedChannel(channelID string) error {
 	return api.app.SyncSharedChannel(channelID)
 }
 
-func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID string) error {
-	return api.app.InviteRemoteToChannel(channelID, remoteID, userID)
+func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID string, shareIfNotShared bool) error {
+	return api.app.InviteRemoteToChannel(channelID, remoteID, userID, shareIfNotShared)
 }
 
 func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID string) error {

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AllowedIPRange} from './config';
-import {ValueOf} from './utilities';
+import type {AllowedIPRange} from './config';
+import type {ValueOf} from './utilities';
 
 export type CloudState = {
     subscription?: Subscription;
@@ -51,6 +51,7 @@ export type Subscription = {
     billing_type?: string;
     cancel_at?: number;
     will_renew?: string;
+    simulated_current_time_ms?: number;
 }
 
 export type Product = {
@@ -187,6 +188,8 @@ export type InvoiceLineItem = {
     description: string;
     type: typeof InvoiceLineItemType[keyof typeof InvoiceLineItemType];
     metadata: Record<string, string>;
+    period_start: number;
+    period_end: number;
 }
 
 export type Limits = {
