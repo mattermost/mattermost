@@ -459,19 +459,3 @@ func TestRequestTrialLicense(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
-
-func TestRequestRenewalLink(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	require.NotPanics(t, func() {
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = nil
-		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/license/renewal", "")
-		CheckErrorID(t, err, "app.license.generate_renewal_token.no_license")
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	})
-}

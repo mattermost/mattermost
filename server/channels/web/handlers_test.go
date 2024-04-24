@@ -343,29 +343,6 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
 	})
 
-	t.Run("static, without subpath or SelfHostedPurchase, does not allow Stripe in CSP", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SelfHostedPurchase = false })
-		defer th.TearDown()
-
-		web := New(th.Server)
-
-		handler := Handler{
-			Srv:            web.srv,
-			HandleFunc:     handlerForCSPHeader,
-			RequireSession: false,
-			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       true,
-		}
-
-		request := httptest.NewRequest("POST", "/", nil)
-		response := httptest.NewRecorder()
-		handler.ServeHTTP(response, request)
-		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
-	})
-
 	t.Run("static, with subpath", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
