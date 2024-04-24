@@ -21,8 +21,6 @@ import WithTooltip from 'components/with_tooltip';
 
 import type {ChannelMember} from './channel_members_rhs';
 
-import './index.scss';
-
 const Avatar = styled.div`
     flex-basis: fit-content;
     flex-shrink: 0;

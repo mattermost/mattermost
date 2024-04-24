@@ -26,6 +26,8 @@ import Header from './header';
 import MemberList from './member_list';
 import SearchBar from './search';
 
+import './channel_members_rhs.scss';
+
 const USERS_PER_PAGE = 100;
 export interface ChannelMember {
     user: UserProfile;
