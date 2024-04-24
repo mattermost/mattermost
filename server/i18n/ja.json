@@ -2255,7 +2255,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "ウェブソケット接続をアップグレードできませんでした。"
+    "translation": "CORSによりブロックされたURLです。Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -4444,10 +4444,6 @@
   {
     "id": "model.user.is_valid.email.app_error",
     "translation": "有効なメールアドレスを入力してください。"
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "パスワードは{{.Min}}文字以上に設定してください。"
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
@@ -7646,10 +7642,6 @@
     "translation": "インデックス付与中にファイルを一括取得できませんでした。"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "インポート中に添付ファイルを読み込めませんでした。"
-  },
-  {
     "id": "app.export.export_attachment.zip_create_header.error",
     "translation": "エクスポート中にZIPヘッダーを作成できませんでした。"
   },
@@ -9786,10 +9778,6 @@
     "translation": "アクティブなユーザーと非アクティブなユーザーの両方を非表示にすることはできません。"
   },
   {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "ユーザー数を取得できませんでした"
-  },
-  {
     "id": "app.post.move_thread_command.error",
     "translation": "スレッドを削除できませんでした"
   },
@@ -10340,5 +10328,53 @@
   {
     "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
     "translation": "チャンネルメンバーの不正な更新: ゲストを単一のチャンネルに設定することはできません。システム管理者がユーザーをゲストに設定する必要があります。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} と @{{.LastUsername}} はこのチームのメンバーではないため、このメンションによる通知は行われませんでした。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} はこのチームのメンバーではないため、このメンションによる通知は行われませんでした。"
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "リクエストボディにdisplay_nameがありません"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "リクエストボディにteam_idがありません"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "電子メールによる利用登録が無効化されているため、認証転送は利用できません。"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "電子メールログインもユーザー名ログインも無効化されているため、認証転送は利用できません。"
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "リクエストを解析できませんでした"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "プラグインをreattachできませんでした"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "マニフェストが見つかりません"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "プラグインのreattach設定が見つかりません"
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "パスワードは72文字以内でなければなりません。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "パスワードは{{.Min}}文字以上でなければなりません。"
   }
 ]

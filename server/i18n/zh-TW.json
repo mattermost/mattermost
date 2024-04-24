@@ -4444,10 +4444,6 @@
     "translation": "請輸入有效的電子郵件位址。"
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "密碼最短必須有{{.Min}}個字元。"
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母。"
   },

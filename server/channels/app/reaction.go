@@ -67,11 +67,12 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 
 	if post.RootId == "" {
 		if appErr := a.ResolvePersistentNotification(c, post, reaction.UserId); appErr != nil {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonResolvePersistentNotificationError)
 			a.NotificationsLog().Error("Error resolving persistent notification",
 				mlog.String("sender_id", reaction.UserId),
 				mlog.String("post_id", post.RootId),
-				mlog.String("status", model.StatusServerError),
-				mlog.String("reason", model.ReasonFetchError),
+				mlog.String("status", model.NotificationStatusError),
+				mlog.String("reason", model.NotificationReasonResolvePersistentNotificationError),
 				mlog.Err(appErr),
 			)
 			return nil, appErr

@@ -214,7 +214,7 @@ func (a *App) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, use
 	}
 
 	if updateErr := a.Srv().Store().User().UpdateLastLogin(user.Id, session.CreateAt); updateErr != nil {
-		return nil, model.NewAppError("DoLogin", "app.login.doLogin.updateLastLogin.error", nil, updateErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("DoLogin", "app.login.doLogin.updateLastLogin.error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
 	}
 
 	w.Header().Set(model.HeaderToken, session.Token)

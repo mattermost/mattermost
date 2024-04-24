@@ -124,6 +124,47 @@ describe('Utils.isValidPassword', () => {
         }
     });
 
+    test('Maximum length enforced', () => {
+        for (const data of [
+            {
+                password: 'justright',
+                config: {
+                    minimumLength: 8,
+                    requireLowercase: false,
+                    requireUppercase: false,
+                    requireNumber: false,
+                    requireSymbol: false,
+                },
+                valid: true,
+            },
+            {
+                password: 'iamaverylongstringthathas72charactersandwillpasswithoutanyissuesthiscall',
+                config: {
+                    minimumLength: 8,
+                    requireLowercase: false,
+                    requireUppercase: false,
+                    requireNumber: false,
+                    requireSymbol: false,
+                },
+                valid: true,
+            },
+            {
+                password: 'iamaverylongstringthathas73charactersandwontpassthisvalidationatall!!!:-(',
+                config: {
+                    minimumLength: 8,
+                    requireLowercase: false,
+                    requireUppercase: false,
+                    requireNumber: false,
+                    requireSymbol: false,
+                },
+                valid: false,
+            },
+        ]) {
+            const {valid} = Utils.isValidPassword(data.password, data.config);
+            expect(data.valid).toEqual(valid);
+        }
+    });
+
     test('Require lowercase enforced', () => {
         for (const data of [
             {
