@@ -130,7 +130,7 @@ func (u *User) Auditable() map[string]interface{} {
 		"locale":                     u.Locale,
 		"timezone":                   u.Timezone,
 		"mfa_active":                 u.MfaActive,
-		"remote_id":                  u.RemoteId,
+		"remote_id":                  SafeDereference(u.RemoteId),
 		"last_activity_at":           u.LastActivityAt,
 		"is_bot":                     u.IsBot,
 		"bot_description":            u.BotDescription,
@@ -142,7 +142,26 @@ func (u *User) Auditable() map[string]interface{} {
 }
 
 func (u *User) LogClone() any {
-	return u.Auditable()
+	return map[string]interface{}{
+		"id":              u.Id,
+		"create_at":       MillisToString(u.CreateAt),
+		"update_at":       MillisToString(u.UpdateAt),
+		"delete_at":       MillisToString(u.DeleteAt),
+		"username":        u.Username,
+		"auth_data":       SafeDereference(u.AuthData),
+		"auth_service":    u.AuthService,
+		"email":           u.Email,
+		"email_verified":  u.EmailVerified,
+		"position":        u.Position,
+		"roles":           u.Roles,
+		"allow_marketing": u.AllowMarketing,
+		"props":           u.Props,
+		"notify_props":    u.NotifyProps,
+		"locale":          u.Locale,
+		"timezone":        u.Timezone,
+		"mfa_active":      u.MfaActive,
+		"remote_id":       SafeDereference(u.RemoteId),
+	}
 }
 
 //msgp UserMap
