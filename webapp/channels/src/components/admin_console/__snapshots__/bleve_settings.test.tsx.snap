@@ -20,7 +20,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -46,7 +46,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -149,7 +149,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         disabled={true}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -170,7 +170,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -180,7 +180,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         disabled={true}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -201,7 +201,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -260,7 +260,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -286,7 +286,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -389,7 +389,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -410,7 +410,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -420,7 +420,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -441,7 +441,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }

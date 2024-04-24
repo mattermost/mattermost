@@ -29,7 +29,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -55,7 +55,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -113,7 +113,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -134,7 +134,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -144,7 +144,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -165,7 +165,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -175,7 +175,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -196,7 +196,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -288,7 +288,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -314,7 +314,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -372,7 +372,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -393,7 +393,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -403,7 +403,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -424,7 +424,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -434,7 +434,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -455,7 +455,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -547,7 +547,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -573,7 +573,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -631,7 +631,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -652,7 +652,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -662,7 +662,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -683,7 +683,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -693,7 +693,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -714,7 +714,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -806,7 +806,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -832,7 +832,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -890,7 +890,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -911,7 +911,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -921,7 +921,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -942,7 +942,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -952,7 +952,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -973,7 +973,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }

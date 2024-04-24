@@ -3,6 +3,7 @@
 exports[`components/Root Routes Should mount public product routes 1`] = `
 <RootProvider>
   <Connect(MobileViewWatcher) />
+  <LuxonController />
   <Switch>
     <Route
       component={[Function]}
@@ -126,7 +127,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       />
       <withRouter(Connect(SidebarRight)) />
       <AppBar />
-      <Connect(SidebarRightMenu) />
+      <Connect(Component) />
     </CompassThemeProvider>
   </Switch>
 </RootProvider>

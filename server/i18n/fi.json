@@ -1376,10 +1376,6 @@
     "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä joista ainakin yksi on pieni kirjain."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Salasanassasi oltava vähintään {{.Min}} merkkiä."
-  },
-  {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Virheelliset tiedostonimet"
   },

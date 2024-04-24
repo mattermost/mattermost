@@ -732,8 +732,8 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	for _, channel := range channels {
-		if !c.App.HasPermissionToReadChannel(c.AppContext, c.AppContext.Session().UserId, channel) {
-			c.SetPermissionError(model.PermissionReadChannel)
+		if !c.App.HasPermissionToChannelMemberCount(c.AppContext, c.AppContext.Session().UserId, channel) {
+			c.SetPermissionError(model.PermissionListTeamChannels)
 			return
 		}
 	}
@@ -1822,7 +1822,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
 			} else {
-				c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
+				c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 			return
 		}

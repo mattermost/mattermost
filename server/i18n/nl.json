@@ -2260,7 +2260,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Upgraden naar websocket verbinding is mislukt."
+    "translation": "URL geblokkeerd vanwege CORS. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -4449,10 +4449,6 @@
   {
     "id": "model.user.is_valid.email.app_error",
     "translation": "Please enter a valid email address."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
@@ -7647,10 +7643,6 @@
     "translation": "Kan geen verbinding maken met de smtp server"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Fout bij het lezen van de bestandsbijlage tijdens het importeren."
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": "Kan bestand niet toevoegen aan zip-archief tijdens export."
   },
@@ -9966,10 +9958,6 @@
     "translation": "Je staat op het punt om binnen 7 dagen de toegang tot je werkruimte te verliezen"
   },
   {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "Fout bij het ophalen van het aantal gebruikers"
-  },
-  {
     "id": "app.report.get_user_count_for_report.store_error",
     "translation": "Gebruikersaantal kon niet worden opgehaald."
   },
@@ -10336,5 +10324,77 @@
   {
     "id": "model.channel_bookmark.is_valid.image_url.app_error",
     "translation": "Ongeldige afbeeldingsURL."
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Importgegevensregel heeft type \"rol\" maar het rolobject is null."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Ongeldig schema."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Authenticatieoverdracht is niet beschikbaar omdat e-mailaanmeldingen uitgeschakeld zijn."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Authenticatieoverdracht is niet beschikbaar omdat inloggen via e-mail of via gebruikersnaam niet ingeschakeld is."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Kan het verzoek niet verwerken"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Fout bij het herkoppelen van plugin"
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Kan de laatst recent gebruikte sessies niet ophalen."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Ontbrekende configuratie voor reattach plugin"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Ontbrekend manifest"
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Kan gebruiker niet activeren. Server overschrijdt veilige gebruikerslimiet. Neem contact op met je beheerder met: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Je wachtwoord mag niet meer dan 72 tekens bevatten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Je wachtwoord moet minimaal uit {{.Min}} karakters bestaan."
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Kan gebruiker niet aanmaken. Server overschrijdt veilige gebruikerslimiet. Neem contact op met je beheerder met: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} en @{{.LastUsername}} zijn niet op de hoogte gebracht van deze vermelding omdat ze geen lid zijn van dit team."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} kreeg geen melding van deze vermelding omdat die geen lid is van dit team."
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Kan pagina met schema's niet ophalen."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Display_name ontbreekt in de request body"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Team_id ontbreekt in de request body"
   }
 ]

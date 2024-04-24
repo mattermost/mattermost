@@ -267,12 +267,16 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 }
 
 func GetAttachments(userID string, th *TestHelper, t *testing.T) []*model.FileInfo {
+	t.Helper()
+
 	fileInfos, err := th.App.Srv().Store().FileInfo().GetForUser(userID)
 	require.NoError(t, err)
 	return fileInfos
 }
 
 func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) {
+	t.Helper()
+
 	postID := files[0].PostId
 	require.NotNil(t, postID)
 

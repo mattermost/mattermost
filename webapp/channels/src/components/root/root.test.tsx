@@ -4,22 +4,24 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
+import {bindActionCreators} from 'redux';
 import rudderAnalytics from 'rudder-sdk-js';
 
 import {ServiceEnvironment} from '@mattermost/types/config';
 
-import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import * as GlobalActions from 'actions/global_actions';
-import store from 'stores/redux_store';
 
 import Root from 'components/root/root';
 
+import testConfigureStore from 'packages/mattermost-redux/test/test_store';
 import {StoragePrefixes} from 'utils/constants';
 
 import type {ProductComponent} from 'types/store/plugins';
+
+import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
 
 jest.mock('rudder-sdk-js', () => ({
     identify: jest.fn(),
@@ -43,15 +45,20 @@ jest.mock('utils/utils', () => {
         localizeMessage: () => {},
         applyTheme: jest.fn(),
         makeIsEligibleForClick: jest.fn(),
-
     };
 });
 
 jest.mock('mattermost-redux/actions/general', () => ({
+    getFirstAdminSetupComplete: jest.fn(() => Promise.resolve({
+        type: 'FIRST_ADMIN_COMPLETE_SETUP_RECEIVED',
+        data: true,
+    })),
     setUrl: () => {},
 }));
 
 describe('components/Root', () => {
+    const store = testConfigureStore();
+
     const baseProps = {
         telemetryEnabled: true,
         telemetryId: '1234ab',
@@ -61,18 +68,20 @@ describe('components/Root', () => {
         actions: {
             loadConfigAndMe: jest.fn().mockImplementation(() => {
                 return Promise.resolve({
-                    data: false,
+                    config: {},
+                    isMeLoaded: false,
                 });
             }),
-            getFirstAdminSetupComplete: jest.fn(() => Promise.resolve({
-                type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED,
-                data: true,
-            })),
             getProfiles: jest.fn(),
+            loadRecentlyUsedCustomEmojis: jest.fn(),
             migrateRecentEmojis: jest.fn(),
             savePreferences: jest.fn(),
             registerCustomPostRenderer: jest.fn(),
             initializeProducts: jest.fn(),
+            ...bindActionCreators({
+                handleLoginLogoutSignal,
+                redirectToOnboardingOrDefaultTeam,
+            }, store.dispatch),
         },
         permalinkRedirectTeamName: 'myTeam',
         showLaunchingWorkspace: false,
@@ -98,9 +107,9 @@ describe('components/Root', () => {
             } as unknown as RouteComponentProps['history'],
         };
 
-        const wrapper = shallow(<Root {...props}/>);
+        const wrapper = shallow<Root>(<Root {...props}/>);
 
-        (wrapper.instance() as any).onConfigLoaded();
+        wrapper.instance().onConfigLoaded({});
         expect(props.history.push).toHaveBeenCalledWith('/signup_user_complete');
         wrapper.unmount();
     });
@@ -114,7 +123,10 @@ describe('components/Root', () => {
             actions: {
                 ...baseProps.actions,
                 loadConfigAndMe: jest.fn().mockImplementation(() => {
-                    return Promise.resolve({data: true});
+                    return Promise.resolve({
+                        config: {},
+                        isMeLoaded: true,
+                    });
                 }),
             },
         };
@@ -145,7 +157,10 @@ describe('components/Root', () => {
             actions: {
                 ...baseProps.actions,
                 loadConfigAndMe: jest.fn().mockImplementation(() => {
-                    return Promise.resolve({data: true});
+                    return Promise.resolve({
+                        config: {},
+                        isMeLoaded: true,
+                    });
                 }),
             },
         };
@@ -172,7 +187,7 @@ describe('components/Root', () => {
                 push: jest.fn(),
             } as unknown as RouteComponentProps['history'],
         };
-        const wrapper = shallow(<Root {...props}/>);
+        const wrapper = shallow<Root>(<Root {...props}/>);
         expect(props.history.push).not.toHaveBeenCalled();
         const props2 = {
             noAccounts: true,
@@ -188,7 +203,7 @@ describe('components/Root', () => {
             writable: true,
         });
         window.location.reload = jest.fn();
-        const wrapper = shallow(<Root {...baseProps}/>);
+        const wrapper = shallow<Root>(<Root {...baseProps}/>);
         const loginSignal = new StorageEvent('storage', {
             key: StoragePrefixes.LOGIN,
             newValue: String(Math.random()),
@@ -207,14 +222,11 @@ describe('components/Root', () => {
         });
 
         test('should not set a TelemetryHandler when onConfigLoaded is called if Rudder is not configured', () => {
-            store.dispatch({
-                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
-                data: {
-                    ServiceEnvironment: ServiceEnvironment.DEV,
-                },
-            });
+            const wrapper = shallow<Root>(<Root {...baseProps}/>);
 
-            const wrapper = shallow(<Root {...baseProps}/>);
+            wrapper.instance().onConfigLoaded({
+                ServiceEnvironment: ServiceEnvironment.DEV,
+            });
 
             Client4.trackEvent('category', 'event');
 
@@ -224,16 +236,11 @@ describe('components/Root', () => {
         });
 
         test('should set a TelemetryHandler when onConfigLoaded is called if Rudder is configured', () => {
-            store.dispatch({
-                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
-                data: {
-                    ServiceEnvironment: ServiceEnvironment.TEST,
-                },
+            const wrapper = shallow<Root>(<Root {...baseProps}/>);
+
+            wrapper.instance().onConfigLoaded({
+                ServiceEnvironment: ServiceEnvironment.TEST,
             });
-
-            const wrapper = shallow(<Root {...baseProps}/>);
-
-            (wrapper.instance() as any).onConfigLoaded();
 
             Client4.trackEvent('category', 'event');
 
@@ -247,16 +254,11 @@ describe('components/Root', () => {
                 // Simulate an error occurring and the callback not getting called
             });
 
-            store.dispatch({
-                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
-                data: {
-                    ServiceEnvironment: ServiceEnvironment.TEST,
-                },
+            const wrapper = shallow<Root>(<Root {...baseProps}/>);
+
+            wrapper.instance().onConfigLoaded({
+                ServiceEnvironment: ServiceEnvironment.PRODUCTION,
             });
-
-            const wrapper = shallow(<Root {...baseProps}/>);
-
-            (wrapper.instance() as any).onConfigLoaded();
 
             Client4.trackEvent('category', 'event');
 
@@ -287,9 +289,9 @@ describe('components/Root', () => {
                 } as unknown as ProductComponent],
             };
 
-            const wrapper = shallow(<Root {...props}/>);
+            const wrapper = shallow<Root>(<Root {...props}/>);
 
-            (wrapper.instance() as any).setState({configLoaded: true});
+            wrapper.instance().setState({configLoaded: true});
             expect(wrapper).toMatchSnapshot();
             wrapper.unmount();
         });
@@ -313,8 +315,8 @@ describe('components/Root', () => {
         };
 
         test('should show for normal cases', () => {
-            const wrapper = shallow(<Root {...landingProps}/>);
-            (wrapper.instance() as any).onConfigLoaded();
+            const wrapper = shallow<Root>(<Root {...landingProps}/>);
+            wrapper.instance().onConfigLoaded({});
             expect(landingProps.history.push).toHaveBeenCalledWith('/landing#/');
             wrapper.unmount();
         });
@@ -328,8 +330,8 @@ describe('components/Root', () => {
                     },
                 } as RouteComponentProps,
             };
-            const wrapper = shallow(<Root {...props}/>);
-            (wrapper.instance() as any).onConfigLoaded();
+            const wrapper = shallow<Root>(<Root {...props}/>);
+            wrapper.instance().onConfigLoaded({});
             expect(props.history.push).not.toHaveBeenCalled();
             wrapper.unmount();
         });

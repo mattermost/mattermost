@@ -51,7 +51,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -67,7 +67,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -329,7 +329,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -345,7 +345,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }

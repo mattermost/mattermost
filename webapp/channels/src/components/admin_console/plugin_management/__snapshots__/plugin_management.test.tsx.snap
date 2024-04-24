@@ -29,7 +29,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -55,7 +55,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -65,7 +65,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -91,7 +91,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -101,7 +101,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -122,7 +122,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -193,7 +193,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -219,7 +219,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -229,7 +229,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -250,7 +250,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -366,7 +366,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -392,7 +392,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -402,7 +402,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -428,7 +428,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -438,7 +438,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -459,7 +459,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -530,7 +530,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -556,7 +556,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -566,7 +566,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             disabled={true}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -587,7 +587,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -788,7 +788,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -814,7 +814,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -824,7 +824,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -850,7 +850,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -860,7 +860,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -881,7 +881,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -952,7 +952,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -978,7 +978,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -988,7 +988,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1009,7 +1009,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1125,7 +1125,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1151,7 +1151,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1161,7 +1161,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1187,7 +1187,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1197,7 +1197,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1218,7 +1218,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1291,7 +1291,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1317,7 +1317,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1327,7 +1327,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1348,7 +1348,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1464,7 +1464,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1490,7 +1490,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1500,7 +1500,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1526,7 +1526,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1536,7 +1536,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1557,7 +1557,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1628,7 +1628,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1654,7 +1654,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1664,7 +1664,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1685,7 +1685,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1805,7 +1805,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1831,7 +1831,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1841,7 +1841,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1867,7 +1867,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1877,7 +1877,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1898,7 +1898,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -1969,7 +1969,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -1995,7 +1995,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2005,7 +2005,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2026,7 +2026,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2142,7 +2142,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2168,7 +2168,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2178,7 +2178,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             disabled={true}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2204,7 +2204,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2214,7 +2214,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             disabled={true}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2235,7 +2235,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2308,7 +2308,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             disabled={true}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2334,7 +2334,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2344,7 +2344,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             disabled={true}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2365,7 +2365,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2456,7 +2456,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2482,7 +2482,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2492,7 +2492,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2518,7 +2518,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2528,7 +2528,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2549,7 +2549,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2620,7 +2620,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2646,7 +2646,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2656,7 +2656,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2677,7 +2677,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2793,7 +2793,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2819,7 +2819,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2829,7 +2829,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2855,7 +2855,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2865,7 +2865,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2886,7 +2886,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2959,7 +2959,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -2985,7 +2985,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -2995,7 +2995,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             disabled={true}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3016,7 +3016,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -3137,7 +3137,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3163,7 +3163,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -3173,7 +3173,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3199,7 +3199,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -3209,7 +3209,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3230,7 +3230,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -3301,7 +3301,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3327,7 +3327,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -3337,7 +3337,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3358,7 +3358,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -3537,7 +3537,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3563,7 +3563,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -3573,7 +3573,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3599,7 +3599,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -3609,7 +3609,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3630,7 +3630,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -3701,7 +3701,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3727,7 +3727,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -3737,7 +3737,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3758,7 +3758,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -3905,7 +3905,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3931,7 +3931,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -3941,7 +3941,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3967,7 +3967,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -3977,7 +3977,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -3998,7 +3998,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -4069,7 +4069,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -4095,7 +4095,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -4105,7 +4105,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -4126,7 +4126,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -4273,7 +4273,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -4299,7 +4299,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -4309,7 +4309,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -4335,7 +4335,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -4345,7 +4345,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -4366,7 +4366,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -4437,7 +4437,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -4463,7 +4463,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -4473,7 +4473,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -4494,7 +4494,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -4641,7 +4641,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -4667,7 +4667,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -4677,7 +4677,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -4703,7 +4703,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -4713,7 +4713,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -4734,7 +4734,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -4805,7 +4805,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -4831,7 +4831,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -4841,7 +4841,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -4862,7 +4862,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
