@@ -5,7 +5,7 @@ SET @preparedStatement = (SELECT IF(
 	AND table_schema = DATABASE()
 	AND column_name = 'ExcludePostTypes'
 	),
-	'ALTER TABLE Channels ADD COLUMN ExcludePostTypes json NOT NULL DEFAULT "[]";',
+	'ALTER TABLE Channels ADD COLUMN ExcludePostTypes json;',
 	'SELECT 1;'
 	));
 

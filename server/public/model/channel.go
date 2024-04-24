@@ -284,7 +284,7 @@ func (o *Channel) PreSave() {
 	o.ExtraUpdateAt = 0
 
 	if o.ExcludePostTypes == nil {
-		o.ExcludePostTypes = []string{}
+		o.ExcludePostTypes = StringArray{}
 	}
 }
 
