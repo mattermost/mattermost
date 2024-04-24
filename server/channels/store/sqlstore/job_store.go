@@ -330,7 +330,7 @@ func (jss SqlJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string
 
 	jobs := []*model.Job{}
 	if err = jss.GetReplicaX().Select(&jobs, query, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s", jobType)
+		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s and status=%s", strings.Join(jobType, ","), status)
 	}
 
 	return jobs, nil

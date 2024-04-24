@@ -150,7 +150,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var jobType = r.URL.Query().Get("job_type")
 	var validJobTypes []string
-	mlog.Debug(jobType)
+
 	if jobType != "" {
 		hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jobType)
 		if permissionRequired == nil {
