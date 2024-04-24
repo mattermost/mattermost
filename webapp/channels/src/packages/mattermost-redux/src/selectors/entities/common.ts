@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {CallsConfig, UserSessionState} from '@calls/common/lib/types';
+
 import type {ChannelMembership, Channel} from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
 import type {TeamMembership} from '@mattermost/types/teams';
@@ -10,17 +12,6 @@ import type {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilitie
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 const CALLS_PLUGIN = 'plugins-com.mattermost.calls';
-
-type CallsConfig = {
-    ICEServers: string[];
-    ICEServersConfigs: RTCIceServer[];
-    AllowEnableCalls: boolean;
-    DefaultEnabled: boolean;
-    MaxCallParticipants: number;
-    NeedsTURNCredentials: boolean;
-    AllowScreenSharing: boolean;
-    sku_short_name: string;
-}
 
 // Channels
 
@@ -71,10 +62,10 @@ export function getUsers(state: GlobalState): IDMappedObjects<UserProfile> {
 
 // Calls
 
-export function getProfilesInCalls(state: GlobalState): Record<string, Record<string, UserProfile>> {
+export function getSessionsInCalls(state: GlobalState): Record<string, Record<string, UserSessionState>> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return state[CALLS_PLUGIN].profiles || {};
+    return state[CALLS_PLUGIN].sessions || {};
 }
 
 export function getCallsConfig(state: GlobalState): CallsConfig {
