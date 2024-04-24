@@ -49,7 +49,6 @@ import A11yController from 'utils/a11y_controller';
 import {PageLoadContext} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
-import PerformanceReporter from 'utils/performance_telemetry/reporter';
 import {getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
@@ -57,6 +56,7 @@ import * as Utils from 'utils/utils';
 import type {ProductComponent, PluginComponent} from 'types/store/plugins';
 
 import LuxonController from './luxon_controller';
+import PerformanceReporterController from './performance_reporter_controller';
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
 
@@ -169,8 +169,6 @@ export default class Root extends React.PureComponent<Props, State> {
     // so we do need this.
     private a11yController: A11yController;
 
-    private performanceTelemetry: PerformanceReporter;
-
     constructor(props: Props) {
         super(props);
         this.mounted = false;
@@ -206,8 +204,6 @@ export default class Root extends React.PureComponent<Props, State> {
         };
 
         this.a11yController = new A11yController();
-
-        // this.performanceTelemetry = new PerformanceReporter(Client4, store);
     }
 
     onConfigLoaded = (config: Partial<ClientConfig>) => {
@@ -454,6 +450,7 @@ export default class Root extends React.PureComponent<Props, State> {
             <RootProvider>
                 <MobileViewWatcher/>
                 <LuxonController/>
+                <PerformanceReporterController/>
                 <Switch>
                     <Route
                         path={'/error'}
