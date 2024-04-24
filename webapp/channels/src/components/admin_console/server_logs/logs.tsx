@@ -83,7 +83,6 @@ export default class Logs extends React.PureComponent<Props, State> {
 
     toggleMode = () => {
         this.setState({
-            ...this.state,
             isLocalFormattedView: !this.state.isLocalFormattedView,
         }, () => {
             if (this.state.isLocalFormattedView) {
