@@ -77,16 +77,16 @@ func (a *App) sendPushNotificationSync(c request.CTX, post *model.Post, user *mo
 		return appErr
 	}
 
-	return a.sendPushNotificationToAllSessions(msg, user.Id, "")
+	return a.sendPushNotificationToAllSessions(c, msg, user.Id, "")
 }
 
-func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, userID string, skipSessionId string) *model.AppError {
+func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.PushNotification, userID string, skipSessionId string) *model.AppError {
 	rejectionReason := ""
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 		var replacementNotification *model.PushNotification
 		replacementNotification, rejectionReason = hooks.NotificationWillBePushed(msg, userID)
 		if rejectionReason != "" {
-			mlog.Info("Notification cancelled by plugin.", mlog.String("rejection reason", rejectionReason))
+			rctx.Logger().Info("Notification cancelled by plugin.", mlog.String("rejection reason", rejectionReason))
 			return false
 		}
 		if replacementNotification != nil {
@@ -311,7 +311,7 @@ func (a *App) clearPushNotificationSync(c request.CTX, currentSessionId, userID,
 		IsCRTEnabled:     isCRTEnabled,
 	}
 
-	return a.sendPushNotificationToAllSessions(msg, userID, currentSessionId)
+	return a.sendPushNotificationToAllSessions(c, msg, userID, currentSessionId)
 }
 
 func (a *App) clearPushNotification(currentSessionId, userID, channelID, rootID string) {
@@ -341,7 +341,7 @@ func (a *App) updateMobileAppBadgeSync(c request.CTX, userID string) *model.AppE
 		ContentAvailable: 1,
 		Badge:            badgeCount,
 	}
-	return a.sendPushNotificationToAllSessions(msg, userID, "")
+	return a.sendPushNotificationToAllSessions(c, msg, userID, "")
 }
 
 func (a *App) UpdateMobileAppBadge(userID string) {

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
@@ -160,14 +161,14 @@ func (a *App) GetTrueUpProfile() (map[string]any, error) {
 	return telemetryProperties, nil
 }
 
-func (a *App) GetOrCreateTrueUpReviewStatus() (*model.TrueUpReviewStatus, *model.AppError) {
+func (a *App) GetOrCreateTrueUpReviewStatus(rctx request.CTX) (*model.TrueUpReviewStatus, *model.AppError) {
 	nextDueDate := utils.GetNextTrueUpReviewDueDate(time.Now())
 	status, err := a.Srv().Store().TrueUpReview().GetTrueUpReviewStatus(nextDueDate.UnixMilli())
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			a.Log().Warn("Could not find true up review status")
+			rctx.Logger().Warn("Could not find true up review status")
 		default:
 			return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "Could not get true up status records", http.StatusInternalServerError).Wrap(err)
 		}
