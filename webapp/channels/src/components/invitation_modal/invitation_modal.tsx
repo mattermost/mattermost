@@ -17,8 +17,6 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {getRoleForTrackFlow} from 'utils/utils';
-
 import {InviteType} from './invite_as';
 import InviteView, {initializeInviteState} from './invite_view';
 import type {InviteState} from './invite_view';
@@ -59,7 +57,7 @@ export type Props = {
             message: string,
         ) => Promise<ActionResult<InviteResults>>;
     };
-    currentTeam: Team;
+    currentTeam?: Team;
     currentChannel: Channel;
     townSquareDisplayName: string;
     invitableChannels: Channel[];
@@ -73,6 +71,7 @@ export type Props = {
     channelToInvite?: Channel;
     initialValue?: string;
     inviteAsGuest?: boolean;
+    roleForTrackFlow: {started_by_role: string};
 }
 
 export const View = {
@@ -159,12 +158,14 @@ export class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     invite = async () => {
-        const roleForTrackFlow = getRoleForTrackFlow();
+        if (!this.props.currentTeam) {
+            return;
+        }
         const inviteAs = this.state.invite.inviteType;
         if (inviteAs === InviteType.MEMBER && this.props.isCloud) {
-            trackEvent('cloud_invite_users', 'click_send_invitations', {num_invitations: this.state.invite.usersEmails.length, ...roleForTrackFlow});
+            trackEvent('cloud_invite_users', 'click_send_invitations', {num_invitations: this.state.invite.usersEmails.length, ...this.props.roleForTrackFlow});
         }
-        trackEvent('invite_users', 'click_invite', roleForTrackFlow);
+        trackEvent('invite_users', 'click_invite', this.props.roleForTrackFlow);
 
         const users: UserProfile[] = [];
         const emails: string[] = [];
@@ -246,7 +247,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
         }));
     };
 
-    debouncedSearchChannels = debounce((term) => this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
+    debouncedSearchChannels = debounce((term) => this.props.currentTeam && this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
 
     channelsLoader = async (value: string) => {
         if (!value) {
@@ -357,6 +358,10 @@ export class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     render() {
+        if (!this.props.currentTeam) {
+            return null;
+        }
+
         let view = (
             <InviteView
                 setInviteAs={this.setInviteAs}

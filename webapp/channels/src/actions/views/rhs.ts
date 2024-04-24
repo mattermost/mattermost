@@ -636,6 +636,12 @@ export const unsuppressRHS = {
     type: ActionTypes.UNSUPPRESS_RHS,
 };
 
+export function focusedRHS() {
+    return {
+        type: ActionTypes.RHS_FOCUSED,
+    };
+}
+
 export function setEditChannelMembers(active: boolean) {
     return {
         type: ActionTypes.SET_EDIT_CHANNEL_MEMBERS,

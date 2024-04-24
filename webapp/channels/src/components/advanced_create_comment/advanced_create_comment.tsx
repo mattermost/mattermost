@@ -174,7 +174,6 @@ export type Props = {
     getChannelMemberCountsByGroup: (channelID: string) => void;
     groupsWithAllowReference: Map<string, Group> | null;
     channelMemberCountsByGroup: ChannelMemberCountsByGroup;
-    focusOnMount?: boolean;
     isThreadView?: boolean;
     openModal: <P>(modalData: ModalData<P>) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
@@ -184,6 +183,8 @@ export type Props = {
     postEditorActions: PluginComponent[];
     placeholder?: string;
     isPlugin?: boolean;
+    shouldFocusRHS: boolean;
+    focusedRHS: () => void;
 }
 
 type State = {
@@ -276,8 +277,9 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         onResetHistoryIndex();
         setShowPreview(false);
 
-        if (this.props.focusOnMount) {
+        if (this.props.shouldFocusRHS) {
             this.focusTextbox();
+            this.props.focusedRHS();
         }
 
         document.addEventListener('keydown', this.focusTextboxIfNecessary);

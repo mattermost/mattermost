@@ -528,10 +528,6 @@
     "translation": "आपके पासवर्ड में कम से कम एक लोअरकेस अक्षर से बने कम से कम {{.Min}} वर्ण होने चाहिए।"
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "आपके पासवर्ड में कम से कम {{.Min}} वर्ण होने चाहिए।"
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "अमान्य स्थिति: 128 वर्णों से अधिक नहीं होनी चाहिए।"
   },
