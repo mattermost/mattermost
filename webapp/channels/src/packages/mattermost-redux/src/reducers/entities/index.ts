@@ -14,6 +14,7 @@ import files from './files';
 import general from './general';
 import groups from './groups';
 import integrations from './integrations';
+import hostedCustomer from './hosted_customer';
 import jobs from './jobs';
 import limits from './limits';
 import posts from './posts';
@@ -51,4 +52,5 @@ export default combineReducers({
     apps,
     cloud,
     usage,
+    hostedCustomer,
 });

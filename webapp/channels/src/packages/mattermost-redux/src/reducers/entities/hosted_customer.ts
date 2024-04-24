@@ -8,7 +8,7 @@ import type {Product} from '@mattermost/types/cloud';
 
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 
-interface SelfHostedProducts {
+export interface SelfHostedProducts {
     products: Record<string, Product>;
     productsLoaded: boolean;
 }
