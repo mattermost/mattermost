@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo, useCallback} from 'react';
 import {ContextMenu, ContextMenuTrigger, MenuItem} from 'react-contextmenu';
 import {FormattedMessage} from 'react-intl';
 
@@ -29,46 +29,52 @@ type Props = {
     };
 }
 
-export default class CopyUrlContextMenu extends React.PureComponent<Props> {
-    copy = () => {
-        let link = this.props.link;
+const CopyUrlContextMenu = ({
+    link,
+    siteURL,
+    actions,
+    menuId,
+    children,
+}: Props) => {
+    const copy = useCallback(() => {
+        let siteLink = link;
 
         // Transform relative links to absolute ones for copy and paste.
-        if (link.indexOf('http://') === -1 && link.indexOf('https://') === -1) {
-            link = this.props.siteURL + link;
+        if (siteLink.indexOf('http://') === -1 && siteLink.indexOf('https://') === -1) {
+            siteLink = siteURL + link;
         }
 
-        this.props.actions.copyToClipboard(link);
-    };
+        actions.copyToClipboard(siteLink);
+    }, [actions, link, siteURL]);
 
-    render(): JSX.Element {
-        const contextMenu = (
-            <ContextMenu id={'copy-url-context-menu' + this.props.menuId}>
-                <MenuItem
-                    onClick={this.copy}
-                >
-                    <FormattedMessage
-                        id='copy_url_context_menu.getChannelLink'
-                        defaultMessage='Copy Link'
-                    />
-                </MenuItem>
-            </ContextMenu>
-        );
-
-        const contextMenuTrigger = (
-            <ContextMenuTrigger
-                id={'copy-url-context-menu' + this.props.menuId}
-                holdToDisplay={-1}
+    const contextMenu = (
+        <ContextMenu id={`copy-url-context-menu${menuId}`}>
+            <MenuItem
+                onClick={copy}
             >
-                {this.props.children}
-            </ContextMenuTrigger>
-        );
+                <FormattedMessage
+                    id='copy_url_context_menu.getChannelLink'
+                    defaultMessage='Copy Link'
+                />
+            </MenuItem>
+        </ContextMenu>
+    );
 
-        return (
-            <span>
-                {contextMenu}
-                {contextMenuTrigger}
-            </span>
-        );
-    }
-}
+    const contextMenuTrigger = (
+        <ContextMenuTrigger
+            id={`copy-url-context-menu${menuId}`}
+            holdToDisplay={-1}
+        >
+            {children}
+        </ContextMenuTrigger>
+    );
+
+    return (
+        <span>
+            {contextMenu}
+            {contextMenuTrigger}
+        </span>
+    );
+};
+
+export default memo(CopyUrlContextMenu);

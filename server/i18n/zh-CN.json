@@ -2255,7 +2255,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "未能升级 WebSocket 连接。"
+    "translation": "URL 由于 CORS 而被阻止。Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -4444,10 +4444,6 @@
   {
     "id": "model.user.is_valid.email.app_error",
     "translation": "无效的邮箱。"
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "你的密码需要至少 {{.Min}} 字符。"
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
@@ -7646,10 +7642,6 @@
     "translation": "无法批量获取要建立索引的文件。"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "导入期间读取文件附件失败。"
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": "导出期间添加文件到 zip 归档失败。"
   },
@@ -9830,10 +9822,6 @@
     "translation": "无法通过名称获取过多的角色。每次只能请求 {{.MaxNames}} 个角色。"
   },
   {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "获取用户数量失败"
-  },
-  {
     "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
     "translation": "一个包含 {{.NumMessages}} 条消息的对话已被移动至私信/群组消息\n"
   },
@@ -10340,5 +10328,53 @@
   {
     "id": "app.user.update_active.user_limit.exceeded",
     "translation": "无法激活用户。服务器超过安全用户限制。联系您的管理员，并附上：ERROR_SAFETY_LIMITS_EXCEEDED。"
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "请求体中缺少 display_name 属性"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "请求体中缺少 team_id 属性"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "身份验证转移不可用，因为使用电子邮件注册已被禁用。"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "身份验证转移不可用，因为既未启用使用电子邮件登录也未启用使用用户名登录。"
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "解析请求失败"
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "您的密码不能超过 72 个字符。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "您的密码必须至少包含 {{.Min}} 个字符。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} 和 @{{.LastUsername}} 没有收到此提及的通知，因为他们不是该团队的成员。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} 没有收到此提及的通知，因为他不是该团队的成员。"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "重新连接插件失败"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "缺少清单"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "缺少插件重新连接配置"
   }
 ]

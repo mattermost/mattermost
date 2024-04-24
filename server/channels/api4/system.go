@@ -641,7 +641,9 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.CountNotificationAck(model.NotificationTypePush)
+	if ack.NotificationType == model.PushTypeMessage {
+		c.App.CountNotificationAck(model.NotificationTypePush)
+	}
 
 	err := c.App.SendAckToPushProxy(&ack)
 	if ack.IsIdLoaded {

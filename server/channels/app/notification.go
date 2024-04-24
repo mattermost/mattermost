@@ -1775,5 +1775,7 @@ func (a *App) CountNotificationReason(
 		a.Metrics().IncrementNotificationErrorCounter(notificationType, notificationReason)
 	case model.NotificationStatusNotSent:
 		a.Metrics().IncrementNotificationNotSentCounter(notificationType, notificationReason)
+	case model.NotificationStatusUnsupported:
+		a.Metrics().IncrementNotificationUnsupportedCounter(notificationType, notificationReason)
 	}
 }

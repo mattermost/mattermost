@@ -4451,10 +4451,6 @@
     "translation": "E-posta adresi geçersiz."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalıdır."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf içermelidir."
   },
@@ -7639,10 +7635,6 @@
     "translation": "SMTP sunucusu ile bağlantı kurulamadı"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "İçe aktarma sırasında ek dosya okunamadı."
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": "Dışa aktarma sırasında dosya zip arşivine eklenemedi."
   },
@@ -10068,10 +10060,6 @@
   {
     "id": "app.channel.patch_channel_members_notify_props.too_many",
     "translation": "Bu kadar çok kanal üyesi güncellenemez. Aynı anda yalnızca {{.Max}} kanal üyesi güncellenebilir."
-  },
-  {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "Kullanıcı sayısı alınamadı"
   },
   {
     "id": "app.report.send_report_to_user.failed_to_save",
