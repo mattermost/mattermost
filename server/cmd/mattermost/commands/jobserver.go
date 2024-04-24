@@ -46,8 +46,8 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	rctx := request.EmptyContext(a.Log())
 
 	// Run jobs
-	a.Log().Info("Starting Mattermost job server")
-	defer a.Log().Info("Stopped Mattermost job server")
+	rctx.Logger().Info("Starting Mattermost job server")
+	defer rctx.Logger().Info("Stopped Mattermost job server")
 
 	if !noJobs {
 		a.Srv().Jobs.StartWorkers()
@@ -68,7 +68,7 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	<-signalChan
 
 	// Cleanup anything that isn't handled by a defer statement
-	a.Log().Info("Stopping Mattermost job server")
+	rctx.Logger().Info("Stopping Mattermost job server")
 
 	return nil
 }

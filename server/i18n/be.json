@@ -1652,10 +1652,6 @@
     "translation": "Ваш пароль павінен утрымоўваць прынамсі {{.Min}} знакаў, а гэтак жа адну літару ў ніжнім рэгістры."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Ваш пароль павінен утрымоўваць прынамсі {{.Min}} знакаў."
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "Няслушная пазіцыя: павінна быць не больш за 128 сімвалаў."
   },
@@ -4258,10 +4254,6 @@
   {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "Памылка чытання імпартнага файла."
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Не ўдалося прачытаць аттачмент пры імпарце."
   },
   {
     "id": "app.import.attachment.file_upload.error",
