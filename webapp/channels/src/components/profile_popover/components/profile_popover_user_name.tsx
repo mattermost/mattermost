@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 
 type Props = {
@@ -16,10 +15,9 @@ const ProfilePopoverUserName = ({
     return (
         <div
             id='userPopoverUsername'
-            className={classNames({
-                'user-profile-popover__heading': !hasFullName,
-                'user-profile-popover__non-heading': hasFullName,
-            })}
+            className={
+                hasFullName ? 'user-profile-popover__non-heading' : 'user-profile-popover__heading'
+            }
             title={username}
         >
             {`@${username}`}
