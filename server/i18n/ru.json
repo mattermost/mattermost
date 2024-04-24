@@ -10386,5 +10386,21 @@
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
     "translation": "Автозаполнение каналов не может быть включено, так как схема индекса каналов устарела. Рекомендуется перегенерировать индекс каналов. Более подробную информацию можно найти в журнале изменений Mattermost"
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Ошибка при чтении статуса файла: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Ошибка при поиске файла: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Не удалось получить количество пользователей"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "Не удалось получить количество сообщений"
   }
 ]
