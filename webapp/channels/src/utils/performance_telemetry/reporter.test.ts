@@ -96,6 +96,51 @@ describe('PerformanceReporter', () => {
         reporter.disconnect();
     });
 
+    test('should report longtasks to the server as counters', async () => {
+        const reporter = newTestReporter();
+        reporter.observe();
+
+        expect(sendBeacon).not.toHaveBeenCalled();
+
+        // Node doesn't support longtask entries, and I can't find a way to inject them directly, so we have to fake some
+        const entries = {
+            getEntries: () => [
+                {
+                    entryType: 'longtask',
+                    duration: 140,
+                },
+                {
+                    entryType: 'longtask',
+                    duration: 68,
+                },
+                {
+                    entryType: 'longtask',
+                    duration: 86,
+                },
+            ],
+            getEntriesByName: jest.fn(),
+            getEntriesByType: jest.fn(),
+        } as unknown as PerformanceObserverEntryList;
+
+        reporter.handleObservations(entries);
+
+        await waitForReport();
+
+        expect(sendBeacon).toHaveBeenCalled();
+        expect(sendBeacon.mock.calls[0][0]).toEqual('/api/v4/metrics');
+        const report = JSON.parse(sendBeacon.mock.calls[0][1]);
+        expect(report).toMatchObject({
+            counters: [
+                {
+                    metric: 'long_tasks',
+                    value: 3,
+                },
+            ],
+        });
+
+        reporter.disconnect();
+    });
+
     test('should report web vitals to the server as histograms', async () => {
         const reporter = newTestReporter();
         reporter.observe();

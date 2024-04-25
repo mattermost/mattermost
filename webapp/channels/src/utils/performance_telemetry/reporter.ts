@@ -11,6 +11,8 @@ import {isTelemetryEnabled} from 'actions/telemetry_actions';
 
 import type {GlobalState} from 'types/store';
 
+import type {PerformanceLongTaskTiming} from './long_task';
+
 type PerformanceReportMeasure = {
     metric: string;
     value: number;
@@ -60,8 +62,13 @@ export default class PerformanceReporter {
     }
 
     public observe() {
+        const observedEntryTypes = ['mark', 'measure'];
+        if (PerformanceObserver.supportedEntryTypes.includes('longtask')) {
+            observedEntryTypes.push('longtask');
+        }
+
         this.observer.observe({
-            entryTypes: ['mark', 'measure'],
+            entryTypes: observedEntryTypes,
             buffered: true,
         });
 
@@ -93,12 +100,14 @@ export default class PerformanceReporter {
         this.observer.disconnect();
     }
 
-    public handleObservations(list: PerformanceObserverEntryList) {
+    protected handleObservations(list: PerformanceObserverEntryList) {
         for (const entry of list.getEntries()) {
             if (isPerformanceMeasure(entry)) {
                 this.handleMeasure(entry);
             } else if (isPerformanceMark(entry)) {
                 this.handleMark(entry);
+            } else if (isPerformanceLongTask(entry)) {
+                this.handleLongTask();
             }
         }
     }
@@ -119,8 +128,16 @@ export default class PerformanceReporter {
             return;
         }
 
-        const current = this.counterMeasures.get(entry.name) ?? 0;
-        this.counterMeasures.set(entry.name, current + 1);
+        this.incrementCounter(entry.name);
+    }
+
+    private handleLongTask() {
+        this.incrementCounter('long_tasks');
+    }
+
+    private incrementCounter(name: string) {
+        const current = this.counterMeasures.get(name) ?? 0;
+        this.counterMeasures.set(name, current + 1);
     }
 
     private handleWebVital(metric: Metric) {
@@ -191,6 +208,10 @@ export default class PerformanceReporter {
             fetch(url, {method: 'POST', body: data});
         }
     }
+}
+
+function isPerformanceLongTask(entry: PerformanceEntry): entry is PerformanceLongTaskTiming {
+    return entry.entryType === 'longtask';
 }
 
 function isPerformanceMark(entry: PerformanceEntry): entry is PerformanceMark {
