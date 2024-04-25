@@ -30,7 +30,10 @@ export default class PerformanceReporter {
     private measures: PerformanceReportMeasure[];
 
     private observer: PerformanceObserver;
-    private reportTimeout: number;
+    private reportTimeout: number | undefined;
+
+    protected reportPeriodBase = 60 * 1000;
+    protected reportPeriodJitter = 15 * 1000;
 
     constructor(client: Client4, store: Store<GlobalState>) {
         this.client = client;
@@ -40,7 +43,10 @@ export default class PerformanceReporter {
 
         // This uses a PerformanceObserver to listen for calls to Performance.measure made by frontend code. It's
         // recommended to use an observer rather than to call Performance.getEntriesByName directly
-        this.observer = new PerformanceObserver(this.handleMeasures);
+        this.observer = new PerformanceObserver((list) => this.handleMeasures(list));
+    }
+
+    public observe() {
         this.observer.observe({type: 'measure', buffered: true});
 
         // Register handlers for standard metrics and Web Vitals
@@ -52,14 +58,14 @@ export default class PerformanceReporter {
 
         // Periodically send performance telemetry to the server, roughly every minute but with some randomness to
         // avoid overloading the server every minute.
-        this.reportTimeout = window.setTimeout(this.handleReportTimeout, this.nextTimeout());
+        this.reportTimeout = window.setTimeout(() => this.handleReportTimeout(), this.nextTimeout());
 
         // Send any remaining metrics when the page becomes hidden rather than when it's unloaded because that's
         // what's recommended by various sites due to unload handlers being unreliable, particularly on mobile.
-        addEventListener('visibilitychange', this.handleVisibilityChange);
+        addEventListener('visibilitychange', () => this.handleVisibilityChange());
     }
 
-    private handleMeasures = (list: PerformanceObserverEntryList) => {
+    protected handleMeasures(list: PerformanceObserverEntryList) {
         for (const entry of list.getEntries()) {
             if (isPerformanceMeasure(entry) && entry.detail?.report) {
                 this.measures.push({
@@ -68,31 +74,32 @@ export default class PerformanceReporter {
                 });
             }
         }
-    };
+    }
 
-    private handleWebVital = (metric: Metric) => {
+    private handleWebVital(metric: Metric) {
         this.measures.push({
             name: metric.name,
             value: metric.value,
         });
-    };
+    }
 
-    private handleReportTimeout = () => {
+    private handleReportTimeout() {
         this.maybeSendMeasures();
 
-        this.reportTimeout = window.setTimeout(this.handleReportTimeout, this.nextTimeout());
-    };
+        this.reportTimeout = window.setTimeout(() => this.handleReportTimeout(), this.nextTimeout());
+    }
 
-    private handleVisibilityChange = () => {
+    private handleVisibilityChange() {
         if (document.visibilityState === 'hidden') {
             this.maybeSendMeasures();
         }
-    };
+    }
 
     /** Returns a random timeout for the next report, ranging between 45 seconds and 1 minute 15 seconds. */
     private nextTimeout() {
-        const jitter = Math.random() * 30 * 1000;
-        return (45 * 1000) + jitter;
+        // Returns a random value between base-jitter and base+jitter
+        const jitter = ((2 * Math.random()) - 1) * this.reportPeriodJitter;
+        return this.reportPeriodBase + jitter;
     }
 
     private maybeSendMeasures() {
@@ -103,6 +110,7 @@ export default class PerformanceReporter {
             return;
         }
 
+        // TODO change this to the new field
         if (!isTelemetryEnabled(this.store.getState())) {
             return;
         }

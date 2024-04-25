@@ -15,6 +15,7 @@ export default function PerformanceReporterController() {
 
     useEffect(() => {
         reporter.current = new PerformanceReporter(Client4, store);
+        reporter.current.observe();
 
         // There's no way to clean up web-vitals, so continue to assume that this component won't ever be unmounted
         return () => {
