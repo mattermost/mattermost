@@ -128,7 +128,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	_, nErr := th.App.Srv().Store().OAuth().SaveAccessData(accessData)
 	require.NoError(t, nErr)
 
-	err = th.App.DeleteOAuthApp(a1.Id)
+	err = th.App.DeleteOAuthApp(th.Context, a1.Id)
 	require.Nil(t, err)
 
 	_, err = th.App.GetSession(session.Token)

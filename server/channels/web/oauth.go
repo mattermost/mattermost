@@ -342,7 +342,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, false)
 		if err != nil {
 			err.Translate(c.AppContext.T)
-			mlog.Error(err.Error())
+			c.Logger.Error(err.Error())
 			renderError(err)
 			return
 		}
@@ -428,7 +428,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
-	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
+	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
@@ -464,7 +464,7 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
-	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
+	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
@@ -499,7 +499,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
-	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
+	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
