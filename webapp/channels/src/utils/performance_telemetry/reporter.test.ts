@@ -11,7 +11,7 @@ import {initializePerformanceMocks, waitForObservations} from 'tests/helpers/per
 
 import PerformanceReporter from './reporter';
 
-import {measureAndReport} from '.';
+import {markAndReport, measureAndReport} from '.';
 
 jest.mock('web-vitals');
 
@@ -26,7 +26,7 @@ describe('PerformanceReporter', () => {
         performance.clearMeasures();
     });
 
-    test('should report measurements to the server periodically', async () => {
+    test('should report measurements to the server as histograms', async () => {
         const reporter = newTestReporter();
         reporter.observe();
 
@@ -38,7 +38,7 @@ describe('PerformanceReporter', () => {
 
         await waitForObservations();
 
-        expect(reporter.handleMeasures).toHaveBeenCalled();
+        expect(reporter.handleObservations).toHaveBeenCalled();
 
         await waitForReport();
 
@@ -48,7 +48,7 @@ describe('PerformanceReporter', () => {
         expect(report).toMatchObject({
             histograms: [
                 {
-                    name: 'testMeasure',
+                    metric: 'testMeasure',
                     value: testMarkB.startTime - testMarkA.startTime,
                 },
             ],
@@ -57,7 +57,46 @@ describe('PerformanceReporter', () => {
         reporter.disconnect();
     });
 
-    test('should report web vitals to the server once available', async () => {
+    test('should report some marks to the server as counters', async () => {
+        const reporter = newTestReporter();
+        reporter.observe();
+
+        expect(sendBeacon).not.toHaveBeenCalled();
+
+        performance.mark('notReportedA');
+        performance.mark('notReportedB');
+
+        markAndReport('reportedA');
+        markAndReport('reportedB');
+        markAndReport('reportedA');
+        markAndReport('reportedA');
+
+        await waitForObservations();
+
+        expect(reporter.handleObservations).toHaveBeenCalled();
+
+        await waitForReport();
+
+        expect(sendBeacon).toHaveBeenCalled();
+        expect(sendBeacon.mock.calls[0][0]).toEqual('/api/v4/metrics');
+        const report = JSON.parse(sendBeacon.mock.calls[0][1]);
+        expect(report).toMatchObject({
+            counters: [
+                {
+                    metric: 'reportedA',
+                    value: 3,
+                },
+                {
+                    metric: 'reportedB',
+                    value: 1,
+                },
+            ],
+        });
+
+        reporter.disconnect();
+    });
+
+    test('should report web vitals to the server as histograms', async () => {
         const reporter = newTestReporter();
         reporter.observe();
 
@@ -76,11 +115,11 @@ describe('PerformanceReporter', () => {
         expect(report).toMatchObject({
             histograms: [
                 {
-                    name: 'CLS',
+                    metric: 'CLS',
                     value: 100,
                 },
                 {
-                    name: 'FCP',
+                    metric: 'FCP',
                     value: 1800,
                 },
             ],
@@ -103,15 +142,15 @@ describe('PerformanceReporter', () => {
         expect(report).toMatchObject({
             histograms: [
                 {
-                    name: 'INP',
+                    metric: 'INP',
                     value: 200,
                 },
                 {
-                    name: 'LCP',
+                    metric: 'LCP',
                     value: 2500,
                 },
                 {
-                    name: 'TTFB',
+                    metric: 'TTFB',
                     value: 800,
                 },
             ],
@@ -127,7 +166,7 @@ class TestPerformanceReporter extends PerformanceReporter {
 
     public disconnect = super.disconnect;
 
-    public handleMeasures = jest.fn(super.handleMeasures);
+    public handleObservations = jest.fn(super.handleObservations);
 }
 
 function newTestReporter(telemetryEnabled = true) {

@@ -12,7 +12,7 @@ import {isTelemetryEnabled} from 'actions/telemetry_actions';
 import type {GlobalState} from 'types/store';
 
 type PerformanceReportMeasure = {
-    name: string;
+    metric: string;
     value: number;
 }
 
@@ -22,6 +22,7 @@ type PerformanceReport = {
     platform: string;
     userAgent: string;
 
+    counters: PerformanceReportMeasure[];
     histograms: PerformanceReportMeasure[];
 }
 
@@ -29,6 +30,7 @@ export default class PerformanceReporter {
     private client: Client4;
     private store: Store<GlobalState>;
 
+    private counterMeasures: Map<string, number>;
     private histogramMeasures: PerformanceReportMeasure[];
 
     private observer: PerformanceObserver;
@@ -41,15 +43,19 @@ export default class PerformanceReporter {
         this.client = client;
         this.store = store;
 
+        this.counterMeasures = new Map();
         this.histogramMeasures = [];
 
         // This uses a PerformanceObserver to listen for calls to Performance.measure made by frontend code. It's
         // recommended to use an observer rather than to call Performance.getEntriesByName directly
-        this.observer = new PerformanceObserver((entries) => this.handleMeasures(entries));
+        this.observer = new PerformanceObserver((entries) => this.handleObservations(entries));
     }
 
     public observe() {
-        this.observer.observe({type: 'measure', buffered: true});
+        this.observer.observe({
+            entryTypes: ['mark', 'measure'],
+            buffered: true,
+        });
 
         // Register handlers for standard metrics and Web Vitals
         onCLS((metric) => this.handleWebVital(metric));
@@ -79,20 +85,39 @@ export default class PerformanceReporter {
         this.observer.disconnect();
     }
 
-    public handleMeasures(list: PerformanceObserverEntryList) {
+    public handleObservations(list: PerformanceObserverEntryList) {
         for (const entry of list.getEntries()) {
-            if (isPerformanceMeasure(entry) && entry.detail?.report) {
-                this.histogramMeasures.push({
-                    name: entry.name,
-                    value: entry.duration,
-                });
+            if (isPerformanceMeasure(entry)) {
+                this.handleMeasure(entry);
+            } else if (isPerformanceMark(entry)) {
+                this.handleMark(entry);
             }
         }
     }
 
+    private handleMeasure(entry: PerformanceMeasure) {
+        if (!entry.detail?.report) {
+            return;
+        }
+
+        this.histogramMeasures.push({
+            metric: entry.name,
+            value: entry.duration,
+        });
+    }
+
+    private handleMark(entry: PerformanceMeasure) {
+        if (!entry.detail?.report) {
+            return;
+        }
+
+        const current = this.counterMeasures.get(entry.name) ?? 0;
+        this.counterMeasures.set(entry.name, current + 1);
+    }
+
     private handleWebVital(metric: Metric) {
         this.histogramMeasures.push({
-            name: metric.name,
+            metric: metric.name,
             value: metric.value,
         });
     }
@@ -120,7 +145,16 @@ export default class PerformanceReporter {
         const histogramMeasures = this.histogramMeasures;
         this.histogramMeasures = [];
 
-        if (histogramMeasures.length === 0) {
+        const counterMeasures = [];
+        for (const [name, value] of this.counterMeasures.entries()) {
+            counterMeasures.push({
+                metric: name,
+                value,
+            });
+        }
+        this.counterMeasures = new Map();
+
+        if (histogramMeasures.length === 0 && counterMeasures.length === 0) {
             return;
         }
 
@@ -136,6 +170,7 @@ export default class PerformanceReporter {
             platform: navigator.platform,
             userAgent: navigator.userAgent,
 
+            counters: counterMeasures,
             histograms: histogramMeasures,
         };
         const data = JSON.stringify(report);
@@ -147,6 +182,10 @@ export default class PerformanceReporter {
             fetch(url, {method: 'POST', body: data});
         }
     }
+}
+
+function isPerformanceMark(entry: PerformanceEntry): entry is PerformanceMark {
+    return entry.entryType === 'mark';
 }
 
 function isPerformanceMeasure(entry: PerformanceEntry): entry is PerformanceMeasure {
