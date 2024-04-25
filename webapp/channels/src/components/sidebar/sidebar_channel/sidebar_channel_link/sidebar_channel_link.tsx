@@ -9,7 +9,6 @@ import type {Channel} from '@mattermost/types/channels';
 
 import {mark, trackEvent} from 'actions/telemetry_actions';
 
-import CopyUrlContextMenu from 'components/copy_url_context_menu';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
@@ -19,7 +18,6 @@ import Pluggable from 'plugins/pluggable';
 import Constants, {RHSStates} from 'utils/constants';
 import {wrapEmojis} from 'utils/emoji_utils';
 import {cmdOrCtrlPressed} from 'utils/keyboard';
-import {isDesktopApp} from 'utils/user_agent';
 import {localizeMessage} from 'utils/utils';
 
 import type {RhsState} from 'types/store/rhs';
@@ -290,7 +288,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                 selected: isChannelSelected,
             },
         ]);
-        let element = (
+        return (
             <Link
                 className={className}
                 id={`sidebarItem_${channel.name}`}
@@ -303,18 +301,5 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                 {channelsTutorialTip}
             </Link>
         );
-
-        if (isDesktopApp()) {
-            element = (
-                <CopyUrlContextMenu
-                    link={this.props.link}
-                    menuId={channel.id}
-                >
-                    {element}
-                </CopyUrlContextMenu>
-            );
-        }
-
-        return element;
     }
 }
