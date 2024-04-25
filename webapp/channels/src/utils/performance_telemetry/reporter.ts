@@ -43,18 +43,18 @@ export default class PerformanceReporter {
 
         // This uses a PerformanceObserver to listen for calls to Performance.measure made by frontend code. It's
         // recommended to use an observer rather than to call Performance.getEntriesByName directly
-        this.observer = new PerformanceObserver((list) => this.handleMeasures(list));
+        this.observer = new PerformanceObserver((entries) => this.handleMeasures(entries));
     }
 
     public observe() {
         this.observer.observe({type: 'measure', buffered: true});
 
         // Register handlers for standard metrics and Web Vitals
-        onCLS(this.handleWebVital);
-        onFCP(this.handleWebVital);
-        onINP(this.handleWebVital);
-        onLCP(this.handleWebVital);
-        onTTFB(this.handleWebVital);
+        onCLS((metric) => this.handleWebVital(metric));
+        onFCP((metric) => this.handleWebVital(metric));
+        onINP((metric) => this.handleWebVital(metric));
+        onLCP((metric) => this.handleWebVital(metric));
+        onTTFB((metric) => this.handleWebVital(metric));
 
         // Periodically send performance telemetry to the server, roughly every minute but with some randomness to
         // avoid overloading the server every minute.
@@ -62,10 +62,22 @@ export default class PerformanceReporter {
 
         // Send any remaining metrics when the page becomes hidden rather than when it's unloaded because that's
         // what's recommended by various sites due to unload handlers being unreliable, particularly on mobile.
-        addEventListener('visibilitychange', () => this.handleVisibilityChange());
+        addEventListener('visibilitychange', this.handleVisibilityChange);
     }
 
-    protected handleMeasures(list: PerformanceObserverEntryList) {
+    /**
+     * This method is for testing only because we can't clean up the callbacks registered with web-vitals.
+     */
+    protected disconnect() {
+        removeEventListener('visibilitychange', this.handleVisibilityChange);
+
+        clearTimeout(this.reportTimeout);
+        this.reportTimeout = undefined;
+
+        this.observer.disconnect();
+    }
+
+    public handleMeasures(list: PerformanceObserverEntryList) {
         for (const entry of list.getEntries()) {
             if (isPerformanceMeasure(entry) && entry.detail?.report) {
                 this.measures.push({
@@ -89,11 +101,11 @@ export default class PerformanceReporter {
         this.reportTimeout = window.setTimeout(() => this.handleReportTimeout(), this.nextTimeout());
     }
 
-    private handleVisibilityChange() {
+    private handleVisibilityChange = () => {
         if (document.visibilityState === 'hidden') {
             this.maybeSendMeasures();
         }
-    }
+    };
 
     /** Returns a random timeout for the next report, ranging between 45 seconds and 1 minute 15 seconds. */
     private nextTimeout() {
