@@ -14,13 +14,21 @@ import type {GlobalState} from 'types/store';
 type PerformanceReportMeasure = {
     metric: string;
     value: number;
+
+    // TODO timestamp?
 }
 
 type PerformanceReport = {
+
+    // TODO confirm the version number that we want to start with
     version: '0';
 
+    // TODO client ID?
+
     platform: string;
-    userAgent: string;
+    user_agent: string;
+
+    // TODO start/end timestamp?
 
     counters: PerformanceReportMeasure[];
     histograms: PerformanceReportMeasure[];
@@ -167,8 +175,9 @@ export default class PerformanceReporter {
 
         const report: PerformanceReport = {
             version: '0',
+
             platform: navigator.platform,
-            userAgent: navigator.userAgent,
+            user_agent: navigator.userAgent,
 
             counters: counterMeasures,
             histograms: histogramMeasures,
