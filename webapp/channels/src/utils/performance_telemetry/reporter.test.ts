@@ -46,7 +46,7 @@ describe('PerformanceReporter', () => {
         expect(sendBeacon.mock.calls[0][0]).toEqual('/api/v4/metrics');
         const report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
-            measures: [
+            histograms: [
                 {
                     name: 'testMeasure',
                     value: testMarkB.startTime - testMarkA.startTime,
@@ -57,7 +57,7 @@ describe('PerformanceReporter', () => {
         reporter.disconnect();
     });
 
-    test('should report web vitals to the server when available', async () => {
+    test('should report web vitals to the server once available', async () => {
         const reporter = newTestReporter();
         reporter.observe();
 
@@ -74,7 +74,7 @@ describe('PerformanceReporter', () => {
         expect(sendBeacon.mock.calls[0][0]).toEqual('/api/v4/metrics');
         let report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
-            measures: [
+            histograms: [
                 {
                     name: 'CLS',
                     value: 100,
@@ -101,7 +101,7 @@ describe('PerformanceReporter', () => {
         expect(sendBeacon.mock.calls[0][0]).toEqual('/api/v4/metrics');
         report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
-            measures: [
+            histograms: [
                 {
                     name: 'INP',
                     value: 200,

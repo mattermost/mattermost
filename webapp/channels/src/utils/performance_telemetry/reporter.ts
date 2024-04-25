@@ -14,20 +14,22 @@ import type {GlobalState} from 'types/store';
 type PerformanceReportMeasure = {
     name: string;
     value: number;
-};
+}
 
 type PerformanceReport = {
-    measures: PerformanceReportMeasure[];
+    version: '0';
 
     platform: string;
     userAgent: string;
+
+    histograms: PerformanceReportMeasure[];
 }
 
 export default class PerformanceReporter {
     private client: Client4;
     private store: Store<GlobalState>;
 
-    private measures: PerformanceReportMeasure[];
+    private histogramMeasures: PerformanceReportMeasure[];
 
     private observer: PerformanceObserver;
     private reportTimeout: number | undefined;
@@ -39,7 +41,7 @@ export default class PerformanceReporter {
         this.client = client;
         this.store = store;
 
-        this.measures = [];
+        this.histogramMeasures = [];
 
         // This uses a PerformanceObserver to listen for calls to Performance.measure made by frontend code. It's
         // recommended to use an observer rather than to call Performance.getEntriesByName directly
@@ -80,7 +82,7 @@ export default class PerformanceReporter {
     public handleMeasures(list: PerformanceObserverEntryList) {
         for (const entry of list.getEntries()) {
             if (isPerformanceMeasure(entry) && entry.detail?.report) {
-                this.measures.push({
+                this.histogramMeasures.push({
                     name: entry.name,
                     value: entry.duration,
                 });
@@ -89,7 +91,7 @@ export default class PerformanceReporter {
     }
 
     private handleWebVital(metric: Metric) {
-        this.measures.push({
+        this.histogramMeasures.push({
             name: metric.name,
             value: metric.value,
         });
@@ -115,10 +117,10 @@ export default class PerformanceReporter {
     }
 
     private maybeSendMeasures() {
-        const measures = this.measures;
-        this.measures = [];
+        const histogramMeasures = this.histogramMeasures;
+        this.histogramMeasures = [];
 
-        if (measures.length === 0) {
+        if (histogramMeasures.length === 0) {
             return;
         }
 
@@ -130,12 +132,11 @@ export default class PerformanceReporter {
         const url = this.client.getUrl() + '/api/v4/metrics';
 
         const report: PerformanceReport = {
-
-            // This assumes that we want the server to bucket the browser and OS
+            version: '0',
             platform: navigator.platform,
             userAgent: navigator.userAgent,
 
-            measures,
+            histograms: histogramMeasures,
         };
         const data = JSON.stringify(report);
 
