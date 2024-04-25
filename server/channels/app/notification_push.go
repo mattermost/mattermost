@@ -14,6 +14,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/mattermost/mattermost/server/public/plugin"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -24,6 +25,12 @@ import (
 )
 
 type notificationType string
+
+type pushJWTClaims struct {
+	AckId    string `json:"ack_id"`
+	DeviceId string `json:"device_id"`
+	jwt.RegisteredClaims
+}
 
 const (
 	notificationTypeClear       notificationType = "clear"
@@ -125,8 +132,26 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 		tmpMessage := msg.DeepCopy()
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 		tmpMessage.AckId = model.NewId()
+		signature, err := jwt.NewWithClaims(jwt.SigningMethodES256, pushJWTClaims{
+			AckId:    tmpMessage.AckId,
+			DeviceId: tmpMessage.DeviceId,
+		}).SignedString(a.AsymmetricSigningKey())
 
-		err := a.sendToPushProxy(tmpMessage, session)
+		if err != nil {
+			a.NotificationsLog().Error("Notification error",
+				mlog.String("ackId", tmpMessage.AckId),
+				mlog.String("type", tmpMessage.Type),
+				mlog.String("userId", session.UserId),
+				mlog.String("postId", tmpMessage.PostId),
+				mlog.String("channelId", tmpMessage.ChannelId),
+				mlog.String("deviceId", tmpMessage.DeviceId),
+				mlog.String("status", err.Error()),
+			)
+			continue
+		}
+		tmpMessage.Signature = signature
+
+		err = a.sendToPushProxy(tmpMessage, session)
 		if err != nil {
 			a.NotificationsLog().Error("Notification error",
 				mlog.String("ackId", tmpMessage.AckId),
