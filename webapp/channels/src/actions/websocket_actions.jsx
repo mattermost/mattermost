@@ -40,7 +40,7 @@ import {
     getPosts,
     getPostThread,
     getMentionsAndStatusesForPosts,
-    getThreadsForPosts,
+    getPostThreads,
     postDeleted,
     receivedNewPost,
     receivedPost,
@@ -739,7 +739,7 @@ export function handleNewPostEvents(queue) {
         myDispatch(batchActions(actions));
 
         // Load the posts' threads
-        myDispatch(getThreadsForPosts(posts));
+        myDispatch(getPostThreads(posts));
 
         // And any other data needed for them
         getMentionsAndStatusesForPosts(posts, myDispatch, myGetState);
