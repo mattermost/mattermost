@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {logError} from 'mattermost-redux/actions/errors';
-import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannel, getMyChannelMember, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
@@ -49,7 +48,7 @@ const getNotificationSoundFromChannelMemberAndUser = (member, user) => {
 };
 
 /**
- * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<void>}
+ * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<Promise<NotificationResult>, GlobalState>}
  */
 export function sendDesktopNotification(post, msgProps) {
     return async (dispatch, getState) => {
@@ -57,19 +56,11 @@ export function sendDesktopNotification(post, msgProps) {
         const currentUserId = getCurrentUserId(state);
 
         if ((currentUserId === post.user_id && post.props.from_webhook !== 'true')) {
-            return;
+            return {status: 'not_sent', reason: 'own_post'};
         }
 
         if (isSystemMessage(post) && !isUserAddedInChannel(post, currentUserId)) {
-            return;
-        }
-
-        let userFromPost = getUser(state, post.user_id);
-        if (!userFromPost) {
-            const missingProfileResponse = await dispatch(getProfilesByIds([post.user_id]));
-            if (missingProfileResponse.data && missingProfileResponse.data.length) {
-                userFromPost = missingProfileResponse.data[0];
-            }
+            return {status: 'not_sent', reason: 'system_message'};
         }
 
         let mentions = [];
@@ -91,8 +82,16 @@ export function sendDesktopNotification(post, msgProps) {
         const member = getMyChannelMember(state, post.channel_id);
         const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
 
-        if (!member || isChannelMuted(member) || userStatus === UserStatuses.DND || userStatus === UserStatuses.OUT_OF_OFFICE) {
-            return;
+        if (!member) {
+            return {status: 'error', reason: 'no_member'};
+        }
+
+        if (isChannelMuted(member)) {
+            return {status: 'not_sent', reason: 'channel_muted'};
+        }
+
+        if (userStatus === UserStatuses.DND || userStatus === UserStatuses.OUT_OF_OFFICE) {
+            return {status: 'not_sent', reason: 'user_status', data: userStatus};
         }
 
         const channelNotifyProp = member?.notify_props?.desktop || NotificationLevels.DEFAULT;
@@ -107,7 +106,7 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         if (notifyLevel === NotificationLevels.NONE) {
-            return;
+            return {status: 'not_sent', reason: 'notify_level_none'};
         } else if (channel?.type === 'G' && notifyLevel === NotificationLevels.MENTION) {
             // Compose the whole text in the message, including interactive messages.
             let text = post.message;
@@ -181,21 +180,25 @@ export function sendDesktopNotification(post, msgProps) {
             }
 
             if (!isExplicitlyMentioned) {
-                return;
+                return {status: 'not_sent', reason: 'not_explicitly_mentioned', data: mentionableText};
             }
         } else if (notifyLevel === NotificationLevels.MENTION && mentions.indexOf(user.id) === -1 && msgProps.channel_type !== Constants.DM_CHANNEL) {
-            return;
+            return {status: 'not_sent', reason: 'not_mentioned'};
         } else if (isCrtReply && notifyLevel === NotificationLevels.ALL && followers.indexOf(currentUserId) === -1) {
             // if user is not following the thread don't notify
-            return;
+            return {status: 'not_sent', reason: 'not_following_thread'};
         }
 
         const config = getConfig(state);
+        const userFromPost = getUser(state, post.user_id);
+
         let username = '';
         if (post.props.override_username && config.EnablePostUsernameOverride === 'true') {
             username = post.props.override_username;
         } else if (userFromPost) {
             username = displayUsername(userFromPost, getTeammateNameDisplaySetting(state), false);
+        } else if (msgProps.sender_name) {
+            username = msgProps.sender_name;
         } else {
             username = Utils.localizeMessage('channel_loader.someone', 'Someone');
         }
@@ -265,12 +268,23 @@ export function sendDesktopNotification(post, msgProps) {
         const channelId = channel ? channel.id : null;
 
         let notify = false;
-        if (isCrtReply) {
-            notify = !isThreadOpen(state, post.root_id);
+        let notifyResult = {status: 'not_sent', reason: 'unknown'};
+        if (state.views.browser.focused) {
+            notifyResult = {status: 'not_sent', reason: 'window_is_focused'};
+            if (isCrtReply) {
+                notify = !isThreadOpen(state, post.root_id);
+                if (!notify) {
+                    notifyResult = {status: 'not_sent', reason: 'thread_is_open', data: post.root_id};
+                }
+            } else {
+                notify = activeChannel && activeChannel.id !== channelId;
+                if (!notify) {
+                    notifyResult = {status: 'not_sent', reason: 'channel_is_open', data: activeChannel?.id};
+                }
+            }
         } else {
-            notify = activeChannel && activeChannel.id !== channelId;
+            notify = true;
         }
-        notify = notify || !state.views.browser.focused;
 
         let soundName = getNotificationSoundFromChannelMemberAndUser(member, user);
 
@@ -286,29 +300,39 @@ export function sendDesktopNotification(post, msgProps) {
         const hookResult = await dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
         if (hookResult.error) {
             dispatch(logError(hookResult.error));
-            return;
+            return {status: 'error', reason: 'desktop_notification_hook', data: String(hookResult.error)};
         }
 
         let silent = false;
         ({title, body, silent, soundName, url, notify} = hookResult.args);
 
         if (notify) {
-            dispatch(notifyMe(title, body, channel, teamId, silent, soundName, url));
+            const result = dispatch(notifyMe(title, body, channel, teamId, silent, soundName, url));
 
             //Don't add extra sounds on native desktop clients
             if (sound && !isDesktopApp() && !isMobileApp()) {
                 NotificationSounds.ding(soundName);
             }
+
+            return result;
         }
+
+        if (args.notify && !notify) {
+            notifyResult = {status: 'not_sent', reason: 'desktop_notification_hook', data: String(hookResult)};
+        }
+
+        return notifyResult;
     };
 }
 
-export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
+export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => async (dispatch) => {
     // handle notifications in desktop app
     if (isDesktopApp()) {
-        DesktopApp.dispatchNotification(title, body, channel.id, teamId, silent, soundName, url);
-    } else {
-        showNotification({
+        return DesktopApp.dispatchNotification(title, body, channel.id, teamId, silent, soundName, url);
+    }
+
+    try {
+        return await showNotification({
             title,
             body,
             requireInteraction: false,
@@ -317,8 +341,9 @@ export const notifyMe = (title, body, channel, teamId, silent, soundName, url) =
                 window.focus();
                 getHistory().push(url);
             },
-        }).catch((error) => {
-            dispatch(logError(error));
         });
+    } catch (error) {
+        dispatch(logError(error));
+        return {status: 'error', reason: 'notification_api', data: String(error)};
     }
 };

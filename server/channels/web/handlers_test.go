@@ -883,7 +883,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 }
 
-func TestOriginClient(t *testing.T) {
+func TestGetOriginClient(t *testing.T) {
 	testCases := []struct {
 		name           string
 		userAgent      string
@@ -945,7 +945,7 @@ func TestOriginClient(t *testing.T) {
 		}
 
 		// Compute origin client
-		actualClient := originClient(req)
+		actualClient := GetOriginClient(req)
 
 		require.Equal(t, tc.expectedClient, actualClient)
 	}

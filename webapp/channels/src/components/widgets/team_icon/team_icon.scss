@@ -17,6 +17,8 @@
 }
 
 .TeamIcon__initials {
+    user-select: none;
+
     &.TeamIcon__initials__lg {
         font-size: 3em;
     }

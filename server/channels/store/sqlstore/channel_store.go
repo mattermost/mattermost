@@ -745,7 +745,7 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
-			return nil, store.NewErrInvalidInput("Channel", "Name", channel.Name)
+			return nil, store.NewErrUniqueConstraint("Name")
 		}
 		return nil, errors.Wrapf(err, "failed to update channel with id=%s", channel.Id)
 	}

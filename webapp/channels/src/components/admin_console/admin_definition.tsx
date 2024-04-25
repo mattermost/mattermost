@@ -45,8 +45,6 @@ import BillingHistory, {searchableStrings as billingHistorySearchableStrings} fr
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
-import PaymentInfo, {searchableStrings as billingPaymentInfoSearchableStrings} from './billing/payment_info';
-import PaymentInfoEdit from './billing/payment_info_edit';
 import BleveSettings, {searchableStrings as bleveSearchableStrings} from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
@@ -383,30 +381,6 @@ const AdminDefinition: AdminDefinitionType = {
 
                 // cloud only view
                 isHidden: it.not(it.licensedForFeature('Cloud')),
-                isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
-            },
-            payment_info: {
-                url: 'billing/payment_info',
-                title: defineMessage({id: 'admin.sidebar.payment_info', defaultMessage: 'Payment Information'}),
-                isHidden: it.any(
-                    it.hidePaymentInfo,
-
-                    // cloud only view
-                    it.not(it.licensedForFeature('Cloud')),
-                ),
-                searchableStrings: billingPaymentInfoSearchableStrings,
-                schema: {
-                    id: 'PaymentInfo',
-                    component: PaymentInfo,
-                },
-                isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
-            },
-            payment_info_edit: {
-                url: 'billing/payment_info_edit',
-                schema: {
-                    id: 'PaymentInfoEdit',
-                    component: PaymentInfoEdit,
-                },
                 isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
             },
         },

@@ -2260,7 +2260,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Fehler beim Hochstufen der Websocket-Verbindung."
+    "translation": "URL aufgrund von CORS blockiert. Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -4449,10 +4449,6 @@
   {
     "id": "model.user.is_valid.email.app_error",
     "translation": "Bitte gib eine gültige E-Mail-Adresse ein."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Dein Passwort muss mindestens {{.Min}} Zeichen lang sein."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
@@ -7890,10 +7886,6 @@
     "translation": "Fehler beim Generieren des Passworts."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Fehlschlag beim Lesen des Dateianhangs während des Imports."
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "Gruppenmitglied existiert bereits"
   },
@@ -9874,10 +9866,6 @@
     "translation": "Es ist nicht möglich, so viele Rollen nach Namen zu erhalten. Es können nur {{.MaxNames}} Rollen auf einmal angefordert werden."
   },
   {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "Benutzeranzahl konnte nicht ermittelt werden"
-  },
-  {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
     "translation": "Beim Löschen der ausgehenden oauth-Verbindung ist ein Fehler aufgetreten."
   },
@@ -10348,5 +10336,53 @@
   {
     "id": "app.import.import_line.null_role.error",
     "translation": "Die Importdatenzeile hat den Typ \"role\", aber das role-Objekt ist null."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} und @{{.LastUsername}} wurden von dieser Erwähnung nicht benachrichtigt, weil sie nicht zu diesem Team gehören."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} wurde durch diese Erwähnung nicht benachrichtigt, weil sie kein Mitglied dieses Teams sind."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Fehlender display_name im Anfragebody"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Fehlende team_id im Anfragebody"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Die Authentifizierungsübertragung ist nicht verfügbar, da die E-Mail-Anmeldung deaktiviert ist."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Die Authentifizierungsübertragung ist nicht verfügbar, da weder die Anmeldung per E-Mail noch die Anmeldung per Benutzername aktiviert ist."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Anfrage konnte nicht geparst werden"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Plugin kann nicht wieder angehängt werden"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Fehlendes Manifest"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Fehlende Plugin reattach Konfiguration"
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Dein Passwort darf nicht mehr als 72 Zeichen enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Dein Passwort muss mindestens {{.Min}} Zeichen lang sein."
   }
 ]
