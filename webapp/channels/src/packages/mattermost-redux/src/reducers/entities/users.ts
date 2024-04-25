@@ -169,6 +169,11 @@ function receiveUserProfile(state: IDMappedObjects<UserProfile>, received: UserP
         ...received,
     };
 
+    // If there was a remote_id but not anymore, remove it
+    if (existing.remote_id && !received.remote_id) {
+        delete merged.remote_id;
+    }
+
     // MM-53377:
     // For non-admin users, certain API responses don't return details for the current user that would be sanitized
     // out for others. This currently includes:
