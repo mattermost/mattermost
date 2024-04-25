@@ -38,7 +38,7 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
                 type='team'
                 setNewGroupRole={jest.fn()}
             />);
-        wrapper.setState({loading: false});
+
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -71,7 +71,7 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
                 removeGroup={jest.fn()}
                 setNewGroupRole={jest.fn()}
             />);
-        wrapper.setState({loading: false});
+
         expect(wrapper).toMatchSnapshot();
     });
 });

@@ -412,7 +412,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			if a.userAllowsEmail(c, profileMap[id], channelMemberNotifyPropsMap[id], post) {
 				senderProfileImage, _, err := a.GetProfileImage(sender)
 				if err != nil {
-					a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
+					c.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
 				}
 				if err := a.sendNotificationEmail(c, notification, profileMap[id], team, senderProfileImage); err != nil {
 					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonEmailSendError)
@@ -1775,5 +1775,7 @@ func (a *App) CountNotificationReason(
 		a.Metrics().IncrementNotificationErrorCounter(notificationType, notificationReason)
 	case model.NotificationStatusNotSent:
 		a.Metrics().IncrementNotificationNotSentCounter(notificationType, notificationReason)
+	case model.NotificationStatusUnsupported:
+		a.Metrics().IncrementNotificationUnsupportedCounter(notificationType, notificationReason)
 	}
 }

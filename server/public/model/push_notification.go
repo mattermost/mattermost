@@ -77,6 +77,7 @@ type PushNotification struct {
 	IsIdLoaded       bool        `json:"is_id_loaded"`
 	PostType         string      `json:"-"`
 	ChannelType      ChannelType `json:"-"`
+	Signature        string      `json:"signature"`
 }
 
 func (pn *PushNotification) DeepCopy() *PushNotification {

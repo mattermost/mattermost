@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import {QuickInput} from './quick_input';
 
@@ -14,16 +15,16 @@ describe('components/QuickInput', () => {
         ['when value undefined', {clearable: true, onClear: () => {}}],
         ['when value empty', {value: '', clearable: true, onClear: () => {}}],
     ])('should not render clear button', (description, props) => {
-        const wrapper = mount(
+        renderWithContext(
             <QuickInput {...props}/>,
         );
 
-        expect(wrapper.find('.input-clear').exists()).toBe(false);
+        expect(screen.queryByTestId('input-clear')).not.toBeInTheDocument();
     });
 
     describe('should render clear button', () => {
         test('with default tooltip text', () => {
-            const wrapper = mount(
+            renderWithContext(
                 <QuickInput
                     value='mock'
                     clearable={true}
@@ -31,11 +32,11 @@ describe('components/QuickInput', () => {
                 />,
             );
 
-            expect(wrapper.find('.input-clear')).toMatchSnapshot();
+            expect(screen.queryByTestId('input-clear')).toBeInTheDocument();
         });
 
         test('with customized tooltip text', () => {
-            const wrapper = mount(
+            renderWithContext(
                 <QuickInput
                     value='mock'
                     clearable={true}
@@ -44,11 +45,11 @@ describe('components/QuickInput', () => {
                 />,
             );
 
-            expect(wrapper.find('.input-clear')).toMatchSnapshot();
+            expect(screen.queryByTestId('input-clear')).toBeInTheDocument();
         });
 
         test('with customized tooltip component', () => {
-            const wrapper = mount(
+            renderWithContext(
                 <QuickInput
                     value='mock'
                     clearable={true}
@@ -59,7 +60,7 @@ describe('components/QuickInput', () => {
                 />,
             );
 
-            expect(wrapper.find('.input-clear')).toMatchSnapshot();
+            expect(screen.queryByTestId('input-clear')).toBeInTheDocument();
         });
     });
 
@@ -71,7 +72,7 @@ describe('components/QuickInput', () => {
                 return <div/>;
             }
         }
-        const wrapper = mount(
+        const {rerender} = renderWithContext(
             <QuickInput
                 value='mock'
                 clearable={true}
@@ -80,11 +81,20 @@ describe('components/QuickInput', () => {
             />,
         );
 
-        wrapper.setProps({onClear: () => wrapper.setProps({value: ''})});
-        expect(wrapper.find('.input-clear').exists()).toBe(true);
+        expect(screen.queryByTestId('input-clear')).toBeInTheDocument();
 
-        wrapper.find('.input-clear').simulate('mousedown');
-        expect(wrapper.find('.input-clear').exists()).toBe(false);
+        userEvent.click(screen.getByTestId('input-clear'));
+
+        rerender(
+            <QuickInput
+                value=''
+                clearable={true}
+                onClear={() => {}}
+                inputComponent={MockComp}
+            />,
+        );
+
+        expect(screen.queryByTestId('input-clear')).not.toBeInTheDocument();
         expect(focusFn).toBeCalled();
     });
 });

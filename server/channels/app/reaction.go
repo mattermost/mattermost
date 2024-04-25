@@ -90,7 +90,7 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 		}, plugin.ReactionHasBeenAddedID)
 	})
 
-	a.sendReactionEvent(model.WebsocketEventReactionAdded, reaction, post)
+	a.sendReactionEvent(c, model.WebsocketEventReactionAdded, reaction, post)
 
 	return reaction, nil
 }
@@ -161,17 +161,17 @@ func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *mo
 		}, plugin.ReactionHasBeenRemovedID)
 	})
 
-	a.sendReactionEvent(model.WebsocketEventReactionRemoved, reaction, post)
+	a.sendReactionEvent(c, model.WebsocketEventReactionRemoved, reaction, post)
 
 	return nil
 }
 
-func (a *App) sendReactionEvent(event model.WebsocketEventType, reaction *model.Reaction, post *model.Post) {
+func (a *App) sendReactionEvent(rctx request.CTX, event model.WebsocketEventType, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil, "")
 	reactionJSON, err := json.Marshal(reaction)
 	if err != nil {
-		a.Log().Warn("Failed to encode reaction to JSON", mlog.Err(err))
+		rctx.Logger().Warn("Failed to encode reaction to JSON", mlog.Err(err))
 	}
 	message.Add("reaction", string(reactionJSON))
 	a.Publish(message)
