@@ -67,6 +67,7 @@ type WebConnConfig struct {
 	ConnectionID string
 	Active       bool
 	ReuseCount   int
+	PostedAck    bool
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int
@@ -88,6 +89,7 @@ type WebConn struct {
 	Locale           string
 	Sequence         int64
 	UserId           string
+	PostedAck        bool
 
 	allChannelMembers         map[string]string
 	lastAllChannelMembersTime int64
@@ -230,6 +232,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		UserId:             cfg.Session.UserId,
 		T:                  cfg.TFunc,
 		Locale:             cfg.Locale,
+		PostedAck:          cfg.PostedAck,
 		reuseCount:         cfg.ReuseCount,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),

@@ -16,6 +16,7 @@ import (
 const (
 	connectionIDParam   = "connection_id"
 	sequenceNumberParam = "sequence_number"
+	postedAckParam      = "posted_ack"
 )
 
 func (api *API) InitWebSocket() {
@@ -47,6 +48,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		TFunc:     c.AppContext.T,
 		Locale:    "",
 		Active:    true,
+		PostedAck: r.URL.Query().Get(postedAckParam) == "true",
 	}
 
 	cfg.ConnectionID = r.URL.Query().Get(connectionIDParam)
