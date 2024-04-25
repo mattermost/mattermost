@@ -9,12 +9,9 @@ import {Link} from 'react-router-dom';
 
 import {mark, trackEvent} from 'actions/telemetry_actions.jsx';
 
-import CopyUrlContextMenu from 'components/copy_url_context_menu';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 import WithTooltip from 'components/with_tooltip';
 import {ShortcutKeys} from 'components/with_tooltip/shortcut';
-
-import {isDesktopApp} from 'utils/user_agent';
 
 const messages = defineMessages({
     nameUndefined: {
@@ -163,7 +160,7 @@ export default function TeamButton({
         </WithTeamTooltip>
     );
 
-    let teamButton = (
+    const teamButton = (
         <Link
             id={`${url.slice(1)}TeamButton`}
             aria-label={ariaLabel}
@@ -173,20 +170,6 @@ export default function TeamButton({
             {btn}
         </Link>
     );
-
-    if (isDesktopApp()) {
-        // if this is not a "special" team button, give it a context menu
-        if (isNotCreateTeamButton) {
-            teamButton = (
-                <CopyUrlContextMenu
-                    link={url}
-                    menuId={url}
-                >
-                    {teamButton}
-                </CopyUrlContextMenu>
-            );
-        }
-    }
 
     return isDraggable ? (
         <Draggable
