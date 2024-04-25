@@ -67,6 +67,7 @@ type PushNotification struct {
 	Version          string `json:"version,omitempty"`
 	IsCRTEnabled     bool   `json:"is_crt_enabled"`
 	IsIdLoaded       bool   `json:"is_id_loaded"`
+	Signature        string `json:"signature"`
 }
 
 func (pn *PushNotification) DeepCopy() *PushNotification {
