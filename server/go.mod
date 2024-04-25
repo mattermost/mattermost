@@ -1,6 +1,8 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.19
+go 1.21
+
+toolchain go1.22.1
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.3.0.20240118234718-6e3f8759fa34
@@ -19,6 +21,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/getsentry/sentry-go v0.22.0
 	github.com/go-sql-driver/mysql v1.7.1
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/mock v1.6.0
