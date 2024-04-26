@@ -3294,7 +3294,6 @@
   "convert_channel.question3": "Are you sure you want to convert **{display_name}** to a private channel?",
   "convert_channel.title": "Convert {display_name} to a Private Channel?",
   "copied.message": "Copied",
-  "copy_url_context_menu.getChannelLink": "Copy Link",
   "copy.code.message": "Copy code",
   "copy.text.message": "Copy text",
   "create_category_modal.create": "Create",

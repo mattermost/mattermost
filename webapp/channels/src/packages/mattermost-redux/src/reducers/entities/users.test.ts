@@ -746,6 +746,26 @@ describe('Reducers.users', () => {
                 });
             });
 
+            test(`should remove remote_id when not set anymore (${actionType})`, () => {
+                const user1 = TestHelper.getUserMock({id: 'user_id1', remote_id: 'abcdef'});
+                const user1WithoutRemoteId = TestHelper.getUserMock({id: 'user_id1'});
+
+                const state = deepFreezeAndThrowOnMutation({
+                    profiles: {
+                        [user1.id]: user1,
+                    },
+                });
+
+                const nextState = reducer(state, {
+                    type: actionType,
+                    data: user1WithoutRemoteId,
+                });
+
+                expect(nextState.profiles).toEqual({
+                    [user1.id]: user1WithoutRemoteId,
+                });
+            });
+
             test(`should not overwrite unsanitized data with sanitized data (${actionType})`, () => {
                 const user1 = TestHelper.getUserMock({
                     id: 'user_id1',

@@ -412,7 +412,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			if a.userAllowsEmail(c, profileMap[id], channelMemberNotifyPropsMap[id], post) {
 				senderProfileImage, _, err := a.GetProfileImage(sender)
 				if err != nil {
-					a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
+					c.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
 				}
 				if err := a.sendNotificationEmail(c, notification, profileMap[id], team, senderProfileImage); err != nil {
 					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonEmailSendError)
@@ -740,15 +740,19 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			// A user following a thread but had left the channel won't get a notification
 			// https://mattermost.atlassian.net/browse/MM-36769
 			if profileMap[uid] == nil {
-				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonMissingProfile)
-				a.NotificationsLog().Error("Missing profile",
-					mlog.String("type", model.NotificationTypeWebsocket),
-					mlog.String("post_id", post.Id),
-					mlog.String("status", model.NotificationStatusError),
-					mlog.String("reason", model.NotificationReasonMissingProfile),
-					mlog.String("sender_id", sender.Id),
-					mlog.String("receiver_id", uid),
-				)
+				// This also sometimes happens when bots, which will never show up in the map, reply to threads
+				// Their own post goes through this and they get "notified", which we don't need to count as an error if they can't
+				if uid != post.UserId {
+					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonMissingProfile)
+					a.NotificationsLog().Error("Missing profile",
+						mlog.String("type", model.NotificationTypeWebsocket),
+						mlog.String("post_id", post.Id),
+						mlog.String("status", model.NotificationStatusError),
+						mlog.String("reason", model.NotificationReasonMissingProfile),
+						mlog.String("sender_id", sender.Id),
+						mlog.String("receiver_id", uid),
+					)
+				}
 				continue
 			}
 			if a.IsCRTEnabledForUser(c, uid) {

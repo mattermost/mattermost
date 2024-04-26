@@ -48,7 +48,7 @@ const getNotificationSoundFromChannelMemberAndUser = (member, user) => {
 };
 
 /**
- * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<Promise<NotificationResult>, GlobalState>}
+ * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<Promise<import('utils/notifications').NotificationResult>, GlobalState>}
  */
 export function sendDesktopNotification(post, msgProps) {
     return async (dispatch, getState) => {
@@ -326,6 +326,9 @@ export function sendDesktopNotification(post, msgProps) {
     };
 }
 
+/**
+ * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<Promise<import('utils/notifications').NotificationResult>, GlobalState>}
+ */
 export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => async (dispatch) => {
     // handle notifications in desktop app
     if (isDesktopApp()) {
@@ -333,7 +336,7 @@ export const notifyMe = (title, body, channel, teamId, silent, soundName, url) =
     }
 
     try {
-        return await showNotification({
+        return await dispatch(showNotification({
             title,
             body,
             requireInteraction: false,
@@ -342,7 +345,7 @@ export const notifyMe = (title, body, channel, teamId, silent, soundName, url) =
                 window.focus();
                 getHistory().push(url);
             },
-        });
+        }));
     } catch (error) {
         dispatch(logError(error));
         return {status: 'error', reason: 'notification_api', data: String(error)};
