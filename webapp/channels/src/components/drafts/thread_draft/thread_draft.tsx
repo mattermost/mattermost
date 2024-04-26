@@ -57,27 +57,27 @@ function ThreadDraft({
     }, [thread?.id]);
 
     const onSubmit = useMemo(() => {
-        if (thread) {
-            return makeOnSubmit(channel!.id, thread.id, '');
+        if (thread?.id) {
+            return makeOnSubmit(value.channelId, thread.id, '');
         }
 
         return () => Promise.resolve({data: true});
-    }, [channel?.id, thread?.id]);
+    }, [value.channelId, thread?.id]);
 
     const handleOnDelete = useCallback((id: string) => {
-        dispatch(removeDraft(id, channel!.id, rootId));
-    }, [channel?.id, rootId]);
+        dispatch(removeDraft(id, value.channelId, rootId));
+    }, [value.channelId, rootId, dispatch]);
 
     const handleOnEdit = useCallback(() => {
-        dispatch(selectPost({id: rootId, channel_id: channel!.id} as Post));
-    }, [channel]);
+        dispatch(selectPost({id: rootId, channel_id: value.channelId} as Post));
+    }, [value.channelId, dispatch, rootId]);
 
     const handleOnSend = useCallback(async (id: string) => {
         await dispatch(onSubmit(value));
 
         handleOnDelete(id);
         handleOnEdit();
-    }, [value, onSubmit]);
+    }, [value, onSubmit, dispatch, handleOnDelete, handleOnEdit]);
 
     if (!thread || !channel) {
         return null;

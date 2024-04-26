@@ -123,7 +123,7 @@ function makeMapStateToProps() {
             isMobileView: getIsMobileView(state),
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
-            canMove: canWrangler(state, channel?.type || 'O', threadReplyCount),
+            canMove: channel ? canWrangler(state, channel.type, threadReplyCount) : false,
         };
     };
 }

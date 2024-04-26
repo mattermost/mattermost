@@ -51,6 +51,7 @@ function ChannelDraft({
     user,
     value,
     isRemote,
+    id: channelId,
 }: Props) {
     const dispatch = useDispatch();
     const history = useHistory();
@@ -60,27 +61,31 @@ function ChannelDraft({
     }, [history, channelUrl]);
 
     const handleOnDelete = useCallback((id: string) => {
-        dispatch(removeDraft(id, channel!.id));
-    }, [dispatch, channel?.id]);
+        dispatch(removeDraft(id, channelId));
+    }, [dispatch, channelId]);
 
     const doSubmit = useCallback((id: string, post: Post) => {
         dispatch(createPost(post, value.fileInfos));
-        dispatch(removeDraft(id, channel!.id));
+        dispatch(removeDraft(id, channelId));
         history.push(channelUrl);
-    }, [dispatch, history, value.fileInfos, channel?.id, channelUrl]);
+    }, [dispatch, history, value.fileInfos, channelId, channelUrl]);
 
     const showPersistNotificationModal = useCallback((id: string, post: Post) => {
+        if (!channel) {
+            return;
+        }
+
         dispatch(openModal({
             modalId: ModalIdentifiers.PERSIST_NOTIFICATION_CONFIRM_MODAL,
             dialogType: PersistNotificationConfirmModal,
             dialogProps: {
                 message: post.message,
-                channelType: channel!.type,
+                channelType: channel.type,
                 specialMentions: specialMentionsInText(post.message),
                 onConfirm: () => doSubmit(id, post),
             },
         }));
-    }, [channel?.type, dispatch, doSubmit]);
+    }, [channel, dispatch, doSubmit]);
 
     const handleOnSend = useCallback(async (id: string) => {
         const post = {} as Post;
@@ -135,7 +140,7 @@ function ChannelDraft({
                         remote={isRemote || false}
                     />
                     <PanelBody
-                        channelId={channel.id}
+                        channelId={channelId}
                         displayName={displayName}
                         fileInfos={value.fileInfos}
                         message={value.message}

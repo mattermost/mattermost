@@ -19,7 +19,7 @@ const ChannelHeaderTitleFavorite = () => {
     const dispatch = useDispatch();
     const isFavorite = useSelector(isCurrentChannelFavorite);
     const channel = useSelector(getCurrentChannel);
-    const channelIsArchived = channel?.delete_at !== 0;
+    const channelIsArchived = (channel?.delete_at ?? 0) > 0;
     const toggleFavoriteRef = useRef<HTMLButtonElement>(null);
 
     const toggleFavoriteCallback = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {

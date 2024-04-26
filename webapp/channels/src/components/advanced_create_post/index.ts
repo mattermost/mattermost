@@ -70,7 +70,7 @@ function makeMapStateToProps() {
         const draft = getChannelDraft(state, currentChannel?.id || '');
         const isRemoteDraft = (currentChannel && state.views.drafts.remotes[`${StoragePrefixes.DRAFT}${currentChannel.id}`]) || false;
         const latestReplyablePostId = getLatestReplyablePostId(state);
-        const currentChannelMembersCount = getCurrentChannelStats(state) ? getCurrentChannelStats(state)?.member_count || 0 : 1;
+        const currentChannelMembersCount = getCurrentChannelStats(state)?.member_count ?? 1;
         const enableEmojiPicker = config.EnableEmojiPicker === 'true';
         const enableGifPicker = config.EnableGifPicker === 'true';
         const enableConfirmNotificationsToChannel = config.EnableConfirmNotificationsToChannel === 'true';
