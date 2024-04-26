@@ -70,7 +70,7 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
             {isE0 &&
                 <div className='start_trial_content'>
                     {formatMessage({
-                        id: 'navbar_dropdown.versionTextTeamEdition',
+                        id: 'navbar_dropdown.versionTextE0',
                         defaultMessage: 'This is the free edition of Mattermost, ideal for evaluation and small teams.',
                     })}
                 </div>}
