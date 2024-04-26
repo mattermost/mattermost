@@ -17,7 +17,9 @@
 }
 
 .TeamIcon__initials {
+    font-family: Metropolis, sans-serif;
     user-select: none;
+    letter-spacing: 0.02em;
 
     &.TeamIcon__initials__lg {
         font-size: 3em;
