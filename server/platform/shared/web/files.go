@@ -27,6 +27,7 @@ var MediaContentTypes = [...]string{
 	"image/bmp",
 	"image/gif",
 	"image/tiff",
+	"image/webp",
 	"video/avi",
 	"video/mpeg",
 	"video/mp4",

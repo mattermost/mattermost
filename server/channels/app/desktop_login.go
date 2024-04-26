@@ -16,7 +16,7 @@ func (a *App) GenerateAndSaveDesktopToken(createAt int64, user *model.User) (*st
 		// Delete any other related tokens if there's an error
 		a.Srv().Store().DesktopTokens().DeleteByUserId(user.Id)
 
-		return nil, model.NewAppError("GenerateAndSaveDesktopToken", "app.desktop_token.generateServerToken.invalid_or_expired", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("GenerateAndSaveDesktopToken", "app.desktop_token.generateServerToken.invalid_or_expired", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	return &token, nil
@@ -29,7 +29,7 @@ func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User,
 		// Delete the token if it is expired or invalid
 		a.Srv().Store().DesktopTokens().Delete(token)
 
-		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.invalid", nil, err.Error(), http.StatusUnauthorized)
+		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.invalid", nil, "", http.StatusUnauthorized).Wrap(err)
 	}
 
 	// Get the user profile
@@ -38,7 +38,7 @@ func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User,
 		// Delete the token if the user is invalid somehow
 		a.Srv().Store().DesktopTokens().Delete(token)
 
-		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.no_user", nil, userErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.no_user", nil, "", http.StatusInternalServerError).Wrap(userErr)
 	}
 
 	// Clean up other tokens if they exist

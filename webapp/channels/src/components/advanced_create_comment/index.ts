@@ -27,9 +27,11 @@ import {
 } from 'actions/views/create_comment';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import {openModal} from 'actions/views/modals';
+import {focusedRHS} from 'actions/views/rhs';
 import {setShowPreviewOnCreateComment} from 'actions/views/textbox';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getPostDraft, getIsRhsExpanded, getSelectedPostFocussedAt} from 'selectors/rhs';
+import {getShouldFocusRHS} from 'selectors/views/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import {showPreviewOnCreateComment} from 'selectors/views/textbox';
 
@@ -79,6 +81,7 @@ function makeMapStateToProps() {
         const isFormattingBarHidden = getBool(state, Constants.Preferences.ADVANCED_TEXT_EDITOR, AdvancedTextEditor.COMMENT);
         const currentTeamId = getCurrentTeamId(state);
         const postEditorActions = state.plugins.components.PostEditorAction;
+        const shouldFocusRHS = getShouldFocusRHS(state);
 
         return {
             currentTeamId,
@@ -108,6 +111,7 @@ function makeMapStateToProps() {
             useCustomGroupMentions,
             canUploadFiles: canUploadFiles(config),
             postEditorActions,
+            shouldFocusRHS,
         };
     };
 }
@@ -175,6 +179,7 @@ function makeMapDispatchToProps() {
                 openModal,
                 savePreferences,
                 searchAssociatedGroupsForReference,
+                focusedRHS,
             },
             dispatch,
         );
