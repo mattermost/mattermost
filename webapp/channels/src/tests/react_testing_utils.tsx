@@ -3,6 +3,7 @@
 
 import {render} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type {History} from 'history';
 import {createBrowserHistory} from 'history';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
@@ -28,6 +29,7 @@ export type FullContextOptions = {
     locale?: string;
     useMockedStore?: boolean;
     pluginReducers?: string[];
+    history?: History<unknown>;
 }
 
 export const renderWithContext = (
@@ -46,7 +48,7 @@ export const renderWithContext = (
     // Store these in an object so that they can be maintained through rerenders
     const renderState = {
         component,
-        history: createBrowserHistory(),
+        history: partialOptions?.history ?? createBrowserHistory(),
         options,
         store: testStore,
     };
