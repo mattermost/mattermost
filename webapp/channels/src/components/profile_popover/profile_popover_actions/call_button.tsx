@@ -10,9 +10,8 @@ import {PhoneInTalkIcon} from '@mattermost/compass-icons/components';
 
 import {Client4} from 'mattermost-redux/client';
 import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
-import {getSessionsInCalls} from 'mattermost-redux/selectors/entities/common';
 
-import {isCallsEnabled as getIsCallsEnabled} from 'selectors/calls';
+import {isCallsEnabled as getIsCallsEnabled, getSessionsInCalls} from 'selectors/calls';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import ProfilePopoverCallButton from 'components/profile_popover_call_button';

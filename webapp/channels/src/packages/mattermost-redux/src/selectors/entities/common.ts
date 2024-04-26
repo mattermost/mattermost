@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {CallsConfig, UserSessionState} from '@calls/common/lib/types';
-
 import type {ChannelMembership, Channel} from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
 import type {TeamMembership} from '@mattermost/types/teams';
@@ -10,8 +8,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-
-const CALLS_PLUGIN = 'plugins-com.mattermost.calls';
 
 // Channels
 
@@ -58,20 +54,6 @@ export function getCurrentUserId(state: GlobalState): string {
 
 export function getUsers(state: GlobalState): IDMappedObjects<UserProfile> {
     return state.entities.users.profiles;
-}
-
-// Calls
-
-export function getSessionsInCalls(state: GlobalState): Record<string, Record<string, UserSessionState>> {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return state[CALLS_PLUGIN].sessions || {};
-}
-
-export function getCallsConfig(state: GlobalState): CallsConfig {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return state[CALLS_PLUGIN].callsConfig;
 }
 
 // Config
