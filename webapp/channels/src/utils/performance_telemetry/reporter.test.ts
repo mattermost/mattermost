@@ -203,6 +203,24 @@ describe('PerformanceReporter', () => {
 
         reporter.disconnect();
     });
+
+    test('should not report anything if EnableClientMetrics is false', async () => {
+        const reporter = newTestReporter(false);
+        reporter.observe();
+
+        expect(sendBeacon).not.toHaveBeenCalled();
+
+        markAndReport('reportedA');
+
+        await waitForObservations();
+
+        expect(reporter.handleObservations).toHaveBeenCalled();
+
+        await waitForReport();
+
+        expect(reporter.maybeSendMeasures).toHaveBeenCalled();
+        expect(sendBeacon).not.toHaveBeenCalled();
+    });
 });
 
 class TestPerformanceReporter extends PerformanceReporter {
@@ -212,6 +230,8 @@ class TestPerformanceReporter extends PerformanceReporter {
     public disconnect = super.disconnect;
 
     public handleObservations = jest.fn(super.handleObservations);
+
+    public maybeSendMeasures = jest.fn(super.maybeSendMeasures);
 }
 
 function newTestReporter(telemetryEnabled = true) {
@@ -219,7 +239,7 @@ function newTestReporter(telemetryEnabled = true) {
         entities: {
             general: {
                 config: {
-                    DiagnosticsEnabled: String(telemetryEnabled),
+                    EnableClientMetrics: String(telemetryEnabled),
                 },
             },
         },

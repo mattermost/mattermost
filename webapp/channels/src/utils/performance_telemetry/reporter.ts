@@ -7,7 +7,7 @@ import type {Metric} from 'web-vitals';
 
 import type {Client4} from '@mattermost/client';
 
-import {isTelemetryEnabled} from 'actions/telemetry_actions';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import type {GlobalState} from 'types/store';
 
@@ -166,7 +166,7 @@ export default class PerformanceReporter {
         return this.reportPeriodBase + jitter;
     }
 
-    private maybeSendMeasures() {
+    protected maybeSendMeasures() {
         const histogramMeasures = this.histogramMeasures;
         this.histogramMeasures = [];
 
@@ -183,8 +183,7 @@ export default class PerformanceReporter {
             return;
         }
 
-        // TODO change this to the new field
-        if (!isTelemetryEnabled(this.store.getState())) {
+        if (getConfig(this.store.getState()).EnableClientMetrics === 'false') {
             return;
         }
 
