@@ -492,7 +492,6 @@ function profilesNotInGroup(state: UsersState['profilesNotInGroup'] = {}, action
 
 function dndEndTimes(state: UsersState['dndEndTimes'] = {}, action: AnyAction) {
     switch (action.type) {
-    case UserTypes.RECEIVED_DND_END_TIME:
     case UserTypes.RECEIVED_DND_END_TIMES: {
         return {...state, ...action.data};
     }
@@ -514,7 +513,6 @@ function dndEndTimes(state: UsersState['dndEndTimes'] = {}, action: AnyAction) {
 
 function statuses(state: RelationOneToOne<UserProfile, string> = {}, action: AnyAction) {
     switch (action.type) {
-    case UserTypes.RECEIVED_STATUS:
     case UserTypes.RECEIVED_STATUSES: {
         return {...state, ...action.data};
     }
@@ -537,7 +535,6 @@ function statuses(state: RelationOneToOne<UserProfile, string> = {}, action: Any
 
 function isManualStatus(state: RelationOneToOne<UserProfile, boolean> = {}, action: AnyAction) {
     switch (action.type) {
-    case UserTypes.RECEIVED_STATUS_IS_MANUAL:
     case UserTypes.RECEIVED_STATUSES_IS_MANUAL: {
         return {...state, ...action.data};
     }
@@ -639,7 +636,6 @@ function filteredStats(state: UsersState['filteredStats'] = {}, action: AnyActio
 
 function lastActivity(state: UsersState['lastActivity'] = {}, action: AnyAction) {
     switch (action.type) {
-    case UserTypes.RECEIVED_LAST_ACTIVITY:
     case UserTypes.RECEIVED_LAST_ACTIVITIES: {
         return {...state, ...action.data};
     }
