@@ -731,20 +731,23 @@ let interval = 0;
 setInterval(() => {
     // eslint-disable-next-line no-console
     console.table({
-        'interval (s)': interval,
-        Total: counterForNewPost + counterForManyPosts,
-        Many: counterForManyPosts,
-        Single: counterForNewPost,
+        interval,
+        TotalPosts: counterForNewPost + counterForManyPosts,
+        ManyPosts: counterForManyPosts,
+        SinglePosts: counterForNewPost,
+        ManyCodePaths: timesItWentToManyPosts,
     });
     interval += 10;
 }, 10000);
 
 let counterForManyPosts = 0;
+let timesItWentToManyPosts = 0;
 export function handleNewPostEvents(queue) {
     return (myDispatch, myGetState) => {
         // Note that this method doesn't properly update the sidebar state for these posts
         const posts = queue.map((msg) => JSON.parse(msg.data.post));
-        counterForManyPosts++;
+        counterForManyPosts += posts.length;
+        timesItWentToManyPosts++;
 
         if (window.logPostEvents) {
             // eslint-disable-next-line no-console
