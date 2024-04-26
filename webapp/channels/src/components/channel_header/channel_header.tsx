@@ -21,8 +21,6 @@ import Markdown from 'components/markdown';
 import OverlayTrigger from 'components/overlay_trigger';
 import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import {statusDropdownMessages} from 'components/status_dropdown/status_dropdown';
-import StatusIcon from 'components/status_icon';
 import Timestamp from 'components/timestamp';
 import Tooltip from 'components/tooltip';
 import Popover from 'components/widgets/popover';
@@ -241,6 +239,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                 />
                 <CustomStatusText
                     text={customStatus?.text}
+                    className='custom-emoji__text'
                 />
             </div>
         );
@@ -270,7 +269,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     <span tabIndex={0}>
                         <FormattedMessage
                             id='channel_header.channelHasGuests'
-                            defaultMessage='This channel has guests'
+                            defaultMessage='Channel has guests'
                         />
                     </span>
                 </span>
@@ -308,14 +307,10 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             }
         }
 
-        let dmHeaderIconStatus: ReactNode;
         let dmHeaderTextStatus: ReactNode;
         if (isDirect && !dmUser?.delete_at && !dmUser?.is_bot) {
-            dmHeaderIconStatus = (<StatusIcon status={channel.status}/>);
-
             dmHeaderTextStatus = (
                 <span className='header-status__text'>
-                    <FormattedMessage {...statusDropdownMessages[channel.status!].name}/>
                     {this.renderCustomStatus()}
                 </span>
             );
@@ -345,11 +340,11 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             }
         }
 
-        const channelFilesIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left', {
+        const channelFilesIconClass = classNames('channel-header__icon channel-header__icon--left btn btn-icon btn-xs ', {
             'channel-header__icon--active': rhsState === RHSStates.CHANNEL_FILES,
         });
         const channelFilesIcon = <i className='icon icon-file-text-outline'/>;
-        const pinnedIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left', {
+        const pinnedIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
             'channel-header__icon--active': rhsState === RHSStates.PIN,
         });
         const pinnedIcon = this.props.pinnedPostsCount ? (
@@ -374,7 +369,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
         let memberListButton = null;
         if (!isDirect) {
-            const membersIconClass = classNames('member-rhs__trigger channel-header__icon channel-header__icon--left channel-header__icon--wide', {
+            const membersIconClass = classNames('member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
                 'channel-header__icon--active': rhsState === RHSStates.CHANNEL_MEMBERS,
             });
             const membersIcon = this.props.memberCount ? (
@@ -428,7 +423,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     id='header-popover'
                     popoverStyle='info'
                     popoverSize='lg'
-                    style={{transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`, maxWidth: this.state.channelHeaderPoverWidth}}
+                    style={{transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`, maxWidth: this.state.channelHeaderPoverWidth + 16}}
                     placement='bottom'
                     className={classNames('channel-header__popover', {'chanel-header__popover--lhs_offset': this.props.hasMoreThanOneTeam})}
                 >
@@ -450,28 +445,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     className='channel-header__description'
                     dir='auto'
                 >
-                    {dmHeaderIconStatus}
                     {dmHeaderTextStatus}
-                    {memberListButton}
-
-                    <HeaderIconWrapper
-                        iconComponent={pinnedIcon}
-                        ariaLabel={true}
-                        buttonClass={pinnedIconClass}
-                        buttonId={'channelHeaderPinButton'}
-                        onClick={this.showPinnedPosts}
-                        tooltipKey={'pinnedPosts'}
-                    />
-                    {this.props.isFileAttachmentsEnabled &&
-                        <HeaderIconWrapper
-                            iconComponent={channelFilesIcon}
-                            ariaLabel={true}
-                            buttonClass={channelFilesIconClass}
-                            buttonId={'channelHeaderFilesButton'}
-                            onClick={this.showChannelFiles}
-                            tooltipKey={'channelFiles'}
-                        />
-                    }
                     {hasGuestsText}
                     <div
                         className='header-popover-text-measurer'
@@ -557,30 +531,9 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             headerTextContainer = (
                 <div
                     id='channelHeaderDescription'
-                    className='channel-header__description light'
+                    className='channel-header__description'
                 >
-                    {dmHeaderIconStatus}
                     {dmHeaderTextStatus}
-                    {memberListButton}
-
-                    <HeaderIconWrapper
-                        iconComponent={pinnedIcon}
-                        ariaLabel={true}
-                        buttonClass={pinnedIconClass}
-                        buttonId={'channelHeaderPinButton'}
-                        onClick={this.showPinnedPosts}
-                        tooltipKey={'pinnedPosts'}
-                    />
-                    {this.props.isFileAttachmentsEnabled &&
-                        <HeaderIconWrapper
-                            iconComponent={channelFilesIcon}
-                            ariaLabel={true}
-                            buttonClass={channelFilesIconClass}
-                            buttonId={'channelHeaderFilesButton'}
-                            onClick={this.showChannelFiles}
-                            tooltipKey={'channelFiles'}
-                        />
-                    }
                     {hasGuestsText}
                     {editMessage}
                 </div>
@@ -607,7 +560,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     <button
                         id='toggleMute'
                         onClick={this.unmute}
-                        className={'style--none color--link channel-header__mute inactive'}
+                        className={'channel-header__mute inactive btn btn-icon btn-xs'}
                         aria-label={formatMessage({id: 'generic_icons.muted', defaultMessage: 'Muted Icon'})}
                     >
                         <i className={'icon icon-bell-off-outline'}/>
@@ -635,15 +588,36 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             <div
                                 className='channel-header__title dropdown'
                             >
-                                <div>
-                                    <ChannelHeaderTitle
-                                        dmUser={dmUser}
-                                        gmMembers={gmMembers}
+                                <ChannelHeaderTitle
+                                    dmUser={dmUser}
+                                    gmMembers={gmMembers}
+                                />
+                                <div
+                                    className='channel-header__icons'
+                                >
+                                    {muteTrigger}
+                                    {memberListButton}
+                                    <HeaderIconWrapper
+                                        iconComponent={pinnedIcon}
+                                        ariaLabel={true}
+                                        buttonClass={pinnedIconClass}
+                                        buttonId={'channelHeaderPinButton'}
+                                        onClick={this.showPinnedPosts}
+                                        tooltipKey={'pinnedPosts'}
                                     />
+                                    {this.props.isFileAttachmentsEnabled &&
+                                        <HeaderIconWrapper
+                                            iconComponent={channelFilesIcon}
+                                            ariaLabel={true}
+                                            buttonClass={channelFilesIconClass}
+                                            buttonId={'channelHeaderFilesButton'}
+                                            onClick={this.showChannelFiles}
+                                            tooltipKey={'channelFiles'}
+                                        />
+                                    }
                                 </div>
-                                {muteTrigger}
+                                {headerTextContainer}
                             </div>
-                            {headerTextContainer}
                         </div>
                     </div>
                     <ChannelHeaderPlug
