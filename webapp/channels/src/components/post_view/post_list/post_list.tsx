@@ -27,9 +27,8 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
     const {duration: dur1, requestCount: requestCount1} = measure('SidebarChannelLink#click', 'PostList#component');
     const {duration: dur2, requestCount: requestCount2} = measure('TeamLink#click', 'PostList#component');
 
-    // TODO figure out how to handle that one of these will always fail
-    measureAndReport('channel_switch', 'SidebarChannelLink#click', 'PostList#component');
-    measureAndReport('team_switch', 'TeamLink#click', 'PostList#component');
+    measureAndReport('channel_switch', 'SidebarChannelLink#click', 'PostList#component', true);
+    measureAndReport('team_switch', 'TeamLink#click', 'PostList#component', true);
 
     clearMarks([
         'SidebarChannelLink#click',
