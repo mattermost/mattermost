@@ -8,6 +8,7 @@ import type {Metric} from 'web-vitals';
 import type {Client4} from '@mattermost/client';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {GlobalState} from 'types/store';
 
@@ -166,6 +167,20 @@ export default class PerformanceReporter {
         return this.reportPeriodBase + jitter;
     }
 
+    private canReportMetrics() {
+        const state = this.store.getState();
+
+        if (getConfig(state).EnableClientMetrics === 'false') {
+            return false;
+        }
+
+        if (getCurrentUserId(state) === '') {
+            return false;
+        }
+
+        return true;
+    }
+
     protected maybeSendMeasures() {
         const histogramMeasures = this.histogramMeasures;
         this.histogramMeasures = [];
@@ -183,7 +198,7 @@ export default class PerformanceReporter {
             return;
         }
 
-        if (getConfig(this.store.getState()).EnableClientMetrics === 'false') {
+        if (!this.canReportMetrics()) {
             return;
         }
 

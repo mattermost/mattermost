@@ -221,6 +221,24 @@ describe('PerformanceReporter', () => {
         expect(reporter.maybeSendMeasures).toHaveBeenCalled();
         expect(sendBeacon).not.toHaveBeenCalled();
     });
+
+    test('should not report anything if the user is not logged in', async () => {
+        const reporter = newTestReporter(true, false);
+        reporter.observe();
+
+        expect(sendBeacon).not.toHaveBeenCalled();
+
+        markAndReport('reportedA');
+
+        await waitForObservations();
+
+        expect(reporter.handleObservations).toHaveBeenCalled();
+
+        await waitForReport();
+
+        expect(reporter.maybeSendMeasures).toHaveBeenCalled();
+        expect(sendBeacon).not.toHaveBeenCalled();
+    });
 });
 
 class TestPerformanceReporter extends PerformanceReporter {
@@ -234,13 +252,16 @@ class TestPerformanceReporter extends PerformanceReporter {
     public maybeSendMeasures = jest.fn(super.maybeSendMeasures);
 }
 
-function newTestReporter(telemetryEnabled = true) {
+function newTestReporter(telemetryEnabled = true, loggedIn = true) {
     return new TestPerformanceReporter(new Client4(), configureStore({
         entities: {
             general: {
                 config: {
                     EnableClientMetrics: String(telemetryEnabled),
                 },
+            },
+            users: {
+                currentUserId: loggedIn ? 'currentUserId' : '',
             },
         },
     }));
