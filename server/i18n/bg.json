@@ -336,10 +336,6 @@
     "translation": "Вашата парола трябва да съдържа най-малко {{.Min}} знака и поне една малка буква."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Вашата парола трябва да съдържа най-малко {{.Min}} знака."
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "Невалидна длъжност: не трябва да е по-дълга от 128 знака."
   },
@@ -7634,10 +7630,6 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
     "translation": "Неуспешно свързване с smtp сървър"
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Неуспешно четене на прикачения файл при вноса."
   },
   {
     "id": "app.export.zip_create.error",

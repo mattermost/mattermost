@@ -118,7 +118,7 @@ function mapStateToProps(state: GlobalState) {
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
     const canManageMembers = haveIChannelPermission(
         state,
-        currentTeam.id,
+        currentTeam?.id,
         channel.id,
         isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
     ) && !isArchived;

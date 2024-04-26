@@ -348,10 +348,6 @@
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters."
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "Invalid position: must not be longer than 128 characters."
   },
@@ -2568,10 +2564,6 @@
     "translation": "Error reading import data file."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Failed to read file attachment during import."
-  },
-  {
     "id": "app.import.attachment.file_upload.error",
     "translation": "Error uploading the file: '{{.FilePath}}'"
   },
@@ -4697,7 +4689,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Failed to upgrade WebSocket connection."
+    "translation": "URL blocked due to CORS. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -9943,10 +9935,6 @@
     "translation": "Unable to update that many channel members. Only {{.Max}} channel members can be updated at once."
   },
   {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "Failed to get user count"
-  },
-  {
     "id": "api.getUsersForReporting.invalid_page_size",
     "translation": "Page size is invalid or too large."
   },
@@ -10321,5 +10309,77 @@
   {
     "id": "model.channel_bookmark.is_valid.parent_id.app_error",
     "translation": "Invalid parent ID."
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Can't create user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Unable to get least recently used sessions."
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Import data line has type 'role' but the role object is null."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Authentication Transfer is not available as email signup is disabled."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Authentication Transfer is not available as neither email login nor username login is enabled."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Failed to parse request"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Failed to reattach plugin"
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Unable to get page of schemes."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Invalid scheme."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Missing manifest"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Missing plugin reattach config"
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters."
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Your password can't contain more than 72 characters."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} weren't notified by this mention because they aren't members of this team."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} wasn't notified by this mention because they aren't a member of this team."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Can't activate user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Missing display_name in request body"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Missing team_id in request body"
   }
 ]

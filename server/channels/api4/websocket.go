@@ -17,6 +17,7 @@ import (
 const (
 	connectionIDParam   = "connection_id"
 	sequenceNumberParam = "sequence_number"
+	postedAckParam      = "posted_ack"
 )
 
 func (api *API) InitWebSocket() {
@@ -36,7 +37,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		params := map[string]any{
 			"BlockedOrigin": r.Header.Get("Origin"),
 		}
-		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", params, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", params, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -48,6 +49,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		TFunc:     c.AppContext.T,
 		Locale:    "",
 		Active:    true,
+		PostedAck: r.URL.Query().Get(postedAckParam) == "true",
 	}
 	// The WebSocket upgrade request coming from mobile is missing the
 	// user agent so we need to fallback on the session's metadata.
