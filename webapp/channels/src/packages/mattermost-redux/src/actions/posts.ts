@@ -955,34 +955,46 @@ export function getPostsAround(channelId: string, postId: string, perPage = Post
     };
 }
 
-// getThreadsForPosts is intended for an array of posts that have been batched
-// (see the actions/websocket_actions/handleNewPostEvents function in the webapp)
-export function getThreadsForPosts(posts: Post[], fetchThreads = true): ThunkActionFunc<unknown> {
-    const rootsSet = new Set<string>();
+/**
+ * getPostThreads is intended for an array of posts that have been batched
+ * (see the actions/websocket_actions/handleNewPostEvents function in the webapp)
+* */
+export function getPostThreads(posts: Post[], fetchThreads = true): ThunkActionFunc<unknown> {
     return (dispatch, getState) => {
         if (!Array.isArray(posts) || !posts.length) {
             return {data: true};
         }
 
         const state = getState();
-        const promises: Array<Promise<ActionResult>> = [];
+        const currentChannelId = getCurrentChannelId(state);
 
-        posts.forEach((post) => {
+        const getPostThreadPromises: Array<Promise<ActionResult<PostList>>> = [];
+
+        const rootPostIds = new Set<string>();
+
+        for (const post of posts) {
             if (!post.root_id) {
-                return;
+                continue;
             }
+
             const rootPost = PostSelectors.getPost(state, post.root_id);
-
-            if (!rootPost) {
-                rootsSet.add(post.root_id);
+            if (rootPost) {
+                continue;
             }
-        });
 
-        rootsSet.forEach((rootId) => {
-            promises.push(dispatch(getPostThread(rootId, fetchThreads)));
-        });
+            if (rootPostIds.has(post.root_id)) {
+                continue;
+            }
 
-        return Promise.all(promises);
+            // At this point, we know that this post is a thread/reply and its root post is not in the store
+            rootPostIds.add(post.root_id);
+
+            if (post.channel_id === currentChannelId) {
+                getPostThreadPromises.push(dispatch(getPostThread(post.root_id, fetchThreads)));
+            }
+        }
+
+        return Promise.all(getPostThreadPromises);
     };
 }
 

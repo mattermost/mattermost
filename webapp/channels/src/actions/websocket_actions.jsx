@@ -40,7 +40,7 @@ import {
     getPosts,
     getPostThread,
     getMentionsAndStatusesForPosts,
-    getThreadsForPosts,
+    getPostThreads,
     postDeleted,
     receivedNewPost,
     receivedPost,
@@ -179,7 +179,7 @@ export function initialize() {
     WebSocketClient.addMissedMessageListener(restart);
     WebSocketClient.addCloseListener(handleClose);
 
-    WebSocketClient.initialize(connUrl);
+    WebSocketClient.initialize(connUrl, undefined, true);
 }
 
 export function close() {
@@ -717,7 +717,7 @@ export function handleNewPostEvent(msg) {
         ) {
             myDispatch({
                 type: UserTypes.RECEIVED_STATUSES,
-                data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
+                data: [{[post.user_id]: UserStatuses.ONLINE}],
             });
         }
     };
@@ -739,7 +739,7 @@ export function handleNewPostEvents(queue) {
         myDispatch(batchActions(actions));
 
         // Load the posts' threads
-        myDispatch(getThreadsForPosts(posts));
+        myDispatch(getPostThreads(posts));
 
         // And any other data needed for them
         getMentionsAndStatusesForPosts(posts, myDispatch, myGetState);
@@ -1265,7 +1265,7 @@ function addedNewGmUser(preference) {
 function handleStatusChangedEvent(msg) {
     dispatch({
         type: UserTypes.RECEIVED_STATUSES,
-        data: [{user_id: msg.data.user_id, status: msg.data.status}],
+        data: [{[msg.data.user_id]: msg.data.status}],
     });
 }
 

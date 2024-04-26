@@ -3,19 +3,24 @@
 
 import classNames from 'classnames';
 import type {ReactNode} from 'react';
-import React, {memo, useState} from 'react';
+import React, {memo, useState, useRef, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
+import {getIsRhsOpen} from 'selectors/rhs';
+
 import {ChannelHeaderDropdown} from 'components/channel_header_dropdown';
+import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import BotTag from 'components/widgets/tag/bot_tag';
+import WithTooltip from 'components/with_tooltip';
 
 import {Constants} from 'utils/constants';
 
@@ -33,12 +38,32 @@ const ChannelHeaderTitle = ({
     gmMembers,
 }: Props) => {
     const [titleMenuOpen, setTitleMenuOpen] = useState(false);
+    const [showTooltip, setShowTooltip] = useState(false);
     const intl = useIntl();
     const channel = useSelector(getCurrentChannel);
+
+    const headerItemRef = useRef<HTMLElement | null>(null);
+    const isRHSOpen = useSelector(getIsRhsOpen);
+
+    useEffect(() => {
+        enableToolTipIfNeeded();
+
+        // Re-check on window resize
+        const handleResize = () => enableToolTipIfNeeded();
+        window.addEventListener('resize', handleResize);
+
+        return () => window.removeEventListener('resize', handleResize);
+    }, [channel, gmMembers, dmUser, isRHSOpen]);
 
     if (!channel) {
         return null;
     }
+
+    const enableToolTipIfNeeded = () => {
+        const element = headerItemRef.current;
+        const isTooltip = element && element.offsetWidth < element.scrollWidth;
+        setShowTooltip(isTooltip as boolean);
+    };
 
     const isDirect = (channel.type === Constants.DM_CHANNEL);
     const isGroup = (channel.type === Constants.GM_CHANNEL);
@@ -71,8 +96,13 @@ const ChannelHeaderTitle = ({
         return (
             <div
                 id='channelHeaderDropdownButton'
-                className='channel-header__top channel-header__bot'
+                className='channel-header__bot'
             >
+                <ChannelHeaderTitleFavorite/>
+                <ProfilePicture
+                    src={Client4.getProfilePictureUrl(dmUser.id, dmUser.last_picture_update)}
+                    size='sm'
+                />
                 <strong
                     role='heading'
                     aria-level={2}
@@ -85,33 +115,63 @@ const ChannelHeaderTitle = ({
                     </span>
                 </strong>
                 <BotTag/>
-                <ChannelHeaderTitleFavorite/>
             </div>
         );
     }
+
     return (
-        <React.Fragment>
+        <div className='channel-header__top'>
+            <ChannelHeaderTitleFavorite/>
+            {isDirect && dmUser && ( // Check if it's a DM and dmUser is provided
+                <ProfilePicture
+                    src={Client4.getProfilePictureUrl(dmUser.id, dmUser.last_picture_update)}
+                    size='sm'
+                    status={channel.status}
+                />
+            )}
             <MenuWrapper onToggle={setTitleMenuOpen}>
                 <div
                     id='channelHeaderDropdownButton'
-                    className='channel-header__top'
                 >
                     <button
                         className={classNames('channel-header__trigger style--none', {active: titleMenuOpen})}
                         aria-label={intl.formatMessage({id: 'channel_header.menuAriaLabel', defaultMessage: 'Channel Menu'}).toLowerCase()}
                     >
-                        <strong
-                            role='heading'
-                            aria-level={2}
-                            id='channelHeaderTitle'
-                            className='heading'
-                        >
-                            <span>
-                                {archivedIcon}
-                                {channelTitle}
-                                {sharedIcon}
-                            </span>
-                        </strong>
+                        {showTooltip ? (
+                            <WithTooltip
+                                id='channelHeaderTooltip'
+                                placement='bottom'
+                                title={channelTitle as string}
+                            >
+                                <strong
+                                    role='heading'
+                                    aria-level={2}
+                                    id='channelHeaderTitle'
+                                    className='heading'
+                                    ref={headerItemRef}
+                                >
+                                    <span>
+                                        {archivedIcon}
+                                        {channelTitle}
+                                        {sharedIcon}
+                                    </span>
+                                </strong>
+                            </WithTooltip>
+                        ) : (
+                            <strong
+                                role='heading'
+                                aria-level={2}
+                                id='channelHeaderTitle'
+                                className='heading'
+                                ref={headerItemRef}
+                            >
+                                <span>
+                                    {archivedIcon}
+                                    {channelTitle}
+                                    {sharedIcon}
+                                </span>
+                            </strong>
+                        )}
                         <span
                             id='channelHeaderDropdownIcon'
                             className='icon icon-chevron-down header-dropdown-chevron-icon'
@@ -120,8 +180,7 @@ const ChannelHeaderTitle = ({
                 </div>
                 <ChannelHeaderDropdown/>
             </MenuWrapper>
-            <ChannelHeaderTitleFavorite/>
-        </React.Fragment>
+        </div>
     );
 };
 
