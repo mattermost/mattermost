@@ -9,8 +9,6 @@ import {ToPaidPlanBannerDismissable} from 'components/admin_console/billing/bill
 import PostLimitsAnnouncementBar from 'components/announcement_bar/post_limits_announcement_bar';
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 
-import CloudAnnualRenewalAnnouncementBar from './cloud_annual_renewal';
-import CloudDelinquencyAnnouncementBar from './cloud_delinquency';
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
 import ConfigurationAnnouncementBar from './configuration_bar';
@@ -69,8 +67,6 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         let paymentAnnouncementBar = null;
         let cloudTrialAnnouncementBar = null;
         let cloudTrialEndAnnouncementBar = null;
-        let cloudDelinquencyAnnouncementBar = null;
-        let cloudRenewalAnnouncementBar = null;
         const notifyAdminDowngradeDelinquencyBar = null;
         const toYearlyNudgeBannerDismissable = null;
         let toPaidPlanNudgeBannerDismissable = null;
@@ -84,12 +80,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             cloudTrialEndAnnouncementBar = (
                 <CloudTrialEndAnnouncementBar/>
             );
-            cloudDelinquencyAnnouncementBar = (
-                <CloudDelinquencyAnnouncementBar/>
-            );
-            cloudRenewalAnnouncementBar = (
-                <CloudAnnualRenewalAnnouncementBar/>
-            );
+
             toPaidPlanNudgeBannerDismissable = (<ToPaidPlanBannerDismissable/>);
         }
 
@@ -124,8 +115,6 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                 {paymentAnnouncementBar}
                 {cloudTrialAnnouncementBar}
                 {cloudTrialEndAnnouncementBar}
-                {cloudDelinquencyAnnouncementBar}
-                {cloudRenewalAnnouncementBar}
                 {notifyAdminDowngradeDelinquencyBar}
                 {toYearlyNudgeBannerDismissable}
                 {toPaidPlanNudgeBannerDismissable}
