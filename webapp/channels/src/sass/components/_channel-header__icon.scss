@@ -9,7 +9,7 @@
     padding: 0;
     border: none;
     border-radius: 4px;
-    margin: 16px 0 0 4px;
+    margin: 0 0 0 4px;
     background: transparent;
     color: rgba(var(--center-channel-color-rgb), 0.64);
     cursor: pointer;
@@ -40,6 +40,7 @@
 
     &:active,
     &--active,
+    &--active.btn.btn-icon,
     &--active:hover {
         background: rgba(var(--button-bg-rgb), 0.08);
         color: v(button-bg);
@@ -62,7 +63,6 @@
     }
 
     .icon__text {
-        margin: 0 2px;
         font-weight: 600;
     }
 
@@ -71,7 +71,7 @@
     }
 }
 
-.channel-header__icon--wide {
+.channel-header__info .channel-header__icons .channel-header__icon--wide {
     width: auto;
     min-width: unset;
     padding: 0 6px;
@@ -80,7 +80,7 @@
 .channel-header__icon--left {
     height: unset;
     padding: 4px;
-    margin: 0 4px 0 0;
+    margin: 0;
 
     .icon {
         width: 16px;
