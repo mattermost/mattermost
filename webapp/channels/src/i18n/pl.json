@@ -309,7 +309,7 @@
   "admin.billing.history.onPremSeats": "{num} miejsca",
   "admin.billing.history.pageInfo": "{startRecord} - {endRecord} z {totalRecords}",
   "admin.billing.history.paid": "Płatne",
-  "admin.billing.history.paymentFailed": "Płatność nie powiodła się",
+  "admin.billing.history.paymentFailed": "Płatność się nie powiodła",
   "admin.billing.history.pending": "Oczekiwanie",
   "admin.billing.history.seatsAndRates": "{fullUsers} miejsca po stawce pełnej, {partialUsers} miejsca z opłatami częściowymi",
   "admin.billing.history.seeHowBillingWorks": "Zobacz jak działa rozliczenie",
