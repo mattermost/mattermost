@@ -481,7 +481,7 @@ func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.
 		}
 
 		if _, err := a.ShareChannel(c, sc); err != nil {
-			c.Logger().Error("Failed to share newly created direct channel", mlog.String("channelId", channel.Id), mlog.Err(err))
+			c.Logger().Error("Failed to share newly created direct channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 		}
 	}
 
