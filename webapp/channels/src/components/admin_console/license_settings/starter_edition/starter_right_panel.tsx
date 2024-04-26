@@ -5,7 +5,6 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
 import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
 
 const StarterRightPanel = () => {
@@ -44,15 +43,6 @@ const StarterRightPanel = () => {
                 })}
             </div>
             <div className='purchase_buttons'>
-                <PurchaseLink
-                    eventID='post_trial_purchase_license'
-                    buttonTextElement={
-                        <FormattedMessage
-                            id='admin.license.trialCard.purchase'
-                            defaultMessage='Purchase'
-                        />
-                    }
-                />
                 <ContactUsButton
                     eventID='post_trial_contact_sales'
                 />

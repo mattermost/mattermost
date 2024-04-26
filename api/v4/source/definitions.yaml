@@ -3637,7 +3637,7 @@ components:
         state:
           description: The current state of the installation
           type: string
-    UserLimits:
+    ServerLimits:
       type: object
       properties:
         maxUsersLimit:

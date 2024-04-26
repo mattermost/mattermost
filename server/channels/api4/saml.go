@@ -52,7 +52,7 @@ func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 func parseSamlCertificateRequest(r *http.Request, maxFileSize int64) (*multipart.FileHeader, *model.AppError) {
 	err := r.ParseMultipartForm(maxFileSize)
 	if err != nil {
-		return nil, model.NewAppError("addSamlCertificate", "api.admin.add_certificate.no_file.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("addSamlCertificate", "api.admin.add_certificate.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	m := r.MultipartForm
@@ -130,7 +130,7 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	d, _, err := mime.ParseMediaType(v)
 	if err != nil {
-		c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -141,7 +141,7 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 	if d == "application/x-pem-file" {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+			c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			return
 		}
 
@@ -251,7 +251,7 @@ func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	metadata, err := c.App.GetSamlMetadataFromIdp(url)
 	if err != nil {
-		c.Err = model.NewAppError("getSamlMetadataFromIdp", "api.admin.saml.failure_get_metadata_from_idp.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("getSamlMetadataFromIdp", "api.admin.saml.failure_get_metadata_from_idp.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 

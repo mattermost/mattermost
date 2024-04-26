@@ -4452,10 +4452,6 @@
     "translation": "Inserire un indirizzo email valido."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "La tua password deve contenere almeno {{.Min}} caratteri."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno una lettera minuscola."
   },
@@ -8093,10 +8089,6 @@
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
-    "translation": " "
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
     "translation": " "
   },
   {
