@@ -24,12 +24,12 @@
             @include link;
 
             display: flex;
+            margin-top: 12px;
             color: rgba(var(--center-channel-color-rgb), 0.75);
             font-family: 'Metropolis';
             font-size: 20px;
             font-weight: 500;
             line-height: 28px;
-            margin-top: 12px;
             text-decoration: none;
 
             &:hover, &:active, &:visited, &:link {
