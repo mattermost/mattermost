@@ -153,7 +153,7 @@ body.app__body #root {
         display: grid;
         overflow:hidden;
         background-color: var(--sidebar-bg);
-        outline: var(--border-light);
+        border: var(--border-light);
         margin: 0 8px 8px 8px;
         border-radius: var(--radius-l);
         grid-area: main;
@@ -256,7 +256,7 @@ body.app__body #root {
 
                 .channel-view {
                     border-radius: 0;
-                    border:none;
+                    border: none;
                     box-shadow: none;
                 }
             }
@@ -287,7 +287,7 @@ body.app__body #root {
 #channel_view.channel-view {
     overflow: hidden;
     border-radius: var(--radius-l);
-    border-left: var(--border-default);
+    border-left: var(--border-light);
     background: var(--center-channel-bg);
     box-shadow: var(--elevation-1);
 }

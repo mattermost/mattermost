@@ -132,7 +132,7 @@
         overflow: hidden;
         height: 2.4rem;
         padding: 0 8px;
-        border-left: var(--border-default);
+        border-left: var(--border-light);
         margin: 0 0 0 8px;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         cursor: pointer;
@@ -185,7 +185,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 0 16px 0 0;
-        border-bottom: var(--border-default);
+        border-bottom: var(--border-light);
         color: inherit;
         white-space: nowrap;
 
