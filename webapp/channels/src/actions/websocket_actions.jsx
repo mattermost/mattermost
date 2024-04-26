@@ -676,7 +676,9 @@ function debouncePostEvent(wait) {
             if (queue.push(msg) > 200) {
                 // Don't run us out of memory, give up if the queue gets insane
                 queue = [];
-                console.log('channel broken because of too many incoming messages'); //eslint-disable-line no-console
+                if (window.logPostEvents) {
+                    console.log('channel broken because of too many incoming messages'); //eslint-disable-line no-console
+                }
             }
             clearTimeout(timeout);
             timeout = setTimeout(triggered, wait);
@@ -692,8 +694,11 @@ function debouncePostEvent(wait) {
 
 const handleNewPostEventDebounced = debouncePostEvent(100);
 
+let counterForNewPost = 0;
 export function handleNewPostEvent(msg) {
     return (myDispatch, myGetState) => {
+        counterForNewPost++;
+
         const post = JSON.parse(msg.data.post);
 
         if (window.logPostEvents) {
@@ -722,10 +727,24 @@ export function handleNewPostEvent(msg) {
     };
 }
 
+let interval = 0;
+setInterval(() => {
+    // eslint-disable-next-line no-console
+    console.table({
+        'interval (s)': interval,
+        Total: counterForNewPost + counterForManyPosts,
+        Many: counterForManyPosts,
+        Single: counterForNewPost,
+    });
+    interval += 10;
+}, 10000);
+
+let counterForManyPosts = 0;
 export function handleNewPostEvents(queue) {
     return (myDispatch, myGetState) => {
         // Note that this method doesn't properly update the sidebar state for these posts
         const posts = queue.map((msg) => JSON.parse(msg.data.post));
+        counterForManyPosts++;
 
         if (window.logPostEvents) {
             // eslint-disable-next-line no-console
