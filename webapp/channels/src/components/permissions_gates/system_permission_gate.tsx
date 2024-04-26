@@ -4,22 +4,13 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
-import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import type {GlobalState} from '@mattermost/types/store';
 
-import type {GlobalState} from 'types/store';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
 
 import Gate from './gate';
 
 type Props = {
-
-    /**
-     * Team to check the permission
-     */
-    teamId?: string;
-
-    /**
-     * Permissions enough to pass the gate (binary OR)
-     */
     permissions: string[];
 
     /**
@@ -33,19 +24,14 @@ type Props = {
     children: React.ReactNode;
 };
 
-const TeamPermissionGate = ({
-    teamId,
-    permissions,
+const SystemPermissionGate = ({
     invert = false,
+    permissions,
     children,
 }: Props) => {
     const hasPermission = useSelector((state: GlobalState) => {
-        if (!teamId) {
-            return false;
-        }
-
         for (const permission of permissions) {
-            if (haveITeamPermission(state, teamId, permission)) {
+            if (haveISystemPermission(state, {permission})) {
                 return true;
             }
         }
@@ -63,4 +49,4 @@ const TeamPermissionGate = ({
     );
 };
 
-export default React.memo(TeamPermissionGate);
+export default React.memo(SystemPermissionGate);

@@ -4,13 +4,18 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
-import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import type {GlobalState} from '@mattermost/types/store';
 
-import type {GlobalState} from 'types/store';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import Gate from './gate';
 
 type Props = {
+
+    /**
+     * Channel to check the permission
+     */
+    channelId?: string;
 
     /**
      * Team to check the permission
@@ -31,25 +36,18 @@ type Props = {
      * Content protected by the permissions gate
      */
     children: React.ReactNode;
-};
+}
 
-const TeamPermissionGate = ({
-    teamId,
-    permissions,
-    invert = false,
-    children,
-}: Props) => {
+const ChannelPermissionGate = ({channelId, teamId, permissions, children, invert = false}: Props) => {
     const hasPermission = useSelector((state: GlobalState) => {
-        if (!teamId) {
+        if (!channelId || teamId === null || typeof teamId === 'undefined') {
             return false;
         }
-
         for (const permission of permissions) {
-            if (haveITeamPermission(state, teamId, permission)) {
+            if (haveIChannelPermission(state, teamId, channelId, permission)) {
                 return true;
             }
         }
-
         return false;
     });
 
@@ -63,4 +61,4 @@ const TeamPermissionGate = ({
     );
 };
 
-export default React.memo(TeamPermissionGate);
+export default React.memo(ChannelPermissionGate);

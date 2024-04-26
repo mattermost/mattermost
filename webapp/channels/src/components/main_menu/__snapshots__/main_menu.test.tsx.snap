@@ -210,7 +210,7 @@ exports[`components/Menu should match snapshot with guest access disabled and no
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "create_team",
@@ -226,7 +226,7 @@ exports[`components/Menu should match snapshot with guest access disabled and no
         text="Create a Team"
         to="/create_team"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <Memo(MenuGroup)>
       <div
         className="MainMenu_dropdown-link"
@@ -418,7 +418,7 @@ exports[`components/Menu should match snapshot with id 1`] = `
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "create_team",
@@ -434,7 +434,7 @@ exports[`components/Menu should match snapshot with id 1`] = `
         text="Create a Team"
         to="/create_team"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <Memo(MenuGroup)>
       <div
         className="MainMenu_dropdown-link"
@@ -625,7 +625,7 @@ exports[`components/Menu should match snapshot with most of the thing disabled 1
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "create_team",
@@ -641,7 +641,7 @@ exports[`components/Menu should match snapshot with most of the thing disabled 1
         text="Create a Team"
         to="/create_team"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <Memo(MenuGroup)>
       <div
         className="MainMenu_dropdown-link"
@@ -659,7 +659,7 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
   ariaLabel="main menu"
 >
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_write_billing",
@@ -669,10 +669,10 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
       <MenuCloudTrial
         id="menuCloudTrial"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_write_about_edition_and_license",
@@ -682,7 +682,7 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
       <MenuStartTrial
         id="startTrial"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
     <MenuItemAction
@@ -944,7 +944,7 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
     </Memo(TeamPermissionGate)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "create_team",
@@ -962,7 +962,7 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
         text="Create a Team"
         to="/create_team"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <MenuItemLink
       icon={
         <i
@@ -1245,7 +1245,7 @@ exports[`components/Menu should match snapshot with most of the thing enabled 1`
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "create_team",
@@ -1261,7 +1261,7 @@ exports[`components/Menu should match snapshot with most of the thing enabled 1`
         text="Create a Team"
         to="/create_team"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <Memo(MenuGroup)>
       <div
         className="MainMenu_dropdown-link"
@@ -1279,7 +1279,7 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
   ariaLabel="main menu"
 >
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_write_billing",
@@ -1289,10 +1289,10 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
       <MenuCloudTrial
         id="menuCloudTrial"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_write_about_edition_and_license",
@@ -1302,7 +1302,7 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
       <MenuStartTrial
         id="startTrial"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
     <MenuItemAction
@@ -1564,7 +1564,7 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
     </Memo(TeamPermissionGate)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "create_team",
@@ -1582,7 +1582,7 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
         text="Create a Team"
         to="/create_team"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <MenuItemLink
       icon={
         <i
@@ -1867,7 +1867,7 @@ exports[`components/Menu should match snapshot with plugins 1`] = `
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "create_team",
@@ -1883,7 +1883,7 @@ exports[`components/Menu should match snapshot with plugins 1`] = `
         text="Create a Team"
         to="/create_team"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <Memo(MenuGroup)>
       <div
         className="MainMenu_dropdown-link"
@@ -1916,7 +1916,7 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
   ariaLabel="main menu"
 >
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_write_billing",
@@ -1926,10 +1926,10 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
       <MenuCloudTrial
         id="menuCloudTrial"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_write_about_edition_and_license",
@@ -1939,7 +1939,7 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
       <MenuStartTrial
         id="startTrial"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
     <MenuItemAction
@@ -2201,7 +2201,7 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
     </Memo(TeamPermissionGate)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "create_team",
@@ -2219,7 +2219,7 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
         text="Create a Team"
         to="/create_team"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <MenuItemLink
       icon={
         <i

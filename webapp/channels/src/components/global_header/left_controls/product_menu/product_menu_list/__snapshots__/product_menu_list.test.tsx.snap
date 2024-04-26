@@ -11,7 +11,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
     <MenuItemCloudLimit
       id="menuItemCloudLimit"
     />
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_write_about_edition_and_license",
@@ -21,8 +21,8 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       <MenuStartTrial
         id="startTrial"
       />
-    </Connect(SystemPermissionGate)>
-    <Connect(SystemPermissionGate)
+    </Memo(SystemPermissionGate)>
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_read_about_edition_and_license",
@@ -97,7 +97,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
         }
         to="/admin_console"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <MenuItemLink
       icon={
         <WebhookIncomingIcon
@@ -209,7 +209,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
     <MenuItemCloudLimit
       id="menuItemCloudLimit"
     />
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_write_about_edition_and_license",
@@ -219,8 +219,8 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       <MenuStartTrial
         id="startTrial"
       />
-    </Connect(SystemPermissionGate)>
-    <Connect(SystemPermissionGate)
+    </Memo(SystemPermissionGate)>
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_read_about_edition_and_license",
@@ -295,7 +295,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
         }
         to="/admin_console"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <MenuItemLink
       icon={
         <WebhookIncomingIcon
@@ -533,7 +533,7 @@ exports[`components/global/product_switcher_menu should show integrations should
     <MenuItemCloudLimit
       id="menuItemCloudLimit"
     />
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_write_about_edition_and_license",
@@ -543,8 +543,8 @@ exports[`components/global/product_switcher_menu should show integrations should
       <MenuStartTrial
         id="startTrial"
       />
-    </Connect(SystemPermissionGate)>
-    <Connect(SystemPermissionGate)
+    </Memo(SystemPermissionGate)>
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_read_about_edition_and_license",
@@ -619,7 +619,7 @@ exports[`components/global/product_switcher_menu should show integrations should
         }
         to="/admin_console"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <MenuItemLink
       icon={
         <WebhookIncomingIcon

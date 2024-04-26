@@ -12,7 +12,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
     style={Object {}}
   >
     <Memo(MenuGroup)>
-      <Connect(SystemPermissionGate)
+      <Memo(SystemPermissionGate)
         permissions={
           Array [
             "sysconsole_write_billing",
@@ -22,10 +22,10 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         <MenuCloudTrial
           id="menuCloudTrial"
         />
-      </Connect(SystemPermissionGate)>
+      </Memo(SystemPermissionGate)>
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
-      <Connect(SystemPermissionGate)
+      <Memo(SystemPermissionGate)
         permissions={
           Array [
             "sysconsole_write_about_edition_and_license",
@@ -35,7 +35,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         <MenuStartTrial
           id="startTrial"
         />
-      </Connect(SystemPermissionGate)>
+      </Memo(SystemPermissionGate)>
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
       <MenuItemAction
@@ -297,7 +297,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
       </Memo(TeamPermissionGate)>
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
-      <Connect(SystemPermissionGate)
+      <Memo(SystemPermissionGate)
         permissions={
           Array [
             "create_team",
@@ -315,7 +315,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           text="Create a Team"
           to="/create_team"
         />
-      </Connect(SystemPermissionGate)>
+      </Memo(SystemPermissionGate)>
       <MenuItemLink
         icon={
           <i
@@ -614,7 +614,7 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
       />
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
-      <Connect(SystemPermissionGate)
+      <Memo(SystemPermissionGate)
         permissions={
           Array [
             "create_team",
@@ -630,7 +630,7 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           text="Create a Team"
           to="/create_team"
         />
-      </Connect(SystemPermissionGate)>
+      </Memo(SystemPermissionGate)>
       <Memo(MenuGroup)>
         <div
           className="MainMenu_dropdown-link"
