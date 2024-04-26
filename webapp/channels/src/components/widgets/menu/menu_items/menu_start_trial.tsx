@@ -1,15 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import type {GlobalState} from '@mattermost/types/store';
 
-import {isTrialLicense} from 'utils/license_utils';
+import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
+import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
+import {Permissions} from 'mattermost-redux/constants';
+
+import {trackEvent} from 'actions/telemetry_actions';
+import {openModal} from 'actions/views/modals';
+
+import {makeAsyncComponent} from 'components/async_load';
+
+import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import './menu_item.scss';
+
+const LearnMoreTrialModal = makeAsyncComponent('LearnMoreTrialModal', React.lazy(() => import('components/learn_more_trial_modal/learn_more_trial_modal')));
 
 type Props = {
     id: string;
@@ -17,21 +29,36 @@ type Props = {
 
 const MenuStartTrial = (props: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
 
+    useEffect(() => {
+        dispatch(getPrevTrialLicense());
+    }, []);
+
+    const config = useSelector(getConfig);
+    const isE0 = config.BuildEnterpriseReady === 'true';
+    const hasPermissionForStartTrial = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE}));
+
+    const openLearnMoreTrialModal = () => {
+        trackEvent(
+            TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
+            'open_learn_more_trial_modal',
+        );
+        dispatch(openModal({
+            modalId: ModalIdentifiers.LEARN_MORE_TRIAL_MODAL,
+            dialogType: LearnMoreTrialModal,
+        }));
+    };
+    const prevTrialLicense = useSelector((state: GlobalState) => state.entities.admin.prevTrialLicense);
     const license = useSelector(getLicense);
+    const isPrevLicensed = prevTrialLicense?.IsLicensed;
     const isCurrentLicensed = license?.IsLicensed;
-    const isCurrentLicenseTrial = isTrialLicense(license);
 
-    let editionName = "Free Edition";
-
-    if (isCurrentLicenseTrial) {
-        editionName = "Enterprise Edition (Trial)"
-    } else if (isCurrentLicensed === 'true' && license.SkuName) {
-        editionName = license.SkuName.charAt(0).toUpperCase() + license.SkuName.slice(1) + " Edition";
-    } else if (isCurrentLicensed === 'true') {
+    if (isCurrentLicensed === 'true') {
         return null;
     }
 
+    const showTrialButton = isCurrentLicensed === 'false' && isPrevLicensed === 'false' && hasPermissionForStartTrial && isE0;
 
     return (
         <li
@@ -39,13 +66,25 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
             role='menuitem'
             id={props.id}
         >
-            <div className='free_version_badge'>{editionName.toUpperCase()}</div>
-            <div className='start_trial_content'>
-                {formatMessage({
-                    id: 'navbar_dropdown.versionText',
-                    defaultMessage: 'This server is currently on the {edition} of Mattermost.',
-                }, {edition: editionName})}
-            </div>
+            <div className='free_version_badge'>{'FREE EDITION'}</div>
+            {isE0 &&
+                <div className='start_trial_content'>
+                    {formatMessage({
+                        id: 'navbar_dropdown.versionTextTeamEdition',
+                        defaultMessage: 'This is the free edition of Mattermost, ideal for evaluation and small teams.',
+                    })}
+                </div>}
+            {!isE0 &&
+                <div className='start_trial_content'>
+                    {formatMessage({
+                        id: 'navbar_dropdown.versionTextTeamEdition',
+                        defaultMessage: 'This is the free open source edition of Mattermost, ideal for evaluation and small teams.',
+                    })}
+                </div>}
+            {showTrialButton &&
+                <button onClick={openLearnMoreTrialModal}>
+                    {formatMessage({id: 'navbar_dropdown.startAnEnterpriseTrial', defaultMessage: 'Start an Enterprise trial'})}
+                </button>}
         </li>
     );
 };

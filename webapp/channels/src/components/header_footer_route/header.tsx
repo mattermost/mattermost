@@ -24,21 +24,43 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
 
     const ariaLabel = EnableCustomBrand === 'true' && SiteName ? SiteName : 'Mattermost';
 
-    let title = EnableCustomBrand === 'true' || SiteName !== 'Mattermost' ? SiteName : <Logo/>;
+    let freeBanner = null;
     if (license.IsLicensed === 'false') {
-        title = <><Logo/><span className='freeBadge'>{'FREE EDITION'}</span></>;
+        freeBanner = <><Logo/><span className='freeBadge'>{'FREE EDITION'}</span></>;
+    }
+
+    let title: React.ReactNode = SiteName
+    if (EnableCustomBrand !== 'true' || SiteName === 'Mattermost') {
+        if (freeBanner) {
+            title = '';
+        } else {
+            title = <Logo/>
+        }
     }
 
     return (
         <div className='hfroute-header'>
             <div className='header-main'>
-                <Link
-                    className='header-logo-link'
-                    to='/'
-                    aria-label={ariaLabel}
-                >
-                    {title}
-                </Link>
+                <div>
+                    {freeBanner &&
+                        <Link
+                            className='header-logo-link'
+                            to='/'
+                            aria-label={ariaLabel}
+                        >
+                            {freeBanner}
+                        </Link>
+                    }
+                    {title &&
+                        <Link
+                            className='header-logo-link'
+                            to='/'
+                            aria-label={ariaLabel}
+                        >
+                            {title}
+                        </Link>
+                    }
+                </div>
                 {alternateLink}
             </div>
             {onBackButtonClick && (

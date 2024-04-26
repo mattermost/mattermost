@@ -353,6 +353,10 @@
             letter-spacing: 0.025em;
             line-height: 16px;
         }
+
+        .editionName {
+            text-transform: capitalize;
+        }
     }
 }
 
