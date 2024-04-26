@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import nock from 'nock';
 import {onCLS, onFCP, onINP, onLCP, onTTFB} from 'web-vitals';
 
 import {Client4} from '@mattermost/client';
@@ -20,6 +21,8 @@ initializePerformanceMocks();
 const sendBeacon = jest.fn().mockReturnValue(true);
 navigator.sendBeacon = sendBeacon;
 
+const siteUrl = 'http://localhost:8065';
+
 describe('PerformanceReporter', () => {
     afterEach(() => {
         performance.clearMarks();
@@ -27,7 +30,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should report measurements to the server as histograms', async () => {
-        const reporter = newTestReporter();
+        const {reporter} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -43,7 +46,7 @@ describe('PerformanceReporter', () => {
         await waitForReport();
 
         expect(sendBeacon).toHaveBeenCalled();
-        expect(sendBeacon.mock.calls[0][0]).toEqual('/api/v4/metrics');
+        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/metrics');
         const report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
             histograms: [
@@ -58,7 +61,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should report some marks to the server as counters', async () => {
-        const reporter = newTestReporter();
+        const {reporter} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -78,7 +81,7 @@ describe('PerformanceReporter', () => {
         await waitForReport();
 
         expect(sendBeacon).toHaveBeenCalled();
-        expect(sendBeacon.mock.calls[0][0]).toEqual('/api/v4/metrics');
+        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/metrics');
         const report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
             counters: [
@@ -97,7 +100,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should report longtasks to the server as counters', async () => {
-        const reporter = newTestReporter();
+        const {reporter} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -127,7 +130,7 @@ describe('PerformanceReporter', () => {
         await waitForReport();
 
         expect(sendBeacon).toHaveBeenCalled();
-        expect(sendBeacon.mock.calls[0][0]).toEqual('/api/v4/metrics');
+        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/metrics');
         const report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
             counters: [
@@ -142,7 +145,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should report web vitals to the server as histograms', async () => {
-        const reporter = newTestReporter();
+        const {reporter} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -155,7 +158,7 @@ describe('PerformanceReporter', () => {
         await waitForReport();
 
         expect(sendBeacon).toHaveBeenCalled();
-        expect(sendBeacon.mock.calls[0][0]).toEqual('/api/v4/metrics');
+        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/metrics');
         let report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
             histograms: [
@@ -182,7 +185,7 @@ describe('PerformanceReporter', () => {
         await waitForReport();
 
         expect(sendBeacon).toHaveBeenCalled();
-        expect(sendBeacon.mock.calls[0][0]).toEqual('/api/v4/metrics');
+        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/metrics');
         report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
             histograms: [
@@ -205,7 +208,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should not report anything if EnableClientMetrics is false', async () => {
-        const reporter = newTestReporter(false);
+        const {reporter} = newTestReporter(false);
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -223,7 +226,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should not report anything if the user is not logged in', async () => {
-        const reporter = newTestReporter(true, false);
+        const {reporter} = newTestReporter(true, false);
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -239,6 +242,30 @@ describe('PerformanceReporter', () => {
         expect(reporter.maybeSendMeasures).toHaveBeenCalled();
         expect(sendBeacon).not.toHaveBeenCalled();
     });
+
+    test('should fall back to making a fetch request if a beacon cannot be sent', async () => {
+        const {client, reporter} = newTestReporter();
+        reporter.observe();
+
+        sendBeacon.mockReturnValue(false);
+        const mock = nock(client.getBaseRoute()).
+            post('/metrics').
+            reply(200);
+
+        expect(sendBeacon).not.toHaveBeenCalled();
+        expect(mock.isDone()).toBe(false);
+
+        markAndReport('reportedA');
+
+        await waitForObservations();
+
+        expect(reporter.handleObservations).toHaveBeenCalled();
+
+        await waitForReport();
+
+        expect(sendBeacon).toHaveBeenCalled();
+        expect(mock.isDone()).toBe(true);
+    });
 });
 
 class TestPerformanceReporter extends PerformanceReporter {
@@ -253,7 +280,10 @@ class TestPerformanceReporter extends PerformanceReporter {
 }
 
 function newTestReporter(telemetryEnabled = true, loggedIn = true) {
-    return new TestPerformanceReporter(new Client4(), configureStore({
+    const client = new Client4();
+    client.setUrl(siteUrl);
+
+    const reporter = new TestPerformanceReporter(client, configureStore({
         entities: {
             general: {
                 config: {
@@ -265,6 +295,8 @@ function newTestReporter(telemetryEnabled = true, loggedIn = true) {
             },
         },
     }));
+
+    return {client, reporter};
 }
 
 function waitForReport() {
