@@ -1014,6 +1014,7 @@ type ExperimentalSettings struct {
 	DisableAppBar                   *bool   `access:"experimental_features"`
 	DisableRefetchingOnBrowserFocus *bool   `access:"experimental_features"`
 	DelayChannelAutocomplete        *bool   `access:"experimental_features"`
+	EnableClientMetrics             *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1051,6 +1052,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.DelayChannelAutocomplete == nil {
 		s.DelayChannelAutocomplete = NewBool(false)
+	}
+
+	if s.EnableClientMetrics == nil {
+		s.EnableClientMetrics = NewBool(false)
 	}
 }
 
