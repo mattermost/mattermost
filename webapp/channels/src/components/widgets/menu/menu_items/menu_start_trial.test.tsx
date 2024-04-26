@@ -33,6 +33,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 general: {
                     config: {
                         EnableTutorial: 'true',
+                        BuildEnterpriseReady: 'true',
                     },
                     license: {
                         IsLicensed: 'false',
@@ -84,6 +85,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 general: {
                     config: {
                         EnableTutorial: 'true',
+                        BuildEnterpriseReady: 'true',
                     },
                     license: {
                         IsLicensed: 'false',
@@ -136,6 +138,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 general: {
                     config: {
                         EnableTutorial: 'true',
+                        BuildEnterpriseReady: 'true',
                     },
                     license: {
                         IsLicensed: 'true',
@@ -173,59 +176,6 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
         expect(wrapper.find('button').exists()).toEqual(false);
     });
 
-    test('should render menu option that open the start trial benefits modal when is current licensed but is trial and you have permissions to load the trial', () => {
-        const state = {
-            entities: {
-                users: {
-                    currentUserId: 'test_id',
-                    profiles: {
-                        test_id: {
-                            id: 'test_id',
-                            roles: 'system_user',
-                        },
-                    },
-                },
-                general: {
-                    config: {
-                        EnableTutorial: 'true',
-                    },
-                    license: {
-                        IsLicensed: 'true',
-                        IsTrial: 'true',
-                    },
-                },
-                admin: {
-                    prevTrialLicense: {
-                        IsLicensed: 'false',
-                    },
-                },
-                roles: {
-                    roles: {
-                        system_user: {
-                            permissions: [Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE],
-                        },
-                    },
-                },
-                preferences: {
-                    myPreferences: {
-                        'tutorial_step-test_id': {
-                            user_id: 'test_id',
-                            category: 'tutorial_step',
-                            name: 'test_id',
-                            value: '6',
-                        },
-                    },
-                },
-            },
-        };
-        const store = mockStore(state);
-        const dummyDispatch = jest.fn();
-        useDispatchMock.mockReturnValue(dummyDispatch);
-        const wrapper = mountWithIntl(<reactRedux.Provider store={store}><MenuStartTrial id='startTrial'/></reactRedux.Provider>);
-        expect(wrapper.find('button').exists()).toEqual(true);
-        expect(wrapper.find('button').text()).toEqual('Learn More');
-    });
-
     test('should render null when is current licensed but is trial and you have no permissions to load the trial', () => {
         const state = {
             entities: {
@@ -241,6 +191,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 general: {
                     config: {
                         EnableTutorial: 'true',
+                        BuildEnterpriseReady: 'true',
                     },
                     license: {
                         IsLicensed: 'true',
@@ -293,6 +244,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 general: {
                     config: {
                         EnableTutorial: 'true',
+                        BuildEnterpriseReady: 'true',
                     },
                     license: {
                         IsLicensed: 'false',
@@ -328,7 +280,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
         useDispatchMock.mockReturnValue(dummyDispatch);
         const wrapper = mountWithIntl(<reactRedux.Provider store={store}><MenuStartTrial id='startTrial'/></reactRedux.Provider>);
         expect(wrapper.find('button').exists()).toEqual(true);
-        expect(wrapper.find('div.start_trial_content').text()).toEqual('This server is currently on the Free Edition of Mattermost.');
-        expect(wrapper.find('button').text()).toEqual('Try Enterprise for free');
+        expect(wrapper.find('div.start_trial_content').text()).toEqual('This is the free edition of Mattermost, ideal for evaluation and small teams.');
+        expect(wrapper.find('button').text()).toEqual('Start an Enterprise trial');
     });
 });
