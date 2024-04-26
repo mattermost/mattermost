@@ -70,7 +70,6 @@ export default class PerformanceReporter {
 
         this.observer.observe({
             entryTypes: observedEntryTypes,
-            buffered: true,
         });
 
         // Register handlers for standard metrics and Web Vitals

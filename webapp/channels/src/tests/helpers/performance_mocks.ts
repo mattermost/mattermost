@@ -8,9 +8,6 @@ import {PerformanceObserver as NodePerformanceObserver, performance as nodePerfo
 //
 // To use PerformanceObserver, you need to use a `setTimeout` or `await observations()` to have a PerformanceObserver's
 // callback get called. See the accompanying tests for examples.
-//
-// Also, as of the time of writing this, calling an observer's `observe` method with `buffered: true` doesn't call
-// the callback for entries entries from before it was called, unlike how a browser's `PerformanceObserver` works.
 
 export function initializePerformanceMocks() {
     Object.defineProperty(window, 'performance', {
