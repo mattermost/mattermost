@@ -2255,7 +2255,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "未能升级 WebSocket 连接。"
+    "translation": "URL 由于 CORS 而被阻止。Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -2859,7 +2859,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "当机群开启并使用 ReadOnlyConfig 时，config.json 文件中的插件设置必须手动上传。"
+    "translation": "当集群开启并使用 ReadOnlyConfig 时，config.json 文件中的插件设置必须手动上传。"
   },
   {
     "id": "app.plugin.config.app_error",
@@ -2883,7 +2883,7 @@
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
-    "translation": "无法从机群获取插件状态。"
+    "translation": "无法从集群获取插件状态。"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -2987,7 +2987,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "机群设定 id={{ .id }} 已更改。机群可能不稳定并且需要重启。为了确保机群配置正确您应该立刻逐进重启。"
+    "translation": "id={{ .id }} 的集群配置已更改。集群可能不稳定并且需要重启。为确保集群配置正确，您应该立刻进行滚动重启。"
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -3318,16 +3318,8 @@
     "translation": "尝试向身份提供者请求时发生错误。请联系您的系统管理员。"
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "尝试编码身份提供者请求时发生错误。请联系您的系统管理员。"
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML 登入因加密未开启而失败。请联系您的系统管理员。"
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "身份认证提供者公共证书文件没有被发现。请与系统管理员联系。"
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3338,20 +3330,12 @@
     "translation": "SAML登录因身份服务提供者回应未加密而失败。请联系您的系统管理员。"
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML 登入因解码身份服务提供者回复发生错误而失败。请联系您的系统管理员。"
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "我们收到留一份来自身份提供者的空白请求。"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "尝试解析身份提供者回复时发生错误。请联系您的系统管理员。"
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "尝试验证身份提供者回复时发生错误。请联系您的系统管理员。"
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -3707,7 +3691,7 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "当机群启用时没法启动批量电子邮件。"
+    "translation": "当集群启用时无法启用批量电子邮件。"
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
@@ -4462,10 +4446,6 @@
     "translation": "无效的邮箱。"
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "你的密码需要至少 {{.Min}} 字符。"
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "您的密码必须包含至少 {{.Min}} 字符元且至少有一个小写字母。"
   },
@@ -4971,7 +4951,7 @@
   },
   {
     "id": "ent.cluster.timeout.error",
-    "translation": "等待机群回应超时"
+    "translation": "等待集群响应超时"
   },
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
@@ -5179,7 +5159,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-    "translation": "无效的频道成员更新：您不能手动添加或移除游客角色。"
+    "translation": "频道成员更新无效：您不能手动添加或移除访客角色。"
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -5235,7 +5215,7 @@
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
-    "translation": "无效的团队成员更新：用户不能同时为游客和用户。"
+    "translation": "频道成员更新无效：用户不能同时作为访客和用户。"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -5351,7 +5331,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "尺寸超过限制。请检查您的[最大页面尺寸](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)。"
+    "translation": "大小超过限制。尝试增大您的最大页面大小设置。查看 https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded 以了解更多详情。"
   },
   {
     "id": "group_not_associated_to_synced_team",
@@ -5443,7 +5423,7 @@
   },
   {
     "id": "api.channel.add_guest.added",
-    "translation": "%v 由 %v 以访客身份加入频道。"
+    "translation": "%v 由 %v 以访客身份添加至频道。"
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
@@ -5455,7 +5435,7 @@
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
-    "translation": "%v 以游客身份加入此频道。"
+    "translation": "%v 以访客身份加入频道。"
   },
   {
     "id": "api.channel.patch_channel_moderations.license.error",
@@ -5479,7 +5459,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
-    "translation": "无效的频道成员更新：用户不能同时为游客和用户。"
+    "translation": "频道成员更新无效：用户不能同时作为访客和用户。"
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
@@ -5487,7 +5467,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-    "translation": "无效的团队成员更新：您不能手动添加或移除游客角色。"
+    "translation": "频道成员更新无效：您不能手动添加或移除访客角色。"
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
@@ -5579,7 +5559,7 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "游客不能使用邀请链接加入团队。请申请使用游客邮件邀请加入团队."
+    "translation": "访客不能使用邀请链接加入团队。请申请加入团队的访客邮件邀请。"
   },
   {
     "id": "api.team.get_all_teams.insufficient_permissions",
@@ -6407,7 +6387,7 @@
   },
   {
     "id": "ent.cluster.404.app_error",
-    "translation": "未找到机群 API 接口。"
+    "translation": "未找到集群 API 接口。"
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -7660,10 +7640,6 @@
   {
     "id": "app.post.get_files_batch_for_indexing.get.app_error",
     "translation": "无法批量获取要建立索引的文件。"
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "导入期间读取文件附件失败。"
   },
   {
     "id": "app.export.zip_create.error",
@@ -9623,7 +9599,7 @@
   },
   {
     "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
-    "translation": "用户不被允许将群组消息转换为私人频道"
+    "translation": "用户未被允许将群组消息转换为私人频道"
   },
   {
     "id": "api.channel.group_message.converted.to_private_channel",
@@ -9846,10 +9822,6 @@
     "translation": "无法通过名称获取过多的角色。每次只能请求 {{.MaxNames}} 个角色。"
   },
   {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "获取用户数量失败"
-  },
-  {
     "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
     "translation": "一个包含 {{.NumMessages}} 条消息的对话已被移动至私信/群组消息\n"
   },
@@ -10062,10 +10034,6 @@
     "translation": "缺少发送报告至的用户 id"
   },
   {
-    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": "团队成员更新无效：用户不能被同时设为访客和管理员。"
-  },
-  {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "团队成员更新无效：访客不能成为团队成员或团队管理员，请先将其提升为用户。"
   },
@@ -10152,5 +10120,261 @@
   {
     "id": "ent.outgoing_oauth_connections.authenticate.app_error",
     "translation": "在验证传出 OAuth 连接时发生了错误: {{ .Error }}"
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL 过长"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "团队成员更新无效：不能为单个团队设置访客，一位系统管理员必须将用户降级为访客，或将访客提升为用户。"
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "无效的属性（自定义状态）"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "与 Mattermost 客户门户的交互已被系统管理员禁用。"
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "无法邀请远端至频道：{{.Error}}"
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "清除列表功能对 Bleve 不可用。"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "您的许可证不支持频道书签。"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "用户未被允许创建频道书签。"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "创建频道书签失败。"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "创建频道书签失败。"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "删除频道书签失败。"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "删除频道书签失败。"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "删除频道书签失败。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "更新频道书签失败。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "更新频道书签失败。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "更新频道书签失败。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "更新频道书签的排序顺序失败。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "更新频道书签的排序顺序失败。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "更新频道书签的排序顺序失败。"
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "无法保存书签。"
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "无法删除书签。"
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "无法获取书签。"
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "无法更新现有书签。"
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "无法排序书签。输入无效。"
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "无法排序书签。未找到书签。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "缺少显示名称。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "文件 id 缺少或无效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Id 无效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "图像 url 无效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "无法在同一个书签中设置链接和文件。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "所属者 id 无效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "链接 url 缺少或无效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "原 id 无效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "父级 id 无效。"
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "频道自动补全无法启用，因为频道索引表已过期。推荐您重新生成频道索引。查看 Mattermost 更新日志以了解更多信息"
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "无法更新书签。"
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "无法排序书签。"
+  },
+  {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "您的 Elasticsearch 频道索引表已过期。推荐您重新生成频道索引。\n在[系统控制台中的 Elasticsearch 部分]({{.ElasticsearchSection}})点击`重建频道索引`以解决问题。\n查看 Mattermost 更新日志以了解更多信息。"
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "删除一条 Elasticsearch 索引失败"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "删除一个指定的未知索引失败"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "频道 id 无效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "创建于必须是有效时间。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "类型无效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "更新于必须是有效的时间。"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "频道成员更新无效：访客不能成为团队成员或团队管理员，请先提升为用户。"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "频道成员更新无效：不能将访客设置到单一频道，系统管理员必须将访客升级为用户或将用户降级为访客。"
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "导入的数据行中有“role”类型，但角色对象为 null。"
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "无法获取方案页面。"
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "无效方案。"
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "无法创建用户。服务器超过安全用户限制。联系您的管理员，并附上：ERROR_SAFETY_LIMITS_EXCEEDED。"
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "无法获取最近最不常用的会话。"
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "无法激活用户。服务器超过安全用户限制。联系您的管理员，并附上：ERROR_SAFETY_LIMITS_EXCEEDED。"
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "请求体中缺少 display_name 属性"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "请求体中缺少 team_id 属性"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "身份验证转移不可用，因为使用电子邮件注册已被禁用。"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "身份验证转移不可用，因为既未启用使用电子邮件登录也未启用使用用户名登录。"
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "解析请求失败"
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "您的密码不能超过 72 个字符。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "您的密码必须至少包含 {{.Min}} 个字符。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} 和 @{{.LastUsername}} 没有收到此提及的通知，因为他们不是该团队的成员。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} 没有收到此提及的通知，因为他不是该团队的成员。"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "重新连接插件失败"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "缺少清单"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "缺少插件重新连接配置"
   }
 ]

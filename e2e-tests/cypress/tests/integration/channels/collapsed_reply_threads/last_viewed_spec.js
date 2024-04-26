@@ -69,11 +69,13 @@ describe('Collapsed Reply Threads', () => {
 
         cy.wait(TIMEOUTS.ONE_SEC);
 
+        cy.url().should('include', `${teamB.name}/threads`);
+
         // # Switch back to Team A
         cy.get(`#${teamA.name}TeamButton`, {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').click();
 
-        // Verify url is set up for threads view
-        cy.url().should('include', `${teamA.name}/threads`);
+        // Verify url is set to landing channel
+        cy.url().should('include', `${teamA.name}/channels/town-square`);
     });
 
     it('MM-T4843_1 should go to threads view when switching a team if that was the last view on that team', () => {

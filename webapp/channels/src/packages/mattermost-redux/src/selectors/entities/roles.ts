@@ -168,11 +168,15 @@ const getMyPermissionsByChannel = createSelector(
     },
 );
 
-export function haveITeamPermission(state: GlobalState, teamId: string, permission: string) {
-    return (
-        getMySystemPermissions(state).has(permission) ||
-        getMyPermissionsByTeam(state)[teamId]?.has(permission)
-    );
+export function haveITeamPermission(state: GlobalState, teamId: string | undefined, permission: string) {
+    if (getMySystemPermissions(state).has(permission)) {
+        return true;
+    }
+    if (!teamId) {
+        return false;
+    }
+
+    return getMyPermissionsByTeam(state)[teamId]?.has(permission);
 }
 
 export const haveIGroupPermission: (state: GlobalState, groupID: string, permission: string) => boolean = createSelector(

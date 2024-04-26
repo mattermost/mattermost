@@ -36,6 +36,10 @@ function SidebarChannel({
         return null;
     }
 
+    if (!currentTeamName) {
+        return null;
+    }
+
     function isCollapsed() {
         return isCategoryDragged || (isCategoryCollapsed && !isUnread && !isCurrentChannel);
     }

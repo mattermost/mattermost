@@ -94,6 +94,8 @@ describe('components/AdvancedCreateComment', () => {
         savePreferences(): Promise<ActionResult> {
             throw new Error('Function not implemented.');
         },
+        shouldFocusRHS: true,
+        focusedRHS: jest.fn(),
     };
 
     const submitEvent = {
@@ -238,7 +240,7 @@ describe('components/AdvancedCreateComment', () => {
 
         (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), getBoundingClientRect: jest.fn(), focus: jest.fn()};
 
-        wrapper.instance().handleEmojiClick({name: 'smile'} as any);
+        wrapper.instance().handleEmojiClick(TestHelper.getCustomEmojiMock({name: 'smile'}));
 
         jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
         expect(onUpdateCommentDraft).toHaveBeenCalled();
@@ -252,7 +254,7 @@ describe('components/AdvancedCreateComment', () => {
         wrapper.setState({draft: TestHelper.getPostDraftMock({message: 'test', uploadsInProgress: [], fileInfos: []}),
             caretPosition: 'test'.length, // cursor is at the end
         });
-        wrapper.instance().handleEmojiClick({name: 'smile'} as any);
+        wrapper.instance().handleEmojiClick(TestHelper.getCustomEmojiMock({name: 'smile'}));
 
         // Message with no space at the end
         jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
@@ -264,7 +266,7 @@ describe('components/AdvancedCreateComment', () => {
         wrapper.setState({draft: TestHelper.getPostDraftMock({message: 'test ', uploadsInProgress: [], fileInfos: []}),
             caretPosition: 'test '.length, // cursor is at the end
         });
-        wrapper.instance().handleEmojiClick({name: 'smile'} as any);
+        wrapper.instance().handleEmojiClick(TestHelper.getCustomEmojiMock({name: 'smile'}));
 
         // Message with space at the end
         jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);

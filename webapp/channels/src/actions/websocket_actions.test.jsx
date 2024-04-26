@@ -5,7 +5,7 @@ import {UserTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
     getMentionsAndStatusesForPosts,
-    getThreadsForPosts,
+    getPostThreads,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
 import {getUser} from 'mattermost-redux/actions/users';
@@ -40,7 +40,7 @@ import {
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),
-    getThreadsForPosts: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
+    getPostThreads: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
     getMentionsAndStatusesForPosts: jest.fn(),
 }));
 
@@ -283,7 +283,7 @@ describe('handleUserRemovedEvent', () => {
 
     let redirectUserToDefaultTeam;
     beforeEach(async () => {
-        const globalActions = require('actions/global_actions'); // eslint-disable-line global-require
+        const globalActions = require('actions/global_actions');
         redirectUserToDefaultTeam = globalActions.redirectUserToDefaultTeam;
         redirectUserToDefaultTeam.mockReset();
     });
@@ -619,7 +619,7 @@ describe('handleNewPostEvents', () => {
                 type: 'GET_THREADS_FOR_POSTS',
             },
         ]);
-        expect(getThreadsForPosts).toHaveBeenCalledWith(posts);
+        expect(getPostThreads).toHaveBeenCalledWith(posts);
         expect(getMentionsAndStatusesForPosts).toHaveBeenCalledWith(posts, expect.anything(), expect.anything());
     });
 });

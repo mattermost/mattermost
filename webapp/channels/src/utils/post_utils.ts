@@ -626,12 +626,6 @@ export function splitMessageBasedOnTextSelection(selectionStart: number, selecti
     return {firstPiece, lastPiece};
 }
 
-export function getNewMessageIndex(postListIds: string[]): number {
-    return postListIds.findIndex(
-        (item) => item.indexOf(PostListRowListIds.START_OF_NEW_MESSAGES) === 0,
-    );
-}
-
 export function areConsecutivePostsBySameUser(post: Post, previousPost: Post): boolean {
     if (!(post && previousPost)) {
         return false;
@@ -656,6 +650,9 @@ export function getPostURL(state: GlobalState, post: Post): string {
     }
     const currentUserId = getCurrentUserId(state);
     const team = getTeam(state, channel.team_id || getCurrentTeamId(state));
+    if (!team) {
+        return '';
+    }
 
     const postURI = isCollapsedThreadsEnabled(state) && isComment(post) ? '' : `/${post.id}`;
 

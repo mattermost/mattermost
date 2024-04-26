@@ -336,10 +336,6 @@
     "translation": "Вашата парола трябва да съдържа най-малко {{.Min}} знака и поне една малка буква."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Вашата парола трябва да съдържа най-малко {{.Min}} знака."
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "Невалидна длъжност: не трябва да е по-дълга от 128 знака."
   },
@@ -1252,10 +1248,6 @@
     "translation": "Вашият лиценз не поддържа SAML удостоверяване."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "При проверката на отговора от доставчика на идентичност възникна грешка. Моля, свържете се със системния администратор."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Възникна грешка при анализа на отговора от доставчика на идентичност. Моля, свържете се със системния администратор."
   },
@@ -1272,10 +1264,6 @@
     "translation": "Получихме празен отговор от доставчика на самоличност."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Влизането в SAML не бе успешно, тъй като възникна грешка при дешифриране на отговора от доставчика на идентичност. Моля, свържете се със системния администратор."
-  },
-  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "Влизането в SAML не бе успешно, тъй като отговорът на доставчика на идентичност не е шифрован. Моля, свържете се със системния администратор."
   },
@@ -1284,16 +1272,8 @@
     "translation": "Влизането в SAML не бе успешно, тъй като частният ключ на доставчика на услуги не бе намерен. Моля, свържете се със системния администратор."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Файла с публичния сертификат на доставчик на самоличност не бе намерен. Моля, свържете се със системния администратор."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Влизането в SAML не бе успешно, тъй като криптирането не е активирано. Моля, свържете се със системния администратор."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Възникна грешка при кодирането на заявката за доставчика на идентичност. Моля, свържете се със системния администратор."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -7650,10 +7630,6 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
     "translation": "Неуспешно свързване с smtp сървър"
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Неуспешно четене на прикачения файл при вноса."
   },
   {
     "id": "app.export.zip_create.error",

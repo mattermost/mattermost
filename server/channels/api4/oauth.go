@@ -230,7 +230,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.DeleteOAuthApp(oauthApp.Id)
+	err = c.App.DeleteOAuthApp(c.AppContext, oauthApp.Id)
 	if err != nil {
 		c.Err = err
 		return

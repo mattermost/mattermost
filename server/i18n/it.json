@@ -3324,16 +3324,8 @@
     "translation": "Si è verificato un errore di inizializzazione della richiesta all'Identity Provider. Contattare l'amministratore di sistema."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Si è verificato un errore di codifica della richiesta all'Identity Provider. Contattare l'amministratore di sistema."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Il login SAML non ha avuto successo perché la crittografia non è abilitata. Contattare l'amministratore di sistema."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Il file del Certificato pubblico dell'Identity Provider non è stato trovato. Contattare l'amministratore di sistema."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3344,20 +3336,12 @@
     "translation": "Il login SAML non ha avuto successo perché la risposta dell'Identity Provider non è crittografata. Contattare l'amministratore di sistema."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Il login SAML non ha avuto successo perché si è verificato un errore nella decodifica della risposta dall'Identity Provider. Contattare l'amministratore di sistema."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "E' stata ricevuta una risposta vuota dall'Identity Provider."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Si è verificato un errore durante la lettura della risposta dell'Identity Provider. Contattare l'amministratore di sistema."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Si è verificato un errore durante la validazione della risposta dell'Identity Provider. Contattare l'amministratore di sistema."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -4466,10 +4450,6 @@
   {
     "id": "model.user.is_valid.email.app_error",
     "translation": "Inserire un indirizzo email valido."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "La tua password deve contenere almeno {{.Min}} caratteri."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
@@ -8109,10 +8089,6 @@
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
-    "translation": " "
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
     "translation": " "
   },
   {

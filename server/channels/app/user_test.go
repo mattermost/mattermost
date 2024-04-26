@@ -353,7 +353,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 	// Automatic deactivation disabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -362,7 +362,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 
 	th.App.UpdateActive(th.Context, th.BasicUser, false)
 
-	retbot1, err := th.App.GetBot(bot.UserId, true)
+	retbot1, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
 	require.Zero(t, retbot1.DeleteAt)
 	user1, err := th.App.GetUser(bot.UserId)
@@ -378,7 +378,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 
 	th.App.UpdateActive(th.Context, th.BasicUser, false)
 
-	retbot2, err := th.App.GetBot(bot.UserId, true)
+	retbot2, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
 	require.NotZero(t, retbot2.DeleteAt)
 	user2, err := th.App.GetUser(bot.UserId)
@@ -1060,7 +1060,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	b := []byte("testimage")
 
-	finfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "testfile.txt", b)
+	finfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "testfile.txt", b, true)
 
 	require.Nil(t, err, "Unable to upload file. err=%v", err)
 
@@ -1122,7 +1122,7 @@ func TestPasswordRecovery(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("password token with same email as during creation", func(t *testing.T) {
-		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
 		tokenData := struct {
@@ -1140,7 +1140,7 @@ func TestPasswordRecovery(t *testing.T) {
 	})
 
 	t.Run("password token with modified email as during creation", func(t *testing.T) {
-		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
 		th.App.UpdateConfig(func(c *model.Config) {
@@ -1156,7 +1156,7 @@ func TestPasswordRecovery(t *testing.T) {
 	})
 
 	t.Run("non-expired token", func(t *testing.T) {
-		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
 		err = th.App.resetPasswordFromToken(th.Context, token.Token, "abcdefgh", model.GetMillis())
@@ -1164,7 +1164,7 @@ func TestPasswordRecovery(t *testing.T) {
 	})
 
 	t.Run("expired token", func(t *testing.T) {
-		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
 		err = th.App.resetPasswordFromToken(th.Context, token.Token, "abcdefgh", model.GetMillisForTime(time.Now().Add(25*time.Hour)))
@@ -1197,10 +1197,10 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 	})
 
 	t.Run("add multiple tokens, should only be one valid", func(t *testing.T) {
-		_, appErr := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		_, appErr := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, appErr)
 
-		token, appErr := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		token, appErr := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, appErr)
 
 		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
@@ -2007,4 +2007,169 @@ func TestGetUsersForReporting(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, userReports)
 	})
+}
+
+func TestCreateUserOrGuest(t *testing.T) {
+	t.Run("base case - you can create a user", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		user := &model.User{
+			Email:         "TestCreateUserOrGuest@example.com",
+			Username:      "username_123",
+			Nickname:      "nn_username_123",
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "username_123", createdUser.Username)
+	})
+
+	t.Run("cannot create user when user count has exceeded the permissible limit", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("Count", mock.Anything).Return(int64(12000), nil)
+
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(int64(1000), nil)
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockStore.On("User").Return(&mockUserStore)
+		mockStore.On("Post").Return(&mockPostStore)
+
+		user := &model.User{
+			Email:         "TestCreateUserOrGuest@example.com",
+			Username:      "username_123",
+			Nickname:      "nn_username_123",
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
+		require.NotNil(t, appErr)
+		require.Nil(t, createdUser)
+	})
+
+	t.Run("can create user when server is exactly on limit", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		id := NewTestId()
+		userCreationMocks(t, th, id, 11000)
+
+		user := &model.User{
+			Email:         "TestCreateUserOrGuest@example.com",
+			Username:      "username_123",
+			Nickname:      "nn_username_123",
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "username_123", createdUser.Username)
+	})
+
+	t.Run("licensed server can create user when server is OVER limit", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		id := NewTestId()
+		userCreationMocks(t, th, id, 20000)
+
+		user := &model.User{
+			Email:         "TestCreateUserOrGuest@example.com",
+			Username:      "username_123",
+			Nickname:      "nn_username_123",
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "username_123", createdUser.Username)
+	})
+
+	t.Run("licensed server can create user when server is UNDER limit", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		id := NewTestId()
+		userCreationMocks(t, th, id, 10)
+
+		user := &model.User{
+			Email:         "TestCreateUserOrGuest@example.com",
+			Username:      "username_123",
+			Nickname:      "nn_username_123",
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "username_123", createdUser.Username)
+	})
+}
+
+func userCreationMocks(t *testing.T, th *TestHelper, userID string, activeUserCount int64) {
+	mockUserStore := storemocks.UserStore{}
+	mockUserStore.On("Count", mock.Anything).Return(activeUserCount, nil)
+	mockUserStore.On("IsEmpty", mock.Anything).Return(false, nil)
+	mockUserStore.On("VerifyEmail", mock.Anything, "TestCreateUserOrGuest@example.com").Return("", nil)
+	mockUserStore.On("InvalidateProfilesInChannelCacheByUser", mock.Anything).Return()
+	mockUserStore.On("InvalidateProfileCacheForUser", mock.Anything).Return()
+	mockUserStore.On("Save", mock.Anything, mock.Anything).Return(&model.User{
+		Id:            userID,
+		Email:         "TestCreateUserOrGuest@example.com",
+		Username:      "username_123",
+		Nickname:      "nn_username_123",
+		Password:      "Password1",
+		EmailVerified: true,
+	}, nil)
+
+	mockUserStore.On("Get", mock.Anything, userID).Return(&model.User{
+		Id:            userID,
+		Email:         "TestCreateUserOrGuest@example.com",
+		Username:      "username_123",
+		Nickname:      "nn_username_123",
+		Password:      "Password1",
+		EmailVerified: true,
+	}, nil)
+
+	mockGroupStore := storemocks.GroupStore{}
+	mockGroupStore.On("GetByName", "username_123", mock.Anything).Return(nil, nil)
+
+	mockChannelStore := storemocks.ChannelStore{}
+	mockChannelStore.On("InvalidateAllChannelMembersForUser", mock.Anything).Return()
+
+	mockPreferencesStore := storemocks.PreferenceStore{}
+	mockPreferencesStore.On("Save", mock.Anything).Return(nil)
+
+	mockProductNoticeStore := storemocks.ProductNoticesStore{}
+	mockProductNoticeStore.On("View", userID, mock.Anything).Return(nil)
+
+	mockPostStore := storemocks.PostStore{}
+	mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(int64(1000), nil)
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("Group").Return(&mockGroupStore)
+	mockStore.On("Channel").Return(&mockChannelStore)
+	mockStore.On("Preference").Return(&mockPreferencesStore)
+	mockStore.On("ProductNotices").Return(&mockProductNoticeStore)
+
+	var err error
+	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
+		UserStore:    &mockUserStore,
+		SessionStore: &storemocks.SessionStore{},
+		OAuthStore:   &storemocks.OAuthStore{},
+		ConfigFn:     th.App.ch.srv.platform.Config,
+		LicenseFn:    th.App.ch.srv.License,
+	})
+
+	require.NoError(t, err)
 }

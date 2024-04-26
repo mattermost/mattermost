@@ -6,7 +6,6 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
-import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
 import StartTrialCaution from 'components/pricing_modal/start_trial_caution';
 
@@ -30,9 +29,6 @@ const enterpriseAdvantages = [
         defaultMessage: 'Office365 suite integration',
     },
 ];
-
-// Currently, these are the same. In the future, they may diverge.
-const professionalAdvantages = enterpriseAdvantages;
 
 interface Props {
     advantages: Message[];
@@ -148,26 +144,6 @@ export const tryEnterpriseCard = (
         upsellIsTrial={true}
     />
 );
-
-export const UpgradeToProfessionalCard = () => {
-    const openPurchaseModal = useOpenCloudPurchaseModal({});
-    return (
-        <UpsellCard
-            title={{
-                id: t('admin.billing.subscriptions.billing_summary.upgrade_professional'),
-                defaultMessage: 'Upgrade to the Professional Plan',
-            }}
-            cta={{
-                id: t('admin.billing.subscriptions.billing_summary.upgrade_professional.cta'),
-                defaultMessage: 'Upgrade',
-            }}
-            ctaAction={() => openPurchaseModal({trackingLocation: 'billing_summary_upsell_professional_card'})}
-            ctaPrimary={true}
-            andMore={true}
-            advantages={professionalAdvantages}
-        />
-    );
-};
 
 export const ExploreEnterpriseCard = () => {
     return (
