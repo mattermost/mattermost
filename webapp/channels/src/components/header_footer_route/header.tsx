@@ -29,12 +29,12 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
         freeBanner = <><Logo/><span className='freeBadge'>{'FREE EDITION'}</span></>;
     }
 
-    let title: React.ReactNode = SiteName
+    let title: React.ReactNode = SiteName;
     if (EnableCustomBrand !== 'true' || SiteName === 'Mattermost') {
         if (freeBanner) {
             title = '';
         } else {
-            title = <Logo/>
+            title = <Logo/>;
         }
     }
 
