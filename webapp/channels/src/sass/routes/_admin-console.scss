@@ -611,11 +611,12 @@
 
     .filter-container {
         position: relative;
-        padding: 12px 12px;
+        padding: 8px 12px 16px 12px;
+        border-bottom: 1px solid rgba(var(--sys-sidebar-text-rgb), 0.08);
 
         .search__icon {
             position: absolute;
-            top: 19px;
+            top: 16px;
             left: 22px;
             width: 16px;
             height: 16px;
@@ -637,7 +638,7 @@
     
                 &:focus,
                 &.active {
-                    outline: 2px solid $primary-color;
+                    outline: 2px solid var(--button-bg);
                 }
             }
     
@@ -829,16 +830,16 @@
             color: var(--sys-sidebar-text);
 
             i {
-                color: $white;
+                color: var(--sys-sidebar-text);
             }
 
             &:hover,
             &:focus {
-                background: alpha-color($white, 0.1);
-                color: $white;
+                background: rgba(var(--sys-sidebar-text-rgb), 0.12);
+                color: var(--sys-sidebar-text);
 
                 i {
-                    color: $white;
+                    color: var(--sys-sidebar-text);
                 }
             }
 
@@ -871,7 +872,7 @@
         .fa {
             position: relative;
             right: -2px;
-            color: $white;
+            color: var(--sys-sidebar-text);
             font-size: 13px;
         }
 
