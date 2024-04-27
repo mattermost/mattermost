@@ -420,8 +420,8 @@
     .admin-console__header {
         z-index: 100;
         display: flex;
-        height: 64px;
-        flex: 0 0 64px;
+        height: 72px;
+        flex: 0 0 72px;
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
@@ -604,48 +604,50 @@
 .admin-sidebar {
     z-index: 10;
     display: flex;
-    width: 220px;
+    width: 280px;
     flex-direction: column;
-    background: #111;
+    background: var(--sys-sidebar-bg);
     grid-area: lhs;
 
     .filter-container {
         position: relative;
+        padding: 12px 12px;
 
         .search__icon {
             position: absolute;
-            top: 16px;
-            left: 21px;
+            top: 19px;
+            left: 22px;
             width: 16px;
             height: 16px;
-            fill: rgba(var(--sys-sidebar-text-rgb), 0.75);
-            stroke: #999;
+            fill: rgba(var(--sys-sidebar-text-rgb), 0.56);
         }
 
-        .filter {
-            width: 204px;
-            padding: 5px 36px;
-            border: 1px solid #666;
-            border-radius: 20px;
-            margin: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            color: $white;
-            font-size: 14px;
-            outline: none;
-
-            &:focus,
-            &.active {
-                border: 2px solid $primary-color;
-                margin: 7px;
+        .input-wrapper {
+            display: flex;
+    
+            .filter {
+                flex-grow: 1;
+                padding: 6px 12px 6px 32px;
+                border: none;
+                border-radius: var(--radius-s);
+                background: rgba(var(--sys-sidebar-text-rgb), 0.08);
+                color: var(--sys-sidebar-text);
+                font-size: 14px;
+                outline: none;
+    
+                &:focus,
+                &.active {
+                    outline: 2px solid $primary-color;
+                }
             }
-        }
-
-        .input-clear {
-            .input-clear-x {
-                position: absolute;
-                right: 16px;
-                color: $white;
-                font-weight: bold;
+    
+            .input-clear {
+                .input-clear-x {
+                    position: absolute;
+                    right: 16px;
+                    color: rgba(var(--sys-sidebar-text-rgb), 0.56);
+                    font-weight: bold;
+                }
             }
         }
     }
@@ -701,20 +703,20 @@
     }
 
     .sidebar-category {
-        margin-top: 0;
-
         .category-title {
-            padding: 10px 12px;
-            background: alpha-color($white, 0.15);
-            color: $white;
-            line-height: 15.4px;
+            padding: 20px 12px 0px 20px;
+            color: rgba(var(--sys-sidebar-text-rgb), 0.48);
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            line-height: 16px;
             text-transform: uppercase;
 
             .category-icon {
+                // display: none;
                 top: 6px;
                 overflow: hidden;
                 width: 16px;
-                margin-right: 6px;
+                margin-right: 8px;
                 text-align: center;
                 vertical-align: bottom;
 
@@ -752,7 +754,10 @@
             .sidebar-section-title {
                 text-transform: uppercase;
 
-                &:hover,
+                &:hover {
+                    background-color: rgba(var(--sys-sidebar-text-rgb), 0.08);
+                }
+
                 &:focus {
                     color: alpha-color($white, 0.5);
                 }
@@ -761,7 +766,8 @@
     }
 
     .sidebar-section-title {
-        padding: 6px 35px 6px 12px;
+        padding: 6px 32px 6px 20px;
+        letter-spacing: 0.02em;
     }
 
     .sidebar-section-tag {
@@ -771,7 +777,7 @@
         padding: 0 4px 0 4px;
         border-radius: 4px;
         margin-left: 8px;
-        background-color: rgba(255, 255, 255, 0.75);
+        background-color: rgba(255, 255, 255, 0.64);
         color: rgba(61, 60, 64, 1);
         font-size: 10px;
         font-weight: 600;
@@ -792,7 +798,7 @@
     }
 
     .sidebar-subsection-title {
-        padding: 6px 35px 6px 30px;
+        padding: 8px 32px 8px 20px;
 
         &--active {
             &::after {
@@ -805,24 +811,20 @@
     .sidebar-subsection-title {
         position: relative;
         display: block;
-        color: alpha-color($white, 0.5);
-        font-size: 13px;
+        color: rgba(var(--sys-sidebar-text-rgb), 0.64);
 
         &:focus {
             text-decoration: none;
         }
 
         &:hover {
-            color: color.adjust($primary-color, $lightness: 10%);
+            background-color: rgba(var(--sys-sidebar-text-rgb), 0.08);
+            color: rgba(var(--sys-sidebar-text-rgb), 0.88);
             text-decoration: none;
-
-            i {
-                color: color.adjust($primary-color, $lightness: 10%);
-            }
         }
 
         &--active {
-            background: alpha-color($white, 0.1);
+            background: rgba(var(--sys-sidebar-text-rgb), 0.12);
             color: $white;
 
             i {
