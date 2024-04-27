@@ -5,7 +5,7 @@
             position: relative;
             display: flex;
             align-items: center;
-            padding: 16px 20px;
+            padding: 17px 20px;
             cursor: pointer;
             gap: 8px;
         }
@@ -28,7 +28,6 @@
             .team__name {
                 overflow: hidden;
                 max-width: 100%;
-                margin-top: 2px;
                 font-family: Metropolis, sans-serif;
                 font-size: 16px;
                 font-weight: 600;

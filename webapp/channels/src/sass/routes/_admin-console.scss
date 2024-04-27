@@ -704,7 +704,8 @@
 
     .sidebar-category {
         .category-title {
-            padding: 20px 12px 0px 20px;
+            margin-top: 20px;
+            padding: 0px 12px 0px 20px;
             color: rgba(var(--sys-sidebar-text-rgb), 0.48);
             font-size: 12px;
             letter-spacing: 0.1em;
@@ -712,11 +713,11 @@
             text-transform: uppercase;
 
             .category-icon {
-                // display: none;
-                top: 6px;
+                position: relative;
+                top: -1px;
                 overflow: hidden;
-                width: 16px;
-                margin-right: 8px;
+                width: 14px;
+                margin-right: 6px;
                 text-align: center;
                 vertical-align: bottom;
 
@@ -731,7 +732,7 @@
         }
 
         .sections {
-            padding: 5px 0;
+            padding: 4px 0;
         }
     }
 
@@ -825,7 +826,7 @@
 
         &--active {
             background: rgba(var(--sys-sidebar-text-rgb), 0.12);
-            color: $white;
+            color: var(--sys-sidebar-text);
 
             i {
                 color: $white;
