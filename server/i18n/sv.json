@@ -4485,7 +4485,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Kunde inte uppgradera websocket-anslutningen."
+    "translation": "URL:en är blockerad på grund av CORS. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -10336,5 +10336,69 @@
   {
     "id": "app.session.get_lru_sessions.app_error",
     "translation": "Kan inte hämta senast använda sessioner."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Authentication Transfer är inte tillgänglig eftersom e-postregistrering är inaktiverad."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Authentication Transfer är inte tillgänglig eftersom varken e-postinloggning eller inloggning med användarnamn är aktiverad."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Misslyckades att tolka begäran"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Misslyckades med att återansluta plugin"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Saknar konfiguration för att återansluta plugin"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Saknat manifest"
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Fel vid sökning av fil: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Fel när status skulle läsas på filen: \"{{.FilePath}}\""
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Ditt lösenord får inte innehålla mer än 72 tecken."
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Ditt lösenord måste innehålla minst {{.Min}} tecken."
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Misslyckades att hämta antal användare"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "Misslyckades med att hämta antal inlägg"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "Omnämnandet av @{{.Username}} gav ingen notifiering eftersom hen inte är medlem i detta team."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "Omnämnandet av @{{.Usernames}} och @{{.LastUsername}} ga ingen notifiering till dem eftersom de inte är medlemmar i detta team."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Saknar display_name i request-meddelandet"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Saknar team_id i request-meddelandet"
   }
 ]
