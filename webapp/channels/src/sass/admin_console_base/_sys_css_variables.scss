@@ -4,7 +4,7 @@
     --icon-opacity-hover: 0.8;
     --sys-away-indicator: #ffbc1f;
     --sys-away-indicator-dark: #997113;
-    --sys-button-bg: #166de0;
+    --sys-button-bg: #1c58d9;
     --sys-button-color: #fff;
     --sys-center-channel-bg: #fff;
     --sys-center-channel-color: #3d3c40;
@@ -17,8 +17,8 @@
     --sys-mention-highlight-link: #166de0;
     --sys-new-message-separator: #f80;
     --sys-online-indicator: #3db887;
-    --sys-sidebar-bg: #1B1D22;
-    --sys-sidebar-header-bg: #1B1D22;
+    --sys-sidebar-bg: #1b1d22;
+    --sys-sidebar-header-bg: #1b1d22;
     --sys-sidebar-header-text-color: #fff;
     --sys-sidebar-text: #fff;
     --sys-sidebar-text-60: #fff9;
@@ -27,13 +27,14 @@
     --sys-sidebar-text-active-color: #fff;
     --sys-sidebar-text-hover-bg: #4578bf;
     --sys-sidebar-unread-text: #fff;
+    --sys-sidebar-active-border: #5D89ea;
     --sys-denim-button-bg: #1c58d9;
     --sys-denim-center-channel-text: #3f4350;
 
     // Cloned RGB values from base/css_variables, to be used as rgba(var(--sys-color), opacity_here) to apply opacity to base colors
     --sys-away-indicator-rgb: 255, 188, 31;
     --sys-away-indicator-dark-rgb: 153, 113, 19;
-    --sys-button-bg-rgb: 22, 109, 224;
+    --sys-button-bg-rgb: 28, 88, 217;
     --sys-button-color-rgb: 255, 255, 255;
     --sys-center-channel-bg-rgb: 255, 255, 255;
     --sys-center-channel-color-rgb: 61, 60, 64;

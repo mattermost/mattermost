@@ -604,15 +604,14 @@
 .admin-sidebar {
     z-index: 10;
     display: flex;
-    width: 280px;
+    width: 272px;
     flex-direction: column;
     background: var(--sys-sidebar-bg);
     grid-area: lhs;
 
     .filter-container {
         position: relative;
-        padding: 8px 12px 16px 12px;
-        border-bottom: 1px solid rgba(var(--sys-sidebar-text-rgb), 0.08);
+        padding: 8px 12px 8px 12px;
 
         .search__icon {
             position: absolute;
@@ -638,7 +637,7 @@
     
                 &:focus,
                 &.active {
-                    outline: 2px solid var(--button-bg);
+                    outline: 2px solid var(--sys-button-bg);
                 }
             }
     
@@ -686,8 +685,6 @@
     }
 
     .nav-pills__container {
-        @include font-smoothing(initial);
-
         position: relative;
         height: calc(100% - 68px);
         padding-bottom: 20px;
@@ -707,9 +704,10 @@
         .category-title {
             margin-top: 20px;
             padding: 0px 12px 0px 20px;
-            color: rgba(var(--sys-sidebar-text-rgb), 0.48);
+            color: rgba(var(--sys-sidebar-text-rgb), 0.56);
             font-size: 12px;
-            letter-spacing: 0.05em;
+            font-weight: 600;
+            letter-spacing: 0.1em;
             line-height: 16px;
             text-transform: uppercase;
 
@@ -767,11 +765,6 @@
         }
     }
 
-    .sidebar-section-title {
-        padding: 6px 32px 6px 20px;
-        letter-spacing: 0.02em;
-    }
-
     .sidebar-section-tag {
         position: relative;
         top: -1px;
@@ -813,7 +806,9 @@
     .sidebar-subsection-title {
         position: relative;
         display: block;
-        color: rgba(var(--sys-sidebar-text-rgb), 0.64);
+        padding: 6px 32px 6px 20px;
+        color: rgba(var(--sys-sidebar-text-rgb), 0.75);
+        letter-spacing: 0.01em;
 
         &:focus {
             text-decoration: none;
@@ -821,13 +816,14 @@
 
         &:hover {
             background-color: rgba(var(--sys-sidebar-text-rgb), 0.08);
-            color: rgba(var(--sys-sidebar-text-rgb), 0.88);
+            color: var(--sys-sidebar-text);
             text-decoration: none;
         }
 
         &--active {
             background: rgba(var(--sys-sidebar-text-rgb), 0.12);
             color: var(--sys-sidebar-text);
+            font-weight: 600;
 
             i {
                 color: var(--sys-sidebar-text);
@@ -843,17 +839,15 @@
                 }
             }
 
-            &::after {
+            &:before {
                 position: absolute;
-                top: 2px;
-                right: -1px;
-                display: inline-block;
-                color: whitesmoke;
-                content: "\f0d9";
-                font: normal normal normal 26px/1 FontAwesome;
-                -moz-osx-font-smoothing: grayscale;
-                -webkit-font-smoothing: antialiased;
-                text-rendering: auto;
+                top: 0;
+                left: -2px;
+                width: 4px;
+                height: 100%;
+                border-radius: 4px;
+                background: var(--sys-sidebar-active-border);
+                content: "";
             }
         }
     }
