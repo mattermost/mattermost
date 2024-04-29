@@ -36,6 +36,12 @@ To setup SAML with the default development configuration, use the following sett
 
 ## Credentials to log in
 
+### Admin user
+
+- **Username**: keycloak-admin
+- **Password**: mostest
+
+### Regular user
 You can setup all the users you want in the keycloak interface, but a default user is already setup with the following credentials:
 
 - **Username**: keycloak-user-01
