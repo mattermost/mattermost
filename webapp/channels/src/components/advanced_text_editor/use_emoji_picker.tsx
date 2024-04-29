@@ -10,6 +10,7 @@ import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Emoji} from '@mattermost/types/emojis';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
@@ -57,7 +58,7 @@ const useEmojiPicker = (
     }, []);
 
     const handleEmojiClick = useCallback((emoji: Emoji) => {
-        const emojiAlias = ('short_names' in emoji && emoji.short_names && emoji.short_names[0]) || emoji.name;
+        const emojiAlias = getEmojiName(emoji);
 
         if (!emojiAlias) {
             //Oops.. There went something wrong

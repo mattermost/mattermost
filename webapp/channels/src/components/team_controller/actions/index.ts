@@ -10,6 +10,7 @@ import {logError} from 'mattermost-redux/actions/errors';
 import {getGroups, getAllGroupsAssociatedToChannelsInTeam, getAllGroupsAssociatedToTeam, getGroupsByUserIdPaginated} from 'mattermost-redux/actions/groups';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {getTeamByName, selectTeam} from 'mattermost-redux/actions/teams';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
@@ -38,7 +39,13 @@ export function initializeTeam(team: Team): ActionFuncAsync<Team, GlobalState> {
             return {error: error as ServerError};
         }
 
-        dispatch(loadStatusesForChannelAndSidebar());
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+
+        if (enabledUserStatuses) {
+            // This is the first time in the pool of user statuses that we request,
+            // subsequent requests will be done via setInterval at channel_controller.tsx
+            dispatch(loadStatusesForChannelAndSidebar());
+        }
 
         const license = getLicense(state);
         const customGroupEnabled = isCustomGroupsEnabled(state);

@@ -19,7 +19,6 @@ export type Props = {
 
     isThreadView?: boolean;
     placeholder?: string;
-    focusOnMount?: boolean;
 }
 
 class AdvancedCreateComment extends React.PureComponent<Props> {
@@ -31,7 +30,6 @@ class AdvancedCreateComment extends React.PureComponent<Props> {
                 postId={this.props.rootId}
                 isThreadView={this.props.isThreadView}
                 placeholder={this.props.placeholder}
-                focusOnMount={this.props.focusOnMount}
             />
         );
     }

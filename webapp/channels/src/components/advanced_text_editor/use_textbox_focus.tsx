@@ -3,9 +3,11 @@
 
 import type React from 'react';
 import {useCallback, useEffect} from 'react';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
+import {focusedRHS} from 'actions/views/rhs';
 import {getIsRhsExpanded, getIsRhsOpen} from 'selectors/rhs';
+import {getShouldFocusRHS} from 'selectors/views/rhs';
 
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import type TextboxClass from 'components/textbox/textbox';
@@ -16,13 +18,17 @@ import * as UserAgent from 'utils/user_agent';
 const useTextboxFocus = (
     textboxRef: React.RefObject<TextboxClass>,
     channelId: string,
-    postId: string,
-    isThreadView: boolean,
+    isRHS: boolean,
     canPost: boolean,
-    focusOnMount: boolean,
 ) => {
+    const dispatch = useDispatch();
+
     const rhsExpanded = useSelector(getIsRhsExpanded);
     const rhsOpen = useSelector(getIsRhsOpen);
+
+    // We force the selector to always think it is the same value to avoid re-renders
+    // because we only use this value during mount.
+    const shouldFocusRHS = useSelector(getShouldFocusRHS, () => true);
 
     const focusTextbox = useCallback((keepFocus = false) => {
         const postTextboxDisabled = !canPost;
@@ -36,18 +42,18 @@ const useTextboxFocus = (
     }, [canPost, textboxRef]);
 
     const focusTextboxIfNecessary = useCallback((e: KeyboardEvent) => {
-        // Focus should go to the RHS when it is expanded
-        if (!postId && rhsExpanded) {
+        // Do not focus if the rhs is expanded and this is not the RHS
+        if (!isRHS && rhsExpanded) {
             return;
         }
 
-        // Hacky fix to avoid cursor jumping textbox sometimes
-        if (!postId && rhsOpen && document.activeElement?.tagName === 'BODY') {
+        // Do not focus if the rhs is not expanded and this is the RHS
+        if (isRHS && !rhsExpanded) {
             return;
         }
 
-        // Should only focus in RHS if RHS is expanded or if thread view
-        if (postId && !isThreadView && !rhsExpanded) {
+        // Do not focus the main textbox when the RHS is open as a hacky fix to avoid cursor jumping textbox sometimes
+        if (isRHS && rhsOpen && document.activeElement?.tagName === 'BODY') {
             return;
         }
 
@@ -61,7 +67,7 @@ const useTextboxFocus = (
         if (shouldFocusMainTextbox(e, document.activeElement)) {
             focusTextbox();
         }
-    }, [focusTextbox, postId, rhsExpanded, rhsOpen, isThreadView]);
+    }, [focusTextbox, rhsExpanded, rhsOpen, isRHS]);
 
     // Register events for onkeydown
     useEffect(() => {
@@ -78,8 +84,9 @@ const useTextboxFocus = (
 
     // Focus on mount
     useEffect(() => {
-        if (focusOnMount) {
+        if (isRHS && shouldFocusRHS) {
             focusTextbox();
+            dispatch(focusedRHS());
         }
     }, []);
 

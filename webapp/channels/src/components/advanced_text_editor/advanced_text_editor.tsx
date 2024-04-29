@@ -78,7 +78,6 @@ type Props = {
     isThreadView?: boolean;
     replyToLastPost?: (e: React.KeyboardEvent) => void;
     placeholder?: string;
-    focusOnMount?: boolean;
 }
 
 const AdvanceTextEditor = ({
@@ -89,13 +88,14 @@ const AdvanceTextEditor = ({
     isThreadView = false,
     replyToLastPost,
     placeholder,
-    focusOnMount = true,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
     const getChannelSelector = useMemo(makeGetChannel, []);
     const getDraftSelector = useMemo(makeGetDraft, []);
+
+    const isRHS = Boolean(postId && !isThreadView);
 
     const currentUserId = useSelector(getCurrentUserId);
     const channelDisplayName = useSelector((state: GlobalState) => getChannelSelector(state, {id: channelId})?.display_name || '');
@@ -104,7 +104,7 @@ const AdvanceTextEditor = ({
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
     const canUploadFiles = useSelector((state: GlobalState) => canUploadFilesAccordingToConfig(getConfig(state)));
     const fullWidthTextBox = useSelector((state: GlobalState) => get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN);
-    const isFormattingBarHidden = useSelector((state: GlobalState) => getBool(state, Preferences.ADVANCED_TEXT_EDITOR, postId ? AdvancedTextEditorConst.COMMENT : AdvancedTextEditorConst.POST));
+    const isFormattingBarHidden = useSelector((state: GlobalState) => getBool(state, Preferences.ADVANCED_TEXT_EDITOR, isRHS ? AdvancedTextEditorConst.COMMENT : AdvancedTextEditorConst.POST));
     const canPost = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
         return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST);
@@ -114,6 +114,7 @@ const AdvanceTextEditor = ({
         return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
     });
     const showSendTutorialTip = useSelector((state: GlobalState) => {
+        // We don't show the tutorial tip neither on RHS nor Thread view
         if (postId) {
             return false;
         }
@@ -216,14 +217,14 @@ const AdvanceTextEditor = ({
         dispatch(savePreferences(currentUserId, [{
             category: Preferences.ADVANCED_TEXT_EDITOR,
             user_id: currentUserId,
-            name: postId ? AdvancedTextEditorConst.COMMENT : AdvancedTextEditorConst.POST,
+            name: isRHS ? AdvancedTextEditorConst.COMMENT : AdvancedTextEditorConst.POST,
             value: String(!isFormattingBarHidden),
         }]));
-    }, [currentUserId, postId, isFormattingBarHidden, dispatch]);
+    }, [currentUserId, isRHS, isFormattingBarHidden, dispatch]);
 
     useOrientationHandler(textboxRef, postId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
-    const focusTextbox = useTextboxFocus(textboxRef, channelId, postId, isThreadView, canPost, focusOnMount);
+    const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(draft, postId, channelId, isThreadView, storedDrafts, readOnlyChannel, textboxRef, handleDraftChange, focusTextbox, setServerError);
     const [emojiPicker, enableEmojiPicker, toggleEmojiPicker] = useEmojiPicker(readOnlyChannel, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox);
     const [labels, priorityAdditionalControl, isValidPersistentNotifications, prioritySubmitCheck] = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
@@ -579,7 +580,7 @@ const AdvanceTextEditor = ({
                                 {showFormatJSX}
                             </TexteditorActions>
                         )}
-                        {showFormattingSpacer || showPreview || attachmentPreview ? (
+                        {showFormattingSpacer || showPreview || attachmentPreview || isRHS ? (
                             <FormattingBarSpacer>
                                 {formattingBar}
                             </FormattingBarSpacer>

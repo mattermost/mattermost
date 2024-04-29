@@ -45,8 +45,6 @@ import BillingHistory, {searchableStrings as billingHistorySearchableStrings} fr
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
-import PaymentInfo, {searchableStrings as billingPaymentInfoSearchableStrings} from './billing/payment_info';
-import PaymentInfoEdit from './billing/payment_info_edit';
 import BleveSettings, {searchableStrings as bleveSearchableStrings} from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
@@ -218,7 +216,7 @@ export const it = {
     configContains: (group: keyof Partial<AdminConfig>, setting: string, word: string) => (config: Partial<AdminConfig>) => Boolean((config[group] as any)?.[setting]?.includes(word)),
     enterpriseReady: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean) => Boolean(enterpriseReady),
     licensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => license?.IsLicensed === 'true',
-    cloudLicensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicenced && isCloudLicense(license)),
+    cloudLicensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license)),
     licensedForFeature: (feature: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license[feature] === 'true'),
     licensedForSku: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license.SkuShortName === skuName),
     licensedForCloudStarter: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license) && license.SkuShortName === LicenseSkus.Starter),
@@ -383,30 +381,6 @@ const AdminDefinition: AdminDefinitionType = {
 
                 // cloud only view
                 isHidden: it.not(it.licensedForFeature('Cloud')),
-                isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
-            },
-            payment_info: {
-                url: 'billing/payment_info',
-                title: defineMessage({id: 'admin.sidebar.payment_info', defaultMessage: 'Payment Information'}),
-                isHidden: it.any(
-                    it.hidePaymentInfo,
-
-                    // cloud only view
-                    it.not(it.licensedForFeature('Cloud')),
-                ),
-                searchableStrings: billingPaymentInfoSearchableStrings,
-                schema: {
-                    id: 'PaymentInfo',
-                    component: PaymentInfo,
-                },
-                isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
-            },
-            payment_info_edit: {
-                url: 'billing/payment_info_edit',
-                schema: {
-                    id: 'PaymentInfoEdit',
-                    component: PaymentInfoEdit,
-                },
                 isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
             },
         },
@@ -725,6 +699,7 @@ const AdminDefinition: AdminDefinitionType = {
                             disabled_help_text: defineMessage({id: 'admin.service.forward80To443Description.disabled', defaultMessage: 'Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server. This setting cannot be enabled until your server is [listening](#ServiceSettings.ListenAddress) on port 443.'}),
                             disabled_help_text_markdown: true,
                             isDisabled: it.any(
+                                it.cloudLicensed,
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                                 it.not(it.stateMatches('ServiceSettings.ListenAddress', /:443$/)),
                             ),
@@ -894,6 +869,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.database', defaultMessage: 'Database'}),
                 searchableStrings: databaseSearchableStrings,
                 isHidden: it.any(
+                    it.cloudLicensed,
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DATABASE)),
                 ),
@@ -4018,6 +3994,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.stateEquals('SamlSettings.IdpMetadataURL', ''),
                             ),
                             sourceUrlKey: 'SamlSettings.IdpMetadataURL',
+                            skipSaveNeeded: true,
                         },
                         {
                             type: 'text',

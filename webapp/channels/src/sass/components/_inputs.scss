@@ -30,7 +30,7 @@
 }
 
 .form-control {
-    border-radius: $border-rad;
+    border-radius: var(--radius-xs);
     text-align: left;
 
     &:focus {

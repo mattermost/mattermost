@@ -391,6 +391,9 @@ func (h *Hub) Start() {
 
 				connIndex.Add(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
+				if metrics := h.platform.metricsIFace; metrics != nil {
+					metrics.IncrementHTTPWebSockets(webConn.originClient)
+				}
 
 				if webConn.IsAuthenticated() && webConn.reuseCount == 0 {
 					// The hello message should only be sent when the reuseCount is 0.
@@ -405,6 +408,9 @@ func (h *Hub) Start() {
 				webConn.active.Store(false)
 
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
+				if metrics := h.platform.metricsIFace; metrics != nil {
+					metrics.DecrementHTTPWebSockets(webConn.originClient)
+				}
 
 				if webConn.UserId == "" {
 					continue

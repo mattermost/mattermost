@@ -2,6 +2,7 @@
 # SC2034: <variable> appears unused.
 # https://www.shellcheck.net/wiki/SC2034
 # shellcheck disable=SC2034
+# shellcheck disable=SC2086,SC2223
 
 set -e -u -o pipefail
 cd "$(dirname "$0")"
@@ -32,10 +33,12 @@ if [ -n "${TM4J_API_KEY:-}" ]; then
   export JIRA_PROJECT_KEY=MM
   export TM4J_ENVIRONMENT_NAME="${TEST}/${BROWSER}/${SERVER}"
   case "${SERVER}" in
-    cloud)
-      export TM4J_FOLDER_ID="2014474" ;;
-    *)
-      export TM4J_FOLDER_ID="2014475" ;;
+  cloud)
+    export TM4J_FOLDER_ID="2014474"
+    ;;
+  *)
+    export TM4J_FOLDER_ID="2014475"
+    ;;
   esac
   : ${TEST_CYCLE_LINK_PREFIX:?}
   : ${TM4J_CYCLE_KEY:-}

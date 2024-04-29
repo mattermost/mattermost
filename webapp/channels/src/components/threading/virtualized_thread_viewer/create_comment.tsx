@@ -19,7 +19,6 @@ import Constants from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 type Props = {
-    focusOnMount: boolean;
     teammate?: UserProfile;
     threadId: string;
     isThreadView?: boolean;
@@ -27,7 +26,6 @@ type Props = {
 };
 
 const CreateComment = forwardRef<HTMLDivElement, Props>(({
-    focusOnMount,
     teammate,
     threadId,
     isThreadView,
@@ -93,7 +91,6 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
         >
             <AdvancedCreateComment
                 placeholder={placeholder}
-                focusOnMount={focusOnMount}
                 channelId={channel.id}
                 rootId={threadId}
                 isThreadView={isThreadView}

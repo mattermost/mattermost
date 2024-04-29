@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable max-lines */
-
 export type ClientConfig = {
     AboutLink: string;
     AllowBannerDismissal: string;
@@ -305,6 +303,7 @@ export type ServiceSettings = {
     EnableOAuthServiceProvider: boolean;
     EnableIncomingWebhooks: boolean;
     EnableOutgoingWebhooks: boolean;
+    EnableOutgoingOAuthConnections: boolean;
     EnableCommands: boolean;
     OutgoingIntegrationRequestsTimeout: number;
     EnablePostUsernameOverride: boolean;
@@ -532,6 +531,7 @@ export type FileSettings = {
     AmazonS3SSE: boolean;
     AmazonS3Trace: boolean;
     AmazonS3RequestTimeoutMilliseconds: number;
+    AmazonS3UploadPartSizeBytes: number;
     DedicatedExportStore: boolean;
     ExportDriverName: string;
     ExportDirectory: string;
@@ -547,6 +547,7 @@ export type FileSettings = {
     ExportAmazonS3Trace: boolean;
     ExportAmazonS3RequestTimeoutMilliseconds: number;
     ExportAmazonS3PresignExpiresSeconds: number;
+    ExportAmazonS3UploadPartSizeBytes: number;
 };
 
 export type EmailSettings = {
@@ -764,10 +765,6 @@ export type ClusterSettings = {
     EnableExperimentalGossipEncryption: boolean;
     ReadOnlyConfig: boolean;
     GossipPort: number;
-    StreamingPort: number;
-    MaxIdleConns: number;
-    MaxIdleConnsPerHost: number;
-    IdleConnTimeoutMilliseconds: number;
 };
 
 export type MetricsSettings = {
@@ -781,7 +778,6 @@ export type ExperimentalSettings = {
     ClientSideCertCheck: string;
     LinkMetadataTimeoutMilliseconds: number;
     RestrictSystemAdmin: boolean;
-    UseNewSAMLLibrary: boolean;
     EnableSharedChannels: boolean;
     EnableRemoteClusterService: boolean;
     DisableAppBar: boolean;
@@ -838,7 +834,7 @@ export type DataRetentionSettings = {
     FileRetentionHours: number;
     DeletionJobStartTime: string;
     BatchSize: number;
-    EnableBoardsDeletion: boolean,
+    EnableBoardsDeletion: boolean;
     BoardsRetentionDays: number;
     TimeBetweenBatchesMilliseconds: number;
     RetentionIdsBatchSize: number;
@@ -869,8 +865,7 @@ export type JobSettings = {
     CleanupConfigThresholdDays: number;
 };
 
-export type ProductSettings = {
-};
+export type ProductSettings = Record<string, never>;
 
 export type PluginSettings = {
     Enable: boolean;
@@ -914,6 +909,7 @@ export type CloudSettings = {
     CWSURL: string;
     CWSAPIURL: string;
     CWSMock: boolean;
+    Disable: boolean;
 };
 
 export type FeatureFlags = Record<string, string | boolean>;
@@ -1007,7 +1003,6 @@ export enum ServiceEnvironment {
     TEST = 'test',
     DEV = 'dev',
 }
-
 
 export type AllowedIPRange = {
     cidr_block: string;

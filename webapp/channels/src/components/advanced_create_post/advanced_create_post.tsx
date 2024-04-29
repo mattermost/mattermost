@@ -9,9 +9,7 @@ import type {Channel} from '@mattermost/types/channels';
 
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 
-import {
-    Locations,
-} from 'utils/constants';
+import {Locations} from 'utils/constants';
 
 export type Props = {
 

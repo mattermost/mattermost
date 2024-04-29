@@ -38,7 +38,8 @@
   },
   "scripts": {
     "build": "tsc --build --verbose",
+    "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
     "run": "tsc --watch --preserveWatchOutput",
-    "clean": "rm -rf tsconfig.tsbuildinfo ./lib"
+    "clean": "rm -rf lib *.tsbuildinfo"
   }
 }

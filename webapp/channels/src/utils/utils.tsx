@@ -31,6 +31,7 @@ import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {getTeamByName as getTeamByNameAction} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences, General} from 'mattermost-redux/constants';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     getChannel,
     getChannelsNameMapInTeam,
@@ -341,7 +342,7 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .attachment .attachment__content, .app__body .attachment-actions button', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.16));
         changeCss('.app__body .attachment-actions button:focus, .app__body .attachment-actions button:hover', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.5));
         changeCss('.app__body .attachment-actions button:focus, .app__body .attachment-actions button:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.03));
-        changeCss('.app__body .input-group-addon, .app__body .channel-intro .channel-intro__content, .app__body .webhooks__container', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
+        changeCss('.app__body .input-group-addon, .app__body .webhooks__container', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
         changeCss('.app__body .date-separator .separator__text', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .date-separator .separator__hr, .app__body .modal-footer, .app__body .modal .custom-textarea', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .search-item-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1));
@@ -1630,8 +1631,7 @@ const TrackFlowRoles: Record<string, string> = {
     su: General.SYSTEM_USER_ROLE,
 };
 
-export function getTrackFlowRole() {
-    const state = store.getState();
+export function getTrackFlowRole(state: GlobalState) {
     let trackFlowRole = 'su';
 
     if (isFirstAdmin(state)) {
@@ -1643,11 +1643,15 @@ export function getTrackFlowRole() {
     return trackFlowRole;
 }
 
-export function getRoleForTrackFlow() {
-    const startedByRole = TrackFlowRoles[getTrackFlowRole()];
+export const getRoleForTrackFlow = createSelector(
+    'getRoleForTrackFlow',
+    getTrackFlowRole,
+    (trackFlowRole) => {
+        const startedByRole = TrackFlowRoles[trackFlowRole];
 
-    return {started_by_role: startedByRole};
-}
+        return {started_by_role: startedByRole};
+    },
+);
 
 export function getSbr() {
     const params = new URLSearchParams(window.location.search);

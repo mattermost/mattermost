@@ -490,6 +490,8 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
+	app.initElasticsearchChannelIndexCheck()
+
 	return s, nil
 }
 
@@ -1362,12 +1364,6 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	if license.IsCloud() {
-		appInstance := New(ServerConnector(s.Channels()))
-		appInstance.DoSubscriptionRenewalCheck()
-		return
-	}
-
 	users, err := s.Store().User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
@@ -1477,11 +1473,6 @@ func (s *Server) initJobs() {
 	if jobsElasticsearchIndexerInterface != nil {
 		builder := jobsElasticsearchIndexerInterface(s)
 		s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, builder.MakeWorker(), nil)
-	}
-
-	if jobsElasticsearchFixChannelIndexInterface != nil {
-		builder := jobsElasticsearchFixChannelIndexInterface(s)
-		s.Jobs.RegisterJobType(model.JobTypeElasticsearchFixChannelIndex, builder.MakeWorker(), nil)
 	}
 
 	if jobsLdapSyncInterface != nil {

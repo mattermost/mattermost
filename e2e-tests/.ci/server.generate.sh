@@ -55,6 +55,7 @@ services:
     environment:
       MM_SERVICESETTINGS_ALLOWCORSFROM: "*"
       MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
+      MM_SERVICESETTINGS_ENABLESECURITYFIXALERT: "false"
       MM_PLUGINSETTINGS_ENABLED: "true"
       MM_PLUGINSETTINGS_ENABLEUPLOADS: "true"
       MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS: "true"
@@ -67,6 +68,7 @@ services:
       MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
       MM_SERVICEENVIRONMENT: "test"
       MM_FEATUREFLAGS_MOVETHREADSENABLED: "true"
+      MM_LOGSETTINGS_ENABLEDIAGNOSTICS: "false"
     network_mode: host
     depends_on:
 $(for service in $ENABLED_DOCKER_SERVICES; do
@@ -222,7 +224,7 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   playwright:
-    image: mcr.microsoft.com/playwright:v1.38.1-jammy
+    image: mcr.microsoft.com/playwright:v1.43.0-jammy
     entrypoint: ["/bin/bash", "-c"]
     command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
     env_file:
@@ -259,7 +261,7 @@ EOL
 generate_env_files() {
   # Generate .env.server
   mme2e_log "Generating .env.server"
-  truncate --size=0 .env.server
+  truncate -s 0 .env.server
 
   # Setting SERVER-specific variables
   case "$SERVER" in
@@ -287,7 +289,7 @@ generate_env_files() {
   case "$TEST" in
   cypress)
     mme2e_log "Cypress: Generating .env.cypress"
-    truncate --size=0 .env.cypress
+    truncate -s 0 .env.cypress
 
     mme2e_generate_envfile_from_var_names >.env.cypress <<-EOF
 	BRANCH
