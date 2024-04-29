@@ -63,6 +63,10 @@ function TeamController(props: Props) {
     }, []);
 
     useEffect(() => {
+        if (props.disableWakeUpReconnectHandler) {
+            return () => {};
+        }
+
         const wakeUpIntervalId = setInterval(() => {
             const currentTime = Date.now();
             if ((currentTime - lastTime.current) > WAKEUP_THRESHOLD) {
