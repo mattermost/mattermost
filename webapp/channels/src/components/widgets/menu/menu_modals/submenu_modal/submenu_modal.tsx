@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {Modal} from 'react-bootstrap';
-
-import * as Utils from 'utils/utils';
+import {useIntl} from 'react-intl';
 
 import Menu from '../../menu';
 import type SubMenuItem from '../../menu_items/submenu_item';
@@ -22,14 +21,17 @@ const SubMenuModal = ({
     onExited,
 }: Props) => {
     const [show, setShow] = useState(true);
+    const intl = useIntl();
 
-    const onHide = () => {
+    const onHide = useCallback(() => {
         setShow(false);
-    };
+    }, [setShow]);
 
-    let SubMenuItems;
-    if (elements) {
-        SubMenuItems = elements.map(
+    const subMenuItems = useMemo(() => {
+        if (!elements) {
+            return undefined;
+        }
+        return elements.map(
             (element) => (
                 <Menu.ItemSubMenu
                     key={element.id}
@@ -41,7 +43,7 @@ const SubMenuModal = ({
                     root={false}
                 />),
         );
-    }
+    }, [elements]);
 
     return (
         <Modal
@@ -60,9 +62,9 @@ const SubMenuModal = ({
                 <MenuWrapper>
                     <Menu
                         openLeft={true}
-                        ariaLabel={Utils.localizeMessage('post_info.submenu.mobile', 'mobile submenu').toLowerCase()}
+                        ariaLabel={intl.formatMessage({id: 'post_info.submenu.mobile', defaultMessage: 'mobile submenu'})}
                     >
-                        {SubMenuItems}
+                        {subMenuItems}
                     </Menu>
                     <div/>
                 </MenuWrapper>
