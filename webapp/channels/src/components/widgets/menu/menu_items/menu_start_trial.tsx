@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
-import styled from 'styled-components';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import styled from 'styled-components';
 
 import type {GlobalState} from '@mattermost/types/store';
 
