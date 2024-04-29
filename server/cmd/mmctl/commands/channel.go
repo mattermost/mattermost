@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/web"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
@@ -284,7 +283,7 @@ func getAllPublicChannelsForTeam(c client.Client, teamID string) ([]*model.Chann
 	page := 0
 
 	for {
-		channelsPage, _, err := c.GetPublicChannelsForTeam(context.TODO(), teamID, page, web.PerPageMaximum, "")
+		channelsPage, _, err := c.GetPublicChannelsForTeam(context.TODO(), teamID, page, DefaultPageSize, "")
 		if err != nil {
 			return nil, err
 		}
@@ -305,7 +304,7 @@ func getAllDeletedChannelsForTeam(c client.Client, teamID string) ([]*model.Chan
 	page := 0
 
 	for {
-		channelsPage, _, err := c.GetDeletedChannelsForTeam(context.TODO(), teamID, page, web.PerPageMaximum, "")
+		channelsPage, _, err := c.GetDeletedChannelsForTeam(context.TODO(), teamID, page, DefaultPageSize, "")
 		if err != nil {
 			return nil, err
 		}
@@ -497,7 +496,9 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 			return errors.Errorf("channel %s was not found in team %s", args[0], teamArg)
 		}
 	} else {
-		teams, _, err := c.GetAllTeams(context.TODO(), "", 0, 9999)
+		teams, err := getPages(func(page, numPerPage int, etag string) ([]*model.Team, *model.Response, error) {
+			return c.GetAllTeams(context.TODO(), etag, page, numPerPage)
+		}, DefaultPageSize)
 		if err != nil {
 			return err
 		}
@@ -559,7 +560,7 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, error
 	withoutError := true
 
 	for {
-		channelsPage, _, err := c.GetPrivateChannelsForTeam(context.TODO(), teamID, page, web.PerPageMaximum, "")
+		channelsPage, _, err := c.GetPrivateChannelsForTeam(context.TODO(), teamID, page, DefaultPageSize, "")
 		if err != nil && viper.GetBool("local") {
 			return nil, err
 		} else if err != nil {

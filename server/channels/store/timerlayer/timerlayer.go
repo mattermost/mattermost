@@ -7795,6 +7795,22 @@ func (s *TimerLayerSessionStore) Get(c request.CTX, sessionIDOrToken string) (*m
 	return result, err
 }
 
+func (s *TimerLayerSessionStore) GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
+	start := time.Now()
+
+	result, err := s.SessionStore.GetLRUSessions(c, userID, limit, offset)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetLRUSessions", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSessionStore) GetSessions(c request.CTX, userID string) ([]*model.Session, error) {
 	start := time.Now()
 
@@ -11020,10 +11036,10 @@ func (s *TimerLayerUserStore) IsEmpty(excludeBots bool) (bool, error) {
 	return result, err
 }
 
-func (s *TimerLayerUserStore) PermanentDelete(userID string) error {
+func (s *TimerLayerUserStore) PermanentDelete(rctx request.CTX, userID string) error {
 	start := time.Now()
 
-	err := s.UserStore.PermanentDelete(userID)
+	err := s.UserStore.PermanentDelete(rctx, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

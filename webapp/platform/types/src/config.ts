@@ -531,6 +531,7 @@ export type FileSettings = {
     AmazonS3SSE: boolean;
     AmazonS3Trace: boolean;
     AmazonS3RequestTimeoutMilliseconds: number;
+    AmazonS3UploadPartSizeBytes: number;
     DedicatedExportStore: boolean;
     ExportDriverName: string;
     ExportDirectory: string;
@@ -546,6 +547,7 @@ export type FileSettings = {
     ExportAmazonS3Trace: boolean;
     ExportAmazonS3RequestTimeoutMilliseconds: number;
     ExportAmazonS3PresignExpiresSeconds: number;
+    ExportAmazonS3UploadPartSizeBytes: number;
 };
 
 export type EmailSettings = {
@@ -763,10 +765,6 @@ export type ClusterSettings = {
     EnableExperimentalGossipEncryption: boolean;
     ReadOnlyConfig: boolean;
     GossipPort: number;
-    StreamingPort: number;
-    MaxIdleConns: number;
-    MaxIdleConnsPerHost: number;
-    IdleConnTimeoutMilliseconds: number;
 };
 
 export type MetricsSettings = {
@@ -780,7 +778,6 @@ export type ExperimentalSettings = {
     ClientSideCertCheck: string;
     LinkMetadataTimeoutMilliseconds: number;
     RestrictSystemAdmin: boolean;
-    UseNewSAMLLibrary: boolean;
     EnableSharedChannels: boolean;
     EnableRemoteClusterService: boolean;
     DisableAppBar: boolean;

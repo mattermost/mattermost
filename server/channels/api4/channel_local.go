@@ -206,7 +206,7 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
 			} else {
-				c.Err = model.NewAppError("localAddChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
+				c.Err = model.NewAppError("localAddChannelMember", "api.channel.add_members.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 			return
 		}

@@ -104,17 +104,19 @@ services:
     networks:
       - mm-test
   keycloak:
-    image: "quay.io/keycloak/keycloak:24.0.1"
+    image: "quay.io/keycloak/keycloak:23.0.7"
     restart: always
-    command: start-dev --import-realm --verbose
-    environment:
-      KEYCLOAK_ADMIN: mmuser
-      KEYCLOAK_ADMIN_PASSWORD: mostest
-      KC_DB: dev-file
+    entrypoint: /opt/keycloak/bin/kc.sh start --import-realm
     networks:
       - mm-test
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HOSTNAME_STRICT_HTTPS: 'false'
+      KC_HTTP_ENABLED: 'true'
     volumes:
-     - "./docker/keycloak/realm.json:/opt/keycloak/data/import/realm.json"
+     - "./docker/keycloak:/opt/keycloak/data/import"
   prometheus:
     image: "prom/prometheus:v2.46.0"
     volumes:

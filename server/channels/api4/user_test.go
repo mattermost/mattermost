@@ -2744,7 +2744,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 	})
 	require.NoError(t, err)
 	th.LinkUserToTeam(user, th.BasicTeam)
-	defer th.App.Srv().Store().User().PermanentDelete(user.Id)
+	defer th.App.Srv().Store().User().PermanentDelete(th.Context, user.Id)
 
 	user2, _, err := th.Client.CreateUser(context.Background(), &model.User{
 		Username: "a000000001" + model.NewId(),
@@ -2752,7 +2752,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 		Password: "Password1",
 	})
 	require.NoError(t, err)
-	defer th.App.Srv().Store().User().PermanentDelete(user2.Id)
+	defer th.App.Srv().Store().User().PermanentDelete(th.Context, user2.Id)
 
 	rusers, _, err := th.SystemAdminClient.GetUsersWithoutTeam(context.Background(), 0, 100, "")
 	require.NoError(t, err)
@@ -4271,6 +4271,91 @@ func TestSwitchAccount(t *testing.T) {
 	fakeAuthData := model.NewId()
 	_, appErr := th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
 	require.NoError(t, appErr)
+
+	t.Run("From GitLab to Email", func(t *testing.T) {
+		sr = &model.SwitchRequest{
+			CurrentService: model.UserAuthServiceGitlab,
+			NewService:     model.UserAuthServiceEmail,
+			Email:          th.BasicUser.Email,
+			NewPassword:    th.BasicUser.Password,
+		}
+
+		t.Run("Switching from OAuth to email is disabled if EnableSignUpWithEmail is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = false })
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = true })
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.email_signup_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+
+		t.Run("Switching from OAuth to email is disabled if EnableSignInWithEmail and EnableSignInWithUsername is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.EnableSignInWithEmail = false
+				*cfg.EmailSettings.EnableSignInWithUsername = false
+			})
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.EmailSettings.EnableSignInWithEmail = true
+					*cfg.EmailSettings.EnableSignInWithUsername = true
+				})
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.login_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+	})
+
+	t.Run("From LDAP to Email", func(t *testing.T) {
+		_, err = th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceLdap, &fakeAuthData, th.BasicUser.Email, true)
+		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			_, err = th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
+			require.NoError(t, err)
+		})
+
+		sr = &model.SwitchRequest{
+			CurrentService: model.UserAuthServiceLdap,
+			NewService:     model.UserAuthServiceEmail,
+			Email:          th.BasicUser.Email,
+			NewPassword:    th.BasicUser.Password,
+		}
+
+		t.Run("Switching from LDAP to email is disabled if EnableSignUpWithEmail is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = false })
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = true })
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.email_signup_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+		t.Run("Switching from LDAP to email is disabled if EnableSignInWithEmail and EnableSignInWithUsername is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.EnableSignInWithEmail = false
+				*cfg.EmailSettings.EnableSignInWithUsername = false
+			})
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.EmailSettings.EnableSignInWithEmail = true
+					*cfg.EmailSettings.EnableSignInWithUsername = true
+				})
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.login_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+	})
 
 	sr = &model.SwitchRequest{
 		CurrentService: model.UserAuthServiceGitlab,
@@ -6590,7 +6675,7 @@ func TestThreadSocketEvents(t *testing.T) {
 							}
 						}
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
@@ -6613,7 +6698,7 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.Equal(t, ev.GetData()["state"], false)
 						require.Equal(t, ev.GetData()["reply_count"], float64(1))
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
@@ -6641,7 +6726,7 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.EqualValues(t, float64(0), data["unread_replies"])
 						require.EqualValues(t, float64(0), data["unread_mentions"])
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
@@ -6670,7 +6755,7 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.EqualValues(t, float64(1), data["unread_replies"])
 						require.EqualValues(t, float64(1), data["unread_mentions"])
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
@@ -6758,7 +6843,7 @@ func TestThreadSocketEvents(t *testing.T) {
 							require.Equal(t, tc.replies, thread.UnreadReplies)
 							require.Equal(t, tc.mentions, thread.UnreadMentions)
 						}
-					case <-time.After(1 * time.Second):
+					case <-time.After(2 * time.Second):
 						return
 					}
 				}
@@ -6803,7 +6888,7 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.Equal(t, int64(3), thread.UnreadReplies)
 						require.Equal(t, int64(1), thread.UnreadMentions)
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}

@@ -59,3 +59,18 @@ The `realm.json` file is automatically imported by the keycloak development cont
 ## SAML documentation
 
 - [Official SAML with Keycloak documentation](https://docs.mattermost.com/onboard/sso-saml-keycloak.html)
+
+Overwrite your `SamlSettings` section in your config.json file by running `make config-saml` and restarting your server.
+
+You will need to set the following `SamlSettings` in order to complete the setup:
+- **Enable**: true
+- **FirstNameAttribute**: "givenName"
+- **LastNameAttribute**: "surname"
+
+Then you can login with the following credentials:
+- **Admin account**: admin/admin
+
+- **User accounts**:
+  - homer/password
+  - marge/password
+  - lisa/password

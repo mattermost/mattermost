@@ -37,7 +37,7 @@ import {
     getCurrentRelativeTeamUrl,
     getCurrentTeam,
     getCurrentTeamId,
-    getTeam,
+    getRelativeTeamUrl,
     getTeamsList,
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUserByUsername} from 'mattermost-redux/selectors/entities/users';
@@ -103,7 +103,7 @@ export function switchToChannel(channel: Channel & {userId?: string}): ActionFun
     return async (dispatch, getState) => {
         const state = getState();
         const selectedTeamId = channel.team_id;
-        const teamUrl = selectedTeamId ? `/${getTeam(state, selectedTeamId).name}` : getCurrentRelativeTeamUrl(state);
+        const teamUrl = selectedTeamId ? getRelativeTeamUrl(state, selectedTeamId) : getCurrentRelativeTeamUrl(state);
 
         if (channel.userId) {
             const username = channel.userId ? channel.name : channel.display_name;
@@ -145,6 +145,9 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
         let state = getState();
         const currentUserId = getCurrentUserId(state);
         const currentTeam = getCurrentTeam(state);
+        if (!currentTeam) {
+            return {data: false};
+        }
         const channel = getChannel(state, channelId);
         const currentChannelId = getCurrentChannelId(state);
 

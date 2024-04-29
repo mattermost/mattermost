@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -38,16 +37,23 @@ func (ps *PlatformService) initLogging() error {
 		if err != nil {
 			return err
 		}
+	}
 
-		logCfg, err := config.MloggerConfigFromLoggerConfig(&ps.Config().LogSettings, nil, config.GetLogFileLocation)
-		if err != nil {
+	// configure app logger. This will replace any existing targets with new ones as defined in the config.
+	if err := ps.ConfigureLogger("logging", ps.logger, &ps.Config().LogSettings, config.GetLogFileLocation); err != nil {
+		// if the config is locked then a unit test has already configured and locked the logger; not an error.
+		if !errors.Is(err, mlog.ErrConfigurationLock) {
+			// revert to default logger if the config is invalid
+			mlog.InitGlobalLogger(nil)
 			return err
 		}
-
-		if errCfg := ps.logger.ConfigureTargets(logCfg, nil); errCfg != nil {
-			return fmt.Errorf("failed to configure test logger: %w", errCfg)
-		}
 	}
+
+	// redirect default Go logger to app logger.
+	ps.logger.RedirectStdLog(mlog.LvlStdLog)
+
+	// use the app logger as the global logger (eventually remove all instances of global logging).
+	mlog.InitGlobalLogger(ps.logger)
 
 	// create notification logger if needed
 	if ps.notificationsLogger == nil {
@@ -58,21 +64,7 @@ func (ps *PlatformService) initLogging() error {
 		ps.notificationsLogger = l.With(mlog.String("logSource", "notifications"))
 	}
 
-	if err := ps.ConfigureLogger("logging", ps.logger, &ps.Config().LogSettings, config.GetLogFileLocation); err != nil {
-		// if the config is locked then a unit test has already configured and locked the logger; not an error.
-		if !errors.Is(err, mlog.ErrConfigurationLock) {
-			// revert to default logger if the config is invalid
-			mlog.InitGlobalLogger(nil)
-			return err
-		}
-	}
-
-	// Redirect default Go logger to app logger.
-	ps.logger.RedirectStdLog(mlog.LvlStdLog)
-
-	// Use the app logger as the global logger (eventually remove all instances of global logging).
-	mlog.InitGlobalLogger(ps.logger)
-
+	// configure notification logger
 	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&ps.Config().NotificationLogSettings)
 	if err := ps.ConfigureLogger("notification logging", ps.notificationsLogger, notificationLogSettings, config.GetNotificationsLogFileLocation); err != nil {
 		if !errors.Is(err, mlog.ErrConfigurationLock) {

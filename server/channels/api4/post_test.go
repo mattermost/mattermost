@@ -649,7 +649,7 @@ func testCreatePostWithOutgoingHook(
 	select {
 	case ok := <-success:
 		require.True(t, ok, "Test server did send an invalid webhook.")
-	case <-time.After(time.Second):
+	case <-time.After(2 * time.Second):
 		require.FailNow(t, "Timeout, test server did not send the webhook.")
 	}
 
@@ -1497,6 +1497,15 @@ func TestPatchPost(t *testing.T) {
 	})
 
 	t.Run("invalid requests", func(t *testing.T) {
+		var origEnableDeveloper bool
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			origEnableDeveloper = *cfg.ServiceSettings.EnableDeveloper
+			*cfg.ServiceSettings.EnableDeveloper = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = origEnableDeveloper
+		})
+
 		r, err := client.DoAPIPut(context.Background(), "/posts/"+post.Id+"/patch", "garbage")
 		require.EqualError(t, err, "Invalid or missing post in request body., invalid character 'g' looking for beginning of value")
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")

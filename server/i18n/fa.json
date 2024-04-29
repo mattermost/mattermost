@@ -1384,10 +1384,6 @@
     "translation": "رمز ورود شما باید حداقل شامل {{.Min}} نویسه باشد که حداقل از یک حرف کوچک تشکیل شده باشد."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "رمز ورود شما باید حداقل شامل {{.Min}} نویسه باشد."
-  },
-  {
     "id": "model.channel.is_valid.update_at.app_error",
     "translation": "به روزرسانی در باید یک زمان معتبر باشد."
   },
@@ -2630,10 +2626,6 @@
   {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "خطا در خواندن پرونده واردات داده."
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "در حین import کردن، پیوست فایل خوانده نشد."
   },
   {
     "id": "app.import.attachment.file_upload.error",

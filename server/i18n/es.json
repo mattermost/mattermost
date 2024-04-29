@@ -4452,10 +4452,6 @@
     "translation": "Por favor, ingresa una dirección válida de correo electrónico."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "La contraseña debe contener al menos {{.Min}} caracteres."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula."
   },
@@ -7512,10 +7508,6 @@
     "translation": "Error al generar la contraseña."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "No se ha podido leer el archivo adjunto durante la importación."
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": "No se ha podido añadir un fichero al archivo zip durante la exportación."
   },
@@ -9330,5 +9322,25 @@
   {
     "id": "api.server.cws.health_check.app_error",
     "translation": "El servidor CWS no está disponible."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Tu licencia no soporta marcadores de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "El usuario no tiene permitido crear un marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Error al crear el marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Error al crear el marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Error al eliminar el marcador de canal."
   }
 ]

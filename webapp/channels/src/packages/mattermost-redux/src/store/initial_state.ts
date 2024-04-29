@@ -33,11 +33,14 @@ const state: GlobalState = {
             filteredStats: {},
             myUserAccessTokens: {},
             lastActivity: {},
+            dndEndTimes: {},
         },
         limits: {
-            usersLimits: {
+            serverLimits: {
                 activeUserCount: 0,
                 maxUsersLimit: 0,
+                postCount: 0,
+                maxPostLimit: 0,
             },
         },
         teams: {
