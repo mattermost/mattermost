@@ -9,13 +9,15 @@ import Logo from 'components/common/svg_images_components/logo_dark_blue_svg';
 const ProductBrandingTeamEditionContainer = styled.div`
     display: flex;
     align-items: center;
-    
-    svg,
-    svg path {
-        fill: rgba(var(--sidebar-text-rgb), 0.75);
-    }
+
     > * + * {
         margin-left: 8px;
+    }
+`;
+
+const StyledLogo = styled(Logo)`
+    path {
+        fill: rgba(var(--sidebar-text-rgb), 0.75);
     }
 `;
 
@@ -39,7 +41,7 @@ const Badge = styled.div`
 const ProductBrandingTeamEdition = (): JSX.Element => {
     return (
         <ProductBrandingTeamEditionContainer tabIndex={0}>
-            <Logo
+            <StyledLogo
                 width={116}
                 height={20}
             />
