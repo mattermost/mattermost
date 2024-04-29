@@ -27,7 +27,7 @@ Options
 
 ::
 
-      --force   We generally restrict what statuses you can set but using --force will give you more freedom
+      --force   Setting a job status is restricted to certain statuses. You can overwrite these restrictions by using --force. This might cause unexpected behaviour on your Mattermost Server. Use this option with caution.
   -h, --help    help for update
 
 Options inherited from parent commands

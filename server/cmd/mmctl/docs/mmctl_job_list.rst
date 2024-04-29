@@ -32,8 +32,8 @@ Options
       --ids strings     Comma-separated list of job IDs to which the operation will be applied. All other flags are ignored
       --page int        Page number to fetch for the list of import jobs
       --per-page int    Number of import jobs to be fetched (default 5)
-      --status string   Job status
-      --type string     Job type
+      --status string   Filter by job status
+      --type string     Filter by job type
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
