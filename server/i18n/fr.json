@@ -4456,10 +4456,6 @@
     "translation": "Veuillez spécifier une adresse e-mail valide."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères et une lettre minuscule."
   },
@@ -7390,10 +7386,6 @@
   {
     "id": "app.import.generate_password.app_error",
     "translation": "Une erreur s'est produite lors de la génération du mot de passe."
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Impossible de lire le fichier joint lors de l'importation."
   },
   {
     "id": "app.group.uniqueness_error",

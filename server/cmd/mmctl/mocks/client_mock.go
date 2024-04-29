@@ -958,6 +958,22 @@ func (mr *MockClientMockRecorder) GetOAuthApps(arg0, arg1, arg2 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOAuthApps", reflect.TypeOf((*MockClient)(nil).GetOAuthApps), arg0, arg1, arg2)
 }
 
+// GetOldClientConfig mocks base method.
+func (m *MockClient) GetOldClientConfig(arg0 context.Context, arg1 string) (map[string]string, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOldClientConfig", arg0, arg1)
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetOldClientConfig indicates an expected call of GetOldClientConfig.
+func (mr *MockClientMockRecorder) GetOldClientConfig(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOldClientConfig", reflect.TypeOf((*MockClient)(nil).GetOldClientConfig), arg0, arg1)
+}
+
 // GetOutgoingWebhook mocks base method.
 func (m *MockClient) GetOutgoingWebhook(arg0 context.Context, arg1 string) (*model.OutgoingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -1420,6 +1436,22 @@ func (m *MockClient) GetUsersInTeam(arg0 context.Context, arg1 string, arg2, arg
 func (mr *MockClientMockRecorder) GetUsersInTeam(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersInTeam", reflect.TypeOf((*MockClient)(nil).GetUsersInTeam), arg0, arg1, arg2, arg3, arg4)
+}
+
+// GetUsersWithCustomQueryParameters mocks base method.
+func (m *MockClient) GetUsersWithCustomQueryParameters(arg0 context.Context, arg1, arg2 int, arg3, arg4 string) ([]*model.User, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersWithCustomQueryParameters", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].([]*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetUsersWithCustomQueryParameters indicates an expected call of GetUsersWithCustomQueryParameters.
+func (mr *MockClientMockRecorder) GetUsersWithCustomQueryParameters(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersWithCustomQueryParameters", reflect.TypeOf((*MockClient)(nil).GetUsersWithCustomQueryParameters), arg0, arg1, arg2, arg3, arg4)
 }
 
 // InstallMarketplacePlugin mocks base method.

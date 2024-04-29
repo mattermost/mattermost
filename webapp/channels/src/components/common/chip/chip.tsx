@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
@@ -52,34 +52,45 @@ const StyledChip = styled.button<{ otherOption?: boolean }>`
     }
 `;
 
-export default class Chip extends React.PureComponent<Props> {
-    onClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        this.props.onClick?.();
-    };
+const emojiStyles = {marginRight: '11px'};
 
-    render() {
-        return (
-            <StyledChip
-                onClick={this.onClick}
-                otherOption={this.props.otherOption}
-                className={this.props.className || ''}
-            >
-                {this.props.leadingIcon && (
-                    <RenderEmoji
-                        emojiName={this.props.leadingIcon}
-                        emojiStyle={{marginRight: '11px'}}
-                    />
-                )}
-                {(this.props.id && this.props.defaultMessage && this.props.values) && (
-                    <FormattedMessage
-                        id={this.props.id}
-                        defaultMessage={this.props.defaultMessage}
-                        values={this.props.values}
-                    />
-                )}
-                {this.props.additionalMarkup}
-            </StyledChip>
-        );
-    }
-}
+const Chip = ({
+    onClick,
+    otherOption,
+    className,
+    leadingIcon,
+    id,
+    defaultMessage,
+    values,
+    additionalMarkup,
+}: Props) => {
+    const handleClick = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        onClick?.();
+    }, [onClick]);
+
+    return (
+        <StyledChip
+            onClick={handleClick}
+            otherOption={otherOption}
+            className={className || ''}
+        >
+            {leadingIcon && (
+                <RenderEmoji
+                    emojiName={leadingIcon}
+                    emojiStyle={emojiStyles}
+                />
+            )}
+            {(id && defaultMessage && values) && (
+                <FormattedMessage
+                    id={id}
+                    defaultMessage={defaultMessage}
+                    values={values}
+                />
+            )}
+            {additionalMarkup}
+        </StyledChip>
+    );
+};
+
+export default Chip;

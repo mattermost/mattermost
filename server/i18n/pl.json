@@ -2265,7 +2265,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Nie udało się zaktualizować połączenia websocket."
+    "translation": "URL zablokowany z powodu CORS. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -4454,10 +4454,6 @@
   {
     "id": "model.user.is_valid.email.app_error",
     "translation": "Proszę podać poprawny adres email."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Twoje hasło musi zawierać przynajmniej {{.Min}} znaków."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
@@ -8520,10 +8516,6 @@
     "translation": "Błąd generowania hasła."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Nie udało się odczytać załącznika pliku podczas importu."
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "członek grupy już istnieje"
   },
@@ -9880,10 +9872,6 @@
     "translation": "Nie można uzyskać tylu ról według nazwy. Jednocześnie można zażądać tylko {{.MaxNames}} ról."
   },
   {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "Nie udało się uzyskać liczby użytkowników"
-  },
-  {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
     "translation": "Wystąpił błąd podczas usuwania wychodzącego połączenia oauth."
   },
@@ -10350,5 +10338,53 @@
   {
     "id": "api.user.create_user.user_limits.exceeded",
     "translation": "Nie można utworzyć użytkownika. Serwer przekroczył limit bezpiecznych użytkowników. Skontaktuj się z administratorem: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} i @{{.LastUsername}} nie zostały powiadomione o tej wzmiance, ponieważ nie są członkami tego zespołu."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} nie został powiadomiony o tej wzmiance, ponieważ nie jest członkiem tego zespołu."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Brakująca nazwa_wyświetlana w treści żądania"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Brakujące id_zespołu w treści żądania"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Transfer uwierzytelniania nie jest dostępny, ponieważ nie włączono ani logowania przez e-mail, ani logowania przez nazwę użytkownika."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Nie udało się przeanalizować żądania"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Ponowne dołączenie wtyczki nie powiodło się"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Brakujący manifest"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Brakująca konfiguracja ponownego dołączenia wtyczki"
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Twoje hasło musi zawierać przynajmniej {{.Min}} znaków."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Transfer uwierzytelniania nie jest dostępny, ponieważ rejestracja przez e-mail jest wyłączona."
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Twoje hasło nie może zawierać więcej niż 72 znaki."
   }
 ]

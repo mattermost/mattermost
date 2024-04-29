@@ -196,10 +196,6 @@
     "translation": "Vaše heslo musí obsahovat nejméně {{.Min}} znaky složené z alespoň jednoho čísla."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Vaše heslo musí obsahovat nejmíň {{.Min}} znaků."
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "Neplatná pozice: nesmí být delší než 128 znaků."
   },
