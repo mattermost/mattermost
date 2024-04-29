@@ -1077,11 +1077,11 @@ func TestSendPushNotifications(t *testing.T) {
 	require.Nil(t, err)
 
 	t.Run("should return error if data is not valid or nil", func(t *testing.T) {
-		err := th.App.sendPushNotificationToAllSessions(nil, th.BasicUser.Id, "")
+		err := th.App.sendPushNotificationToAllSessions(th.Context, nil, th.BasicUser.Id, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.push_notifications.message.parse.app_error", err.Id)
 		// Errors derived of using an empty object are handled internally through the notifications log
-		err = th.App.sendPushNotificationToAllSessions(&model.PushNotification{}, th.BasicUser.Id, "")
+		err = th.App.sendPushNotificationToAllSessions(th.Context, &model.PushNotification{}, th.BasicUser.Id, "")
 		require.Nil(t, err)
 	})
 }
