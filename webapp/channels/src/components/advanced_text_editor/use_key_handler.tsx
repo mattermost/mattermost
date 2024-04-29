@@ -5,10 +5,12 @@ import type React from 'react';
 import {useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {getLatestReplyablePostId} from 'mattermost-redux/selectors/entities/posts';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {editLatestPost} from 'actions/views/create_comment';
+import {selectPostFromRightHandSideSearchByPostId} from 'actions/views/rhs';
 
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
@@ -42,7 +44,6 @@ const useKeyHandler = (
     toggleShowPreview: () => void,
     toggleAdvanceTextEditor: () => void,
     toggleEmojiPicker: () => void,
-    replyToLastPost: ((e: React.KeyboardEvent) => void) | undefined,
 ): [
         (e: React.KeyboardEvent<TextboxElement>) => void,
         (e: React.KeyboardEvent<TextboxElement>) => void,
@@ -57,6 +58,22 @@ const useKeyHandler = (
     const messageHistoryIndex = useRef(messageHistory.length);
     const lastChannelSwitchAt = useRef(0);
     const isNonFormattedPaste = useRef(false);
+
+    const latestReplyablePostId = useSelector((state: GlobalState) => (postId ? '' : getLatestReplyablePostId(state)));
+    const replyToLastPost = useCallback((e: React.KeyboardEvent) => {
+        if (postId) {
+            return;
+        }
+
+        e.preventDefault();
+        const replyBox = document.getElementById('reply_textbox');
+        if (replyBox) {
+            replyBox.focus();
+        }
+        if (latestReplyablePostId) {
+            dispatch(selectPostFromRightHandSideSearchByPostId(latestReplyablePostId));
+        }
+    }, [latestReplyablePostId, dispatch, postId]);
 
     const onEditLatestPost = useCallback((e: React.KeyboardEvent) => {
         e.preventDefault();

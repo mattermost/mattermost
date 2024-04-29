@@ -33,21 +33,21 @@ const useGroups = (
         return channel?.team_id || getCurrentTeamId(state);
     });
 
-    const useLDAPGroupMentions = useSelector((state: GlobalState) => {
+    const canUseLDAPGroupMentions = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
         const license = getLicense(state);
         const isLDAPEnabled = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
         return isLDAPEnabled && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
     });
 
-    const useCustomGroupMentions = useSelector((state: GlobalState) => {
+    const canUseCustomGroupMentions = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
         return isCustomGroupsEnabled(state) && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
     });
 
     const groupsWithAllowReference = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
-        return useLDAPGroupMentions || useCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, channel.team_id, channel.id) : null;
+        return canUseLDAPGroupMentions || canUseCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, channel.team_id, channel.id) : null;
     });
 
     const channelMemberCountsByGroup = useSelector((state: GlobalState) => selectChannelMemberCountsByGroup(state, channelId));
@@ -56,15 +56,15 @@ const useGroups = (
         let memberNotifyCount = 0;
         let channelTimezoneCount = 0;
         let mentions: string[] = [];
-        if (useLDAPGroupMentions || useCustomGroupMentions) {
+        if (canUseLDAPGroupMentions || canUseCustomGroupMentions) {
             const mentionGroups = groupsMentionedInText(message, groupsWithAllowReference);
             if (mentionGroups.length > 0) {
                 mentionGroups.
                     forEach((group) => {
-                        if (group.source === GroupSource.Ldap && !useLDAPGroupMentions) {
+                        if (group.source === GroupSource.Ldap && !canUseLDAPGroupMentions) {
                             return;
                         }
-                        if (group.source === GroupSource.Custom && !useCustomGroupMentions) {
+                        if (group.source === GroupSource.Custom && !canUseCustomGroupMentions) {
                             return;
                         }
                         const mappedValue = channelMemberCountsByGroup[group.id];
@@ -78,11 +78,11 @@ const useGroups = (
             }
         }
         return {mentions, memberNotifyCount, channelTimezoneCount};
-    }, [channelMemberCountsByGroup, groupsWithAllowReference, useCustomGroupMentions, useLDAPGroupMentions]);
+    }, [channelMemberCountsByGroup, groupsWithAllowReference, canUseCustomGroupMentions, canUseLDAPGroupMentions]);
 
     // Get channel member counts by group on channel switch
     useEffect(() => {
-        if (useLDAPGroupMentions || useCustomGroupMentions) {
+        if (canUseLDAPGroupMentions || canUseCustomGroupMentions) {
             const mentions = mentionsMinusSpecialMentionsInText(message);
 
             if (mentions.length === 1) {

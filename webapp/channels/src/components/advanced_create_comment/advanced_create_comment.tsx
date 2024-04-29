@@ -21,18 +21,21 @@ export type Props = {
     placeholder?: string;
 }
 
-class AdvancedCreateComment extends React.PureComponent<Props> {
-    render() {
-        return (
-            <AdvancedTextEditor
-                location={Locations.RHS_COMMENT}
-                channelId={this.props.channelId}
-                postId={this.props.rootId}
-                isThreadView={this.props.isThreadView}
-                placeholder={this.props.placeholder}
-            />
-        );
-    }
-}
+const AdvancedCreateComment = ({
+    channelId,
+    rootId,
+    isThreadView,
+    placeholder,
+}: Props) => {
+    return (
+        <AdvancedTextEditor
+            location={Locations.RHS_COMMENT}
+            channelId={channelId}
+            postId={rootId}
+            isThreadView={isThreadView}
+            placeholder={placeholder}
+        />
+    );
+};
 
-export default AdvancedCreateComment;
+export default React.memo(AdvancedCreateComment);

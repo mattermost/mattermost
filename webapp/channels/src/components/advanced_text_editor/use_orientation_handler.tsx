@@ -40,7 +40,7 @@ const useOrientationHandler = (
     }, [textboxRef]);
 
     useEffect(() => {
-        if (!postId) {
+        if (!postId && UserAgent.isIosWeb()) {
             onOrientationChange();
             if (window.screen.orientation && 'onchange' in window.screen.orientation) {
                 window.screen.orientation.addEventListener('change', onOrientationChange);

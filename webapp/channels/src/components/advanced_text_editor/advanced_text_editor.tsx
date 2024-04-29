@@ -76,7 +76,6 @@ type Props = {
     channelId: string;
     postId: string;
     isThreadView?: boolean;
-    replyToLastPost?: (e: React.KeyboardEvent) => void;
     placeholder?: string;
 }
 
@@ -86,7 +85,6 @@ const AdvanceTextEditor = ({
     postId,
     currentChannelTeammateUsername,
     isThreadView = false,
-    replyToLastPost,
     placeholder,
 }: Props) => {
     const {formatMessage} = useIntl();
@@ -245,7 +243,6 @@ const AdvanceTextEditor = ({
         handleShowPreview,
         toggleAdvanceTextEditor,
         toggleEmojiPicker,
-        replyToLastPost,
     );
 
     const handlePostError = useCallback((err: React.ReactNode) => {
