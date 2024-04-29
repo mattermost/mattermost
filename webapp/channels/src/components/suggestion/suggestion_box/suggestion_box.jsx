@@ -183,7 +183,7 @@ export default class SuggestionBox extends React.PureComponent {
         // Keep track of whether we're composing a CJK character so we can make suggestions for partial characters
         this.composing = false;
 
-        this.pretext = '';
+        this.pretext = props.value;
 
         // Used for debouncing pretext changes
         this.timeoutId = '';
