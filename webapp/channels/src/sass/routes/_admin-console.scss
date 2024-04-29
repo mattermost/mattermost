@@ -634,10 +634,16 @@
                 color: var(--sys-sidebar-text);
                 font-size: 14px;
                 outline: none;
+
+                &:hover {
+                    background: rgba(var(--sys-sidebar-text-rgb), 0.16);
+                }
     
                 &:focus,
+                &:focus:hover,
                 &.active {
                     outline: 2px solid var(--sys-button-bg);
+                    background: rgba(var(--sys-sidebar-text-rgb), 0.08);
                 }
             }
     
