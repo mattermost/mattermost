@@ -694,11 +694,8 @@ function debouncePostEvent(wait) {
 
 const handleNewPostEventDebounced = debouncePostEvent(100);
 
-let counterForNewPost = 0;
 export function handleNewPostEvent(msg) {
     return (myDispatch, myGetState) => {
-        counterForNewPost++;
-
         const post = JSON.parse(msg.data.post);
 
         if (window.logPostEvents) {
@@ -727,27 +724,10 @@ export function handleNewPostEvent(msg) {
     };
 }
 
-let interval = 0;
-setInterval(() => {
-    // eslint-disable-next-line no-console
-    console.table({
-        interval,
-        TotalPosts: counterForNewPost + counterForManyPosts,
-        ManyPosts: counterForManyPosts,
-        SinglePosts: counterForNewPost,
-        ManyCodePaths: timesItWentToManyPosts,
-    });
-    interval += 10;
-}, 10000);
-
-let counterForManyPosts = 0;
-let timesItWentToManyPosts = 0;
 export function handleNewPostEvents(queue) {
     return (myDispatch, myGetState) => {
         // Note that this method doesn't properly update the sidebar state for these posts
         const posts = queue.map((msg) => JSON.parse(msg.data.post));
-        counterForManyPosts += posts.length;
-        timesItWentToManyPosts++;
 
         if (window.logPostEvents) {
             // eslint-disable-next-line no-console
