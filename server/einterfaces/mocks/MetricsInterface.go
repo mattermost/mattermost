@@ -73,6 +73,11 @@ func (_m *MetricsInterface) IncrementChannelIndexCounter() {
 	_m.Called()
 }
 
+// IncrementClientChannelVisited provides a mock function with given fields: platform, agent, inc
+func (_m *MetricsInterface) IncrementClientChannelVisited(platform string, agent string, inc float64) {
+	_m.Called(platform, agent, inc)
+}
+
 // IncrementClusterEventType provides a mock function with given fields: eventType
 func (_m *MetricsInterface) IncrementClusterEventType(eventType model.ClusterEvent) {
 	_m.Called(eventType)
@@ -291,6 +296,11 @@ func (_m *MetricsInterface) IncrementWebsocketReconnectEvent(eventType string) {
 // ObserveAPIEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, originClient, pageLoadContext, elapsed
 func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method string, statusCode string, originClient string, pageLoadContext string, elapsed float64) {
 	_m.Called(endpoint, method, statusCode, originClient, pageLoadContext, elapsed)
+}
+
+// ObserveClientChannelLoadTime provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveClientChannelLoadTime(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
 }
 
 // ObserveClusterRequestDuration provides a mock function with given fields: elapsed

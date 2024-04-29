@@ -102,4 +102,7 @@ type MetricsInterface interface {
 	IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason)
 	IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason)
 	IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason)
+
+	IncrementClientChannelVisited(platform, agent string, inc float64)
+	ObserveClientChannelLoadTime(platform, agent string, elapsed float64)
 }

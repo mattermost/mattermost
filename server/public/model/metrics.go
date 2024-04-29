@@ -3,35 +3,43 @@
 
 package model
 
+import (
+	"fmt"
+	"time"
+)
+
 type MetricType string
 
-type HistogramValue struct {
-	Value     float64 `json:"value"`
-	Timestamp int64   `json:"timestamp"`
-}
+const (
+	ClientMetricChannelVisited MetricType = "channel_visited"
+	ClientMetricChannelLoad    MetricType = "channel_load"
 
-// Counter is a sample for counter type metric
-type Counter struct {
+	performanceReportTTLMilliseconds = 300 * 1000 // 300 seconds/5 minutes
+)
+
+type MetricSample struct {
 	Metric    MetricType        `json:"metric"`
 	Value     int64             `json:"value"`
-	Timestamp int64             `json:"timestamp"`
-	Labels    map[string]string `json:"labels"`
+	Timestamp int64             `json:"timestamp,omitempty"`
+	Labels    map[string]string `json:"labels,omitempty"`
 }
 
-// Histogram is a set of samples associated with a histogram type metric
-type Histogram struct {
-	Metric MetricType        `json:"metric"`
-	Labels map[string]string `json:"labels"`
-	Values []HistogramValue  `json:"values"`
-}
-
-// ClientMetrics is
-type ClientMetrics struct {
+// PerformanceReport is a set of samples collected from a client
+type PerformanceReport struct {
 	Version    string            `json:"version"`
 	ClientID   string            `json:"client_id"`
 	Labels     map[string]string `json:"labels"`
 	Start      int64             `json:"start"`
 	End        int64             `json:"end"`
-	Counters   []*Counter        `json:"counters"`
-	Histograms []*Histogram      `json:"histograms"`
+	Counters   []*MetricSample   `json:"counters"`
+	Histograms []*MetricSample   `json:"histograms"`
+}
+
+func (r *PerformanceReport) IsValidTime() error {
+	now := time.Now().UnixMilli()
+	if r.End < now-performanceReportTTLMilliseconds {
+		return fmt.Errorf("report is outdated: %d", r.End)
+	}
+
+	return nil
 }

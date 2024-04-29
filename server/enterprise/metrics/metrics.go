@@ -42,6 +42,7 @@ const (
 	MetricsSubsystemSystem             = "system"
 	MetricsSubsystemJobs               = "jobs"
 	MetricsSubsystemNotifications      = "notifications"
+	MetricsSubsystemClients            = "clients"
 	MetricsCloudInstallationLabel      = "installationId"
 	MetricsCloudDatabaseClusterLabel   = "databaseClusterName"
 	MetricsCloudInstallationGroupLabel = "installationGroupId"
@@ -209,6 +210,11 @@ type MetricsInterfaceImpl struct {
 	NotificationErrorCounters       *prometheus.CounterVec
 	NotificationNotSentCounters     *prometheus.CounterVec
 	NotificationUnsupportedCounters *prometheus.CounterVec
+
+	// TODO: these are just samples to exemplify metrics usage
+	// the actual metrics will be added later on.
+	ClientChannelVisited      *prometheus.CounterVec
+	ClientChannelLoadDuration *prometheus.HistogramVec
 }
 
 func init() {
@@ -1122,6 +1128,28 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.NotificationUnsupportedCounters)
 
+	m.ClientChannelVisited = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClients,
+			Name:      "channel_visited",
+			Help:      "The total number of channels opened by a client",
+		},
+		[]string{"platform", "user_agent"},
+	)
+	m.Registry.MustRegister(*m.ClientChannelVisited)
+
+	m.ClientChannelLoadDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClients,
+			Name:      "channel_load",
+			Help:      "Duration of a channel load time (milliseconds)",
+		},
+		[]string{"platform", "user_agent"},
+	)
+	m.Registry.MustRegister(*m.ClientChannelVisited)
+
 	return m
 }
 
@@ -1578,6 +1606,14 @@ func (mi *MetricsInterfaceImpl) IncrementHTTPWebSockets(originClient string) {
 
 func (mi *MetricsInterfaceImpl) DecrementHTTPWebSockets(originClient string) {
 	mi.HTTPWebsocketsGauge.With(prometheus.Labels{"origin_client": originClient}).Dec()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementClientChannelVisited(platform, agent string, inc float64) {
+	mi.ClientChannelVisited.With(prometheus.Labels{"platform": platform, "agent": agent}).Add(inc)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientChannelLoadTime(platform, agent string, elapsed float64) {
+	mi.ClientChannelLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
 func extractDBCluster(driver, connectionString string) (string, error) {
