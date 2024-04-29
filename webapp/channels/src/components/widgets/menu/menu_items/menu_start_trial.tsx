@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
+import styled from 'styled-components';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -22,6 +23,22 @@ import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 import './menu_item.scss';
 
 const LearnMoreTrialModal = makeAsyncComponent('LearnMoreTrialModal', React.lazy(() => import('components/learn_more_trial_modal/learn_more_trial_modal')));
+
+const FreeVersionBadge = styled.div`
+     position: relative;
+     top: 1px;
+     display: flex;
+     padding: 2px 6px;
+     border-radius: var(--radius-s);
+     margin-bottom: 6px;
+     background: rgba(var(--center-channel-color-rgb), 0.08);
+     color: rgba(var(--center-channel-color-rgb), 0.75);
+     font-family: 'Open Sans', sans-serif;
+     font-size: 10px;
+     font-weight: 600;
+     letter-spacing: 0.025em;
+     line-height: 16px;
+`;
 
 type Props = {
     id: string;
@@ -66,7 +83,7 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
             role='menuitem'
             id={props.id}
         >
-            <div className='free_version_badge'>{'FREE EDITION'}</div>
+            <FreeVersionBadge>{'FREE EDITION'}</FreeVersionBadge>
             {isE0 &&
                 <div className='start_trial_content'>
                     {formatMessage({
