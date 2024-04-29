@@ -150,6 +150,13 @@ func TestGetJobs(t *testing.T) {
 		require.Len(t, received, 1, "received wrong number of jobs")
 		require.Equal(t, jobs[3].Id, received[0].Id, "should've received the ldap sync job")
 	})
+
+	t.Run("Get job by type and status", func(t *testing.T) {
+		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), 0, 3, model.JobTypeLdapSync, model.JobStatusPending)
+		require.NoError(t, err)
+		require.Len(t, received, 1, "received wrong number of jobs")
+		require.Equal(t, jobs[3].Id, received[0].Id, "should've received the ldap sync job")
+	})
 }
 
 func TestGetJobsByType(t *testing.T) {

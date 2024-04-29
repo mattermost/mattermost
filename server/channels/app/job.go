@@ -76,9 +76,9 @@ func (a *App) UpdateJobStatus(c request.CTX, job *model.Job, newStatus string) *
 		return a.Srv().Jobs.RequestCancellation(c, job.Id)
 	case model.JobStatusCanceled:
 		return a.Srv().Jobs.SetJobCanceled(job)
+	default:
+		return model.NewAppError("UpdateJobStatus", "app.job.update_status.app_error", nil, "", http.StatusInternalServerError)
 	}
-
-	return model.NewAppError("UpdateJobStatus", "app.job.update_status.app_error", nil, "", http.StatusInternalServerError)
 }
 
 func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission) {

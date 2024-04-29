@@ -148,7 +148,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var jobType = r.URL.Query().Get("job_type")
+	jobType := r.URL.Query().Get("job_type")
 	var validJobTypes []string
 
 	if jobType != "" {
@@ -180,22 +180,19 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var status = r.URL.Query().Get("status")
+	status := r.URL.Query().Get("status")
 	var jobs []*model.Job
 	var appErr *model.AppError
 
 	if status == "" {
 		jobs, appErr = c.App.GetJobsByTypesPage(c.AppContext, validJobTypes, c.Params.Page, c.Params.PerPage)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
 	} else {
 		jobs, appErr = c.App.GetJobsByTypeAndStatus(c.AppContext, validJobTypes, status, c.Params.Page, c.Params.PerPage)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
+	}
+
+	if appErr != nil {
+		c.Err = appErr
+		return
 	}
 
 	js, err := json.Marshal(jobs)
@@ -320,7 +317,7 @@ func updateJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !force && !isValidStatusChange(job.Status, status) {
+	if !force && !job.IsValidStatusChange(status) {
 		c.Err = model.NewAppError("updateJobStatus", "api.job.status.invalid", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -333,21 +330,4 @@ func updateJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	ReturnStatusOK(w)
-}
-
-func isValidStatusChange(currentStatus string, newStatus string) bool {
-	if currentStatus == model.JobStatusInProgress {
-		switch newStatus {
-		case model.JobStatusPending:
-			return true
-		case model.JobStatusCancelRequested:
-			return true
-		}
-	}
-
-	if currentStatus == model.JobStatusPending && newStatus == model.JobStatusCancelRequested {
-		return true
-	}
-
-	return currentStatus == model.JobStatusCancelRequested && newStatus == model.JobStatusCanceled
 }

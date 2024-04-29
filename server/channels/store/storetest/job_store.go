@@ -302,17 +302,18 @@ func testJobGetAllByTypeAndStatusPage(t *testing.T, rctx request.CTX, ss store.S
 	received, err := ss.Job().GetAllByTypeAndStatusPage(rctx, jobTypes, model.JobStatusPending, 0, 4)
 	require.NoError(t, err)
 	require.Len(t, received, 2)
-	require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id}, []string{received[0].Id, received[1].Id})
+	require.Equal(t, received[0].Id, jobs[1].Id, "should've received newest job first")
+	require.Equal(t, received[1].Id, jobs[0].Id, "should've received oldest job last")
 
 	received, err = ss.Job().GetAllByTypeAndStatusPage(rctx, jobTypes, model.JobStatusPending, 1, 1)
 	require.NoError(t, err)
 	require.Len(t, received, 1)
-	require.ElementsMatch(t, []string{jobs[0].Id}, []string{received[0].Id})
+	require.Equal(t, received[0].Id, jobs[0].Id, "should've received the oldest pending job")
 
 	received, err = ss.Job().GetAllByTypeAndStatusPage(rctx, []string{jobType2}, model.JobStatusCanceled, 1, 1)
 	require.NoError(t, err)
 	require.Len(t, received, 1)
-	require.ElementsMatch(t, []string{jobs[2].Id}, []string{received[0].Id})
+	require.Equal(t, received[0].Id, jobs[2].Id, "should've received the oldest canceled job")
 }
 
 func testJobGetAllByStatus(t *testing.T, rctx request.CTX, ss store.Store) {

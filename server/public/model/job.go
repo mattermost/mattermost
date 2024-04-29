@@ -123,6 +123,24 @@ func (j *Job) IsValid() *AppError {
 	return nil
 }
 
+func (j *Job) IsValidStatusChange(newStatus string) bool {
+	currentStatus := j.Status
+	if currentStatus == JobStatusInProgress {
+		switch newStatus {
+		case JobStatusPending:
+			return true
+		case JobStatusCancelRequested:
+			return true
+		}
+	}
+
+	if currentStatus == JobStatusPending && newStatus == JobStatusCancelRequested {
+		return true
+	}
+
+	return currentStatus == JobStatusCancelRequested && newStatus == JobStatusCanceled
+}
+
 func (j *Job) LogClone() any {
 	return j.Auditable()
 }

@@ -42,10 +42,10 @@ func init() {
 	listJobsCmd.Flags().Int("per-page", 5, "Number of import jobs to be fetched")
 	listJobsCmd.Flags().Bool("all", false, "Fetch all import jobs. --page flag will be ignored if provided")
 	listJobsCmd.Flags().StringSlice("ids", nil, "Comma-separated list of job IDs to which the operation will be applied. All other flags are ignored")
-	listJobsCmd.Flags().String("status", "", "Job status")
-	listJobsCmd.Flags().String("type", "", "Job type")
+	listJobsCmd.Flags().String("status", "", "Filter by job status")
+	listJobsCmd.Flags().String("type", "", "Filter by job type")
 
-	updateJobCmd.Flags().Bool("force", false, "We generally restrict what statuses you can set but using --force will give you more freedom")
+	updateJobCmd.Flags().Bool("force", false, "Setting a job status is restricted to certain statuses. You can overwrite these restrictions by using --force. This might cause unexpected behaviour on your Mattermost Server. Use this option with caution.")
 
 	JobCmd.AddCommand(
 		listJobsCmd,

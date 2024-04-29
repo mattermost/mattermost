@@ -25,7 +25,7 @@
           description: The number of jobs per page.
           schema:
             type: integer
-            default: 60
+            default: 5
         - name: job_type
           in: query
           description: The type of jobs to fetch.
@@ -244,7 +244,7 @@
         - 'in_progress' | 'pending' -> 'cancel_requested'
         - 'cancel_requested' -> 'canceled'
 
-        Add force to the body of the PATCH request to bypass the given rules.
+        Add force to the body of the PATCH request to bypass the given rules. This can have unexpected consequences and should be used with caution
       operationId: UpdateJobStatus
       parameters:
         - name: job_id
