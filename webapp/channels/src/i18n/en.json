@@ -3035,7 +3035,7 @@
   "channel_groups": "{channel} Groups",
   "channel_header.addChannelHeader": "Add a channel header",
   "channel_header.channelFiles": "Channel files",
-  "channel_header.channelHasGuests": "This channel has guests",
+  "channel_header.channelHasGuests": "Channel has guests",
   "channel_header.channelMembers": "Members",
   "channel_header.closeChannelInfo": "Close Info",
   "channel_header.convert": "Convert to Private Channel",
