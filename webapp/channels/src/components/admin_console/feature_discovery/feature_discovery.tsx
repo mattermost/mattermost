@@ -162,13 +162,13 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         );
 
         if (isCloud) {
-            // if all conditions are set for being able to request a cloud trial, then show the cta start cloud trial button
+            // In cloud, only option is to contact sales.
             ctaPrimaryButton = (
                 <button
                     className='btn btn-primary'
                     data-testid='featureDiscovery_primaryCallToAction'
                     onClick={() => {
-                        trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_ADMIN, 'click_enterprise_contact_sales_feature_discovery');
+                        trackEvent(TELEMETRY_CATEGORIES.CLOUD_ADMIN, 'click_enterprise_contact_sales_feature_discovery');
                         this.contactSalesFunc();
                     }}
                 >
