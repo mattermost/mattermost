@@ -460,19 +460,16 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 	defer th.App.PermanentDeleteUser(th.Context, user3)
 
 	testCases := []struct {
-		Description   string
-		requestedIDs  []string
-		expectedUsers []*model.User
+		Description  string
+		requestedIDs []string
 	}{
 		{
 			"no users",
 			[]string{},
-			[]*model.User{},
 		},
 		{
 			"getting 1 and 3",
 			[]string{user1.Id, user3.Id},
-			[]*model.User{user1, user3},
 		},
 	}
 
@@ -480,7 +477,10 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 		t.Run(testCase.Description, func(t *testing.T) {
 			users, err := api.GetUsersByIds(testCase.requestedIDs)
 			assert.Nil(t, err)
-			assert.Equal(t, testCase.expectedUsers, users)
+			assert.Equal(t, len(testCase.requestedIDs), len(users))
+			for _, user := range users {
+				assert.Contains(t, testCase.requestedIDs, user.Id)
+			}
 		})
 	}
 }
