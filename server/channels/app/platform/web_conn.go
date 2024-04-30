@@ -338,17 +338,6 @@ func (wc *WebConn) SetActiveThreadViewThreadChannelID(id string) {
 	wc.activeThreadViewThreadChannelID.Store(id)
 }
 
-// areAllInactive returns whether all of the connections
-// are inactive or not.
-func areAllInactive(conns []*WebConn) bool {
-	for _, conn := range conns {
-		if conn.active.Load() {
-			return false
-		}
-	}
-	return true
-}
-
 // GetSession returns the session of the connection.
 func (wc *WebConn) GetSession() *model.Session {
 	return wc.session.Load()
