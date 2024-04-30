@@ -507,7 +507,7 @@ describe('handleNewPostEvent', () => {
 
         expect(testStore.getActions()).toContainEqual({
             type: UserTypes.RECEIVED_STATUSES,
-            data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
+            data: [{[post.user_id]: UserStatuses.ONLINE}],
         });
     });
 
@@ -526,7 +526,7 @@ describe('handleNewPostEvent', () => {
 
         expect(testStore.getActions()).not.toContainEqual({
             type: UserTypes.RECEIVED_STATUSES,
-            data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
+            data: [{[post.user_id]: UserStatuses.ONLINE}],
         });
     });
 
@@ -556,7 +556,7 @@ describe('handleNewPostEvent', () => {
 
         expect(testStore.getActions()).not.toContainEqual({
             type: UserTypes.RECEIVED_STATUSES,
-            data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
+            data: [{[post.user_id]: UserStatuses.ONLINE}],
         });
     });
 
@@ -575,7 +575,7 @@ describe('handleNewPostEvent', () => {
 
         expect(testStore.getActions()).not.toContainEqual({
             type: UserTypes.RECEIVED_STATUSES,
-            data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
+            data: [{[post.user_id]: UserStatuses.ONLINE}],
         });
     });
 });
