@@ -868,10 +868,6 @@
     "translation": "Ei voitu hakea kaikkia käyttäjiä AD/LDAP:ia käyttäen"
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "virhe poistettaessa tiimiä tai kanavan jäsenyyksiä"
-  },
-  {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
     "translation": "Käyttäjä ei ole rekisteröity AD/LDAP palveluun"
   },
