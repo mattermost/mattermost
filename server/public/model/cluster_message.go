@@ -51,6 +51,8 @@ const (
 	ClusterGossipEventResponseGetPluginStatuses = "gossip_response_plugin_statuses"
 	ClusterGossipEventRequestSaveConfig         = "gossip_request_save_config"
 	ClusterGossipEventResponseSaveConfig        = "gossip_response_save_config"
+	ClusterGossipEventRequestWebConnCount       = "gossip_request_webconn_count"
+	ClusterGossipEventResponseWebConnCount      = "gossip_response_webconn_count"
 
 	// SendTypes for ClusterMessage.
 	ClusterSendBestEffort = "best_effort"
