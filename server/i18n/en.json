@@ -6479,10 +6479,6 @@
     "translation": "Unable to update the device id."
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Encountered an error while creating a direct shared channel."
-  },
-  {
     "id": "app.status.get.app_error",
     "translation": "Encountered an error retrieving the status."
   },
@@ -7327,10 +7323,6 @@
     "translation": " attached a file."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Cluster API endpoint not found."
-  },
-  {
     "id": "ent.cluster.config_changed.info",
     "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
@@ -7367,6 +7359,10 @@
     "translation": "Unable to add header to the CSV export."
   },
   {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "Unable to close the zip file"
+  },
+  {
     "id": "ent.compliance.csv.metadata.export.appError",
     "translation": "Unable to add metadata file to the zip file."
   },
@@ -7381,6 +7377,10 @@
   {
     "id": "ent.compliance.csv.post.export.appError",
     "translation": "Unable to export a post."
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Unable to seek to start of export file."
   },
   {
     "id": "ent.compliance.csv.warning.appError",
@@ -7773,10 +7773,6 @@
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
     "translation": "An account with that username already exists. Please contact your Administrator."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
@@ -10016,11 +10012,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 120+"
+    "translation": "Version 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 120+"
+    "translation": "Version 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -10032,7 +10028,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",

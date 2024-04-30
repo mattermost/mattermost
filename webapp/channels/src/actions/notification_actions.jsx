@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {logError} from 'mattermost-redux/actions/errors';
-import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannel, getMyChannelMember, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
@@ -49,7 +48,7 @@ const getNotificationSoundFromChannelMemberAndUser = (member, user) => {
 };
 
 /**
- * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<Promise<NotificationResult>, GlobalState>}
+ * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<Promise<import('utils/notifications').NotificationResult>, GlobalState>}
  */
 export function sendDesktopNotification(post, msgProps) {
     return async (dispatch, getState) => {
@@ -62,14 +61,6 @@ export function sendDesktopNotification(post, msgProps) {
 
         if (isSystemMessage(post) && !isUserAddedInChannel(post, currentUserId)) {
             return {status: 'not_sent', reason: 'system_message'};
-        }
-
-        let userFromPost = getUser(state, post.user_id);
-        if (!userFromPost) {
-            const missingProfileResponse = await dispatch(getProfilesByIds([post.user_id]));
-            if (missingProfileResponse.data && missingProfileResponse.data.length) {
-                userFromPost = missingProfileResponse.data[0];
-            }
         }
 
         let mentions = [];
@@ -199,11 +190,15 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         const config = getConfig(state);
+        const userFromPost = getUser(state, post.user_id);
+
         let username = '';
         if (post.props.override_username && config.EnablePostUsernameOverride === 'true') {
             username = post.props.override_username;
         } else if (userFromPost) {
             username = displayUsername(userFromPost, getTeammateNameDisplaySetting(state), false);
+        } else if (msgProps.sender_name) {
+            username = msgProps.sender_name;
         } else {
             username = Utils.localizeMessage('channel_loader.someone', 'Someone');
         }
@@ -330,6 +325,9 @@ export function sendDesktopNotification(post, msgProps) {
     };
 }
 
+/**
+ * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<Promise<import('utils/notifications').NotificationResult>, GlobalState>}
+ */
 export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => async (dispatch) => {
     // handle notifications in desktop app
     if (isDesktopApp()) {
@@ -337,7 +335,7 @@ export const notifyMe = (title, body, channel, teamId, silent, soundName, url) =
     }
 
     try {
-        return await showNotification({
+        return await dispatch(showNotification({
             title,
             body,
             requireInteraction: false,
@@ -346,7 +344,7 @@ export const notifyMe = (title, body, channel, teamId, silent, soundName, url) =
                 window.focus();
                 getHistory().push(url);
             },
-        });
+        }));
     } catch (error) {
         dispatch(logError(error));
         return {status: 'error', reason: 'notification_api', data: String(error)};

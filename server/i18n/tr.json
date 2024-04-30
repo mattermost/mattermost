@@ -5003,10 +5003,6 @@
     "translation": "Lisansınızda kimlik ile yüklenen anında bildirimler özelliği bulunmuyor."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "takım ya da kanal üyelikleri silinirken sorun çıktı"
-  },
-  {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Boyut sınırı aşıldı. En büyük dosya boyutu ayarını artırmayı deneyin. Ayrıntılı bilgi almak için https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded adresine bakabilirsiniz."
   },
@@ -6459,10 +6455,6 @@
     "translation": "AD/LDAP eşitleme görevi zaman aşımına uğradı."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Küme API uç noktası bulunamadı."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " bir dosya ekledi."
   },
@@ -7279,10 +7271,6 @@
     "translation": "İstediğiniz zaman bize şu adresten e-posta gönderebilirsiniz "
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
     "id": "app.user.update_threads_read_for_user.app_error",
     "translation": "Tüm kullanıcı konuları okunmuş olarak güncellenemedi"
   },
@@ -7333,46 +7321,6 @@
   {
     "id": "app.group.group_syncable_already_deleted",
     "translation": "grup eşitlenebilirliği zaten silinmiş"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Mattermost Cloud faturanızın ödemesi var"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Mattermost Cloud aboneliğinizin ödemesi var"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Faturanızı gözden geçirmek ve bir ödeme yöntemi eklemek için ödeme yapın üzerine tıklayın."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Son ödeme dönemine ait Mattermost Cloud faturanız ödendi. Ancak dosyada ödeme bilgileriniz yok."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Ödeme yapın"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Ödeme alınamadı"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "İşlem gerekli: Mattermost {{.Plan}} ödemesi alınamadı"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Mattermost {{.Plan}} erişiminizin kesintiye uğramaması için sorunu çözmek amacıyla bankanızla görüşün ya da ödeme bilgilerinizi güncelleyin. Ödeme bilgileri güncellendikten sonra Mattermost kalan ödemeyi almayı deneyecek."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Onlardan gelen red nedeni:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Bankanız, Mattermost Cloud çalışma alanınız ile ilişkilendirilmiş {{.CardBrand}} ****{{.LastFour}} kartından ödeme yapılmasına izin vermedi."
   },
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
@@ -7661,10 +7609,6 @@
   {
     "id": "api.export.export_not_found.app_error",
     "translation": "Dışa aktarma dosyası bulunamadı."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Hiç bir e-posta gönderilemedi"
   },
   {
     "id": "mfa.deactivate.app_error",
@@ -8145,10 +8089,6 @@
   {
     "id": "ent.data_retention.policies.internal_error",
     "translation": "İstenilen işlem yapılırken bir sorun çıktı."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Doğrudan paylaşılmış bir kanal eklenirken bir sorun çıktı."
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
@@ -8782,14 +8722,6 @@
     "translation": "Ambargo uygulanan ülkelerdeki sınırlamalar nedeniyle isteği işleyemedik. [Belgelerimizden ayrıntılı bilgi alın](https://mattermost.com/pl/limitations-for-embargoed-countries) ya da ihracat sınırlamalarıyla ilgili sorularınız için legal@mattermost.com adresine yazın."
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Üst tarifeye geçtiniz!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Mattermost üst tarifeye geçme onayı"
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Elasticsearch yapılandırmasında ayarlanmamış değerler var."
   },
@@ -8870,194 +8802,6 @@
     "translation": "Mağazayı aç"
   },
   {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "Aboneliğin ödeme süresi geçmemiş"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "Cloud ürünlerinin bilgileri alınamadı"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "Cloud aboneliğinin bilgileri alınamadı"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Mattermost çalışma alanınız alt tarifeye geçirildi"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "Verilerinizi arşivden çıkarmak ve ücretli özellikleri kullanmayı sürdürmek için ödeme bilgilerinizi güncelleyin."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Ek olarak, Cloud Free tarifesinin sınırlamaları nedeniyle verileriniz arşive kaldırılabilir."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "İşinizin önemli işlemleri için Cloud Professional ya da Enterprise tarifesi özelliklerini kullanıyorsanız, artık bu özellikleri kullanamayacaksınız ve başarımınız düşecek."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Mattermost Cloud çalışma alanınız alt tarifeye geçirildi"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Tarifelere ve fiyatlarına bakın"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Ödeme bilgilerini güncelleyin"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Çalışma alanınız 15 gün sonra alt tarifeye geçirilecek"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da Cloud Free alt tarifesine geçebilirsiniz."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Çalışma alanınız Cloud Free alt tarifesine geçirilecek. Ödemeyi yapana kadar {{.Plan}} tarifenizin özellikleri kilitlenecek. Ayrıca çalışma alanınızın bazı verileri arşive kaldırılabilir."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Bu son uyarıdır. Mattermost Cloud çalışma alanınızın ödemesini {{.DelinquencyDate}} tarihinden beri alamadık."
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "{{.Plan}} tarifenizi kullanmayı sürdürmek için bankanızla görüşün ve ödeme bilgilerinizi doğru şekilde güncelleyin."
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Mattermost {{.Plan}} tarifeniz 15 gün sonra alt tarifeye geçirilecek"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Cloud Free alt tarifesine geç"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Ödeme bilgilerini güncelleyin"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Ödemeniz yapılmadı"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Son ödemenizi alamadık."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Ödeme bilgilerini güncelleyin"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Mattermost çalışma alanınız 30 gün sonra alt tarifeye geçirilecek"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da aşağıdan Cloud Free alt tarifesine geçebilirsiniz."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Ödemenizi alamazsak 30 gün sonra otomatik olarak çalışma alanınızı alt tarifeye geçireceğiz."
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Çalışma alanınız yakında alt tarifeye geçirilecek"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "{{.DelinquencyDate}} tarihinden beri ödenmemiş faturaların ödemesini alamadık. Çalışma alanınızın alt tarifeye geçirilme riski var."
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "Uyarı: Mattermost {{.Plan}} tarifeniz yakında alt tarifeye geçirilecek"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Çalışma alanınız yakında alt tarifeye geçirilecek"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "Herhangi bir işlem yapmazsanız, çalışma alanınız alt tarifeye geçirilecek ve şu veriler arşive kaldırılabilecek:"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Bizde kayıtlı kredi kartı bilgilerinizi kullanarak ödeme alamadık. Çalışma alanınızın Cloud Free alt tarifesine geçirilme riski var."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Lütfen süresi geçmiş faturalarınızı ödeyebilmek için ödeme bilgilerinizi güncelleyin."
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "İşlem yapılması gerekli: Çalışma alanı 30 gün sonra alt tarifeye geçirilecek"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Cloud Free alt tarifesine geç"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Ödeme bilgilerini güncelle"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Kredi kartı bilgilerinizi hemen güncelleyin."
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Ödeme gecikmesi e-postasını göndermek için gerekli alanlar eksik."
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Ödeme bilgilerini güncelle"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "Mattermost {{.Plan}} tarifenizi korumak için zamanınız var. Ancak ödeme yönteminizle ilgili sorunları çözmeniz gerekiyor."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Mattermost {{.Plan}} özelliklerinizi korumak için harekete geçin"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "Tüm sınırlama belgelerini görüntüle."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Ödeme bilgilerini güncelle"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "İleti geçmişi"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Dosyalar"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Ödeme alınamadı"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Sorunu çözmek için lütfen bankanızla görüşün. Ardından ödeme bilgilerinizi doğru şekilde güncelleyin."
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Mattermost {{.Plan}} tarifenizin ödeme süresi geçmiş"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Ödemeyi güncelle"
-  },
-  {
     "id": "app.notify_admin.send_notification_post.app_error",
     "translation": "Bildirim iletisi gönderilemedi."
   },
@@ -9080,10 +8824,6 @@
   {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şuraya erişmek için Enterprise sürümü deneme süresinin başlatılmasını istedi: "
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Geçerli tarifenin adı alınamadı"
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
@@ -9250,18 +8990,6 @@
     "translation": "Doğrulama sırasında roller alınırken sorun çıktı."
   },
   {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "Faturanızı görüntüleyin"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "{{.WorkspaceName}} çalışma alanınız yükseltildi."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "{{.WorkspaceName}} çalışma alanınız güncellendi. Faturanız {{.Date}} tarihinden başlayarak hesaplanacak"
-  },
-  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal kişisel barındırma hesabı açmak için kullanılamaz."
   },
@@ -9318,10 +9046,6 @@
     "translation": "Lisans artırımı durumu kaydı oluşturulamadı"
   },
   {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Alt tarifeye geçirilmiş bir çalışma alanında, yürütülen kritik iş akışları, bütünleştirmeler ve iş açısından önemli diğer işlemler olumsuz etkilenebilir."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "\"{{.Username}}\" adında bir kullanıcı zaten var."
   },
@@ -9348,10 +9072,6 @@
   {
     "id": "api.system.logs.invalidFilter",
     "translation": "Günlük süzgeci geçersiz"
-  },
-  {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "Müşteri site sunucusu çalışma alanını silemedi."
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
@@ -10030,26 +9750,6 @@
     "translation": "Kullanıcı bulunamadı."
   },
   {
-    "id": "api.templates.cloud_renewal_60.title",
-    "translation": "Yıllık aboneliğin 60 gün sonra yenilenmesi gerekiyor"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.subject",
-    "translation": "Yıllık aboneliğinizin 60 gün sonra yenilenmesi gerekiyor"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.title",
-    "translation": "30 gün sonra yıllık faturanızın ödenmesi gerekiyor"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.subject",
-    "translation": "İşlem yapılması gerekli: 7 gün sonra yıllık aboneliğin yenilenmesi gerekiyor"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.title",
-    "translation": "7 gün sonra çalışma alanınıza erişiminizi kaybedeceksiniz"
-  },
-  {
     "id": "app.channel.bookmark.delete.app_error",
     "translation": "Yer imi silinemedi."
   },
@@ -10244,18 +9944,6 @@
   {
     "id": "api.server.cws.disabled",
     "translation": "Mattermost müşteri portalı ile etkileşimler sistem yöneticisi tarafından devre dışı bırakılmış."
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.subject",
-    "translation": "30 gün sonra yıllık faturanın ödenmesi gerekiyor"
-  },
-  {
-    "id": "api.templates.cloud_renewal.button",
-    "translation": "Şimdi yenile"
-  },
-  {
-    "id": "api.templates.cloud_renewal.subtitle",
-    "translation": "Hizmet kesintisi olmaması için lütfen yenileyin"
   },
   {
     "id": "api.templates.ip_filters_changed.title",
