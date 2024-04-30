@@ -14,9 +14,9 @@ export default defineConfig({
     video: false,
     viewportWidth: 1300,
     env: {
-        adminEmail: 'sysadmin@sample.mattermost.com',
-        adminUsername: 'sysadmin',
-        adminPassword: 'Sys@dmin-sample1',
+        adminEmail: process.env.CY_ADMIN_EMAIL || 'sysadmin@sample.mattermost.com',
+        adminUsername: process.env.CY_ADMIN_USERNAME || 'sysadmin',
+        adminPassword: process.env.CY_ADMIN_PASSWORD || 'Sys@dmin-sample1',
         allowedUntrustedInternalConnections: 'localhost',
         cwsURL: 'http://localhost:8076',
         cwsAPIURL: 'http://localhost:8076',
