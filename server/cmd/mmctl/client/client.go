@@ -127,7 +127,7 @@ type Client interface {
 	UploadData(ctx context.Context, uploadID string, data io.Reader) (*model.FileInfo, *model.Response, error)
 	ListImports(ctx context.Context) ([]string, *model.Response, error)
 	GetJob(ctx context.Context, id string) (*model.Job, *model.Response, error)
-	GetJobs(ctx context.Context, page int, perPage int, jobType string, status string) ([]*model.Job, *model.Response, error)
+	GetJobs(ctx context.Context, jobType string, status string, page int, perPage int) ([]*model.Job, *model.Response, error)
 	GetJobsByType(ctx context.Context, jobType string, page int, perPage int) ([]*model.Job, *model.Response, error)
 	CreateJob(ctx context.Context, job *model.Job) (*model.Job, *model.Response, error)
 	CancelJob(ctx context.Context, jobID string) (*model.Response, error)

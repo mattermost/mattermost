@@ -26,7 +26,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), 0, perPage, "", "").
+			GetJobs(context.TODO(), "", "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -59,7 +59,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), 0, perPage, "", "").
+			GetJobs(context.TODO(), "", "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -123,7 +123,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), 0, perPage, "", model.JobStatusSuccess).
+			GetJobs(context.TODO(), "", model.JobStatusSuccess, 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -158,7 +158,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), 0, perPage, model.JobTypeDataRetention, "").
+			GetJobs(context.TODO(), model.JobTypeDataRetention, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 

@@ -128,7 +128,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), 0, perPage, model.JobTypeLdapSync, "").
+			GetJobs(context.TODO(), model.JobTypeLdapSync, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -161,7 +161,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), 0, perPage, model.JobTypeLdapSync, "").
+			GetJobs(context.TODO(), model.JobTypeLdapSync, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 

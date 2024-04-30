@@ -56,9 +56,18 @@ func init() {
 }
 
 func listJobsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	ids, _ := cmd.Flags().GetStringSlice("ids")
-	jobType, _ := cmd.Flags().GetString("type")
-	status, _ := cmd.Flags().GetString("status")
+	ids, err := cmd.Flags().GetStringSlice("ids")
+	if err != nil {
+		return err
+	}
+	jobType, err := cmd.Flags().GetString("type")
+	if err != nil {
+		return err
+	}
+	status, err := cmd.Flags().GetString("status")
+	if err != nil {
+		return err
+	}
 
 	if len(ids) > 0 {
 		jobs := make([]*model.Job, 0, len(ids))
@@ -81,12 +90,15 @@ func listJobsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func updateJobCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	force, _ := cmd.Flags().GetBool("force")
+	force, err := cmd.Flags().GetBool("force")
+	if err != nil {
+		return err
+	}
 
 	jobId := args[0]
 	status := args[1]
 
-	_, err := c.UpdateJobStatus(context.TODO(), jobId, status, force)
+	_, err = c.UpdateJobStatus(context.TODO(), jobId, status, force)
 	if err != nil {
 		return err
 	}
@@ -113,7 +125,7 @@ func jobListCmdF(c client.Client, command *cobra.Command, jobType string, status
 	}
 
 	for {
-		jobs, _, err := c.GetJobs(context.TODO(), page, perPage, jobType, status)
+		jobs, _, err := c.GetJobs(context.TODO(), jobType, status, page, perPage)
 		if err != nil {
 			return fmt.Errorf("failed to get jobs: %w", err)
 		}

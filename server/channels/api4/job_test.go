@@ -117,7 +117,7 @@ func TestGetJobs(t *testing.T) {
 	}
 
 	t.Run("Get 2 jobs", func(t *testing.T) {
-		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), 0, 2, "", "")
+		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), "", "", 0, 2)
 		require.NoError(t, err)
 
 		require.Len(t, received, 2, "received wrong number of jobs")
@@ -126,33 +126,33 @@ func TestGetJobs(t *testing.T) {
 	})
 
 	t.Run("Get oldest job using paging", func(t *testing.T) {
-		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), 1, 3, "", "")
+		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), "", "", 0, 2)
 		require.NoError(t, err)
 		require.Equal(t, jobs[1].Id, received[0].Id, "should've received oldest job last")
 	})
 
 	t.Run("Return error fetching job without permissions", func(t *testing.T) {
-		_, resp, err := th.Client.GetJobs(context.Background(), 0, 60, "", "")
+		_, resp, err := th.Client.GetJobs(context.Background(), "", "", 0, 60)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("Get job by type", func(t *testing.T) {
-		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), 0, 3, model.JobTypeLdapSync, "")
+		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), model.JobTypeLdapSync, "", 0, 3)
 		require.NoError(t, err)
 		require.Len(t, received, 1, "received wrong number of jobs")
 		require.Equal(t, jobs[3].Id, received[0].Id, "should've received the ldap sync job")
 	})
 
 	t.Run("Get job by status", func(t *testing.T) {
-		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), 0, 3, "", model.JobStatusPending)
+		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), "", model.JobStatusPending, 0, 3)
 		require.NoError(t, err)
 		require.Len(t, received, 1, "received wrong number of jobs")
 		require.Equal(t, jobs[3].Id, received[0].Id, "should've received the ldap sync job")
 	})
 
 	t.Run("Get job by type and status", func(t *testing.T) {
-		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), 0, 3, model.JobTypeLdapSync, model.JobStatusPending)
+		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), model.JobTypeLdapSync, model.JobStatusPending, 0, 3)
 		require.NoError(t, err)
 		require.Len(t, received, 1, "received wrong number of jobs")
 		require.Equal(t, jobs[3].Id, received[0].Id, "should've received the ldap sync job")
