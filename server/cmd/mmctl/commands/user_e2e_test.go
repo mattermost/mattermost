@@ -182,8 +182,8 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get some random user", func(c client.Client) {
 		printer.Clean()
 
-		cmd := ResetListUsersCmd()
-		cmd.Flags().Set("per-page", "5")
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "5"))
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -199,9 +199,9 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of all user", func(c client.Client) {
 		printer.Clean()
 
-		cmd := ResetListUsersCmd()
-		cmd.Flags().Set("per-page", "12")
-		cmd.Flags().Set("all", "true")
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "12"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -216,10 +216,10 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of inactive users", func(c client.Client) {
 		printer.Clean()
 
-		cmd := ResetListUsersCmd()
-		cmd.Flags().Set("per-page", "12")
-		cmd.Flags().Set("all", "true")
-		cmd.Flags().Set("inactive", "true")
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "12"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.Require().NoError(cmd.Flags().Set("inactive", "true"))
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -247,10 +247,10 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list users given team", func(c client.Client) {
 		printer.Clean()
 
-		cmd := ResetListUsersCmd()
-		cmd.Flags().Set("per-page", "40")
-		cmd.Flags().Set("all", "true")
-		cmd.Flags().Set("team", s.th.BasicTeam.Name)
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "40"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.Require().NoError(cmd.Flags().Set("team", s.th.BasicTeam.Name))
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -281,11 +281,11 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of inactive users given team", func(c client.Client) {
 		printer.Clean()
 
-		cmd := ResetListUsersCmd()
-		cmd.Flags().Set("per-page", "40")
-		cmd.Flags().Set("all", "true")
-		cmd.Flags().Set("team", s.th.BasicTeam.Name)
-		cmd.Flags().Set("inactive", "true")
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "40"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.Require().NoError(cmd.Flags().Set("team", s.th.BasicTeam.Name))
+		s.Require().NoError(cmd.Flags().Set("inactive", "true"))
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)

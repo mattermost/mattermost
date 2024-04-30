@@ -11,8 +11,10 @@ import (
 	"net/url"
 	"os"
 	"sort"
+	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -800,12 +802,12 @@ auth_service: {{.AuthService}}`
 	return nil
 }
 
-func ResetListUsersCmd() *cobra.Command {
-	ListUsersCmd.Flags().Set("page", "0")
-	ListUsersCmd.Flags().Set("per-page", "200")
-	ListUsersCmd.Flags().Set("all", "false")
-	ListUsersCmd.Flags().Set("team", "")
-	ListUsersCmd.Flags().Set("inactive", "false")
+func ResetListUsersCmd(t *testing.T) *cobra.Command {
+	require.NoError(t, ListUsersCmd.Flags().Set("page", "0"))
+	require.NoError(t, ListUsersCmd.Flags().Set("per-page", "200"))
+	require.NoError(t, ListUsersCmd.Flags().Set("all", "false"))
+	require.NoError(t, ListUsersCmd.Flags().Set("team", ""))
+	require.NoError(t, ListUsersCmd.Flags().Set("inactive", "false"))
 
 	return ListUsersCmd
 }
