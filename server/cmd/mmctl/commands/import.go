@@ -95,7 +95,9 @@ var ImportValidateCmd = &cobra.Command{
 	Example: "  import validate import_file.zip --team myteam --team myotherteam",
 	Short:   "Validate an import file",
 	Args:    cobra.ExactArgs(1),
-	RunE:    importValidateCmdF,
+	RunE: func(command *cobra.Command, args []string) error {
+		return importValidateCmdF(nil, command, args)
+	},
 }
 
 func init() {
@@ -255,6 +257,21 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	bypassUpload, _ := command.Flags().GetBool("bypass-upload")
 	if bypassUpload {
 		if isLocal {
+			// First, we validate whether the server is in HA.
+			config, _, err := c.GetOldClientConfig(context.TODO(), "")
+			if err != nil {
+				return err
+			}
+
+			enableCluster, err := strconv.ParseBool(config["EnableCluster"])
+			if err != nil {
+				return fmt.Errorf("failed to parse EnableCluster: %w", err)
+			}
+
+			if enableCluster {
+				return errors.New("--bypass-upload flag doesn't work if the server is in HA. Because the file has to be present locally on the server where the job request hits. Please disable HA and try again.")
+			}
+
 			// in local mode, we tell the server to directly read from this file.
 			if _, err := os.Stat(importFile); errors.Is(err, os.ErrNotExist) {
 				return fmt.Errorf("file %s doesn't exist. NOTE: If this file was uploaded to the server via mmctl import upload, please omit the --bypass-upload flag to revert to old behavior.", importFile)
@@ -382,7 +399,14 @@ type Statistics struct {
 	Attachments    uint64 `json:"attachments"`
 }
 
-func importValidateCmdF(command *cobra.Command, args []string) error {
+type ImportValidationResult struct {
+	FileName   string                            `json:"file_name"`
+	TotalLines uint64                            `json:"total_lines"`
+	Elapsed    time.Duration                     `json:"elapsed_time_ns"`
+	Errors     []*importer.ImportValidationError `json:"errors"`
+}
+
+func importValidateCmdF(c client.Client, command *cobra.Command, args []string) error {
 	configurePrinter()
 	defer printer.Print("Validation complete\n")
 
@@ -391,14 +415,25 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		serverChannels map[importer.ChannelTeam]*model.Channel
 		serverUsers    map[string]*model.User
 		serverEmails   map[string]*model.User
+		maxPostSize    int
 	)
 
-	err := withClient(func(c client.Client, cmd *cobra.Command, args []string) error {
+	preRunWithClient := func(c client.Client, cmd *cobra.Command, args []string) error {
 		users, err := getPages(func(page, numPerPage int, etag string) ([]*model.User, *model.Response, error) {
 			return c.GetUsers(context.TODO(), page, numPerPage, etag)
 		}, DefaultPageSize)
 		if err != nil {
 			return err
+		}
+
+		config, _, err := c.GetOldClientConfig(context.TODO(), "")
+		if err != nil {
+			return err
+		}
+
+		maxPostSize, err = strconv.Atoi(config["MaxPostSize"])
+		if err != nil {
+			return fmt.Errorf("failed to parse MaxPostSize: %w", err)
 		}
 
 		serverUsers = make(map[string]*model.User)
@@ -442,9 +477,16 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		}
 
 		return nil
-	})(command, args)
+	}
+
+	var err error
+	if c != nil {
+		err = preRunWithClient(c, command, args)
+	} else {
+		err = withClient(preRunWithClient)(command, args)
+	}
 	if err != nil {
-		printer.Print("could not initialize client, skipping online checks\n")
+		printer.Print(fmt.Sprintf("could not initialize client (%s), skipping online checks\n", err.Error()))
 	}
 
 	injectedTeams, err := command.Flags().GetStringArray("team")
@@ -476,6 +518,10 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
+	if maxPostSize == 0 {
+		maxPostSize = model.PostMessageMaxRunesV2
+	}
+
 	createMissingTeams := !checkMissingTeams && len(injectedTeams) == 0
 	validator := importer.NewValidator(
 		args[0],               // input file
@@ -486,11 +532,14 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		serverChannels,        // map of existing channels
 		serverUsers,           // map of users by name
 		serverEmails,          // map of users by email
+		maxPostSize,
 	)
 
+	var errors []*importer.ImportValidationError
 	templateError := template.Must(template.New("").Parse("{{ .Error }}\n"))
 	validator.OnError(func(ive *importer.ImportValidationError) error {
 		printer.PrintPreparedT(templateError, ive)
+		errors = append(errors, ive)
 		return nil
 	})
 
@@ -529,11 +578,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		}{unusedAttachments})
 	}
 
-	printer.PrintT("It took {{ .Elapsed }} to validate {{ .TotalLines }} lines in {{ .FileName }}\n", struct {
-		FileName   string        `json:"file_name"`
-		TotalLines uint64        `json:"total_lines"`
-		Elapsed    time.Duration `json:"elapsed_time_ns"`
-	}{args[0], validator.Lines(), validator.Duration()})
+	printer.PrintT("It took {{ .Elapsed }} to validate {{ .TotalLines }} lines in {{ .FileName }}\n", ImportValidationResult{args[0], validator.Lines(), validator.Duration(), errors})
 
 	return nil
 }

@@ -6,7 +6,7 @@ package app
 import (
 	"bytes"
 	"context"
-	"crypto/sha1"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io"
@@ -14,6 +14,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -1272,10 +1273,65 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 	return nil
 }
 
+func compareFilesContent(fileA, fileB io.Reader, bufSize int64) (bool, error) {
+	aHash := sha256.New()
+	bHash := sha256.New()
+
+	if bufSize == 0 {
+		// This buffer size was selected after some extensive benchmarking
+		// (BenchmarkCompareFilesContent) and it showed to provide
+		// a good compromise between processing speed and allocated memory,
+		// especially in the common case of the readers being part of an S3 stored ZIP file.
+		// See https://github.com/mattermost/mattermost/pull/26629 for full context.
+		bufSize = 1024 * 1024 * 2 // 2MB
+	}
+
+	var nA, nB int64
+	var errA, errB error
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		var buf []byte
+		// If the reader has a WriteTo method (e.g. *os.File)
+		// we can avoid the buffer allocation.
+		if _, ok := fileA.(io.WriterTo); !ok {
+			buf = make([]byte, bufSize)
+		}
+		nA, errA = io.CopyBuffer(aHash, fileA, buf)
+	}()
+	go func() {
+		defer wg.Done()
+		var buf []byte
+		// If the reader has a WriteTo method (e.g. *os.File)
+		// we can avoid the buffer allocation.
+		if _, ok := fileA.(io.WriterTo); !ok {
+			buf = make([]byte, bufSize)
+		}
+		nB, errB = io.CopyBuffer(bHash, fileB, buf)
+	}()
+	wg.Wait()
+
+	if errA != nil {
+		return false, fmt.Errorf("failed to compare files: %w", errA)
+	}
+
+	if errB != nil {
+		return false, fmt.Errorf("failed to compare files: %w", errB)
+	}
+
+	if nA != nB {
+		return false, fmt.Errorf("size mismatch: %d != %d", nA, nB)
+	}
+
+	return bytes.Equal(aHash.Sum(nil), bHash.Sum(nil)), nil
+}
+
 func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportData, post *model.Post, teamID string, extractContent bool) (*model.FileInfo, *model.AppError) {
 	var (
-		name string
-		file io.Reader
+		name     string
+		file     io.ReadCloser
+		fileSize int64
 	)
 	if data.Data != nil {
 		zipFile, err := data.Data.Open()
@@ -1284,7 +1340,8 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 		}
 		defer zipFile.Close()
 		name = data.Data.Name
-		file = zipFile.(io.Reader)
+		fileSize = int64(data.Data.UncompressedSize64)
+		file = zipFile
 
 		rctx.Logger().Info("Preparing file upload from ZIP", mlog.String("file_name", name), mlog.Uint("file_size", data.Data.UncompressedSize64))
 	} else {
@@ -1296,56 +1353,79 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 		name = realFile.Name()
 		file = realFile
 
-		fields := []mlog.Field{mlog.String("file_name", name)}
-		if info, err := realFile.Stat(); err != nil {
-			fields = append(fields, mlog.Int("file_size", info.Size()))
+		info, err := realFile.Stat()
+		if err != nil {
+			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_stat.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest).Wrap(err)
 		}
-		rctx.Logger().Info("Preparing file upload from file system", fields...)
+		fileSize = info.Size()
+
+		rctx.Logger().Info("Preparing file upload from file system", mlog.String("file_name", name), mlog.Int("file_size", info.Size()))
 	}
 
 	timestamp := utils.TimeFromMillis(post.CreateAt)
 
-	fileData, err := io.ReadAll(file)
-	if err != nil {
-		return nil, model.NewAppError("BulkImport", "app.import.attachment.read_file_data.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
-	}
-
 	// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
 	if post.Id != "" {
-		oldFiles, err := a.getFileInfosForPostIgnoreCloudLimit(rctx, post.Id, true, false)
+		oldFiles, err := a.Srv().Store().FileInfo().GetForPost(post.Id, true, false, true)
 		if err != nil {
 			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 		}
 		for _, oldFile := range oldFiles {
-			if oldFile.Name != path.Base(name) || oldFile.Size != int64(len(fileData)) {
+			if oldFile.Name != path.Base(name) || oldFile.Size != fileSize {
 				continue
 			}
 
-			// check sha1
-			newHash := sha1.Sum(fileData)
-			oldFileData, err := a.getFileIgnoreCloudLimit(rctx, oldFile.Id)
-			if err != nil {
+			oldFileReader, appErr := a.FileReader(oldFile.Path)
+			if appErr != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 			}
-			oldHash := sha1.Sum(oldFileData)
+			defer oldFileReader.Close()
 
-			if bytes.Equal(oldHash[:], newHash[:]) {
-				rctx.Logger().Info("Skipping uploading of file because name already exists", mlog.String("file_name", name))
+			if ok, err := compareFilesContent(oldFileReader, file, 0); err != nil {
+				rctx.Logger().Error("Failed to compare files content", mlog.String("file_name", name), mlog.Err(err))
+			} else if ok {
+				rctx.Logger().Info("Skipping uploading of file because name already exists and content matches", mlog.String("file_name", name))
 				return oldFile, nil
 			}
+
+			rctx.Logger().Info("File contents don't match, will re-upload", mlog.String("file_name", name))
+
+			// Since compareFilesContent needs to read the whole file we need to
+			// either seek back (local file) or re-open it (zip file).
+			if f, ok := file.(*os.File); ok {
+				rctx.Logger().Info("File is *os.File, can seek", mlog.String("file_name", name))
+				if _, err := f.Seek(0, io.SeekStart); err != nil {
+					return nil, model.NewAppError("BulkImport", "app.import.attachment.seek_file.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest).Wrap(err)
+				}
+			} else if data.Data != nil {
+				rctx.Logger().Info("File is from ZIP, can't seek, opening again", mlog.String("file_name", name))
+				file.Close()
+
+				f, err := data.Data.Open()
+				if err != nil {
+					return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest).Wrap(err)
+				}
+				defer f.Close()
+
+				file = f
+			}
+
+			break
 		}
 	}
 
 	rctx.Logger().Info("Uploading file with name", mlog.String("file_name", name))
 
-	fileInfo, appErr := a.DoUploadFile(rctx, timestamp, teamID, post.ChannelId, post.UserId, name, fileData, extractContent)
+	fileInfo, appErr := a.UploadFileX(rctx, post.ChannelId, name, file,
+		UploadFileSetTeamId(teamID),
+		UploadFileSetUserId(post.UserId),
+		UploadFileSetTimestamp(timestamp),
+		UploadFileSetContentLength(fileSize),
+		UploadFileSetExtractContent(extractContent),
+	)
 	if appErr != nil {
 		rctx.Logger().Error("Failed to upload file", mlog.Err(appErr), mlog.String("file_name", name))
 		return nil, appErr
-	}
-
-	if fileInfo.IsImage() && !fileInfo.IsSvg() {
-		a.HandleImages(rctx, []string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{fileData})
 	}
 
 	return fileInfo, nil

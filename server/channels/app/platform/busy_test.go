@@ -149,3 +149,6 @@ func (c *ClusterMock) ConfigChanged(previousConfig *model.Config, newConfig *mod
 	return nil
 }
 func (c *ClusterMock) HealthScore() int { return 0 }
+func (c *ClusterMock) WebConnCountForUser(userID string) (int, *model.AppError) {
+	return 0, nil
+}

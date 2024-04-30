@@ -67,6 +67,8 @@ type WebConnConfig struct {
 	ConnectionID string
 	Active       bool
 	ReuseCount   int
+	OriginClient string
+	PostedAck    bool
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int
@@ -88,6 +90,7 @@ type WebConn struct {
 	Locale           string
 	Sequence         int64
 	UserId           string
+	PostedAck        bool
 
 	allChannelMembers         map[string]string
 	lastAllChannelMembersTime int64
@@ -114,6 +117,9 @@ type WebConn struct {
 	sessionToken atomic.Value
 	session      atomic.Pointer[model.Session]
 	connectionID atomic.Value
+
+	// The client type behind the connection (i.e. web, desktop or mobile)
+	originClient string
 
 	activeChannelID                 atomic.Value
 	activeTeamID                    atomic.Value
@@ -230,12 +236,14 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		UserId:             cfg.Session.UserId,
 		T:                  cfg.TFunc,
 		Locale:             cfg.Locale,
+		PostedAck:          cfg.PostedAck,
 		reuseCount:         cfg.ReuseCount,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
 		pluginPosted:       make(chan pluginWSPostedHook, 10),
 		lastLogTimeSlow:    time.Now(),
 		lastLogTimeFull:    time.Now(),
+		originClient:       cfg.OriginClient,
 	}
 	wc.active.Store(cfg.Active)
 
@@ -362,17 +370,6 @@ func (wc *WebConn) SetActiveThreadViewThreadChannelID(id string) {
 // isSet is a helper to check if a value is unset or not.
 func (wc *WebConn) isSet(val string) bool {
 	return val != UnsetPresenceIndicator
-}
-
-// areAllInactive returns whether all of the connections
-// are inactive or not.
-func areAllInactive(conns []*WebConn) bool {
-	for _, conn := range conns {
-		if conn.active.Load() {
-			return false
-		}
-	}
-	return true
 }
 
 // GetSession returns the session of the connection.
@@ -954,11 +951,13 @@ func (wc *WebConn) logSocketErr(source string, err error) {
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 		mlog.Debug(source+": client side closed socket",
 			mlog.String("user_id", wc.UserId),
-			mlog.String("conn_id", wc.GetConnectionID()))
+			mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.String("origin_client", wc.originClient))
 	} else {
 		mlog.Debug(source+": closing websocket",
 			mlog.String("user_id", wc.UserId),
 			mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.String("origin_client", wc.originClient),
 			mlog.Err(err))
 	}
 }

@@ -74,7 +74,7 @@ export function renderThumbVertical(props: any) {
 const scrollbarStyles: CSSProperties = {position: 'absolute'};
 
 type Props = {
-    currentTeam: Team;
+    currentTeam?: Team;
     currentChannelId: string;
     categories: ChannelCategory[];
     unreadChannelIds: string[];
@@ -454,7 +454,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
                 this.props.actions.moveChannelsInSidebar(result.destination.droppableId, result.destination.index, result.draggableId);
                 trackEvent('ui', 'ui_sidebar_dragdrop_dropped_channel');
             } else if (result.type === 'SIDEBAR_CATEGORY') {
-                this.props.actions.moveCategory(this.props.currentTeam.id, result.draggableId, result.destination.index);
+                this.props.actions.moveCategory(this.props.currentTeam!.id, result.draggableId, result.destination.index);
                 trackEvent('ui', 'ui_sidebar_dragdrop_dropped_category');
             }
         }
