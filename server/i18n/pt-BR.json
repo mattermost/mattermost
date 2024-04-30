@@ -4948,10 +4948,6 @@
     "translation": "Tamanho Limite Excedido. Tente verificar [tamanho máximo de página](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "erro ao excluir membros de equipe ou canal"
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Sua licença não suporta ID Loaded Push Notifications."
   },
@@ -6428,10 +6424,6 @@
     "translation": "Tarefa de sincronização do AD/LDAP alcançou o limite de tempo."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Endpoint Cluster API não encontrado."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " anexou um arquivo."
   },
@@ -7264,10 +7256,6 @@
     "translation": "Envie-nos um email a qualquer momento em "
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Uma ou mais das seguintes permissões que você está tentando adicionar ou remover não são permitidas"
   },
@@ -7306,26 +7294,6 @@
   {
     "id": "app.group.group_syncable_already_deleted",
     "translation": "o grupo sincronizável já foi excluído"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "O Pagamento não foi bem sucedido"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Ação necessária: Falha no pagamento para Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Para garantir a acesso ininterrupto do Mattermost {{.Plan}}, entre em contato com sua instituição financeira para corrigir o problema subjacente ou atualize suas informações de pagamento. Assim que as informações de pagamento forem atualizadas, a Mattermost tentará liquidar o saldo pendente."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Eles forneceram o seguinte motivo:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Sua instituição financeira recusou um pagamento de seu {{.CardBrand}} ****{{.LastFour}} associado ao seu espaço de trabalho Mattermost Cloud."
   },
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
@@ -7374,26 +7342,6 @@
   {
     "id": "api.user.update_user_roles.license.app_error",
     "translation": "Esquemas de Permissão Personalizados não suportados pela licença atual"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Sua fatura da Mattermost Cloud está vencida"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "O pagamento da sua assinatura Mattermost Cloud é devido"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Para revisar sua fatura e adicionar um método de pagamento, selecione Pagar agora."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Sua fatura do Mattermost Cloud para o período de faturamento mais recente foi processada. No entanto, não temos seus detalhes de pagamento em arquivo."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Pagar agora"
   },
   {
     "id": "api.system.update_viewed_notices.failed",
@@ -7686,10 +7634,6 @@
   {
     "id": "bleveengine.create_file_index.error",
     "translation": "Erro ao criar o índice do arquivo bleve."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Nenhum e-mail foi enviado com sucesso"
   },
   {
     "id": "app.user.get_threads_for_user.not_found",
@@ -8036,10 +7980,6 @@
     "translation": "Esta publicação contém links permanentes para outros canais que podem não ser visíveis para os usuários em outros sites."
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Erro ao criar um canal compartilhado direto."
-  },
-  {
     "id": "app.import.generate_password.app_error",
     "translation": "Erro ao gerar senha."
   },
@@ -8298,10 +8238,6 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Administrador já notificado"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Campos faltando para envio de email."
   },
   {
     "id": "api.license.upgrade_needed.app_error",
