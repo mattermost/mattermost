@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {CallsConfig, UserSessionState} from '@calls/common/lib/types';
+import type {CallsConfig, UserSessionState} from '@mattermost/calls-common/lib/types';
 import semver from 'semver';
 
 import {suitePluginIds} from 'utils/constants';
