@@ -32,7 +32,7 @@
         position: relative;
         height: 100%;
         flex: 1 1 auto;
-        padding: 20px;
+        padding: 0 20px 20px 20px;
 
         > .wrapper--admin {
             display: flex;
@@ -604,14 +604,15 @@
 .admin-sidebar {
     z-index: 10;
     display: flex;
-    width: 272px;
+    width: 280px;
     flex-direction: column;
+    color: var(--sys-sidebar-text);
     background: var(--sys-sidebar-bg);
     grid-area: lhs;
 
     .filter-container {
         position: relative;
-        padding: 8px 12px 8px 12px;
+        padding: 8px 12px 1px 12px;
 
         .search__icon {
             position: absolute;
@@ -619,7 +620,7 @@
             left: 22px;
             width: 16px;
             height: 16px;
-            fill: rgba(var(--sys-sidebar-text-rgb), 0.56);
+            fill: rgba(var(--sys-sidebar-text-rgb), 0.64);
         }
 
         .input-wrapper {
@@ -635,8 +636,13 @@
                 font-size: 14px;
                 outline: none;
 
+                &::placeholder {
+                    color: rgba(var(--sys-sidebar-text-rgb), 0.64);
+                    opacity: 1;
+                }
+
                 &:hover {
-                    background: rgba(var(--sys-sidebar-text-rgb), 0.16);
+                    background: rgba(var(--sys-sidebar-text-rgb), 0.12);
                 }
     
                 &:focus,
@@ -708,9 +714,9 @@
 
     .sidebar-category {
         .category-title {
-            margin-top: 20px;
+            margin-top: 24px;
             padding: 0px 12px 0px 20px;
-            color: rgba(var(--sys-sidebar-text-rgb), 0.56);
+            color: rgba(var(--sys-sidebar-text-rgb), 0.64);
             font-size: 12px;
             font-weight: 600;
             letter-spacing: 0.1em;
@@ -786,20 +792,21 @@
     }
 
     .sidebar-section-indicator {
+        display: flex;
         position: absolute;
         top: 0;
         right: 0;
         height: 100%;
 
         i {
-            color: alpha-color($white, 0.5);
+            color: rgba(var(--sys-sidebar-text-rgb), 0.64);
             font-size: 14px;
             line-height: 14px;
         }
     }
 
     .sidebar-subsection-title {
-        padding: 8px 32px 8px 20px;
+        padding: 8px 20px 8px 20px;
 
         &--active {
             &::after {
@@ -813,7 +820,7 @@
         position: relative;
         display: block;
         padding: 6px 32px 6px 20px;
-        color: rgba(var(--sys-sidebar-text-rgb), 0.75);
+        color: rgba(var(--sys-sidebar-text-rgb), 0.80);
         letter-spacing: 0.01em;
 
         &:focus {
@@ -827,7 +834,7 @@
         }
 
         &--active {
-            background: rgba(var(--sys-sidebar-text-rgb), 0.12);
+            background: rgba(var(--sys-sidebar-text-rgb), 0.08);
             color: var(--sys-sidebar-text);
             font-weight: 600;
 

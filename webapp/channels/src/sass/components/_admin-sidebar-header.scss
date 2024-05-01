@@ -23,7 +23,7 @@
             position: relative;
             width: 100%;
             flex-grow: 1;
-            color: $white;
+            color: --sys-sidebar-text-rgb;
 
             .team__name {
                 overflow: hidden;
@@ -52,7 +52,7 @@
         }
 
         &:hover {
-            background-color: rgba(var(--sys-sidebar-text-rgb), 0.08);
+            background-color: rgba(var(--sys-sidebar-text-rgb), 0.04);
 
             .menu-icon {
                 fill: rgba(var(--sys-sidebar-text-rgb), 0.75);
