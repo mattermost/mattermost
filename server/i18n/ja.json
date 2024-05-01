@@ -4938,10 +4938,6 @@
     "translation": "サイズ制限超過。最大ページサイズ設定を大きくしてください。詳しくは https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded を確認してください。"
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "チーム/チャンネルのメンバーシップの削除エラー"
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "現在のライセンスではID-loadedプッシュ通知はサポートされていません。"
   },
@@ -6418,10 +6414,6 @@
     "translation": "AD/LDAP同期処理がタイムアウトしました。"
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "クラスターAPIエンドポイントが見つかりませんでした。"
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " がファイルを添付しました。"
   },
@@ -7122,10 +7114,6 @@
     "translation": "いつでもメールしてください "
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
     "id": "app.user.permanent_delete.app_error",
     "translation": "既存のアカウントを削除できませんでした。"
   },
@@ -7344,46 +7332,6 @@
   {
     "id": "api.user.update_user_roles.license.app_error",
     "translation": "カスタム権限スキームは現在のライセンスではサポートされていません"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Mattermost Cloudサブスクリプションへの支払い予定"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Mattermost Cloud請求期限"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "請求書を確認し、支払い方法を追加するには「今すぐしはらい」を選択してください。"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "直近支払い期限に対するMattermost Cloudの請求書が処理されましたが、有効な支払い情報がありません。"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "今すぐ支払う"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "支払いが正常に処理されませんでした"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "注意: Mattermost {{.Plan}}の支払いができませんでした"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Mattermost {{.Plan}}へアクセスし続けるために、支払いの問題についてあなたの金融機関に問い合わせるか、支払い情報を更新してください。支払い情報が更新されると、Mattermostは未払いの支払いを解決しようとします。"
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "理由:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Mattermost Cloudワークスペースに関連付けられたあなたの {{.CardBrand}} ****{{.LastFour}} からの支払いを金融機関が拒否しました。"
   },
   {
     "id": "api.system.update_viewed_notices.failed",
@@ -7634,10 +7582,6 @@
     "translation": "ファイルインデックスを破棄できませんでした。"
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "電子メールを正常に送信できませんでした"
-  },
-  {
     "id": "app.post.get_files_batch_for_indexing.get.app_error",
     "translation": "インデックス付与中にファイルを一括取得できませんでした。"
   },
@@ -7800,10 +7744,6 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "フィールドをJSONにエンコードできませんでした"
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "ダイレクト共有チャンネルの作成中にエラーが発生しました。"
   },
   {
     "id": "app.import.generate_password.app_error",
@@ -8774,14 +8714,6 @@
     "translation": "電子メールの設定に未設定の値があります。"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "アップグレードが完了しました!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Mattermostアップグレードの確認"
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Elasticsearchの設定に未設定の値があります。"
   },
@@ -8846,162 +8778,6 @@
     "translation": "@{{.Username}}からのこのメッセージについてのリマインダーです: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "サブスクリプションは滞納されていません"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "クラウドサブスクリプションを取得できませんでした"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "クラウドプロダクトを取得できませんでした"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "あなたのMattermost Cloudワークスペースがダウングレードされました"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "データのアーカイブを解除し、有料機能を利用し続けるには、支払い情報を更新してください。"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "加えて、Cloud Freeの制限により、あなたのデータがアーカイブされている可能性があります。"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "重要な業務でCloud ProfessionalやEnterpriseの機能を利用している場合、それらが利用できなくなり、パフォーマンスの低下を体感することになるでしょう。"
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "あなたのMattermost Cloudワークスペースがダウングレードされました"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "プランと価格を見る"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "あなたのワークスペースは15日後にダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、Cloud Freeにダウングレードしてください。"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "ワークスペースは Cloud Free にダウングレードされます。{{.Plan}}の機能はロックされ、ワークスペースのデータの一部は未払い金の全額が支払われるまでアーカイブされる場合があります。"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "これは、{{.DelinquencyDate}}以降、Mattermost Cloudワークスペースの支払いを受け取っていないことを知らせる最後のリマンダーです。"
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "あなたのMattermost {{.Plan}} は15日後にダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Cloud Freeへダウングレード"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "支払いが完了していません"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "{{.Plan}}プランを利用し続けるには、できるだけ早く金融機関にご連絡ください。その後、必要に応じて支払い情報を更新してください。"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "直近のお支払いを処理できませんでした。"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "あなたのMattermostワークスペースは30日後にダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、以下よりCloud Freeにダウングレードしてください。"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "お支払いの処理ができない場合、30日後に自動的にワークスペースをダウングレードします。"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "未払いの請求書を処理するため、すぐに支払い情報を更新してください。"
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "対応が必要です: ワークスペースは30日後にダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Cloud Freeへのダウングレード"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "あなたのワークスペースはまもなくダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "今すぐクレジットカード情報を更新してください。"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "{{.DelinquencyDate}} 以降の未払い請求書への支払いを行うことができませんでした。お客様のワークスペースはダウングレードされる可能性があります。"
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "お知らせ: あなたのMattermost {{.Plan}} はまもなくダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "あなたのワークスペースはまもなくダウングレードされます"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "何も行動がとられない場合、あなたのワークスペースがダウングレードされ、以下のデータがアーカイブされる可能性があります:"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "まだMattermost {{.Plan}} はアクティブになっていますが、支払い方法に関する問題を解決する必要があります。"
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Mattermost {{.Plan}} の機能を利用し続けるには"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "すべての制限事項に関する説明文書を確認する。"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "メッセージ履歴"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "ファイル"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "支払いが確認できていません"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "金融機関に連絡し、問題を解決してください。その後、必要に応じて支払い情報を更新してください。"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "登録されているクレジットカードに課金することができませんでした。これは、お客様のワークスペースがCloud Freeにダウングレードされる危険性があることを意味します。"
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Mattermost {{.Plan}} の支払いが遅れています"
-  },
-  {
     "id": "api.command_marketplace.unsupported.app_error",
     "translation": "このデバイスではmarketplaceコマンドはサポートされていません。"
   },
@@ -9016,38 +8792,6 @@
   {
     "id": "api.command_help.success",
     "translation": "Mattermost は、ツールやチームをまたがるセキュアなコミュニケーション、コラボレーション、オーケストレーションのためのオープンソースプラットフォームです。\nMattermostには、2つの主要なツールが含まれています:\n\n**Channels** - 1対1もしくはグループとのメッセージングによりチームを常に繋がった状態にします\n**[Playbooks](/playbooks)** - 繰り返し行われる作業をプロセス化し、予測可能な結果を残せるようにします\n\n[ドキュメントとガイドを見る]({{.HelpLink}})"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "支払い情報を更新する"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "滞納メールを送信するための必須項目が不足しています。"
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
@@ -9080,10 +8824,6 @@
   {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、以下にアクセスするためにEnterpriseトライアルを開始するようリクエストがありました: "
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "現在のプラン名を取得できませんでした"
   },
   {
     "id": "app.job.error",
@@ -9242,18 +8982,6 @@
     "translation": "検証中のロール取得時にエラーが発生しました。"
   },
   {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "請求書を見る"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "ワークスペース {{.WorkspaceName}} がアップグレードされました。"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "ワークスペース {{.WorkspaceName}} がアップグレードされました。{{.Date}} から課金されます"
-  },
-  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "セルフホスティングの利用登録では、ポータルは利用できません。"
   },
@@ -9276,10 +9004,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_malformed",
     "translation": "Elasticsearch用CAのデコードに失敗しました"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "ワークスペースがダウングレードされると、ワークスペースで実行されている重要なワークフロー、その他のビジネス上の重要な活動に悪影響を与える可能性があります。"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -9320,10 +9044,6 @@
   {
     "id": "api.config.update_config.translations.app_error",
     "translation": "サーバーの翻訳を更新できませんでした。"
-  },
-  {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "CWS サーバーはワークスペースの削除に失敗しました。"
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -9894,10 +9614,6 @@
     "translation": "ペイロードの解析中にエラーが発生しました。"
   },
   {
-    "id": "api.templates.cloud_renewal.subtitle",
-    "translation": "混乱を避けるため更新してください"
-  },
-  {
     "id": "app.channel.patch_channel_members_notify_props.app_error",
     "translation": "チャンネルメンバーの通知設定を更新できませんでした。"
   },
@@ -9934,40 +9650,12 @@
     "translation": "ユーザーが見つかりませんでした。"
   },
   {
-    "id": "api.templates.cloud_renewal.button",
-    "translation": "更新する"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.subject",
-    "translation": "年間請求の期限まで30日です"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.title",
-    "translation": "年間請求の期限まで30日です"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.title",
-    "translation": "年間サブスクリプションの更新日が60日後に迫っています"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.title",
-    "translation": "7日後にワークスペースへのアクセスできなくなってしまいます"
-  },
-  {
     "id": "api.user.get_profile_image_path.app_error",
     "translation": "ユーザーがカスタムプロフィール画像を設定しているかチェックする際にエラーが発生しました。"
   },
   {
     "id": "model.config.is_valid.max_payload_size.app_error",
     "translation": "サービス設定の最大ペイロードサイズが不正です。0より大きい整数にしてください。"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.subject",
-    "translation": "年間サブスクリプションの更新日が60日後に迫っています"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.subject",
-    "translation": "アクションが必要です: 年間サブスクリプションの更新日が7日後に迫っています"
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
