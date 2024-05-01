@@ -50,6 +50,11 @@ type webConnCheckMessage struct {
 	result       chan *CheckConnResult
 }
 
+type webConnCountMessage struct {
+	userID string
+	result chan int
+}
+
 // Hub is the central place to manage all websocket connections in the server.
 // It handles different websocket events and sending messages to individual
 // user connections.
@@ -70,6 +75,7 @@ type Hub struct {
 	explicitStop    bool
 	checkRegistered chan *webConnSessionMessage
 	checkConn       chan *webConnCheckMessage
+	connCount       chan *webConnCountMessage
 	broadcastHooks  map[string]BroadcastHook
 }
 
@@ -87,6 +93,7 @@ func newWebHub(ps *PlatformService) *Hub {
 		directMsg:       make(chan *webConnDirectMessage),
 		checkRegistered: make(chan *webConnSessionMessage),
 		checkConn:       make(chan *webConnCheckMessage),
+		connCount:       make(chan *webConnCountMessage),
 	}
 }
 
@@ -236,6 +243,16 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string) *CheckConnR
 	return nil
 }
 
+// WebConnCountForUser returns the number of active websocket connections
+// for a given userID.
+func (ps *PlatformService) WebConnCountForUser(userID string) int {
+	hub := ps.GetHubForUserId(userID)
+	if hub != nil {
+		return hub.WebConnCountForUser(userID)
+	}
+	return 0
+}
+
 // Register registers a connection to the hub.
 func (h *Hub) Register(webConn *WebConn) {
 	select {
@@ -279,6 +296,19 @@ func (h *Hub) CheckConn(userID, connectionID string) *CheckConnResult {
 	case <-h.stop:
 	}
 	return nil
+}
+
+func (h *Hub) WebConnCountForUser(userID string) int {
+	req := &webConnCountMessage{
+		userID: userID,
+		result: make(chan int),
+	}
+	select {
+	case h.connCount <- req:
+		return <-req.result
+	case <-h.stop:
+	}
+	return 0
 }
 
 // Broadcast broadcasts the message to all connections in the hub.
@@ -381,6 +411,8 @@ func (h *Hub) Start() {
 					}
 				}
 				req.result <- res
+			case req := <-h.connCount:
+				req.result <- connIndex.ForUserActiveCount(req.userID)
 			case <-ticker.C:
 				connIndex.RemoveInactiveConnections()
 			case webConn := <-h.register:
@@ -420,7 +452,26 @@ func (h *Hub) Start() {
 				if len(conns) == 0 || areAllInactive(conns) {
 					userID := webConn.UserId
 					h.platform.Go(func() {
-						h.platform.SetStatusOffline(userID, false)
+						// If this is an HA setup, get count for this user
+						// from other nodes.
+						var clusterCnt int
+						var appErr *model.AppError
+						if h.platform.Cluster() != nil {
+							clusterCnt, appErr = h.platform.Cluster().WebConnCountForUser(userID)
+						}
+						if appErr != nil {
+							mlog.Error("Error in trying to get the webconn count from cluster", mlog.Err(appErr))
+							// We take a conservative approach
+							// and do not set status to offline in case
+							// there's an error, rather than potentially
+							// incorrectly setting status to offline.
+							return
+						}
+						// Only set to offline if there are no
+						// active connections in other nodes as well.
+						if clusterCnt == 0 {
+							h.platform.SetStatusOffline(userID, false)
+						}
 					})
 					continue
 				}
@@ -552,6 +603,17 @@ func (h *Hub) Start() {
 	go doRecoverableStart()
 }
 
+// areAllInactive returns whether all of the connections
+// are inactive or not.
+func areAllInactive(conns []*WebConn) bool {
+	for _, conn := range conns {
+		if conn.active.Load() {
+			return false
+		}
+	}
+	return true
+}
+
 // hubConnectionIndex provides fast addition, removal, and iteration of web connections.
 // It requires 3 functionalities which need to be very fast:
 // - check if a connection exists or not.
@@ -627,6 +689,17 @@ func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
 	conns := make([]*WebConn, len(i.byUserId[id]))
 	copy(conns, i.byUserId[id])
 	return conns
+}
+
+// ForUserActiveCount returns the number of active connections for a userID
+func (i *hubConnectionIndex) ForUserActiveCount(id string) int {
+	cnt := 0
+	for _, conn := range i.ForUser(id) {
+		if conn.active.Load() {
+			cnt++
+		}
+	}
+	return cnt
 }
 
 // ForConnection returns the connection from its ID.
