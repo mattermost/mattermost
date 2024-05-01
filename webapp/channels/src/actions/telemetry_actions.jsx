@@ -10,8 +10,6 @@ import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {isDevModeEnabled} from 'selectors/general';
 import store from 'stores/redux_store';
 
-const SUPPORTS_CLEAR_MARKS = isSupported([performance.clearMarks]);
-const SUPPORTS_MARK = isSupported([performance.mark]);
 const SUPPORTS_MEASURE_METHODS = isSupported([
     performance.measure,
     performance.getEntries,
@@ -58,17 +56,15 @@ export function pageVisited(category, name) {
  *
  */
 export function clearMarks(names) {
-    if (!shouldTrackPerformance() || !SUPPORTS_CLEAR_MARKS) {
-        return;
-    }
     names.forEach((name) => performance.clearMarks(name));
 }
 
 export function mark(name) {
-    if (!shouldTrackPerformance() || !SUPPORTS_MARK) {
+    performance.mark(name);
+
+    if (!shouldTrackPerformance()) {
         return;
     }
-    performance.mark(name);
 
     initRequestCountingIfNecessary();
     updateRequestCountAtMark(name);
