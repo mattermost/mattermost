@@ -79,7 +79,7 @@ function TeamController(props: Props) {
         return () => {
             clearInterval(wakeUpIntervalId);
         };
-    }, []);
+    }, [props.disableWakeUpReconnectHandler]);
 
     // Effect runs on mount, add event listeners on windows object
     useEffect(() => {
