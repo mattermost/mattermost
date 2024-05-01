@@ -25,7 +25,7 @@ const SubMenuModal = ({
 
     const onHide = useCallback(() => {
         setShow(false);
-    }, [setShow]);
+    }, []);
 
     const subMenuItems = useMemo(() => {
         if (!elements) {
