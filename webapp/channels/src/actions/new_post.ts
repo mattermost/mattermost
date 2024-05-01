@@ -47,6 +47,9 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
             const result = await dispatch(PostActions.getPostThread(post.root_id));
 
             if ('error' in result) {
+                if (websocketMessageProps.should_ack) {
+                    WebSocketClient.acknowledgePostedNotification(post.id, 'error', 'missing_root_post', result.error);
+                }
                 return {error: result.error};
             }
         }
