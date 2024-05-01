@@ -5018,10 +5018,6 @@
     "translation": "您的授权不支持 ID Loaded Push Notifications。"
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "删除团队或频道成员出错"
-  },
-  {
     "id": "ent.ldap.validate_admin_filter.app_error",
     "translation": "无效的 AD/LDAP 管理筛选器。"
   },
@@ -6386,10 +6382,6 @@
     "translation": "AD/LDAP 同步任务超时。"
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "未找到集群 API 接口。"
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " 附加了文件。"
   },
@@ -7126,10 +7118,6 @@
     "translation": "随时通过电子邮件发送给我们 "
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "不允许您尝试添加或移除以下一项或多项权限"
   },
@@ -7240,46 +7228,6 @@
   {
     "id": "api.user.update_user_roles.license.app_error",
     "translation": "当前许可证不支持自定义权限方案"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "您的 Mattermost Cloud 发票到期"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "您的 Mattermost Cloud 订阅需要付款"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "要查看发票并添加付款方式，请选择立即付款。"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "您最近计费期的 Mattermost Cloud 发票已处理。但是，我们没有记录您的付款明细。"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "立刻付款"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "付款不成功"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "需要采取的措施：Mattermost {{.Plan}} 付款失败"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "为确保不间断地使用 Mattermost {{.Plan}}，请与您的金融机构联系以解决潜在问题或更新您的付款信息。付款信息更新后，Mattermost 将尝试结清任何未结余额。"
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "他们提供以下原因："
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "您的金融机构拒绝了与您的 Mattermost Cloud 工作区相关的 {{.CardBrand}} ****{{.LastFour}} 的付款。"
   },
   {
     "id": "api.system.update_viewed_notices.failed",
@@ -7632,10 +7580,6 @@
   {
     "id": "bleveengine.create_file_index.error",
     "translation": "创建 bleve 文件索引错误。"
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "未成功发送电子邮件"
   },
   {
     "id": "app.post.get_files_batch_for_indexing.get.app_error",
@@ -8390,10 +8334,6 @@
     "translation": "系统"
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "创建共享私信频道时遇到错误。"
-  },
-  {
     "id": "app.notification.footer.title",
     "translation": "想要更改您的通知设置吗？"
   },
@@ -8690,14 +8630,6 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的 {{ .ChannelName }} 频道"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "您已经完成升级更新！"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "确认升级Mattermost"
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "请求主体无效。"
   },
@@ -8846,24 +8778,12 @@
     "translation": "获取最后可访问的消息时出错"
   },
   {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "更新付款"
-  },
-  {
     "id": "api.team.invite_guests_to_channels.license.error",
     "translation": "您的许可证不支持访客帐号"
   },
   {
     "id": "api.command_help.success",
     "translation": "Mattermost 是一个开源平台，用于跨工具和团队的安全通信、协作和工作编排。\nMattermost 包含两个关键工具：\n\n**频道** - 通过 1:1 和群组消息与您的团队保持联系。\n**[Playbooks](/playbooks)** - 构建和配置可重复的流程以实现特定且可预测的结果。\n\n[查看文档和指南]({{.HelpLink}})"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "缺少发送拖欠电子邮件的必填字段。"
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "您的 Mattermost {{.Plan}} 付款已逾期"
   },
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
@@ -8876,138 +8796,6 @@
   {
     "id": "api.command_marketplace.desc",
     "translation": "打开市场"
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "您的 Mattermost {{.Plan}} 将在 15 天内被降级"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "降级到 Cloud Free 版"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "更新支付信息"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "您的支付尚未完成"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "为了保持您的 {{.Plan}} 计划可用，请尽快联系您的金融机构。并在之后根据需要更新您的支付信息。"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "我们无法处理您近期的一次支付。"
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "更新支付信息"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "您的 Mattermost 工作区将在 30 天内被降级"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "请现在更新您的支付信息或者降级到 Cloud Free 及以下版本。"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "如果我们无法处理您的付款，我们将会在 30 天内自动降级您的工作区。"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "请尽快更新您的支付信息以处理逾期的支付。"
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "需要行动：工作区将在 30 天内被降级"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "降级至 Cloud Free 版"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "更新支付信息"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "您的工作区将很快被降级"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "请立刻更新您的信用卡信息。"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "工作区降级后可能会给关键的工作流以及其他与您的工作区有关的业务活动带来负面影响。"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "我们自 {{.DelinquencyDate}} 后便无法通过您提供的支付信息进行扣款。您的工作区有被降级的风险。"
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "注意：您的 Mattermost {{.Plan}} 将很快被降级"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "更新支付信息"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "您的工作区将很快被降级"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "如果您什么都不做，您的工作区将被降级并且以下数据将被归档："
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "为了继续使用您的 Mattermost {{.Plan}} 功能"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "查看所有限制文档。"
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "更新支付信息"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "信息历史"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "文件"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "尚未收到付款"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "请联系相关金融机构以解决问题后，再根据需要更新您的付款信息。"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "我们无法通过已经记载的信用卡信息进行扣费。这意味着您的工作区随时有可能降级至 Cloud Free 版。"
-  },
-  {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "查看您的发票"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "您的工作区 {{.WorkspaceName}} 已经升级。"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "您的工作区 {{.WorkspaceName}} 已经升级。计费起始日 {{.Date}}"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -9056,42 +8844,6 @@
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "您无法从已归档的频道中移除已阅标识。"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "此外，由于 Cloud Free 版本的限制，您的数据已经被归档。"
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "您的 Mattermost Cloud 工作区已被降级"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "查看套餐与价格"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "更新支付信息"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "您的工作区将在 15 天内被降级"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "立刻更新您的支付信息，或者降级至 Cloud Free 版。"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "您的工作区将被降级至 Cloud Free 版。您的 {{.Plan}} 功能将被锁定，并且部分工作区数据将被锁定直到所有逾期账单均被妥善处理。"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "这是自 {{.DelinquencyDate}} 后我们尚未收到您的 Mattermost Cloud 工作区付款的最后提醒。"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "您还有时间保持您的 Mattermost {{.Plan}} 可用，但是在那之前您需要解决一些与支付有关的问题。"
   },
   {
     "id": "model.group.name.reserved_name.app_error",
@@ -9242,22 +8994,6 @@
     "translation": "来自工作区 {{.WorkspaceName}} 的 {{.UsersNum}} 位成员已申请 Enterprise 版的试用： "
   },
   {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "订阅状态正常"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "无法取得云订阅信息"
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "无法获取当前 Plan 的名字"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "无法取得云产品信息"
-  },
-  {
     "id": "app.channel.get_priority_for_posts.app_error",
     "translation": "无法取得消息的优先级"
   },
@@ -9294,18 +9030,6 @@
     "translation": "无法上传文件。文件尺寸过大。"
   },
   {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "您的 Mattermost workspace 已经被降级"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "要解除冻结您的数据并继续使用付费功能，请更新您的支付信息。"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "您将无法在重要业务操作中继续使用 Cloud Professional 或者 Enterprise 的功能，同时您将经历性能降级的体验。"
-  },
-  {
     "id": "api.system.logs.invalidFilter",
     "translation": "无效的日志过滤器"
   },
@@ -9316,10 +9040,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "该服务仅在 Mattermost Enterprise 版本中可用"
-  },
-  {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "CWS 服务器删除工作区时失败。"
   },
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
@@ -9878,22 +9598,6 @@
     "translation": "无法确认邀请：{{.Error}}"
   },
   {
-    "id": "api.templates.cloud_renewal.button",
-    "translation": "现在续订"
-  },
-  {
-    "id": "api.templates.cloud_renewal.subtitle",
-    "translation": "请续订以避免任何中断"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.title",
-    "translation": "您的年付帐单需要在 30 天内支付"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.subject",
-    "translation": "年度订阅需在 60 天内续期"
-  },
-  {
     "id": "ent.outgoing_oauth_connections.get_connection.app_error",
     "translation": "获取对外 oauth 连接时出现错误。"
   },
@@ -9940,22 +9644,6 @@
   {
     "id": "api.team.user.missing_account",
     "translation": "无法找到用户。"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.subject",
-    "translation": "年付帐单需要在 30 天内支付"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.title",
-    "translation": "年度订阅需在 60 天内续期"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.subject",
-    "translation": "需要操作：年度订阅需在 7 天内续期"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.title",
-    "translation": "您即将在 7 天后失去对您的工作区的访问"
   },
   {
     "id": "api.user.get_profile_image_path.app_error",
@@ -10376,5 +10064,21 @@
   {
     "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
     "translation": "缺少插件重新连接配置"
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "读取文件状态时出现错误：\"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "寻找文件时出现错误：\"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "获取用户计数失败"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "获取消息计数失败"
   }
 ]
