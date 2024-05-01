@@ -863,7 +863,7 @@ func (mr *MockClientMockRecorder) GetJob(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GetJobs mocks base method.
-func (m *MockClient) GetJobs(arg0 context.Context, arg1, arg2 int, arg3, arg4 string) ([]*model.Job, *model.Response, error) {
+func (m *MockClient) GetJobs(arg0 context.Context, arg1, arg2 string, arg3, arg4 int) ([]*model.Job, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetJobs", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].([]*model.Job)

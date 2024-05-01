@@ -126,7 +126,7 @@ func TestGetJobs(t *testing.T) {
 	})
 
 	t.Run("Get oldest job using paging", func(t *testing.T) {
-		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), "", "", 0, 2)
+		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), "", "", 1, 3)
 		require.NoError(t, err)
 		require.Equal(t, jobs[1].Id, received[0].Id, "should've received oldest job last")
 	})
