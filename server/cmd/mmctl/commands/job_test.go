@@ -23,6 +23,9 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Bool("all", false, "")
+		cmd.Flags().StringSlice("ids", []string{}, "")
+		cmd.Flags().String("status", "", "")
+		cmd.Flags().String("type", "", "")
 
 		s.client.
 			EXPECT().
@@ -56,6 +59,9 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Bool("all", false, "")
+		cmd.Flags().StringSlice("ids", []string{}, "")
+		cmd.Flags().String("status", "", "")
+		cmd.Flags().String("type", "", "")
 
 		s.client.
 			EXPECT().
@@ -85,6 +91,8 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Bool("all", false, "")
 		cmd.Flags().StringSlice("ids", []string{id}, "")
+		cmd.Flags().String("status", "", "")
+		cmd.Flags().String("type", "", "")
 
 		s.client.
 			EXPECT().
@@ -120,6 +128,8 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Bool("all", false, "")
 		cmd.Flags().String("status", model.JobStatusSuccess, "")
+		cmd.Flags().StringSlice("ids", []string{}, "")
+		cmd.Flags().String("type", "", "")
 
 		s.client.
 			EXPECT().
@@ -155,6 +165,8 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Bool("all", false, "")
 		cmd.Flags().String("type", model.JobTypeDataRetention, "")
+		cmd.Flags().StringSlice("ids", []string{}, "")
+		cmd.Flags().String("status", "", "")
 
 		s.client.
 			EXPECT().
