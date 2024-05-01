@@ -327,7 +327,7 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, appErr := c.App.GetOrCreateTrueUpReviewStatus()
+	status, appErr := c.App.GetOrCreateTrueUpReviewStatus(c.AppContext)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -394,7 +394,7 @@ func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, appErr := c.App.GetOrCreateTrueUpReviewStatus()
+	status, appErr := c.App.GetOrCreateTrueUpReviewStatus(c.AppContext)
 	if appErr != nil {
 		c.Err = appErr
 	}

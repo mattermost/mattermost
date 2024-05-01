@@ -6,7 +6,7 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting initial
     disabled={false}
     falseText={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="false"
+        defaultMessage="False"
         id="admin.false"
       />
     }
@@ -27,7 +27,7 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting initial
     setByEnv={false}
     trueText={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="true"
+        defaultMessage="True"
         id="admin.true"
       />
     }
@@ -67,7 +67,7 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting initial
     disabled={false}
     falseText={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="false"
+        defaultMessage="False"
         id="admin.false"
       />
     }
@@ -88,7 +88,7 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting initial
     setByEnv={false}
     trueText={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="true"
+        defaultMessage="True"
         id="admin.true"
       />
     }
