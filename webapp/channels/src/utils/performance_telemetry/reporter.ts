@@ -17,8 +17,7 @@ import type {PerformanceLongTaskTiming} from './long_task';
 type PerformanceReportMeasure = {
     metric: string;
     value: number;
-
-    // TODO timestamp?
+    timestamp: number;
 }
 
 type PerformanceReport = {
@@ -31,7 +30,8 @@ type PerformanceReport = {
     platform: string;
     user_agent: string;
 
-    // TODO start/end timestamp?
+    start: number;
+    end: number;
 
     counters: PerformanceReportMeasure[];
     histograms: PerformanceReportMeasure[];
@@ -41,7 +41,7 @@ export default class PerformanceReporter {
     private client: Client4;
     private store: Store<GlobalState>;
 
-    private counterMeasures: Map<string, number>;
+    private counters: Map<string, number>;
     private histogramMeasures: PerformanceReportMeasure[];
 
     private observer: PerformanceObserver;
@@ -54,7 +54,7 @@ export default class PerformanceReporter {
         this.client = client;
         this.store = store;
 
-        this.counterMeasures = new Map();
+        this.counters = new Map();
         this.histogramMeasures = [];
 
         // This uses a PerformanceObserver to listen for calls to Performance.measure made by frontend code. It's
@@ -120,6 +120,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: entry.name,
             value: entry.duration,
+            timestamp: performance.timeOrigin + entry.startTime,
         });
     }
 
@@ -136,26 +137,27 @@ export default class PerformanceReporter {
     }
 
     private incrementCounter(name: string) {
-        const current = this.counterMeasures.get(name) ?? 0;
-        this.counterMeasures.set(name, current + 1);
+        const current = this.counters.get(name) ?? 0;
+        this.counters.set(name, current + 1);
     }
 
     private handleWebVital(metric: Metric) {
         this.histogramMeasures.push({
             metric: metric.name,
             value: metric.value,
+            timestamp: performance.timeOrigin + performance.now(),
         });
     }
 
     private handleReportTimeout() {
-        this.maybeSendMeasures();
+        this.maybeSendReport();
 
         this.reportTimeout = window.setTimeout(() => this.handleReportTimeout(), this.nextTimeout());
     }
 
     private handleVisibilityChange = () => {
         if (document.visibilityState === 'hidden') {
-            this.maybeSendMeasures();
+            this.maybeSendReport();
         }
     };
 
@@ -180,20 +182,14 @@ export default class PerformanceReporter {
         return true;
     }
 
-    protected maybeSendMeasures() {
+    protected maybeSendReport() {
         const histogramMeasures = this.histogramMeasures;
         this.histogramMeasures = [];
 
-        const counterMeasures = [];
-        for (const [name, value] of this.counterMeasures.entries()) {
-            counterMeasures.push({
-                metric: name,
-                value,
-            });
-        }
-        this.counterMeasures = new Map();
+        const counters = this.counters;
+        this.counters = new Map();
 
-        if (histogramMeasures.length === 0 && counterMeasures.length === 0) {
+        if (histogramMeasures.length === 0 && counters.size === 0) {
             return;
         }
 
@@ -201,17 +197,62 @@ export default class PerformanceReporter {
             return;
         }
 
-        const url = this.client.getUrl() + '/api/v4/metrics';
+        this.sendReport(this.generateReport(histogramMeasures, counters));
+    }
 
-        const report: PerformanceReport = {
+    private generateReport(histogramMeasures: PerformanceReportMeasure[], counters: Map<string, number>): PerformanceReport {
+        const now = performance.timeOrigin + performance.now();
+
+        const counterMeasures = this.countersToMeasures(now, counters);
+
+        return {
             version: '0',
 
             platform: navigator.platform,
             user_agent: navigator.userAgent,
 
-            counters: counterMeasures,
+            ...this.getReportStartEnd(now, histogramMeasures, counterMeasures),
+
+            counters: this.countersToMeasures(now, counters),
             histograms: histogramMeasures,
         };
+    }
+
+    private getReportStartEnd(now: number, histogramMeasures: PerformanceReportMeasure[], counterMeasures: PerformanceReportMeasure[]): {start: number; end: number} {
+        let start = now;
+        let end = performance.timeOrigin;
+
+        for (const measure of histogramMeasures) {
+            start = Math.min(start, measure.timestamp);
+            end = Math.max(end, measure.timestamp);
+        }
+        for (const measure of counterMeasures) {
+            start = Math.min(start, measure.timestamp);
+            end = Math.max(end, measure.timestamp);
+        }
+
+        return {
+            start,
+            end,
+        };
+    }
+
+    private countersToMeasures(now: number, counters: Map<string, number>): PerformanceReportMeasure[] {
+        const counterMeasures = [];
+
+        for (const [name, value] of counters.entries()) {
+            counterMeasures.push({
+                metric: name,
+                value,
+                timestamp: now,
+            });
+        }
+
+        return counterMeasures;
+    }
+
+    private sendReport(report: PerformanceReport) {
+        const url = this.client.getUrl() + '/api/v4/metrics';
         const data = JSON.stringify(report);
 
         const beaconSent = navigator.sendBeacon(url, data);

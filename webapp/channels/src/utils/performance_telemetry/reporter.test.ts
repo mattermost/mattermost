@@ -37,7 +37,11 @@ describe('PerformanceReporter', () => {
 
         const testMarkA = performance.mark('testMarkA');
         const testMarkB = performance.mark('testMarkB');
-        measureAndReport('testMeasure', 'testMarkA', 'testMarkB');
+        measureAndReport('testMeasureA', 'testMarkA', 'testMarkB');
+
+        const testMarkC = performance.mark('testMarkC');
+        measureAndReport('testMeasureB', 'testMarkA', 'testMarkC');
+        measureAndReport('testMeasureC', 'testMarkB', 'testMarkC');
 
         await waitForObservations();
 
@@ -49,10 +53,23 @@ describe('PerformanceReporter', () => {
         expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/metrics');
         const report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
+            start: performance.timeOrigin + testMarkA.startTime,
+            end: performance.timeOrigin + testMarkB.startTime,
             histograms: [
                 {
-                    metric: 'testMeasure',
+                    metric: 'testMeasureA',
                     value: testMarkB.startTime - testMarkA.startTime,
+                    timestamp: performance.timeOrigin + testMarkA.startTime,
+                },
+                {
+                    metric: 'testMeasureB',
+                    value: testMarkC.startTime - testMarkA.startTime,
+                    timestamp: performance.timeOrigin + testMarkA.startTime,
+                },
+                {
+                    metric: 'testMeasureC',
+                    value: testMarkC.startTime - testMarkB.startTime,
+                    timestamp: performance.timeOrigin + testMarkB.startTime,
                 },
             ],
         });
@@ -78,6 +95,8 @@ describe('PerformanceReporter', () => {
 
         expect(reporter.handleObservations).toHaveBeenCalled();
 
+        const timestamp = performance.timeOrigin + performance.now();
+
         await waitForReport();
 
         expect(sendBeacon).toHaveBeenCalled();
@@ -95,6 +114,9 @@ describe('PerformanceReporter', () => {
                 },
             ],
         });
+        expect(report.start).toBeGreaterThan(timestamp);
+        expect(report.end).toBeGreaterThan(timestamp);
+        expect(report.start).toEqual(report.end);
 
         reporter.disconnect();
     });
@@ -221,7 +243,7 @@ describe('PerformanceReporter', () => {
 
         await waitForReport();
 
-        expect(reporter.maybeSendMeasures).toHaveBeenCalled();
+        expect(reporter.maybeSendReport).toHaveBeenCalled();
         expect(sendBeacon).not.toHaveBeenCalled();
     });
 
@@ -239,7 +261,7 @@ describe('PerformanceReporter', () => {
 
         await waitForReport();
 
-        expect(reporter.maybeSendMeasures).toHaveBeenCalled();
+        expect(reporter.maybeSendReport).toHaveBeenCalled();
         expect(sendBeacon).not.toHaveBeenCalled();
     });
 
@@ -276,7 +298,7 @@ class TestPerformanceReporter extends PerformanceReporter {
 
     public handleObservations = jest.fn(super.handleObservations);
 
-    public maybeSendMeasures = jest.fn(super.maybeSendMeasures);
+    public maybeSendReport = jest.fn(super.maybeSendReport);
 }
 
 function newTestReporter(telemetryEnabled = true, loggedIn = true) {
