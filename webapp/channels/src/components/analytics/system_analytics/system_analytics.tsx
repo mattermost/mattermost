@@ -10,7 +10,6 @@ import type {ClientLicense} from '@mattermost/types/config';
 import * as AdminActions from 'actions/admin_actions.jsx';
 
 import ActivatedUserCard from 'components/analytics/activated_users_card';
-import TrueUpReview from 'components/analytics/true_up_review';
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
@@ -444,7 +443,6 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         {banner}
-                        <TrueUpReview/>
                         <div className='grid-statistics'>
                             {systemCards}
                             {dailyActiveUsers}

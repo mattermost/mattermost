@@ -326,15 +326,7 @@ const AdminDefinition: AdminDefinitionType = {
             />
         ),
         sectionTitle: defineMessage({id: 'admin.sidebar.billing', defaultMessage: 'Billing & Account'}),
-        isHidden: it.any(
-            it.not(it.enterpriseReady),
-            it.not(it.userHasReadPermissionOnResource('billing')),
-            it.not(it.licensed),
-            it.all(
-                it.not(it.licensedForFeature('Cloud')),
-                it.configIsFalse('ServiceSettings', 'SelfHostedPurchase'),
-            ),
-        ),
+        isHidden: it.not(it.licensedForFeature('Cloud')),
         subsections: {
             subscription: {
                 url: 'billing/subscription',
@@ -357,6 +349,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'BillingHistory',
                     component: BillingHistory,
                 },
+                isHidden: it.not(it.licensedForFeature('Cloud')),
                 isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
             },
             company_info: {
