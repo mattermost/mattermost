@@ -1498,6 +1498,8 @@
   "admin.manage_tokens.userAccessTokensNone": "No personal access tokens.",
   "admin.member_list_group.name": "Name",
   "admin.member_list_group.notFound": "No users found",
+  "admin.metrics.enableClientMetricsDescription": "When true, Mattermost will enable performance monitoring collection for web and desktop app users. Please see <link>documentation</link> to learn more about configuring performance monitoring for Mattermost.",
+  "admin.metrics.enableClientMetricsTitle": "Enable Client Performance Monitoring:",
   "admin.metrics.enableDescription": "When true, Mattermost will enable performance monitoring collection and profiling. Please see <link>documentation</link> to learn more about configuring performance monitoring for Mattermost.",
   "admin.metrics.enableTitle": "Enable Performance Monitoring:",
   "admin.metrics.listenAddressDesc": "The address the server will listen on to expose performance metrics.",

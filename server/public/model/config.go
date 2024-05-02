@@ -985,9 +985,10 @@ func (s *ClusterSettings) SetDefaults() {
 }
 
 type MetricsSettings struct {
-	Enable           *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
-	BlockProfileRate *int    `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
-	ListenAddress    *string `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"` // telemetry: none
+	Enable              *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
+	BlockProfileRate    *int    `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
+	ListenAddress       *string `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableClientMetrics *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
 }
 
 func (s *MetricsSettings) SetDefaults() {
@@ -1001,6 +1002,10 @@ func (s *MetricsSettings) SetDefaults() {
 
 	if s.BlockProfileRate == nil {
 		s.BlockProfileRate = NewInt(0)
+	}
+
+	if s.EnableClientMetrics == nil {
+		s.Enable = NewBool(true)
 	}
 }
 
