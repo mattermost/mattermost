@@ -10069,5 +10069,29 @@
   {
     "id": "api.channel.create_channel.missing_team_id.error",
     "translation": "Missing team_id in request body"
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Failed to get user count"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "Failed to get post count"
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Error reading the file status: '{{.FilePath}}'"
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Error seeking the file: '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "Unable to close the zip file"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Unable to seek to start of export file."
   }
 ]
