@@ -8,20 +8,17 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
-import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
 import {useExpandOverageUsersCheck} from 'components/common/hooks/useExpandOverageUsersCheck';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
-import {StatTypes, Preferences, AnnouncementBarTypes, ConsolePages} from 'utils/constants';
+import {StatTypes, Preferences, AnnouncementBarTypes} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';
-import {getSiteURL} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
@@ -60,9 +57,6 @@ const OverageUsersBanner = () => {
         activeUsers,
         seatsPurchased,
     });
-    const isSelfHostedExpansionEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedPurchase;
-    const canSelfHostedExpand = useCanSelfHostedExpand() && isSelfHostedExpansionEnabled;
-    const siteURL = getSiteURL();
     const prefixPreferences = isOver10PercerntPurchasedSeats ? 'error' : 'warn';
     const prefixLicenseId = (license.Id || '').substring(0, 8);
     const preferenceName = `${prefixPreferences}_overage_seats_${prefixLicenseId}`;
@@ -73,16 +67,10 @@ const OverageUsersBanner = () => {
     const hasPermission = isAdmin && isOverageState && !isCloud;
     const {
         cta,
-        expandableLink,
         trackEventFn,
-        getRequestState,
-        isExpandable,
     } = useExpandOverageUsersCheck({
-        shouldRequest: hasPermission && !adminHasDismissed({isWarningBanner: isBetween5PercerntAnd10PercentPurchasedSeats, overagePreferences, preferenceName}),
-        licenseId: license.Id,
         isWarningState: isBetween5PercerntAnd10PercentPurchasedSeats,
         banner: 'global banner',
-        canSelfHostedExpand: canSelfHostedExpand || false,
     });
 
     const handleClose = () => {
@@ -94,31 +82,19 @@ const OverageUsersBanner = () => {
         }]));
     };
 
-    const handleUpdateSeatsSelfServeClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        e.preventDefault();
-        trackEventFn('Self Serve');
-
-        if (canSelfHostedExpand) {
-            window.open(`${siteURL}/${ConsolePages.LICENSE}?action=show_expansion_modal`);
-            return;
-        }
-
-        window.open(expandableLink(license.Id), '_blank');
-    };
-
     const handleContactSalesClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
         trackEventFn('Contact Sales');
         openContactSales();
     };
 
-    const handleClick = isExpandable ? handleUpdateSeatsSelfServeClick : handleContactSalesClick;
+    const handleClick = handleContactSalesClick;
 
     if (!hasPermission || adminHasDismissed({isWarningBanner: isBetween5PercerntAnd10PercentPurchasedSeats, overagePreferences, preferenceName})) {
         return null;
     }
 
-    let message = (
+    const message = (
         <FormattedMessage
             id='licensingPage.overageUsersBanner.text'
             defaultMessage='(Only visible to admins) Your workspace user count has exceeded your paid license seat count by {seats, number} {seats, plural, one {seat} other {seats}}. Purchase additional seats to remain compliant.'
@@ -126,17 +102,6 @@ const OverageUsersBanner = () => {
                 seats: overageByUsers,
             }}
         />);
-
-    if (canSelfHostedExpand) {
-        message = (
-            <FormattedMessage
-                id='licensingPage.overageUsersBanner.textSelfHostedExpand'
-                defaultMessage='(Only visible to admins) Your workspace user count has exceeded your paid license seat count. Update your seat count to stay compliant.'
-                values={{
-                    seats: overageByUsers,
-                }}
-            />);
-    }
 
     return (
         <AnnouncementBar
@@ -150,7 +115,6 @@ const OverageUsersBanner = () => {
             isTallBanner={true}
             icon={<i className='icon icon-alert-outline'/>}
             handleClose={handleClose}
-            showCTA={getRequestState !== 'IDLE' && getRequestState !== 'LOADING'}
         />
     );
 };
