@@ -108,7 +108,7 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
             style={{height: '48px'}}
             data-testid={`memberline-${member.user.id}`}
         >
-            <span className='ProfileSpan overflow--ellipsis'>
+            <span className='ProfileSpan'>
                 <Avatar>
                     <ProfilePicture
                         size='sm'
