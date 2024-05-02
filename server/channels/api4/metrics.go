@@ -26,7 +26,7 @@ func submitMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := report.IsValidTime(); err != nil {
+	if err := report.IsValid(); err != nil {
 		c.SetInvalidParamWithErr("report", err)
 		return
 	}
