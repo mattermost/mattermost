@@ -6,7 +6,6 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-// Stage: @prod
 // Group: @playbooks
 
 const RUN_NAME_MAX_LENGTH = 64;

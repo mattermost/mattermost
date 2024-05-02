@@ -6,8 +6,8 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-// Stage: @prod
 // Group: @playbooks
+
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('channels > general actions', {testIsolation: true}, () => {
