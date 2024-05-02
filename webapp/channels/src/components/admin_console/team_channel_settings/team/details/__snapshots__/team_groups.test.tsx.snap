@@ -77,7 +77,7 @@ exports[`admin_console/team_channel_settings/team/TeamGroups should match snapsh
     }
   }
 >
-  <Connect(GroupList)
+  <Connect(Component)
     groups={
       Array [
         Object {

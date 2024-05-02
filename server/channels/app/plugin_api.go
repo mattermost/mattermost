@@ -318,7 +318,7 @@ func (api *PluginAPI) RevokeSession(sessionID string) *model.AppError {
 }
 
 func (api *PluginAPI) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
-	return api.app.CreateUserAccessToken(token)
+	return api.app.CreateUserAccessToken(api.ctx, token)
 }
 
 func (api *PluginAPI) RevokeUserAccessToken(tokenID string) *model.AppError {
@@ -683,7 +683,7 @@ func (api *PluginAPI) UpdateEphemeralPost(userID string, post *model.Post) *mode
 }
 
 func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
-	api.app.DeleteEphemeralPost(userID, postID)
+	api.app.DeleteEphemeralPost(api.ctx, userID, postID)
 }
 
 func (api *PluginAPI) DeletePost(postID string) *model.AppError {
@@ -849,7 +849,7 @@ func (api *PluginAPI) SetTeamIcon(teamID string, data []byte) *model.AppError {
 }
 
 func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
-	return api.app.OpenInteractiveDialog(dialog)
+	return api.app.OpenInteractiveDialog(api.ctx, dialog)
 }
 
 func (api *PluginAPI) RemoveTeamIcon(teamID string) *model.AppError {
@@ -948,7 +948,7 @@ func (api *PluginAPI) KVCompareAndSet(key string, oldValue, newValue []byte) (bo
 }
 
 func (api *PluginAPI) KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError) {
-	return api.app.CompareAndDeletePluginKey(api.id, key, oldValue)
+	return api.app.CompareAndDeletePluginKey(api.ctx, api.id, key, oldValue)
 }
 
 func (api *PluginAPI) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError {
@@ -1211,7 +1211,7 @@ func (api *PluginAPI) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *mod
 }
 
 func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
-	return api.app.DeleteOAuthApp(appID)
+	return api.app.DeleteOAuthApp(api.ctx, appID)
 }
 
 // PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
@@ -1296,11 +1296,11 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 
 func (api *PluginAPI) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
 	// Ignoring skipSessionId because it's only used internally to clear push notifications
-	return api.app.sendPushNotificationToAllSessions(notification, userID, "")
+	return api.app.sendPushNotificationToAllSessions(api.ctx, notification, userID, "")
 }
 
 func (api *PluginAPI) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error) {
-	return api.app.RegisterPluginForSharedChannels(opts)
+	return api.app.RegisterPluginForSharedChannels(api.ctx, opts)
 }
 
 func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {

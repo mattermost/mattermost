@@ -4,7 +4,7 @@
 import React from 'react';
 import type {ComponentProps} from 'react';
 
-import {render, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import PostProfilePicture from './post_profile_picture';
@@ -31,7 +31,7 @@ describe('components/PostProfilePicture', () => {
 
     test('no status and post icon override specified, default props', () => {
         const props: Props = baseProps;
-        render(
+        renderWithContext(
             <PostProfilePicture {...props}/>,
         );
 
@@ -46,7 +46,7 @@ describe('components/PostProfilePicture', () => {
             ...baseProps,
             status: 'away',
         };
-        render(
+        renderWithContext(
             <PostProfilePicture {...props}/>,
         );
 

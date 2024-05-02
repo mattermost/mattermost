@@ -1022,7 +1022,6 @@
   "convert_channel.question2": "Muutos on pysyvä ja peruuttamaton.",
   "convert_channel.question3": "Haluatko varmasti muuttaa **{display_name}** yksityiskanavaksi?",
   "convert_channel.title": "Muutetaanko {display_name} yksityiskanavaksi?",
-  "copy_url_context_menu.getChannelLink": "Kopioi linkki",
   "create_category_modal.create": "Luo",
   "create_comment.addComment": "Lisää kommentti...",
   "create_post.error_message": "Viestisi on liian pitkä. Kirjainmerkkejä: {length}/{limit}",

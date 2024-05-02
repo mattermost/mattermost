@@ -22,7 +22,6 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, compa
   <a
     className="post-image__name"
     href="#"
-    id="file-attachment-link"
     onClick={[MockFunction]}
     rel="noopener noreferrer"
   >

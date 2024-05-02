@@ -149,12 +149,12 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v0.26.2
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.2.0
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.8.1
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.1
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.3
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-ai-v0.6.3
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -335,7 +335,7 @@ filestore-mocks: ## Creates mock files.
 
 ldap-mocks: ## Creates mock files for ldap.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --dir $(BUILD_ENTERPRISE_DIR)/ldap --all --output $(BUILD_ENTERPRISE_DIR)/ldap/mocks --note 'Regenerate this file using `make ldap-mocks`.'
+	$(GOBIN)/mockery --dir $(BUILD_ENTERPRISE_DIR)/ldap --all --inpackage --note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
