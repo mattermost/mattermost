@@ -102,7 +102,7 @@ describe('Image Link Preview', () => {
 
         const markdownImageText = 'exampleImage';
         const markdownImageSrc = 'https://docs.mattermost.com/_images/icon-76x76.png';
-        const markdownImageSrcEncoded = encodeURIComponent(markdownImageSrc); // Since the url preview will be encoded string
+        const markdownImageSrcEncoded = encodeURIComponent(`/api/v4/image?url=${encodeURIComponent(markdownImageSrc)}`); // Since the url preview will be an encoded string
         const messageWithMarkdownImage = `![${markdownImageText}](${markdownImageSrc}) an image plus some text that has [a link](https://example.com/)`;
 
         // # Post a message with markdown image and link

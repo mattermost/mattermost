@@ -45,7 +45,7 @@ describe('Markdown', () => {
                 and('have.class', 'markdown-inline-img--hover').
                 and('have.class', 'markdown-inline-img--no-border').
                 and('have.attr', 'alt', 'Build Status').
-                and('have.attr', 'src', `${baseUrl}/api/v4/image?url=https%3A%2F%2Fdocs.mattermost.com%2F_images%2Ficon-76x76.png`).
+                and('have.attr', 'src', `${baseUrl}/api/v4/image?url=%2Fapi%2Fv4%2Fimage%3Furl%3Dhttps%253A%252F%252Fdocs.mattermost.com%252F_images%252Ficon-76x76.png`).
                 and((inlineImg) => {
                     expect(inlineImg.height()).to.be.closeTo(76, 76);
                 }).
@@ -70,7 +70,7 @@ describe('Markdown', () => {
                 and('have.class', 'cursor--pointer').
                 and('have.class', 'a11y--active').
                 and('have.attr', 'alt', 'Github').
-                and('have.attr', 'src', `${baseUrl}/api/v4/image?url=https%3A%2F%2Fgithub.githubassets.com%2Ffavicon.ico`).
+                and('have.attr', 'src', `${baseUrl}/api/v4/image?url=%2Fapi%2Fv4%2Fimage%3Furl%3Dhttps%253A%252F%252Fgithub.githubassets.com%252Ffavicon.ico`).
                 and('have.css', 'height', '34px').
                 and('have.css', 'width', '34px');
         });

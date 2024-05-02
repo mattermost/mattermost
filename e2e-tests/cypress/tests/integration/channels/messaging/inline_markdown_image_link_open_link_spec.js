@@ -24,6 +24,7 @@ describe('Messaging', () => {
         const imageUrl = 'https://docs.mattermost.com/_images/icon-76x76.png';
         const label = 'Build Status';
         const baseUrl = Cypress.config('baseUrl');
+        const imageSrcUrl = encodeURIComponent(`/api/v4/image?url=${encodeURIComponent(imageUrl)}`);
 
         // # Post the provided Markdown text in the test channel
         cy.postMessage(`[![${label}](${imageUrl})](${linkUrl})`);
@@ -37,7 +38,7 @@ describe('Messaging', () => {
 
                 // * Check that the newly created post has an image
                 cy.wrap($a).find('img').should('be.visible').
-                    and('have.attr', 'src', `${baseUrl}/api/v4/image?url=${encodeURIComponent(imageUrl)}`).
+                    and('have.attr', 'src', `${baseUrl}/api/v4/image?url=${imageSrcUrl}`).
                     and('have.attr', 'alt', label);
 
                 // # Assign the value of the a tag href to the 'href' variable and assert the link is valid
