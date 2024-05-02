@@ -203,11 +203,12 @@ type MetricsInterfaceImpl struct {
 
 	JobsActive *prometheus.GaugeVec
 
-	NotificationTotalCounters   *prometheus.CounterVec
-	NotificationAckCounters     *prometheus.CounterVec
-	NotificationSuccessCounters *prometheus.CounterVec
-	NotificationErrorCounters   *prometheus.CounterVec
-	NotificationNotSentCounters *prometheus.CounterVec
+	NotificationTotalCounters       *prometheus.CounterVec
+	NotificationAckCounters         *prometheus.CounterVec
+	NotificationSuccessCounters     *prometheus.CounterVec
+	NotificationErrorCounters       *prometheus.CounterVec
+	NotificationNotSentCounters     *prometheus.CounterVec
+	NotificationUnsupportedCounters *prometheus.CounterVec
 }
 
 func init() {
@@ -1109,6 +1110,18 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.NotificationNotSentCounters)
 
+	m.NotificationUnsupportedCounters = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemNotifications,
+			Name:        "unsupported",
+			Help:        "Total number of untrackable notifications due to an unsupported app version",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"type", "reason"},
+	)
+	m.Registry.MustRegister(m.NotificationUnsupportedCounters)
+
 	return m
 }
 
@@ -1553,6 +1566,10 @@ func (mi *MetricsInterfaceImpl) IncrementNotificationErrorCounter(notificationTy
 
 func (mi *MetricsInterfaceImpl) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
 	mi.NotificationNotSentCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason)}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
+	mi.NotificationUnsupportedCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason)}).Inc()
 }
 
 func (mi *MetricsInterfaceImpl) IncrementHTTPWebSockets(originClient string) {

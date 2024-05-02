@@ -116,7 +116,7 @@ func (a *App) SendReportToUser(rctx request.CTX, job *model.Job, format string) 
 		return model.NewAppError("SendReportToUser", "app.report.send_report_to_user.failed_to_save", nil, "", http.StatusInternalServerError).Wrap(fileErr)
 	}
 
-	channel, err := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), requestingUserId, systemBot.UserId)
+	channel, err := a.GetOrCreateDirectChannel(rctx, requestingUserId, systemBot.UserId)
 	if err != nil {
 		return err
 	}
@@ -244,7 +244,7 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt 
 			return
 		}
 
-		channel, err := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), rctx.Session().UserId, systemBot.UserId)
+		channel, err := a.GetOrCreateDirectChannel(rctx, rctx.Session().UserId, systemBot.UserId)
 		if err != nil {
 			rctx.Logger().Error("Failed to get or create the DM", mlog.Err(err))
 			return

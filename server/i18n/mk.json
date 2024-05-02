@@ -612,10 +612,6 @@
     "translation": "Вашата лиценца не поддржува клауд барања."
   },
   {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Недостигаат потребни полиња за да се прати имејлот за деликвенција."
-  },
-  {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Веб кука настанот не беше обработен. Или недостига или не е валиден."
   },

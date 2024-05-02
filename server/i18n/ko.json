@@ -4936,10 +4936,6 @@
     "translation": "크기 제한을 초과했습니다. [최대 페이지 크기]를 확인하십시오 (https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "팀 또는 채널 구성원 자격 삭제 오류"
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "ID 푸시 알림을 지원하지 않는 라이선스입니다."
   },
@@ -6388,10 +6384,6 @@
     "translation": "Reached AD/LDAP synchronization job timeout."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Cluster API endpoint not found."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " 파일을 첨부했습니다."
   },
@@ -7748,10 +7740,6 @@
     "translation": "Mattermost는 도구와 팀을 넘나드는 안전한 소통, 협업, 작업 조율을 위한 오픈소스 플랫폼입니다.\nMattermost는 세가지 핵심 도구를 갖고 있습니다:\n\n**채널** - 1:1 및 그룹 채팅을 통해 팀과의 소통을 유지하세요.\n**[플레이북](/playbooks)** - 반복가능한 작업들을 구성하여 구체적이고 예측 가능한 결과를 만드세요.\n**[보드](/boards)** - 팀의 핵심 마일스톤에 도달하기 위해 칸반 보드에서 작업을 만들고 프로젝트를 관리하세요.\n\n[문서 및 가이드 살펴보기]({{.HelpLink}})"
   },
   {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "연체 알림 전자우편을 보내기 위한 필수 항목이 누락되었습니다."
-  },
-  {
     "id": "api.error_set_first_admin_complete_setup",
     "translation": "스토어에서 첫 번째 관리자의 설정을 저장하는 동안 오류가 발생했습니다."
   },
@@ -7984,34 +7972,6 @@
     "translation": "도움이 필요하거나 질문이 있으신가요? 다음 주소로 전자우편을 보내주세요 "
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Mattermost Cloud 청구서 마감일"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Mattermost Cloud 구독에 대한 결제가 완료되었습니다"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "청구서를 검토하고 결제 방법을 추가하려면 지금 결제를 선택합니다."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "가장 최근 청구 기간에 대한 Mattermost Cloud 청구서가 처리되었습니다. 하지만 결제 세부 정보가 등록되어 있지 않습니다."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "지금 결제하기"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "결제가 성공하지 못했습니다"
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "그들은 다음과 같은 이유를 제시했습니다:"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Mattermost 구독이 갱신될 예정입니다"
   },
@@ -8038,86 +7998,6 @@
   {
     "id": "api.templates.email_us_anytime_at",
     "translation": "언제든지 다음 주소로 전자우편을 보내주세요 "
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Mattermost 워크스페이스가 다운그레이드되었습니다"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "또한 Cloud Free 제한으로 인해 데이터가 보관 처리되었을 수도 있습니다."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "데이터 보관을 해제하고 유료 기능을 계속 사용하려면 결제 정보를 업데이트하세요."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "중요한 비즈니스 운영에 Cloud Professional 또는 Enterprise 기능을 사용하는 경우 이러한 기능을 더 이상 사용할 수 없으며 성능이 저하됩니다."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Mattermost Cloud 워크스페이스가 다운그레이드되었습니다"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "플랜과 가격 보기"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "지금 결제 정보를 업데이트하거나 Cloud Free로 다운그레이드하세요."
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "워크스페이스가 15일 후에 다운그레이드됩니다"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "결제 갱신"
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Mattermost {{.Plan}} 플랜이 15일 후에 다운그레이드됩니다"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Cloud Free로 다운그레이드"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "결제 갱신"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "결제가 완료되지 않았습니다"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "가장 최근 결제를 처리하지 못했습니다."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "결제 갱신"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Mattermost 워크스페이스가 30일 후에 다운그레이드됩니다"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "모든 제한 문서 보기."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "결제 갱신"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "메시지 역사"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "파일"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -8158,22 +8038,6 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "이미지 제한 확인에 실패했습니다. 해상도가 너무 높습니다."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Mattermots 업그레이드 확인"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "업그레이드 되었습니다!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "{{.WorkspaceName}} 워크스페이스가 업그레이드 되었습니다. {{.Data}}에 결제가 됩니다"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "{{.WorkspaceName}} 워크스페이스가 업그레이드 되었습니다."
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",

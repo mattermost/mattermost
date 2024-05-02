@@ -8,9 +8,10 @@ type NotificationType string
 type NotificationReason string
 
 const (
-	NotificationStatusSuccess NotificationStatus = "success"
-	NotificationStatusError   NotificationStatus = "error"
-	NotificationStatusNotSent NotificationStatus = "not_sent"
+	NotificationStatusSuccess     NotificationStatus = "success"
+	NotificationStatusError       NotificationStatus = "error"
+	NotificationStatusNotSent     NotificationStatus = "not_sent"
+	NotificationStatusUnsupported NotificationStatus = "unsupported"
 
 	NotificationTypeAll       NotificationType = "all"
 	NotificationTypeEmail     NotificationType = "email"

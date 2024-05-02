@@ -2608,10 +2608,6 @@
     "translation": "Nelze získat všechny uživatele pomocí AD/LDAP."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "chyba výmazu příslušnosti k týmu nebo kanálu"
-  },
-  {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
     "translation": "Uživatel není registrován na AD/LDAP serveru."
   },
@@ -6352,52 +6348,8 @@
     "translation": "skupinové syncable již bylo smazáno"
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Faktura za Mattermost Cloud je v prodlení"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Platba předplatného Mattermost Cloud je ve zpoždění"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Pro kontrolu faktury a zadání platební metody zvolte Zaplatit nyní."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Faktura za Mattermost Cloud byla zpracována. Nicméně nám chybí Vaše platební údaje."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Zaplatit nyní"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Platba neprošla"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Vyžadována akce: selhala platba za Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Chcete-li nadále nepřerušeně využívat Mattermost Cloud, prosím kontaktujte buď svoji bankovní instituci nebo aktualizujte své platební údaje. Poté, co budou údaje o platbě opraveny, Mattermost se pokusí opětovně provést stržení zbývajících částek."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Poskytli následující důvod:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Vaše bankovní instituce zamítla platbu přes {{.CardBrand}} ****{{.LastFour}} připojené k Vašemu Mattermost Cloud workspace."
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "Napište nám kdykoliv na "
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
     "id": "app.command_webhook.handle_command_webhook.parse",
@@ -7054,10 +7006,6 @@
   {
     "id": "api.cloud.teams_limit_reached.create",
     "translation": "Tým nelze vytvořit, protože bylo dosaženo limitu týmů"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Chybějící povinná pole pro odeslání e-mailu o prodlení."
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",

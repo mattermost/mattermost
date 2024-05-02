@@ -1094,7 +1094,7 @@ func (c *Client4) GetUsers(ctx context.Context, page int, perPage int, etag stri
 	return list, BuildResponse(r), nil
 }
 
-// GetUsersWithChannelRoles returns a page of users on the system. Page counting starts at 0.
+// GetUsersWithCustomQueryParameters returns a page of users on the system. Page counting starts at 0.
 func (c *Client4) GetUsersWithCustomQueryParameters(ctx context.Context, page int, perPage int, queryParameters, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&%v", page, perPage, queryParameters)
 	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
@@ -1107,7 +1107,7 @@ func (c *Client4) GetUsersWithCustomQueryParameters(ctx context.Context, page in
 		return list, BuildResponse(r), nil
 	}
 	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
-		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("GetUsersWithCustomQueryParameters", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return list, BuildResponse(r), nil
 }

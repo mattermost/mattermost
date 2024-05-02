@@ -257,6 +257,21 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	bypassUpload, _ := command.Flags().GetBool("bypass-upload")
 	if bypassUpload {
 		if isLocal {
+			// First, we validate whether the server is in HA.
+			config, _, err := c.GetOldClientConfig(context.TODO(), "")
+			if err != nil {
+				return err
+			}
+
+			enableCluster, err := strconv.ParseBool(config["EnableCluster"])
+			if err != nil {
+				return fmt.Errorf("failed to parse EnableCluster: %w", err)
+			}
+
+			if enableCluster {
+				return errors.New("--bypass-upload flag doesn't work if the server is in HA. Because the file has to be present locally on the server where the job request hits. Please disable HA and try again.")
+			}
+
 			// in local mode, we tell the server to directly read from this file.
 			if _, err := os.Stat(importFile); errors.Is(err, os.ErrNotExist) {
 				return fmt.Errorf("file %s doesn't exist. NOTE: If this file was uploaded to the server via mmctl import upload, please omit the --bypass-upload flag to revert to old behavior.", importFile)

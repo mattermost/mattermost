@@ -5,6 +5,8 @@
 
 // to enable being a typescript file
 export const a = '';
+import configureStore from 'tests/test_store';
+
 import type {showNotification} from './notifications';
 
 declare global {
@@ -16,25 +18,29 @@ declare global {
 describe('Notifications.showNotification', () => {
     let Notifications: {showNotification: typeof showNotification};
 
+    let store: ReturnType<typeof configureStore>;
+
     beforeEach(() => {
         jest.resetModules();
         Notifications = require('utils/notifications');
+
+        store = configureStore();
     });
 
     it('should throw an exception if Notification is not defined on window', async () => {
-        await expect(Notifications.showNotification()).rejects.toThrow('Notification not supported');
+        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification not supported');
     });
 
     it('should throw an exception if Notification.requestPermission is not defined', async () => {
         window.Notification = {};
-        await expect(Notifications.showNotification()).rejects.toThrow('Notification.requestPermission not supported');
+        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification.requestPermission not supported');
     });
 
     it('should throw an exception if Notification.requestPermission is not a function', async () => {
         window.Notification = {
             requestPermission: true,
         };
-        await expect(Notifications.showNotification()).rejects.toThrow('Notification.requestPermission not supported');
+        await expect(store.dispatch(Notifications.showNotification())).rejects.toThrow('Notification.requestPermission not supported');
     });
 
     it('should request permissions, promise style, if not previously requested, do nothing', async () => {
@@ -42,7 +48,7 @@ describe('Notifications.showNotification', () => {
             requestPermission: () => Promise.resolve('denied'),
             permission: 'denied',
         };
-        await expect(Notifications.showNotification()).resolves.toBeTruthy();
+        await expect(store.dispatch(Notifications.showNotification())).resolves.toBeTruthy();
     });
 
     it('should request permissions, callback style, if not previously requested, do nothing', async () => {
@@ -54,7 +60,7 @@ describe('Notifications.showNotification', () => {
             },
             permission: 'denied',
         };
-        await expect(Notifications.showNotification()).resolves.toBeTruthy();
+        await expect(store.dispatch(Notifications.showNotification())).resolves.toBeTruthy();
     });
 
     it('should request permissions, promise style, if not previously requested, handling success', async () => {
@@ -65,12 +71,12 @@ describe('Notifications.showNotification', () => {
         const n = {};
         window.Notification.mockReturnValueOnce(n);
 
-        await expect(Notifications.showNotification({
+        await expect(store.dispatch(Notifications.showNotification({
             body: 'body',
             requireInteraction: true,
             silent: false,
             title: '',
-        })).resolves.toBeTruthy();
+        }))).resolves.toBeTruthy();
         await expect(window.Notification.mock.calls.length).toBe(1);
         const call = window.Notification.mock.calls[0];
         expect(call[1]).toEqual({
@@ -94,12 +100,12 @@ describe('Notifications.showNotification', () => {
         const n = {};
         window.Notification.mockReturnValueOnce(n);
 
-        await expect(Notifications.showNotification({
+        await expect(store.dispatch(Notifications.showNotification({
             body: 'body',
             requireInteraction: true,
             silent: false,
             title: '',
-        })).resolves.toBeTruthy();
+        }))).resolves.toBeTruthy();
         await expect(window.Notification.mock.calls.length).toBe(1);
         const call = window.Notification.mock.calls[0];
         expect(call[1]).toEqual({
@@ -118,9 +124,9 @@ describe('Notifications.showNotification', () => {
         };
 
         // Call one to deny and mark as already requested, do nothing, throw nothing
-        await expect(Notifications.showNotification()).resolves.toBeTruthy();
+        await expect(store.dispatch(Notifications.showNotification())).resolves.toBeTruthy();
 
         // Try again
-        await expect(Notifications.showNotification()).resolves.toBeTruthy();
+        await expect(store.dispatch(Notifications.showNotification())).resolves.toBeTruthy();
     });
 });
