@@ -32,7 +32,7 @@
         position: relative;
         height: 100%;
         flex: 1 1 auto;
-        padding: 0 20px 20px 20px;
+        padding: 20px;
 
         > .wrapper--admin {
             display: flex;
@@ -604,6 +604,7 @@
 .admin-sidebar {
     z-index: 10;
     display: flex;
+    overflow: hidden;
     width: 280px;
     flex-direction: column;
     color: var(--sys-sidebar-text);
@@ -612,7 +613,9 @@
 
     .filter-container {
         position: relative;
-        padding: 8px 12px 1px 12px;
+        padding: 8px 12px 0px 12px;
+        box-shadow: 0px 0px 8px 8px rgba(var(--sys-sidebar-bg-rgb), 0.64);
+        z-index: 1;
 
         .search__icon {
             position: absolute;
