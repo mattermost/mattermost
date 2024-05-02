@@ -417,8 +417,15 @@ func (wc *WebConn) Pump() {
 
 func (wc *WebConn) readPump() {
 	defer func() {
+		if metrics := wc.Platform.metricsIFace; metrics != nil {
+			metrics.DecrementHTTPWebSockets(wc.originClient)
+		}
 		wc.WebSocket.Close()
 	}()
+	if metrics := wc.Platform.metricsIFace; metrics != nil {
+		metrics.IncrementHTTPWebSockets(wc.originClient)
+	}
+
 	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
 	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 	wc.WebSocket.SetPongHandler(func(string) error {
