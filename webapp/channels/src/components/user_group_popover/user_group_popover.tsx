@@ -8,7 +8,6 @@ import styled from 'styled-components';
 
 import {MagnifyIcon} from '@mattermost/compass-icons/components';
 import type {Group} from '@mattermost/types/groups';
-import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -48,11 +47,6 @@ export type Props = {
     returnFocus: () => void;
 
     /**
-     * Function to call to show a profile popover and hide parent popover
-     */
-    showUserOverlay: (user: UserProfile) => void;
-
-    /**
      * @internal
      */
     searchTerm: string;
@@ -70,7 +64,6 @@ const UserGroupPopover = ({
     hide,
     returnFocus,
     searchTerm,
-    showUserOverlay,
 
     // These props are not passed explictly to this component, but
     // they are added when this component is passed as a child to Overlay.
@@ -251,7 +244,6 @@ const UserGroupPopover = ({
                     group={group}
                     hide={hide}
                     searchState={searchState}
-                    showUserOverlay={showUserOverlay}
                 />
             </Body>
             {tabCatcher}

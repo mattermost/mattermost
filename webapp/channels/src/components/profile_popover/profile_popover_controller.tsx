@@ -74,6 +74,8 @@ interface Props<TriggerComponentType> {
      * it is necessary to provide this function to focus the correct element.
      */
     returnFocus?: () => void;
+
+    onToggle?: (isMounted: boolean) => void;
 }
 
 export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props: Props<TriggerComponentType>) {

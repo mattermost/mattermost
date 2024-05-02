@@ -3,51 +3,45 @@
 exports[`components/AtMention should match snapshot when mentioning a group followed by punctuation 1`] = `
 <Fragment>
   <span>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      overlay={
-        <Memo(Connect(Component))
-          group={
-            Object {
-              "allow_reference": true,
-              "create_at": 1,
-              "delete_at": 0,
-              "description": "",
-              "display_name": "group_display_name",
-              "has_syncables": false,
-              "id": "qwerty1",
-              "member_count": 0,
-              "name": "developers",
-              "remote_id": "",
-              "scheme_admin": false,
-              "source": "",
-              "update_at": 1,
-            }
-          }
-          hide={[Function]}
-          returnFocus={[Function]}
-          showUserOverlay={[Function]}
-        />
-      }
-      placement="top"
-      rootClose={true}
-      trigger={
-        Array [
-          "click",
-        ]
-      }
+    <Overlay
+      animation={[Function]}
+      onHide={[Function]}
+      placement="right"
+      rootClose={false}
+      show={false}
     >
-      <a
-        aria-haspopup="dialog"
-        className="group-mention-link"
-        onClick={[Function]}
-        onKeyDown={[Function]}
-        role="button"
-        tabIndex={0}
-      >
-        @developers
-      </a>
-    </OverlayTrigger>
+      <Connect(Component)
+        group={
+          Object {
+            "allow_reference": true,
+            "create_at": 1,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "group_display_name",
+            "has_syncables": false,
+            "id": "qwerty1",
+            "member_count": 0,
+            "name": "developers",
+            "remote_id": "",
+            "scheme_admin": false,
+            "source": "",
+            "update_at": 1,
+          }
+        }
+        hide={[Function]}
+        returnFocus={[Function]}
+      />
+    </Overlay>
+    <a
+      aria-haspopup="dialog"
+      className="group-mention-link"
+      onClick={[Function]}
+      onKeyDown={[Function]}
+      role="button"
+      tabIndex={0}
+    >
+      @developers
+    </a>
   </span>
   .
 </Fragment>
@@ -56,51 +50,45 @@ exports[`components/AtMention should match snapshot when mentioning a group foll
 exports[`components/AtMention should match snapshot when mentioning a group that is allowed reference 1`] = `
 <Fragment>
   <span>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      overlay={
-        <Memo(Connect(Component))
-          group={
-            Object {
-              "allow_reference": true,
-              "create_at": 1,
-              "delete_at": 0,
-              "description": "",
-              "display_name": "group_display_name",
-              "has_syncables": false,
-              "id": "qwerty1",
-              "member_count": 0,
-              "name": "developers",
-              "remote_id": "",
-              "scheme_admin": false,
-              "source": "",
-              "update_at": 1,
-            }
-          }
-          hide={[Function]}
-          returnFocus={[Function]}
-          showUserOverlay={[Function]}
-        />
-      }
-      placement="top"
-      rootClose={true}
-      trigger={
-        Array [
-          "click",
-        ]
-      }
+    <Overlay
+      animation={[Function]}
+      onHide={[Function]}
+      placement="right"
+      rootClose={false}
+      show={false}
     >
-      <a
-        aria-haspopup="dialog"
-        className="group-mention-link"
-        onClick={[Function]}
-        onKeyDown={[Function]}
-        role="button"
-        tabIndex={0}
-      >
-        @developers
-      </a>
-    </OverlayTrigger>
+      <Connect(Component)
+        group={
+          Object {
+            "allow_reference": true,
+            "create_at": 1,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "group_display_name",
+            "has_syncables": false,
+            "id": "qwerty1",
+            "member_count": 0,
+            "name": "developers",
+            "remote_id": "",
+            "scheme_admin": false,
+            "source": "",
+            "update_at": 1,
+          }
+        }
+        hide={[Function]}
+        returnFocus={[Function]}
+      />
+    </Overlay>
+    <a
+      aria-haspopup="dialog"
+      className="group-mention-link"
+      onClick={[Function]}
+      onKeyDown={[Function]}
+      role="button"
+      tabIndex={0}
+    >
+      @developers
+    </a>
   </span>
 </Fragment>
 `;
@@ -116,14 +104,13 @@ exports[`components/AtMention should match snapshot when mentioning all with mix
 exports[`components/AtMention should match snapshot when mentioning current user 1`] = `
 <Fragment>
   <ProfilePopoverController
+    returnFocus={[Function]}
     src="/api/v4/users/abc1/image"
     triggerComponentClass="mention--highlight"
     userId="abc1"
   >
     <a
       className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -136,14 +123,13 @@ exports[`components/AtMention should match snapshot when mentioning current user
 exports[`components/AtMention should match snapshot when mentioning user 1`] = `
 <Fragment>
   <ProfilePopoverController
+    returnFocus={[Function]}
     src="/api/v4/users/abc2/image"
     triggerComponentClass=""
     userId="abc2"
   >
     <a
       className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -156,14 +142,13 @@ exports[`components/AtMention should match snapshot when mentioning user 1`] = `
 exports[`components/AtMention should match snapshot when mentioning user containing and followed by punctuation 1`] = `
 <Fragment>
   <ProfilePopoverController
+    returnFocus={[Function]}
     src="/api/v4/users/abc3/image"
     triggerComponentClass=""
     userId="abc3"
   >
     <a
       className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -177,14 +162,13 @@ exports[`components/AtMention should match snapshot when mentioning user contain
 exports[`components/AtMention should match snapshot when mentioning user containing punctuation 1`] = `
 <Fragment>
   <ProfilePopoverController
+    returnFocus={[Function]}
     src="/api/v4/users/abc3/image"
     triggerComponentClass=""
     userId="abc3"
   >
     <a
       className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -197,14 +181,13 @@ exports[`components/AtMention should match snapshot when mentioning user contain
 exports[`components/AtMention should match snapshot when mentioning user followed by punctuation 1`] = `
 <Fragment>
   <ProfilePopoverController
+    returnFocus={[Function]}
     src="/api/v4/users/abc2/image"
     triggerComponentClass=""
     userId="abc2"
   >
     <a
       className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -218,14 +201,13 @@ exports[`components/AtMention should match snapshot when mentioning user followe
 exports[`components/AtMention should match snapshot when mentioning user with different teammate name display setting 1`] = `
 <Fragment>
   <ProfilePopoverController
+    returnFocus={[Function]}
     src="/api/v4/users/abc2/image"
     triggerComponentClass=""
     userId="abc2"
   >
     <a
       className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
@@ -238,14 +220,13 @@ exports[`components/AtMention should match snapshot when mentioning user with di
 exports[`components/AtMention should match snapshot when mentioning user with mixed case 1`] = `
 <Fragment>
   <ProfilePopoverController
+    returnFocus={[Function]}
     src="/api/v4/users/abc2/image"
     triggerComponentClass=""
     userId="abc2"
   >
     <a
       className="mention-link"
-      onClick={[Function]}
-      onKeyDown={[Function]}
       role="button"
       tabIndex={0}
     >
