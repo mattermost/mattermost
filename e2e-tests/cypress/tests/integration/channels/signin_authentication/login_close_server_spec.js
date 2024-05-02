@@ -11,7 +11,7 @@
 // Group: @channels @signin_authentication
 
 describe('Login page with close server', () => {
-    let oldSettings = {};
+    const oldSettings = {};
     before(() => {
         // Back up config, and disable other auth options
         const newSettings = {
@@ -20,8 +20,8 @@ describe('Login page with close server', () => {
             TeamSettings: {EnableOpenServer: false},
         };
         cy.apiGetConfig((config) => {
-            Object.entries(newSettings).forEach(([key, value]) => {
-                oldSettings[key] = value;
+            Object.entries(newSettings).forEach(([key]) => {
+                oldSettings[key] = config[key];
             });
         });
         cy.apiUpdateConfig(newSettings);
