@@ -70,7 +70,6 @@ const Avatar = ({
 
     return (
         <img
-            tabIndex={0}
             {...attrs}
             className={classes}
             alt={`${username || 'user'} profile image`}

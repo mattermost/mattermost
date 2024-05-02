@@ -79,7 +79,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                         loading="lazy"
                         onError={[Function]}
                         src="/api/v4/users/user_id/image?_=0"
-                        tabIndex={0}
                       />
                     </Memo(Avatar)>
                   </span>
@@ -281,7 +280,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                         loading="lazy"
                         onError={[Function]}
                         src="/api/v4/users/user_id/image?_=0"
-                        tabIndex={0}
                       />
                     </Memo(Avatar)>
                   </span>
@@ -489,7 +487,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                         loading="lazy"
                         onError={[Function]}
                         src="/api/v4/users/user_id/image?_=0"
-                        tabIndex={0}
                       />
                     </Memo(Avatar)>
                   </span>
@@ -759,7 +756,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                         loading="lazy"
                         onError={[Function]}
                         src="/api/v4/users/user_id/image?_=0"
-                        tabIndex={0}
                       />
                     </Memo(Avatar)>
                   </span>

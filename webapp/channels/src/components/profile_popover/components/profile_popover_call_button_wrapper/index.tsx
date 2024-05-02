@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -19,6 +20,8 @@ import WithTooltip from 'components/with_tooltip';
 import {getDirectChannelName} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
+
+import './profile_popover_call_button_wrapper.scss';
 
 type Props = {
     userId: string;
@@ -106,7 +109,9 @@ const ProfilePopoverCallButtonWrapper = ({
                 id='startCallButton'
                 type='button'
                 aria-disabled={disabled}
-                className='btn btn-icon btn-sm'
+                className={classNames('btn btn-icon btn-sm', {
+                    'btn-disabled-styled': disabled,
+                })}
             >
                 <PhoneInTalkIcon
                     size={18}

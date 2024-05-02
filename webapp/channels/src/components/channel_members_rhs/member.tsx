@@ -108,7 +108,7 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
             style={{height: '48px'}}
             data-testid={`memberline-${member.user.id}`}
         >
-            <span className='ProfileSpan'>
+            <span className='ProfileSpan overflow--ellipsis'>
                 <Avatar>
                     <ProfilePicture
                         size='sm'
@@ -219,14 +219,20 @@ export default styled(Member)`
     }
 
     .ProfileSpan {
-        display: flex;
-        overflow: hidden;
         width: 100%;
+        display: flex;
         flex-direction: row;
         align-items: center;
-        // This padding is to make sure the status icon doesnt get clipped off because of the overflow
-        padding: 4px 0;
-        margin-right: auto;
+        padding: 4px 0; // This padding is to make sure the status icon doesn't get clipped off because of the overflow
+
+        .profileSpan_userInfo {
+            display: flex;
+            flex-grow: 1;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     }
 
     .MenuWrapper {
