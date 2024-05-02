@@ -1005,7 +1005,7 @@ func (s *MetricsSettings) SetDefaults() {
 	}
 
 	if s.EnableClientMetrics == nil {
-		s.Enable = NewBool(true)
+		s.EnableClientMetrics = NewBool(true)
 	}
 }
 
