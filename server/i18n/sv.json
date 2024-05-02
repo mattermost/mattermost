@@ -10088,5 +10088,13 @@
   {
     "id": "api.channel.create_channel.missing_team_id.error",
     "translation": "Saknar team_id i request-meddelandet"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "Kunde inte stänga zip-filen"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Kunde inte identifiera början på export-filen."
   }
 ]
