@@ -967,7 +967,7 @@ type AppIface interface {
 	NotificationsLog() *mlog.Logger
 	NotifySelfHostedSignupProgress(progress string, userId string)
 	NotifySharedChannelUserUpdate(user *model.User)
-	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
+	OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	OutgoingOAuthConnections() einterfaces.OutgoingOAuthConnectionInterface
 	PatchChannel(c request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError)
