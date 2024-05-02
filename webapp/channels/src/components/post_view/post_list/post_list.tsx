@@ -6,7 +6,7 @@ import React from 'react';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
-import {clearMarks, mark, measure, trackEvent} from 'actions/telemetry_actions.jsx';
+import {clearMarks, countRequestsBetween, mark, shouldTrackPerformance, trackEvent} from 'actions/telemetry_actions.jsx';
 import type {LoadPostsParameters, LoadPostsReturnValue, CanLoadMorePosts} from 'actions/views/channel';
 
 import LoadingScreen from 'components/loading_screen';
@@ -24,32 +24,39 @@ export const MAX_EXTRA_PAGES_LOADED = 10;
 function markAndMeasureChannelSwitchEnd(fresh = false) {
     mark('PostList#component');
 
-    const {duration: dur1, requestCount: requestCount1} = measure('SidebarChannelLink#click', 'PostList#component');
-    const {duration: dur2, requestCount: requestCount2} = measure('TeamLink#click', 'PostList#component');
+    // Send new performance metrics to server
+    const channelSwitch = measureAndReport('channel_switch', 'SidebarChannelLink#click', 'PostList#component', true);
+    const teamSwitch = measureAndReport('team_switch', 'TeamLink#click', 'PostList#component', true);
 
-    measureAndReport('channel_switch', 'SidebarChannelLink#click', 'PostList#component', true);
-    measureAndReport('team_switch', 'TeamLink#click', 'PostList#component', true);
+    // Send old performance metrics to Rudder
+    if (shouldTrackPerformance()) {
+        if (channelSwitch) {
+            const requestCount1 = countRequestsBetween('SidebarChannelLink#click', 'PostList#component');
 
+            trackEvent('performance', 'channel_switch', {
+                duration: Math.round(channelSwitch.duration),
+                fresh,
+                requestCount: requestCount1,
+            });
+        }
+
+        if (teamSwitch) {
+            const requestCount2 = countRequestsBetween('TeamLink#click', 'PostList#component');
+
+            trackEvent('performance', 'team_switch', {
+                duration: Math.round(teamSwitch.duration),
+                fresh,
+                requestCount: requestCount2,
+            });
+        }
+    }
+
+    // Clear all the metrics so that we can differentiate between a channel and team switch next time this is called
     clearMarks([
         'SidebarChannelLink#click',
         'TeamLink#click',
         'PostList#component',
     ]);
-
-    if (dur1 !== -1) {
-        trackEvent('performance', 'channel_switch', {
-            duration: Math.round(dur1),
-            fresh,
-            requestCount: requestCount1,
-        });
-    }
-    if (dur2 !== -1) {
-        trackEvent('performance', 'team_switch', {
-            duration: Math.round(dur2),
-            fresh,
-            requestCount: requestCount2,
-        });
-    }
 }
 
 export interface Props {
