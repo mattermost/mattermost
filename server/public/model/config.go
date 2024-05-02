@@ -403,7 +403,6 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
-	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 	UniqueEmojiReactionLimitPerPost                   *int    `access:"site_posts"`
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
@@ -901,10 +900,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.AllowSyncedDrafts == nil {
 		s.AllowSyncedDrafts = NewBool(true)
-	}
-
-	if s.SelfHostedPurchase == nil {
-		s.SelfHostedPurchase = NewBool(true)
 	}
 
 	if s.UniqueEmojiReactionLimitPerPost == nil {
