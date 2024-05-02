@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {initializePerformanceMocks, waitForObservations} from './performance_mocks';
-
-initializePerformanceMocks();
+import {waitForObservations} from './performance_mock';
 
 describe('PerformanceObserver', () => {
     test('should be able to observe a mark', async () => {

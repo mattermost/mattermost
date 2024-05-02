@@ -8,15 +8,13 @@ import {Client4} from '@mattermost/client';
 
 import configureStore from 'store';
 
-import {initializePerformanceMocks, waitForObservations} from 'tests/helpers/performance_mocks';
+import {waitForObservations} from 'tests/performance_mock';
 
 import PerformanceReporter from './reporter';
 
 import {markAndReport, measureAndReport} from '.';
 
 jest.mock('web-vitals');
-
-initializePerformanceMocks();
 
 const sendBeacon = jest.fn().mockReturnValue(true);
 navigator.sendBeacon = sendBeacon;

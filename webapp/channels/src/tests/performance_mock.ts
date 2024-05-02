@@ -9,21 +9,19 @@ import {PerformanceObserver as NodePerformanceObserver, performance as nodePerfo
 // To use PerformanceObserver, you need to use a `setTimeout` or `await observations()` to have a PerformanceObserver's
 // callback get called. See the accompanying tests for examples.
 
-export function initializePerformanceMocks() {
-    Object.defineProperty(window, 'performance', {
-        writable: true,
-        value: nodePerformance,
-    });
+Object.defineProperty(window, 'performance', {
+    writable: true,
+    value: nodePerformance,
+});
 
-    Object.defineProperty(global, 'PerformanceObserver', {
-        value: NodePerformanceObserver,
-    });
+Object.defineProperty(global, 'PerformanceObserver', {
+    value: NodePerformanceObserver,
+});
 
-    // Only Chrome-based browsers support long task timings currently, so make Node pretend it does too
-    Object.defineProperty(PerformanceObserver, 'supportedEntryTypes', {
-        value: [...PerformanceObserver.supportedEntryTypes, 'longtask'],
-    });
-}
+// Only Chrome-based browsers support long task timings currently, so make Node pretend it does too
+Object.defineProperty(PerformanceObserver, 'supportedEntryTypes', {
+    value: [...PerformanceObserver.supportedEntryTypes, 'longtask'],
+});
 
 export function waitForObservations() {
     // Performance observations are processed after any timeout
