@@ -14,7 +14,7 @@ import {getCallsConfig, getProfilesInCalls} from 'mattermost-redux/selectors/ent
 
 import {isCallsEnabled as getIsCallsEnabled} from 'selectors/calls';
 
-import ProfilePopoverCallButton from 'components/profile_popover/components/profile_popover_call_button';
+import ProfilePopoverCallButton from 'components/profile_popover/profile_popover_call_button';
 import WithTooltip from 'components/with_tooltip';
 
 import {getDirectChannelName} from 'utils/utils';

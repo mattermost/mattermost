@@ -6,7 +6,7 @@ import React from 'react';
 
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import ProfilePopoverController from 'components/profile_popover_controller';
+import ProfilePopover from 'components/profile_popover';
 import SharedUserIndicator from 'components/shared_user_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
@@ -68,12 +68,10 @@ export default function UserProfile({
 
     return (
         <>
-            <ProfilePopoverController<HTMLButtonElement>
-                triggerComponentRootProps={{
-                    as: 'button',
-                    className: 'user-popover style--none',
-                    style: userStyle,
-                }}
+            <ProfilePopover<HTMLButtonElement>
+                triggerComponentAs='button'
+                triggerComponentClass='user-popover style--none'
+                triggerComponentStyle={userStyle}
                 userId={userId}
                 src={profileImg}
                 channelId={channelId}
@@ -82,7 +80,7 @@ export default function UserProfile({
                 overwriteName={overwriteName}
             >
                 {name}
-            </ProfilePopoverController>
+            </ProfilePopover>
             {(isShared) &&
             <SharedUserIndicator
                 id={`sharedUserIndicator-${userId}`}

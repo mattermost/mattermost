@@ -75,12 +75,8 @@ exports[`components/threading/channel_threads/thread_footer should report total 
         >
           <ProfilePopoverController
             src="/api/v4/users/5/image?_=0"
-            triggerComponentRootProps={
-              Object {
-                "as": "button",
-                "className": "style--none rounded-button",
-              }
-            }
+            triggerComponentAs="button"
+            triggerComponentClass="style--none rounded-button"
             userId="5"
           >
             <button
@@ -216,12 +212,8 @@ exports[`components/threading/channel_threads/thread_footer should report total 
         >
           <ProfilePopoverController
             src="/api/v4/users/4/image?_=0"
-            triggerComponentRootProps={
-              Object {
-                "as": "button",
-                "className": "style--none rounded-button",
-              }
-            }
+            triggerComponentAs="button"
+            triggerComponentClass="style--none rounded-button"
             userId="4"
           >
             <button
@@ -357,12 +349,8 @@ exports[`components/threading/channel_threads/thread_footer should report total 
         >
           <ProfilePopoverController
             src="/api/v4/users/3/image?_=0"
-            triggerComponentRootProps={
-              Object {
-                "as": "button",
-                "className": "style--none rounded-button",
-              }
-            }
+            triggerComponentAs="button"
+            triggerComponentClass="style--none rounded-button"
             userId="3"
           >
             <button
@@ -956,12 +944,8 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
         >
           <ProfilePopoverController
             src="/api/v4/users/5/image?_=0"
-            triggerComponentRootProps={
-              Object {
-                "as": "button",
-                "className": "style--none rounded-button",
-              }
-            }
+            triggerComponentAs="button"
+            triggerComponentClass="style--none rounded-button"
             userId="5"
           >
             <button
@@ -1097,12 +1081,8 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
         >
           <ProfilePopoverController
             src="/api/v4/users/4/image?_=0"
-            triggerComponentRootProps={
-              Object {
-                "as": "button",
-                "className": "style--none rounded-button",
-              }
-            }
+            triggerComponentAs="button"
+            triggerComponentClass="style--none rounded-button"
             userId="4"
           >
             <button
@@ -1238,12 +1218,8 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
         >
           <ProfilePopoverController
             src="/api/v4/users/3/image?_=0"
-            triggerComponentRootProps={
-              Object {
-                "as": "button",
-                "className": "style--none rounded-button",
-              }
-            }
+            triggerComponentAs="button"
+            triggerComponentClass="style--none rounded-button"
             userId="3"
           >
             <button

@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import styled from 'styled-components';
 
-import ProfilePopoverController from 'components/profile_popover_controller';
+import ProfilePopover from 'components/profile_popover';
 import StatusIcon from 'components/status_icon';
 import StatusIconNew from 'components/status_icon_new';
 import Avatar, {getAvatarWidth} from 'components/widgets/users/avatar';
@@ -41,10 +41,8 @@ function ProfilePicture(props: Props) {
 
     if (props.userId) {
         return (
-            <ProfilePopoverController
-                triggerComponentRootProps={{
-                    className: classNames('status-wrapper', props.wrapperClass),
-                }}
+            <ProfilePopover
+                triggerComponentClass={classNames('status-wrapper', props.wrapperClass)}
                 userId={props.userId}
                 src={profileSrc}
                 channelId={props.channelId}
@@ -68,7 +66,7 @@ function ProfilePicture(props: Props) {
                     </RoundButton>
                     <StatusIcon status={props.status}/>
                 </>
-            </ProfilePopoverController>
+            </ProfilePopover>
         );
     }
 

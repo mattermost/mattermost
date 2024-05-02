@@ -13,7 +13,7 @@ import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getUser as selectUser, makeDisplayNameGetter} from 'mattermost-redux/selectors/entities/users';
 
-import ProfilePopoverController from 'components/profile_popover_controller';
+import ProfilePopover from 'components/profile_popover';
 import Avatar from 'components/widgets/users/avatar';
 import WithTooltip from 'components/with_tooltip';
 
@@ -61,11 +61,9 @@ function UserAvatar({
     const profilePictureURL = userId ? imageURLForUser(userId) : '';
 
     return (
-        <ProfilePopoverController<HTMLButtonElement>
-            triggerComponentRootProps={{
-                as: 'button',
-                className: 'style--none rounded-button',
-            }}
+        <ProfilePopover<HTMLButtonElement>
+            triggerComponentAs='button'
+            triggerComponentClass='style--none rounded-button'
             userId={userId}
             src={profilePictureURL}
         >
@@ -80,7 +78,7 @@ function UserAvatar({
                     {...props}
                 />
             </WithTooltip>
-        </ProfilePopoverController>
+        </ProfilePopover>
     );
 }
 

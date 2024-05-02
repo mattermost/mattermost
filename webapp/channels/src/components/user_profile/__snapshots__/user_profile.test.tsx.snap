@@ -6,13 +6,8 @@ exports[`components/UserProfile should match snapshot 1`] = `
     hideStatus={false}
     overwriteName=""
     src="/api/v4/users/undefined/image?_=0"
-    triggerComponentRootProps={
-      Object {
-        "as": "button",
-        "className": "user-popover style--none",
-        "style": undefined,
-      }
-    }
+    triggerComponentAs="button"
+    triggerComponentClass="user-popover style--none"
     userId="user_id"
   >
     nickname
@@ -26,13 +21,8 @@ exports[`components/UserProfile should match snapshot, when displayUsername is e
     hideStatus={false}
     overwriteName=""
     src="/api/v4/users/undefined/image?_=0"
-    triggerComponentRootProps={
-      Object {
-        "as": "button",
-        "className": "user-popover style--none",
-        "style": undefined,
-      }
-    }
+    triggerComponentAs="button"
+    triggerComponentClass="user-popover style--none"
     userId="user_id"
   >
     @username
@@ -54,13 +44,8 @@ exports[`components/UserProfile should match snapshot, when user is shared 1`] =
     hideStatus={false}
     overwriteName=""
     src="/api/v4/users/undefined/image?_=0"
-    triggerComponentRootProps={
-      Object {
-        "as": "button",
-        "className": "user-popover style--none",
-        "style": undefined,
-      }
-    }
+    triggerComponentAs="button"
+    triggerComponentClass="user-popover style--none"
     userId="user_id"
   >
     nickname
@@ -78,13 +63,11 @@ exports[`components/UserProfile should match snapshot, with colorization 1`] = `
     hideStatus={false}
     overwriteName=""
     src="/api/v4/users/undefined/image?_=0"
-    triggerComponentRootProps={
+    triggerComponentAs="button"
+    triggerComponentClass="user-popover style--none"
+    triggerComponentStyle={
       Object {
-        "as": "button",
-        "className": "user-popover style--none",
-        "style": Object {
-          "color": "#bbd279",
-        },
+        "color": "#bbd279",
       }
     }
     userId="user_id"

@@ -40,11 +40,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
           <ProfilePopoverController
             channelId="channel_id"
             src="/api/v4/users/user_id/image?_=0"
-            triggerComponentRootProps={
-              Object {
-                "className": "status-wrapper",
-              }
-            }
+            triggerComponentClass="status-wrapper"
             userId="user_id"
           >
             <span
@@ -241,11 +237,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
           <ProfilePopoverController
             channelId="channel_id"
             src="/api/v4/users/user_id/image?_=0"
-            triggerComponentRootProps={
-              Object {
-                "className": "status-wrapper",
-              }
-            }
+            triggerComponentClass="status-wrapper"
             userId="user_id"
           >
             <span
@@ -448,11 +440,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
           <ProfilePopoverController
             channelId="channel_id"
             src="/api/v4/users/user_id/image?_=0"
-            triggerComponentRootProps={
-              Object {
-                "className": "status-wrapper",
-              }
-            }
+            triggerComponentClass="status-wrapper"
             userId="user_id"
           >
             <span
@@ -717,11 +705,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
           <ProfilePopoverController
             channelId="channel_id"
             src="/api/v4/users/user_id/image?_=0"
-            triggerComponentRootProps={
-              Object {
-                "className": "status-wrapper",
-              }
-            }
+            triggerComponentClass="status-wrapper"
             userId="user_id"
           >
             <span

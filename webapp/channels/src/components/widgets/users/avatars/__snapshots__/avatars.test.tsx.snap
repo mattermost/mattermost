@@ -29,12 +29,8 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
     >
       <ProfilePopoverController
         src="/api/v4/users/1/image?_=0"
-        triggerComponentRootProps={
-          Object {
-            "as": "button",
-            "className": "style--none rounded-button",
-          }
-        }
+        triggerComponentAs="button"
+        triggerComponentClass="style--none rounded-button"
         userId="1"
       >
         <button
@@ -170,12 +166,8 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
     >
       <ProfilePopoverController
         src="/api/v4/users/6/image?_=0"
-        triggerComponentRootProps={
-          Object {
-            "as": "button",
-            "className": "style--none rounded-button",
-          }
-        }
+        triggerComponentAs="button"
+        triggerComponentClass="style--none rounded-button"
         userId="6"
       >
         <button
@@ -311,12 +303,8 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
     >
       <ProfilePopoverController
         src="/api/v4/users/7/image?_=0"
-        triggerComponentRootProps={
-          Object {
-            "as": "button",
-            "className": "style--none rounded-button",
-          }
-        }
+        triggerComponentAs="button"
+        triggerComponentClass="style--none rounded-button"
         userId="7"
       >
         <button
@@ -577,12 +565,8 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
     >
       <ProfilePopoverController
         src="/api/v4/users/1/image?_=0"
-        triggerComponentRootProps={
-          Object {
-            "as": "button",
-            "className": "style--none rounded-button",
-          }
-        }
+        triggerComponentAs="button"
+        triggerComponentClass="style--none rounded-button"
         userId="1"
       >
         <button
@@ -718,12 +702,8 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
     >
       <ProfilePopoverController
         src="/api/v4/users/2/image?_=0"
-        triggerComponentRootProps={
-          Object {
-            "as": "button",
-            "className": "style--none rounded-button",
-          }
-        }
+        triggerComponentAs="button"
+        triggerComponentClass="style--none rounded-button"
         userId="2"
       >
         <button
@@ -859,12 +839,8 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
     >
       <ProfilePopoverController
         src="/api/v4/users/3/image?_=0"
-        triggerComponentRootProps={
-          Object {
-            "as": "button",
-            "className": "style--none rounded-button",
-          }
-        }
+        triggerComponentAs="button"
+        triggerComponentClass="style--none rounded-button"
         userId="3"
       >
         <button
@@ -1123,12 +1099,8 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
     >
       <ProfilePopoverController
         src="/api/v4/users/1/image?_=0"
-        triggerComponentRootProps={
-          Object {
-            "as": "button",
-            "className": "style--none rounded-button",
-          }
-        }
+        triggerComponentAs="button"
+        triggerComponentClass="style--none rounded-button"
         userId="1"
       >
         <button
@@ -1264,12 +1236,8 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
     >
       <ProfilePopoverController
         src="/api/v4/users/2/image?_=0"
-        triggerComponentRootProps={
-          Object {
-            "as": "button",
-            "className": "style--none rounded-button",
-          }
-        }
+        triggerComponentAs="button"
+        triggerComponentClass="style--none rounded-button"
         userId="2"
       >
         <button
@@ -1405,12 +1373,8 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
     >
       <ProfilePopoverController
         src="/api/v4/users/3/image?_=0"
-        triggerComponentRootProps={
-          Object {
-            "as": "button",
-            "className": "style--none rounded-button",
-          }
-        }
+        triggerComponentAs="button"
+        triggerComponentClass="style--none rounded-button"
         userId="3"
       >
         <button

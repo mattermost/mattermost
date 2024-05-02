@@ -17,7 +17,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
-import ProfilePopover from '.';
+import ProfilePopover from './profile_popover';
 
 jest.mock('@mattermost/client', () => ({
     ...jest.requireActual('@mattermost/client'),

@@ -5,10 +5,10 @@ import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import BotDescription from 'components/profile_popover/components/profile_popover_bot_description';
-import FullName from 'components/profile_popover/components/profile_popover_full_name';
-import Position from 'components/profile_popover/components/profile_popover_position';
-import UserName from 'components/profile_popover/components/profile_popover_user_name';
+import BotDescription from 'components/profile_popover/profile_popover_bot_description';
+import FullName from 'components/profile_popover/profile_popover_full_name';
+import Position from 'components/profile_popover/profile_popover_position';
+import UserName from 'components/profile_popover/profile_popover_user_name';
 
 type Props = {
     haveOverrideProp: boolean;

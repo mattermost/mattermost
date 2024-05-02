@@ -13,7 +13,6 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import ProfilePopover from 'components/profile_popover';
-import ProfilePopoverController from 'components/profile_popover_controller';
 import UserGroupPopover from 'components/user_group_popover';
 import {MAX_LIST_HEIGHT, getListHeight, VIEWPORT_SCALE_FACTOR} from 'components/user_group_popover/group_member_list/group_member_list';
 
@@ -130,10 +129,8 @@ export const AtMention = (props: Props) => {
 
         return (
             <>
-                <ProfilePopoverController
-                    triggerComponentRootProps={{
-                        className: classNames({'mention--highlight': highlightMention}),
-                    }}
+                <ProfilePopover
+                    triggerComponentClass={classNames({'mention--highlight': highlightMention})}
                     userId={user.id}
                     src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
                     channelId={props.channelId}
@@ -174,7 +171,7 @@ export const AtMention = (props: Props) => {
                     >
                         {'@' + displayName}
                     </a>
-                </ProfilePopoverController>
+                </ProfilePopover>
                 {suffix}
             </>
         );

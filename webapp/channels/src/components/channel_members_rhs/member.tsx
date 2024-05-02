@@ -15,7 +15,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 import ChannelMembersDropdown from 'components/channel_members_dropdown';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
-import ProfilePopoverController from 'components/profile_popover_controller';
+import ProfilePopover from 'components/profile_popover';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import WithTooltip from 'components/with_tooltip';
 
@@ -119,10 +119,8 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                         src={userProfileSrc}
                     />
                 </Avatar>
-                <ProfilePopoverController
-                    triggerComponentRootProps={{
-                        className: 'profileSpan_userInfo',
-                    }}
+                <ProfilePopover
+                    triggerComponentClass='profileSpan_userInfo'
                     userId={member.user.id}
                     src={userProfileSrc}
                     hideStatus={member.user.is_bot}
@@ -148,7 +146,7 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                             alignItems: 'center',
                         }}
                     />
-                </ProfilePopoverController>
+                </ProfilePopover>
             </span>
 
             <RoleChooser

@@ -6,8 +6,8 @@ import {FormattedMessage} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import ProfilePopoverAddToChannel from 'components/profile_popover/components/profile_popover_add_to_channel';
-import ProfilePopoverCallButtonWrapper from 'components/profile_popover/components/profile_popover_call_button_wrapper';
+import ProfilePopoverAddToChannel from 'components/profile_popover/profile_popover_add_to_channel';
+import ProfilePopoverCallButtonWrapper from 'components/profile_popover/profile_popover_call_button_wrapper';
 
 type Props = {
     user: UserProfile;

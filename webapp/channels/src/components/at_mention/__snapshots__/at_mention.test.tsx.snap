@@ -117,11 +117,7 @@ exports[`components/AtMention should match snapshot when mentioning current user
 <Fragment>
   <ProfilePopoverController
     src="/api/v4/users/abc1/image"
-    triggerComponentRootProps={
-      Object {
-        "className": "mention--highlight",
-      }
-    }
+    triggerComponentClass="mention--highlight"
     userId="abc1"
   >
     <a
@@ -141,11 +137,7 @@ exports[`components/AtMention should match snapshot when mentioning user 1`] = `
 <Fragment>
   <ProfilePopoverController
     src="/api/v4/users/abc2/image"
-    triggerComponentRootProps={
-      Object {
-        "className": "",
-      }
-    }
+    triggerComponentClass=""
     userId="abc2"
   >
     <a
@@ -165,11 +157,7 @@ exports[`components/AtMention should match snapshot when mentioning user contain
 <Fragment>
   <ProfilePopoverController
     src="/api/v4/users/abc3/image"
-    triggerComponentRootProps={
-      Object {
-        "className": "",
-      }
-    }
+    triggerComponentClass=""
     userId="abc3"
   >
     <a
@@ -190,11 +178,7 @@ exports[`components/AtMention should match snapshot when mentioning user contain
 <Fragment>
   <ProfilePopoverController
     src="/api/v4/users/abc3/image"
-    triggerComponentRootProps={
-      Object {
-        "className": "",
-      }
-    }
+    triggerComponentClass=""
     userId="abc3"
   >
     <a
@@ -214,11 +198,7 @@ exports[`components/AtMention should match snapshot when mentioning user followe
 <Fragment>
   <ProfilePopoverController
     src="/api/v4/users/abc2/image"
-    triggerComponentRootProps={
-      Object {
-        "className": "",
-      }
-    }
+    triggerComponentClass=""
     userId="abc2"
   >
     <a
@@ -239,11 +219,7 @@ exports[`components/AtMention should match snapshot when mentioning user with di
 <Fragment>
   <ProfilePopoverController
     src="/api/v4/users/abc2/image"
-    triggerComponentRootProps={
-      Object {
-        "className": "",
-      }
-    }
+    triggerComponentClass=""
     userId="abc2"
   >
     <a
@@ -263,11 +239,7 @@ exports[`components/AtMention should match snapshot when mentioning user with mi
 <Fragment>
   <ProfilePopoverController
     src="/api/v4/users/abc2/image"
-    triggerComponentRootProps={
-      Object {
-        "className": "",
-      }
-    }
+    triggerComponentClass=""
     userId="abc2"
   >
     <a

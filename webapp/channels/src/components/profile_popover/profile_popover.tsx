@@ -24,16 +24,16 @@ import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import ProfilePopoverAvatar from './components/profile_popover_avatar';
-import ProfilePopoverCustomStatus from './components/profile_popover_custom_status';
-import ProfilePopoverEmail from './components/profile_popover_email';
-import ProfilePopoverLastActive from './components/profile_popover_last_active';
-import ProfilePopoverName from './components/profile_popover_name';
-import ProfilePopoverOtherUserRow from './components/profile_popover_other_user_row';
-import ProfilePopoverOverrideDisclaimer from './components/profile_popover_override_disclaimer';
-import ProfilePopoverSelfUserRow from './components/profile_popover_self_user_row';
-import ProfilePopoverTimezone from './components/profile_popover_timezone';
-import ProfilePopoverTitle from './components/profile_popover_title';
+import ProfilePopoverAvatar from './profile_popover_avatar';
+import ProfilePopoverCustomStatus from './profile_popover_custom_status';
+import ProfilePopoverEmail from './profile_popover_email';
+import ProfilePopoverLastActive from './profile_popover_last_active';
+import ProfilePopoverName from './profile_popover_name';
+import ProfilePopoverOtherUserRow from './profile_popover_other_user_row';
+import ProfilePopoverOverrideDisclaimer from './profile_popover_override_disclaimer';
+import ProfilePopoverSelfUserRow from './profile_popover_self_user_row';
+import ProfilePopoverTimezone from './profile_popover_timezone';
+import ProfilePopoverTitle from './profile_popover_title';
 
 import './profile_popover.scss';
 
@@ -55,9 +55,10 @@ function getDefaultChannelId(state: GlobalState) {
 }
 
 /**
- * The profile popover, or hovercard, that appears with user information when clicking
+ * The profile popover, or hover card, that appears with user information when clicking
  * on the username, profile picture of a user, or others.
- * However this component should not be used directly, instead use the `ProfilePopoverController`
+ * However this component should not be used directly, instead use the `ProfilePopoverController` which is
+ * what is default exported from 'components/profile_popover'.
  */
 const ProfilePopover = ({
     userId,

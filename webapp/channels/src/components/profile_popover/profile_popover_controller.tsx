@@ -16,25 +16,27 @@ import {
 } from '@floating-ui/react';
 import classNames from 'classnames';
 import type {HtmlHTMLAttributes, ReactNode} from 'react';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import ProfilePopover from 'components/profile_popover';
-
 import {A11yClassNames} from 'utils/constants';
+
+import ProfilePopover from './profile_popover';
 
 const PROFILE_POPOVER_OPENING_DELAY = 300;
 const PROFILE_POPOVER_CLOSING_DELAY = 500;
 
 interface Props<TriggerComponentType> {
-    triggerComponentRootProps?: {
-        as?: React.ElementType;
-        id?: HtmlHTMLAttributes<TriggerComponentType>['id'];
-        className?: HtmlHTMLAttributes<TriggerComponentType>['className'];
-        style?: HtmlHTMLAttributes<TriggerComponentType>['style'];
-    };
+
+    /**
+     * The Props for the trigger component
+     */
+    triggerComponentAs?: React.ElementType;
+    triggerComponentId?: HtmlHTMLAttributes<TriggerComponentType>['id'];
+    triggerComponentClass?: HtmlHTMLAttributes<TriggerComponentType>['className'];
+    triggerComponentStyle?: HtmlHTMLAttributes<TriggerComponentType>['style'];
 
     /**
      * Source URL from the image to display in the popover
@@ -74,7 +76,7 @@ interface Props<TriggerComponentType> {
     returnFocus?: () => void;
 }
 
-function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props: Props<TriggerComponentType>) {
+export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props: Props<TriggerComponentType>) {
     const [isOpen, setOpen] = useState(false);
 
     const {refs, floatingStyles, context: floatingContext} = useFloating({
@@ -105,19 +107,19 @@ function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props:
         role,
     ]);
 
-    function handleHide() {
+    const handleHide = useCallback(() => {
         setOpen(false);
-    }
+    }, []);
 
-    const TriggerComponent = props.triggerComponentRootProps?.as ?? 'span';
+    const TriggerComponent = props.triggerComponentAs ?? 'span';
 
     return (
         <>
             <TriggerComponent
-                id={props.triggerComponentRootProps?.id}
+                id={props.triggerComponentId}
                 ref={refs.setReference}
-                className={props.triggerComponentRootProps?.className}
-                style={props.triggerComponentRootProps?.style}
+                className={props.triggerComponentClass}
+                style={props.triggerComponentStyle}
                 {...getReferenceProps()}
             >
                 {props.children}
@@ -157,5 +159,3 @@ function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props:
         </>
     );
 }
-
-export default ProfilePopoverController;
