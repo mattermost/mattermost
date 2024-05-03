@@ -8,7 +8,7 @@ import MarkdownImage from 'components/markdown_image';
 
 import Constants from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
-import messageHtmlToComponent from 'utils/message_html_to_component';
+import messageHtmlToComponent, {getImageMetadata} from 'utils/message_html_to_component';
 import * as TextFormatting from 'utils/text_formatting';
 
 const emptyEmojiMap = new EmojiMap(new Map());
@@ -145,5 +145,44 @@ const myFunction = () => {
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
         expect(messageHtmlToComponent(html)).toMatchSnapshot();
+    });
+});
+
+describe('getImageMetadata', () => {
+    test('undefined imagesMetadata', () => {
+        const imageSrc = 'https://test.com/media/1234.gif';
+        const imagesMetada = undefined;
+
+        expect(getImageMetadata(imagesMetada, imageSrc)).toBe(undefined);
+    });
+    test('undefined imageSrc', () => {
+        const imageSrc = undefined;
+        const imageMetadata = {width: 200, height: 200};
+        const imagesMetada = {'https://test.com/media/1234.gif': imageMetadata};
+
+        expect(getImageMetadata(imagesMetada, imageSrc)).toBe(undefined);
+    });
+    test('matching imageSrc', () => {
+        const imageSrc = 'https://test.com/media/1234.gif';
+        const imageMetadata = {width: 200, height: 200};
+        const imagesMetada = {[imageSrc]: imageMetadata};
+
+        expect(getImageMetadata(imagesMetada, imageSrc)).toBe(imageMetadata);
+    });
+    test('proxied imageSrc', () => {
+        const imageSrc = 'https://test.com/media/1234.gif';
+        const proxiedImageSrc = `https://test.proxy/api/v4/image?${new URLSearchParams({url: imageSrc})}`;
+        const imageMetadata = {width: 200, height: 200};
+        const imagesMetada = {[imageSrc]: imageMetadata};
+
+        expect(getImageMetadata(imagesMetada, proxiedImageSrc)).toBe(imageMetadata);
+    });
+    test('proxied and encoded ampersand imageSrc', () => {
+        const imageSrc = 'https://test.com/media/1234.gif?param1=123&param2=456';
+        const proxiedImageSrc = `https://test.proxy/api/v4/image?${new URLSearchParams({url: imageSrc.replace(/&/g, '&amp;')})}`;
+        const imageMetadata = {width: 200, height: 200};
+        const imagesMetada = {[imageSrc]: imageMetadata};
+
+        expect(getImageMetadata(imagesMetada, proxiedImageSrc)).toBe(imageMetadata);
     });
 });
