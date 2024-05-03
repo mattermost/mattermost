@@ -6629,10 +6629,6 @@
     "translation": "AD/LDAP का उपयोग करने वाले सभी उपयोगकर्ताओं को प्राप्त करने में असमर्थ।"
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "टीम या चैनल सदस्यता हटाने में त्रुटि"
-  },
-  {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
     "translation": "उस उपयोगकर्ता नाम वाला एक खाता पहले से मौजूद है। कृपया अपने व्यवस्थापक से संपर्क करें।"
   },
@@ -6919,10 +6915,6 @@
   {
     "id": "ent.compliance.csv.file.creation.appError",
     "translation": "अस्थायी CSV निर्यात फ़ाइल बनाने में असमर्थ।"
-  },
-  {
-    "id": "ent.cluster.404.app_error",
-    "translation": "क्लस्टर API समापन बिंदु नहीं मिला।"
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
@@ -7672,10 +7664,6 @@
     "translation": "स्थिति प्राप्त करने में त्रुटि आई।"
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "एक सीधा साझा चैनल बनाते समय एक त्रुटि का सामना करना पड़ा।"
-  },
-  {
     "id": "app.session.update_device_id.app_error",
     "translation": "डिवाइस आईडी अपडेट करने में असमर्थ।"
   },
@@ -8256,18 +8244,6 @@
     "translation": "हमें किसी भी समय ईमेल करें "
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "आपका सबसे महत्वपूर्ण क्लाउड चालान देय है"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "आपकी मैटरमोस्ट क्लाउड सदस्यता के लिए भुगतान देय है"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "पोस्ट करते समय इस एकीकरण के प्रोफ़ाइल चित्र के लिए .png या .jpg फ़ाइल का URL दर्ज करें। फ़ाइल कम से कम 128 पिक्सेल गुणा 128 पिक्सेल की होनी चाहिए. यदि खाली छोड़ दिया जाता है, तो वेबहुक निर्माता द्वारा निर्दिष्ट प्रोफ़ाइल चित्र का उपयोग किया जाता है।"
-  },
-  {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
     "translation": "अमान्य_अनुरोध: आपूर्ति की गई रीडायरेक्ट_यूरी प्राधिकरण कोड रीडायरेक्ट_यूरी से मेल नहीं खाती।"
   },
@@ -8298,10 +8274,6 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "व्यवस्थापक को पहले ही सूचित कर दिया गया है"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "चूक ईमेल भेजने के लिए आवश्यक फ़ील्ड गुम हैं।"
   },
   {
     "id": "api.admin.syncables_error",

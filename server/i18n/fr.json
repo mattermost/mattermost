@@ -4948,10 +4948,6 @@
     "translation": "Taille limite dépassée. Veuillez vérifier votre [taille maximale de page](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "Une erreur s'est produite lors de la suppression des membres d'équipe ou de canal"
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Votre licence ne prend pas en charge les notifications push chargées par identifiant."
   },
@@ -6292,10 +6288,6 @@
     "translation": "Temps d'attente pour la tâche de synchronisation AD/LDAP atteint."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Le nœud d'API cluster est introuvable."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " a joint un fichier."
   },
@@ -6956,10 +6948,6 @@
     "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Deuxième étage, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Deuxième étage, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.templates.cloud_welcome_email.title",
     "translation": "Votre espace de travail est prêt à fonctionner !"
   },
@@ -7294,10 +7282,6 @@
   {
     "id": "app.system.system_bot.bot_displayname",
     "translation": "Système"
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Une erreur s'est produite lors de la création d'un canal partagé de messages personnels."
   },
   {
     "id": "app.select_error",
@@ -7680,18 +7664,6 @@
     "translation": "Vous avez besoin d'aide ou vous avez des questions ? Envoyez-nous un courriel à "
   },
   {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Pour consulter votre facture et ajouter un moyen de paiement, sélectionnez « Payer maintenant »."
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Action requise : Échec du paiement pour Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "La raison suivante a été fournie :"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Votre abonnement à Mattermost doit être renouvelé"
   },
@@ -8044,34 +8016,6 @@
     "translation": "Des questions ?"
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Votre facture Mattermost Cloud est disponible"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Le paiement de votre abonnement à Mattermost Cloud est en retard"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Votre facture Mattermost Cloud pour la dernière période de facturation a été générée. Cependant, aucun moyen de paiement n'est enregistré dans votre compte."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Payer maintenant"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Paiement échoué"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Pour garantir un abonnement ininterrompu à Mattermost Cloud, veuillez contacter votre institution financière pour résoudre le problème sous-jacent ou mettez à jour vos moyens de paiement. Une fois les informations de paiement mises à jour, Mattermost tentera de régler le solde impayé."
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Votre institution financière a refusé un paiement de votre {{.CardBrand}} ****{{.LastFour}} associé à votre espace de travail Mattermost Cloud."
-  },
-  {
     "id": "app.user.get_total_users_count.app_error",
     "translation": "Impossible de compter les utilisateurs."
   },
@@ -8316,10 +8260,6 @@
     "translation": "Impossible de vérifier si le magasin de l'utilisateur est vide."
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Aucun courriel n'a été envoyé avec succès"
-  },
-  {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Impossble d'envoyer une réponse automatique à l'utilisateur."
   },
@@ -8402,14 +8342,6 @@
   {
     "id": "api.templates.invite_team_and_channel_body.title",
     "translation": "{{ .SenderName }} vous a invité à rejoindre {{ .ChannelName }} de l'équipe {{ .TeamDisplayName }}"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Vous avez été mis à niveau !"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Confirmation de mise à niveau de Mattermost"
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
@@ -8938,10 +8870,6 @@
   {
     "id": "api.channel.group_message.converted.to_private_channel",
     "translation": "{{.ConvertedByUsername}} a créé ce canal à partir d'un message de groupe avec {{.GMMembers}}."
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Il manque des champs obligatoires pour l'envoi d'un courrier électronique relatif à une infraction."
   },
   {
     "id": "api.command_invite.successOverflow",

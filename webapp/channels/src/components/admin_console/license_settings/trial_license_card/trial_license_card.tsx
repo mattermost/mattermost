@@ -9,7 +9,6 @@ import type {ClientLicense} from '@mattermost/types/config';
 
 import AlertBanner from 'components/alert_banner';
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {daysToLicenseExpire} from 'utils/license_utils';
@@ -57,16 +56,8 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
                     {messageBody()}
                 </div>
                 <div className='RenewLicenseCard__buttons'>
-                    <PurchaseLink
-                        buttonTextElement={
-                            <FormattedMessage
-                                id='admin.license.trialCard.purchase_license'
-                                defaultMessage='Purchase a license'
-                            />
-                        }
-                    />
                     <ContactUsButton
-                        customClass='light-blue-btn'
+                        customClass='contact_us_primary_cta'
                     />
                 </div>
             </div>

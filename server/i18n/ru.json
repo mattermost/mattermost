@@ -5052,10 +5052,6 @@
     "translation": "Не удалось проанализировать версию сервера Elasticsearch."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "ошибка при удалении участия в команде или канале"
-  },
-  {
     "id": "ent.ldap.validate_admin_filter.app_error",
     "translation": "Неверный фильтр админа AD/LDAP."
   },
@@ -6472,10 +6468,6 @@
     "translation": "Достигнут тайм-аут задания синхронизации AD/LDAP."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Не найдена конечная точка API кластера."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " прикрепил файл."
   },
@@ -7352,10 +7344,6 @@
     "translation": "Не удалось найти действующую учетную запись для обновления."
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Ни одно email-сообщение не было успешно отправлено"
-  },
-  {
     "id": "app.user.search.app_error",
     "translation": "Невозможно найти пользователя, соответствующего критериям поиска."
   },
@@ -7664,46 +7652,6 @@
     "translation": "Нужна помощь или есть вопросы? Пишите нам на e-mail адрес "
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Ваш счёт за Mattermost Cloud к оплате"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Оплата производится за подписку на Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Чтобы просмотреть счёт и добавить способ оплаты, выберите Оплатить сейчас."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Ваш счёт Mattermost Cloud за последний расчётный период был обработан. Однако у нас нет ваших платёжных реквизитов."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Оплатить сейчас"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Платёж не прошёл"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Требуется действие: Оплата за Mattermost {{.Plan}} не произведена"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Чтобы обеспечить бесперебойный доступ к Mattermost {{.Plan}}, свяжитесь с вашим финансовым учреждением для устранения основной проблемы или обновите платёжную информацию. После обновления платёжных данных Mattermost предпримет попытку погасить остаток задолженности."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Они привели следующую причину:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Ваше финансовое учреждение отклонило платёж вашей карты {{.CardBrand}}. ****{{.LastFour}}, связанный с вашим рабочим пространством Mattermost Cloud."
-  },
-  {
     "id": "api.templates.invite_body_guest.subTitle",
     "translation": "Вы были приглашены в качестве гостя в команду"
   },
@@ -7730,10 +7678,6 @@
   {
     "id": "api.templates.email_footer_v2",
     "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -8126,10 +8070,6 @@
   {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "Одно или несколько сообщений не могут быть доставлены на удалённый сайт {{.Remote}}, так как он в оффлайне. Сообщения будут доставлены, когда сайт будет онлайн."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Возникла ошибка при создании прямого общего канала."
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
@@ -8784,34 +8724,6 @@
     "translation": "В настройки электронной почты есть не заданные значения."
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Обновление прошло успешно!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Подтверждение обновления Mattermost"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Платеж не получен"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Пожалуйста, свяжитесь с вашим финансовым учреждением для решения возникших вопросов. Затем обновите свои платёжные реквизиты при необходимости."
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Мы не смогли снять деньги с имеющейся у нас кредитной карты. Это означает, что ваше рабочее пространство может быть переведено в категорию Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Просрочена оплата вашего Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Обновить платёж"
-  },
-  {
     "id": "api.team.invite_guests_to_channels.license.error",
     "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
   },
@@ -8854,10 +8766,6 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Администратор уже уведомлен"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Отсутствуют обязательные поля для отправки электронного письма о просрочке."
   },
   {
     "id": "model.group.name.reserved_name.app_error",
@@ -8950,174 +8858,6 @@
   {
     "id": "app.cloud.trial_plan_bot_message_single",
     "translation": "{{.UsersNum}} пользователя(ей) рабочего пространства {{.WorkspaceName}} запросили включение пробной версии Enterprise для доступа к: "
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "Подписка не просрочена"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "Не удалось получить подписку на облако"
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Невозможно получить имя текущего тарифного плана"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "Не удалось получить облачные продукты"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Ваше рабочее пространство Mattermost было понижено в статусе"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "Чтобы снять архивацию данных и сохранить оплаченные функции, обновите информацию об оплате."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Кроме того, ваши данные могут быть заархивированы из-за ограничений Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "Если вы используете функции Cloud Professional или Enterprise для важных бизнес-операций, они больше не будут доступны, и вы столкнетесь с ухудшением производительности."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Ваше рабочее пространство Mattermost Cloud было понижено"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Посмотреть тарифные планы и цены"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Обновить платёж"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Ваше рабочее пространство будет понижено через 15 дней"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Ваше рабочее пространство будет понижено до уровня Cloud Free. Ваши функции {{.Plan}} будут заблокированы, а некоторые данные рабочего пространства могут быть заархивированы до полного погашения задолженности."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Это последнее напоминание о том, что мы не получили оплату за ваше рабочее пространство Mattermost Cloud с {{.DelinquencyDate}}."
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Ваш Mattermost {{.Plan}} будет понижен через 15 дней"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Обновить платёж"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Ваш платёж не был завершен"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "Чтобы ваш план {{.Plan}} оставался активным, как можно скорее свяжитесь с вашим финансовым учреждением. Затем, при необходимости, обновите свои платежные реквизиты."
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Мы не смогли обработать ваш последний платёж."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Обновить платёж"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Ваше рабочее пространство Mattermost будет понижено в течение 30 дней"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Free ниже."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Мы автоматически понизим уровень вашего рабочего пространства через 30 дней, если не сможем обработать ваш платёж."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Пожалуйста, обновите свою платёжную информацию в ближайшее время, чтобы обработать неоплаченные счета."
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "Необходимые действия: Рабочее пространство будет понижено в течение 30 дней"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Обновить платёж"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Ваше рабочее пространство будет понижено по тарифной сетке в ближайшее время"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Обновите информацию о своей кредитной карте прямо сейчас."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Мы не смогли получить оплату по неоплаченным счетам от {{.DelinquencyDate}}. Ваше рабочее пространство находится под угрозой понижения."
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "Уведомление: В ближайшее время ваш Mattermost {{.Plan}} будет понижен"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Обновить платёж"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Ваше рабочее пространство будет понижено по тарифной сетке в ближайшее время"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "Если не предпринять никаких действий, ваше рабочее пространство будет понижено по тарифной сетке, а следующие данные могут быть заархивированы:"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "У вас есть время, чтобы сохранить ваш Mattermost {{.Plan}} активным, но вам нужно решить проблемы с методом оплаты."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Действуйте, чтобы сохранить функционал Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "Посмотреть всю документацию по ограничениям."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Обновить платёж"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "История сообщений"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Файлы"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Понижение статуса до Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Понижение статуса до Cloud Free"
   },
   {
     "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
@@ -9248,18 +8988,6 @@
     "translation": "Неверный приоритет"
   },
   {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "Просмотр счета-фактуры"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "Ваше рабочее пространство {{.WorkspaceName}} теперь обновлено."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "Ваше рабочее пространство {{.WorkspaceName}} обновлено. Вам будет выставлен счет с {{.Date}}"
-  },
-  {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Ошибка при получении ролей во время проверки."
   },
@@ -9320,10 +9048,6 @@
     "translation": "Не удалось создать запись истинного состояния"
   },
   {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "пользователь с таким именем \"{{.Username}}\" уже существует."
   },
@@ -9342,10 +9066,6 @@
   {
     "id": "api.system.logs.invalidFilter",
     "translation": "Неверный фильтр журнала"
-  },
-  {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "Серверу CWS не удалось удалить рабочее пространство."
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
@@ -9896,10 +9616,6 @@
     "translation": "Произошла ошибка при обновлении исходящего oauth-соединения: {{ .Error }}"
   },
   {
-    "id": "api.templates.cloud_renewal_60.subject",
-    "translation": "Продление годовой подписки через 60 дней"
-  },
-  {
     "id": "app.report.date_range.last_6_months",
     "translation": "последние 6 месяцев"
   },
@@ -9938,18 +9654,6 @@
   {
     "id": "app.report.start_users_batch_export.job_exists",
     "translation": "Задание уже существует для этого пользователя и диапазона дат."
-  },
-  {
-    "id": "api.templates.cloud_renewal.button",
-    "translation": "Продлить сейчас"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.subject",
-    "translation": "Необходимые действия: Обновление годовой подписки через 7 дней"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.title",
-    "translation": "Вы потеряете доступ к своему рабочему пространству через 7 дней"
   },
   {
     "id": "api.user.get_profile_image_path.app_error",
@@ -10016,24 +9720,8 @@
     "translation": "Неверный максимальный размер полезной нагрузки для настроек сервиса. Должно быть целое число больше нуля."
   },
   {
-    "id": "api.templates.cloud_renewal_30.subject",
-    "translation": "Годовой счет к оплате через 30 дней"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.title",
-    "translation": "Ваш годовой счет будет выставлен через 30 дней"
-  },
-  {
     "id": "api.team.user.missing_account",
     "translation": "Пользователь не найден."
-  },
-  {
-    "id": "api.templates.cloud_renewal.subtitle",
-    "translation": "Пожалуйста, продлите, чтобы избежать перебоев в работе"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.title",
-    "translation": "Продление годовой подписки через 60 дней"
   },
   {
     "id": "app.compile_report_chunks.unsupported_format",
@@ -10386,5 +10074,21 @@
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
     "translation": "Автозаполнение каналов не может быть включено, так как схема индекса каналов устарела. Рекомендуется перегенерировать индекс каналов. Более подробную информацию можно найти в журнале изменений Mattermost"
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Ошибка при чтении статуса файла: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Ошибка при поиске файла: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Не удалось получить количество пользователей"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "Не удалось получить количество сообщений"
   }
 ]
