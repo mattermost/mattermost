@@ -6206,6 +6206,13 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
+                            key: 'ExperimentalSettings.DisableWakeUpReconnectHandler',
+                            label: defineMessage({id: 'admin.experimental.disableWakeUpReconnectHandler.title', defaultMessage: 'Disable Wake Up Reconnect Handler:'}),
+                            help_text: defineMessage({id: 'admin.experimental.disableWakeUpReconnectHandler.desc', defaultMessage: 'When true, Mattermost will not attempt to detect when the computer has woken up and refetch data. This might reduce the amount of regular network traffic the app is sending.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'bool',
                             key: 'ExperimentalSettings.DelayChannelAutocomplete',
                             label: defineMessage({id: 'admin.experimental.delayChannelAutocomplete.title', defaultMessage: 'Delay Channel Autocomplete:'}),
                             help_text: defineMessage({id: 'admin.experimental.delayChannelAutocomplete.desc', defaultMessage: 'When true, the autocomplete for channel links (such as ~town-square) will only trigger after typing a tilde followed by a couple letters. When false, the autocomplete will appear as soon as the user types a tilde.'}),
