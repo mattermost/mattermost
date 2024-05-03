@@ -401,14 +401,14 @@ describe('actions/invite_actions', () => {
                     ],
                     notSent: [
                         {
-                            reason: 'This person is already a member.',
+                            reason: 'This person is not a guest. Invite them as a regular user.',
                             user: {
                                 id: 'user1',
                                 roles: 'system_user',
                             },
                         },
                         {
-                            reason: 'This person is already a member.',
+                            reason: 'This person is not a guest. Invite them as a regular user.',
                             user: {
                                 id: 'other-user',
                                 roles: 'system_user',
@@ -489,14 +489,14 @@ describe('actions/invite_actions', () => {
                     ],
                     notSent: [
                         {
-                            reason: 'This person is already a member.',
+                            reason: 'This person is not a guest. Invite them as a regular user.',
                             user: {
                                 id: 'user1',
                                 roles: 'system_user',
                             },
                         },
                         {
-                            reason: 'This person is already a member.',
+                            reason: 'This person is not a guest. Invite them as a regular user.',
                             user: {
                                 id: 'other-user',
                                 roles: 'system_user',
@@ -520,7 +520,7 @@ describe('actions/invite_actions', () => {
                     sent: [],
                     notSent: [
                         {
-                            reason: 'This person is already a member.',
+                            reason: 'This person is not a guest. Invite them as a regular user.',
                             user: {
                                 id: 'user1',
                                 roles: 'system_user',
@@ -534,7 +534,7 @@ describe('actions/invite_actions', () => {
                             },
                         },
                         {
-                            reason: 'This person is already a member.',
+                            reason: 'This person is not a guest. Invite them as a regular user.',
                             user: {
                                 id: 'other-user',
                                 roles: 'system_user',
