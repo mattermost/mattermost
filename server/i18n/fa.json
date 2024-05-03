@@ -1820,10 +1820,6 @@
     "translation": "دسترسی به همه کاربران با استفاده از AD/LDAP امکان پذیر نیست."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "خطای حذف عضویت تیم یا کانال"
-  },
-  {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
     "translation": "حسابی با این نام کاربری از قبل وجود دارد. لطفاً با سرپرست خود تماس بگیرید."
   },
@@ -3364,10 +3360,6 @@
     "translation": "پیکربندی خوشه برای id={{ .id }} تغییر کرده است. خوشه ممکن است ناپایدار شود و نیاز به راه اندازی مجدد باشد. برای اطمینان از پیکربندی صحیح خوشه ، باید بلافاصله یک راه اندازی مجدد را شروع کنید."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "نقطه پایانی API خوشه یافت نشد."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " پرونده ای را ضمیمه کرد."
   },
@@ -3748,10 +3740,6 @@
     "translation": "بررسی خالی بودن فروشگاه کاربر انجام نشد."
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "هیچ ایمیلی با موفقیت ارسال نشد"
-  },
-  {
     "id": "app.team.get_by_invite_id.finding.app_error",
     "translation": "تیم موجود یافت نشد."
   },
@@ -3818,10 +3806,6 @@
   {
     "id": "app.status.get.app_error",
     "translation": "هنگام بازیابی وضعیت با خطا روبرو شد."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "هنگام ایجاد یک کانال به اشتراک گذاشته شده مستقیم با خطایی مواجه شد."
   },
   {
     "id": "app.session.update_device_id.app_error",
@@ -4764,46 +4748,6 @@
     "translation": "مشاهده پیام"
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "سررسید فاکتور Mattermost Cloud شماست"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "پرداخت برای اشتراک Mattermost Cloud شما باید انجام شود"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "برای بررسی فاکتور و افزودن روش پرداخت، اکنون پرداخت را انتخاب کنید."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "فاکتور Mattermost Cloud شما برای آخرین دوره صورتحساب پردازش شده است. با این حال، ما جزئیات پرداخت شما را در پرونده نداریم."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "الان پرداخت کن"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "پرداخت ناموفق"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "اقدام مورد نیاز: پرداخت برای Mattermost Cloud انجام نشد"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "برای اطمینان از اشتراک بدون وقفه در Mattermost Cloud، لطفاً با موسسه مالی خود تماس بگیرید تا مشکل اساسی را برطرف کند یا اطلاعات پرداخت خود را به روز کنید. پس از به‌روزرسانی اطلاعات پرداخت، Mattermost تلاش می‌کند تا هرگونه موجودی معوق را تسویه کند."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "آنها دلیل زیر را بیان کردند:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "موسسه مالی شما پرداختی از {{.CardBrand}} ****{{.LastFour}} مرتبط با فضای کاری Mattermost Cloud شما را رد کرد."
-  },
-  {
     "id": "api.templates.password_change_subject",
     "translation": "[{{ .SiteName }}] رمز ورود شما به روز شده است"
   },
@@ -4970,10 +4914,6 @@
   {
     "id": "api.templates.deactivate_body.info",
     "translation": "شما حساب خود را در {{ .SiteURL }} غیرفعال کردید."
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© ۲۰۲۱ Mattermost, Inc. ۵۳۰ Lytton Avenue, طبقه دوم, Palo Alto, CA, ۹۴۳۰۱"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",

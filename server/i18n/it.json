@@ -5352,10 +5352,6 @@
     "translation": "Impossibile trovato la versione del server Elasticsearch."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "errore durante la cancellazione delle appartenenze a squadre o canali"
-  },
-  {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Limite Dimensione Superato. Controllare [dimensione massima pagina](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
@@ -6440,10 +6436,6 @@
     "translation": "Raggiunto timeout nel lavoro di sincronizzazione AD/LDAP."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Cluster API non trovate."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " ha allegato un file."
   },
@@ -7128,10 +7120,6 @@
     "translation": " "
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": " "
-  },
-  {
     "id": "app.import.generate_password.app_error",
     "translation": " "
   },
@@ -7173,10 +7161,6 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.copyright",
     "translation": " "
   },
   {
@@ -7344,10 +7328,6 @@
     "translation": " "
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.custom_status.disabled",
     "translation": " "
   },
@@ -7512,10 +7492,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": " "
-  },
-  {
     "id": "api.remote_cluster.invalid_topic.app_error",
     "translation": " "
   },
@@ -7576,23 +7552,11 @@
     "translation": " "
   },
   {
-    "id": "api.templates.payment_failed.title",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": " "
-  },
-  {
     "id": "api.config.patch_config.diff.app_error",
     "translation": " "
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
     "translation": " "
   },
   {
@@ -7701,14 +7665,6 @@
   },
   {
     "id": "app.user.get_thread_count_for_user.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
     "translation": " "
   },
   {
@@ -8044,10 +8000,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": " "
-  },
-  {
     "id": "api.templates.cloud_welcome_email.subtitle",
     "translation": " "
   },
@@ -8212,10 +8164,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.payment_failed.subject",
-    "translation": " "
-  },
-  {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": " "
   },
@@ -8364,10 +8312,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": " "
-  },
-  {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": " "
   },
@@ -8461,10 +8405,6 @@
   },
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
     "translation": " "
   },
   {
@@ -8769,14 +8709,6 @@
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
     "translation": " "
   },
   {
