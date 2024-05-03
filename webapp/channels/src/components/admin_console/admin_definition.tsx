@@ -326,15 +326,7 @@ const AdminDefinition: AdminDefinitionType = {
             />
         ),
         sectionTitle: defineMessage({id: 'admin.sidebar.billing', defaultMessage: 'Billing & Account'}),
-        isHidden: it.any(
-            it.not(it.enterpriseReady),
-            it.not(it.userHasReadPermissionOnResource('billing')),
-            it.not(it.licensed),
-            it.all(
-                it.not(it.licensedForFeature('Cloud')),
-                it.configIsFalse('ServiceSettings', 'SelfHostedPurchase'),
-            ),
-        ),
+        isHidden: it.not(it.licensedForFeature('Cloud')),
         subsections: {
             subscription: {
                 url: 'billing/subscription',
@@ -357,6 +349,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'BillingHistory',
                     component: BillingHistory,
                 },
+                isHidden: it.not(it.licensedForFeature('Cloud')),
                 isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
             },
             company_info: {
@@ -6231,6 +6224,13 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalSettings.DisableRefetchingOnBrowserFocus',
                             label: defineMessage({id: 'admin.experimental.disableRefetchingOnBrowserFocus.title', defaultMessage: 'Disable data refetching on browser refocus:'}),
                             help_text: defineMessage({id: 'admin.experimental.disableRefetchingOnBrowserFocus.desc', defaultMessage: 'When true, Mattermost will not refetch channels and channel members when the browser regains focus. This may result in improved performance for users with many channels and channel members.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ExperimentalSettings.DisableWakeUpReconnectHandler',
+                            label: defineMessage({id: 'admin.experimental.disableWakeUpReconnectHandler.title', defaultMessage: 'Disable Wake Up Reconnect Handler:'}),
+                            help_text: defineMessage({id: 'admin.experimental.disableWakeUpReconnectHandler.desc', defaultMessage: 'When true, Mattermost will not attempt to detect when the computer has woken up and refetch data. This might reduce the amount of regular network traffic the app is sending.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {

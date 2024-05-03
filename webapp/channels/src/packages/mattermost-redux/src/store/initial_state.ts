@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {zeroStateLimitedViews} from '../reducers/entities/posts';
@@ -187,29 +186,11 @@ const state: GlobalState = {
                 limitsLoaded: false,
             },
             errors: {},
-            selfHostedSignup: {
-                progress: SelfHostedSignupProgress.START,
-            },
         },
         hostedCustomer: {
-            signupProgress: SelfHostedSignupProgress.START,
             products: {
                 products: {},
                 productsLoaded: false,
-            },
-            errors: {},
-            invoices: {
-                invoices: {},
-                invoicesLoaded: false,
-            },
-            trueUpReviewProfile: {
-                content: '',
-                getRequestState: 'IDLE',
-            },
-            trueUpReviewStatus: {
-                complete: false,
-                due_date: 0,
-                getRequestState: 'IDLE',
             },
         },
         usage: {
