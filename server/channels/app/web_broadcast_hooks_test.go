@@ -87,8 +87,9 @@ func TestPostedAckHook_Process(t *testing.T) {
 	hook := &postedAckBroadcastHook{}
 	userID := model.NewId()
 	webConn := &platform.WebConn{
-		UserId:   userID,
-		Platform: &platform.PlatformService{},
+		UserId:    userID,
+		Platform:  &platform.PlatformService{},
+		PostedAck: true,
 	}
 	webConn.SetSession(&model.Session{})
 
@@ -140,12 +141,12 @@ func TestPostedAckHook_Process(t *testing.T) {
 		assert.True(t, msg.Event().GetData()["should_ack"].(bool))
 	})
 
-	t.Run("should not ack for mobile app", func(t *testing.T) {
+	t.Run("should not ack if posted ack is false", func(t *testing.T) {
 		mobileWebConn := &platform.WebConn{
-			UserId:   userID,
-			Platform: &platform.PlatformService{},
+			UserId:    userID,
+			Platform:  &platform.PlatformService{},
+			PostedAck: false,
 		}
-		mobileWebConn.SetSession(&model.Session{Props: map[string]string{"isMobile": "true"}})
 		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
 
 		hook.Process(msg, mobileWebConn, map[string]any{
