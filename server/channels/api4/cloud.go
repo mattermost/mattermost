@@ -35,7 +35,6 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(getSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.APISessionRequired(getInvoicesForSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:[_A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
-	api.BaseRoutes.Cloud.Handle("/subscription/self-serve-status", api.APISessionRequired(getLicenseSelfServeStatus)).Methods("GET")
 
 	// GET /api/v4/cloud/validate-business-email
 	api.BaseRoutes.Cloud.Handle("/validate-business-email", api.APISessionRequired(validateBusinessEmail)).Methods("POST")
@@ -376,40 +375,6 @@ func getInstallation(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.getInstallation", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-}
-
-// getLicenseSelfServeStatus makes check for the license in the CWS self-serve portal and establishes if the license is renewable, expandable etc.
-func getLicenseSelfServeStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	ensured := ensureCloudInterface(c, "Api4.getLicenseSelfServeStatus")
-	if !ensured {
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
-		c.SetPermissionError(model.PermissionManageLicenseInformation)
-		return
-	}
-
-	_, token, err := c.App.Srv().GenerateLicenseRenewalLink()
-
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	status, cloudErr := c.App.Cloud().GetLicenseSelfServeStatus(c.AppContext.Session().UserId, token)
-	if cloudErr != nil {
-		c.Err = model.NewAppError("Api4.getLicenseSelfServeStatus", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(cloudErr)
-		return
-	}
-
-	json, jsonErr := json.Marshal(status)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("Api4.getLicenseSelfServeStatus", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-		return
-	}
-
-	w.Write(json)
 }
 
 func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -37,10 +37,6 @@ import type {
     NotifyAdminRequest,
     Subscription,
     ValidBusinessEmail,
-    LicenseSelfServeStatus,
-    CreateSubscriptionRequest,
-    Feedback,
-    WorkspaceDeletionRequest,
     NewsletterRequestBody,
     Installation,
 } from '@mattermost/types/cloud';
@@ -83,13 +79,6 @@ import type {
     GetGroupsForUserParams,
     GroupStats,
 } from '@mattermost/types/groups';
-import type {
-    SelfHostedSignupForm,
-    SelfHostedSignupCustomerResponse,
-    SelfHostedSignupSuccessResponse,
-    SelfHostedSignupBootstrapResponse,
-    SelfHostedExpansionRequest,
-} from '@mattermost/types/hosted_customer';
 import type {PostActionResponse} from '@mattermost/types/integration_actions';
 import type {
     Command,
@@ -3905,50 +3894,9 @@ export default class Client4 {
         );
     };
 
-    bootstrapSelfHostedSignup = (reset?: boolean) => {
-        let query = '';
-
-        // reset will drop the old token
-        if (reset) {
-            query = '?reset=true';
-        }
-        return this.doFetch<SelfHostedSignupBootstrapResponse>(
-            `${this.getHostedCustomerRoute()}/bootstrap${query}`,
-            {method: 'post'},
-        );
-    };
-
-    getAvailabilitySelfHostedSignup = () => {
-        return this.doFetch<void>(
-            `${this.getHostedCustomerRoute()}/signup_available`,
-            {method: 'get'},
-        );
-    };
-
     getSelfHostedProducts = () => {
         return this.doFetch<Product[]>(
             `${this.getCloudRoute()}/products/selfhosted`, {method: 'get'},
-        );
-    };
-
-    createCustomerSelfHostedSignup = (form: SelfHostedSignupForm) => {
-        return this.doFetch<SelfHostedSignupCustomerResponse>(
-            `${this.getHostedCustomerRoute()}/customer`,
-            {method: 'post', body: JSON.stringify(form)},
-        );
-    };
-
-    confirmSelfHostedSignup = (setupIntentId: string, createSubscriptionRequest: CreateSubscriptionRequest) => {
-        return this.doFetch<SelfHostedSignupSuccessResponse>(
-            `${this.getHostedCustomerRoute()}/confirm`,
-            {method: 'post', body: JSON.stringify({stripe_setup_intent_id: setupIntentId, subscription: createSubscriptionRequest})},
-        );
-    };
-
-    confirmSelfHostedExpansion = (setupIntentId: string, expandRequest: SelfHostedExpansionRequest) => {
-        return this.doFetch<SelfHostedSignupSuccessResponse>(
-            `${this.getHostedCustomerRoute()}/confirm-expand`,
-            {method: 'post', body: JSON.stringify({stripe_setup_intent_id: setupIntentId, expand_request: expandRequest})},
         );
     };
 
@@ -3959,22 +3907,16 @@ export default class Client4 {
         );
     };
 
-    createPaymentMethod = async () => {
-        return this.doFetch(
-            `${this.getCloudRoute()}/payment`,
-            {method: 'post'},
+    cwsAvailabilityCheck = () => {
+        return this.doFetchWithResponse(
+            `${this.getCloudRoute()}/check-cws-connection`,
+            {method: 'get'},
         );
     };
 
     getCloudCustomer = () => {
         return this.doFetch<CloudCustomer>(
             `${this.getCloudRoute()}/customer`, {method: 'get'},
-        );
-    };
-
-    getLicenseSelfServeStatus = () => {
-        return this.doFetch<LicenseSelfServeStatus>(
-            `${this.getCloudRoute()}/subscription/self-serve-status`, {method: 'get'},
         );
     };
 
@@ -3996,39 +3938,6 @@ export default class Client4 {
         return this.doFetchWithResponse<StatusOK>(
             `${this.getUsersRoute()}/notify-admin`,
             {method: 'post', body: JSON.stringify(req)},
-        );
-    };
-
-    confirmPaymentMethod = async (stripeSetupIntentID: string) => {
-        return this.doFetch(
-            `${this.getCloudRoute()}/payment/confirm`,
-            {method: 'post', body: JSON.stringify({stripe_setup_intent_id: stripeSetupIntentID})},
-        );
-    };
-
-    subscribeCloudProduct = (productId: string, shippingAddress?: Address, seats = 0, downgradeFeedback?: Feedback, customerPatch?: CloudCustomerPatch) => {
-        const body = {
-            product_id: productId,
-            seats,
-            downgrade_feedback: downgradeFeedback,
-        } as any;
-        if (shippingAddress) {
-            body.shipping_address = shippingAddress;
-        }
-
-        if (customerPatch) {
-            body.customer = customerPatch;
-        }
-        return this.doFetch<Subscription>(
-            `${this.getCloudRoute()}/subscription`,
-            {method: 'put', body: JSON.stringify(body)},
-        );
-    };
-
-    requestCloudTrial = (subscriptionId: string, email = '') => {
-        return this.doFetchWithResponse<Subscription>(
-            `${this.getCloudRoute()}/request-trial`,
-            {method: 'put', body: JSON.stringify({email, subscription_id: subscriptionId})},
         );
     };
 
@@ -4060,13 +3969,6 @@ export default class Client4 {
         );
     };
 
-    getRenewalLink = () => {
-        return this.doFetch<{renewal_link: string}>(
-            `${this.getBaseRoute()}/license/renewal`,
-            {method: 'get'},
-        );
-    };
-
     getInvoices = () => {
         return this.doFetch<Invoice[]>(
             `${this.getCloudRoute()}/subscription/invoices`,
@@ -4076,17 +3978,6 @@ export default class Client4 {
 
     getInvoicePdfUrl = (invoiceId: string) => {
         return `${this.getCloudRoute()}/subscription/invoices/${invoiceId}/pdf`;
-    };
-
-    getSelfHostedInvoices = () => {
-        return this.doFetch<Invoice[]>(
-            `${this.getHostedCustomerRoute()}/invoices`,
-            {method: 'get'},
-        );
-    };
-
-    getSelfHostedInvoicePdfUrl = (invoiceId: string) => {
-        return `${this.getHostedCustomerRoute()}/invoices/${invoiceId}/pdf`;
     };
 
     getCloudLimits = () => {
@@ -4326,34 +4217,6 @@ export default class Client4 {
         return this.doFetch<AllowedIPRange[]>(
             `${this.getBaseRoute()}/ip_filtering`,
             {method: 'post', body: JSON.stringify(filters)},
-        );
-    };
-
-    submitTrueUpReview = () => {
-        return this.doFetch(
-            `${this.getBaseRoute()}/license/review`,
-            {method: 'post'},
-        );
-    };
-
-    getTrueUpReviewStatus = () => {
-        return this.doFetch(
-            `${this.getBaseRoute()}/license/review/status`,
-            {method: 'get'},
-        );
-    };
-
-    cwsAvailabilityCheck = () => {
-        return this.doFetchWithResponse(
-            `${this.getCloudRoute()}/check-cws-connection`,
-            {method: 'get'},
-        );
-    };
-
-    deleteWorkspace = (deletionRequest: WorkspaceDeletionRequest) => {
-        return this.doFetch<StatusOK>(
-            `${this.getCloudRoute()}/delete-workspace`,
-            {method: 'delete', body: JSON.stringify(deletionRequest)},
         );
     };
 
