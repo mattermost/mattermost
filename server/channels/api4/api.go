@@ -149,7 +149,7 @@ type Routes struct {
 	OutgoingOAuthConnections *mux.Router // 'api/v4/oauth/outgoing_connections'
 	OutgoingOAuthConnection  *mux.Router // 'api/v4/oauth/outgoing_connections/{outgoing_oauth_connection_id:[A-Za-z0-9]+}'
 
-	Metrics *mux.Router // 'api/v4/metrics'
+	PerformanceMetrics *mux.Router // 'api/v4/perf'
 }
 
 type API struct {
@@ -285,7 +285,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.OutgoingOAuthConnections = api.BaseRoutes.APIRoot.PathPrefix("/oauth/outgoing_connections").Subrouter()
 	api.BaseRoutes.OutgoingOAuthConnection = api.BaseRoutes.OutgoingOAuthConnections.PathPrefix("/{outgoing_oauth_connection_id:[A-Za-z0-9]+}").Subrouter()
 
-	api.BaseRoutes.Metrics = api.BaseRoutes.APIRoot.PathPrefix("/metrics").Subrouter()
+	api.BaseRoutes.PerformanceMetrics = api.BaseRoutes.APIRoot.PathPrefix("/perf").Subrouter()
 
 	api.InitUser()
 	api.InitBot()

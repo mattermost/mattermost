@@ -11,10 +11,10 @@ import (
 )
 
 func (api *API) InitMetrics() {
-	api.BaseRoutes.Metrics.Handle("/", api.APISessionRequired(submitMetrics)).Methods("POST")
+	api.BaseRoutes.PerformanceMetrics.Handle("/", api.APISessionRequired(submitPerformanceReport)).Methods("POST")
 }
 
-func submitMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
+func submitPerformanceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	// we return early if server does not have any metrics infra available
 	if c.App.Metrics() == nil {
 		return
@@ -22,12 +22,12 @@ func submitMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var report model.PerformanceReport
 	if jsonErr := json.NewDecoder(r.Body).Decode(&report); jsonErr != nil {
-		c.SetInvalidParamWithErr("report", jsonErr)
+		c.SetInvalidParamWithErr("submitPerformanceReport", jsonErr)
 		return
 	}
 
 	if err := report.IsValid(); err != nil {
-		c.SetInvalidParamWithErr("report", err)
+		c.SetInvalidParamWithErr("submitPerformanceReport", err)
 		return
 	}
 

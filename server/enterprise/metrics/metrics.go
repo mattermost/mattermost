@@ -1148,7 +1148,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		},
 		[]string{"platform", "user_agent"},
 	)
-	m.Registry.MustRegister(*m.ClientChannelVisited)
+	m.Registry.MustRegister(*m.ClientChannelLoadDuration)
 
 	return m
 }

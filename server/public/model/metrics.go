@@ -21,7 +21,7 @@ const (
 )
 
 var (
-	performanceReportVersion = semver.MustParse("1.0")
+	performanceReportVersion = semver.MustParse("1.0.0")
 	acceptedPlatforms        = sliceToMapKey("linux", "macos", "ios", "android", "windows", "other")
 	acceptedAgents           = sliceToMapKey("desktop", "firefox", "chrome", "safari", "edge", "other")
 )
@@ -45,7 +45,7 @@ type PerformanceReport struct {
 }
 
 func (r *PerformanceReport) IsValid() error {
-	reportVersion, err := semver.Parse(r.Version)
+	reportVersion, err := semver.ParseTolerant(r.Version)
 	if err != nil {
 		return err
 	}
