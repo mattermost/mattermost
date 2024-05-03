@@ -14,8 +14,19 @@ import (
 type MetricType string
 
 const (
-	ClientMetricChannelVisited MetricType = "channel_visited"
-	ClientMetricChannelLoad    MetricType = "channel_load"
+	ClientTimeToFirstByte        MetricType = "time_to_first_byte"
+	ClientFirstContentfulPaint   MetricType = "first_contentful_paint"
+	ClientLargestContentfulPaint MetricType = "largest_contentful_paint"
+	ClientInteractionToNextPaint MetricType = "interaction_to_next_paint"
+	ClientCumulativeLayoutShift  MetricType = "cumulative_layout_shift"
+	ClientLongTasks              MetricType = "long_tasks"
+	ClientPageLoadDuration       MetricType = "page_load"
+	ClientChannelSwitchDuration  MetricType = "channel_switch"
+	ClientTeamSwitchDuration     MetricType = "team_switch"
+	ClientThreadsLoadDuration    MetricType = "thread_load"
+	ClientMessagePendingDuration MetricType = "message_to_pending"
+	ClientMessagePostedDuration  MetricType = "message_to_posted"
+	ClientRHSLoadDuration        MetricType = "rhs_load"
 
 	performanceReportTTLMilliseconds = 300 * 1000 // 300 seconds/5 minutes
 )
