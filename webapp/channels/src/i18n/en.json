@@ -3939,7 +3939,7 @@
   "invite.members.invite-sent": "An invitation email has been sent.",
   "invite.members.unable-to-add-the-user-to-the-team": "Unable to add the user to the team.",
   "invite.members.user-is-guest": "Contact your admin to make this guest a full member.",
-  "invite.members.user-is-not-guest": "This person is already a member.",
+  "invite.members.user-is-not-guest": "This person is not a guest. Invite them as a regular user.",
   "invite.rate-limit-exceeded": "Invite emails rate limit exceeded.",
   "join_team_group_constrained_denied": "You need to be a member of a linked group to join this team.",
   "join_team_group_constrained_denied_admin": "You need to be a member of a linked group to join this team. You can add a group to this team [here]({siteURL}/admin_console/user_management/groups).",
