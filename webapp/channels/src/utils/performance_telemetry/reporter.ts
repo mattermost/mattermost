@@ -21,9 +21,7 @@ type PerformanceReportMeasure = {
 }
 
 type PerformanceReport = {
-
-    // TODO confirm the version number that we want to start with
-    version: '0';
+    version: '1.0';
 
     // TODO client ID?
 
@@ -206,7 +204,7 @@ export default class PerformanceReporter {
         const counterMeasures = this.countersToMeasures(now, counters);
 
         return {
-            version: '0',
+            version: '1.0',
 
             platform: navigator.platform,
             user_agent: navigator.userAgent,
