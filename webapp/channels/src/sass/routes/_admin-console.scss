@@ -605,7 +605,7 @@
     z-index: 10;
     display: flex;
     overflow: hidden;
-    width: 280px;
+    width: 272px;
     flex-direction: column;
     color: var(--sys-sidebar-text);
     background: var(--sys-sidebar-bg);
@@ -614,12 +614,12 @@
     .filter-container {
         position: relative;
         padding: 8px 12px 0px 12px;
-        box-shadow: 0px 0px 8px 8px rgba(var(--sys-sidebar-bg-rgb), 0.64);
+        box-shadow: 0px 8px 8px 0px rgba(var(--sys-sidebar-bg-rgb), 0.64);
         z-index: 1;
 
         .search__icon {
             position: absolute;
-            top: 16px;
+            top: 15px;
             left: 22px;
             width: 16px;
             height: 16px;
@@ -660,6 +660,7 @@
                 .input-clear-x {
                     position: absolute;
                     right: 16px;
+                    top: 12px;
                     color: rgba(var(--sys-sidebar-text-rgb), 0.56);
                     font-weight: bold;
                 }
@@ -719,7 +720,7 @@
         .category-title {
             margin-top: 24px;
             padding: 0px 12px 0px 20px;
-            color: rgba(var(--sys-sidebar-text-rgb), 0.64);
+            color: rgba(var(--sys-sidebar-text-rgb), 0.56);
             font-size: 12px;
             font-weight: 600;
             letter-spacing: 0.1em;
