@@ -4948,10 +4948,6 @@
     "translation": "Przekroczono limit rozmiaru. Spróbuj zwiększyć maksymalny rozmiar strony. Więcej informacji znajdziesz na stronie https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "błąd podczas usuwania członkostwa zespołu lub kanału"
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Twoja licencja nie obsługuje powiadomień ID Loaded Push Notifications."
   },
@@ -6300,10 +6296,6 @@
     "translation": "Osiągnięto limit czasu zadania synchronizacji AD/LDAP."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Nie znaleziono punktu końcowego interfejsu API klastra."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " załączył plik."
   },
@@ -7464,10 +7456,6 @@
     "translation": "Rozpocznij współpracę z zespołem w serwisie Mattermost"
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, drugie piętro, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.templates.cloud_welcome_email.title",
     "translation": "Twoja przestrzeń robocza jest gotowa do pracy!"
   },
@@ -7598,10 +7586,6 @@
   {
     "id": "api.templates.verify_body.subTitle2",
     "translation": "Kliknij poniżej, aby zweryfikować swój adres e-mail."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Zalegasz z opłatą za subskrypcję Mattermost Cloud"
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
@@ -7798,42 +7782,6 @@
   {
     "id": "api.templates.questions_footer.info",
     "translation": "Potrzebujesz pomocy lub masz pytania? Napisz do nas na adres "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Faktura za usługę Mattermost Cloud jest wymagalna"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Aby przejrzeć fakturę i dodać metodę płatności, wybierz opcję Zapłać teraz."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Faktura Mattermost Cloud za ostatni okres rozliczeniowy została przetworzona. Nie mamy jednak w pliku Twoich danych dotyczących płatności."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Zapłać teraz"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Płatność nie powiodła się"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Wymagane działanie: Płatność nie powiodła się dla Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Aby zapewnić nieprzerwany dostęp do Mattermost {{.Plan}}, należy skontaktować się ze swoją instytucją finansową w celu rozwiązania problemu lub zaktualizować informacje dotyczące płatności. Po zaktualizowaniu informacji o płatności, Mattermost podejmie próbę uregulowania wszelkich zaległości."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Podano następujące uzasadnienie:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Twoja instytucja finansowa odrzuciła płatność z Twojej {{.CardBrand}} ****{{.LastFour}} powiązanej z obszarem roboczym Mattermost Cloud."
   },
   {
     "id": "store.sql_file_info.search.disabled",
@@ -8204,10 +8152,6 @@
     "translation": "Nie powiodło się sprawdzenie, czy magazyn użytkowników jest pusty."
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Nie udało się wysłać żadnego e-maila"
-  },
-  {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Nie można wysłać automatycznej odpowiedzi od użytkownika."
   },
@@ -8398,10 +8342,6 @@
   {
     "id": "app.system.system_bot.bot_displayname",
     "translation": "System"
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Napotkano błąd podczas tworzenia bezpośredniego kanału udosepnianego."
   },
   {
     "id": "app.select_error",
@@ -8784,14 +8724,6 @@
     "translation": "Nieprawidłowa treść żądania."
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Zostałeś uaktualniony!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Potwierdzenie Aktualizacji Mattermost"
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Ustawienia Elasticsearch mają nieustawione wartości."
   },
@@ -8872,194 +8804,6 @@
     "translation": "Mattermost to platforma open source do bezpiecznej komunikacji, współpracy i orkiestracji pracy między narzędziami i zespołami.\nMattermost zawiera dwa kluczowe narzędzia:\n\n**Kanały** - Pozostań w kontakcie ze swoim zespołem poprzez wiadomości 1:1 i grupowe.\n**[Playbooki](/playbooki)** - Twórz i konfiguruj powtarzalne procesy, aby osiągnąć określone i przewidywalne wyniki.\n\n[Zobacz dokumentację i przewodniki]({{.HelpLink}})"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "Historia wiadomości"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Pliki"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Płatność nie została otrzymana"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Skontaktuj się ze swoją instytucją finansową, aby rozwiązać wszelkie problemy. Następnie, w razie potrzeby, zaktualizuj swoje dane dotyczące płatności."
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Nie byliśmy w stanie obciążyć karty kredytowej, którą mamy w pliku. Oznacza to, że Twój obszar roboczy może zostać zdegradowany do wersji Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Zaległa płatność za Twój Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Brak wymaganych pól do wysłania wiadomości e-mail o zaległościach."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Twój obszar roboczy zostanie zdegradowany do Cloud Free. Funkcje Twojego {{.Plan}} zostaną zablokowane, a niektóre dane z Twojego obszaru roboczego mogą zostać zarchiwizowane do czasu uregulowania całego zaległego salda."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Jest to ostateczne przypomnienie, że nie otrzymaliśmy płatności za obszar roboczy Mattermost Cloud od {{.DelinquencyDate}}."
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Twój Mattermost {{.Plan}} zostanie zdegradowany za 15 dni"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Obniż na Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Twoja płatność nie została zrealizowana"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "Aby utrzymać aktywność swojego planu {{.Plan}}, skontaktuj się jak najszybciej ze swoją instytucją finansową. Następnie, w razie potrzeby, zaktualizuj swoje dane dotyczące płatności."
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Nie mogliśmy przetworzyć Twojej ostatniej płatności."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Obszar roboczy Mattermost zostanie zdegradowany w ciągu 30 dni"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Zaktualizuj swoje informacje o płatnościach teraz lub przejdź do wersji Cloud Free poniżej."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Jeśli nie będziemy w stanie przetworzyć Twojej płatności, automatycznie obniżymy rangę Twojej przestrzeni roboczej w ciągu 30 dni."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Prosimy o rychłą aktualizację informacji o płatnościach w celu przetworzenia zaległych faktur."
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "Wymagane działanie: Obszar roboczy zostanie zdegradowany w ciągu 30 dni"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Obniż na Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Twój obszar roboczy zostanie wkrótce zdegradowany"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Zaktualizuj teraz informacje o swojej karcie kredytowej."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Od {{.DelinquencyDate}} nie udało nam się zebrać płatności za zaległe faktury. Twój obszar roboczy jest zagrożony obniżeniem poziomu."
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "Uwaga: Twój Mattermost {{.Plan}} zostanie wkrótce zdegradowany"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Twój obszar roboczy zostanie wkrótce zdegradowany"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "Jeśli nie zostaną podjęte żadne działania, Twój obszar roboczy zostanie zdegradowany, a następujące dane mogą zostać zarchiwizowane:"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "Masz czas na utrzymanie aktywności Mattermost {{.Plan}}, ale będziesz musiał rozwiązać problemy z metodą płatności."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Działaj, aby zachować Funkcjonalności twojego Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Twój obszar roboczy został zdegradowany"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "Aby odarchiwizować swoje dane i zachować płatne funkcje, zaktualizuj informacje o płatności."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Ponadto Twoje dane mogły zostać zarchiwizowane z powodu ograniczeń Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "Jeśli korzystasz z funkcji Cloud Professional lub Enterprise do ważnych operacji biznesowych, nie będą one już dostępne i doświadczysz pogorszenia wydajności."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Twój obszar roboczy Mattermost Cloud został zdegradowany"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Wyświetl Plany i Ceny"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Obszar roboczy Mattermost zostanie zdegradowany w ciągu 15 dni"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Zaktualizuj teraz swoje informacje o płatnościach lub przejdź do wersji Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "Zobacz całą dokumentację dotyczącą limitów."
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "Abonament nie jest zaległy"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "Nie można odzyskać subskrypcji chmurowej"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "Nie można pobrać produktów chmurowych"
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
     "id": "app.notify_admin.send_notification_post.app_error",
     "translation": "Nie można wysłać postu z powiadomieniem."
   },
@@ -9082,10 +8826,6 @@
   {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "{{.UsersNum}} członkowie obszaru roboczego {{.WorkspaceName}} zażądali rozpoczęcia wersji próbnej Enterprise w celu uzyskania dostępu do: "
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Nie można uzyskać nazwy bieżącego planu"
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
@@ -9252,18 +8992,6 @@
     "translation": "Błąd pobierania ról podczas sprawdzania poprawności."
   },
   {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "Zobacz swoją fakturę"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "Twoja przestrzeń robocza {{.WorkspaceName}} została zaktualizowana."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "Twoja {{.WorkspaceName}} została zaktualizowana. Opłaty będą naliczane od {{.Date}}"
-  },
-  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal niedostępny dla samodzielnej rejestracji."
   },
@@ -9320,10 +9048,6 @@
     "translation": "Nie można utworzyć rekordu statusu true up"
   },
   {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Zdegradowane miejsce pracy może mieć negatywny wpływ na krytyczne przepływy pracy i inne krytyczne działania biznesowe wykonywane w miejscu pracy."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "użytkownik o nazwie \"{{.Username}}\" już istnieje."
   },
@@ -9342,10 +9066,6 @@
   {
     "id": "api.system.logs.invalidFilter",
     "translation": "Nieprawidłowy filtr dziennika"
-  },
-  {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "CWS Server nie potrafił usunąć przestrzeni roboczej."
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
@@ -9900,40 +9620,8 @@
     "translation": "Wystąpił błąd podczas przetwarzania ładowania."
   },
   {
-    "id": "api.templates.cloud_renewal.subtitle",
-    "translation": "Prosimy o odnowienie, aby uniknąć zakłóceń"
-  },
-  {
-    "id": "api.templates.cloud_renewal.button",
-    "translation": "Odnów teraz"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.subject",
-    "translation": "Roczny rachunek płatny do 30 dni"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.title",
-    "translation": "Termin płatności rocznego rachunku wynosi 30 dni"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.title",
-    "translation": "Roczne odnowienie subskrypcji w ciągu 60 dni"
-  },
-  {
     "id": "api.team.user.missing_account",
     "translation": "Nie można znaleźć użytkownika."
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.subject",
-    "translation": "Roczne odnowienie subskrypcji w ciągu 60 dni"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.subject",
-    "translation": "Wymagane działanie: Roczne odnowienie subskrypcji w ciągu 7 dni"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.title",
-    "translation": "Za 7 dni utracisz dostęp do swojej przestrzeni roboczej"
   },
   {
     "id": "app.channel.patch_channel_members_notify_props.app_error",
@@ -10386,5 +10074,21 @@
   {
     "id": "model.user.is_valid.pwd_max_length.app_error",
     "translation": "Twoje hasło nie może zawierać więcej niż 72 znaki."
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Błąd odczytu statusu pliku: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Błąd wyszukiwania pliku: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Nie udało się uzyskać liczby użytkowników"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "Nie udało się uzyskać liczby postów"
   }
 ]
