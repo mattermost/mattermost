@@ -3047,7 +3047,7 @@
   "channel_groups": "{channel} groepen",
   "channel_header.addChannelHeader": "Een kanaalhoofding toevoegen",
   "channel_header.channelFiles": "Kanaalbestanden",
-  "channel_header.channelHasGuests": "Dit kanaal heeft gasten",
+  "channel_header.channelHasGuests": "Kanaal heeft gasten",
   "channel_header.channelMembers": "Leden",
   "channel_header.closeChannelInfo": "Informatie sluiten",
   "channel_header.convert": "Omzetten naar privé-kanaal",
