@@ -164,18 +164,26 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		userPool = append(userPool, usr.Username)
 	}
 
+	inactivePool := []string{}
+	// create inactive users
+	for i := 0; i < 2; i++ {
+		userData := model.User{
+			Username: "fakeuser" + model.NewRandomString(10),
+			Password: "Pa$$word11",
+			Email:    s.th.GenerateTestEmail(),
+			DeleteAt: model.GetMillis(),
+		}
+		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
+		s.Require().Nil(err)
+		userPool = append(userPool, usr.Username)
+		inactivePool = append(inactivePool, usr.Username)
+	}
+
 	s.RunForAllClients("Get some random user", func(c client.Client) {
 		printer.Clean()
 
-		var page int
-		var all bool
-		perpage := 5
-		team := ""
-		cmd := &cobra.Command{}
-		cmd.Flags().IntVar(&page, "page", page, "page")
-		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
-		cmd.Flags().BoolVar(&all, "all", all, "all")
-		cmd.Flags().StringVar(&team, "team", team, "team")
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "5"))
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -191,23 +199,101 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of all user", func(c client.Client) {
 		printer.Clean()
 
-		var page int
-		perpage := 10
-		all := true
-		team := ""
-		cmd := &cobra.Command{}
-		cmd.Flags().IntVar(&page, "page", page, "page")
-		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
-		cmd.Flags().BoolVar(&all, "all", all, "all")
-		cmd.Flags().StringVar(&team, "team", team, "team")
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "12"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
-		s.Require().GreaterOrEqual(len(printer.GetLines()), 14)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 16)
 		s.Len(printer.GetErrorLines(), 0)
 		for _, each := range printer.GetLines() {
 			user := each.(*model.User)
 			s.Require().Contains(userPool, user.Username)
+		}
+	})
+
+	s.RunForAllClients("Get list of inactive users", func(c client.Client) {
+		printer.Clean()
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "12"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.Require().NoError(cmd.Flags().Set("inactive", "true"))
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 2)
+		s.Len(printer.GetErrorLines(), 0)
+		for _, each := range printer.GetLines() {
+			user := each.(*model.User)
+			s.Require().Contains(inactivePool, user.Username)
+		}
+	})
+
+	// create users with team
+	for i := 0; i < 10; i++ {
+		userData := model.User{
+			Username: "teamuser" + model.NewRandomString(10),
+			Password: "Pa$$word11",
+			Email:    s.th.GenerateTestEmail(),
+		}
+		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
+		s.Require().Nil(err)
+		userPool = append(userPool, usr.Username)
+		s.th.LinkUserToTeam(usr, s.th.BasicTeam)
+	}
+
+	s.RunForAllClients("Get list users given team", func(c client.Client) {
+		printer.Clean()
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "40"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.Require().NoError(cmd.Flags().Set("team", s.th.BasicTeam.Name))
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 10)
+		s.Len(printer.GetErrorLines(), 0)
+		for _, each := range printer.GetLines() {
+			user := each.(*model.User)
+			s.Require().Contains(userPool, user.Username)
+		}
+	})
+
+	// create inactive users with team
+	inactiveUserPool := []string{}
+
+	for i := 0; i < 10; i++ {
+		userData := model.User{
+			Username: "inactiveteamuser" + model.NewRandomString(10),
+			Password: "Pa$$word11",
+			Email:    s.th.GenerateTestEmail(),
+			DeleteAt: model.GetMillis(),
+		}
+		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
+		s.Require().Nil(err)
+		inactiveUserPool = append(inactiveUserPool, usr.Username)
+		s.th.LinkUserToTeam(usr, s.th.BasicTeam)
+	}
+
+	s.RunForAllClients("Get list of inactive users given team", func(c client.Client) {
+		printer.Clean()
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "40"))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.Require().NoError(cmd.Flags().Set("team", s.th.BasicTeam.Name))
+		s.Require().NoError(cmd.Flags().Set("inactive", "true"))
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 10)
+		s.Len(printer.GetErrorLines(), 0)
+		for _, each := range printer.GetLines() {
+			user := each.(*model.User)
+			s.Require().Contains(inactiveUserPool, user.Username)
 		}
 	})
 }

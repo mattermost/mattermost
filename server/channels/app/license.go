@@ -156,13 +156,3 @@ func (s *Server) RemoveLicenseListener(id string) {
 func (s *Server) GetSanitizedClientLicense() map[string]string {
 	return s.platform.GetSanitizedClientLicense()
 }
-
-// GenerateRenewalToken returns a renewal token that expires after duration expiration
-func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.AppError) {
-	return s.platform.GenerateRenewalToken(expiration)
-}
-
-// GenerateLicenseRenewalLink returns a link that points to the CWS where clients can renew license
-func (s *Server) GenerateLicenseRenewalLink() (string, string, *model.AppError) {
-	return s.platform.GenerateLicenseRenewalLink()
-}

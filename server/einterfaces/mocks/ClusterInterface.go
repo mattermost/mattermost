@@ -301,6 +301,36 @@ func (_m *ClusterInterface) StopInterNodeCommunication() {
 	_m.Called()
 }
 
+// WebConnCountForUser provides a mock function with given fields: userID
+func (_m *ClusterInterface) WebConnCountForUser(userID string) (int, *model.AppError) {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WebConnCountForUser")
+	}
+
+	var r0 int
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (int, *model.AppError)); ok {
+		return rf(userID)
+	}
+	if rf, ok := ret.Get(0).(func(string) int); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // NewClusterInterface creates a new instance of ClusterInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewClusterInterface(t interface {

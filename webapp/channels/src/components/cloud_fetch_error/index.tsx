@@ -10,13 +10,16 @@ import {useDispatch, useSelector} from 'react-redux';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 
 import {retryFailedCloudFetches} from 'actions/cloud';
-import {retryFailedHostedCustomerFetches} from 'actions/hosted_customer';
 
 import './cloud_fetch_error.scss';
 
 export default function CloudFetchError() {
     const dispatch = useDispatch();
     const isCloud = useSelector(isCurrentLicenseCloud);
+    if (!isCloud) {
+        return null;
+    }
+
     return (<div className='CloudFetchError '>
         <div className='CloudFetchError__header '>
             <FormattedMessage
@@ -27,7 +30,7 @@ export default function CloudFetchError() {
         <button
             className='btn btn-primary'
             onClick={() => {
-                dispatch(isCloud ? retryFailedCloudFetches() : retryFailedHostedCustomerFetches());
+                dispatch(retryFailedCloudFetches());
             }}
         >
             <FormattedMessage
