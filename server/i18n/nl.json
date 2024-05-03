@@ -10100,5 +10100,13 @@
   {
     "id": "app.limits.get_server_limits.post_count.store_error",
     "translation": "Fout bij het ophalen van het aantal berichten"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "Kan het zip-bestand niet sluiten"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Fout bij het zoeken van het begin van exportbestand."
   }
 ]
