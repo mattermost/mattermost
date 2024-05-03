@@ -1337,7 +1337,7 @@ func (us SqlUserStore) VerifyEmail(userId, email string) (string, error) {
 	return userId, nil
 }
 
-func (us SqlUserStore) PermanentDelete(userId string) error {
+func (us SqlUserStore) PermanentDelete(rctx request.CTX, userId string) error {
 	if _, err := us.GetMasterX().Exec("DELETE FROM Users WHERE Id = ?", userId); err != nil {
 		return errors.Wrapf(err, "failed to delete User with userId=%s", userId)
 	}
@@ -1613,6 +1613,8 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 			}
 			termArgs = append(termArgs, fmt.Sprintf("%%%s%%", strings.TrimLeft(term, "@")))
 		}
+		searchFields = append(searchFields, "Id = ?")
+		termArgs = append(termArgs, strings.TrimLeft(term, "@"))
 		query = query.Where(fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")), termArgs...)
 	}
 

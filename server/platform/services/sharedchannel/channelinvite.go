@@ -72,6 +72,37 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 
 	msg := model.NewRemoteClusterMsg(TopicChannelInvite, json)
 
+	// onInvite is called after invite is sent, whether to a remote cluster or plugin.
+	onInvite := func(_ model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
+		if err != nil || !resp.IsSuccess() {
+			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, combineErrors(err, resp.Err)))
+			return
+		}
+
+		scr := &model.SharedChannelRemote{
+			ChannelId:         sc.ChannelId,
+			CreatorId:         userId,
+			RemoteId:          rc.RemoteId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			LastPostCreateAt:  model.GetMillis(),
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
+			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
+			return
+		}
+		scs.NotifyChannelChanged(sc.ChannelId)
+		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
+	}
+
+	if rc.IsPlugin() {
+		// for now plugins are considered fully invited automatically
+		// TODO: MM-57537 create plugin hook that passes invitation to plugins if BitflagOptionAutoInvited is not set
+		onInvite(msg, rc, &remotecluster.Response{Status: remotecluster.ResponseStatusOK}, nil)
+		return nil
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
 

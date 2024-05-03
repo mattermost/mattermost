@@ -188,7 +188,9 @@ func createCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var teams []*model.Team
 	if len(args) < 1 {
-		teamList, _, err := c.GetAllTeams(context.TODO(), "", 0, 10000)
+		teamList, err := getPages(func(page, numPerPage int, etag string) ([]*model.Team, *model.Response, error) {
+			return c.GetAllTeams(context.TODO(), etag, page, numPerPage)
+		}, DefaultPageSize)
 		if err != nil {
 			return err
 		}

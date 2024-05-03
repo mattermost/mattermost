@@ -1460,10 +1460,6 @@
     "translation": "Ditt lösenord måste innehålla minst {{.Min}} tecken med minst en liten bokstav och minst en siffra."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Ditt lösenord måste vara minst {{.Min}} tecken."
-  },
-  {
     "id": "model.user.is_valid.position.app_error",
     "translation": "Ogiltig position: får inte vara längre än 128 tecken."
   },
@@ -2752,10 +2748,6 @@
     "translation": "Din licens ger inte tillgång till SAML-autentisering."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Ett fel uppstod då svaret från Identity Provider skulle valideras. Kontakta din Systemadministratör."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Ett fel uppstod när svaret från Identity Provider skulle tolkas. Kontakta din Systemadministratör."
   },
@@ -2772,10 +2764,6 @@
     "translation": "Vi mottog ett tomt svar från Identity Providern."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Misslyckad inloggning via SAML då ett fel uppstod när svaret från Identity Provider skulle derypteras. Kontakta Systemadministratören."
-  },
-  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "Misslyckad inloggning via SAML då svaret från Identity Provider var okrypterat. Kontakta Systemadministratören."
   },
@@ -2784,16 +2772,8 @@
     "translation": "Misslyckad inloggning via SAML då Service Provider Private Key inte kunde hittas. Kontakta systemadministratören."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Filen med Identity Providerns publika Certifikat hittades inte. Kontakta din systemadministratör."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Misslyckad SAML-inloggning eftersom kryptering inte är aktiverad. Kontakta din systemadministratör."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Ett fel uppstod när förfrågan till Identity Provider skulle kodas. Kontakta din Systemadministratör."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2929,7 +2909,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Storleksbgränsen överskriden. Kolla inställningen [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Storleksbegränsningen överskriden. Öka inställningen för Maximum page size. Kolla https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded för mer information."
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -2946,10 +2926,6 @@
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "Kunde inte hämta alla användare med AD/LDAP."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "fel vid radering av grupp eller kanalmedlemskap"
   },
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
@@ -3306,10 +3282,6 @@
   {
     "id": "ent.cluster.config_changed.info",
     "translation": "Klusterkonfigurationen har ändrats för id={{ .id }}. Klustret kan blir instabilt och omstart krävs. För att säkerställa att klustret är rätt konfigurerat bör du göra en rullande omstart genast."
-  },
-  {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Kluster-API endpoint hittades inte."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -4505,7 +4477,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Kunde inte uppgradera websocket-anslutningen."
+    "translation": "URL:en är blockerad på grund av CORS. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -4872,46 +4844,6 @@
     "translation": "Svara i Mattermost"
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Din faktura för Mattermost Cloud förfaller"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Betalning för Matermost Cloud-prenumerationen förfaller"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Välj Betala nu för att kontrollera din faktura och lägga till betalmetoder."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Mattermost Cloud-fakturan för den senaste perioden har skapats. Men, vi saknar dina kort-uppgifter för betalning."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Betala nu"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Betalningen gick inte bra"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Åtgärd krävs: Betalning för Mattermost {{.Plan}} misslyckades"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "För att säkerställa en fortsatt tillgång på Mattermost {{.Plan}} bör du kontakta din kortutgivare för att åtgärda problemet, alternativt uppdatera dina betaluppgifter. När betalinformationen är uppdaterad kommer Mattermost försöka reglera eventuellt utestående saldo."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Följande anledning har angetts:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Den senaste betalningen med betalkort {{.CardBrand}} ****{{.LastFour}} som angetts för Mattermost Cloud workspace gick inte igenom."
-  },
-  {
     "id": "api.templates.password_change_subject",
     "translation": "[{{ .SiteName }}] Ditt lösenord är uppdaterat"
   },
@@ -5030,10 +4962,6 @@
   {
     "id": "api.templates.deactivate_body.info",
     "translation": "Du har stängt av ditt konto på {{ .SiteURL }}."
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -7663,10 +7591,6 @@
     "translation": "Det gick inte att ansluta till SMTP-servern"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Misslyckades att läsa bifogade filer vid export."
-  },
-  {
     "id": "app.export.export_attachment.zip_create_header.error",
     "translation": "Misslyckades att skapa zip-arkivet vid export."
   },
@@ -7721,10 +7645,6 @@
   {
     "id": "mfa.activate.app_error",
     "translation": "Kunde inte uppdatera aktiv MFA-status för användaren."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Inga mejl blev skickade"
   },
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
@@ -8169,10 +8089,6 @@
   {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "En eller flera meddelanden kunde inte bli levereras till den andra sajten {{.Remote}} eftersom den är offline. Meddelanden kommer levereras när sajten är online."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Ett fel uppstod när en direkt delad kanal skapades."
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
@@ -8770,14 +8686,6 @@
     "translation": "{{ .SenderName }} bjöd in dig att ansluta till kanalen {{ .ChannelName }} i teamet {{ .TeamDisplayName }}"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Du är nu uppgraderad!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Bekräftelse av uppgradering av Mattermost"
-  },
-  {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
     "translation": "SMTP är inte konfigurerat i systemkonsolen"
   },
@@ -8894,70 +8802,6 @@
     "translation": "Mattermost är en plattform med öppen källkod för säker kommunikation, samarbete och orkestrering av arbete över verktyg och team.\nMattermost innehåller tre viktiga verktyg:\n\n**Channels** - Håll kontakten med ditt team via 1:1 och gruppmeddelanden.\n**[Playbooks](/playbooks)** - Bygg och konfigurera repeterbara processer för att uppnå specifika och förutsägbara resultat.\n\n[Visa dokumentation och guider]({{.HelpLink}})"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Filer"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Betalning ej mottagen"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Kontakta din bank eller kortutgivare för att lösa eventuella problem. Uppdatera sedan dina betalningsuppgifter vid behov."
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Uppdatera betalningsinformation"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Vi har inte kunnat få betalt för utestående fakturor sedan {{.DelinquencyDate}}. Din arbetsyta riskerar att nedgraderas."
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "OBS: Din Mattermost {{.Plan}} kommer snart att nedgraderas"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Uppdatera betalningsinformation"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Din arbetsyta kommer snart att nedgraderas"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "Om ingen åtgärd vidtas kommer din arbetsyta att nedgraderas och följande uppgifter kan komma att arkiveras:"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "Du har fortfarande möjlighet att hålla din Mattermost {{.Plan}} aktiv, men du måste lösa problemen med betalning."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Agera för att behålla funktionerna i Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "Visa all dokumentation om gränsvärden."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Uppdatera betalningsinformation"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "Meddelandehistorik"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Vi kunde inte debitera det kreditkort som vi har registrerat. Detta innebär att din arbetsyta riskerar att nedgraderas till Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Betalningen för din Mattermost {{.Plan}} är försenad"
-  },
-  {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "SAML kunde inte ladda din Identity Providers Publika Certificat. Kontakta din systemadministratör."
   },
@@ -8988,134 +8832,6 @@
   {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "{{.UsersNum}} medlemmar i arbetsytan {{.WorkspaceName}} har önskat starta Enterprise trial för att få tillgång till: "
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "Abonnemanget är inte försenat"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "Kunde inte hämta molnprenumeration"
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Det går inte att hämta fram namnet på den aktuella planen"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "Kunde inte hämta molnprodukter"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Din Mattermost-arbetsyta har nedgraderats"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "Uppdatera betalningsinformationen om du vill ta tillbaka ditt data från arkivet och behålla betal-funktioner."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Dessutom kan dina data ha arkiverats på grund av begränsningar i Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "Om du använder Cloud Professional- eller Enterprise-funktioner för viktiga affärsaktiviteter kommer dessa inte längre att vara tillgängliga och du kommer att uppleva försämrad prestanda."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Din Mattermost Cloud-arbetsyta har nedgraderats"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Visa abonnemang och priser"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Uppdatera betalningsinformation"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Din arbetsyta kommer att nedgraderas om 15 dagar"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Uppdatera din betalningsinformation nu, eller nedgradera till Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Din arbetsplats kommer att nedgraderas till Cloud Free. Dina {{.Plan}}-funktioner kommer att spärras och delar av dina arbetsytedata kan komma att arkiveras tills hela ditt utestående belopp är betalt."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Detta är en sista påminnelse. Vi har inte mottagit betalning för din Mattermost Cloud-arbetsyta sedan {{.DelinquencyDate}}."
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Din Mattermost {{.Plan}} kommer att nedgraderas om 15 dagar"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Nedgradera till Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Uppdatera betalningsinformation"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Din betalning slutfördes inte"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "För att hålla din {{.Plan}}-plan aktiv, kontakta din bank eller kortutgivare så snart som möjligt. Uppdatera din betalningsinformation vid behov."
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Vi kunde inte behandla din senaste betalning."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Uppdatera betalningsinformation"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Din Mattermost-arbetsyta kommer att nedgraderas om 30 dagar"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Uppdatera din betalningsinformation nu eller nedgradera till Cloud Free nedan."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Vi nedgraderar din arbetsyta automatiskt om 30 dagar om vi inte kan behandla din betalning."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Uppdatera din betalningsinformation snarast så att utestående fakturor kan hanteras."
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "Åtgärder krävs: Arbetsytan kommer att nedgraderas inom 30 dagar"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Nedgradera till Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Uppdatera betalningsinformation"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Din arbetsyta kommer snart att nedgraderas"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Uppdatera din kreditkortsinformation nu."
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Information i obligatoriska fält saknas för att kunna skicka e-postmeddelanden om utebliven betalning."
   },
   {
     "id": "app.job.error",
@@ -9270,18 +8986,6 @@
     "translation": "Fel vid hämtning av roller vid valideringen."
   },
   {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "Visa fakturan"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "Din arbetsyta {{.WorkspaceName}} har nu uppgraderats."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "Din arbetsyta {{.WorkspaceName}} har nu uppgraderats. Du kommer att faktureras från och med {{.Date}}"
-  },
-  {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Ogiltiga attribut."
   },
@@ -9308,10 +9012,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_malformed",
     "translation": "Avkodningen av CA för Elasticsearch misslyckades"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "En nedgraderad arbetsyta kan få negativ påverkan på dina kritiska arbetsflöden och andra affärskritiska aktiviteter som utförs på arbetsytan."
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -9364,10 +9064,6 @@
   {
     "id": "api.system.logs.invalidFilter",
     "translation": "Felaktigt logg-filter"
-  },
-  {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "CWS-servern kunde inte radera arbetsytan."
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
@@ -9743,7 +9439,7 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.audience.error",
-    "translation": "Någon URL för Audience är felaktigt."
+    "translation": "Någon URL för Audience är felaktigt: {{ .Url }}"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
@@ -9830,10 +9526,6 @@
     "translation": "Du har inte behörighet att flytta tråden."
   },
   {
-    "id": "api.templates.cloud_renewal_60.subject",
-    "translation": "Förnyelse av årsabonnemang inom 60 dagar"
-  },
-  {
     "id": "app.compile_csv_chunks.header_error",
     "translation": "Det gick inte att skriva CSV-rubriker."
   },
@@ -9862,18 +9554,6 @@
     "translation": "Det går inte att få så många roller via namn. Endast {{.MaxNames}} roller kan efterfrågas per gång."
   },
   {
-    "id": "api.templates.cloud_renewal.button",
-    "translation": "Förnya nu"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.subject",
-    "translation": "Åtgärd krävs: Årlig prenumerationsförnyelse om 7 dagar"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.title",
-    "translation": "Du kommer att förlora åtkomsten till din arbetsyta om 7 dagar"
-  },
-  {
     "id": "app.channel.patch_channel_members_notify_props.app_error",
     "translation": "Kunde inte uppdatera notifieringsattribut för medlemmarna i kanalen."
   },
@@ -9882,24 +9562,8 @@
     "translation": "Kunde inte uppdatera så många kanalmedlemmar. Endast {{.Max}} kanalmedlemmar kan uppdateras samtidigt."
   },
   {
-    "id": "api.templates.cloud_renewal.subtitle",
-    "translation": "Förnya för att undvika avbrott"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.subject",
-    "translation": "Årlig faktura förfaller inom 30 dagar"
-  },
-  {
     "id": "api.team.user.missing_account",
     "translation": "Kunde inte hitta användaren."
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.title",
-    "translation": "Din årliga faktura förfaller om 30 dagar"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.title",
-    "translation": "Förnyelse av årsabonnemang inom 60 dagar"
   },
   {
     "id": "api.emoji.upload.seek.app_error",
@@ -9936,10 +9600,6 @@
   {
     "id": "model.user_report_options.is_valid.invalid_sort_column",
     "translation": "Den angivna sorteringskolumnen är inte giltig."
-  },
-  {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "Misslyckades att hämta antal användare"
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.one_message",
@@ -10003,7 +9663,7 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": "Det uppstod ett fel när den utgående oauth-anslutningen skulle uppdateras."
+    "translation": "Det uppstod ett fel när den utgående oauth-anslutningen skulle uppdateras: {{ .Error }}"
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
@@ -10047,7 +9707,7 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": "Det uppstod ett fel när den utgående oauth-anslutningen skulle sparas."
+    "translation": "Det uppstod ett fel när den utgående oauth-anslutningen skulle sparas: {{ .Error }}"
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
@@ -10068,5 +9728,365 @@
   {
     "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
     "translation": "Arkiveringstid av filer kan inte vara mindre än 0 timmar"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Ogiltig uppdatering av teammedlem: En gäst kan inte bli teammedlem eller teamadministratör. Gör gästen till användare först."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Ett fel uppstod när en utgående OAuth-anslutning skapades."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Ogiltiga inparametrar."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Ett fel uppstod när den utgående OAuth-anslutningen togs bort."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Utgående OAuth-anslutningar är inte tillgängliga på denna server."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Ett fel uppstod när den utgående OAuth-anslutning uppdaterades."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Ogiltiga inparametrar."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Ett fel uppstod när en utgående OAuth-anslutnings autentiseringsuppgifter validerades."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Kunde inte hämta autentiseringsuppgifter med den angivna anslutningens konfiguration."
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Ogiltigt e-posttoken"
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Externa användare kan inte bjudas in: {{.Error}}"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Systemadministratören har stängt av samverkan med Mattermost Customer Portal."
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Det går inte att lägga till användaren som medlem i kanalen."
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL är för lång"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "Det uppstod ett fel vid autentiseringen av den utgående OAuth-anslutningen: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "Det finns redan en utgående OAuth-anslutning för den angivna \"audience\"."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "Det finns ingen utgående OAuth-anslutning för angiven \"audience\"."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Utgående OAuth-anslutningar är inte tillgängliga på denna server."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "Det uppstod ett fel vid hämtningen av den utgående OAuth-anslutningen för angiven \"audience\"."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "Den utgående OAuth-anslutningen för angiven \"audience\" hittades inte."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Din licens stöder inte utgående OAuth-anslutningar."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "Det finns redan en utgående OAuth-anslutning för angiven \"audience\": {{ .Audience }}"
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Ogiltiga props (anpassad status)"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Ogiltig uppdatering av teammedlem: En gäst kan inte vara ett enskilt team, en systemadministratör måste befordra eller degradera användare till/från gäster."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "Angiven \"audience\" är ogiltig: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "Det finns redan en utgående OAuth-anslutning för angiven \"audience\": {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "Angiven \"audience\" är ogiltig: {{ .Error }}"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Din licens ger inte tillgång till bokmärken i kanaler."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Användaren är inte tillåten att skapa bokmärken i kanaler."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunde inte skapa bokmärke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Kunde inte skapa bokmärke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunde inte ta bort bokmärke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunde inte ta bort bokmärke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Kunde inte ta bort bokmärke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunde inte uppdatera bokmärket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunde inte uppdatera bokmärket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Kunde inte uppdatera bokmärket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunde inte ta uppdatera sorteringsordningen av bokmärken i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunde inte ta uppdatera sorteringsordningen av bokmärken i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Kunde inte ta uppdatera sorteringsordningen av bokmärken i kanalen."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Ogiltig uppdatering av kanalmedlem: En gäst kan inte bli teammedlem eller teamadministratör, gör till användare först."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Ogiltig uppdatering av kanalmedlem: En gäst kan inte ansvara för en kanal. En systemadministratör behöver göra gästen till användare först."
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "Kunde inte ta bort bokmärket."
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "Kunde inte hämta bokmärken."
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "Kunde inte spara bokmärket."
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "Kunde inte uppdatera bokmärket."
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "Kunde inte hitta befintligt bokmärke att uppdatera."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "Kunde inte sortera bokmärken."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "Kunde inte sortera bokmärken. Felaktig inmatning."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "Kunde inte sortera bokmärket. Hittades inte."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "Ogiltigt kanal-id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "\"Create at\" måste vara en giltig tid."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "Displaynamn saknas."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "Fil-ID saknas eller är ogiltigt."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Ogiltigt id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "Ogiltig URL för bild."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Det går inte att ange en länk och en fil i samma bokmärke."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "Länkens url saknas eller är ogiltig."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "Ogiltigt originalpost-id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "Ogiltigt ägar-ID."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "Ogiltigt parent-id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "Ogiltig typ."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "\"Update at\" måste vara en giltig tid."
+  },
+  {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "Ditt Elasticsearch-indexschema för kanaler är föråldrat. En omindexering av kanal-index rekommenderas.\nKlicka på knappen `Rebuild Channels Index` i [Elasticsearch-avsnittet i systemkonsolen] ({{.ElasticsearchSection}}) för att åtgärda problemet.\nSe Mattermost changelog för mer information."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Autokomplettering av kanaler kan inte aktiveras eftersom indexschemat för kanaler är föråldrat. Vi rekommenderar att du omindexerar ditt kanalindex. Se Mattermost changelog för mer information"
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "Funktionen för listrensning är inte tillgänglig för Bleve."
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "Misslyckades med att ta bort ett Elasticsearch-index"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "Misslyckades att radera ett okänt index"
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Kan inte få fram sidan med scheman."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Ogiltigt schema."
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Importdataraden är av typen \"roll\" men rollobjektet är tomt."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Kan inte aktivera användare. Servern överskrider gränsen för säkra användare. Kontakta din administratör med: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Kan inte skapa användare. Servern överskrider gränsen för säkra användare. Kontakta din administratör med: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Kan inte hämta senast använda sessioner."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Authentication Transfer är inte tillgänglig eftersom e-postregistrering är inaktiverad."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Authentication Transfer är inte tillgänglig eftersom varken e-postinloggning eller inloggning med användarnamn är aktiverad."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Misslyckades att tolka begäran"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Misslyckades med att återansluta plugin"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Saknar konfiguration för att återansluta plugin"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Saknat manifest"
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Fel vid sökning av fil: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Fel när status skulle läsas på filen: \"{{.FilePath}}\""
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Ditt lösenord får inte innehålla mer än 72 tecken."
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Ditt lösenord måste innehålla minst {{.Min}} tecken."
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Misslyckades att hämta antal användare"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "Misslyckades med att hämta antal inlägg"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "Omnämnandet av @{{.Username}} gav ingen notifiering eftersom hen inte är medlem i detta team."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "Omnämnandet av @{{.Usernames}} och @{{.LastUsername}} ga ingen notifiering till dem eftersom de inte är medlemmar i detta team."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Saknar display_name i request-meddelandet"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Saknar team_id i request-meddelandet"
   }
 ]

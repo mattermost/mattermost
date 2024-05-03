@@ -340,10 +340,6 @@ func (c *Client4) cloudRoute() string {
 	return "/cloud"
 }
 
-func (c *Client4) hostedCustomerRoute() string {
-	return "/hosted_customer"
-}
-
 func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
@@ -584,8 +580,12 @@ func (c *Client4) permissionsRoute() string {
 	return "/permissions"
 }
 
-func (c *Client4) limitsRoute() string {
-	return "/limits"
+func (c *Client4) bookmarksRoute(channelId string) string {
+	return c.channelRoute(channelId) + "/bookmarks"
+}
+
+func (c *Client4) bookmarkRoute(channelId, bookmarkId string) string {
+	return fmt.Sprintf(c.bookmarksRoute(channelId)+"/%v", bookmarkId)
 }
 
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
@@ -1086,7 +1086,7 @@ func (c *Client4) GetUsers(ctx context.Context, page int, perPage int, etag stri
 	return list, BuildResponse(r), nil
 }
 
-// GetUsersWithChannelRoles returns a page of users on the system. Page counting starts at 0.
+// GetUsersWithCustomQueryParameters returns a page of users on the system. Page counting starts at 0.
 func (c *Client4) GetUsersWithCustomQueryParameters(ctx context.Context, page int, perPage int, queryParameters, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&%v", page, perPage, queryParameters)
 	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
@@ -1099,7 +1099,7 @@ func (c *Client4) GetUsersWithCustomQueryParameters(ctx context.Context, page in
 		return list, BuildResponse(r), nil
 	}
 	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
-		return nil, nil, NewAppError("GetUsers", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("GetUsersWithCustomQueryParameters", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return list, BuildResponse(r), nil
 }
@@ -7344,6 +7344,36 @@ func (c *Client4) InstallMarketplacePlugin(ctx context.Context, request *Install
 	return &m, BuildResponse(r), nil
 }
 
+// ReattachPlugin asks the server to reattach to a plugin launched by another process.
+//
+// Only available in local mode, and currently only used for testing.
+func (c *Client4) ReattachPlugin(ctx context.Context, request *PluginReattachRequest) (*Response, error) {
+	buf, err := json.Marshal(request)
+	if err != nil {
+		return nil, NewAppError("ReattachPlugin", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPost(ctx, c.pluginsRoute()+"/reattach", string(buf))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
+// DetachPlugin detaches a previously reattached plugin.
+//
+// Only available in local mode, and currently only used for testing.
+func (c *Client4) DetachPlugin(ctx context.Context, pluginID string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.pluginRoute(pluginID)+"/detach", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
 // GetPlugins will return a list of plugin manifests for currently active plugins.
 func (c *Client4) GetPlugins(ctx context.Context) (*PluginsResponse, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.pluginsRoute(), "")
@@ -7650,6 +7680,19 @@ func (c *Client4) PatchGroup(ctx context.Context, groupID string, patch *GroupPa
 		return nil, nil, NewAppError("PatchGroup", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &g, BuildResponse(r), nil
+}
+
+func (c *Client4) GetGroupMembers(ctx context.Context, groupID string) (*GroupMemberList, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.groupRoute(groupID)+"/members", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var ml GroupMemberList
+	if err := json.NewDecoder(r.Body).Decode(&ml); err != nil {
+		return nil, nil, NewAppError("UpsertGroupMembers", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &ml, BuildResponse(r), nil
 }
 
 func (c *Client4) UpsertGroupMembers(ctx context.Context, groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
@@ -8254,50 +8297,6 @@ func (c *Client4) GetMyIP(ctx context.Context) (*GetIPAddressResponse, *Response
 	return response, BuildResponse(r), nil
 }
 
-func (c *Client4) CreateCustomerPayment(ctx context.Context) (*StripeSetupIntent, *Response, error) {
-	r, err := c.DoAPIPost(ctx, c.cloudRoute()+"/payment", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var setupIntent *StripeSetupIntent
-	json.NewDecoder(r.Body).Decode(&setupIntent)
-
-	return setupIntent, BuildResponse(r), nil
-}
-
-func (c *Client4) ConfirmCustomerPayment(ctx context.Context, confirmRequest *ConfirmPaymentMethodRequest) (*Response, error) {
-	json, err := json.Marshal(confirmRequest)
-	if err != nil {
-		return nil, NewAppError("ConfirmCustomerPayment", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.cloudRoute()+"/payment/confirm", json)
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return BuildResponse(r), nil
-}
-
-func (c *Client4) RequestCloudTrial(ctx context.Context, cloudTrialRequest *StartCloudTrialRequest) (*Subscription, *Response, error) {
-	payload, err := json.Marshal(cloudTrialRequest)
-	if err != nil {
-		return nil, nil, NewAppError("RequestCloudTrial", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.cloudRoute()+"/request-trial", payload)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var subscription *Subscription
-	json.NewDecoder(r.Body).Decode(&subscription)
-
-	return subscription, BuildResponse(r), nil
-}
-
 func (c *Client4) ValidateWorkspaceBusinessEmail(ctx context.Context) (*Response, error) {
 	r, err := c.DoAPIPost(ctx, c.cloudRoute()+"/validate-workspace-business-email", "")
 	if err != nil {
@@ -8364,19 +8363,6 @@ func (c *Client4) GetCloudCustomer(ctx context.Context) (*CloudCustomer, *Respon
 	return cloudCustomer, BuildResponse(r), nil
 }
 
-func (c *Client4) GetSubscriptionStatus(ctx context.Context, licenseId string) (*SubscriptionLicenseSelfServeStatusResponse, *Response, error) {
-	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s%s?licenseID=%s", c.cloudRoute(), "/subscription/self-serve-status", licenseId), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var status *SubscriptionLicenseSelfServeStatusResponse
-	json.NewDecoder(r.Body).Decode(&status)
-
-	return status, BuildResponse(r), nil
-}
-
 func (c *Client4) GetSubscription(ctx context.Context) (*Subscription, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.cloudRoute()+"/subscription", "")
 	if err != nil {
@@ -8435,23 +8421,6 @@ func (c *Client4) UpdateCloudCustomerAddress(ctx context.Context, address *Addre
 	json.NewDecoder(r.Body).Decode(&customer)
 
 	return customer, BuildResponse(r), nil
-}
-
-func (c *Client4) BootstrapSelfHostedSignup(ctx context.Context, req BootstrapSelfHostedSignupRequest) (*BootstrapSelfHostedSignupResponse, *Response, error) {
-	reqBytes, err := json.Marshal(req)
-	if err != nil {
-		return nil, nil, NewAppError("BootstrapSelfHostedSignup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.hostedCustomerRoute()+"/bootstrap", reqBytes)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var res *BootstrapSelfHostedSignupResponse
-	json.NewDecoder(r.Body).Decode(&res)
-
-	return res, BuildResponse(r), nil
 }
 
 func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) {
@@ -8742,96 +8711,6 @@ func (c *Client4) GetTeamsUsage(ctx context.Context) (*TeamsUsage, *Response, er
 	return usage, BuildResponse(r), err
 }
 
-func (c *Client4) SelfHostedSignupAvailable(ctx context.Context) (*Response, error) {
-	r, err := c.DoAPIGet(ctx, c.hostedCustomerRoute()+"/signup_available", "")
-
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return BuildResponse(r), nil
-}
-
-func (c *Client4) SelfHostedSignupCustomer(ctx context.Context, form *SelfHostedCustomerForm) (*Response, *SelfHostedSignupCustomerResponse, error) {
-	payloadBytes, err := json.Marshal(form)
-	if err != nil {
-		return nil, nil, NewAppError("SelfHostedSignupCustomer", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPost(ctx, c.hostedCustomerRoute()+"/customer", string(payloadBytes))
-
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-	defer closeBody(r)
-
-	response := SelfHostedSignupCustomerResponse{}
-	err = json.Unmarshal(data, &response)
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-
-	return BuildResponse(r), &response, nil
-}
-
-func (c *Client4) SelfHostedSignupConfirm(ctx context.Context, form *SelfHostedConfirmPaymentMethodRequest) (*Response, *SelfHostedSignupConfirmClientResponse, error) {
-	payloadBytes, err := json.Marshal(form)
-	if err != nil {
-		return nil, nil, NewAppError("SelfHostedSignupConfirm", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPost(ctx, c.hostedCustomerRoute()+"/confirm", string(payloadBytes))
-
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-	defer closeBody(r)
-
-	response := SelfHostedSignupConfirmClientResponse{}
-	err = json.Unmarshal(data, &response)
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-
-	defer closeBody(r)
-
-	return BuildResponse(r), &response, nil
-}
-
-func (c *Client4) GetSelfHostedInvoices(ctx context.Context) (*Response, []*Invoice, error) {
-	r, err := c.DoAPIGet(ctx, c.hostedCustomerRoute()+"/invoices", "")
-
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-	defer closeBody(r)
-
-	invoices := []*Invoice{}
-	err = json.Unmarshal(data, &invoices)
-	if err != nil {
-		return BuildResponse(r), nil, err
-	}
-
-	defer closeBody(r)
-
-	return BuildResponse(r), invoices, nil
-}
-
 func (c *Client4) GetPostInfo(ctx context.Context, postId string) (*PostInfo, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.postRoute(postId)+"/info", "")
 	if err != nil {
@@ -8888,32 +8767,84 @@ func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Respo
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) SubmitTrueUpReview(ctx context.Context, req map[string]any) (*Response, error) {
-	reqBytes, err := json.Marshal(req)
+// CreateChannelBookmark creates a channel bookmark based on the provided struct.
+func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmark, *Response, error) {
+	channelBookmarkJSON, err := json.Marshal(channelBookmark)
 	if err != nil {
-		return nil, NewAppError("SubmitTrueUpReview", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("CreateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(ctx, c.licenseRoute()+"/review", reqBytes)
-	if err != nil {
-		return BuildResponse(r), nil
-	}
-	defer closeBody(r)
-
-	return BuildResponse(r), nil
-}
-
-func (c *Client4) GetUserLimits(ctx context.Context) (*UserLimits, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	r, err := c.DoAPIPostBytes(ctx, c.bookmarksRoute(channelBookmark.ChannelId), channelBookmarkJSON)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var userLimits UserLimits
-	if r.StatusCode == http.StatusNotModified {
-		return &userLimits, BuildResponse(r), nil
+	var cb ChannelBookmark
+	if err := json.NewDecoder(r.Body).Decode(&cb); err != nil {
+		return nil, nil, NewAppError("CreateChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if err := json.NewDecoder(r.Body).Decode(&userLimits); err != nil {
-		return nil, nil, NewAppError("GetUserLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	return &cb, BuildResponse(r), nil
+}
+
+// UpdateChannelBookmark updates a channel bookmark based on the provided struct.
+func (c *Client4) UpdateChannelBookmark(ctx context.Context, channelId, bookmarkId string, patch *ChannelBookmarkPatch) (*UpdateChannelBookmarkResponse, *Response, error) {
+	buf, err := json.Marshal(patch)
+	if err != nil {
+		return nil, nil, NewAppError("UpdateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return &userLimits, BuildResponse(r), nil
+	r, err := c.DoAPIPatchBytes(ctx, c.bookmarkRoute(channelId, bookmarkId), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var ucb UpdateChannelBookmarkResponse
+	if err := json.NewDecoder(r.Body).Decode(&ucb); err != nil {
+		return nil, nil, NewAppError("UpdateChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &ucb, BuildResponse(r), nil
+}
+
+// UpdateChannelBookmarkSortOrder updates a channel bookmark's sort order based on the provided new index.
+func (c *Client4) UpdateChannelBookmarkSortOrder(ctx context.Context, channelId, bookmarkId string, sortOrder int64) ([]*ChannelBookmarkWithFileInfo, *Response, error) {
+	buf, err := json.Marshal(sortOrder)
+	if err != nil {
+		return nil, nil, NewAppError("UpdateChannelBookmarkSortOrder", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, c.bookmarkRoute(channelId, bookmarkId)+"/sort_order", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var b []*ChannelBookmarkWithFileInfo
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+		return nil, nil, NewAppError("UpdateChannelBookmarkSortOrder", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return b, BuildResponse(r), nil
+}
+
+// DeleteChannelBookmark deletes a channel bookmark.
+func (c *Client4) DeleteChannelBookmark(ctx context.Context, channelId, bookmarkId string) (*ChannelBookmarkWithFileInfo, *Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.bookmarkRoute(channelId, bookmarkId))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var b *ChannelBookmarkWithFileInfo
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+		return nil, nil, NewAppError("DeleteChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return b, BuildResponse(r), nil
+}
+
+func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId string, since int64) ([]*ChannelBookmarkWithFileInfo, *Response, error) {
+	query := fmt.Sprintf("?bookmarks_since=%v", since)
+	r, err := c.DoAPIGet(ctx, c.bookmarksRoute(channelId)+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var b []*ChannelBookmarkWithFileInfo
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+		return nil, nil, NewAppError("ListChannelBookmarksForChannel", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return b, BuildResponse(r), nil
 }

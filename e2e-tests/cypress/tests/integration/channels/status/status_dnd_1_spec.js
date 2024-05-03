@@ -11,6 +11,7 @@
 
 describe('DND Status - Setting Your Own DND Status', () => {
     const dndTimes = [
+        'dndTime-dont_clear_menuitem',
         'dndTime-thirty_minutes_menuitem',
         'dndTime-one_hour_menuitem',
         'dndTime-two_hours_menuitem',
@@ -29,7 +30,7 @@ describe('DND Status - Setting Your Own DND Status', () => {
 
     it('MM-8497_1 Set status DND with predefined end times', () => {
         // # Loop through all predefined end times and verify them
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 5; i++) {
             // # Open status dropdown menu and hover over Do Not Disturb option
             openDndStatusSubMenu();
 

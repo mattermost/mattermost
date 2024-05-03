@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {render, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import PostEmoji from './post_emoji';
 
@@ -14,16 +14,16 @@ describe('PostEmoji', () => {
     };
 
     test('should render image when imageUrl is provided', () => {
-        render(<PostEmoji {...baseProps}/>);
+        renderWithContext(<PostEmoji {...baseProps}/>);
 
-        expect(screen.getByTitle(':' + baseProps.name + ':')).toBeInTheDocument();
-        expect(screen.getByTitle(':' + baseProps.name + ':')).toHaveStyle(`backgroundImage: url(${baseProps.imageUrl})}`);
+        expect(screen.queryByTestId('postEmoji.:' + baseProps.name + ':')).toBeInTheDocument();
+        expect(screen.queryByTestId('postEmoji.:' + baseProps.name + ':')).toHaveStyle(`backgroundImage: url(${baseProps.imageUrl})}`);
     });
 
     test('should render shortcode text within span when imageUrl is provided', () => {
-        render(<PostEmoji {...baseProps}/>);
+        renderWithContext(<PostEmoji {...baseProps}/>);
 
-        expect(screen.getByTitle(':' + baseProps.name + ':')).toHaveTextContent(`:${baseProps.name}:`);
+        expect(screen.queryByTestId('postEmoji.:' + baseProps.name + ':')).toHaveTextContent(`:${baseProps.name}:`);
     });
 
     test('should render original text when imageUrl is empty', () => {
@@ -32,9 +32,9 @@ describe('PostEmoji', () => {
             imageUrl: '',
         };
 
-        render(<PostEmoji {...props}/>);
+        renderWithContext(<PostEmoji {...props}/>);
 
-        expect(screen.queryByTitle(':' + baseProps.name + ':')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('postEmoji.:' + baseProps.name + ':')).not.toBeInTheDocument();
         expect(screen.getByText(`:${props.name}:`)).toBeInTheDocument();
     });
 });

@@ -16,29 +16,34 @@ type OverlayTriggerProps = ComponentProps<typeof OverlayTrigger>;
 type WithTooltipProps = {
     children: OverlayTriggerProps['children'];
     placement: OverlayTriggerProps['placement'];
+    onShow?: () => void;
 } & CommonTooltipProps;
 const WithTooltip = ({
     id,
     title,
     emoji,
+    emojiStyle,
     hint,
     shortcut,
     placement,
+    onShow,
     children,
 }: WithTooltipProps) => {
     const ThisTooltip = useMemo(() => createTooltip({
         id,
         title,
         emoji,
+        emojiStyle,
         hint,
         shortcut,
-    }), [id, title, emoji, hint, shortcut]);
+    }), [id, title, emoji, emojiStyle, hint, shortcut]);
 
     return (
         <OverlayTrigger
             delay={Constants.OVERLAY_TIME_DELAY}
             overlay={<ThisTooltip/>}
             placement={placement}
+            onEnter={onShow}
         >
             {children}
         </OverlayTrigger>

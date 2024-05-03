@@ -50,7 +50,14 @@ func (ts *TeamService) createDefaultChannels(rctx request.CTX, teamID string) ([
 	channels := []*model.Channel{}
 	defaultChannelNames := ts.DefaultChannelNames()
 	for _, name := range defaultChannelNames {
-		displayName := i18n.TDefault(displayNames[name], name)
+		var displayName string
+		if displayNameValue, ok := displayNames[name]; ok {
+			displayName = i18n.TDefault(displayNameValue, name)
+		} else {
+			// If the default channel is experimental (from config.json)
+			// we don't have to translate
+			displayName = name
+		}
 		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.ChannelTypeOpen, TeamId: teamID}
 		// We should use the channel service here (coming soon). Ideally, we should just emit an event
 		// and let the subscribers do the job, in this case it would be the channels service.

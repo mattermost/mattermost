@@ -100,24 +100,26 @@ const AddUsersToGroupModal = (props: Props) => {
             id='addUsersToGroupsModal'
         >
             <Modal.Header closeButton={true}>
-                <button
-                    type='button'
-                    className='modal-header-back-button btn btn-icon'
-                    aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
-                    onClick={goBack}
-                >
-                    <i className='icon icon-arrow-left'/>
-                </button>
-                <Modal.Title
-                    componentClass='h1'
-                    id='addUsersToGroupsModalLabel'
-                >
-                    <FormattedMessage
-                        id='user_groups_modal.addPeopleTitle'
-                        defaultMessage='Add people to {group}'
-                        values={titleValue}
-                    />
-                </Modal.Title>
+                <div className='d-flex align-items-center'>
+                    <button
+                        type='button'
+                        className='modal-header-back-button btn btn-icon'
+                        aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
+                        onClick={goBack}
+                    >
+                        <i className='icon icon-arrow-left'/>
+                    </button>
+                    <Modal.Title
+                        componentClass='h1'
+                        id='addUsersToGroupsModalLabel'
+                    >
+                        <FormattedMessage
+                            id='user_groups_modal.addPeopleTitle'
+                            defaultMessage='Add people to {group}'
+                            values={titleValue}
+                        />
+                    </Modal.Title>
+                </div>
             </Modal.Header>
             <Modal.Body
                 className='overflow--visible'
