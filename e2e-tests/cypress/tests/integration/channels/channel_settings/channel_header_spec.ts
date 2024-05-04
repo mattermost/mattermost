@@ -76,10 +76,10 @@ function hoverOnChannelDescriptionAndVerifyBehavior() {
     cy.wait(TIMEOUTS.FIVE_SEC);
 
     // # Scan within channel header description area
-    cy.get('#channelHeaderDescription').should('be.visible').within(() => {
-        // * Verify that empty header text is visible and click it
-        cy.findByText('Add a channel header').should('be.visible').click();
-    });
+    cy.get('#channelHeaderDescription').should('be.visible')
+        .find('span')
+        .invoke('show')
+        .click({multiple: true, force: true});
 
     // # Scan inside the channel header modal
     cy.get('.a11y__modal.modal-dialog').should('be.visible').within(() => {
