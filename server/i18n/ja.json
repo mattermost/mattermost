@@ -10064,5 +10064,29 @@
   {
     "id": "model.user.is_valid.pwd_min_length.app_error",
     "translation": "パスワードは{{.Min}}文字以上でなければなりません。"
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "ファイル探索エラー: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "ファイルステータスの読み込みエラー： \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "ユーザー数を取得できませんでした"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "投稿数を取得できませんでした"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "ZIPファイルをクローズできませんでした"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "エクスポートファイルの開始位置が見つかりませんでした。"
   }
 ]
