@@ -44,6 +44,10 @@ jobs:
       BRANCH: "${{ steps.resolve-ref.outputs.BRANCH }}"
     env:
       PR_NUMBER: "${{ inputs.PR_NUMBER }}"
+    permissions:
+      pull-requests: read  # Allow curl request to /repos/repository/pulls
+      contents: read       # Allow checkout of repository
+    timeout-minutes: 2
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -83,6 +87,7 @@ jobs:
         --excludeGroup="@te_only,@cloud_only,@high_availability"
         --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap"
         --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
+    timeout-minutes: 1
     steps:
       - name: ci/generate-test-variables
         id: generate

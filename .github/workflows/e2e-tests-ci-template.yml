@@ -66,6 +66,7 @@ on:
 
 jobs:
   update-initial-status:
+    timeout-minutes: 1
     runs-on: ubuntu-22.04
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
@@ -80,6 +81,7 @@ jobs:
 
   cypress-check:
     runs-on: ubuntu-22.04
+    timeout-minutes: 1
     needs:
       - update-initial-status
     defaults:
@@ -111,6 +113,7 @@ jobs:
 
   playwright-check:
     runs-on: ubuntu-22.04
+    timeout-minutes: 1
     needs:
       - update-initial-status
     defaults:
@@ -148,6 +151,7 @@ jobs:
 
   generate-build-variables:
     runs-on: ubuntu-22.04
+    timeout-minutes: 2
     needs:
       - update-initial-status
     outputs:
@@ -168,6 +172,7 @@ jobs:
 
   generate-test-cycle:
     runs-on: ubuntu-22.04
+    timeout-minutes: 3
     needs:
       - update-initial-status
     defaults:
@@ -280,6 +285,7 @@ jobs:
 
   report:
     runs-on: ubuntu-22.04
+    timeout-minutes: 5
     needs:
       - test
     defaults:
@@ -332,6 +338,7 @@ jobs:
           make publish-report
 
   update-failure-final-status:
+    timeout-minutes: 1
     runs-on: ubuntu-22.04
     if: failure() || cancelled()
     needs:
@@ -352,6 +359,7 @@ jobs:
           target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
 
   update-success-final-status:
+    timeout-minutes: 1
     runs-on: ubuntu-22.04
     if: success()
     needs:
