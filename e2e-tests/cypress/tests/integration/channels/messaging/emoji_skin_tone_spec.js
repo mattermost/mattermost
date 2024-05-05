@@ -43,14 +43,14 @@ describe('Messaging', () => {
 
                 // * Check if gesture with skin tone is visible
                 cy.getLastPost().within(() => {
-                    cy.get(`span[data-emoticon] span`).should('be.visible').should('have.attr', 'alt', gesture + skinTone);
+                    cy.get('span[data-emoticon] span').should('be.visible').should('have.attr', 'alt', gesture + skinTone);
                 });
 
                 // # Set viewport to mobile
                 cy.viewport('iphone-se2');
 
                 // * Check if gesture with skin tone is visible
-                cy.get(`span[data-emoticon] span`).should('be.visible');
+                cy.get('span[data-emoticon] span').should('be.visible');
             });
         });
     });
