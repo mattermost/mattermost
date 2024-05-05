@@ -46,7 +46,7 @@ describe('Verify Accessibility Support in different Buttons', () => {
             });
     });
 
-    it.only('MM-T1461 Accessibility Support in different buttons in Channel Header', () => {
+    it('MM-T1461 Accessibility Support in different buttons in Channel Header', () => {
         // # Ensure the focus is on the Toggle Favorites button
         cy.uiGetChannelFavoriteButton().
             focus().
