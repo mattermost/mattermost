@@ -9827,6 +9827,10 @@
     "translation": "Unable to find the existing channel."
   },
   {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "A team with this URL already exists."
+  },
+  {
     "id": "store.sql_channel.save.archived_channel.app_error",
     "translation": "You can not modify an archived channel."
   },
