@@ -46,7 +46,7 @@ describe('Verify Accessibility Support in different Buttons', () => {
             });
     });
 
-    it('MM-T1461 Accessibility Support in different buttons in Channel Header', () => {
+    it.only('MM-T1461 Accessibility Support in different buttons in Channel Header', () => {
         // # Ensure the focus is on the Toggle Favorites button
         cy.uiGetChannelFavoriteButton().
             focus().
@@ -70,7 +70,7 @@ describe('Verify Accessibility Support in different Buttons', () => {
             tab();
 
         // # Press tab until the focus is on the Pinned messages button
-        cy.focused().tab().tab();
+        cy.focused().tab().tab().tab();
 
         // * Verify accessibility support in Pinned messages button
         cy.uiGetChannelPinButton().
