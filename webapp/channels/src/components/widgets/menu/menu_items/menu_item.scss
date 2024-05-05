@@ -46,8 +46,15 @@
             line-height: 16px;
         }
 
+        div.text{
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         span.MenuItem__primary-text {
             display: inline-flex;
+            max-width: 100%;
             padding: 5px 0;
             line-height: 22px;
             white-space: nowrap;
