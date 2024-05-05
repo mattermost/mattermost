@@ -22,8 +22,10 @@ describe('Main menu', () => {
         cy.get('li.MenuItem').
             contains(text).
             scrollIntoView().
+
         // * Verify link opens in new tab
             should('have.attr', 'target', '_blank').
+
         // * Verify link text matches correct href value
             should('have.attr', 'href').
             and('contain', link);

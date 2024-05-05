@@ -48,8 +48,8 @@ describe('Keyboard Shortcuts', () => {
             cy.get('.status--group').click();
 
             // * Check if channel intro message with usernames is visible
-            cy.get('.channel-intro__text').contains('This is the start of your group message history with these teammates')
-              .should('be.visible');
+            cy.get('.channel-intro__text').contains('This is the start of your group message history with these teammates').
+                should('be.visible');
 
             cy.get('.channel-intro__title').contains(secondUser.username).contains(thirdUser.username);
         });

@@ -158,6 +158,7 @@ describe('Customization', () => {
 
     it('MM-T1029 - Custom branding text can render markdown text', () => {
         const emojiText = getRandomId(3);
+
         // # Visit emoji system console page
         cy.visit('/admin_console/site_config/emoji');
         cy.get('.admin-console__header').should('be.visible').and('have.text', 'Emoji');
@@ -216,7 +217,6 @@ describe('Customization', () => {
         cy.url().should('include', '/login');
 
         cy.get('.login-body-custom-branding-markdown').first().scrollIntoView().should('be.visible').within(() => {
-
             // * Ensure default emoji has been rendered
             cy.get('span.emoticon').should('have.attr', 'alt', ':smile:');
 
