@@ -388,7 +388,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRolesAddCmdF() {
 		}
 
 		foundUser2 := &model.User{
-			Id:    "randomID",
+			Id:    model.NewId(),
 			Email: "foundUser2@email.com",
 		}
 
