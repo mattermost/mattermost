@@ -162,7 +162,6 @@ describe('User Management', () => {
         if (activate) {
             // # Click on the "Activate" button.
             cy.get('#actionMenuItem-systemUsersTable-0-active').click().wait(TIMEOUTS.HALF_SEC);
-
         } else {
             // # Click on the "Deactivate" button.
             cy.get('#actionMenuItem-systemUsersTable-0-deactivate').click().wait(TIMEOUTS.HALF_SEC);
