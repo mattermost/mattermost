@@ -5,6 +5,9 @@ package commands
 
 import (
 	"context"
+
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
@@ -40,12 +43,12 @@ func init() {
 func channelUsersRolesAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	if len(args) < 3 {
-		return errors.New("Not enough arguments")
+		return errors.New("not enough arguments")
 	}
 
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
-		return errors.Errorf("Unable to find channel %q", args[0])
+		return errors.Errorf("unable to find channel %s", args[0])
 	}
 
 	// Store roles
@@ -66,7 +69,7 @@ func channelUsersRolesAddCmdF(c client.Client, cmd *cobra.Command, args []string
 		case "scheme_guest":
 			isGuest = true
 		default:
-			return errors.Errorf("Role doesn't exist: %s", role)
+			return errors.Errorf("role doesn't exist: %s", role)
 		}
 	}
 
@@ -78,18 +81,19 @@ func channelUsersRolesAddCmdF(c client.Client, cmd *cobra.Command, args []string
 	var multiErrors *multierror.Error
 
 	for _, email := range emails {
-		user, _, err := c.GetUserByEmail(context.TODO(), email, "")
+		user, _, _ := c.GetUserByEmail(context.TODO(), email, "")
 
-		if err != nil {
-			multiErrors = multierror.Append(multiErrors, err)
+		if user == nil {
+			multiErrors = multierror.Append(multiErrors, errors.Errorf("user doesn't exist: %s", email))
 			continue
 		}
 
 		userIds = append(userIds, user.Id)
 
-		_, _, err = c.GetChannelMember(context.TODO(), channel.Id, user.Id, "")
-		if err != nil {
-			multiErrors = multierror.Append(multiErrors, err)
+		chanMem, _, _ := c.GetChannelMember(context.TODO(), channel.Id, user.Id, "")
+
+		if chanMem == nil {
+			multiErrors = multierror.Append(multiErrors, errors.Errorf("user is not member of channel: %s", email))
 			continue
 		}
 	}
@@ -113,5 +117,6 @@ func channelUsersRolesAddCmdF(c client.Client, cmd *cobra.Command, args []string
 		}
 	}
 
+	printer.Print("Successfully updated member roles")
 	return nil
 }
