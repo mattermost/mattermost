@@ -10088,5 +10088,13 @@
   {
     "id": "app.limits.get_server_limits.post_count.store_error",
     "translation": "Anzahl der Beiträge konnte nicht ermittelt werden"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "Konnte die ZIP-Datei nicht schließen"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Kann nicht zum Anfang der Exportdatei suchen."
   }
 ]
