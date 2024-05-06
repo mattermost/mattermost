@@ -22,7 +22,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
     const {SiteName} = useSelector(getConfig);
     const license = useSelector(getLicense);
 
-    const ariaLabel = SiteName ? SiteName : 'Mattermost';
+    const ariaLabel = SiteName || 'Mattermost';
 
     let freeBanner = null;
     if (license.IsLicensed === 'false') {
