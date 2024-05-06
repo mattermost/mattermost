@@ -2542,7 +2542,6 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.configIsFalse('FeatureFlags', 'PostPriority'),
                         },
                         {
                             type: 'bool',
@@ -2561,10 +2560,7 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('FeatureFlags', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                            ),
+                            isHidden: it.configIsFalse('ServiceSettings', 'PostPriority'),
                         },
                         {
                             type: 'number',
@@ -2584,7 +2580,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                             isHidden: it.any(
-                                it.configIsFalse('FeatureFlags', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
                             ),
@@ -2607,7 +2602,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                             isHidden: it.any(
-                                it.configIsFalse('FeatureFlags', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
                             ),
@@ -2631,7 +2625,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                             isHidden: it.any(
-                                it.configIsFalse('FeatureFlags', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
                             ),
@@ -2655,7 +2648,6 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                             isHidden: it.any(
                                 it.configIsFalse('GuestAccountsSettings', 'Enable'),
-                                it.configIsFalse('FeatureFlags', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
                             ),
@@ -6202,6 +6194,13 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalSettings.DisableRefetchingOnBrowserFocus',
                             label: defineMessage({id: 'admin.experimental.disableRefetchingOnBrowserFocus.title', defaultMessage: 'Disable data refetching on browser refocus:'}),
                             help_text: defineMessage({id: 'admin.experimental.disableRefetchingOnBrowserFocus.desc', defaultMessage: 'When true, Mattermost will not refetch channels and channel members when the browser regains focus. This may result in improved performance for users with many channels and channel members.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ExperimentalSettings.DisableWakeUpReconnectHandler',
+                            label: defineMessage({id: 'admin.experimental.disableWakeUpReconnectHandler.title', defaultMessage: 'Disable Wake Up Reconnect Handler:'}),
+                            help_text: defineMessage({id: 'admin.experimental.disableWakeUpReconnectHandler.desc', defaultMessage: 'When true, Mattermost will not attempt to detect when the computer has woken up and refetch data. This might reduce the amount of regular network traffic the app is sending.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {

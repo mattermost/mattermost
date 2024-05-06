@@ -29,8 +29,6 @@ type FeatureFlags struct {
 
 	NormalizeLdapDNs bool
 
-	PostPriority bool
-
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
 
