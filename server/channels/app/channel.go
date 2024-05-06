@@ -481,7 +481,7 @@ func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.
 		}
 
 		if _, err := a.ShareChannel(c, sc); err != nil {
-			return nil, model.NewAppError("CreateDirectChannel", "app.sharedchannel.dm_channel_creation.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			c.Logger().Error("Failed to share newly created direct channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 		}
 	}
 
@@ -622,12 +622,12 @@ func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Chann
 	_, err := a.Srv().Store().Channel().Update(c, channel)
 	if err != nil {
 		var appErr *model.AppError
+		var uniqueConstraintErr *store.ErrUniqueConstraint
 		var invErr *store.ErrInvalidInput
 		switch {
+		case errors.As(err, &uniqueConstraintErr):
+			return nil, model.NewAppError("UpdateChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &invErr):
-			if invErr.Entity == "Channel" && invErr.Field == "Name" {
-				return nil, model.NewAppError("UpdateChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(err)
-			}
 			return nil, model.NewAppError("UpdateChannel", "app.channel.update.bad_id", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &appErr):
 			return nil, appErr
@@ -3149,10 +3149,13 @@ func (a *App) MoveChannel(c request.CTX, team *model.Team, channel *model.Channe
 	channel.TeamId = team.Id
 	if _, err := a.Srv().Store().Channel().Update(c, channel); err != nil {
 		var appErr *model.AppError
+		var uniqueConstraintErr *store.ErrUniqueConstraint
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
 			return model.NewAppError("MoveChannel", "app.channel.update.bad_id", nil, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &uniqueConstraintErr):
+			return model.NewAppError("MoveChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &appErr):
 			return appErr
 		default:

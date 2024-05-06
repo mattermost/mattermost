@@ -41,8 +41,14 @@ const getUsersAndActionsToDisplay = createSelector(
                 channelMember: ChannelMembership;
             };
         } = {};
-        const usersToDisplay = [];
+        const usersToDisplay: UserProfile[] = [];
 
+        if (!channel) {
+            return {
+                usersToDisplay,
+                actionUserProps,
+            };
+        }
         for (let i = 0; i < users.length; i++) {
             const user = users[i];
 

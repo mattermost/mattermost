@@ -4452,10 +4452,6 @@
     "translation": "Будь ласка, введіть дійсну адресу електронної пошти."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі."
   },
@@ -4946,10 +4942,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -6284,10 +6276,6 @@
     "translation": "Досягнута тайм-аут завдання синхронізації AD / LDAP."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Не знайдена кінцева точка API кластера."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": "додається файл."
   },
@@ -6914,9 +6902,5 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Адміністратору вже повідомлено"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Відсутні обов’язкові поля для надсилання електронного листа про прострочення."
   }
 ]

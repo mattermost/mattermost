@@ -304,7 +304,6 @@ func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 }
 
 func TestPanicLog(t *testing.T) {
-	t.Skip("MM-57377")
 	// Creating a temp dir for log
 	tmpDir, err := os.MkdirTemp("", "mlog-test")
 	require.NoError(t, err, "cannot create tmp dir for log file")
@@ -323,16 +322,23 @@ func TestPanicLog(t *testing.T) {
 	logSettings.FileLocation = &tmpDir
 	logSettings.FileLevel = &mlog.LvlInfo.Name
 
-	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, nil, config.GetLogFileLocation)
+	logCfg, err := config.MloggerConfigFromLoggerConfig(logSettings, nil, config.GetLogFileLocation)
 	require.NoError(t, err)
-	err = logger.ConfigureTargets(cfg, nil)
+	err = logger.ConfigureTargets(logCfg, nil)
 	require.NoError(t, err)
 	logger.LockConfiguration()
 
-	// Creating a server with logger
-	s, err := newServer(t)
+	configStore, err := config.NewMemoryStore()
 	require.NoError(t, err)
-	s.Platform().SetLogger(logger)
+	store, err := config.NewStoreFromBacking(configStore, nil, false)
+	require.NoError(t, err)
+	cfg := store.Get()
+	cfg.SqlSettings = *mainHelper.GetSQLSettings()
+	store.Set(cfg)
+
+	// Creating a server with logger
+	s, err := NewServer(ConfigStore(store), SetLogger(logger))
+	require.NoError(t, err)
 
 	// Route for just panicking
 	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {

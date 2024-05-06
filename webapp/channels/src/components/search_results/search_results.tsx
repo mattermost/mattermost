@@ -342,7 +342,9 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             className='SearchResults sidebar-right__body'
         >
             <SearchResultsHeader>
-                {formattedTitle}
+                <span>
+                    {formattedTitle}
+                </span>
                 {props.channelDisplayName && <div className='sidebar--right__title__channel'>{props.channelDisplayName}</div>}
             </SearchResultsHeader>
             {isMessagesSearch &&
