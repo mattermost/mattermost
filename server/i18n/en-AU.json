@@ -1400,10 +1400,6 @@
     "translation": "Encountered an error retrieving the status."
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Encountered an error while creating a direct shared channel."
-  },
-  {
     "id": "app.session.update_device_id.app_error",
     "translation": "Unable to update the device id."
   },
@@ -3136,10 +3132,6 @@
     "translation": "Unable to get all users using AD/LDAP."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
-  },
-  {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
     "translation": "An account with that username already exists. Please contact your Administrator."
   },
@@ -3502,10 +3494,6 @@
   {
     "id": "ent.cluster.config_changed.info",
     "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
-  },
-  {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Cluster API endpoint not found."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -3886,10 +3874,6 @@
   {
     "id": "app.user.update.find.app_error",
     "translation": "Unable to find the existing account to update."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "No emails were successfully sent"
   },
   {
     "id": "app.user.send_auto_response.app_error",
@@ -4884,46 +4868,6 @@
     "translation": "Reply in Mattermost"
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Your Mattermost Cloud Invoice is due"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Payment is due for your Mattermost Cloud subscription"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "To review your invoice and add a payment method, select Pay now."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Your Mattermost Cloud invoice for the most recent billing period has been processed. However, you may need to re-enter your payment information."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Pay now"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "The payment wasn't successful"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Action required: Payment failed for Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "To ensure uninterrupted access to Mattermost {{.Plan}}, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "They provided the following reason:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Your financial institution declined a payment from your {{.CardBrand}} ****{{.LastFour}} associated with your Mattermost Cloud workspace."
-  },
-  {
     "id": "api.templates.password_change_subject",
     "translation": "[{{ .SiteName }}] Your password has been updated"
   },
@@ -5166,10 +5110,6 @@
   {
     "id": "api.templates.deactivate_body.info",
     "translation": "You deactivated your account on {{ .SiteURL }}."
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -8779,14 +8719,6 @@
     "translation": "Invalid request body."
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "You are now upgraded!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Mattermost Upgrade Confirmation"
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Elasticsearch settings has unset values."
   },
@@ -8851,194 +8783,6 @@
     "translation": "An error occurred while clearing team member cache"
   },
   {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "To keep your {{.Plan}} plan active, please contact your financial department or institution as soon as possible. Then, update your payment details as needed."
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Please contact your financial department or institution to resolve any issues. Then, update your payment details as needed."
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "Subscription is not delinquent"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "Cloud subscription couldn't be retrieved"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "Cloud products couldn't be retrieved"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Your Mattermost workspace has been downgraded"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "To unarchive your data and keep paid features, update your payment information."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "In addition, your data may have been archived due to Cloud Free limitations."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "If you use Cloud Professional or Enterprise features for important business operations, these will no longer be available and you'll experience degraded performance."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Your Mattermost Cloud workspace has been downgraded"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "View Plans & Pricing"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Update payment"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Your workspace will be downgraded in 15 days"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Update your payment information now, or downgrade to Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Your workspace will be downgraded to Cloud Free. Your {{.Plan}} features will be locked and some of your workspace data may be archived until your full outstanding balance is settled."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "This is a final reminder that payment for your Mattermost Cloud workspace hasn't been received since {{.DelinquencyDate}}."
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Your Mattermost {{.Plan}} will be downgraded in 15 days"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Downgrade to Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Update payment"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Your payment wasn't completed"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Your most recent payment couldn't be processed."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Update payment"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Your Mattermost workspace will be downgraded in 30 days"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Update your payment information now or downgrade to Cloud Free below."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Your workspace will be downgraded automatically in 30 days if your payment is unable to be processed."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Please update your payment information soon to process your outstanding invoices."
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "Action Required: Workspace will be downgraded in 30 days"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Downgrade to Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Update payment"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Your workspace will be downgraded soon"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Update your credit card information now."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "A downgraded workspace might negatively affect critical workflows and other business critical activities carried out in your workspace."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Payment for outstanding invoices since {{.DelinquencyDate}} have not been able to be collected. Your workspace is at risk of being downgraded."
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "Notice: Your Mattermost {{.Plan}} will be downgraded soon"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Update payment"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Your workspace will be downgraded soon"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "If no action is taken, your workspace will be downgraded and the following data may be archived:"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "You have time to keep your Mattermost {{.Plan}} active but you'll need to resolve issues with your payment method."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Act to keep your Mattermost {{.Plan}} Features"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "View all limits documentation."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Update payment"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "Message history"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Files"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Payment not received"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "The credit card on record wasn't able to be charged. This means your workspace is at risk of being downgraded to Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Payment is overdue for your Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Update payment"
-  },
-  {
     "id": "api.command_marketplace.unsupported.app_error",
     "translation": "The marketplace command is not supported on your device."
   },
@@ -9053,10 +8797,6 @@
   {
     "id": "api.command_help.success",
     "translation": "Mattermost is an open source platform for secure communication, collaboration, and orchestration of work across tools and teams.\nMattermost contains two key tools:\n\n**Channels** - Stay connected with your team via 1:1 and group messaging.\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\n\n[View documentation and guides]({{.HelpLink}})"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Missing required fields to send delinquency email."
   },
   {
     "id": "app.notify_admin.send_notification_post.app_error",
@@ -9089,10 +8829,6 @@
   {
     "id": "app.user.get_badge_count.app_error",
     "translation": "The user's badge couldn't be retrieved."
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Unable to get current plan name"
   },
   {
     "id": "model.group.name.reserved_name.app_error",
@@ -9219,18 +8955,6 @@
     "translation": "Invalid priority"
   },
   {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "View your invoice"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You'll be charged from {{.Date}}."
-  },
-  {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Error fetching roles during validation."
   },
@@ -9333,10 +9057,6 @@
   {
     "id": "api.system.logs.invalidFilter",
     "translation": "Invalid log filter"
-  },
-  {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "CWS Server failed to delete workspace."
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
@@ -9823,14 +9543,6 @@
     "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
   },
   {
-    "id": "api.templates.cloud_renewal.button",
-    "translation": "Renew now"
-  },
-  {
-    "id": "api.templates.cloud_renewal.subtitle",
-    "translation": "Please renew to avoid any disruption"
-  },
-  {
     "id": "ent.outgoing_oauth_connections.get_connection.app_error",
     "translation": "There was an error retrieving the outgoing OAuth connection."
   },
@@ -9903,26 +9615,6 @@
     "translation": "Unable to find the user."
   },
   {
-    "id": "api.templates.cloud_renewal_30.subject",
-    "translation": "Annual renewal payment is due in 30 days"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.title",
-    "translation": "Your annual renewal payment is due in 30 days"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.subject",
-    "translation": "Annual subscription renewal in 60 days"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.title",
-    "translation": "Annual subscription renewal in 60 days"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.title",
-    "translation": "You are about to lose access to your workspace in 7 days"
-  },
-  {
     "id": "api.user.get_profile_image_path.app_error",
     "translation": "An error occurred while checking if a user has a custom profile image."
   },
@@ -9941,10 +9633,6 @@
   {
     "id": "api.command_remote.confirm_invitation.error",
     "translation": "Could not confirm invitation: {{.Error}}"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.subject",
-    "translation": "Action Required: Annual subscription renewal in 7 days"
   },
   {
     "id": "api.context.outgoing_oauth_connection.list_connections.app_error",

@@ -590,7 +590,7 @@ func (a *App) ShouldSendPushNotification(user *model.User, channelNotifyProps mo
 		return false
 	}
 
-	if statusAllowedReason := DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId); statusAllowedReason != "" {
+	if statusAllowedReason := DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId, false); statusAllowedReason != "" {
 		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, statusAllowedReason)
 		a.NotificationsLog().Debug("Notification not sent - status",
 			mlog.String("type", model.NotificationTypePush),
@@ -648,14 +648,18 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 	return ""
 }
 
-func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *model.Status, channelID string) model.NotificationReason {
+func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *model.Status, channelID string, isCRT bool) model.NotificationReason {
 	// If User status is DND or OOO return false right away
 	if status.Status == model.StatusDnd || status.Status == model.StatusOutOfOffice {
 		return model.NotificationReasonUserStatus
 	}
 
 	pushStatus, ok := userNotifyProps[model.PushStatusNotifyProp]
-	if (pushStatus == model.StatusOnline || !ok) && (status.ActiveChannel != channelID || model.GetMillis()-status.LastActivityAt > model.StatusChannelTimeout) {
+	sendOnlineNotification := status.ActiveChannel != channelID || //We are in a different channel
+		model.GetMillis()-status.LastActivityAt > model.StatusChannelTimeout || //It has been a while since we were last active on this channel
+		isCRT //Is CRT, so being active in a channel doesn't mean you are seeing thread activity
+
+	if (pushStatus == model.StatusOnline || !ok) && sendOnlineNotification {
 		return ""
 	}
 

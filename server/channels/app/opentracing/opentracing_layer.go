@@ -8005,28 +8005,6 @@ func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(c request.CTX, userID str
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetOrCreateTrueUpReviewStatus(rctx request.CTX) (*model.TrueUpReviewStatus, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOrCreateTrueUpReviewStatus")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetOrCreateTrueUpReviewStatus(rctx)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) GetOutgoingWebhook(hookID string) (*model.OutgoingWebhook, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOutgoingWebhook")
@@ -10617,28 +10595,6 @@ func (a *OpenTracingAppLayer) GetTotalUsersStats(viewRestrictions *model.ViewUse
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetTrueUpProfile() (map[string]any, error) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTrueUpProfile")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetTrueUpProfile()
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) GetUploadSession(c request.CTX, uploadId string) (*model.UploadSession, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUploadSession")
@@ -13181,7 +13137,7 @@ func (a *OpenTracingAppLayer) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *mo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
+func (a *OpenTracingAppLayer) OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OpenInteractiveDialog")
 
@@ -13193,7 +13149,7 @@ func (a *OpenTracingAppLayer) OpenInteractiveDialog(request model.OpenDialogRequ
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.OpenInteractiveDialog(request)
+	resultVar0 := a.app.OpenInteractiveDialog(c, request)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

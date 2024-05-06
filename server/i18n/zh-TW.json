@@ -4936,10 +4936,6 @@
     "translation": "超過大小限制。請檢查[最大分頁大小](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)。"
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "刪除團隊或頻道成員資格時錯誤"
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "授權不支援 ID Loaded Push Notification。"
   },
@@ -6400,10 +6396,6 @@
     "translation": "AD/LDAP 同步工作逾時。"
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "找不到叢集 API 端點。"
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " 檔案已附加。"
   },
@@ -7138,10 +7130,6 @@
   {
     "id": "api.command_channel_header.update_channel.max_length",
     "translation": "輸入的文本超出字數限制。頻道標題不得超過 {{.MaxLength}} 個字數。"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "缺少發送拖欠電子郵件的必要欄位。"
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",

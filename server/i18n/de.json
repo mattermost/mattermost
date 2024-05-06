@@ -4987,10 +4987,6 @@
     "translation": "Das Größenlimit wurde überschritten. Versuche, deine Einstellung für die maximale Seitengröße zu erhöhen. Weitere Informationen findest du unter https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "Fehler beim Löschen von Team- oder Kanalmitgliedschaften"
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Deine Lizenz unterstützt keine ID-geladenen Push-Benachrichtigungen."
   },
@@ -6295,10 +6291,6 @@
     "translation": "AD/LDAP-Synchronisierungs-Job-Timeout erreicht."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Cluster-API-Endpunkt nicht gefunden."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " hat eine Datei hochgeladen."
   },
@@ -7522,10 +7514,6 @@
     "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.templates.cloud_welcome_email.title",
     "translation": "Dein Arbeitsbereichs kann gestartet werden!"
   },
@@ -7656,46 +7644,6 @@
   {
     "id": "api.templates.questions_footer.info",
     "translation": "Brauchst du Hilfe oder hast du eine Frage? Sende eine E-Mail an "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Deine Mattermost Cloud Rechnung ist fällig"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Eine Zahlung ist für dein Mattermost Cloud Abonnement ist fällig"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Um deine Rechnung zu prüfen und eine Zahlungsmethode hinzuzufügen, wähle Jetzt bezahlen."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Deine Mattermost Cloud Rechnung für die letzte Abrechnungsperiode wurde verarbeitet. Allerdings haben wir deine Zahlungsdetails nicht in den Akten."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Jetzt bezahlen"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Die Zahlung war nicht erfolgreich"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Aktion notwendig: Zahlung für Mattermost {{.Plan}} fehlgeschlagen"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Um einen unterbrechungsfreien Zugriff auf Mattermost {{.Plan}} zu gewährleisten, kontaktiere bitte dein Finanzinstitut um das Problem zu lösen oder aktualisiere deine Zahlungsinformationen. Sobald die Zahlungsinformationen aktualisiert wurden, wird Mattermost versuchen den Außenstand auszugleichen."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Es wurde folgender Grund angegeben:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Dein Finanzinstitut hat ein Zahlung mit deiner {{.CardBrand}} Kreditkarte mit der Nummer ****{{.LastFour}}, die für deinen Mattermost Cloud Arbeitsbereich hinterlegt ist, abgelehnt."
   },
   {
     "id": "api.upload.upload_data.multipart_error",
@@ -7982,10 +7930,6 @@
     "translation": "System"
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Beim Erstellen eines geteilten Direktnachrichtenkanals ist ein Fehler aufgetreten."
-  },
-  {
     "id": "app.select_error",
     "translation": "Auswahlfehler"
   },
@@ -8140,10 +8084,6 @@
   {
     "id": "app.user.get_thread_membership_for_user.app_error",
     "translation": "Konnte Benutzermitgliedschaft an der Unterhaltung nicht abrufen"
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Keine E-Mails erfolgreich gesendet"
   },
   {
     "id": "app.user.send_auto_response.app_error",
@@ -8782,14 +8722,6 @@
     "translation": "Ungültiger Request Body."
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Du bist jetzt upgegraded worden!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Mattermost Upgrade Bestätigung"
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Die Elasticsearch-Einstellungen haben nicht definierte Werte."
   },
@@ -8870,194 +8802,6 @@
     "translation": "Mattermost ist eine Open Source Plattform für sicher Kommunikation, Zusammenarbeit und Koordination von Aufgaben über Werkzeuge und Teams hinweg.\nMattermost besteht aus zwei Hauptwerkzeugen:\n\n**Channels** - Bleibe mit deinem Team in Verbindung mit 1:1- und Gruppen-Nachrichten.\n**[Playbooks](/playbooks)** - Erstelle und konfiguriere wiederholbare Prozesse um spezifische und vorhersagbare Ergebnisse zu bekommen.\n\n[Zeige Dokumentation und Anleitungen]({{.HelpLink}})"
   },
   {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Bezahlart aktualisieren"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Dein Arbeitsbereich wird in 15 Tagen herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele zu Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Dein Arbeitsbereich wird auf Cloud Free herabgestuft. Deine {{.Plan}}-Funktionen werden gesperrt und einige deiner Arbeitsbereichsdaten können archiviert werden, bis dein ausstehender Betrag vollständig beglichen ist."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Dies ist eine letzte Erinnerung, dass wir seit {{.DelinquencyDate}} keine Zahlung für deinen Mattermost Cloud-Arbeitsbereich erhalten haben."
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Dein Mattermost {{.Plan}} wird in 15 Tagen herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Herunterstufen zu Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Bezahlart aktualisieren"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Deine Zahlung wurde nicht abgeschlossen"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "Um deinen {{.Plan}} aktiv zu halten, wende dich bitte so bald wie möglich an dein Finanzinstitut. Aktualisiere dann, falls notwendig, deine Zahlungsdaten."
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Wir konnten deine letzte Zahlung nicht bearbeiten."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Bezahlart aktualisieren"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Dein Mattermost-Arbeitsbereich wird in 30 Tagen herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele unten zu Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Wir werden deinen Arbeitsbereich innerhalb von 30 Tagen automatisch herabstufen, wenn wir deine Zahlung nicht bearbeiten können."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Bitte aktualisiere deine Zahlungsinformationen bald, um deine ausstehenden Rechnungen zu verarbeiten."
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "Aktion notwendig: Arbeitsbereich wird in 30 Tagen herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Herabstufen zu Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Bezahlinformation aktualisieren"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Dein Arbeitsbereich wird in Kürze herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Aktualisiere jetzt deine Kreditkarteninformationen."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Wir waren nicht in der Lage, ausstehende Rechnungen seit {{.DelinquencyDate}} zu begleichen. Dein Arbeitsbereich ist in Gefahr heruntergestuft zu werden."
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "Hinweis: Dein Mattermost {{.Plan}} wird in Kürze heruntergestuft"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Zahlungsinformationen aktualisieren"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Dein Arbeitsbereich wird in Kürze archiviert"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "Wenn du nicht aktiv wirst, wird dein Arbeitsbereich heruntergestuft und die folgenden Daten werden archiviert:"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "Zu hast Zeit deinen Mattermost {{.Plan}} aktiv zu halten, aber du solltest die Probleme mit deiner Zahlungsart lösen."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Reagiere um deine Mattermost {{.Plan}} Funktionen zu behalten"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "Sieh alle Dokumentation zu Einschränkungen an."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Bezahlart aktualisieren"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "Nachrichtenverlauf"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Dateien"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Bezahlung nicht erhalten"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Bitte kontaktiere dein Finanzinstitut um Unklarheiten zu beseitigen. Dann aktualisiere deine Bezahlinformation, falls notwendig."
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Wir konnten die hinterlegte Kreditkarte nicht belasten. Das bedeutet, dass ein Risiko besteht auf Cloud Free zurückgestuft zu werden."
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Bezahlung ist überfällig für deinen Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Bezahlart aktualisieren"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Erforderliche Felder für den Versand einer E-Mail über Zahlungsrückstände fehlen."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Dein Mattermost Cloud-Arbeitsbereich wurde herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Zeige Pläne & Kosten"
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "Das Abonnement ist nicht im Verzug"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "Cloud-Abonnement konnten nicht abgerufen werden"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "Cloud-Produkte konnten nicht abgerufen werden"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Dein Mattermost-Arbeitsbereich wurde herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "Um die Archivierung deiner Daten aufzuheben und bezahlte Funktionen zu erhalten, aktualisiere deine Zahlungsinformationen."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Außerdem kann es sein, dass deine Daten aufgrund der Beschränkungen von Cloud Free archiviert wurden."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "Wenn du die Funktionen von Cloud Professional oder Enterprise für wichtige Geschäftsvorgänge nutzt, stehen diese nicht mehr zur Verfügung und die Leistung wird beeinträchtigt."
-  },
-  {
     "id": "app.notify_admin.send_notification_post.app_error",
     "translation": "Kann Benachrichtigung nicht senden."
   },
@@ -9080,10 +8824,6 @@
   {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "{{.UsersNum}} Mitglieder des {{.WorkspaceName}} Arbeitsbereichs haben den Start des Enterprise-Tests angefragt für Zugriff auf: "
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Abrufen des aktuellen Plan Namens nicht möglich"
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
@@ -9246,18 +8986,6 @@
     "translation": "Ungültige Priorität"
   },
   {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "Deine Rechnung einsehen"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt hochgestuft."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt hochgestuft. Du wirst ab dem {{.Date}} abgerechnet"
-  },
-  {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Fehler beim Abrufen von Rollen während der Validierung."
   },
@@ -9318,10 +9046,6 @@
     "translation": "Konnte keinen True-Up-Status-Datensatz erstellen"
   },
   {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Ein herabgestufter Arbeitsbereich kann sich negativ auf kritische Arbeitsabläufe und andere geschäftskritische Aktivitäten auswirken, die in deinem Arbeitsbereich durchgeführt werden."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "Benutzer mit dem Benutzernamen \"{{.Username}}\" existiert bereits."
   },
@@ -9340,10 +9064,6 @@
   {
     "id": "api.system.logs.invalidFilter",
     "translation": "Ungültiger Protokollfilter"
-  },
-  {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "CWS Server kann Arbeitsbereich nicht löschen."
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
@@ -9906,38 +9626,6 @@
     "translation": "Beim Parsen der Nutzdaten ist ein Fehler aufgetreten."
   },
   {
-    "id": "api.templates.cloud_renewal.button",
-    "translation": "Jetzt erneuern"
-  },
-  {
-    "id": "api.templates.cloud_renewal.subtitle",
-    "translation": "Bitte verlängere, um Unterbrechungen zu vermeiden"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.subject",
-    "translation": "Jahresrechnung fällig in 30 Tagen"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.title",
-    "translation": "Deine Jahresrechnung ist in 30 Tagen fällig"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.subject",
-    "translation": "Erneuerung des Jahresabonnements in 60 Tagen"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.title",
-    "translation": "Erneuerung des Jahresabonnements in 60 Tagen"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.subject",
-    "translation": "Aktion erforderlich: Erneuerung des Jahresabonnements in 7 Tagen"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.title",
-    "translation": "Du wirst in 7 Tagen den Zugang zu deinem Arbeitsbereich verlieren"
-  },
-  {
     "id": "app.channel.patch_channel_members_notify_props.too_many",
     "translation": "Es können nicht so viele Kanal-Mitglieder aktualisiert werden. Es können nur {{.Max}} Kanal-Mitglieder gleichzeitig aktualisiert werden."
   },
@@ -10384,5 +10072,21 @@
   {
     "id": "model.user.is_valid.pwd_min_length.app_error",
     "translation": "Dein Passwort muss mindestens {{.Min}} Zeichen lang sein."
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Fehler beim Lesen des Dateistatus: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Fehler beim Suchen der Datei: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Benutzeranzahl konnte nicht ermittelt werden"
+  },
+  {
+    "id": "app.limits.get_server_limits.post_count.store_error",
+    "translation": "Anzahl der Beiträge konnte nicht ermittelt werden"
   }
 ]

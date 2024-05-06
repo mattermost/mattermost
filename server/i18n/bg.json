@@ -1788,10 +1788,6 @@
     "translation": "Не могат да се получат всички потребители, използващи AD/LDAP."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "грешка при изтриване на членство в екип или канал"
-  },
-  {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
     "translation": "Профил с това потребителско име вече съществува. Моля, свържете се с вашия администратор."
   },
@@ -2146,10 +2142,6 @@
   {
     "id": "ent.cluster.config_changed.info",
     "translation": "Конфигурацията на клъстера се промени за id = {{.id}}. Клъстерът може да стане нестабилен и се изисква рестартиране. За да сте сигурни, че клъстерът е конфигуриран правилно, трябва незабавно да извършите допълнителен рестарт."
-  },
-  {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Крайната точка на клъстер API не е намерена."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -3892,46 +3884,6 @@
     "translation": "Преглед на съобщението"
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Вашата Mattermost Cloud фактура е дължима"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Плащането се дължи за вашия Mattermost Cloud абонамент"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "За да прегледате фактурата си и да добавите начин на плащане, изберете Плати сега."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Вашата фактура за Mattermost Cloud за последния период на фактуриране е обработена. Ние обаче не разполагаме с вашите данни за плащане."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Плати сега"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Неуспешно плащане"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Изисква се действие: Неуспешно плащане за Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "За да осигурите непрекъснат абонамент за Mattermost Cloud, моля, свържете се с вашата финансова институция, за да отстраните проблема или актуализирайте данните си за плащане. След като се актуализира информацията за плащане, Mattermost ще се опита да уреди неплатеното салдо."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Посочена е следната причина:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Вашата финансова институция отказа плащане от вашата {{.CardBrand}} **** {{.LastFour}}, свързана с вашето работно пространство в Mattermost Cloud."
-  },
-  {
     "id": "api.templates.password_change_subject",
     "translation": "[{{.SiteName}}] Вашата парола е актуализирана"
   },
@@ -4050,10 +4002,6 @@
   {
     "id": "api.templates.deactivate_body.info",
     "translation": "Деактивирахте профила си на {{.SiteURL}}."
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, втори етаж, Пало Алто, Калифорния, 94301"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -7660,10 +7608,6 @@
     "translation": "Неуспешно търсене на износния файл."
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Няма успешно изпратена ел.поща"
-  },
-  {
     "id": "mfa.deactivate.app_error",
     "translation": "Не може да се актуализира състоянието на активност за МФУ потребител."
   },
@@ -8118,10 +8062,6 @@
   {
     "id": "app.team.get_common_team_ids_for_users.app_error",
     "translation": "Не мога да получа общите ИН на екипите."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Срещната е грешка при създаването на директен споделен канал."
   },
   {
     "id": "app.notification.footer.title",
