@@ -899,6 +899,8 @@
   "admin.experimental.disableAppBar.title": "Disable Apps Bar:",
   "admin.experimental.disableRefetchingOnBrowserFocus.desc": "When true, Mattermost will not refetch channels and channel members when the browser regains focus. This may result in improved performance for users with many channels and channel members.",
   "admin.experimental.disableRefetchingOnBrowserFocus.title": "Disable data refetching on browser refocus:",
+  "admin.experimental.disableWakeUpReconnectHandler.desc": "When true, Mattermost will not attempt to detect when the computer has woken up and refetch data. This might reduce the amount of regular network traffic the app is sending.",
+  "admin.experimental.disableWakeUpReconnectHandler.title": "Disable Wake Up Reconnect Handler:",
   "admin.experimental.emailBatchingBufferSize.desc": "Specify the maximum number of notifications batched into a single email.",
   "admin.experimental.emailBatchingBufferSize.example": "E.g.: \"256\"",
   "admin.experimental.emailBatchingBufferSize.title": "Email Batching Buffer Size:",

@@ -35,6 +35,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const currentUser = getCurrentUser(state);
     const plugins = state.plugins.components.NeedsTeamComponent;
     const disableRefetchingOnBrowserFocus = config.DisableRefetchingOnBrowserFocus === 'true';
+    const disableWakeUpReconnectHandler = config.DisableWakeUpReconnectHandler === 'true';
 
     return {
         currentTeamId: getCurrentTeamId(state),
@@ -44,6 +45,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         selectedThreadId: getSelectedThreadIdInCurrentTeam(state),
         mfaRequired: checkIfMFARequired(currentUser, license, config, ownProps.match.url),
         disableRefetchingOnBrowserFocus,
+        disableWakeUpReconnectHandler,
     };
 }
 
