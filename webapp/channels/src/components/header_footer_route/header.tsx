@@ -19,10 +19,10 @@ export type HeaderProps = {
 }
 
 const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) => {
-    const {EnableCustomBrand, SiteName} = useSelector(getConfig);
+    const {SiteName} = useSelector(getConfig);
     const license = useSelector(getLicense);
 
-    const ariaLabel = EnableCustomBrand === 'true' && SiteName ? SiteName : 'Mattermost';
+    const ariaLabel = SiteName ? SiteName : 'Mattermost';
 
     let freeBanner = null;
     if (license.IsLicensed === 'false') {
@@ -30,7 +30,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
     }
 
     let title: React.ReactNode = SiteName;
-    if (EnableCustomBrand !== 'true' || SiteName === 'Mattermost') {
+    if (title === 'Mattermost') {
         if (freeBanner) {
             title = '';
         } else {
