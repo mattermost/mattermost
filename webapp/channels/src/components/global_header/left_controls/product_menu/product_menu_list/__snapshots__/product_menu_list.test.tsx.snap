@@ -11,7 +11,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
     <MenuItemCloudLimit
       id="menuItemCloudLimit"
     />
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_read_about_edition_and_license",
@@ -86,7 +86,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
         }
         to="/admin_console"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <MenuItemLink
       icon={
         <WebhookIncomingIcon
@@ -127,7 +127,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       sibling={false}
       text="User Groups"
     />
-    <Connect(TeamPermissionGate)
+    <Memo(TeamPermissionGate)
       permissions={
         Array [
           "sysconsole_write_plugins",
@@ -152,7 +152,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
         show={false}
         text="App Marketplace"
       />
-    </Connect(TeamPermissionGate)>
+    </Memo(TeamPermissionGate)>
     <MenuItemExternalLink
       icon={
         <DownloadOutlineIcon
@@ -198,7 +198,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
     <MenuItemCloudLimit
       id="menuItemCloudLimit"
     />
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_read_about_edition_and_license",
@@ -273,7 +273,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
         }
         to="/admin_console"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <MenuItemLink
       icon={
         <WebhookIncomingIcon
@@ -314,7 +314,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       sibling={false}
       text="User Groups"
     />
-    <Connect(TeamPermissionGate)
+    <Memo(TeamPermissionGate)
       permissions={
         Array [
           "sysconsole_write_plugins",
@@ -339,7 +339,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
         show={true}
         text="App Marketplace"
       />
-    </Connect(TeamPermissionGate)>
+    </Memo(TeamPermissionGate)>
     <MenuItemExternalLink
       icon={
         <DownloadOutlineIcon
@@ -511,7 +511,7 @@ exports[`components/global/product_switcher_menu should show integrations should
     <MenuItemCloudLimit
       id="menuItemCloudLimit"
     />
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       permissions={
         Array [
           "sysconsole_read_about_edition_and_license",
@@ -586,7 +586,7 @@ exports[`components/global/product_switcher_menu should show integrations should
         }
         to="/admin_console"
       />
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
     <MenuItemLink
       icon={
         <WebhookIncomingIcon
@@ -627,7 +627,7 @@ exports[`components/global/product_switcher_menu should show integrations should
       sibling={false}
       text="User Groups"
     />
-    <Connect(TeamPermissionGate)
+    <Memo(TeamPermissionGate)
       permissions={
         Array [
           "sysconsole_write_plugins",
@@ -652,7 +652,7 @@ exports[`components/global/product_switcher_menu should show integrations should
         show={false}
         text="App Marketplace"
       />
-    </Connect(TeamPermissionGate)>
+    </Memo(TeamPermissionGate)>
     <MenuItemExternalLink
       icon={
         <DownloadOutlineIcon

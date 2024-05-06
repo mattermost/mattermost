@@ -20,7 +20,6 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
         className="admin-console__banner_section"
       >
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -125,7 +124,6 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
         className="admin-console__banner_section"
       >
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -230,7 +228,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         className="admin-console__banner_section"
       >
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -366,7 +363,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         className="admin-console__banner_section"
       >
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -490,7 +486,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         className="admin-console__banner_section"
       >
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -614,7 +609,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         className="admin-console__banner_section"
       >
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -738,7 +732,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         className="admin-console__banner_section"
       >
         <RenewLicenseCard
-          isDisabled={true}
           isLicenseExpired={false}
           license={
             Object {
@@ -862,7 +855,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         className="admin-console__banner_section"
       >
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -1311,7 +1303,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         className="admin-console__banner_section"
       >
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {
@@ -1735,7 +1726,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         className="admin-console__banner_section"
       >
         <RenewLicenseCard
-          isDisabled={false}
           isLicenseExpired={false}
           license={
             Object {

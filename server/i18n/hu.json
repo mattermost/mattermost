@@ -780,10 +780,6 @@
     "translation": "Nem sikerült minden felhasználót lekérni az AD/LDAP használatával."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "hiba történt a csapat vagy csatornatagság törlésekor"
-  },
-  {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
     "translation": "Ezzel a felhasználónévvel már létezik fiók. Kérjük, lépjen kapcsolatba rendszergazdájával."
   },
@@ -870,10 +866,6 @@
   {
     "id": "app.status.get.app_error",
     "translation": "Hiba lépett fel az állapot lekérésekor."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Hiba történt közvetlen megosztott csatorna létrehozása közben."
   },
   {
     "id": "app.session.update_device_id.app_error",
@@ -3912,10 +3904,6 @@
     "translation": "Nem sikerült megtalálni a frissítendő létező fiókot."
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Egyetlen e-mailt sem sikerült elküldeni"
-  },
-  {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Nem sikerült automatikus választ küldeni a felhasználótól."
   },
@@ -5108,10 +5096,6 @@
     "translation": "A fürt konfigurációja megváltozott az id={{ .id }} elemnél. A fürt instabillá válhat, és újra kell indítani. A fürt helyes beállításának biztosítása érdekében azonnal végezzen gördülő újraindítást."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "A fürt API végpont nem található."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " mellékelt egy fájlt."
   },
@@ -5362,46 +5346,6 @@
   {
     "id": "api.templates.post_body.button",
     "translation": "Válasz a Mattermostban"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Az Ön Mattermost Cloud számlája lejárt"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Fizetés esedékes a Mattermost Cloud előfizetéséhez"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "A számla áttekintéséhez és fizetési mód hozzáadásához válassza a Fizetés most lehetőséget."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "A legutóbbi számlázási időszakra vonatkozó Mattermost Cloud számlája feldolgozásra került. A fizetési adataink azonban nincsenek nyilvántartva."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Fizetés most"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "A fizetési művelet nem sikerült"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Művelet szükséges: Sikertelen fizetés a Mattermost {{.Plan}} csomagra"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "A Mattermost {{.Plan}} zavartalan elérésének biztosítása érdekében kérjük, vegye fel a kapcsolatot a pénzintézetével a probléma megoldása érdekében, vagy frissítse fizetési adatait. A fizetési adatok frissítése után a Mattermost megpróbálja rendezni a fennmaradó egyenleget."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "A következő okkal:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Pénzintézete elutasította a Mattermost Cloud munkaterületéhez társított {{.CardBrand}} **** {{.LastFour}} kártyáról a fizetést."
   },
   {
     "id": "api.templates.password_change_subject",
@@ -6545,10 +6489,6 @@
   {
     "id": "api.templates.deactivate_body.info",
     "translation": "Deaktiválta a fiókját a {{ .SiteURL }} oldalon."
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -8779,14 +8719,6 @@
     "translation": "A csatorna fájljainak számát nem lehet lekérdezni"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Ön mostantól a megemelt verziót használja!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Mattermost frissítés megerősítés"
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Az Elasticsearch beállításában nem mentett értékek vannak."
   },
@@ -8867,62 +8799,6 @@
     "translation": "marketplace"
   },
   {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Csomagok és árak megtekintése"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "A fizetési művelete nincs befejezve"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Nem tudtuk feldolgozni a legutóbbi fizetési műveletét."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "A munkaterülete hamarosan le lesz minősítve"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "Üzenet előzmény"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Fájl"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Fizetés nem érkezett meg"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Lépjen most, hogy megtarthassa a Mattermost {{.Plan}} funkcióit"
-  },
-  {
     "id": "app.notify_admin.send_notification_post.app_error",
     "translation": "Nem sikerült elküldeni az értesítési bejegyzést."
   },
@@ -8933,18 +8809,6 @@
   {
     "id": "app.job.error",
     "translation": "Hiba a művelet végrehajtása közben."
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Nem sikerült lekérni a jelenlegi előfizetési csomag nevét"
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Fizetés frissítése"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Hiányzó kötelező mezők a késedelmes e-mail küldéséhez."
   },
   {
     "id": "app.file.cloud.get.app_error",

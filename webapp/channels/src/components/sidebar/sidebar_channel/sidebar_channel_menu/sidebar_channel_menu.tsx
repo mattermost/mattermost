@@ -37,7 +37,8 @@ const SidebarChannelMenu = (props: Props) => {
     let markAsReadUnreadMenuItem: JSX.Element | null = null;
     if (props.isUnread) {
         function handleMarkAsRead() {
-            props.markChannelAsRead(props.channel.id, true);
+            // We use mark multiple to not update the active channel in the server
+            props.markMultipleChannelsAsRead({[props.channel.id]: Date.now()});
             trackEvent('ui', 'ui_sidebar_channel_menu_markAsRead');
         }
 
