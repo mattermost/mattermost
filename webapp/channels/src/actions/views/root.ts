@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ClientConfig} from '@mattermost/types/config';
+
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
@@ -18,9 +20,9 @@ const pluginTranslationSources: Record<string, TranslationPluginFunction> = {};
 
 export type TranslationPluginFunction = (locale: string) => Translations
 
-export function loadConfigAndMe(): ActionFuncAsync<boolean> {
+export function loadConfigAndMe(): ThunkActionFunc<Promise<{config?: ClientConfig; isMeLoaded: boolean}>> {
     return async (dispatch) => {
-        await Promise.all([
+        const results = await Promise.all([
             dispatch(getClientConfig()),
             dispatch(getLicenseConfig()),
         ]);
@@ -31,7 +33,10 @@ export function loadConfigAndMe(): ActionFuncAsync<boolean> {
             isMeLoaded = dataFromLoadMe?.data ?? false;
         }
 
-        return {data: isMeLoaded};
+        return {
+            config: results[0].data,
+            isMeLoaded,
+        };
     };
 }
 

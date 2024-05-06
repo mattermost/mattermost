@@ -31,7 +31,7 @@
         max-width: 1024px;
         min-height: 150px;
         flex-direction: column;
-        padding: 32px;
+        padding: 28px 32px;
         gap: 24px;
         overflow-x: hidden;
         overflow-y: auto;
@@ -52,8 +52,8 @@
         display: flex;
         padding: 5px 8px;
         border: none;
-        background: transparent;
         border-radius: 4px;
+        background: transparent;
         color: var(--button-bg);
         font-size: 12px;
         font-weight: 600;
@@ -70,48 +70,6 @@
     &__server-error {
         flex-grow: 1;
         color: var(--error-text);
-    }
-
-    &__save-btn {
-        padding: 12px 20px 12px 20px;
-        border: none;
-        background: var(--button-bg);
-        border-radius: 4px;
-        color: var(--button-color);
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 14px;
-        text-transform: capitalize;
-
-        &:hover,
-        &:active {
-            background: rgba(var(--button-bg-rgb), 0.12);
-            background: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), var(--button-bg);
-        }
-
-        &:focus {
-            box-sizing: border-box;
-            padding: 10px 18px;
-            border: 2px solid var(--sidebar-text-active-border);
-            box-shadow: none;
-        }
-    }
-
-    &__cancel-btn {
-        padding: 12px 20px 12px 20px;
-        border: none;
-        background: rgba(var(--button-bg-rgb), 0.08);
-        border-radius: 4px;
-        color: var(--button-bg);
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 14px;
-        text-transform: capitalize;
-
-        &:hover,
-        &:active {
-            background: rgba(var(--button-bg-rgb), 0.12);
-        }
     }
 
     &__divider {

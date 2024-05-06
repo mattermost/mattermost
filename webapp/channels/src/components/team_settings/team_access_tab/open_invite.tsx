@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessages, useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
@@ -13,21 +13,6 @@ type Props = {
     isGroupConstrained?: boolean;
     setAllowOpenInvite: (value: boolean) => void;
 };
-
-const translations = defineMessages({
-    OpenInviteText: {
-        id: 'general_tab.openInviteText',
-        defaultMessage: 'Users on this server',
-    },
-    OpenInviteDesc: {
-        id: 'general_tab.openInviteDesc',
-        defaultMessage: 'When enabled, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing this setting will create a new invitation link and invalidate the previous link.',
-    },
-    OpenInviteTitle: {
-        id: 'general_tab.openInviteTitle',
-        defaultMessage: 'Allow only users with a specific email domain to join this team',
-    },
-});
 
 const OpenInvite = ({isGroupConstrained, allowOpenInvite, setAllowOpenInvite}: Props) => {
     const {formatMessage} = useIntl();
@@ -52,8 +37,14 @@ const OpenInvite = ({isGroupConstrained, allowOpenInvite, setAllowOpenInvite}: P
         return (
             <BaseSettingItem
                 className='access-invite-domains-section'
-                title={translations.OpenInviteText}
-                description={translations.OpenInviteDesc}
+                title={formatMessage({
+                    id: 'general_tab.openInviteText',
+                    defaultMessage: 'Users on this server',
+                })}
+                description={formatMessage({
+                    id: 'general_tab.openInviteDesc',
+                    defaultMessage: 'When enabled, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing this setting will create a new invitation link and invalidate the previous link.',
+                })}
                 descriptionAboveContent={true}
                 content={groupConstrainedContent}
             />
@@ -63,11 +54,23 @@ const OpenInvite = ({isGroupConstrained, allowOpenInvite, setAllowOpenInvite}: P
     return (
         <CheckboxSettingItem
             className='access-invite-domains-section'
-            inputFieldData={{title: translations.OpenInviteTitle, name: 'name'}}
+            inputFieldTitle={
+                <FormattedMessage
+                    id='general_tab.openInviteTitle'
+                    defaultMessage='Allow only users with a specific email domain to join this team'
+                />
+            }
+            inputFieldData={{name: 'name'}}
             inputFieldValue={allowOpenInvite}
             handleChange={setAllowOpenInvite}
-            title={translations.OpenInviteText}
-            description={translations.OpenInviteDesc}
+            title={formatMessage({
+                id: 'general_tab.openInviteText',
+                defaultMessage: 'Users on this server',
+            })}
+            description={formatMessage({
+                id: 'general_tab.openInviteDesc',
+                defaultMessage: 'When enabled, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing this setting will create a new invitation link and invalidate the previous link.',
+            })}
             descriptionAboveContent={true}
         />
     );

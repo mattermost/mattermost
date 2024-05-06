@@ -122,7 +122,7 @@ func installPluginFromURL(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	pluginFileBytes, err := c.App.DownloadFromURL(downloadURL)
 	if err != nil {
-		c.Err = model.NewAppError("installPluginFromURL", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("installPluginFromURL", "api.plugin.install.download_failed.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -151,7 +151,7 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 
 	pluginRequest, err := model.PluginRequestFromReader(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_plugin_request.app_error", nil, err.Error(), http.StatusNotImplemented)
+		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_plugin_request.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
 		return
 	}
 	audit.AddEventParameter(auditRec, "plugin_id", pluginRequest.Id)
@@ -305,7 +305,7 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plugins, appErr := c.App.GetMarketplacePlugins(filter)
+	plugins, appErr := c.App.GetMarketplacePlugins(c.AppContext, filter)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -436,7 +436,7 @@ func setFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 	}
 
 	if err := c.App.Srv().Store().System().SaveOrUpdate(&firstAdminVisitMarketplaceObj); err != nil {
-		c.Err = model.NewAppError("setFirstAdminVisitMarketplaceStatus", "api.error_set_first_admin_visit_marketplace_status", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("setFirstAdminVisitMarketplaceStatus", "api.error_set_first_admin_visit_marketplace_status", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -468,7 +468,7 @@ func getFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 				Value: "false",
 			}
 		default:
-			c.Err = model.NewAppError("getFirstAdminVisitMarketplaceStatus", "api.error_get_first_admin_visit_marketplace_status", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("getFirstAdminVisitMarketplaceStatus", "api.error_get_first_admin_visit_marketplace_status", nil, "", http.StatusInternalServerError).Wrap(err)
 
 			return
 		}

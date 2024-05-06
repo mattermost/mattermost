@@ -57,7 +57,13 @@ func (a *App) ExportFileBackend() filestore.FileBackend {
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	fileBackendSettings := filestore.NewFileBackendSettingsFromConfig(settings, false, false)
+	var fileBackendSettings filestore.FileBackendSettings
+	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+		fileBackendSettings = filestore.NewExportFileBackendSettingsFromConfig(settings, false, false)
+	} else {
+		fileBackendSettings = filestore.NewFileBackendSettingsFromConfig(settings, false, false)
+	}
+
 	err := fileBackendSettings.CheckMandatoryS3Fields()
 	if err != nil {
 		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest).Wrap(err)
@@ -87,7 +93,15 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	license := a.Srv().License()
 	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections
-	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+	var backend filestore.FileBackend
+	var err error
+	complianceEnabled := license != nil && *license.Features.Compliance
+	if license.IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+		allowInsecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *a.Config().ServiceSettings.EnableInsecureOutgoingConnections
+		backend, err = filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(cfg, complianceEnabled && license.IsCloud(), allowInsecure))
+	} else {
+		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, insecure != nil && *insecure))
+	}
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -562,7 +576,7 @@ func (a *App) UploadFileForUserAndTeam(c request.CTX, data []byte, channelID str
 		teamId = "noteam"
 	}
 
-	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), teamId, channelID, userId, filename, data)
+	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), teamId, channelID, userId, filename, data, true)
 	if appError != nil {
 		return nil, appError
 	}
@@ -578,8 +592,8 @@ func (a *App) UploadFileForUserAndTeam(c request.CTX, data []byte, channelID str
 	return info, nil
 }
 
-func (a *App) DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
-	info, _, err := a.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+func (a *App) DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, *model.AppError) {
+	info, _, err := a.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data, extractContent)
 	return info, err
 }
 
@@ -619,6 +633,12 @@ func UploadFileSetRaw() func(t *UploadFileTask) {
 	}
 }
 
+func UploadFileSetExtractContent(value bool) func(t *UploadFileTask) {
+	return func(t *UploadFileTask) {
+		t.ExtractContent = value
+	}
+}
+
 type UploadFileTask struct {
 	Logger mlog.LoggerIFace
 
@@ -644,6 +664,10 @@ type UploadFileTask struct {
 	// If Raw, do not execute special processing for images, just upload
 	// the file.  Plugins are still invoked.
 	Raw bool
+
+	// Whether or not to extract file attachments content
+	// This is used by the bulk import process.
+	ExtractContent bool
 
 	//=============================================================
 	// Internal state
@@ -690,6 +714,7 @@ func (t *UploadFileTask) init(a *App) {
 	t.fileinfo.CreatorId = t.UserId
 	t.fileinfo.CreateAt = t.Timestamp.UnixNano() / int64(time.Millisecond)
 	t.fileinfo.Path = t.pathPrefix() + t.Name
+	t.fileinfo.ChannelId = t.ChannelId
 
 	t.limitedInput = &io.LimitedReader{
 		R: t.Input,
@@ -714,14 +739,15 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 	))
 
 	t := &UploadFileTask{
-		Logger:      c.Logger(),
-		ChannelId:   filepath.Base(channelID),
-		Name:        filepath.Base(name),
-		Input:       input,
-		maxFileSize: *a.Config().FileSettings.MaxFileSize,
-		maxImageRes: *a.Config().FileSettings.MaxImageResolution,
-		imgDecoder:  a.ch.imgDecoder,
-		imgEncoder:  a.ch.imgEncoder,
+		Logger:         c.Logger(),
+		ChannelId:      filepath.Base(channelID),
+		Name:           filepath.Base(name),
+		Input:          input,
+		maxFileSize:    *a.Config().FileSettings.MaxFileSize,
+		maxImageRes:    *a.Config().FileSettings.MaxImageResolution,
+		imgDecoder:     a.ch.imgDecoder,
+		imgEncoder:     a.ch.imgEncoder,
+		ExtractContent: true,
 	}
 	for _, o := range opts {
 		o(t)
@@ -788,7 +814,7 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent {
+	if *a.Config().FileSettings.ExtractContent && t.ExtractContent {
 		infoCopy := *t.fileinfo
 		a.Srv().GoBuffered(func() {
 			err := a.ExtractContentFromFileInfo(c, &infoCopy)
@@ -936,6 +962,12 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 }
 
 func (t UploadFileTask) pathPrefix() string {
+	if t.UserId == model.BookmarkFileOwner {
+		return model.BookmarkFileOwner +
+			"/teams/" + t.TeamId +
+			"/channels/" + t.ChannelId +
+			"/" + t.fileinfo.Id + "/"
+	}
 	return t.Timestamp.Format("20060102") +
 		"/teams/" + t.TeamId +
 		"/channels/" + t.ChannelId +
@@ -964,7 +996,7 @@ func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...any) *mo
 	return model.NewAppError("uploadFileTask", id, params, "", httpStatus)
 }
 
-func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
+func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, []byte, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 	teamID := filepath.Base(rawTeamId)
 	channelID := filepath.Base(rawChannelId)
@@ -989,6 +1021,9 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	info.CreateAt = now.UnixNano() / int64(time.Millisecond)
 
 	pathPrefix := now.Format("20060102") + "/teams/" + teamID + "/channels/" + channelID + "/users/" + userID + "/" + info.Id + "/"
+	if userID == model.BookmarkFileOwner {
+		pathPrefix = model.BookmarkFileOwner + "/teams/" + teamID + "/channels/" + channelID + "/" + info.Id + "/"
+	}
 	info.Path = pathPrefix + filename
 
 	if info.IsImage() && !info.IsSvg() {
@@ -1039,7 +1074,10 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent {
+	// The extra boolean extractContent is used to turn off extraction
+	// during the import process. It is unnecessary overhead during the import,
+	// and something we can do without.
+	if *a.Config().FileSettings.ExtractContent && extractContent {
 		infoCopy := *info
 		a.Srv().GoBuffered(func() {
 			err := a.ExtractContentFromFileInfo(c, &infoCopy)
@@ -1237,15 +1275,6 @@ func (a *App) SetFileSearchableContent(rctx request.CTX, fileID string, data str
 	return nil
 }
 
-func (a *App) getFileInfoIgnoreCloudLimit(rctx request.CTX, fileID string) (*model.FileInfo, *model.AppError) {
-	fileInfo, appErr := a.Srv().getFileInfo(fileID)
-	if appErr == nil {
-		a.generateMiniPreview(rctx, fileInfo)
-	}
-
-	return fileInfo, appErr
-}
-
 func (a *App) GetFileInfos(rctx request.CTX, page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	fileInfos, err := a.Srv().Store().FileInfo().GetWithOptions(page, perPage, opt)
 	if err != nil {
@@ -1278,20 +1307,6 @@ func (a *App) GetFileInfos(rctx request.CTX, page, perPage int, opt *model.GetFi
 
 func (a *App) GetFile(rctx request.CTX, fileID string) ([]byte, *model.AppError) {
 	info, err := a.GetFileInfo(rctx, fileID)
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := a.ReadFile(info.Path)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
-
-func (a *App) getFileIgnoreCloudLimit(rctx request.CTX, fileID string) ([]byte, *model.AppError) {
-	info, err := a.getFileInfoIgnoreCloudLimit(rctx, fileID)
 	if err != nil {
 		return nil, err
 	}
@@ -1490,13 +1505,13 @@ func (a *App) GetLastAccessibleFileTime() (int64, *model.AppError) {
 			// All files are accessible
 			return 0, nil
 		default:
-			return 0, model.NewAppError("GetLastAccessibleFileTime", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return 0, model.NewAppError("GetLastAccessibleFileTime", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	lastAccessibleFileTime, err := strconv.ParseInt(system.Value, 10, 64)
 	if err != nil {
-		return 0, model.NewAppError("GetLastAccessibleFileTime", "common.parse_error_int64", map[string]interface{}{"Value": system.Value}, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("GetLastAccessibleFileTime", "common.parse_error_int64", map[string]interface{}{"Value": system.Value}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return lastAccessibleFileTime, nil
@@ -1520,13 +1535,13 @@ func (a *App) ComputeLastAccessibleFileTime() error {
 				// All files are already accessible
 				return nil
 			default:
-				return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 		if systemValue != nil {
 			// Previous value was set, so we must clear it
 			if _, err := a.Srv().Store().System().PermanentDeleteByName(model.SystemLastAccessibleFileTime); err != nil {
-				return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.permanent_delete_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 		return nil
@@ -1536,7 +1551,7 @@ func (a *App) ComputeLastAccessibleFileTime() error {
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {
-			return model.NewAppError("ComputeLastAccessibleFileTime", "app.last_accessible_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("ComputeLastAccessibleFileTime", "app.last_accessible_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1546,7 +1561,7 @@ func (a *App) ComputeLastAccessibleFileTime() error {
 		Value: strconv.FormatInt(createdAt, 10),
 	})
 	if err != nil {
-		return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -1562,7 +1577,7 @@ func (a *App) getCloudFilesSizeLimit() (int64, *model.AppError) {
 	// limits is in bits
 	limits, err := a.Cloud().GetCloudLimits("")
 	if err != nil {
-		return 0, model.NewAppError("getCloudFilesSizeLimit", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("getCloudFilesSizeLimit", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if limits == nil || limits.Files == nil || limits.Files.TotalStorage == nil {

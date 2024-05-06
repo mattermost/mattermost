@@ -36,7 +36,6 @@ export type Props = {
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
         getChannelURLAction: (channelId: string, teamId: string, url: string) => void;
-        markChannelAsViewedOnServer: (channelId: string) => void;
         updateApproximateViewTime: (channelId: string) => void;
     };
     showTermsOfService: boolean;
@@ -106,6 +105,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
 
         if (this.isValidState() && !this.props.mfaRequired) {
             BrowserStore.signalLogin();
+            DesktopApp.signalLogin();
         }
     }
 
@@ -191,7 +191,6 @@ export default class LoggedIn extends React.PureComponent<Props> {
         window.removeEventListener('beforeunload', this.handleBeforeUnload);
         if (document.cookie.indexOf('MMUSERID=') > -1 && this.props.currentChannelId && !this.props.isCurrentChannelManuallyUnread) {
             this.props.actions.updateApproximateViewTime(this.props.currentChannelId);
-            this.props.actions.markChannelAsViewedOnServer(this.props.currentChannelId);
         }
         WebSocketActions.close();
     };

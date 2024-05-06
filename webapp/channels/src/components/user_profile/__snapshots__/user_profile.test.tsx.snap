@@ -103,6 +103,7 @@ exports[`components/UserProfile should match snapshot, when user is shared 1`] =
   </OverlayTrigger>
   <SharedUserIndicator
     className="shared-user-icon"
+    id="sharedUserIndicator-user_id"
     withTooltip={true}
   />
 </Fragment>

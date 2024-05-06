@@ -3324,16 +3324,8 @@
     "translation": "Si è verificato un errore di inizializzazione della richiesta all'Identity Provider. Contattare l'amministratore di sistema."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Si è verificato un errore di codifica della richiesta all'Identity Provider. Contattare l'amministratore di sistema."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Il login SAML non ha avuto successo perché la crittografia non è abilitata. Contattare l'amministratore di sistema."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Il file del Certificato pubblico dell'Identity Provider non è stato trovato. Contattare l'amministratore di sistema."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3344,20 +3336,12 @@
     "translation": "Il login SAML non ha avuto successo perché la risposta dell'Identity Provider non è crittografata. Contattare l'amministratore di sistema."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Il login SAML non ha avuto successo perché si è verificato un errore nella decodifica della risposta dall'Identity Provider. Contattare l'amministratore di sistema."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "E' stata ricevuta una risposta vuota dall'Identity Provider."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Si è verificato un errore durante la lettura della risposta dell'Identity Provider. Contattare l'amministratore di sistema."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Si è verificato un errore durante la validazione della risposta dell'Identity Provider. Contattare l'amministratore di sistema."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -4468,10 +4452,6 @@
     "translation": "Inserire un indirizzo email valido."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "La tua password deve contenere almeno {{.Min}} caratteri."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno una lettera minuscola."
   },
@@ -5370,10 +5350,6 @@
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Impossibile trovato la versione del server Elasticsearch."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "errore durante la cancellazione delle appartenenze a squadre o canali"
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
@@ -6460,10 +6436,6 @@
     "translation": "Raggiunto timeout nel lavoro di sincronizzazione AD/LDAP."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Cluster API non trovate."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " ha allegato un file."
   },
@@ -7148,10 +7120,6 @@
     "translation": " "
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": " "
-  },
-  {
     "id": "app.import.generate_password.app_error",
     "translation": " "
   },
@@ -7193,10 +7161,6 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.copyright",
     "translation": " "
   },
   {
@@ -7364,10 +7328,6 @@
     "translation": " "
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.custom_status.disabled",
     "translation": " "
   },
@@ -7532,10 +7492,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": " "
-  },
-  {
     "id": "api.remote_cluster.invalid_topic.app_error",
     "translation": " "
   },
@@ -7596,23 +7552,11 @@
     "translation": " "
   },
   {
-    "id": "api.templates.payment_failed.title",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": " "
-  },
-  {
     "id": "api.config.patch_config.diff.app_error",
     "translation": " "
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
     "translation": " "
   },
   {
@@ -7721,14 +7665,6 @@
   },
   {
     "id": "app.user.get_thread_count_for_user.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
     "translation": " "
   },
   {
@@ -8064,10 +8000,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": " "
-  },
-  {
     "id": "api.templates.cloud_welcome_email.subtitle",
     "translation": " "
   },
@@ -8109,10 +8041,6 @@
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
-    "translation": " "
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
     "translation": " "
   },
   {
@@ -8233,10 +8161,6 @@
   },
   {
     "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
     "translation": " "
   },
   {
@@ -8388,10 +8312,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": " "
-  },
-  {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": " "
   },
@@ -8485,10 +8405,6 @@
   },
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
     "translation": " "
   },
   {
@@ -8793,14 +8709,6 @@
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
     "translation": " "
   },
   {

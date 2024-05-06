@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import WithTooltip from 'components/with_tooltip';
+
 interface Props {
     name: string;
     imageUrl: string;
@@ -22,14 +24,22 @@ const PostEmoji = ({name, imageUrl}: Props) => {
     }
 
     return (
-        <span
-            alt={emojiText}
-            className='emoticon'
+        <WithTooltip
+            id='postEmoji__tooltip'
             title={emojiText}
-            style={{backgroundImage: backgroundImageUrl}}
+            emoji={name}
+            emojiStyle='large'
+            placement='top'
         >
-            {emojiText}
-        </span>
+            <span
+                alt={emojiText}
+                className='emoticon'
+                data-testid={`postEmoji.${emojiText}`}
+                style={{backgroundImage: backgroundImageUrl}}
+            >
+                {emojiText}
+            </span>
+        </WithTooltip>
     );
 };
 

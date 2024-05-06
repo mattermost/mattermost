@@ -916,7 +916,7 @@ func TestGetBotUser(t *testing.T) {
 	createdBot, resp, err := th.Client.CreateBot(context.Background(), bot)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(createdBot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 	botUser, _, err := th.Client.GetUser(context.Background(), createdBot.UserId, "")
 	require.NoError(t, err)
@@ -2744,7 +2744,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 	})
 	require.NoError(t, err)
 	th.LinkUserToTeam(user, th.BasicTeam)
-	defer th.App.Srv().Store().User().PermanentDelete(user.Id)
+	defer th.App.Srv().Store().User().PermanentDelete(th.Context, user.Id)
 
 	user2, _, err := th.Client.CreateUser(context.Background(), &model.User{
 		Username: "a000000001" + model.NewId(),
@@ -2752,7 +2752,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 		Password: "Password1",
 	})
 	require.NoError(t, err)
-	defer th.App.Srv().Store().User().PermanentDelete(user2.Id)
+	defer th.App.Srv().Store().User().PermanentDelete(th.Context, user2.Id)
 
 	rusers, _, err := th.SystemAdminClient.GetUsersWithoutTeam(context.Background(), 0, 100, "")
 	require.NoError(t, err)
@@ -4272,6 +4272,91 @@ func TestSwitchAccount(t *testing.T) {
 	_, appErr := th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
 	require.NoError(t, appErr)
 
+	t.Run("From GitLab to Email", func(t *testing.T) {
+		sr = &model.SwitchRequest{
+			CurrentService: model.UserAuthServiceGitlab,
+			NewService:     model.UserAuthServiceEmail,
+			Email:          th.BasicUser.Email,
+			NewPassword:    th.BasicUser.Password,
+		}
+
+		t.Run("Switching from OAuth to email is disabled if EnableSignUpWithEmail is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = false })
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = true })
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.email_signup_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+
+		t.Run("Switching from OAuth to email is disabled if EnableSignInWithEmail and EnableSignInWithUsername is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.EnableSignInWithEmail = false
+				*cfg.EmailSettings.EnableSignInWithUsername = false
+			})
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.EmailSettings.EnableSignInWithEmail = true
+					*cfg.EmailSettings.EnableSignInWithUsername = true
+				})
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.login_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+	})
+
+	t.Run("From LDAP to Email", func(t *testing.T) {
+		_, err = th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceLdap, &fakeAuthData, th.BasicUser.Email, true)
+		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			_, err = th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
+			require.NoError(t, err)
+		})
+
+		sr = &model.SwitchRequest{
+			CurrentService: model.UserAuthServiceLdap,
+			NewService:     model.UserAuthServiceEmail,
+			Email:          th.BasicUser.Email,
+			NewPassword:    th.BasicUser.Password,
+		}
+
+		t.Run("Switching from LDAP to email is disabled if EnableSignUpWithEmail is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = false })
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = true })
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.email_signup_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+		t.Run("Switching from LDAP to email is disabled if EnableSignInWithEmail and EnableSignInWithUsername is false", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.EnableSignInWithEmail = false
+				*cfg.EmailSettings.EnableSignInWithUsername = false
+			})
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.EmailSettings.EnableSignInWithEmail = true
+					*cfg.EmailSettings.EnableSignInWithUsername = true
+				})
+			})
+
+			_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.not_available.login_disabled.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+	})
+
 	sr = &model.SwitchRequest{
 		CurrentService: model.UserAuthServiceGitlab,
 		NewService:     model.UserAuthServiceEmail,
@@ -4556,7 +4641,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		t.Run("without MANAGE_BOT permission", func(t *testing.T) {
 			th.RemovePermissionFromRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
@@ -4598,7 +4683,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		t.Run("only having MANAGE_BOTS permission", func(t *testing.T) {
 			_, resp, err = th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
@@ -4703,7 +4788,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -4751,7 +4836,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -4976,7 +5061,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -5020,7 +5105,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -5095,7 +5180,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -5139,7 +5224,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -5222,7 +5307,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -5269,7 +5354,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
@@ -6107,8 +6192,6 @@ func TestUpdatePasswordAudit(t *testing.T) {
 }
 
 func TestGetThreadsForUser(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -6215,7 +6298,6 @@ func TestGetThreadsForUser(t *testing.T) {
 	t.Run("throw error when post-priority service-setting is off", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostPriority = false
-			cfg.FeatureFlags.PostPriority = true
 		})
 
 		client := th.Client
@@ -6236,7 +6318,6 @@ func TestGetThreadsForUser(t *testing.T) {
 	t.Run("throw error when post-priority is set for a reply", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostPriority = true
-			cfg.FeatureFlags.PostPriority = true
 		})
 
 		client := th.Client
@@ -6264,7 +6345,6 @@ func TestGetThreadsForUser(t *testing.T) {
 	t.Run("isUrgent, 1 thread", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostPriority = true
-			cfg.FeatureFlags.PostPriority = true
 		})
 
 		client := th.Client
@@ -6590,7 +6670,7 @@ func TestThreadSocketEvents(t *testing.T) {
 							}
 						}
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
@@ -6613,7 +6693,7 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.Equal(t, ev.GetData()["state"], false)
 						require.Equal(t, ev.GetData()["reply_count"], float64(1))
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
@@ -6641,7 +6721,7 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.EqualValues(t, float64(0), data["unread_replies"])
 						require.EqualValues(t, float64(0), data["unread_mentions"])
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
@@ -6670,7 +6750,7 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.EqualValues(t, float64(1), data["unread_replies"])
 						require.EqualValues(t, float64(1), data["unread_mentions"])
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
@@ -6758,7 +6838,7 @@ func TestThreadSocketEvents(t *testing.T) {
 							require.Equal(t, tc.replies, thread.UnreadReplies)
 							require.Equal(t, tc.mentions, thread.UnreadMentions)
 						}
-					case <-time.After(1 * time.Second):
+					case <-time.After(2 * time.Second):
 						return
 					}
 				}
@@ -6803,7 +6883,7 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.Equal(t, int64(3), thread.UnreadReplies)
 						require.Equal(t, int64(1), thread.UnreadMentions)
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
@@ -7019,9 +7099,6 @@ func TestThreadCounts(t *testing.T) {
 }
 
 func TestSingleThreadGet(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -7031,7 +7108,6 @@ func TestSingleThreadGet(t *testing.T) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 		*cfg.ServiceSettings.PostPriority = true
-		cfg.FeatureFlags.PostPriority = true
 	})
 
 	client := th.Client
@@ -7077,7 +7153,6 @@ func TestSingleThreadGet(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostPriority = true
-			cfg.FeatureFlags.PostPriority = true
 		})
 
 		tr, _, err = th.Client.GetUserThread(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)

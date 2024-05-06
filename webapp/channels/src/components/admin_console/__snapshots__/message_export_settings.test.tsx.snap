@@ -15,12 +15,12 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <BooleanSetting
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -46,7 +46,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -136,7 +136,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         getExtraInfoText={[Function]}
         jobType="message_export"
       />
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >
@@ -195,12 +195,12 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <BooleanSetting
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -226,7 +226,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -299,7 +299,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
           ]
         }
       />
-      <SettingsGroup
+      <Memo(SettingsGroup)
         id="globalRelaySettings"
       >
         <Memo(RadioSetting)
@@ -412,7 +412,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
           setByEnv={false}
           value="globalRelay@mattermost.com"
         />
-      </SettingsGroup>
+      </Memo(SettingsGroup)>
       <Connect(JobTable)
         createJobButtonText={
           <Memo(MemoizedFormattedMessage)
@@ -430,7 +430,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         getExtraInfoText={[Function]}
         jobType="message_export"
       />
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >
@@ -489,12 +489,12 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <BooleanSetting
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -520,7 +520,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -610,7 +610,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         getExtraInfoText={[Function]}
         jobType="message_export"
       />
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >
@@ -669,12 +669,12 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <BooleanSetting
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -700,7 +700,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -773,7 +773,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
           ]
         }
       />
-      <SettingsGroup
+      <Memo(SettingsGroup)
         id="globalRelaySettings"
       >
         <Memo(RadioSetting)
@@ -886,7 +886,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
           setByEnv={false}
           value="globalRelay@mattermost.com"
         />
-      </SettingsGroup>
+      </Memo(SettingsGroup)>
       <Connect(JobTable)
         createJobButtonText={
           <Memo(MemoizedFormattedMessage)
@@ -904,7 +904,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         getExtraInfoText={[Function]}
         jobType="message_export"
       />
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >

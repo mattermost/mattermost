@@ -245,7 +245,6 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
                     />
                 }
                 containerStyle='timezone-container'
-                width='medium'
                 submit={this.changeTimezone}
                 saving={this.state.isSaving}
                 inputs={inputs}

@@ -292,6 +292,10 @@ func (b *BleveEngine) PurgeIndexes(rctx request.CTX) *model.AppError {
 	return b.openIndexes()
 }
 
+func (b *BleveEngine) PurgeIndexList(rctx request.CTX, indexes []string) *model.AppError {
+	return model.NewAppError("Bleve.PurgeIndex", "bleveengine.purge_list.not_implemented", nil, "not implemented", http.StatusNotFound)
+}
+
 func (b *BleveEngine) DataRetentionDeleteIndexes(rctx request.CTX, cutoff time.Time) *model.AppError {
 	return nil
 }
@@ -330,4 +334,8 @@ func (b *BleveEngine) UpdateConfig(cfg *model.Config) {
 		return
 	}
 	b.cfg = cfg
+}
+
+func (b *BleveEngine) IsChannelsIndexVerified() bool {
+	return true
 }

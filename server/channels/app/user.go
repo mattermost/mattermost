@@ -230,6 +230,15 @@ func (a *App) CreateGuest(c request.CTX, user *model.User) (*model.User, *model.
 }
 
 func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*model.User, *model.AppError) {
+	exceeded, limitErr := a.isHardUserLimitExceeded()
+	if limitErr != nil {
+		return nil, limitErr
+	}
+
+	if exceeded {
+		return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.user_limits.exceeded", nil, "", http.StatusBadRequest)
+	}
+
 	if err := a.isUniqueToGroupNames(user.Username); err != nil {
 		err.Where = "createUserOrGuest"
 		return nil, err
@@ -263,9 +272,15 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		}
 	}
 
-	if user.EmailVerified {
-		a.InvalidateCacheForUser(ruser.Id)
+	// We always invalidate the user because we actually need to invalidate
+	// in case the user's EmailVerified is true, but we also always need to invalidate
+	// the GetAllProfiles cache.
+	// To have a proper fix would mean duplicating the invalidation of GetAllProfiles
+	// everywhere else. Therefore, to keep things simple we always invalidate both caches here.
+	// The performance penalty for invalidating the UserById cache is nil because the user was just created.
+	a.InvalidateCacheForUser(ruser.Id)
 
+	if user.EmailVerified {
 		nUser, err := a.ch.srv.userService.GetUser(ruser.Id)
 		if err != nil {
 			var nfErr *store.ErrNotFound
@@ -318,14 +333,14 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		}(ruser.Id)
 	}
 
-	userLimits, appErr := a.GetUserLimits()
-	if appErr != nil {
+	userLimits, limitErr := a.GetServerLimits()
+	if limitErr != nil {
 		// we don't want to break the create user flow just because of this.
 		// So, we log the error, not return
-		mlog.Error("Error fetching user limits in createUserOrGuest", mlog.Err(appErr))
+		c.Logger().Error("Error fetching user limits in createUserOrGuest", mlog.Err(limitErr))
 	} else {
 		if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-			mlog.Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
 		}
 	}
 
@@ -997,6 +1012,17 @@ func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *
 }
 
 func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
+	if active {
+		exceeded, appErr := a.isHardUserLimitExceeded()
+		if appErr != nil {
+			return nil, appErr
+		}
+
+		if exceeded {
+			return nil, model.NewAppError("UpdateActive", "app.user.update_active.user_limit.exceeded", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	user.UpdateAt = model.GetMillis()
 	if active {
 		user.DeleteAt = 0
@@ -1044,12 +1070,12 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	}
 
 	if active {
-		userLimits, appErr := a.GetUserLimits()
+		userLimits, appErr := a.GetServerLimits()
 		if appErr != nil {
-			mlog.Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
+			c.Logger().Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
 		} else {
 			if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-				mlog.Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+				c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
 			}
 		}
 	}
@@ -1507,7 +1533,7 @@ func (a *App) resetPasswordFromToken(c request.CTX, userSuppliedTokenString, new
 	return nil
 }
 
-func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
+func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) (bool, *model.AppError) {
 	user, err := a.GetUserByEmail(email)
 	if err != nil {
 		return false, nil
@@ -1517,7 +1543,7 @@ func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppE
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
-	token, err := a.CreatePasswordRecoveryToken(user.Id, user.Email)
+	token, err := a.CreatePasswordRecoveryToken(rctx, user.Id, user.Email)
 	if err != nil {
 		return false, err
 	}
@@ -1530,7 +1556,7 @@ func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppE
 	return result, nil
 }
 
-func (a *App) CreatePasswordRecoveryToken(userID, email string) (*model.Token, *model.AppError) {
+func (a *App) CreatePasswordRecoveryToken(rctx request.CTX, userID, email string) (*model.Token, *model.AppError) {
 	tokenExtra := struct {
 		UserId string
 		Email  string
@@ -1546,7 +1572,7 @@ func (a *App) CreatePasswordRecoveryToken(userID, email string) (*model.Token, *
 	// remove any previously created tokens for user
 	appErr := a.InvalidatePasswordRecoveryTokensForUser(userID)
 	if appErr != nil {
-		mlog.Warn("Error while deleting additional user tokens.", mlog.Err(err))
+		rctx.Logger().Warn("Error while deleting additional user tokens.", mlog.Err(err))
 	}
 
 	token := model.NewToken(TokenTypePasswordRecovery, string(jsonData))
@@ -1821,7 +1847,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().User().PermanentDelete(user.Id); err != nil {
+	if err := a.Srv().Store().User().PermanentDelete(c, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -2837,14 +2863,14 @@ func getProfileImageDirectory(userID string) string {
 	return filepath.Join("users", userID)
 }
 
-func (a *App) UserIsFirstAdmin(user *model.User) bool {
+func (a *App) UserIsFirstAdmin(rctx request.CTX, user *model.User) bool {
 	if !user.IsSystemAdmin() {
 		return false
 	}
 
 	systemAdminUsers, errServer := a.Srv().Store().User().GetSystemAdminProfiles()
 	if errServer != nil {
-		mlog.Warn("Failed to get system admins to check for first admin from Mattermost.")
+		rctx.Logger().Warn("Failed to get system admins to check for first admin from Mattermost.")
 		return false
 	}
 
@@ -2857,4 +2883,14 @@ func (a *App) UserIsFirstAdmin(user *model.User) bool {
 	}
 
 	return true
+}
+
+func (a *App) getAllSystemAdmins() ([]*model.User, *model.AppError) {
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  500,
+		Role:     model.SystemAdminRoleId,
+		Inactive: false,
+	}
+	return a.GetUsersFromProfiles(userOptions)
 }

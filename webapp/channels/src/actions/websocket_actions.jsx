@@ -40,7 +40,7 @@ import {
     getPosts,
     getPostThread,
     getMentionsAndStatusesForPosts,
-    getThreadsForPosts,
+    getPostThreads,
     postDeleted,
     receivedNewPost,
     receivedPost,
@@ -100,7 +100,7 @@ import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
-import {removeGlobalItem, setGlobalItem} from 'actions/storage';
+import {setGlobalItem} from 'actions/storage';
 import {loadProfilesForDM, loadProfilesForGM} from 'actions/user_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
@@ -118,7 +118,7 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext, StoragePrefixes} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
 import {temporarilySetPageLoadContext} from './telemetry_actions';
@@ -179,7 +179,7 @@ export function initialize() {
     WebSocketClient.addMissedMessageListener(restart);
     WebSocketClient.addCloseListener(handleClose);
 
-    WebSocketClient.initialize(connUrl);
+    WebSocketClient.initialize(connUrl, undefined, true);
 }
 
 export function close() {
@@ -717,7 +717,7 @@ export function handleNewPostEvent(msg) {
         ) {
             myDispatch({
                 type: UserTypes.RECEIVED_STATUSES,
-                data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
+                data: [{[post.user_id]: UserStatuses.ONLINE}],
             });
         }
     };
@@ -733,13 +733,19 @@ export function handleNewPostEvents(queue) {
             console.log('handleNewPostEvents - new posts received', posts);
         }
 
+        posts.forEach((post, index) => {
+            if (queue[index].data.should_ack) {
+                WebSocketClient.acknowledgePostedNotification(post.id, 'not_sent', 'too_many_posts');
+            }
+        });
+
         // Receive the posts as one continuous block since they were received within a short period
         const crtEnabled = isCollapsedThreadsEnabled(myGetState());
         const actions = posts.map((post) => receivedNewPost(post, crtEnabled));
         myDispatch(batchActions(actions));
 
         // Load the posts' threads
-        myDispatch(getThreadsForPosts(posts));
+        myDispatch(getPostThreads(posts));
 
         // And any other data needed for them
         getMentionsAndStatusesForPosts(posts, myDispatch, myGetState);
@@ -777,19 +783,6 @@ async function handlePostDeleteEvent(msg) {
     }
 
     dispatch(postDeleted(post));
-
-    // remove draft associated with this post from store
-    const draftKey = `${StoragePrefixes.COMMENT_DRAFT}${post.id}`;
-
-    // update the draft first to re-render
-    await dispatch(setGlobalItem(draftKey, {
-        message: '',
-        fileInfos: [],
-        uploadsInProgress: [],
-    }));
-
-    // then remove it
-    await dispatch(removeGlobalItem(draftKey));
 
     // update thread when a comment is deleted and CRT is on
     if (post.root_id && collapsedThreads) {
@@ -1278,7 +1271,7 @@ function addedNewGmUser(preference) {
 function handleStatusChangedEvent(msg) {
     dispatch({
         type: UserTypes.RECEIVED_STATUSES,
-        data: [{user_id: msg.data.user_id, status: msg.data.status}],
+        data: [{[msg.data.user_id]: msg.data.status}],
     });
 }
 
@@ -1738,15 +1731,11 @@ function handleDeleteDraftEvent(msg) {
         const draft = JSON.parse(msg.data.draft);
         const {key} = transformServerDraft(draft);
 
-        // update the draft first to re-render
-        await doDispatch(setGlobalItem(key, {
+        doDispatch(setGlobalItem(key, {
             message: '',
             fileInfos: [],
             uploadsInProgress: [],
         }));
-
-        // then remove it
-        await doDispatch(removeGlobalItem(key));
     };
 }
 

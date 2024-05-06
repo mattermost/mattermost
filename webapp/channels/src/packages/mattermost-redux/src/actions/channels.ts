@@ -271,11 +271,11 @@ export function updateChannelPrivacy(channelId: string, privacy: string): Action
     });
 }
 
-export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string, displayName: string, name: string): ActionFuncAsync {
+export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string, displayName: string, name: string): ActionFuncAsync<Channel> {
     return async (dispatch, getState) => {
-        let updatedChannel;
+        let response;
         try {
-            updatedChannel = await Client4.convertGroupMessageToPrivateChannel(channelID, teamID, displayName, name);
+            response = await Client4.convertGroupMessageToPrivateChannel(channelID, teamID, displayName, name);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -284,7 +284,7 @@ export function convertGroupMessageToPrivateChannel(channelID: string, teamID: s
 
         dispatch({
             type: ChannelTypes.RECEIVED_CHANNEL,
-            data: updatedChannel,
+            data: response.data,
         });
 
         // move the channel from direct message category to the default "channels" category
@@ -293,7 +293,9 @@ export function convertGroupMessageToPrivateChannel(channelID: string, teamID: s
             return {};
         }
 
-        return updatedChannel;
+        return {
+            data: response.data,
+        };
     };
 }
 
@@ -695,6 +697,21 @@ export function updateApproximateViewTime(channelId: string): ActionFuncAsync {
             ];
             dispatch(savePreferences(currentUserId, preferences));
         }
+        return {data: true};
+    };
+}
+
+export function unsetActiveChannelOnServer(): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            // The view channel api in the server handles the active channel
+            await Client4.viewMyChannel('');
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {data: false};
+        }
+
         return {data: true};
     };
 }
@@ -1262,7 +1279,7 @@ export function favoriteChannel(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const channel = getChannelSelector(state, channelId);
-        const category = getCategoryInTeamByType(state, channel.team_id || getCurrentTeamId(state), CategoryTypes.FAVORITES);
+        const category = getCategoryInTeamByType(state, channel?.team_id || getCurrentTeamId(state), CategoryTypes.FAVORITES);
 
         Client4.trackEvent('action', 'action_channels_favorite');
 
@@ -1279,6 +1296,10 @@ export function unfavoriteChannel(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const channel = getChannelSelector(state, channelId);
+        if (!channel) {
+            return {data: false};
+        }
+
         const category = getCategoryInTeamByType(
             state,
             channel.team_id || getCurrentTeamId(state),
