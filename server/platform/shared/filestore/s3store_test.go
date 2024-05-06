@@ -369,7 +369,7 @@ func TestListDirectory(t *testing.T) {
 	_, err = fileBackend.WriteFile(bytes.NewReader(b), path1)
 	require.NoError(t, err, "Failed to write file1 to S3")
 
-	_, err = fileBackend.listDirectory("", false)
+	_, err = fileBackend.ListDirectory("")
 	var pErr *fs.PathError
 	assert.True(t, errors.As(err, &pErr), "error is not of type fs.PathError")
 
