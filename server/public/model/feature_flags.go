@@ -59,7 +59,6 @@ type FeatureFlags struct {
 	ExperimentalAuditSettingsSystemConsoleUI bool
 
 	ClientMetrics bool
-
 }
 
 func (f *FeatureFlags) SetDefaults() {
