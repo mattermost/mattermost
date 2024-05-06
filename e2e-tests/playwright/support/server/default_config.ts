@@ -714,7 +714,6 @@ const defaultServerConfig: AdminConfig = {
         PermalinkPreviews: false,
         CallsEnabled: true,
         NormalizeLdapDNs: false,
-        PostPriority: false,
         WysiwygEditor: false,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
