@@ -73,7 +73,7 @@ function hoverOnChannelDescriptionAndVerifyBehavior() {
     const channelDescriptionText = `test description ${getRandomId()}`;
 
     // # Wait a little for channel to load
-    cy.wait(TIMEOUTS.FIVE_SEC);
+    cy.wait(TIMEOUTS.ONE_SEC);
 
     // # Scan within channel header description area
     cy.get('#channelHeaderDescription').should('be.visible').find('span').invoke('show').click({multiple: true, force: true});
