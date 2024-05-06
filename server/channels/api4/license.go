@@ -5,9 +5,7 @@ package api4
 
 import (
 	"bytes"
-	b64 "encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -23,10 +21,7 @@ func (api *API) InitLicense() {
 	api.BaseRoutes.APIRoot.Handle("/trial-license/prev", api.APISessionRequired(getPrevTrialLicense)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(addLicense, handlerParamFileAPI)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(removeLicense)).Methods("DELETE")
-	api.BaseRoutes.APIRoot.Handle("/license/renewal", api.APISessionRequired(requestRenewalLink)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/license/client", api.APIHandler(getClientLicense)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/license/review", api.APISessionRequired(requestTrueUpReview)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/license/review/status", api.APISessionRequired(trueUpReviewStatus)).Methods("GET")
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -238,54 +233,6 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("requestRenewalLink", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	c.LogAudit("attempt")
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
-		c.SetPermissionError(model.PermissionManageLicenseInformation)
-		return
-	}
-
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("requestRenewalLink", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-		return
-	}
-
-	renewalLink, token, err := c.App.Srv().GenerateLicenseRenewalLink()
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if c.App.Cloud() == nil {
-		c.Err = model.NewAppError("requestRenewalLink", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	// check if it is possible to renew license on the portal with generated token
-	status, e := c.App.Cloud().GetLicenseSelfServeStatus(c.AppContext.Session().UserId, token)
-	if e != nil {
-		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.cannot_renew_on_cws", nil, "", http.StatusInternalServerError).Wrap(e)
-		return
-	}
-
-	if !status.IsRenewable {
-		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.cannot_renew_on_cws", nil, "License is not self-serve renewable", http.StatusBadRequest)
-		return
-	}
-
-	auditRec.Success()
-	c.LogAudit("success")
-
-	_, werr := w.Write([]byte(fmt.Sprintf(`{"renewal_link": "%s"}`, renewalLink)))
-	if werr != nil {
-		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.app_error", nil, "", http.StatusForbidden).Wrap(werr)
-		return
-	}
-}
-
 func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv().Platform().LicenseManager() == nil {
 		c.Err = model.NewAppError("getPrevTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
@@ -307,103 +254,4 @@ func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.MapToJSON(clientLicense)))
-}
-
-func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Only admins can request a true up review.
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageLicenseInformation)
-		return
-	}
-
-	license := c.App.Channels().License()
-	if license == nil {
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.license_required", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if license.IsCloud() {
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.not_allowed_for_cloud", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	status, appErr := c.App.GetOrCreateTrueUpReviewStatus(c.AppContext)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	// If a true up review has already been submitted for the current due date, complete the request
-	// with no errors.
-	if status.Completed {
-		ReturnStatusOK(w)
-	}
-
-	profileMap, err := c.App.GetTrueUpProfile()
-	if err != nil {
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.get_status_error", nil, "", http.StatusInternalServerError)
-		return
-	}
-
-	profileMapJson, err := json.Marshal(profileMap)
-	if err != nil {
-		c.SetJSONEncodingError(err)
-		return
-	}
-
-	// Only report the true up review to CWS if the connection is available.
-	if err := c.App.Cloud().CheckCWSConnection(c.AppContext.Session().UserId); err == nil {
-		err = c.App.Cloud().SubmitTrueUpReview(c.AppContext.Session().UserId, profileMap)
-		if err != nil {
-			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.failed_to_submit", nil, "", http.StatusInternalServerError).Wrap(err)
-			return
-		}
-	}
-
-	// Update the review status to reflect the completion.
-	status.Completed = true
-	c.App.Srv().Store().TrueUpReview().Update(status)
-
-	// Encode to string rather than byte[] otherwise json.Marshal will encode it further.
-	encodedData := b64.StdEncoding.EncodeToString(profileMapJson)
-	responseContent := struct {
-		Content string `json:"content"`
-	}{Content: encodedData}
-	response, _ := json.Marshal(responseContent)
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(response)
-}
-
-func trueUpReviewStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Only admins can request a true up review.
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageLicenseInformation)
-		return
-	}
-
-	// Check for license
-	license := c.App.Channels().License()
-	if license == nil {
-		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.license_required", nil, "True up review requires a license", http.StatusNotImplemented)
-		return
-	}
-
-	if license.IsCloud() {
-		c.Err = model.NewAppError("cloudTrueUpReviewNotAllowed", "api.license.true_up_review.not_allowed_for_cloud", nil, "True up review is not allowed for cloud instances", http.StatusNotImplemented)
-		return
-	}
-
-	status, appErr := c.App.GetOrCreateTrueUpReviewStatus(c.AppContext)
-	if appErr != nil {
-		c.Err = appErr
-	}
-
-	json, err := json.Marshal(status)
-	if err != nil {
-		c.Err = model.NewAppError("trueUpReviewStatus", "api.marshal_error", nil, "", http.StatusInternalServerError)
-		return
-	}
-
-	w.Write(json)
 }

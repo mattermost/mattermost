@@ -63,7 +63,6 @@ type RetryLayer struct {
 	TermsOfServiceStore             store.TermsOfServiceStore
 	ThreadStore                     store.ThreadStore
 	TokenStore                      store.TokenStore
-	TrueUpReviewStore               store.TrueUpReviewStore
 	UploadSessionStore              store.UploadSessionStore
 	UserStore                       store.UserStore
 	UserAccessTokenStore            store.UserAccessTokenStore
@@ -229,10 +228,6 @@ func (s *RetryLayer) Thread() store.ThreadStore {
 
 func (s *RetryLayer) Token() store.TokenStore {
 	return s.TokenStore
-}
-
-func (s *RetryLayer) TrueUpReview() store.TrueUpReviewStore {
-	return s.TrueUpReviewStore
 }
 
 func (s *RetryLayer) UploadSession() store.UploadSessionStore {
@@ -452,11 +447,6 @@ type RetryLayerThreadStore struct {
 
 type RetryLayerTokenStore struct {
 	store.TokenStore
-	Root *RetryLayer
-}
-
-type RetryLayerTrueUpReviewStore struct {
-	store.TrueUpReviewStore
 	Root *RetryLayer
 }
 
@@ -12717,69 +12707,6 @@ func (s *RetryLayerTokenStore) Save(recovery *model.Token) error {
 
 }
 
-func (s *RetryLayerTrueUpReviewStore) CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error) {
-
-	tries := 0
-	for {
-		result, err := s.TrueUpReviewStore.CreateTrueUpReviewStatusRecord(reviewStatus)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerTrueUpReviewStore) GetTrueUpReviewStatus(dueDate int64) (*model.TrueUpReviewStatus, error) {
-
-	tries := 0
-	for {
-		result, err := s.TrueUpReviewStore.GetTrueUpReviewStatus(dueDate)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerTrueUpReviewStore) Update(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error) {
-
-	tries := 0
-	for {
-		result, err := s.TrueUpReviewStore.Update(reviewStatus)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerUploadSessionStore) Delete(id string) error {
 
 	tries := 0
@@ -13977,11 +13904,11 @@ func (s *RetryLayerUserStore) IsEmpty(excludeBots bool) (bool, error) {
 
 }
 
-func (s *RetryLayerUserStore) PermanentDelete(userID string) error {
+func (s *RetryLayerUserStore) PermanentDelete(rctx request.CTX, userID string) error {
 
 	tries := 0
 	for {
-		err := s.UserStore.PermanentDelete(userID)
+		err := s.UserStore.PermanentDelete(rctx, userID)
 		if err == nil {
 			return nil
 		}
@@ -15372,7 +15299,6 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.TermsOfServiceStore = &RetryLayerTermsOfServiceStore{TermsOfServiceStore: childStore.TermsOfService(), Root: &newStore}
 	newStore.ThreadStore = &RetryLayerThreadStore{ThreadStore: childStore.Thread(), Root: &newStore}
 	newStore.TokenStore = &RetryLayerTokenStore{TokenStore: childStore.Token(), Root: &newStore}
-	newStore.TrueUpReviewStore = &RetryLayerTrueUpReviewStore{TrueUpReviewStore: childStore.TrueUpReview(), Root: &newStore}
 	newStore.UploadSessionStore = &RetryLayerUploadSessionStore{UploadSessionStore: childStore.UploadSession(), Root: &newStore}
 	newStore.UserStore = &RetryLayerUserStore{UserStore: childStore.User(), Root: &newStore}
 	newStore.UserAccessTokenStore = &RetryLayerUserAccessTokenStore{UserAccessTokenStore: childStore.UserAccessToken(), Root: &newStore}

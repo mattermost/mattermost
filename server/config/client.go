@@ -96,6 +96,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["CWSMock"] = model.MockCWS
 
 	props["DisableRefetchingOnBrowserFocus"] = strconv.FormatBool(*c.ExperimentalSettings.DisableRefetchingOnBrowserFocus)
+	props["DisableWakeUpReconnectHandler"] = strconv.FormatBool(*c.ExperimentalSettings.DisableWakeUpReconnectHandler)
 
 	// Set default values for all options that require a license.
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"
