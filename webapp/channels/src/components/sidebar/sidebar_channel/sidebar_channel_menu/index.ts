@@ -6,7 +6,7 @@ import type {ConnectedProps} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {favoriteChannel, unfavoriteChannel, markChannelAsRead} from 'mattermost-redux/actions/channels';
+import {favoriteChannel, unfavoriteChannel, markMultipleChannelsAsRead} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
 import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -66,7 +66,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 }
 
 const mapDispatchToProps = {
-    markChannelAsRead,
+    markMultipleChannelsAsRead,
     markMostRecentPostInChannelAsUnread,
     favoriteChannel,
     unfavoriteChannel,
