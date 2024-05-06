@@ -157,7 +157,7 @@ function verifyFocusInAddChannelMemberModal() {
     cy.get('#selectItems input').should('have.value', 'A');
 
     // # Click anywhere in the modal that is not on a field that can take focus
-    cy.get('.channel-invite__header').click();
+    cy.get('#deletePostModalLabel > span').click();
 
     // * Note the focus has been removed from the search box
     cy.get('#selectItems input').should('not.be.focused');
