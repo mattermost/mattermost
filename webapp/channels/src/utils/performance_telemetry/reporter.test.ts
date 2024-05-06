@@ -8,6 +8,7 @@ import {Client4} from '@mattermost/client';
 
 import configureStore from 'store';
 
+import {reset as resetUserAgent, setPlatform, set as setUserAgent} from 'tests/helpers/user_agent_mocks';
 import {waitForObservations} from 'tests/performance_mock';
 
 import PerformanceReporter from './reporter';
@@ -227,6 +228,24 @@ describe('PerformanceReporter', () => {
         reporter.disconnect();
     });
 
+    test('should not report anything there is no data to report', async () => {
+        const {reporter} = newTestReporter();
+        reporter.observe();
+
+        expect(sendBeacon).not.toHaveBeenCalled();
+
+        await waitForObservations();
+
+        expect(reporter.handleObservations).not.toHaveBeenCalled();
+
+        await waitForReport();
+
+        expect(reporter.maybeSendReport).toHaveBeenCalled();
+        expect(sendBeacon).not.toHaveBeenCalled();
+
+        reporter.disconnect();
+    });
+
     test('should not report anything if EnableClientMetrics is false', async () => {
         const {reporter} = newTestReporter(false);
         reporter.observe();
@@ -243,6 +262,8 @@ describe('PerformanceReporter', () => {
 
         expect(reporter.maybeSendReport).toHaveBeenCalled();
         expect(sendBeacon).not.toHaveBeenCalled();
+
+        reporter.disconnect();
     });
 
     test('should not report anything if the user is not logged in', async () => {
@@ -261,6 +282,38 @@ describe('PerformanceReporter', () => {
 
         expect(reporter.maybeSendReport).toHaveBeenCalled();
         expect(sendBeacon).not.toHaveBeenCalled();
+
+        reporter.disconnect();
+    });
+
+    test('should report user agent and platform', async () => {
+        setPlatform('MacIntel');
+        setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0');
+
+        const {reporter} = newTestReporter();
+        reporter.observe();
+
+        markAndReport('reportedA');
+
+        await waitForObservations();
+
+        expect(reporter.handleObservations).toHaveBeenCalled();
+
+        await waitForReport();
+
+        expect(sendBeacon).toHaveBeenCalled();
+        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/metrics');
+        const report = JSON.parse(sendBeacon.mock.calls[0][1]);
+        expect(report).toMatchObject({
+            labels: {
+                agent: 'firefox',
+                platform: 'macos',
+            },
+        });
+
+        reporter.disconnect();
+
+        resetUserAgent();
     });
 
     test('should fall back to making a fetch request if a beacon cannot be sent', async () => {
@@ -285,6 +338,8 @@ describe('PerformanceReporter', () => {
 
         expect(sendBeacon).toHaveBeenCalled();
         expect(mock.isDone()).toBe(true);
+
+        reporter.disconnect();
     });
 });
 

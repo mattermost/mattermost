@@ -13,6 +13,8 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {GlobalState} from 'types/store';
 
 import type {PerformanceLongTaskTiming} from './long_task';
+import type {PlatformLabel, UserAgentLabel} from './platform_detection';
+import {getPlatformLabel, getUserAgentLabel} from './platform_detection';
 
 type PerformanceReportMeasure = {
     metric: string;
@@ -23,8 +25,10 @@ type PerformanceReportMeasure = {
 type PerformanceReport = {
     version: '1.0';
 
-    platform: string;
-    user_agent: string;
+    labels: {
+        platform: PlatformLabel;
+        agent: UserAgentLabel;
+    };
 
     start: number;
     end: number;
@@ -36,6 +40,9 @@ type PerformanceReport = {
 export default class PerformanceReporter {
     private client: Client4;
     private store: Store<GlobalState>;
+
+    private platformLabel: PlatformLabel;
+    private userAgentLabel: UserAgentLabel;
 
     private counters: Map<string, number>;
     private histogramMeasures: PerformanceReportMeasure[];
@@ -49,6 +56,9 @@ export default class PerformanceReporter {
     constructor(client: Client4, store: Store<GlobalState>) {
         this.client = client;
         this.store = store;
+
+        this.platformLabel = getPlatformLabel();
+        this.userAgentLabel = getUserAgentLabel();
 
         this.counters = new Map();
         this.histogramMeasures = [];
@@ -204,8 +214,10 @@ export default class PerformanceReporter {
         return {
             version: '1.0',
 
-            platform: navigator.platform,
-            user_agent: navigator.userAgent,
+            labels: {
+                platform: this.platformLabel,
+                agent: this.userAgentLabel,
+            },
 
             ...this.getReportStartEnd(now, histogramMeasures, counterMeasures),
 
