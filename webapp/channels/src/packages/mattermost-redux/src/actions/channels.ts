@@ -701,6 +701,21 @@ export function updateApproximateViewTime(channelId: string): ActionFuncAsync {
     };
 }
 
+export function unsetActiveChannelOnServer(): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            // The view channel api in the server handles the active channel
+            await Client4.viewMyChannel('');
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {data: false};
+        }
+
+        return {data: true};
+    };
+}
+
 export function readMultipleChannels(channelIds: string[]): ActionFuncAsync {
     return async (dispatch, getState) => {
         let response;
