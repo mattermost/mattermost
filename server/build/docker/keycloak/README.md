@@ -13,10 +13,7 @@ To manually set the configuration in the Mattermost server, you can use the foll
   - **Client ID**: `mattermost-openid`
   - **Client Secret**: `IJ4wWoukIbpBX2EZHVJcbDer6Bslxded`
 
-Credentials to log in:
-- **Admin account**: keycloak-admin/mostest
-- **User accounts**:
-  - keycloak-user-01/mostest
+- [Official OpenID with Keycloak documentation](https://docs.mattermost.com/onboard/sso-openidconnect.html)
 
 ## Setting up SAML
 
@@ -27,13 +24,7 @@ You will need to set the following `SamlSettings` in order to complete the setup
 - **FirstNameAttribute**: "givenName"
 - **LastNameAttribute**: "surname"
 
-Then you can login with the following credentials:
-- **Admin account**: admin/admin
-
-- **User accounts**:
-  - homer/password
-  - marge/password
-  - lisa/password
+- [Official SAML with Keycloak documentation](https://docs.mattermost.com/onboard/sso-saml-keycloak.html)
 
 ## Credentials to log in
 
@@ -45,21 +36,10 @@ Then you can login with the following credentials:
   - `marge`/`password`
   - `lisa`/`password`
 
-## Updating the `realm.json`
+## Updating the `realm-export.json`
 
 The `realm.json` file is automatically imported by the keycloak development container. If you make any modifications to this file or to the base configuration, export it by running a terminal in the container and running:
 
 ```bash
 /opt/keycloak/bin/kc.sh export --realm mattermost --users realm_file --file /opt/keycloak/data/import/realm-export.json
 ```
-
-## SAML documentation
-
-- [Official SAML with Keycloak documentation](https://docs.mattermost.com/onboard/sso-saml-keycloak.html)
-
-Overwrite your `SamlSettings` section in your config.json file by running `make config-saml` and restarting your server.
-
-You will need to set the following `SamlSettings` in order to complete the setup:
-- **Enable**: true
-- **FirstNameAttribute**: "givenName"
-- **LastNameAttribute**: "surname"
