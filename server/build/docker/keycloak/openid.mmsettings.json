@@ -8,7 +8,7 @@
         "TokenEndpoint": "",
         "UserAPIEndpoint": "",
         "DiscoveryEndpoint": "http://localhost:8484/realms/mattermost/.well-known/openid-configuration",
-        "ButtonText": "Nakama.town",
+        "ButtonText": "Login using OpenID",
         "ButtonColor": "#ffaa4c"
     }
 }
