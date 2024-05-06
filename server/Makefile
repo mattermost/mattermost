@@ -691,6 +691,19 @@ config-saml: ## Configures SAML.
 	@sed -i'' -e 's|"AssertionConsumerServiceURL": ".*"|"AssertionConsumerServiceURL": "http://localhost:8065/login/sso/saml"|g' ../config/config.json
 	@sed -i'' -e 's|"IdpCertificateFile": ".*"|"IdpCertificateFile": "saml-idp.crt"|g' ../config/config.json
 
+config-openid: ## Configures OpenID.
+	@echo Setting up configuration for local OpenID with keycloak, please ensure your keycloak is running on http://localhost:8484
+
+	# Check if jq is installed
+	@jq --version > /dev/null 2>&1 || (echo "jq is not installed. Please install jq to continue." && exit 1)
+
+	TMPDIR=$(mktemp -d)
+	jq --slurp '.[0] * .[1]' config/config.json build/docker/keycloak/openid.mmsettings.json > ${TMPDIR}/config.json
+	cp ${TMPDIR}/config.json ./config/config.json
+	rm ${TMPDIR}/config.json
+
+	@echo Finished setting up configuration for local OpenID with keycloak
+
 config-reset: ## Resets the config/config.json file to the default production values.
 	@echo Resetting configuration to production default
 	rm -f config/config.json
