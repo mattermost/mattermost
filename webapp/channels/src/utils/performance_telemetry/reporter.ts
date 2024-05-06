@@ -23,8 +23,6 @@ type PerformanceReportMeasure = {
 type PerformanceReport = {
     version: '1.0';
 
-    // TODO client ID?
-
     platform: string;
     user_agent: string;
 
