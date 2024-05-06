@@ -719,8 +719,8 @@
     .sidebar-category {
         .category-title {
             margin-top: 24px;
-            padding: 0px 12px 0px 20px;
-            color: rgba(var(--sys-sidebar-text-rgb), 0.64);
+            padding: 6px 12px 6px 20px;
+            color: rgba(var(--sys-sidebar-text-rgb), 0.56);
             font-size: 12px;
             font-weight: 600;
             letter-spacing: 0.1em;
@@ -747,7 +747,7 @@
         }
 
         .sections {
-            padding: 4px 0;
+            padding: 0;
         }
     }
 
