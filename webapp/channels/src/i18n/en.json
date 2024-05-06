@@ -268,7 +268,7 @@
   "admin.audit_logging_experimental.file_max_queue_size.title": "Maximum File Queue",
   "admin.audit_logging_experimental.file_max_size.help_text": "The maximum size of a single exported file, in MB.",
   "admin.audit_logging_experimental.file_max_size.title": "Max File Size (MB)",
-  "admin.audit_logging_experimental.file_name.help_text": "The name of the file to write to.",
+  "admin.audit_logging_experimental.file_name.help_text": "The name of the file to write to. NOTE: If ExperimentalAuditSettings.FileEnabled is set to TRUE, this field is required.",
   "admin.audit_logging_experimental.file_name.title": "File Name",
   "admin.audits.reload": "Reload User Activity Logs",
   "admin.authentication.email": "Email Authentication",
