@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
@@ -21,6 +22,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	s3 "github.com/minio/minio-go/v7"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -368,7 +370,8 @@ func TestListDirectory(t *testing.T) {
 	require.NoError(t, err, "Failed to write file1 to S3")
 
 	_, err = fileBackend.listDirectory("", false)
-	require.Error(t, err, "readdir 19700101/: file does not exist []")
+	var pErr *fs.PathError
+	assert.True(t, errors.As(err, &pErr), "error is not of type fs.PathError")
 
 	err = fileBackend.RemoveFile(path1)
 	require.NoError(t, err, "Failed to remove file1 from S3")

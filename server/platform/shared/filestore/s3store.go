@@ -657,7 +657,7 @@ func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, er
 		count++
 	}
 	// Check if only one item was returned and it matches the path prefix
-	if count == 1 && len(paths) > 0 && strings.TrimRight(path, "/") == strings.TrimRight(paths[0], "/") {
+	if count == 1 && len(paths) > 0 && strings.TrimRight(path, "/") == paths[0] {
 		// Return a fs.PathError to maintain consistency
 		return nil, &fs.PathError{Op: "readdir", Path: path, Err: fs.ErrNotExist}
 	}
