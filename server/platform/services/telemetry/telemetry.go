@@ -758,8 +758,9 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigMetrics, map[string]any{
-		"enable":             *cfg.MetricsSettings.Enable,
-		"block_profile_rate": *cfg.MetricsSettings.BlockProfileRate,
+		"enable":                *cfg.MetricsSettings.Enable,
+		"block_profile_rate":    *cfg.MetricsSettings.BlockProfileRate,
+		"enable_client_metrics": *cfg.MetricsSettings.EnableClientMetrics,
 	})
 
 	ts.SendTelemetry(TrackConfigNativeApp, map[string]any{
@@ -779,7 +780,6 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_app_bar":                      !*cfg.ExperimentalSettings.DisableAppBar,
 		"disable_refetching_on_browser_focus": *cfg.ExperimentalSettings.DisableRefetchingOnBrowserFocus,
 		"delay_channel_autocomplete":          *cfg.ExperimentalSettings.DelayChannelAutocomplete,
-		"enable_client_metrics":               *cfg.ExperimentalSettings.EnableClientMetrics,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{
