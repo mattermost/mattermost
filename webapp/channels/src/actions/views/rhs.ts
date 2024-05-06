@@ -36,18 +36,11 @@ import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 import type {GlobalState} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
 
-function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFuncAsync<boolean, GlobalState> {
-    return async (dispatch, getState) => {
-        const postRootId = post.root_id || post.id;
+function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean, GlobalState> {
+    return (dispatch, getState) => {
         const state = getState();
 
-        dispatch({
-            type: ActionTypes.SELECT_POST,
-            postId: postRootId,
-            channelId: post.channel_id,
-            previousRhsState: previousRhsState || getRhsState(state),
-            timestamp: Date.now(),
-        });
+        dispatch(selectPost(post, previousRhsState || getRhsState(state)));
 
         return {data: true};
     };
@@ -118,7 +111,7 @@ export function goBack(): ActionFuncAsync<boolean, GlobalState> {
 }
 
 export function selectPostFromRightHandSideSearch(post: Post) {
-    return selectPostFromRightHandSideSearchWithPreviousState(post);
+    return selectPostWithPreviousState(post);
 }
 
 export function selectPostFromRightHandSideSearchByPostId(postId: string): ActionFuncAsync<boolean, GlobalState> {
@@ -520,11 +513,12 @@ export function toggleRhsExpanded() {
     };
 }
 
-export function selectPost(post: Post) {
+export function selectPost(post: Post, previousRhsState?: RhsState) {
     return {
         type: ActionTypes.SELECT_POST,
         postId: post.root_id || post.id,
         channelId: post.channel_id,
+        previousRhsState,
         timestamp: Date.now(),
     };
 }
@@ -614,7 +608,7 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown, GlobalSt
         }
         if (previous.selectedPostId) {
             const post = getPost(getState(), previous.selectedPostId);
-            return post ? dispatch(selectPostFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
+            return post ? dispatch(selectPostWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
         if (previous.selectedPostCardId) {
             const post = getPost(getState(), previous.selectedPostCardId);
