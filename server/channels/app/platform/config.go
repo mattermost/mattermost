@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -36,9 +35,6 @@ type ServiceConfig struct {
 	// Optional fields
 	Cluster einterfaces.ClusterInterface
 }
-
-// ensure the config wrapper implements `product.ConfigService`
-var _ product.ConfigService = (*PlatformService)(nil)
 
 func (ps *PlatformService) Config() *model.Config {
 	return ps.configStore.Get()
@@ -139,6 +135,8 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 	// Advanced logging is E20 only, however logging must be initialized before the license
 	// file is loaded.  If no valid E20 license exists then advanced logging will be
 	// shutdown once license is loaded/checked.
+	var resultLevel = mlog.LvlInfo
+	var resultMsg string
 	var err error
 	var logConfigSrc config.LogConfigSrc
 	dsn := logSettings.GetAdvancedLoggingConfig()
@@ -147,9 +145,10 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 		if err != nil {
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
-		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", dsn))
+		resultMsg = fmt.Sprintf("Loaded Advanced Logging configuration for %s: %s", name, string(dsn))
 	} else {
-		ps.logger.Debug("Advanced logging config not provided for " + name)
+		resultLevel = mlog.LvlDebug
+		resultMsg = fmt.Sprintf("Advanced logging config not provided for %s", name)
 	}
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, logConfigSrc, getPath)
@@ -157,9 +156,15 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 		return fmt.Errorf("invalid config source for %s, %w", name, err)
 	}
 
+	// this will remove any existing targets and replace with those defined in cfg.
 	if err := logger.ConfigureTargets(cfg, nil); err != nil {
 		return fmt.Errorf("invalid config for %s, %w", name, err)
 	}
+
+	if resultMsg != "" {
+		ps.Log().Log(resultLevel, resultMsg)
+	}
+
 	return nil
 }
 

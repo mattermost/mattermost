@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -33,14 +33,12 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {getAllGroups, getGroupsAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
 import {getScheme} from 'mattermost-redux/selectors/entities/schemes';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import {LicenseSkus} from 'utils/constants';
 
 import ChannelDetails from './channel_details';
-import type {ChannelDetailsActions} from './channel_details';
 
 type OwnProps = {
     match: {
@@ -65,12 +63,12 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const guestAccountsEnabled = config.EnableGuestAccounts === 'true';
     const channelID = ownProps.match.params.channel_id;
     const channel = getChannel(state, channelID) || {};
-    const team = getTeam(state, channel.team_id) || {};
+    const team = getTeam(state, channel.team_id);
     const groups = getGroupsAssociatedToChannel(state, channelID);
     const totalGroups = groups.length;
     const allGroups = getAllGroups(state);
     const channelPermissions = getChannelModerations(state, channelID);
-    const teamScheme = getScheme(state, team.scheme_id);
+    const teamScheme = team ? getScheme(state, team.scheme_id) : undefined;
     return {
         channelID,
         channel,
@@ -88,7 +86,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, ChannelDetailsActions>({
+        actions: bindActionCreators({
             getGroups: fetchAssociatedGroups,
             linkGroupSyncable,
             unlinkGroupSyncable,

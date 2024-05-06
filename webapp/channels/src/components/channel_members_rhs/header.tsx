@@ -20,11 +20,6 @@ interface Props {
     goBack: () => void;
 }
 
-const BackButton = styled.button`
-    border: 0;
-    background: transparent;
-`;
-
 const HeaderTitle = styled.span`
     line-height: 2.4rem;
 `;
@@ -46,15 +41,15 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
             <span className='sidebar--right__title'>
 
                 {canGoBack && (
-                    <BackButton
-                        className='sidebar--right__back'
+                    <button
+                        className='sidebar--right__back btn btn-icon btn-sm'
                         onClick={goBack}
+                        aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
                     >
                         <i
                             className='icon icon-arrow-back-ios'
-                            aria-label='Back Icon'
                         />
-                    </BackButton>
+                    </button>
                 )}
 
                 <HeaderTitle>

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentProps} from 'react';
 import {connect} from 'react-redux';
 import {withRouter, matchPath} from 'react-router-dom';
 import type {RouteChildrenProps} from 'react-router-dom';
@@ -13,13 +12,12 @@ import type {GlobalState} from '@mattermost/types/store';
 import {getCurrentChannel, getUnreadStatus} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import UnreadsStatusHandler from './unreads_status_handler';
 
 type Props = RouteChildrenProps;
 
-function mapStateToProps(state: GlobalState, {location: {pathname}}: Props): ComponentProps<typeof UnreadsStatusHandler> {
+function mapStateToProps(state: GlobalState, {location: {pathname}}: Props) {
     const config = getConfig(state);
     const currentChannel = getCurrentChannel(state);
     const currentTeammate = (currentChannel && currentChannel.teammate_id) ? currentChannel : null;
@@ -36,7 +34,7 @@ function mapStateToProps(state: GlobalState, {location: {pathname}}: Props): Com
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
         }, dispatch),

@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
 import AddUsersToTeamModal from './add_users_to_team_modal';
+import type {AddUsersToTeamModal as AddUsersToTeamModalClass} from './add_users_to_team_modal';
 
 describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal', () => {
     function createUser(id: string, username: string, bot: boolean): UserProfile {
@@ -58,7 +59,7 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
     };
 
     test('should match snapshot with 2 users', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddUsersToTeamModal
                 {...baseProps}
             />,
@@ -67,7 +68,7 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
     });
 
     test('should match snapshot with 2 users, 1 included and 1 removed', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddUsersToTeamModal
                 {...baseProps}
                 includeUsers={{[removedUser.id]: removedUser}}
@@ -78,22 +79,22 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
     });
 
     test('should match state when handleHide is called', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddUsersToTeamModal {...baseProps}/>,
         );
 
         wrapper.setState({show: true});
-        (wrapper.instance() as AddUsersToTeamModal).handleHide();
+        (wrapper.instance() as AddUsersToTeamModalClass).handleHide();
         expect(wrapper.state('show')).toEqual(false);
     });
 
     test('should search', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddUsersToTeamModal
                 {...baseProps}
             />,
         );
-        const addUsers = wrapper.instance() as AddUsersToTeamModal;
+        const addUsers = wrapper.instance() as AddUsersToTeamModalClass;
 
         // search profiles when search term given
         addUsers.search('foo');

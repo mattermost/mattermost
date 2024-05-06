@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import FlexSearch from 'flexsearch/dist/flexsearch.es5';
-import type {IntlShape} from 'react-intl';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import type {PluginRedux} from '@mattermost/types/plugins';
 
 import type AdminDefinition from 'components/admin_console/admin_definition';
+import type {AdminDefinitionSetting, AdminDefinitionSubSection} from 'components/admin_console/types';
 
 import {getPluginEntries} from './admin_console_plugin_index';
 
@@ -28,29 +29,37 @@ export type Index = {
     search(query: string): string[];
 }
 
-function extractTextsFromSection(section: Record<string, any>, intl: IntlShape) {
-    const texts: Array<string | string[]> = [];
-    if (section.title) {
-        texts.push(intl.formatMessage({id: section.title, defaultMessage: section.title_default}));
+function pushText(texts: string[], value: string | MessageDescriptor | JSX.Element, intl: IntlShape, values?: Record<string, any>) {
+    if (typeof value === 'string') {
+        texts.push(value);
+    } else if ('id' in value) {
+        texts.push(intl.formatMessage(value, values));
     }
-    if (section.schema && section.schema.name) {
-        texts.push(section.schema.name);
+}
+
+function extractTextsFromSection(section: AdminDefinitionSubSection, intl: IntlShape) {
+    const texts: string[] = [];
+    if (section.title) {
+        pushText(texts, section.title, intl);
+    }
+    if ('name' in section.schema && section.schema.name) {
+        pushText(texts, section.schema.name, intl);
     }
     if (section.searchableStrings) {
         for (const searchableString of section.searchableStrings) {
-            if (typeof searchableString === 'string') {
-                texts.push(intl.formatMessage({id: searchableString, defaultMessage: searchableString}));
+            if (Array.isArray(searchableString)) {
+                texts.push(intl.formatMessage(searchableString[0], searchableString[1]));
             } else {
-                texts.push(intl.formatMessage({id: searchableString[0], defaultMessage: ''}, searchableString[1]));
+                pushText(texts, searchableString, intl);
             }
         }
     }
 
     if (section.schema) {
-        if (section.schema.settings) {
-            texts.push(extractTextFromSettings(section.schema.settings, intl));
-        } else if (section.schema.sections) {
-            section.schema.sections.forEach((schemaSection: any) => {
+        if ('settings' in section.schema && section.schema.settings) {
+            texts.push(...extractTextFromSettings(section.schema.settings, intl));
+        } else if ('sections' in section.schema && section.schema.sections) {
+            section.schema.sections.forEach((schemaSection) => {
                 texts.push(...extractTextFromSettings(schemaSection.settings, intl));
             });
         }
@@ -59,21 +68,21 @@ function extractTextsFromSection(section: Record<string, any>, intl: IntlShape) 
     return texts;
 }
 
-function extractTextFromSettings(settings: Array<Record<string, any>>, intl: IntlShape) {
-    const texts = [];
+function extractTextFromSettings(settings: AdminDefinitionSetting[], intl: IntlShape) {
+    const texts: string[] = [];
 
     for (const setting of Object.values(settings)) {
         if (setting.label) {
-            texts.push(intl.formatMessage({id: setting.label, defaultMessage: setting.label_default}, setting.label_values));
+            pushText(texts, setting.label, intl, setting.label_values);
         }
-        if (setting.help_text && typeof setting.help_text === 'string') {
-            texts.push(intl.formatMessage({id: setting.help_text, defaultMessage: setting.help_text_default}, setting.help_text_values));
+        if (setting.help_text) {
+            pushText(texts, setting.help_text, intl, setting.help_text_values);
         }
-        if (setting.remove_help_text) {
-            texts.push(intl.formatMessage({id: setting.remove_help_text, defaultMessage: setting.remove_help_text_default}));
+        if ('remove_help_text' in setting && setting.remove_help_text) {
+            pushText(texts, setting.remove_help_text, intl);
         }
-        if (setting.remove_button_text) {
-            texts.push(intl.formatMessage({id: setting.remove_button_text, defaultMessage: setting.remove_button_text_default}));
+        if ('remove_button_text' in setting && setting.remove_button_text) {
+            pushText(texts, setting.remove_button_text, intl);
         }
     }
 
@@ -110,7 +119,7 @@ export function generateIndex(adminDefinition: typeof AdminDefinition, intl: Int
 
     addToIndex(adminDefinitionsToUrlsAndTexts(adminDefinition, intl), idx);
 
-    addToIndex(getPluginEntries(plugins), idx);
+    addToIndex(getPluginEntries(plugins, intl), idx);
 
     return idx;
 }

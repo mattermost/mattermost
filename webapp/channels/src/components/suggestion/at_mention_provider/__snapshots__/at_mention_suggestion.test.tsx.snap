@@ -63,10 +63,7 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
             />
           </Memo(Avatar)>
         </span>
-        <StatusIcon
-          button={false}
-          className=""
-        />
+        <Memo(StatusIcon) />
       </span>
       <span
         className="suggestion-list__ellipsis"
@@ -162,10 +159,7 @@ exports[`at mention suggestion Should not display nick name of the signed in use
             />
           </Memo(Avatar)>
         </span>
-        <StatusIcon
-          button={false}
-          className=""
-        />
+        <Memo(StatusIcon) />
       </span>
       <span
         className="suggestion-list__ellipsis"

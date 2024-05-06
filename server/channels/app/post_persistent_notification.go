@@ -185,7 +185,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 			mentions = getExplicitMentions(post, keywords)
 			for groupID := range mentions.GroupMentions {
 				group := channelGroupMap[channel.Id][groupID]
-				_, err := a.insertGroupMentions(group, channel, profileMap, mentions)
+				_, err := a.insertGroupMentions(post.UserId, group, channel, profileMap, mentions)
 				if err != nil {
 					return errors.Wrapf(err, "failed to include mentions from group - %s for channel - %s", group.Id, channel.Id)
 				}
@@ -311,22 +311,13 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 			}
 
 			isGM := channel.Type == model.ChannelTypeGroup
-			if ShouldSendPushNotification(profileMap[userID], channelNotifyProps[channel.Id][userID], true, status, post, isGM) {
+			if a.ShouldSendPushNotification(profileMap[userID], channelNotifyProps[channel.Id][userID], true, status, post, isGM) {
 				a.sendPushNotification(
 					notification,
 					user,
 					true,
 					false,
 					"",
-				)
-			} else {
-				// register that a notification was not sent
-				a.NotificationsLog().Debug("Persistent Notification not sent",
-					mlog.String("ackId", ""),
-					mlog.String("type", model.PushTypeMessage),
-					mlog.String("userId", userID),
-					mlog.String("postId", post.Id),
-					mlog.String("status", model.PushNotSent),
 				)
 			}
 		}

@@ -106,7 +106,11 @@ const joinLeavePostTypes = [
     Posts.POST_TYPES.COMBINED_USER_ACTIVITY,
 ];
 
-// Returns true if a post should be hidden when the user has Show Join/Leave Messages disabled
+/**
+ * If the user has "Show Join/Leave Messages" disabled, this function will return true if the post should be hidden if it's of type join/leave.
+ * The post object passed in must be not null/undefined.
+ * @returns Returns true if a post should be hidden
+ */
 export function shouldFilterJoinLeavePost(post: Post, showJoinLeave: boolean, currentUsername: string): boolean {
     if (showJoinLeave) {
         return false;

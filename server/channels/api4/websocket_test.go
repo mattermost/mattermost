@@ -441,7 +441,12 @@ func TestWebSocketPresence(t *testing.T) {
 	require.Nil(t, resp.Error)
 	require.Equal(t, resp.SeqReply, wsClient.Sequence-1, "bad sequence number")
 
-	wsClient.UpdateActiveThread("threadID")
+	wsClient.UpdateActiveThread(true, "threadID")
+	resp = <-wsClient.ResponseChannel
+	require.Nil(t, resp.Error)
+	require.Equal(t, resp.SeqReply, wsClient.Sequence-1, "bad sequence number")
+
+	wsClient.UpdateActiveThread(false, "threadID")
 	resp = <-wsClient.ResponseChannel
 	require.Nil(t, resp.Error)
 	require.Equal(t, resp.SeqReply, wsClient.Sequence-1, "bad sequence number")
@@ -460,5 +465,5 @@ func TestWebSocketUpgrade(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, resp.StatusCode, http.StatusBadRequest)
 	require.NoError(t, th.TestLogger.Flush())
-	testlib.AssertLog(t, buffer, mlog.LvlDebug.Name, "Failed to upgrade websocket connection.")
+	testlib.AssertLog(t, buffer, mlog.LvlDebug.Name, "URL Blocked because of CORS. Url: ")
 }

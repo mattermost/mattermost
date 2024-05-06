@@ -50,12 +50,6 @@ func RegisterJobsElasticsearchIndexerInterface(f func(*Server) ejobs.IndexerJobI
 	jobsElasticsearchIndexerInterface = f
 }
 
-var jobsElasticsearchFixChannelIndexInterface func(*Server) ejobs.ElasticsearchFixChannelIndexInterface
-
-func RegisterJobsElasticsearchFixChannelIndexInterface(f func(*Server) ejobs.ElasticsearchFixChannelIndexInterface) {
-	jobsElasticsearchFixChannelIndexInterface = f
-}
-
 var jobsLdapSyncInterface func(*App) ejobs.LdapSyncInterface
 
 func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
@@ -80,16 +74,22 @@ func RegisterCloudInterface(f func(*Server) einterfaces.CloudInterface) {
 	cloudInterface = f
 }
 
-var samlInterfaceNew func(*App) einterfaces.SamlInterface
+var samlInterface func(*App) einterfaces.SamlInterface
 
-func RegisterNewSamlInterface(f func(*App) einterfaces.SamlInterface) {
-	samlInterfaceNew = f
+func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
+	samlInterface = f
 }
 
 var notificationInterface func(*App) einterfaces.NotificationInterface
 
 func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterface) {
 	notificationInterface = f
+}
+
+var outgoingOauthConnectionInterface func(*App) einterfaces.OutgoingOAuthConnectionInterface
+
+func RegisterOutgoingOAuthConnectionInterface(f func(*App) einterfaces.OutgoingOAuthConnectionInterface) {
+	outgoingOauthConnectionInterface = f
 }
 
 var ipFilteringInterface func(*App) einterfaces.IPFilteringInterface

@@ -3,7 +3,7 @@
 .help-text {
     display: block;
     margin: 10px 0 0;
-    color: $dark-gray;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
 
     ul,
     ol {
@@ -30,7 +30,7 @@
 }
 
 .form-control {
-    border-radius: $border-rad;
+    border-radius: var(--radius-xs);
     text-align: left;
 
     &:focus {
@@ -110,4 +110,18 @@ input::-webkit-file-upload-button {
 
 .input-group-addon {
     color: var(--center-channel-color);
+}
+
+// This class is used to make the input field look like a dropdown to be used in menus
+.inputWithMenu {
+    cursor: pointer;
+
+    input.form-control {
+        width: 100px;
+        cursor: pointer;
+
+        &:read-only {
+            background-color: $white;
+        }
+    }
 }

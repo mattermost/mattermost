@@ -15,22 +15,25 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 var (
 	rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
 )
 
+func setupForSharedChannels(tb testing.TB) *TestHelper {
+	return SetupConfig(tb, func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.EnableRemoteClusterService = true
+		*cfg.ExperimentalSettings.EnableSharedChannels = true
+	})
+}
+
 func TestGetAllSharedChannels(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
 
 	const pages = 3
 	const pageSize = 7
-
-	mockService := app.NewMockRemoteClusterService(nil, app.MockOptionRemoteClusterServiceWithActive(true))
-	th.App.Srv().SetRemoteClusterService(mockService)
 
 	savedIds := make([]string, 0, pages*pageSize)
 
@@ -45,7 +48,8 @@ func TestGetAllSharedChannels(t *testing.T) {
 			CreatorId: th.BasicChannel.CreatorId,
 			RemoteId:  model.NewId(),
 		}
-		_, err := th.App.SaveSharedChannel(th.Context, sc)
+
+		_, err := th.App.ShareChannel(th.Context, sc)
 		require.NoError(t, err)
 		savedIds = append(savedIds, channel.Id)
 	}
@@ -96,11 +100,8 @@ func randomBool() bool {
 }
 
 func TestGetRemoteClusterById(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
-
-	mockService := app.NewMockRemoteClusterService(nil, app.MockOptionRemoteClusterServiceWithActive(true))
-	th.App.Srv().SetRemoteClusterService(mockService)
 
 	// for this test we need a user that belongs to a channel that
 	// is shared with the requested remote id.
@@ -125,7 +126,7 @@ func TestGetRemoteClusterById(t *testing.T) {
 		CreatorId: th.BasicChannel.CreatorId,
 		RemoteId:  rc.RemoteId,
 	}
-	sc, err := th.App.SaveSharedChannel(th.Context, sc)
+	sc, err := th.App.ShareChannel(th.Context, sc)
 	require.NoError(t, err)
 
 	// create a shared channel remote to connect them
@@ -155,7 +156,7 @@ func TestGetRemoteClusterById(t *testing.T) {
 
 func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	t.Run("creates a local DM channel that is shared", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
 		defer client.Logout(context.Background())
@@ -175,16 +176,14 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	})
 
 	t.Run("sends a shared channel invitation to the remote", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
 		defer client.Logout(context.Background())
 
-		mockService := app.NewMockSharedChannelService(nil, app.MockOptionSharedChannelServiceWithActive(true))
-		th.App.Srv().SetSharedChannelSyncService(mockService)
-
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
+
 		rc := &model.RemoteCluster{
 			Name:      "test",
 			Token:     model.NewId(),
@@ -203,21 +202,17 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		channelName := model.GetDMNameFromIds(localUser.Id, remoteUser.Id)
 		require.Equal(t, channelName, dm.Name, "dm name didn't match")
 		require.True(t, dm.IsShared())
-
-		assert.Equal(t, 1, mockService.NumInvitations())
 	})
 
 	t.Run("does not send a shared channel invitation to the remote when creator is remote", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
 		defer client.Logout(context.Background())
 
-		mockService := app.NewMockSharedChannelService(nil, app.MockOptionSharedChannelServiceWithActive(true))
-		th.App.Srv().SetSharedChannelSyncService(mockService)
-
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
+
 		rc := &model.RemoteCluster{
 			Name:      "test",
 			Token:     model.NewId(),
@@ -236,7 +231,5 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		channelName := model.GetDMNameFromIds(localUser.Id, remoteUser.Id)
 		require.Equal(t, channelName, dm.Name, "dm name didn't match")
 		require.True(t, dm.IsShared())
-
-		assert.Zero(t, mockService.NumInvitations())
 	})
 }

@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/**
+ * @param {Post} originalPost
+ * @returns {ActionFuncAsync<Post>}
+ */
 export function runMessageWillBePostedHooks(originalPost) {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.MessageWillBePosted;

@@ -4,14 +4,14 @@
     }
 
     .react-select__value-container {
-        padding: 0 8px;
+        padding: 0 14px;
     }
 
     .react-select__multi-value {
         align-items: center;
+        border-radius: 32px;
         margin: 4px 4px 4px 0;
         background: rgba(var(--sys-center-channel-color-rgb), 0.08);
-        border-radius: 32px;
         color: var(--sys-center-channel-color);
 
         .app__body & {
@@ -36,15 +36,15 @@
         svg {
             width: 16px;
             height: 16px;
-            fill: rgba(var(--sys-center-channel-color-rgb), 0.64);
-            opacity: 0.6;
+            fill: rgba(var(--sys-center-channel-color-rgb), 0.75);
+            opacity: 0.73;
 
             &:hover {
                 fill: rgba(var(--sys-center-channel-color-rgb), 0.8);
             }
 
             .app__body & {
-                fill: rgba(var(--center-channel-color-rgb), 0.64);
+                fill: rgba(var(--center-channel-color-rgb), 0.75);
 
                 &:hover {
                     fill: rgba(var(--center-channel-color-rgb), 0.8);

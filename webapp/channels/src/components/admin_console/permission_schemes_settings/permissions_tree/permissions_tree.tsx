@@ -208,6 +208,8 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         const {config, scope, license} = this.props;
 
         const teamsGroup = this.groups[0];
+        const publicChannelsGroup = this.groups[1];
+        const privateChannelsGroup = this.groups[2];
         const postsGroup = this.groups[7];
         const integrationsGroup = this.groups[8];
         const sharedChannelsGroup = this.groups[9];
@@ -222,6 +224,9 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         if (config.EnableOAuthServiceProvider === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OAUTH)) {
             integrationsGroup.permissions.push(Permissions.MANAGE_OAUTH);
         }
+        if (config.EnableOutgoingOAuthConnections === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS)) {
+            integrationsGroup.permissions.push(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS);
+        }
         if (config.EnableCommands === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_SLASH_COMMANDS)) {
             integrationsGroup.permissions.push(Permissions.MANAGE_SLASH_COMMANDS);
         }
@@ -234,6 +239,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         if (config.EnableCustomEmoji === 'true' && !integrationsGroup.permissions.includes(Permissions.DELETE_OTHERS_EMOJIS)) {
             integrationsGroup.permissions.push(Permissions.DELETE_OTHERS_EMOJIS);
         }
+
         if (config.EnableGuestAccounts === 'true' && !teamsGroup.permissions.includes(Permissions.INVITE_GUEST)) {
             teamsGroup.permissions.push(Permissions.INVITE_GUEST);
         }
@@ -251,6 +257,29 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         }
         if (!this.props.customGroupsEnabled) {
             customGroupsGroup?.permissions.pop();
+        }
+
+        if (license?.IsLicensed === 'true') {
+            publicChannelsGroup.permissions.push({
+                id: 'manage_public_channel_bookmarks',
+                combined: true,
+                permissions: [
+                    Permissions.ADD_BOOKMARK_PUBLIC_CHANNEL,
+                    Permissions.EDIT_BOOKMARK_PUBLIC_CHANNEL,
+                    Permissions.DELETE_BOOKMARK_PUBLIC_CHANNEL,
+                    Permissions.ORDER_BOOKMARK_PUBLIC_CHANNEL,
+                ],
+            });
+            privateChannelsGroup.permissions.push({
+                id: 'manage_private_channel_bookmarks',
+                combined: true,
+                permissions: [
+                    Permissions.ADD_BOOKMARK_PRIVATE_CHANNEL,
+                    Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
+                    Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
+                    Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+                ],
+            });
         }
 
         this.groups = this.groups.filter((group) => {

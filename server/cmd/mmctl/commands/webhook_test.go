@@ -40,19 +40,25 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.Background(), "", 0, 100000000).
+			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
 			Return([]*model.Team{&mockTeam}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhooksForTeam(context.Background(), teamID, 0, 100000000, "").
+			GetAllTeams(context.TODO(), "", 1, DefaultPageSize).
+			Return([]*model.Team{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetIncomingWebhooksForTeam(context.TODO(), teamID, 0, 100000000, "").
 			Return([]*model.IncomingWebhook{&mockIncomingWebhook}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhooksForTeam(context.Background(), teamID, 0, 100000000, "").
+			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 0, 100000000, "").
 			Return([]*model.OutgoingWebhook{&mockOutgoingWebhook}, &model.Response{}, nil).
 			Times(1)
 
@@ -80,19 +86,19 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetTeam(context.Background(), teamID, "").
+			GetTeam(context.TODO(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhooksForTeam(context.Background(), teamID, 0, 100000000, "").
+			GetIncomingWebhooksForTeam(context.TODO(), teamID, 0, 100000000, "").
 			Return([]*model.IncomingWebhook{&mockIncomingWebhook}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhooksForTeam(context.Background(), teamID, 0, 100000000, "").
+			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 0, 100000000, "").
 			Return([]*model.OutgoingWebhook{&mockOutgoingWebhook}, &model.Response{}, nil).
 			Times(1)
 
@@ -114,19 +120,25 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.Background(), "", 0, 100000000).
+			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
 			Return([]*model.Team{&mockTeam}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhooksForTeam(context.Background(), teamID, 0, 100000000, "").
+			GetAllTeams(context.TODO(), "", 1, DefaultPageSize).
+			Return([]*model.Team{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetIncomingWebhooksForTeam(context.TODO(), teamID, 0, 100000000, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhooksForTeam(context.Background(), teamID, 0, 100000000, "").
+			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 0, 100000000, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -174,19 +186,19 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.Background(), channelID, "").
+			GetChannel(context.TODO(), channelID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), emailID, "").
+			GetUserByEmail(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateIncomingWebhook(context.Background(), &mockIncomingWebhook).
+			CreateIncomingWebhook(context.TODO(), &mockIncomingWebhook).
 			Return(&returnedIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
@@ -218,19 +230,19 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.Background(), channelID, "").
+			GetChannel(context.TODO(), channelID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), emailID, "").
+			GetUserByEmail(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateIncomingWebhook(context.Background(), &mockIncomingWebhook).
+			CreateIncomingWebhook(context.TODO(), &mockIncomingWebhook).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -269,13 +281,13 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.Background(), incomingWebhookID, "").
+			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
 			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateIncomingWebhook(context.Background(), &mockIncomingWebhook).
+			UpdateIncomingWebhook(context.TODO(), &mockIncomingWebhook).
 			Return(&updatedIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
@@ -307,13 +319,13 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.Background(), incomingWebhookID, "").
+			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
 			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateIncomingWebhook(context.Background(), &mockIncomingWebhook).
+			UpdateIncomingWebhook(context.TODO(), &mockIncomingWebhook).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -363,19 +375,19 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.Background(), teamID, "").
+			GetTeam(context.TODO(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), emailID, "").
+			GetUserByEmail(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateOutgoingWebhook(context.Background(), &mockOutgoingWebhook).
+			CreateOutgoingWebhook(context.TODO(), &mockOutgoingWebhook).
 			Return(&createdOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
@@ -409,19 +421,19 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.Background(), teamID, "").
+			GetTeam(context.TODO(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), emailID, "").
+			GetUserByEmail(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateOutgoingWebhook(context.Background(), &mockOutgoingWebhook).
+			CreateOutgoingWebhook(context.TODO(), &mockOutgoingWebhook).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -456,13 +468,13 @@ func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhook(context.Background(), outgoingWebhookID).
+			GetOutgoingWebhook(context.TODO(), outgoingWebhookID).
 			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateOutgoingWebhook(context.Background(), &mockOutgoingWebhook).
+			UpdateOutgoingWebhook(context.TODO(), &mockOutgoingWebhook).
 			Return(&updatedOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
@@ -491,13 +503,13 @@ func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhook(context.Background(), outgoingWebhookID).
+			GetOutgoingWebhook(context.TODO(), outgoingWebhookID).
 			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateOutgoingWebhook(context.Background(), &mockOutgoingWebhook).
+			UpdateOutgoingWebhook(context.TODO(), &mockOutgoingWebhook).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -520,13 +532,13 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.Background(), incomingWebhookID, "").
+			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
 			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteIncomingWebhook(context.Background(), incomingWebhookID).
+			DeleteIncomingWebhook(context.TODO(), incomingWebhookID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -545,19 +557,19 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.Background(), outgoingWebhookID, "").
+			GetIncomingWebhook(context.TODO(), outgoingWebhookID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhook(context.Background(), outgoingWebhookID).
+			GetOutgoingWebhook(context.TODO(), outgoingWebhookID).
 			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteOutgoingWebhook(context.Background(), outgoingWebhookID).
+			DeleteOutgoingWebhook(context.TODO(), outgoingWebhookID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -576,13 +588,13 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.Background(), incomingWebhookID, "").
+			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
 			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteIncomingWebhook(context.Background(), incomingWebhookID).
+			DeleteIncomingWebhook(context.TODO(), incomingWebhookID).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -601,19 +613,19 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.Background(), outgoingWebhookID, "").
+			GetIncomingWebhook(context.TODO(), outgoingWebhookID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhook(context.Background(), outgoingWebhookID).
+			GetOutgoingWebhook(context.TODO(), outgoingWebhookID).
 			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteOutgoingWebhook(context.Background(), outgoingWebhookID).
+			DeleteOutgoingWebhook(context.TODO(), outgoingWebhookID).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -637,7 +649,7 @@ func (s *MmctlUnitTestSuite) TestShowWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.Background(), incomingWebhookID, "").
+			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
 			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
@@ -656,13 +668,13 @@ func (s *MmctlUnitTestSuite) TestShowWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.Background(), outgoingWebhookID, "").
+			GetIncomingWebhook(context.TODO(), outgoingWebhookID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhook(context.Background(), outgoingWebhookID).
+			GetOutgoingWebhook(context.TODO(), outgoingWebhookID).
 			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
@@ -680,13 +692,13 @@ func (s *MmctlUnitTestSuite) TestShowWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.Background(), nonExistentID, "").
+			GetIncomingWebhook(context.TODO(), nonExistentID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhook(context.Background(), nonExistentID).
+			GetOutgoingWebhook(context.TODO(), nonExistentID).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 

@@ -25,7 +25,7 @@ describe('components/channel_layout/CenterChannel', () => {
         currentUserId: 'testUserId',
         isMobileView: false,
         actions: {
-            getProfiles: jest.fn,
+            getProfiles: jest.fn(),
         },
     };
     test('should call update returnTo on props change', () => {

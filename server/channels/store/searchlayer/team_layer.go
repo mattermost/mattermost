@@ -14,11 +14,8 @@ type SearchTeamStore struct {
 	rootStore *SearchStore
 }
 
-func (s SearchTeamStore) SaveMember(teamMember *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
-	// TODO: Use the actuall request context from the App layer
-	// https://mattermost.atlassian.net/browse/MM-55736
-	rctx := request.EmptyContext(s.rootStore.Logger())
-	member, err := s.TeamStore.SaveMember(teamMember, maxUsersPerTeam)
+func (s SearchTeamStore) SaveMember(rctx request.CTX, teamMember *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
+	member, err := s.TeamStore.SaveMember(rctx, teamMember, maxUsersPerTeam)
 	if err == nil {
 		s.rootStore.indexUserFromID(rctx, member.UserId)
 	}

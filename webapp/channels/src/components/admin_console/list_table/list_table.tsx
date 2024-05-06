@@ -10,10 +10,7 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {IndicatorContainerProps, ValueType} from 'react-select';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import Constants from 'utils/constants';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Pagination} from './pagination';
 
@@ -47,18 +44,24 @@ export type PageSizeOption = {
     value: number;
 };
 
+export enum LoadingStates {
+    Loading = 'loading',
+    Loaded = 'loaded',
+    Failed = 'failed',
+}
+
 export type TableMeta = {
     tableId: string;
     tableCaption?: string;
-    isLoading?: boolean;
+    loadingState?: LoadingStates;
+    emptyDataMessage?: ReactNode;
     onRowClick?: (row: string) => void;
     disablePrevPage?: boolean;
     disableNextPage?: boolean;
     onPreviousPageClick?: () => void;
     onNextPageClick?: () => void;
     paginationInfo?: ReactNode;
-    totalRowInfo?: ReactNode;
-    hasAdditionalPaginationAtTop?: boolean;
+    hasDualSidedPagination?: boolean;
 };
 
 interface TableMandatoryTypes {
@@ -111,24 +114,28 @@ export function ListTable<TableType extends TableMandatoryTypes>(
         }
     }
 
+    const colCount = props.table.getAllColumns().length;
+    const rowCount = props.table.getRowModel().rows.length;
+
     return (
-        <>
+        <div className='adminConsoleListTableContainer'>
             <div className='adminConsoleListTabletOptionalHead'>
-                {tableMeta.totalRowInfo}
-                {tableMeta.hasAdditionalPaginationAtTop && (
-                    <Pagination
-                        disablePrevPage={tableMeta.disablePrevPage}
-                        disableNextPage={tableMeta.disableNextPage}
-                        isLoading={tableMeta.isLoading}
-                        onPreviousPageClick={tableMeta.onPreviousPageClick}
-                        onNextPageClick={tableMeta.onNextPageClick}
-                        paginationInfo={tableMeta.paginationInfo}
-                    />
+                {tableMeta.hasDualSidedPagination && (
+                    <>
+                        {tableMeta.paginationInfo}
+                        <Pagination
+                            disablePrevPage={tableMeta.disablePrevPage}
+                            disableNextPage={tableMeta.disableNextPage}
+                            isLoading={tableMeta.loadingState === LoadingStates.Loading}
+                            onPreviousPageClick={tableMeta.onPreviousPageClick}
+                            onNextPageClick={tableMeta.onNextPageClick}
+                        />
+                    </>
                 )}
             </div>
             <table
                 id={tableMeta.tableId}
-                aria-colcount={props.table.getAllColumns().length}
+                aria-colcount={colCount}
                 aria-describedby={`${tableMeta.tableId}-headerId`} // Set this id to the table header so that the title describes the table
                 className={classNames(
                     'adminConsoleListTable',
@@ -145,12 +152,12 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                     id={`${headerIdPrefix}${header.id}`}
                                     colSpan={header.colSpan}
                                     scope='col'
-                                    role='columnheader'
                                     aria-sort={getAriaSortForTableHeader(header.column.getCanSort(), header.column.getIsSorted())}
                                     className={classNames(`${header.id}`, {
                                         [SORTABLE_CLASS]: header.column.getCanSort(),
                                         [PINNED_CLASS]: header.column.getCanPin(),
                                     })}
+                                    disabled={header.column.getCanSort() && tableMeta.loadingState === LoadingStates.Loading}
                                     onClick={header.column.getToggleSortingHandler()}
                                 >
                                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -176,29 +183,6 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                             className='icon icon-arrow-up hoverSortingIcon'
                                         />
                                     )}
-
-                                    {/* Pinned Icon */}
-                                    {header.column.getCanPin() && (
-                                        <OverlayTrigger
-                                            delayShow={Constants.OVERLAY_TIME_DELAY}
-                                            placement={
-                                                header.index === 0 ? 'bottom' : 'left'
-                                            }
-                                            overlay={
-                                                <Tooltip id='system-users-column-pinned-tooltip'>
-                                                    <FormattedMessage
-                                                        id='adminConsole.list.table.pinnedColumn'
-                                                        defaultMessage='This column is pinned'
-                                                    />
-                                                </Tooltip>
-                                            }
-                                        >
-                                            <span
-                                                aria-hidden='true'
-                                                className='icon icon-pin-outline'
-                                            />
-                                        </OverlayTrigger>
-                                    )}
                                 </th>
                             ))}
                         </tr>
@@ -209,14 +193,12 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                         <tr
                             id={`${rowIdPrefix}${row.original.id}`}
                             key={row.id}
-                            role='row'
                             onClick={handleRowClick}
                         >
                             {row.getVisibleCells().map((cell) => (
                                 <td
                                     key={cell.id}
                                     id={`${cellIdPrefix}${cell.id}`}
-                                    role='cell'
                                     headers={`${headerIdPrefix}${cell.column.id}`}
                                     className={classNames(`${cell.column.id}`, {
                                         [PINNED_CLASS]: cell.column.getCanPin(),
@@ -227,6 +209,47 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                             ))}
                         </tr>
                     ))}
+
+                    {/* State where it is initially loading the data */}
+                    {(tableMeta.loadingState === LoadingStates.Loading && rowCount === 0) && (
+                        <tr>
+                            <td
+                                colSpan={colCount}
+                                className='noRows'
+                                disabled={true}
+                            >
+                                <LoadingSpinner
+                                    text={formatMessage({id: 'adminConsole.list.table.genericLoading', defaultMessage: 'Loading'})}
+                                />
+                            </td>
+                        </tr>
+                    )}
+
+                    {/* State where there is no data */}
+                    {(tableMeta.loadingState === LoadingStates.Loaded && rowCount === 0) && (
+                        <tr>
+                            <td
+                                colSpan={colCount}
+                                className='noRows'
+                                disabled={true}
+                            >
+                                {tableMeta.emptyDataMessage || formatMessage({id: 'adminConsole.list.table.genericNoData', defaultMessage: 'No data'})}
+                            </td>
+                        </tr>
+                    )}
+
+                    {/* State where there is an error loading the data */}
+                    {tableMeta.loadingState === LoadingStates.Failed && (
+                        <tr>
+                            <td
+                                colSpan={colCount}
+                                className='noRows'
+                                disabled={true}
+                            >
+                                {formatMessage({id: 'adminConsole.list.table.genericError', defaultMessage: 'There was an error loading the data, please try again'})}
+                            </td>
+                        </tr>
+                    )}
                 </tbody>
                 <tfoot>
                     {props.table.getFooterGroups().map((footerGroup) => (
@@ -247,16 +270,11 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                 </tfoot>
             </table>
             <div className='adminConsoleListTabletOptionalFoot'>
+                {tableMeta.paginationInfo}
                 {handlePageSizeChange && (
                     <div
                         className='adminConsoleListTablePageSize'
-                        aria-label={formatMessage(
-                            {
-                                id: 'adminConsole.list.table.rowCount.label',
-                                defaultMessage: 'Show {count} rows per page',
-                            },
-                            {count: selectedPageSize.label},
-                        )}
+                        aria-label={formatMessage({id: 'adminConsole.list.table.rowCount.label', defaultMessage: 'Show {count} rows per page'}, {count: selectedPageSize.label})}
                     >
                         <FormattedMessage
                             id='adminConsole.list.table.rowsCount.(show)rowsPerPage'
@@ -273,7 +291,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                             options={pageSizeOptions}
                             value={selectedPageSize}
                             onChange={handlePageSizeChange}
-                            isDisabled={tableMeta.isLoading}
+                            isDisabled={tableMeta.loadingState === LoadingStates.Loading}
                             components={{
                                 IndicatorSeparator: null,
                                 IndicatorsContainer,
@@ -288,13 +306,12 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                 <Pagination
                     disablePrevPage={tableMeta.disablePrevPage}
                     disableNextPage={tableMeta.disableNextPage}
-                    isLoading={tableMeta.isLoading}
+                    isLoading={tableMeta.loadingState === LoadingStates.Loading}
                     onPreviousPageClick={tableMeta.onPreviousPageClick}
                     onNextPageClick={tableMeta.onNextPageClick}
-                    paginationInfo={tableMeta.paginationInfo}
                 />
             </div>
-        </>
+        </div>
     );
 }
 
@@ -311,7 +328,7 @@ function getAriaSortForTableHeader(
     sortDirection: boolean | SortDirection,
 ): AriaAttributes['aria-sort'] {
     if (!canSort) {
-        return 'none';
+        return undefined;
     }
 
     if (sortDirection === 'asc') {

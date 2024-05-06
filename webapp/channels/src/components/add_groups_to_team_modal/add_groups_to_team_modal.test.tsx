@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import {SyncableType} from '@mattermost/types/groups';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal/add_groups_to_team_modal';
+import type {AddGroupsToTeamModal as AddGroupsToTeamModalClass} from 'components/add_groups_to_team_modal/add_groups_to_team_modal';
+
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 describe('components/AddGroupsToTeamModal', () => {
     const baseProps = {
@@ -24,34 +26,36 @@ describe('components/AddGroupsToTeamModal', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddGroupsToTeamModal {...baseProps}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should have called onExited when handleExit is called', () => {
-        const wrapper = shallow<AddGroupsToTeamModal>(
+        const wrapper = shallowWithIntl(
             <AddGroupsToTeamModal {...baseProps}/>,
         );
 
-        wrapper.instance().handleExit();
+        (wrapper.instance() as AddGroupsToTeamModalClass).handleExit();
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
     });
 
     test('should match state when handleResponse is called', () => {
-        const wrapper = shallow<AddGroupsToTeamModal>(
+        const wrapper = shallowWithIntl(
             <AddGroupsToTeamModal {...baseProps}/>,
         );
 
+        const instance = wrapper.instance() as AddGroupsToTeamModalClass;
+
         wrapper.setState({saving: true, addError: ''});
-        wrapper.instance().handleResponse();
+        instance.handleResponse();
         expect(wrapper.state('saving')).toEqual(false);
         expect(wrapper.state('addError')).toEqual(null);
 
         const message = 'error message';
         wrapper.setState({saving: true, addError: ''});
-        wrapper.instance().handleResponse(new Error(message));
+        instance.handleResponse(new Error(message));
         expect(wrapper.state('saving')).toEqual(false);
         expect(wrapper.state('addError')).toEqual(message);
     });
@@ -60,10 +64,10 @@ describe('components/AddGroupsToTeamModal', () => {
         const linkGroupSyncable = jest.fn().mockResolvedValue({error: true, data: true});
         const actions = {...baseProps.actions, linkGroupSyncable};
         const props = {...baseProps, actions};
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddGroupsToTeamModal {...props}/>,
         );
-        const instance = wrapper.instance() as AddGroupsToTeamModal;
+        const instance = wrapper.instance() as AddGroupsToTeamModalClass;
         instance.handleResponse = jest.fn();
         instance.handleHide = jest.fn();
 
@@ -86,57 +90,63 @@ describe('components/AddGroupsToTeamModal', () => {
     });
 
     test('should match state when addValue is called', () => {
-        const wrapper = shallow<AddGroupsToTeamModal>(
+        const wrapper = shallowWithIntl(
             <AddGroupsToTeamModal {...baseProps}/>,
         );
 
         const value1 = {id: 'id_1', label: 'label_1', value: 'value_1'};
         const value2 = {id: 'id_2', label: 'label_2', value: 'value_2'};
 
+        const instance = wrapper.instance() as AddGroupsToTeamModalClass;
+
         wrapper.setState({values: [value1]});
-        wrapper.instance().addValue(value2);
+        instance.addValue(value2);
         expect(wrapper.state('values')).toEqual([value1, value2]);
 
         wrapper.setState({values: [value1]});
-        wrapper.instance().addValue(value1);
+        instance.addValue(value1);
         expect(wrapper.state('values')).toEqual([value1]);
     });
 
     test('should match state when handlePageChange is called', () => {
-        const wrapper = shallow<AddGroupsToTeamModal>(
+        const wrapper = shallowWithIntl(
             <AddGroupsToTeamModal {...baseProps}/>,
         );
 
-        wrapper.instance().handlePageChange(0, 1);
+        const instance = wrapper.instance() as AddGroupsToTeamModalClass;
+
+        instance.handlePageChange(0, 1);
         expect(baseProps.actions.getGroupsNotAssociatedToTeam).toHaveBeenCalledTimes(1);
 
-        wrapper.instance().handlePageChange(1, 0);
+        instance.handlePageChange(1, 0);
         expect(baseProps.actions.getGroupsNotAssociatedToTeam).toHaveBeenCalledTimes(2);
 
-        wrapper.instance().handlePageChange(0, 1);
+        instance.handlePageChange(0, 1);
         expect(baseProps.actions.getGroupsNotAssociatedToTeam).toHaveBeenCalledTimes(2);
     });
 
     test('should match state when search is called', () => {
-        const wrapper = shallow<AddGroupsToTeamModal>(
+        const wrapper = shallowWithIntl(
             <AddGroupsToTeamModal {...baseProps}/>,
         );
+        const instance = wrapper.instance() as AddGroupsToTeamModalClass;
 
-        wrapper.instance().search('');
+        instance.search('');
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.setModalSearchTerm).toBeCalledWith('');
 
         const searchTerm = 'term';
-        wrapper.instance().search(searchTerm);
+        instance.search(searchTerm);
         expect(wrapper.state('loadingGroups')).toEqual(true);
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(2);
         expect(baseProps.actions.setModalSearchTerm).toBeCalledWith(searchTerm);
     });
 
     test('should match state when handleDelete is called', () => {
-        const wrapper = shallow<AddGroupsToTeamModal>(
+        const wrapper = shallowWithIntl(
             <AddGroupsToTeamModal {...baseProps}/>,
         );
+        const instance = wrapper.instance() as AddGroupsToTeamModalClass;
 
         const value1 = {id: 'id_1', label: 'label_1', value: 'value_1'};
         const value2 = {id: 'id_2', label: 'label_2', value: 'value_2'};
@@ -144,31 +154,33 @@ describe('components/AddGroupsToTeamModal', () => {
 
         wrapper.setState({values: [value1]});
         const newValues = [value2, value3];
-        wrapper.instance().handleDelete(newValues);
+        instance.handleDelete(newValues);
         expect(wrapper.state('values')).toEqual(newValues);
     });
 
     test('should match when renderOption is called', () => {
-        const wrapper = shallow<AddGroupsToTeamModal>(
+        const wrapper = shallowWithIntl(
             <AddGroupsToTeamModal {...baseProps}/>,
         );
+        const instance = wrapper.instance() as AddGroupsToTeamModalClass;
 
         const option = {id: 'id_1', label: 'label_1', value: 'value_1'};
         let isSelected = false;
         const onAdd = jest.fn();
         const onMouseMove = jest.fn();
 
-        expect(wrapper.instance().renderOption(option, isSelected, onAdd, onMouseMove)).toMatchSnapshot();
+        expect(instance.renderOption(option, isSelected, onAdd, onMouseMove)).toMatchSnapshot();
 
         isSelected = true;
-        expect(wrapper.instance().renderOption(option, isSelected, onAdd, onMouseMove)).toMatchSnapshot();
+        expect(instance.renderOption(option, isSelected, onAdd, onMouseMove)).toMatchSnapshot();
     });
 
     test('should match when renderValue is called', () => {
-        const wrapper = shallow<AddGroupsToTeamModal>(
+        const wrapper = shallowWithIntl(
             <AddGroupsToTeamModal {...baseProps}/>,
         );
+        const instance = wrapper.instance() as AddGroupsToTeamModalClass;
 
-        expect(wrapper.instance().renderValue({data: {id: 'id_1', label: 'label_1', value: 'value_1', display_name: 'foo'}})).toEqual('foo');
+        expect(instance.renderValue({data: {id: 'id_1', label: 'label_1', value: 'value_1', display_name: 'foo'}})).toEqual('foo');
     });
 });

@@ -105,6 +105,10 @@ func mungEmail(remotename string, maxLen int) string {
 }
 
 func isConflictError(err error) (string, bool) {
+	if err == nil {
+		return "", false
+	}
+
 	var errConflict *store.ErrConflict
 	if errors.As(err, &errConflict) {
 		return strings.ToLower(errConflict.Resource), true
@@ -116,4 +120,31 @@ func isConflictError(err error) (string, bool) {
 		return strings.ToLower(field), true
 	}
 	return "", false
+}
+
+func isNotFoundError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	var errNotFound *store.ErrNotFound
+	return errors.As(err, &errNotFound)
+}
+
+func postsSliceToMap(posts []*model.Post) map[string]*model.Post {
+	m := make(map[string]*model.Post, len(posts))
+	for _, p := range posts {
+		m[p.Id] = p
+	}
+	return m
+}
+
+func reducePostsSliceInCache(posts []*model.Post, cache map[string]*model.Post) []*model.Post {
+	reduced := make([]*model.Post, 0, len(posts))
+	for _, p := range posts {
+		if _, ok := cache[p.Id]; !ok {
+			reduced = append(reduced, p)
+		}
+	}
+	return reduced
 }

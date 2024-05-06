@@ -5,8 +5,6 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {flagPost, unflagPost} from 'actions/post_actions';
-
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import FlagIcon from 'components/widgets/icons/flag_icon';
@@ -17,8 +15,8 @@ import {t} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
 
 export type Actions = {
-    flagPost: typeof flagPost;
-    unflagPost: typeof unflagPost;
+    flagPost: (postId: string) => void;
+    unflagPost: (postId: string) => void;
 }
 
 type Props = {

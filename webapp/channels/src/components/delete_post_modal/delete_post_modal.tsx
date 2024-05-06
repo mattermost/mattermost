@@ -8,6 +8,8 @@ import {matchPath} from 'react-router-dom';
 
 import type {Post} from '@mattermost/types/posts';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import {getHistory} from 'utils/browser_history';
 import * as UserAgent from 'utils/user_agent';
 
@@ -22,7 +24,7 @@ type Props = {
     isRHS: boolean;
     onExited: () => void;
     actions: {
-        deleteAndRemovePost: (post: Post) => Promise<{data: boolean}>;
+        deleteAndRemovePost: (post: Post) => Promise<ActionResult<boolean>>;
     };
     location: {
         pathname: string;
@@ -104,13 +106,15 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
 
         if (this.props.commentCount > 0 && this.props.post.root_id === '') {
             commentWarning = (
-                <FormattedMessage
-                    id='delete_post.warning'
-                    defaultMessage='This post has {count, number} {count, plural, one {comment} other {comments}} on it.'
-                    values={{
-                        count: this.props.commentCount,
-                    }}
-                />
+                <div className='mt-2'>
+                    <FormattedMessage
+                        id='delete_post.warning'
+                        defaultMessage='This post has {count, number} {count, plural, one {comment} other {comments}} on it.'
+                        values={{
+                            count: this.props.commentCount,
+                        }}
+                    />
+                </div>
             );
         }
 
@@ -159,8 +163,6 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                             term: (postTerm),
                         }}
                     />
-                    <br/>
-                    <br/>
                     {commentWarning}
                 </Modal.Body>
                 <Modal.Footer>

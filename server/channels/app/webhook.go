@@ -95,29 +95,56 @@ func (a *App) handleWebhookEvents(c request.CTX, post *model.Post, team *model.T
 }
 
 func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
-	var body io.Reader
-	var contentType string
+	var jsonBytes []byte
+	var err error
+
+	contentType := "application/x-www-form-urlencoded"
 	if hook.ContentType == "application/json" {
-		js, err := json.Marshal(payload)
+		contentType = "application/json"
+		jsonBytes, err = json.Marshal(payload)
 		if err != nil {
 			c.Logger().Warn("Failed to encode to JSON", mlog.Err(err))
+			return
 		}
-		body = bytes.NewReader(js)
-		contentType = "application/json"
-	} else {
-		body = strings.NewReader(payload.ToFormValues())
-		contentType = "application/x-www-form-urlencoded"
 	}
 
 	var wg sync.WaitGroup
+
 	for i := range hook.CallbackURLs {
+		var body io.Reader
+		if hook.ContentType == "application/json" {
+			body = bytes.NewReader(jsonBytes)
+		} else {
+			body = strings.NewReader(payload.ToFormValues())
+		}
 		wg.Add(1)
+
 		// Get the callback URL by index to properly capture it for the go func
 		url := hook.CallbackURLs[i]
 
 		go func() {
 			defer wg.Done()
-			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType)
+
+			var accessToken *model.OutgoingOAuthConnectionToken
+
+			// Retrieve an access token from a connection if one exists to use for the webhook request
+			if a.Config().ServiceSettings.EnableOutgoingOAuthConnections != nil && *a.Config().ServiceSettings.EnableOutgoingOAuthConnections && a.OutgoingOAuthConnections() != nil {
+				connection, err := a.OutgoingOAuthConnections().GetConnectionForAudience(c, url)
+				if err != nil {
+					c.Logger().Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(err))
+					return
+				}
+
+				if connection != nil {
+					accessToken, err = a.OutgoingOAuthConnections().RetrieveTokenForConnection(c, connection)
+					if err != nil {
+						c.Logger().Error("Failed to retrieve token for outgoing oauth connection", mlog.Err(err))
+						return
+					}
+				}
+			}
+
+			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType, accessToken)
 			if err != nil {
 				if errors.Is(err, context.DeadlineExceeded) {
 					c.Logger().Error("Outgoing Webhook POST timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.", mlog.Err(err))
@@ -153,7 +180,7 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 				if *a.Config().ServiceSettings.EnablePostIconOverride && hook.IconURL != "" && webhookResp.IconURL == "" {
 					webhookResp.IconURL = hook.IconURL
 				}
-				if _, err := a.CreateWebhookPost(c, hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, "", webhookResp.Props, webhookResp.Type, postRootId); err != nil {
+				if _, err := a.CreateWebhookPost(c, hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, "", webhookResp.Props, webhookResp.Type, postRootId, webhookResp.Priority); err != nil {
 					c.Logger().Error("Failed to create response post.", mlog.Err(err))
 				}
 			}
@@ -162,7 +189,7 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 	wg.Wait()
 }
 
-func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType string) (*model.OutgoingWebhookResponse, error) {
+func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType string, accessToken *model.OutgoingOAuthConnectionToken) (*model.OutgoingWebhookResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 
@@ -173,6 +200,10 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType s
 
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", "application/json")
+
+	if accessToken != nil {
+		req.Header.Add("Authorization", accessToken.AsHeaderValue())
+	}
 
 	resp, err := a.Srv().outgoingWebhookClient.Do(req)
 	if err != nil {
@@ -273,12 +304,22 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	return splits, nil
 }
 
-func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
+func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string, priority *model.PostPriority) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 
 	post := &model.Post{UserId: userID, ChannelId: channel.Id, Message: text, Type: postType, RootId: postRootId}
 	post.AddProp("from_webhook", "true")
+
+	if priority != nil {
+		if priority.Priority == nil {
+			err := model.NewAppError("CreateWebhookPost", "api.context.invalid_param.app_error", map[string]any{"Name": "webhook.priority.priority"}, "Setting the priority of a post is required to use priority.", http.StatusBadRequest)
+			return nil, err
+		}
+		post.Metadata = &model.PostMetadata{
+			Priority: priority,
+		}
+	}
 
 	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
 		err := model.NewAppError("CreateWebhookPost", "api.context.invalid_param.app_error", map[string]any{"Name": "post.type"}, "", http.StatusBadRequest)
@@ -672,10 +713,10 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	hchan := make(chan store.GenericStoreResult[*model.IncomingWebhook], 1)
+	hchan := make(chan store.StoreResult[*model.IncomingWebhook], 1)
 	go func() {
 		webhook, err := a.Srv().Store().Webhook().GetIncoming(hookID, true)
-		hchan <- store.GenericStoreResult[*model.IncomingWebhook]{Data: webhook, NErr: err}
+		hchan <- store.StoreResult[*model.IncomingWebhook]{Data: webhook, NErr: err}
 		close(hchan)
 	}()
 
@@ -698,10 +739,10 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 	}
 	hook = result.Data
 
-	uchan := make(chan store.GenericStoreResult[*model.User], 1)
+	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), hook.UserId)
-		uchan <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
+		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
 
@@ -720,7 +761,7 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 	}
 
 	var channel *model.Channel
-	var cchan chan store.GenericStoreResult[*model.Channel]
+	var cchan chan store.StoreResult[*model.Channel]
 
 	if channelName != "" {
 		if channelName[0] == '@' {
@@ -734,17 +775,17 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 			}
 			channel = ch
 		} else if channelName[0] == '#' {
-			cchan = make(chan store.GenericStoreResult[*model.Channel], 1)
+			cchan = make(chan store.StoreResult[*model.Channel], 1)
 			go func() {
 				chnn, chnnErr := a.Srv().Store().Channel().GetByName(hook.TeamId, channelName[1:], true)
-				cchan <- store.GenericStoreResult[*model.Channel]{Data: chnn, NErr: chnnErr}
+				cchan <- store.StoreResult[*model.Channel]{Data: chnn, NErr: chnnErr}
 				close(cchan)
 			}()
 		} else {
-			cchan = make(chan store.GenericStoreResult[*model.Channel], 1)
+			cchan = make(chan store.StoreResult[*model.Channel], 1)
 			go func() {
 				chnn, chnnErr := a.Srv().Store().Channel().GetByName(hook.TeamId, channelName, true)
-				cchan <- store.GenericStoreResult[*model.Channel]{Data: chnn, NErr: chnnErr}
+				cchan <- store.StoreResult[*model.Channel]{Data: chnn, NErr: chnnErr}
 				close(cchan)
 			}()
 		}
@@ -799,7 +840,7 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 		overrideIconURL = req.IconURL
 	}
 
-	_, err := a.CreateWebhookPost(c, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "")
+	_, err := a.CreateWebhookPost(c, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "", req.Priority)
 	return err
 }
 

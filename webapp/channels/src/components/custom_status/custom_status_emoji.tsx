@@ -48,8 +48,7 @@ function CustomStatusEmoji({
 
     const customStatusExpired = useSelector((state: GlobalState) => isCustomStatusExpired(state, customStatus));
     const customStatusEnabled = useSelector(isCustomStatusEnabled);
-    const isCustomStatusSet = Boolean(customStatusEnabled && customStatus?.emoji && !customStatusExpired);
-    if (!isCustomStatusSet) {
+    if (!customStatusEnabled || !customStatus?.emoji || customStatusExpired) {
         return null;
     }
 

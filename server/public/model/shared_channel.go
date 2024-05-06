@@ -7,6 +7,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"unicode/utf8"
+
+	"github.com/pkg/errors"
+)
+
+var (
+	ErrChannelAlreadyShared = errors.New("channel is already shared")
+	ErrChannelHomedOnRemote = errors.New("channel is homed on a remote cluster")
 )
 
 // SharedChannel represents a channel that can be synchronized with a remote cluster.
@@ -35,7 +42,7 @@ func (sc *SharedChannel) IsValid() *AppError {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.id.app_error", nil, "ChannelId="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if sc.Type != ChannelTypeDirect && !IsValidId(sc.TeamId) {
+	if sc.Type != ChannelTypeDirect && sc.Type != ChannelTypeGroup && !IsValidId(sc.TeamId) {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.id.app_error", nil, "TeamId="+sc.TeamId, http.StatusBadRequest)
 	}
 
@@ -296,4 +303,26 @@ type SyncResponse struct {
 
 	ReactionsLastUpdateAt int64    `json:"reactions_last_update_at"`
 	ReactionErrors        []string `json:"reaction_errors"`
+}
+
+// RegisterPluginOpts is passed by plugins to the `RegisterPluginForSharedChannels` plugin API
+// to provide options for registering as a shared channels remote.
+type RegisterPluginOpts struct {
+	Displayname  string // a displayname used in status reports
+	PluginID     string // id of this plugin registering
+	CreatorID    string // id of the user/bot registering
+	AutoShareDMs bool   // when true, all DMs are automatically shared to this remote
+	AutoInvited  bool   // when true, the plugin is automatically invited and sync'd with all shared channels.
+}
+
+// GetOptionFlags returns a Bitmask of option flags as specified by the boolean options.
+func (po RegisterPluginOpts) GetOptionFlags() Bitmask {
+	var flags Bitmask
+	if po.AutoShareDMs {
+		flags |= BitflagOptionAutoShareDMs
+	}
+	if po.AutoInvited {
+		flags |= BitflagOptionAutoInvited
+	}
+	return flags
 }

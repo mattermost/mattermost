@@ -3,46 +3,39 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
-import type {DataRetentionCustomPolicies} from '@mattermost/types/data_retention';
-import type {JobTypeBase, JobType} from '@mattermost/types/jobs';
-
-import {getDataRetentionCustomPolicies as fetchDataRetentionCustomPolicies, deleteDataRetentionCustomPolicy, updateConfig} from 'mattermost-redux/actions/admin';
+import {getDataRetentionCustomPolicies as fetchDataRetentionCustomPolicies, deleteDataRetentionCustomPolicy, patchConfig} from 'mattermost-redux/actions/admin';
 import {createJob, getJobsByType} from 'mattermost-redux/actions/jobs';
 import {getDataRetentionCustomPolicies, getDataRetentionCustomPoliciesCount} from 'mattermost-redux/selectors/entities/admin';
-import type {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import type {GlobalState} from 'types/store';
 
 import DataRetentionSettings from './data_retention_settings';
 
-type Actions = {
-    getDataRetentionCustomPolicies: () => Promise<{ data: DataRetentionCustomPolicies}>;
-    deleteDataRetentionCustomPolicy: (id: string) => Promise<ActionResult>;
-    createJob: (job: JobTypeBase) => Promise<{ data: any}>;
-    getJobsByType: (job: JobType) => Promise<{ data: any}>;
-    updateConfig: (config: Record<string, any>) => Promise<{ data: any}>;
-};
-
 function mapStateToProps(state: GlobalState) {
     const customPolicies = getDataRetentionCustomPolicies(state);
     const customPoliciesCount = getDataRetentionCustomPoliciesCount(state);
+    const globalMessageRetentionHours = getConfig(state).DataRetentionMessageRetentionHours;
+    const globalFileRetentionHours = getConfig(state).DataRetentionFileRetentionHours;
 
     return {
         customPolicies,
         customPoliciesCount,
+        globalMessageRetentionHours,
+        globalFileRetentionHours,
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             getDataRetentionCustomPolicies: fetchDataRetentionCustomPolicies,
             createJob,
             getJobsByType,
             deleteDataRetentionCustomPolicy,
-            updateConfig,
+            patchConfig,
         }, dispatch),
     };
 }

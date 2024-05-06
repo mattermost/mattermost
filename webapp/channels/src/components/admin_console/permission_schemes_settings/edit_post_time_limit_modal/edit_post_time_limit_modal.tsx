@@ -6,8 +6,9 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
@@ -22,13 +23,8 @@ type Props ={
     show: boolean;
     onClose: () => void;
     actions: {
-        updateConfig: (config: AdminConfig) => ActionFunc & {error?: ClientErrorPlaceholder};
+        patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     };
-}
-
-type ClientErrorPlaceholder = {
-    message: string;
-    server_error_id: string;
 }
 
 export default function EditPostTimeLimitModal(props: Props) {
@@ -53,7 +49,7 @@ export default function EditPostTimeLimitModal(props: Props) {
         const newConfig = JSON.parse(JSON.stringify(props.config));
         newConfig.ServiceSettings.PostEditTimeLimit = alwaysAllowPostEditing ? Constants.UNSET_POST_EDIT_TIME_LIMIT : postEditTimeLimit;
 
-        const {error} = await props.actions.updateConfig(newConfig);
+        const {error} = await props.actions.patchConfig(newConfig);
         if (error) {
             setErrorMessage(error.message);
             setSaving(false);
@@ -95,7 +91,7 @@ export default function EditPostTimeLimitModal(props: Props) {
                     id='edit_post.time_limit_modal.description'
                     defaultMessage='Setting a time limit **applies to all users** who have the "Edit Post" permissions in any permission scheme.'
                 />
-                <div className='pl-3 pb-3 pt-3'>
+                <div className='pt-3'>
                     <div className='pt-3'>
                         <input
                             id='anytime'
@@ -151,12 +147,12 @@ export default function EditPostTimeLimitModal(props: Props) {
                             defaultMessage='Set the length of time users have to edit their messages after posting.'
                         />
                     </div>
+                    <div className='edit-post-time-limit-modal__error'>
+                        {errorMessage}
+                    </div>
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <div className='edit-post-time-limit-modal__error'>
-                    {errorMessage}
-                </div>
                 <button
                     type='button'
                     className='btn btn-tertiary'
@@ -170,7 +166,7 @@ export default function EditPostTimeLimitModal(props: Props) {
                 <button
                     id='linkModalCloseButton'
                     type='button'
-                    className='btn btn-tertiary'
+                    className='btn btn-primary'
                     onClick={save}
                     disabled={saving}
                 >

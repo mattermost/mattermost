@@ -504,9 +504,11 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 // getPostsByIds also sets a header to indicate, if posts were truncated as per the cloud plan's limit.
 func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	postIDs := model.ArrayFromJSON(r.Body)
-
-	if len(postIDs) == 0 {
+	postIDs, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("getPostsByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(postIDs) == 0 {
 		c.SetInvalidParam("post_ids")
 		return
 	}
@@ -516,9 +518,9 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsList, firstInaccessiblePostTime, err := c.App.GetPostsByIds(postIDs)
-	if err != nil {
-		c.Err = err
+	postsList, firstInaccessiblePostTime, appErr := c.App.GetPostsByIds(postIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -530,9 +532,9 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		if val, ok := channelMap[post.ChannelId]; ok {
 			channel = val
 		} else {
-			channel, err = c.App.GetChannel(c.AppContext, post.ChannelId)
-			if err != nil {
-				c.Err = err
+			channel, appErr = c.App.GetChannel(c.AppContext, post.ChannelId)
+			if appErr != nil {
+				c.Err = appErr
 				return
 			}
 			channelMap[channel.Id] = channel
@@ -562,13 +564,13 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionEditPost) {
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId, false)
+	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
 
-	originalPost, err := c.App.GetSinglePost(c.Params.PostId, false)
-	if err != nil {
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost) {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
@@ -843,16 +845,17 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionEditPost) {
-		c.SetPermissionError(model.PermissionEditPost)
-		return
-	}
-
 	originalPost, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
+
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost) {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
@@ -860,7 +863,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post.FileIds = originalPost.FileIds
 
 	if c.AppContext.Session().UserId != originalPost.UserId {
-		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionEditOthersPosts) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts) {
 			c.SetPermissionError(model.PermissionEditOthersPosts)
 			return
 		}
@@ -929,7 +932,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		permission = model.PermissionEditOthersPosts
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, permission) {
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission) {
 		c.SetPermissionError(permission)
 		return
 	}
@@ -1002,7 +1005,7 @@ func setPostReminder(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr := c.App.SetPostReminder(c.Params.PostId, c.Params.UserId, reminder.TargetTime)
+	appErr := c.App.SetPostReminder(c.AppContext, c.Params.PostId, c.Params.UserId, reminder.TargetTime)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1021,18 +1024,18 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
-		return
-	}
-
 	post, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
-		c.Err = err
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")
+
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
 
 	patch := &model.PostPatch{}
 	patch.IsPinned = model.NewBool(isPinned)
@@ -1136,7 +1139,7 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.Config().FeatureFlags.MoveThreadsEnabled {
+	if !c.App.Config().FeatureFlags.MoveThreadsEnabled || c.App.License() == nil {
 		c.Err = model.NewAppError("moveThread", "api.post.move_thread.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}

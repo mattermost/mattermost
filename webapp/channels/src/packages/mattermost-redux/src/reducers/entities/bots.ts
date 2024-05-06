@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {Bot} from '@mattermost/types/bots';
 
 import {BotTypes, UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
-function accounts(state: Record<string, Bot> = {}, action: GenericAction) {
+function accounts(state: Record<string, Bot> = {}, action: AnyAction) {
     switch (action.type) {
     case BotTypes.RECEIVED_BOT_ACCOUNTS: {
         const newBots = action.data;

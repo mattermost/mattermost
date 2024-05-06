@@ -8,7 +8,7 @@ exports[`components/TextBox should match snapshot with additional, optional prop
     className="form-control custom-textarea textbox-preview-area"
     onBlur={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[Function]}
+    onKeyPress={[MockFunction]}
     tabIndex={0}
   >
     <Connect(PostMarkdown)
@@ -52,10 +52,10 @@ exports[`components/TextBox should match snapshot with additional, optional prop
     listPosition="top"
     onBlur={[Function]}
     onChange={[Function]}
-    onComposition={[Function]}
-    onHeightChange={[Function]}
+    onComposition={[MockFunction]}
+    onHeightChange={[MockFunction]}
     onKeyDown={[Function]}
-    onKeyPress={[Function]}
+    onKeyPress={[MockFunction]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
     openWhenEmpty={true}
@@ -66,10 +66,34 @@ exports[`components/TextBox should match snapshot with additional, optional prop
           "addLastViewAtToProfiles": [Function],
           "autocompleteGroups": Array [
             Object {
+              "allow_reference": true,
+              "create_at": 1,
+              "delete_at": 0,
+              "description": "",
+              "display_name": "group_display_name",
+              "has_syncables": false,
               "id": "gid1",
+              "member_count": 0,
+              "name": "group_name",
+              "remote_id": "",
+              "scheme_admin": false,
+              "source": "",
+              "update_at": 1,
             },
             Object {
+              "allow_reference": true,
+              "create_at": 1,
+              "delete_at": 0,
+              "description": "",
+              "display_name": "group_display_name",
+              "has_syncables": false,
               "id": "gid2",
+              "member_count": 0,
+              "name": "group_name",
+              "remote_id": "",
+              "scheme_admin": false,
+              "source": "",
+              "update_at": 1,
             },
           ],
           "autocompleteUsersInChannel": [Function],
@@ -136,7 +160,7 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
     className="form-control custom-textarea textbox-preview-area"
     onBlur={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[Function]}
+    onKeyPress={[MockFunction]}
     tabIndex={0}
   >
     <Connect(PostMarkdown)
@@ -179,7 +203,7 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
     onBlur={[Function]}
     onChange={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[Function]}
+    onKeyPress={[MockFunction]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
     placeholder="placeholder text"
@@ -189,10 +213,34 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
           "addLastViewAtToProfiles": [Function],
           "autocompleteGroups": Array [
             Object {
+              "allow_reference": true,
+              "create_at": 1,
+              "delete_at": 0,
+              "description": "",
+              "display_name": "group_display_name",
+              "has_syncables": false,
               "id": "gid1",
+              "member_count": 0,
+              "name": "group_name",
+              "remote_id": "",
+              "scheme_admin": false,
+              "source": "",
+              "update_at": 1,
             },
             Object {
+              "allow_reference": true,
+              "create_at": 1,
+              "delete_at": 0,
+              "description": "",
+              "display_name": "group_display_name",
+              "has_syncables": false,
               "id": "gid2",
+              "member_count": 0,
+              "name": "group_name",
+              "remote_id": "",
+              "scheme_admin": false,
+              "source": "",
+              "update_at": 1,
             },
           ],
           "autocompleteUsersInChannel": [Function],
@@ -259,7 +307,7 @@ exports[`components/TextBox should throw error when new property is too long 1`]
     className="form-control custom-textarea textbox-preview-area"
     onBlur={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[Function]}
+    onKeyPress={[MockFunction]}
     tabIndex={0}
   >
     <Connect(PostMarkdown)
@@ -302,7 +350,7 @@ exports[`components/TextBox should throw error when new property is too long 1`]
     onBlur={[Function]}
     onChange={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[Function]}
+    onKeyPress={[MockFunction]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
     placeholder="placeholder text"
@@ -312,10 +360,34 @@ exports[`components/TextBox should throw error when new property is too long 1`]
           "addLastViewAtToProfiles": [Function],
           "autocompleteGroups": Array [
             Object {
+              "allow_reference": true,
+              "create_at": 1,
+              "delete_at": 0,
+              "description": "",
+              "display_name": "group_display_name",
+              "has_syncables": false,
               "id": "gid1",
+              "member_count": 0,
+              "name": "group_name",
+              "remote_id": "",
+              "scheme_admin": false,
+              "source": "",
+              "update_at": 1,
             },
             Object {
+              "allow_reference": true,
+              "create_at": 1,
+              "delete_at": 0,
+              "description": "",
+              "display_name": "group_display_name",
+              "has_syncables": false,
               "id": "gid2",
+              "member_count": 0,
+              "name": "group_name",
+              "remote_id": "",
+              "scheme_admin": false,
+              "source": "",
+              "update_at": 1,
             },
           ],
           "autocompleteUsersInChannel": [Function],
@@ -382,7 +454,7 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
     className="form-control custom-textarea textbox-preview-area"
     onBlur={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[Function]}
+    onKeyPress={[MockFunction]}
     tabIndex={0}
   >
     <Connect(PostMarkdown)
@@ -425,7 +497,7 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
     onBlur={[Function]}
     onChange={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[Function]}
+    onKeyPress={[MockFunction]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
     placeholder="placeholder text"
@@ -435,10 +507,34 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
           "addLastViewAtToProfiles": [Function],
           "autocompleteGroups": Array [
             Object {
+              "allow_reference": true,
+              "create_at": 1,
+              "delete_at": 0,
+              "description": "",
+              "display_name": "group_display_name",
+              "has_syncables": false,
               "id": "gid1",
+              "member_count": 0,
+              "name": "group_name",
+              "remote_id": "",
+              "scheme_admin": false,
+              "source": "",
+              "update_at": 1,
             },
             Object {
+              "allow_reference": true,
+              "create_at": 1,
+              "delete_at": 0,
+              "description": "",
+              "display_name": "group_display_name",
+              "has_syncables": false,
               "id": "gid2",
+              "member_count": 0,
+              "name": "group_name",
+              "remote_id": "",
+              "scheme_admin": false,
+              "source": "",
+              "update_at": 1,
             },
           ],
           "autocompleteUsersInChannel": [Function],

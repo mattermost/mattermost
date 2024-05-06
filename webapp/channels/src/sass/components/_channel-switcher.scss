@@ -7,33 +7,15 @@
             margin-top: calc(50vh - 240px);
         }
 
+        .modal-header {
+            padding-top: 26px;
+            padding-right: 32px;
+            padding-left: 32px;
+        }
+
         .modal-body {
             max-height: 100%;
-            padding: 0;
-        }
-
-        .modal-content {
-            border-radius: 8px;
-        }
-
-        .modal-header {
-            min-height: 0;
-            padding: 0;
-            border: none;
-            background: transparent;
-
-            .close {
-                top: 6px;
-                right: 4px;
-                display: flex;
-                width: 4rem;
-                height: 4rem;
-                align-items: center;
-                justify-content: center;
-                border-radius: 4px;
-                font-size: 32px;
-                font-weight: 400;
-            }
+            padding: 2px 0 0;
         }
     }
 
@@ -56,7 +38,7 @@
         .icon-magnify {
             position: absolute;
             top: 1.1rem;
-            left: 3.4rem;
+            left: 4.2rem;
             display: flex;
             width: 2rem;
             height: 2rem;
@@ -65,15 +47,15 @@
         }
 
         .form-control {
-            width: calc(100% - 48px);
+            width: calc(100% - 64px);
             height: 40px;
             padding: 0 34px;
-            margin: 0 24px;
             border-radius: 4px;
+            margin: 0 32px;
 
             &:focus {
                 padding: 0 33px;
-                border: 2px solid v(button-bg);
+                border: 1px solid v(button-bg);
             }
         }
 
@@ -125,6 +107,8 @@
         }
 
         .suggestion-list__divider {
+            padding: 1.6rem 3.2rem;
+
             &:first-child {
                 margin: 0;
 
@@ -147,15 +131,11 @@ body.app__body {
             .modal-header {
                 .close {
                     // This rule needs to be very specific to override the colour of the close button used for other modals
-                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
 
                     &:hover {
-                        background-color:
-                            rgba(
-                                var(--center-channel-color-rgb),
-                                0.08
-                            );
-                        color: rgba(var(--center-channel-color-rgb), 0.72);
+                        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                        color: rgba(var(--center-channel-color-rgb), 0.8);
                     }
 
                     &:active {
@@ -173,7 +153,7 @@ body:not(.app__body) {
     .channel-switcher,
     .channel-invite {
         .close {
-            color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+            color: rgba(var(--sys-center-channel-color-rgb), 0.75);
 
             &:hover {
                 background-color:
@@ -181,7 +161,7 @@ body:not(.app__body) {
                         var(--sys-center-channel-color-rgb),
                         0.08
                     );
-                color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+                color: rgba(var(--sys-center-channel-color-rgb), 0.75);
             }
 
             &:active {
@@ -198,8 +178,6 @@ body:not(.app__body) {
 
 .channel-switcher__header,
 .channel-invite__header {
-    padding: 2.4rem 2.4rem 1.6rem;
-
     h1 {
         margin: 0 0 0.8rem;
         font-size: 2rem;

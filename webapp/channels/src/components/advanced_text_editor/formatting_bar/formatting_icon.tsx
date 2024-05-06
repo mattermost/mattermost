@@ -41,11 +41,11 @@ export const IconContainer = styled.button`
     background: transparent;
     padding: 0 7px;
     border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
 
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
         fill: currentColor;
     }
 

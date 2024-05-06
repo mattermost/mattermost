@@ -160,16 +160,15 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                     placement='top'
                     overlay={backToResultsTooltip}
                 >
-                    <a
-                        href='#'
+                    <button
+                        className='sidebar--right__back btn btn-icon btn-sm'
                         onClick={this.handleBack}
-                        className='sidebar--right__back'
+                        aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
                     >
                         <i
                             className='icon icon-arrow-back-ios'
-                            aria-label={formatMessage({id: 'generic_icons.back', defaultMessage: 'Back Icon'})}
                         />
-                    </a>
+                    </button>
                 </OverlayTrigger>
             );
         }

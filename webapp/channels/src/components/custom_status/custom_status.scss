@@ -2,7 +2,7 @@
     position: absolute;
     top: 16px;
     right: 20px;
-    color: rgba(var(--center-channel-color-rgb), 0.72);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     opacity: 1;
 }
 
@@ -18,23 +18,12 @@
             &-body {
                 overflow: visible;
             }
-
-            &-content {
-                width: 100%;
-                padding: 28px 8px 24px 24px;
-            }
-
-            &-footer {
-                padding: 0;
-                padding-right: 16px;
-                margin-top: 22px;
-            }
         }
 
         .emoji-quick-input {
             &.form-control {
                 height: 4.8rem;
-                padding: 0 5.2rem;
+                padding: 0 4.8rem;
                 border-radius: 4px;
                 font-size: 14px;
                 font-weight: 600;
@@ -46,7 +35,6 @@
         }
 
         .dateTime__calendar-input {
-            width: 266px;
             border: 2px solid var(--button-bg);
             font-size: 14px;
 
@@ -65,7 +53,7 @@
 
             button.dateTime__calendar-icon {
                 margin: 0 8px 0 0;
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
             }
 
             input#customStatus__calendar-input {
@@ -88,10 +76,6 @@
     }
 
     .GenericModal {
-        &__header {
-            padding: 0 0 20px;
-        }
-
         &__body {
             padding: 0;
         }
@@ -106,15 +90,11 @@
         }
     }
 
-    & &__input {
-        position: relative;
-        width: calc(100% - 16px);
-    }
-
     &__emoji-container {
         position: absolute;
-        top: 6px;
-        left: 10px;
+        z-index: 5;
+        top: 14px;
+        left: 40px;
         margin-right: 2px;
     }
 
@@ -125,15 +105,15 @@
         align-items: center;
         justify-content: center;
         border: none;
-        background: transparent;
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        fill: rgba(var(--center-channel-color-rgb), 0.56);
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        fill: rgba(var(--center-channel-color-rgb), 0.64);
 
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-            fill: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), 0.8);
+            fill: rgba(var(--center-channel-color-rgb), 0.8);
         }
 
         &:active,
@@ -170,7 +150,7 @@
 .status-dropdown-menu,
 .StatusModal__input {
     .input-clear-x {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
 
         .icon {
             font-size: 20px;
@@ -220,7 +200,7 @@
 
     &__row {
         display: flex;
-        width: 97%;
+        width: 100%;
         min-height: 40px;
         align-items: center;
         padding-right: 10px;
@@ -231,8 +211,8 @@
         font-size: inherit;
 
         &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.08);
             border-radius: 4px;
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
         }
 
         &:active {
@@ -251,6 +231,7 @@
         height: 24px;
         margin-top: 8px;
         color: rgba(var(--center-channel-color-rgb), 0.55);
+        font-size: 12px;
         font-weight: 600;
     }
 
@@ -268,7 +249,7 @@
 
     &__duration {
         margin-left: 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 14px;
         font-weight: 400;
         line-height: 14px;
@@ -301,9 +282,8 @@ span.emoticon[style]:hover {
 }
 
 .statusExpiry {
-    position: absolute;
-    top: 56px;
     display: inline-block;
+    margin-top: 12px;
     font-size: 14px;
 
     &__menu {
@@ -318,12 +298,12 @@ span.emoticon[style]:hover {
 
 .dateTime {
     display: flex;
-    width: calc(100% - 24px);
-    margin-top: 45px;
+    margin: 24px 0 8px;
+    gap: 16px;
 
     & &__date {
         position: relative;
-        margin-right: 20px;
+        width: 100%;
 
         &-icon {
             position: absolute;
@@ -334,6 +314,11 @@ span.emoticon[style]:hover {
 
     & &__time {
         position: relative;
+        width: 100%;
+
+        .style--none {
+            width: 100%;
+        }
 
         #expiryTimeMenu .dropdown-menu {
             overflow: auto;
@@ -353,8 +338,8 @@ span.emoticon[style]:hover {
         height: 40px;
         padding: 10px 40px;
         border: 2px solid var(--button-bg);
-        background: var(--center-channel-bg);
         border-radius: 4px;
+        background: var(--center-channel-bg);
         color: var(--center-channel-color);
         cursor: pointer;
         font-size: 14px;
@@ -366,7 +351,7 @@ span.emoticon[style]:hover {
             left: 12px;
             padding: 0 4px;
             background: var(--center-channel-bg);
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 10px;
             letter-spacing: 0.03em;
             line-height: 16px;

@@ -6,12 +6,12 @@ package platform
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
@@ -31,7 +31,7 @@ var sharedChannelEventsForInvitation = []model.WebsocketEventType{
 // Only on the leader node it will notify the sync service to perform necessary updates to the remote for the given
 // shared channel.
 func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent) {
-	syncService := ps.sharedChannelService
+	syncService := ps.GetSharedChannelService()
 	if syncService == nil {
 		return
 	}
@@ -59,7 +59,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 func isEligibleForEvents(syncService SharedChannelServiceIFace, event *model.WebSocketEvent, events []model.WebsocketEventType) bool {
 	return syncServiceEnabled(syncService) &&
 		eventHasChannel(event) &&
-		utils.Contains(events, event.EventType())
+		slices.Contains(events, event.EventType())
 }
 
 func eventHasChannel(event *model.WebSocketEvent) bool {
@@ -78,7 +78,31 @@ func handleContentSync(ps *PlatformService, syncService SharedChannelServiceIFac
 		return err
 	}
 
-	if channel != nil && channel.IsShared() {
+	shouldNotify := channel.IsShared()
+
+	// check if any remotes need to be auto-subscribed to this channel. Remotes are auto-subscribed to DM/GM's if they registered
+	// with the AutoShareDMs flag set.
+	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+		filter := model.RemoteClusterQueryFilter{
+			NotInChannel:   channel.Id,
+			OnlyConfirmed:  true,
+			RequireOptions: model.BitflagOptionAutoShareDMs,
+		}
+		remotes, err := ps.Store.RemoteCluster().GetAll(filter) // empty list returned if none found,  no error
+		if err != nil {
+			return fmt.Errorf("cannot fetch remote clusters: %w", err)
+		}
+		for _, remote := range remotes {
+			// invite remote to channel (will share the channel if not already shared)
+			if err := syncService.InviteRemoteToChannel(channel.Id, remote.RemoteId, remote.CreatorId, true); err != nil {
+				return fmt.Errorf("cannot invite remote %s to channel %s: %w", remote.RemoteId, channel.Id, err)
+			}
+			shouldNotify = true
+		}
+	}
+
+	// notify
+	if shouldNotify {
 		syncService.NotifyChannelChanged(channel.Id)
 	}
 

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
@@ -9,10 +10,9 @@ import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
 
 import {ChannelCategoryTypes, TeamTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import {removeItem} from 'mattermost-redux/utils/array_utils';
 
-export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: GenericAction) {
+export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: AnyAction) {
     switch (action.type) {
     case ChannelCategoryTypes.RECEIVED_CATEGORIES: {
         const categories: ChannelCategory[] = action.data;
@@ -132,7 +132,7 @@ export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: Gener
     }
 }
 
-export function orderByTeam(state: RelationOneToOne<Team, Array<ChannelCategory['id']>> = {}, action: GenericAction) {
+export function orderByTeam(state: RelationOneToOne<Team, Array<ChannelCategory['id']>> = {}, action: AnyAction) {
     switch (action.type) {
     case ChannelCategoryTypes.RECEIVED_CATEGORY_ORDER: {
         const teamId: string = action.data.teamId;

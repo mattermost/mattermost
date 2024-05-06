@@ -2,12 +2,19 @@
 
 exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match fifth Snapshot 1`] = `
 <AdminPanel
-  className=""
   id="channel_moderation"
-  subtitleDefault="Manage the actions available to channel members and guests."
-  subtitleId="admin.channel_settings.channel_moderation.subtitle"
-  titleDefault="Channel Moderation"
-  titleId="admin.channel_settings.channel_moderation.title"
+  subtitle={
+    Object {
+      "defaultMessage": "Manage the actions available to channel members and guests.",
+      "id": "admin.channel_settings.channel_moderation.subtitle",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Channel Moderation",
+      "id": "admin.channel_settings.channel_moderation.title",
+    }
+  }
 >
   <div
     className="channel-moderation"
@@ -92,12 +99,19 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
 
 exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match first Snapshot 1`] = `
 <AdminPanel
-  className=""
   id="channel_moderation"
-  subtitleDefault="Manage the actions available to channel members and guests."
-  subtitleId="admin.channel_settings.channel_moderation.subtitle"
-  titleDefault="Channel Moderation"
-  titleId="admin.channel_settings.channel_moderation.title"
+  subtitle={
+    Object {
+      "defaultMessage": "Manage the actions available to channel members and guests.",
+      "id": "admin.channel_settings.channel_moderation.subtitle",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Channel Moderation",
+      "id": "admin.channel_settings.channel_moderation.title",
+    }
+  }
 >
   <div
     className="channel-moderation"
@@ -153,12 +167,19 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
 
 exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match fourth Snapshot 1`] = `
 <AdminPanel
-  className=""
   id="channel_moderation"
-  subtitleDefault="Manage the actions available to channel members and guests."
-  subtitleId="admin.channel_settings.channel_moderation.subtitle"
-  titleDefault="Channel Moderation"
-  titleId="admin.channel_settings.channel_moderation.title"
+  subtitle={
+    Object {
+      "defaultMessage": "Manage the actions available to channel members and guests.",
+      "id": "admin.channel_settings.channel_moderation.subtitle",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Channel Moderation",
+      "id": "admin.channel_settings.channel_moderation.title",
+    }
+  }
 >
   <div
     className="channel-moderation"
@@ -263,7 +284,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       onClick={[Function]}
       type="button"
     >
-      <CheckboxCheckedIcon />
+      <Memo(CheckboxCheckedIcon) />
     </button>
   </td>
   <td>
@@ -273,7 +294,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       onClick={[Function]}
       type="button"
     >
-      <CheckboxCheckedIcon />
+      <Memo(CheckboxCheckedIcon) />
     </button>
   </td>
 </tr>
@@ -307,7 +328,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       onClick={[Function]}
       type="button"
     >
-      <CheckboxCheckedIcon />
+      <Memo(CheckboxCheckedIcon) />
     </button>
   </td>
 </tr>
@@ -315,12 +336,19 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
 
 exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match sixth Snapshot 1`] = `
 <AdminPanel
-  className=""
   id="channel_moderation"
-  subtitleDefault="Manage the actions available to channel members and guests."
-  subtitleId="admin.channel_settings.channel_moderation.subtitle"
-  titleDefault="Channel Moderation"
-  titleId="admin.channel_settings.channel_moderation.title"
+  subtitle={
+    Object {
+      "defaultMessage": "Manage the actions available to channel members and guests.",
+      "id": "admin.channel_settings.channel_moderation.subtitle",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Channel Moderation",
+      "id": "admin.channel_settings.channel_moderation.title",
+    }
+  }
 >
   <div
     className="channel-moderation"
@@ -413,12 +441,19 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
 
 exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match sixth Snapshot 2`] = `
 <AdminPanel
-  className=""
   id="channel_moderation"
-  subtitleDefault="Manage the actions available to channel members."
-  subtitleId="admin.channel_settings.channel_moderation.subtitleMembers"
-  titleDefault="Channel Moderation"
-  titleId="admin.channel_settings.channel_moderation.title"
+  subtitle={
+    Object {
+      "defaultMessage": "Manage the actions available to channel members.",
+      "id": "admin.channel_settings.channel_moderation.subtitleMembers",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Channel Moderation",
+      "id": "admin.channel_settings.channel_moderation.title",
+    }
+  }
 >
   <div
     className="channel-moderation"
@@ -468,12 +503,19 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
 
 exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match third Snapshot 1`] = `
 <AdminPanel
-  className=""
   id="channel_moderation"
-  subtitleDefault="Manage the actions available to channel members and guests."
-  subtitleId="admin.channel_settings.channel_moderation.subtitle"
-  titleDefault="Channel Moderation"
-  titleId="admin.channel_settings.channel_moderation.title"
+  subtitle={
+    Object {
+      "defaultMessage": "Manage the actions available to channel members and guests.",
+      "id": "admin.channel_settings.channel_moderation.subtitle",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Channel Moderation",
+      "id": "admin.channel_settings.channel_moderation.title",
+    }
+  }
 >
   <div
     className="channel-moderation"

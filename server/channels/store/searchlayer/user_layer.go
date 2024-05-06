@@ -81,11 +81,8 @@ func (s *SearchUserStore) Update(rctx request.CTX, user *model.User, trustedUpda
 	return userUpdate, err
 }
 
-func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
-	// TODO: Use the actuall request context from the App layer
-	// https://mattermost.atlassian.net/browse/MM-55737
-	rctx := request.EmptyContext(s.rootStore.Logger())
-	nuser, err := s.UserStore.Save(user)
+func (s *SearchUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
+	nuser, err := s.UserStore.Save(rctx, user)
 
 	if err == nil {
 		s.rootStore.indexUser(rctx, nuser)
@@ -93,15 +90,12 @@ func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
 	return nuser, err
 }
 
-func (s *SearchUserStore) PermanentDelete(userId string) error {
-	// TODO: Use the actuall request context from the App layer
-	// https://mattermost.atlassian.net/browse/MM-55738
-	rctx := request.EmptyContext(s.rootStore.Logger())
+func (s *SearchUserStore) PermanentDelete(rctx request.CTX, userId string) error {
 	user, userErr := s.UserStore.Get(context.Background(), userId)
 	if userErr != nil {
 		rctx.Logger().Warn("Encountered error deleting user", mlog.String("user_id", userId), mlog.Err(userErr))
 	}
-	err := s.UserStore.PermanentDelete(userId)
+	err := s.UserStore.PermanentDelete(rctx, userId)
 	if err == nil && userErr == nil {
 		s.deleteUserIndex(rctx, user)
 	}
@@ -122,17 +116,17 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 		return nil, err
 	}
 
-	uchan := make(chan store.GenericStoreResult[[]*model.User], 1)
+	uchan := make(chan store.StoreResult[[]*model.User], 1)
 	go func() {
 		users, nErr := s.UserStore.GetProfileByIds(context.Background(), uchanIds, nil, false)
-		uchan <- store.GenericStoreResult[[]*model.User]{Data: users, NErr: nErr}
+		uchan <- store.StoreResult[[]*model.User]{Data: users, NErr: nErr}
 		close(uchan)
 	}()
 
-	nuchan := make(chan store.GenericStoreResult[[]*model.User], 1)
+	nuchan := make(chan store.StoreResult[[]*model.User], 1)
 	go func() {
 		users, nErr := s.UserStore.GetProfileByIds(context.Background(), nuchanIds, nil, false)
-		nuchan <- store.GenericStoreResult[[]*model.User]{Data: users, NErr: nErr}
+		nuchan <- store.StoreResult[[]*model.User]{Data: users, NErr: nErr}
 		close(nuchan)
 	}()
 

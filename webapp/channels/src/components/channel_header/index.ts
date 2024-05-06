@@ -4,11 +4,9 @@
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {
-    favoriteChannel,
-    unfavoriteChannel,
     updateChannelNotifyProps,
 } from 'mattermost-redux/actions/channels';
 import {getCustomEmojisInText} from 'mattermost-redux/actions/emojis';
@@ -16,12 +14,10 @@ import {General} from 'mattermost-redux/constants';
 import {
     getCurrentChannel,
     getMyCurrentChannelMembership,
-    isCurrentChannelFavorite,
     isCurrentChannelMuted,
     getCurrentChannelStats,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {
     displayLastActiveLabel,
@@ -31,7 +27,6 @@ import {
     getUser,
     makeGetProfilesInChannel,
 } from 'mattermost-redux/selectors/entities/users';
-import type {Action} from 'mattermost-redux/types/actions';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
 import {goToLastViewedChannel} from 'actions/views/channel';
@@ -53,7 +48,6 @@ import {isFileAttachmentsEnabled} from 'utils/file_utils';
 import type {GlobalState} from 'types/store';
 
 import ChannelHeader from './channel_header';
-import type {Props} from './channel_header';
 
 const EMPTY_CHANNEL = {};
 const EMPTY_CHANNEL_STATS = {member_count: 0, guest_count: 0, pinnedpost_count: 0, files_count: 0};
@@ -101,14 +95,12 @@ function makeMapStateToProps() {
             gmMembers,
             rhsState: getRhsState(state),
             rhsOpen: getIsRhsOpen(state),
-            isFavorite: isCurrentChannelFavorite(state),
             isReadOnly: false,
             isMuted: isCurrentChannelMuted(state),
             isQuickSwitcherOpen: isModalOpen(state, ModalIdentifiers.QUICK_SWITCH),
             hasGuests: stats.guest_count > 0,
             pinnedPostsCount: stats.pinnedpost_count,
             hasMoreThanOneTeam,
-            teammateNameDisplaySetting: getTeammateNameDisplaySetting(state),
             currentRelativeTeamUrl: getCurrentRelativeTeamUrl(state),
             announcementBarCount: getAnnouncementBarCount(state),
             customStatus,
@@ -124,9 +116,7 @@ function makeMapStateToProps() {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators<ActionCreatorsMapObject<Action>, Props['actions']>({
-        favoriteChannel,
-        unfavoriteChannel,
+    actions: bindActionCreators({
         showPinnedPosts,
         showChannelFiles,
         closeRightHandSide,

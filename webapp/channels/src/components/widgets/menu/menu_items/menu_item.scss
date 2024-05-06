@@ -25,8 +25,8 @@
 
         .MenuItem__compass-icon {
             margin: 4px -6px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            fill: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            fill: rgba(var(--center-channel-color-rgb), 0.64);
         }
 
         .MenuItem__compass-icon-dangerous {
@@ -34,7 +34,7 @@
         }
 
         .MenuItem__opacity {
-            opacity: 0.56;
+            opacity: 0.73;
         }
 
         span.icon {
@@ -50,11 +50,11 @@
             display: inline-flex;
             padding: 5px 0;
             line-height: 22px;
-            white-space: normal;
+            white-space: nowrap;
         }
 
         span.MenuItem__text-color {
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         span.MenuItem__help-text {
@@ -63,7 +63,7 @@
             font-size: 12px;
             line-height: 16px;
             opacity: 0.7;
-            white-space: normal;
+            white-space: nowrap;
 
             @media (max-width: 768px) {
                 padding-left: 28px !important;
@@ -195,9 +195,9 @@
 
     .MenuCloudTrial {
         padding: 8px 12px;
+        border-radius: 4px;
         margin: 8px;
         margin-top: 0;
-        border-radius: 4px;
 
         &__free-trial {
             &__content-title {
@@ -303,7 +303,7 @@
 
         &__usage-label {
             padding-left: 18px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 11px;
             font-weight: bold;
         }
@@ -315,10 +315,10 @@
         align-items: flex-start;
         padding: 8px;
         padding-left: 16px;
+        border-radius: 4px;
         margin: 8px;
         margin-top: 0;
         background-color: rgba(var(--button-bg-rgb), 0.04);
-        border-radius: 4px;
 
         button {
             padding: 3px 0;
@@ -351,7 +351,7 @@
 .SubMenu__icon-left {
     position: relative;
     top: 0;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     font-size: 19px;
 }
 
@@ -366,7 +366,7 @@
 
 .SubMenu__icon-right {
     padding-top: 3px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     float: right;
     font-size: 19px;
 }

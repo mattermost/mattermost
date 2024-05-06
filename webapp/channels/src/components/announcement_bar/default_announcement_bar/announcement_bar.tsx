@@ -1,20 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {WarnMetricStatus} from '@mattermost/types/config';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import OverlayTrigger from 'components/overlay_trigger';
-import ToggleModalButton from 'components/toggle_modal_button';
 import Tooltip from 'components/tooltip';
-import WarnMetricAckModal from 'components/warn_metric_ack_modal';
 
-import {Constants, AnnouncementBarTypes, ModalIdentifiers} from 'utils/constants';
+import {Constants, AnnouncementBarTypes} from 'utils/constants';
 import {isStringContainingUrl} from 'utils/url';
 
 type Props = {
@@ -23,8 +18,8 @@ type Props = {
     color: string;
     textColor: string;
     type: string;
-    message: React.ReactNode;
-    tooltipMsg?: React.ReactNode;
+    message: ReactNode;
+    tooltipMsg?: ReactNode;
     handleClose?: (e?: any) => void;
     showModal?: boolean;
     announcementBarCount?: number;
@@ -32,13 +27,14 @@ type Props = {
     modalButtonText?: string;
     modalButtonDefaultText?: string;
     showLinkAsButton: boolean;
-    icon?: React.ReactNode;
-    warnMetricStatus?: WarnMetricStatus;
+    icon?: ReactNode;
     actions: {
         incrementAnnouncementBarCount: () => void;
         decrementAnnouncementBarCount: () => void;
     };
     showCTA?: boolean;
+    ctaText?: ReactNode;
+    ctaDisabled?: boolean;
 }
 
 type State = {
@@ -189,42 +185,24 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                             {message}
                         </span>
                         {
-                            !this.props.showLinkAsButton && this.props.showCTA &&
-                            <span className='announcement-bar__link'>
-                                {this.props.showModal &&
-                                <FormattedMessage
-                                    id={this.props.modalButtonText}
-                                    defaultMessage={this.props.modalButtonDefaultText}
-                                >
-                                    {(linkmessage) => (
-                                        <ToggleModalButton
-                                            ariaLabel={linkmessage as unknown as string}
-                                            className={'color--link--adminack'}
-                                            dialogType={WarnMetricAckModal}
-                                            onClick={() => trackEvent('admin', 'click_warn_metric_learn_more')}
-                                            modalId={ModalIdentifiers.WARN_METRIC_ACK}
-                                            dialogProps={{
-                                                warnMetricStatus: this.props.warnMetricStatus,
-                                                closeParentComponent: this.props.handleClose,
-                                            }}
-                                        >
-                                            {linkmessage}
-                                        </ToggleModalButton>
-                                    )}
-                                </FormattedMessage>
-                                }
-                            </span>
-                        }
-                        {
-                            this.props.showLinkAsButton && this.props.showCTA &&
+                            this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText && this.props.modalButtonDefaultText &&
                             <button
-                                className='upgrade-button'
                                 onClick={this.props.onButtonClick}
+                                disabled={this.props.ctaDisabled}
                             >
                                 <FormattedMessage
                                     id={this.props.modalButtonText}
                                     defaultMessage={this.props.modalButtonDefaultText}
                                 />
+                            </button>
+                        }
+                        {
+                            this.props.showLinkAsButton && this.props.showCTA && this.props.ctaText &&
+                            <button
+                                onClick={this.props.onButtonClick}
+                                disabled={this.props.ctaDisabled}
+                            >
+                                {this.props.ctaText}
                             </button>
                         }
                     </div>

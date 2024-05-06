@@ -96,7 +96,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
         this.focusTextbox();
     };
 
-    private onHide = (): void => {
+    private hideOnSelect = (): void => {
         this.focusPostTextbox();
         this.setState({
             text: '',
@@ -113,6 +113,16 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 }
             });
         }
+    };
+
+    private hideOnCancel = () => {
+        this.props.onExited?.();
+        setTimeout(() => {
+            const modalButton = document.querySelector('.SidebarChannelNavigator_jumpToButton') as HTMLElement;
+            if (modalButton) {
+                modalButton.focus();
+            }
+        });
     };
 
     private onChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -137,12 +147,12 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
             }
             switchToChannel(selectedChannel).then((result: ActionResult) => {
                 if ('data' in result) {
-                    this.onHide();
+                    this.hideOnSelect();
                 }
             });
         } else {
             getHistory().push('/' + selected.name);
-            this.onHide();
+            this.hideOnSelect();
         }
     };
 
@@ -188,7 +198,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
             <Modal
                 dialogClassName='a11y__modal channel-switcher'
                 show={true}
-                onHide={this.onHide}
+                onHide={this.hideOnCancel}
                 enforceFocus={false}
                 restoreFocus={false}
                 role='dialog'
@@ -197,10 +207,10 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 animation={false}
             >
                 <Modal.Header
+                    className='modal-header'
                     id='quickSwitchModalLabel'
                     closeButton={true}
-                />
-                <Modal.Body>
+                >
                     <div
                         className='channel-switcher__header'
                         id='quickSwitchHeaderWithHint'
@@ -213,6 +223,8 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                             {help}
                         </div>
                     </div>
+                </Modal.Header>
+                <Modal.Body>
                     <div className='channel-switcher__suggestion-box'>
                         <i className='icon icon-magnify icon-16'/>
                         <SuggestionBox

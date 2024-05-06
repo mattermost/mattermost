@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Audit} from './audits';
-import {Channel} from './channels';
-import {Group} from './groups';
-import {Session} from './sessions';
-import {Team} from './teams';
-import {IDMappedObjects, RelationOneToMany, RelationOneToManyUnique, RelationOneToOne} from './utilities';
+import type {Audit} from './audits';
+import type {Channel} from './channels';
+import type {Group} from './groups';
+import type {Session} from './sessions';
+import type {Team} from './teams';
+import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from './utilities';
 
 export type UserNotifyProps = {
     desktop: 'default' | 'all' | 'mention' | 'none';
@@ -70,18 +70,19 @@ export type UsersState = {
     mySessions: Session[];
     myAudits: Audit[];
     profiles: IDMappedObjects<UserProfile>;
-    profilesInTeam: RelationOneToMany<Team, UserProfile>;
-    profilesNotInTeam: RelationOneToMany<Team, UserProfile>;
+    profilesInTeam: RelationOneToManyUnique<Team, UserProfile>;
+    profilesNotInTeam: RelationOneToManyUnique<Team, UserProfile>;
     profilesWithoutTeam: Set<string>;
     profilesInChannel: RelationOneToManyUnique<Channel, UserProfile>;
     profilesNotInChannel: RelationOneToManyUnique<Channel, UserProfile>;
-    profilesInGroup: RelationOneToMany<Group, UserProfile>;
-    profilesNotInGroup: RelationOneToMany<Group, UserProfile>;
+    profilesInGroup: RelationOneToManyUnique<Group, UserProfile>;
+    profilesNotInGroup: RelationOneToManyUnique<Group, UserProfile>;
     statuses: RelationOneToOne<UserProfile, string>;
-    stats: RelationOneToOne<UserProfile, UsersStats>;
-    filteredStats?: UsersStats;
+    stats: Partial<UsersStats>;
+    filteredStats: Partial<UsersStats>;
     myUserAccessTokens: Record<string, UserAccessToken>;
     lastActivity: RelationOneToOne<UserProfile, number>;
+    dndEndTimes: RelationOneToOne<UserProfile, number>;
 };
 
 export type UserTimezone = {
@@ -143,16 +144,3 @@ export type GetFilteredUsersStatsOpts = {
 export type AuthChangeResponse = {
     follow_link: string;
 };
-
-export type UserReport = {
-    id: string;
-    username: string;
-    email: string;
-    create_at: number;
-    display_name: string;
-    last_login_at: number;
-	last_status_at?: number;
-	last_post_date?: number;
-	days_active?: number;
-	total_posts?: number;
-}

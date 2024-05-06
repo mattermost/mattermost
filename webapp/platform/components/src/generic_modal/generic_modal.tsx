@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import classNames from 'classnames';
+import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
@@ -73,7 +73,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
 
     onHide = () => {
         this.setState({show: false});
-    }
+    };
 
     handleCancel = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         event.preventDefault();
@@ -83,7 +83,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
         if (this.props.handleCancel) {
             this.props.handleCancel();
         }
-    }
+    };
 
     handleConfirm = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         event.preventDefault();
@@ -93,7 +93,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
         if (this.props.handleConfirm) {
             this.props.handleConfirm();
         }
-    }
+    };
 
     private onEnterKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (event.key === 'Enter') {
@@ -108,7 +108,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
             }
         }
         this.props.handleKeydown?.(event);
-    }
+    };
 
     render() {
         let confirmButton;
@@ -164,7 +164,10 @@ export class GenericModal extends React.PureComponent<Props, State> {
 
         const headerText = this.props.modalHeaderText && (
             <div className='GenericModal__header'>
-                <h1 id='genericModalLabel'>
+                <h1
+                    id='genericModalLabel'
+                    className='modal-title'
+                >
                     {this.props.modalHeaderText}
                 </h1>
                 {this.props.headerButton}

@@ -11,6 +11,8 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
@@ -54,7 +56,7 @@ type Props = {
     /**
      * Object with info about current team
      */
-    team: Team;
+    team?: Team;
 
     /**
      * String with the current team URL
@@ -69,7 +71,7 @@ type Props = {
         /*
         * Action creator to patch current channel
         */
-        patchChannel: (channelId: string, patch: Channel) => Promise<{ data: Channel; error: Error }>;
+        patchChannel: (channelId: string, patch: Channel) => Promise<ActionResult>;
     };
 }
 
@@ -188,7 +190,9 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
     onSaveSuccess = () => {
         this.handleHide();
         this.unsetError();
-        getHistory().push('/' + this.props.team.name + '/channels/' + this.state.channelName);
+        if (this.props.team) {
+            getHistory().push('/' + this.props.team.name + '/channels/' + this.state.channelName);
+        }
     };
 
     handleCancel = (e?: MouseEvent) => {

@@ -3,6 +3,23 @@ set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
 
+mme2e_log "Configuring starting server parameters that may be changed at runtime"
+for SETTING in \
+    TeamSettings.EnableOpenServer=true \
+    PluginSettings.Enable=true \
+    PluginSettings.EnableUploads=true \
+    PluginSettings.AutomaticPrepackagedPlugins=true
+  do
+  mme2e_log "Configuring parameter: $SETTING"
+  ${MME2E_DC_SERVER} exec -T -- server mmctl --local config set $(tr = ' ' <<<$SETTING)
+done
+if [ -n "${MM_LICENSE:-}" ]; then
+  # We prefer uploading the license here, instead of setting the env var for the server
+  # This is to retain the flexibility of being able to remove it programmatically, if the tests require it
+  mme2e_log "Uploading license to server"
+  ${MME2E_DC_SERVER} exec -T -- server mmctl --local license upload-string "$MM_LICENSE"
+fi
+
 if [ "$TEST" = "cypress" ]; then
   mme2e_log "Prepare Cypress: install dependencies"
   ${MME2E_DC_SERVER} exec -T -u 0 -- cypress bash -c "id $MME2E_UID || useradd -u $MME2E_UID -m nodeci" # Works around the node image's assumption that the app files are owned by user 1000

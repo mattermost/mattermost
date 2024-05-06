@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,6 +15,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 func (api *API) InitGroup() {
@@ -332,17 +335,6 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if group.Source != model.GroupSourceLdap {
-		c.Err = model.NewAppError("Api4.linkGroupSyncable", "app.group.crud_permission", nil, "", http.StatusBadRequest)
-		return
-	}
-
 	auditRec := c.MakeAuditRecord("linkGroupSyncable", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
@@ -363,8 +355,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr = verifyLinkUnlinkPermission(c, syncableType, syncableID)
+	appErr := verifyLinkUnlinkPermission(c, syncableType, syncableID)
 	if appErr != nil {
+		appErr.Where = "Api4.linkGroupSyncable"
 		c.Err = appErr
 		return
 	}
@@ -541,6 +534,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	appErr := verifyLinkUnlinkPermission(c, syncableType, syncableID)
 	if appErr != nil {
+		appErr.Where = "Api4.patchGroupSyncable"
 		c.Err = appErr
 		return
 	}
@@ -611,6 +605,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	appErr := verifyLinkUnlinkPermission(c, syncableType, syncableID)
 	if appErr != nil {
+		appErr.Where = "Api4.unlinkGroupSyncable"
 		c.Err = appErr
 		return
 	}
@@ -631,15 +626,48 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType, syncableID string) *model.AppError {
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
+	if appErr != nil {
+		return appErr
+	}
+
+	if group.Source != model.GroupSourceLdap {
+		return model.NewAppError("Api4.linkGroupSyncable", "app.group.crud_permission", nil, "", http.StatusBadRequest)
+	}
+
+	// If AllowReference is disabled, limit who can link the group.
+	// This voids leaking the list of group members.
+	// See https://mattermost.atlassian.net/browse/MM-55314 for more details.
+	if !group.AllowReference {
+		if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleReadUserManagementGroups) {
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
+		}
+	}
+
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionManageTeam) {
-			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeam})
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionInviteUser) {
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionInviteUser})
 		}
 	case model.GroupSyncableTypeChannel:
-		channel, err := c.App.GetChannel(c.AppContext, syncableID)
-		if err != nil {
-			return err
+		channel, appErr := c.App.GetChannel(c.AppContext, syncableID)
+		if appErr != nil {
+			return appErr
+		}
+
+		// If it's the first time that the syncable gets linked to the team (i.e. no current sync to the team or to a team's channel),
+		// check that the user has the permission to manage the team.
+		_, appErr = c.App.GetGroupSyncable(c.Params.GroupId, channel.TeamId, model.GroupSyncableTypeTeam)
+		if appErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(appErr, &nfErr):
+				if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionInviteUser) {
+					return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionInviteUser})
+				}
+			default:
+				return appErr
+			}
 		}
 
 		var permission *model.Permission
@@ -668,21 +696,10 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	appErr = licensedAndConfiguredForGroupBySource(c.App, group.Source)
+	appErr := hasPermissionToReadGroupMembers(c, c.Params.GroupId)
 	if appErr != nil {
 		appErr.Where = "Api4.getGroupMembers"
 		c.Err = appErr
-		return
-	}
-
-	if group.Source == model.GroupSourceLdap && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 		return
 	}
 
@@ -698,10 +715,7 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := json.Marshal(struct {
-		Members []*model.User `json:"members"`
-		Count   int           `json:"total_member_count"`
-	}{
+	b, err := json.Marshal(model.GroupMemberList{
 		Members: members,
 		Count:   count,
 	})
@@ -831,6 +845,10 @@ func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError
 		return nil, model.NewAppError("Api4.getGroupsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 	}
 
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
+		return nil, model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionListTeamChannels})
+	}
+
 	opts := model.GroupSearchOpts{
 		Q:                    c.Params.Q,
 		IncludeMemberCount:   c.Params.IncludeMemberCount,
@@ -859,6 +877,7 @@ func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError
 
 	return b, nil
 }
+
 func getGroupsByChannelCommon(c *Context, r *http.Request) ([]byte, *model.AppError) {
 	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
 		return nil, model.NewAppError("Api4.getGroupsByChannel", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
@@ -919,6 +938,11 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 
 	if !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupsAssociatedToChannelsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
+		c.Err = model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionListTeamChannels})
 		return
 	}
 
@@ -1337,6 +1361,26 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.Success()
 	w.Write(b)
+}
+
+// hasPermissionToReadGroupMembers check if a user has the permission to read the list of members of a given team.
+func hasPermissionToReadGroupMembers(c *web.Context, groupID string) *model.AppError {
+	group, err := c.App.GetGroup(groupID, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	if lcErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); lcErr != nil {
+		return lcErr
+	}
+
+	if group.Source == model.GroupSourceLdap && !group.AllowReference {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
+		}
+	}
+
+	return nil
 }
 
 // licensedAndConfiguredForGroupBySource returns an app error if not properly license or configured for the given group type. The returned app error

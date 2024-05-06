@@ -9,10 +9,10 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-export default function usePreference(category: string, name: string): [string | undefined, (value: string) => ActionFunc] {
+export default function usePreference(category: string, name: string): [string | undefined, (value: string) => Promise<ActionResult>] {
     const dispatch = useDispatch();
 
     const userId = useSelector(getCurrentUserId);

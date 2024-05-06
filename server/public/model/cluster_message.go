@@ -20,6 +20,7 @@ const (
 	ClusterEventInvalidateCacheForRoles                     ClusterEvent = "inv_roles"
 	ClusterEventInvalidateCacheForRolePermissions           ClusterEvent = "inv_role_permissions"
 	ClusterEventInvalidateCacheForProfileByIds              ClusterEvent = "inv_profile_ids"
+	ClusterEventInvalidateCacheForAllProfiles               ClusterEvent = "inv_all_profiles"
 	ClusterEventInvalidateCacheForProfileInChannel          ClusterEvent = "inv_profile_in_channel"
 	ClusterEventInvalidateCacheForSchemes                   ClusterEvent = "inv_schemes"
 	ClusterEventInvalidateCacheForFileInfos                 ClusterEvent = "inv_file_infos"
@@ -50,6 +51,8 @@ const (
 	ClusterGossipEventResponseGetPluginStatuses = "gossip_response_plugin_statuses"
 	ClusterGossipEventRequestSaveConfig         = "gossip_request_save_config"
 	ClusterGossipEventResponseSaveConfig        = "gossip_response_save_config"
+	ClusterGossipEventRequestWebConnCount       = "gossip_request_webconn_count"
+	ClusterGossipEventResponseWebConnCount      = "gossip_response_webconn_count"
 
 	// SendTypes for ClusterMessage.
 	ClusterSendBestEffort = "best_effort"

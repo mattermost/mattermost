@@ -9,20 +9,20 @@
             // number of selectors to override the specificity in _files.scss
             .image-name,
             button.single-image-view__toggle {
-                color: rgba(var(--center-channel-color-rgb), 0.56);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
             }
 
             &:hover .image-name,
             &:hover button.single-image-view__toggle {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
             }
 
             button.single-image-view__toggle {
                 display: inline-block;
                 padding: 0;
                 border: none;
-                background: transparent;
                 border-radius: 4px;
+                background: transparent;
                 font-size: 18px;
                 line-height: 18px;
 
@@ -48,8 +48,8 @@
                     width: 24px;
                     height: 24px;
                     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-                    background-color: var(--center-channel-bg);
                     border-radius: 16px;
+                    background-color: var(--center-channel-bg);
                     box-shadow: $elevation-1;
                     line-height: 20px;
 
@@ -63,7 +63,7 @@
 
         &:hover .image-header--expanded button.single-image-view__toggle {
             display: block;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         .image-container {

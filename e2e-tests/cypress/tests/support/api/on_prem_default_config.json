@@ -24,6 +24,7 @@
         "EnableIncomingWebhooks": true,
         "EnableOutgoingWebhooks": true,
         "EnableCommands": true,
+        "OutgoingIntegrationRequestsTimeout": 30,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
         "GoogleDeveloperKey": "",
@@ -35,7 +36,7 @@
         "DeveloperFlags": "",
         "EnableClientPerformanceDebugging": false,
         "EnableOpenTracing": false,
-        "EnableSecurityFixAlert": true,
+        "EnableSecurityFixAlert": false,
         "EnableInsecureOutgoingConnections": false,
         "AllowedUntrustedInternalConnections": "localhost",
         "EnableMultifactorAuthentication": false,
@@ -106,7 +107,10 @@
         "ManagedResourcePaths": "",
         "EnableCustomGroups": true,
         "SelfHostedPurchase": true,
-        "AllowSyncedDrafts": true
+        "AllowSyncedDrafts": true,
+        "UniqueEmojiReactionLimitPerPost": 50,
+        "RefreshPostStatsRunTime": "00:00",
+        "MaximumPayloadSizeBytes": 100000
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -162,15 +166,16 @@
         "ConsoleJson": true,
         "EnableColor": false,
         "EnableFile": true,
-        "FileLevel": "INFO",
+        "FileLevel": "DEBUG",
         "FileJson": true,
         "FileLocation": "",
         "EnableWebhookDebugging": true,
-        "EnableDiagnostics": true,
+        "EnableDiagnostics": false,
         "VerboseDiagnostics": false,
         "EnableSentry": false,
         "AdvancedLoggingJSON": {},
-        "AdvancedLoggingConfig": ""
+        "AdvancedLoggingConfig": "",
+        "MaxFieldSize": 2048
     },
     "ExperimentalAuditSettings": {
         "FileEnabled": false,
@@ -264,8 +269,6 @@
         "ConnectionSecurity": "",
         "SendPushNotifications": true,
         "PushNotificationServer": "https://push-test.mattermost.com",
-        "PushNotificationServerType": "custom",
-        "PushNotificationServerLocation": "us",
         "PushNotificationContents": "generic",
         "PushNotificationBuffer": 1000,
         "EnableEmailBatching": false,
@@ -469,11 +472,7 @@
         "EnableGossipCompression": true,
         "EnableExperimentalGossipEncryption": false,
         "ReadOnlyConfig": true,
-        "GossipPort": 8074,
-        "StreamingPort": 8075,
-        "MaxIdleConns": 100,
-        "MaxIdleConnsPerHost": 128,
-        "IdleConnTimeoutMilliseconds": 90000
+        "GossipPort": 8074
     },
     "MetricsSettings": {
         "Enable": false,
@@ -485,7 +484,6 @@
         "ClientSideCertCheck": "secondary",
         "LinkMetadataTimeoutMilliseconds": 5000,
         "RestrictSystemAdmin": false,
-        "UseNewSAMLLibrary": false,
         "EnableSharedChannels": false,
         "EnableRemoteClusterService": false,
         "DisableAppBar": false,
@@ -534,7 +532,9 @@
         "EnableFileDeletion": false,
         "EnableBoardsDeletion": false,
         "MessageRetentionDays": 365,
+        "MessageRetentionHours": 0,
         "FileRetentionDays": 365,
+        "FileRetentionHours": 0,
         "BoardsRetentionDays": 365,
         "DeletionJobStartTime": "02:00",
         "BatchSize": 3000,
@@ -553,7 +553,9 @@
             "SMTPUsername": "",
             "SMTPPassword": "",
             "EmailAddress": "",
-            "SMTPServerTimeout": 1800
+            "SMTPServerTimeout": 1800,
+            "CustomSMTPServerName": "",
+            "CustomSMTPPort": "25"
         }
     },
     "JobSettings": {
@@ -591,7 +593,8 @@
         "ChimeraOAuthProxyURL": ""
     },
     "DisplaySettings": {
-        "CustomURLSchemes": []
+        "CustomURLSchemes": [],
+        "MaxMarkdownNodes": 0
     },
     "GuestAccountsSettings": {
         "Enable": true,
@@ -613,5 +616,14 @@
     "ExportSettings": {
         "Directory": "./export",
         "RetentionDays": 30
+    },
+    "WranglerSettings": {
+        "PermittedWranglerRoles": [],
+        "AllowedEmailDomain": [],
+        "MoveThreadMaxCount": 100,
+        "MoveThreadToAnotherTeamEnable": false,
+        "MoveThreadFromPrivateChannelEnable": false,
+        "MoveThreadFromDirectMessageChannelEnable": false,
+        "MoveThreadFromGroupMessageChannelEnable": false
     }
 }

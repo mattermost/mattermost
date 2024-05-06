@@ -7,7 +7,6 @@ import type {CustomEmoji} from '@mattermost/types/emojis';
 
 import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';
 
@@ -21,7 +20,7 @@ export type Props = {
     creatorUsername?: string;
     onDelete?: (emojiId: string) => void;
     actions: {
-        deleteCustomEmoji: (emojiId: string) => ActionFunc;
+        deleteCustomEmoji: (emojiId: string) => void;
     };
 }
 

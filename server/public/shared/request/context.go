@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+// Context should be abbreviated as `rctx`.
 type Context struct {
 	t              i18n.TranslateFunc
 	session        model.Session
@@ -148,6 +149,7 @@ func (c *Context) With(f func(ctx CTX) CTX) CTX {
 	return f(c)
 }
 
+// CTX should be abbreviated as `rctx`.
 type CTX interface {
 	T(string, ...interface{}) string
 	GetT() i18n.TranslateFunc

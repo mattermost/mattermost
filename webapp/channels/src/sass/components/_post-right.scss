@@ -38,9 +38,38 @@
         display: none;
     }
 
+    .root-post__divider {
+        position: relative;
+        display: flex;
+        height: 28px;
+        align-items: center;
+        margin: 0 0 4px 30px;
+
+        div {
+            z-index: 1;
+            padding: 0 12px;
+            margin-left: 34px;
+            background: rgba(v(center-channel-bg-rgb), 1);
+            color: rgba(v(center-channel-color-rgb), 0.72);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        &::before {
+            position: absolute;
+            top: calc(50% - 1px);
+            left: 0;
+            display: block;
+            width: 100%;
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            content: "";
+        }
+    }
+
     .post {
-        &.post--root {
-            padding-top: 2rem;
+        &.post--root,
+        &.other--root {
+            padding-top: 16px;
 
             .post__body {
                 background: transparent !important;
@@ -52,9 +81,9 @@
         }
 
         .post-pre-header__icons-container {
-            width: 60px; // If the width of post__img changes, this needs to be adjusted accordingly
-            padding-right: 12px; // If the padding of post__img changes, this needs to be adjusted accordingly
-            margin-left: 0; // if left margin of post__content changes, this needs to be adjusted accordingly
+            width: 54px; // If the width of post__img changes, this needs to be adjusted accordingly;
+            padding-right: 12px; // If the padding of post__img changes, this needs to be adjusted accordingly;
+            margin-left: 0; // if left margin of post__content changes, this needs to be adjusted accordingly;
         }
 
         .post__header {
@@ -95,7 +124,7 @@
                         float: none;
 
                         .post__time {
-                            opacity: 0.6;
+                            opacity: 0.73;
                         }
                     }
                 }
@@ -119,8 +148,8 @@
         }
 
         .post__img {
-            width: 60px; // if this changes, the width of post-pre-header__icons-container needs to be adjusted accordingly
-            padding: 2px 12px 0 0; // if the right padding changes, the padding of post-pre-header__icons-container needs to be adjusted accordingly
+            width: 54px; // if this changes, the width of post-pre-header__icons-container needs to be adjusted accordingly;
+            padding: 2px 12px 0 0; // if the right padding changes, the padding of post-pre-header__icons-container needs to be adjusted accordingly;
         }
 
         .post-body {
@@ -151,14 +180,14 @@
         }
 
         .custom-textarea {
-            min-height: 100px;
+            min-height: 46px;
             max-height: calc(50vh - 80px);
         }
 
         .msg-typing {
             display: block;
             min-width: 1px;
-            max-width: 230px;
+            max-width: 100%;
             height: 20px;
             margin: 2px 0;
             float: left;

@@ -5,11 +5,11 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import type {AdminConfig} from '@mattermost/types/config';
 import type {CreateDataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 
 import * as Actions from 'mattermost-redux/actions/admin';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
@@ -49,7 +49,7 @@ describe('Actions.Admin', () => {
                 '[2017/04/04 15:01:48 EDT] [INFO] Closing SqlStore',
             ]);
 
-        await Actions.getPlainLogs()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getPlainLogs());
 
         const state = store.getState();
 
@@ -75,7 +75,7 @@ describe('Actions.Admin', () => {
                 },
             ]);
 
-        await Actions.getAudits()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getAudits());
 
         const state = store.getState();
 
@@ -102,7 +102,7 @@ describe('Actions.Admin', () => {
                 user_id: '1',
             });
 
-        await Actions.getConfig()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getConfig());
 
         const state = store.getState();
 
@@ -112,26 +112,35 @@ describe('Actions.Admin', () => {
         expect(config.TeamSettings.SiteName === 'Mattermost').toBeTruthy();
     });
 
-    it('updateConfig', async () => {
+    it('patchConfig', async () => {
         nock(Client4.getBaseRoute()).
             get('/config').
             reply(200, {
                 TeamSettings: {
                     SiteName: 'Mattermost',
+                    TeammateNameDisplay: 'username',
                 },
             });
 
-        const {data} = await Actions.getConfig()(store.dispatch, store.getState) as ActionResult;
+        const {data} = await store.dispatch(Actions.getConfig());
         const updated = JSON.parse(JSON.stringify(data));
+
+        // Creating a copy.
+        const reply = JSON.parse(JSON.stringify(data));
         const oldSiteName = updated.TeamSettings.SiteName;
+        const oldNameDisplay = updated.TeamSettings.TeammateNameDisplay;
         const testSiteName = 'MattermostReduxTest';
         updated.TeamSettings.SiteName = testSiteName;
+        reply.TeamSettings.SiteName = testSiteName;
+
+        // Testing partial config patch.
+        updated.TeamSettings.TeammateNameDisplay = null;
 
         nock(Client4.getBaseRoute()).
-            put('/config').
-            reply(200, updated);
+            put('/config/patch').
+            reply(200, reply);
 
-        await Actions.updateConfig(updated)(store.dispatch, store.getState);
+        await store.dispatch(Actions.patchConfig(updated));
 
         let state = store.getState();
 
@@ -139,14 +148,15 @@ describe('Actions.Admin', () => {
         expect(config).toBeTruthy();
         expect(config.TeamSettings).toBeTruthy();
         expect(config.TeamSettings.SiteName === testSiteName).toBeTruthy();
+        expect(config.TeamSettings.TeammateNameDisplay === oldNameDisplay).toBeTruthy();
 
         updated.TeamSettings.SiteName = oldSiteName;
 
         nock(Client4.getBaseRoute()).
-            put('/config').
+            put('/config/patch').
             reply(200, updated);
 
-        await Actions.updateConfig(updated)(store.dispatch, store.getState);
+        await store.dispatch(Actions.patchConfig(updated));
 
         state = store.getState();
 
@@ -161,7 +171,7 @@ describe('Actions.Admin', () => {
             post('/config/reload').
             reply(200, OK_RESPONSE);
 
-        await Actions.reloadConfig()(store.dispatch, store.getState);
+        await store.dispatch(Actions.reloadConfig());
 
         expect(nock.isDone()).toBe(true);
     });
@@ -195,13 +205,13 @@ describe('Actions.Admin', () => {
             get('/config').
             reply(200, {});
 
-        const {data: config} = await Actions.getConfig()(store.dispatch, store.getState) as ActionResult;
+        const {data: config} = await store.dispatch(Actions.getConfig());
 
         nock(Client4.getBaseRoute()).
             post('/email/test').
             reply(200, OK_RESPONSE);
 
-        await Actions.testEmail(config)(store.dispatch, store.getState);
+        await store.dispatch(Actions.testEmail(config));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -211,7 +221,7 @@ describe('Actions.Admin', () => {
             post('/site_url/test').
             reply(200, OK_RESPONSE);
 
-        await Actions.testSiteURL('http://lo.cal')(store.dispatch, store.getState);
+        await store.dispatch(Actions.testSiteURL('http://lo.cal'));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -221,13 +231,13 @@ describe('Actions.Admin', () => {
             get('/config').
             reply(200, {});
 
-        const {data: config} = await Actions.getConfig()(store.dispatch, store.getState) as ActionResult;
+        const {data: config} = await store.dispatch(Actions.getConfig());
 
         nock(Client4.getBaseRoute()).
             post('/file/s3_test').
             reply(200, OK_RESPONSE);
 
-        await Actions.testS3Connection(config)(store.dispatch, store.getState);
+        await store.dispatch(Actions.testS3Connection(config));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -237,7 +247,7 @@ describe('Actions.Admin', () => {
             post('/caches/invalidate').
             reply(200, OK_RESPONSE);
 
-        await Actions.invalidateCaches()(store.dispatch, store.getState);
+        await store.dispatch(Actions.invalidateCaches());
 
         expect(nock.isDone()).toBe(true);
     });
@@ -247,7 +257,7 @@ describe('Actions.Admin', () => {
             post('/database/recycle').
             reply(200, OK_RESPONSE);
 
-        await Actions.recycleDatabase()(store.dispatch, store.getState);
+        await store.dispatch(Actions.recycleDatabase());
 
         expect(nock.isDone()).toBe(true);
     });
@@ -277,7 +287,7 @@ describe('Actions.Admin', () => {
                 emails: 'joram@example.com',
             });
 
-        const {data: created} = await Actions.createComplianceReport(job)(store.dispatch, store.getState) as ActionResult;
+        const {data: created} = await store.dispatch(Actions.createComplianceReport(job));
 
         const state = store.getState();
         const request = state.requests.admin.createCompliance;
@@ -315,13 +325,13 @@ describe('Actions.Admin', () => {
                 emails: 'joram@example.com',
             });
 
-        const {data: report} = await Actions.createComplianceReport(job)(store.dispatch, store.getState) as ActionResult;
+        const {data: report} = await store.dispatch(Actions.createComplianceReport(job));
 
         nock(Client4.getBaseRoute()).
             get(`/compliance/reports/${report.id}`).
             reply(200, report);
 
-        await Actions.getComplianceReport(report.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getComplianceReport(report.id));
 
         const state = store.getState();
 
@@ -355,14 +365,14 @@ describe('Actions.Admin', () => {
                 emails: 'joram@example.com',
             });
 
-        const {data: report} = await Actions.createComplianceReport(job)(store.dispatch, store.getState) as ActionResult;
+        const {data: report} = await store.dispatch(Actions.createComplianceReport(job));
 
         nock(Client4.getBaseRoute()).
             get('/compliance/reports').
             query(true).
             reply(200, [report]);
 
-        await Actions.getComplianceReports()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getComplianceReports());
 
         const state = store.getState();
 
@@ -378,7 +388,7 @@ describe('Actions.Admin', () => {
             post('/brand/image').
             reply(200, OK_RESPONSE);
 
-        await Actions.uploadBrandImage(testImageData as any)(store.dispatch, store.getState);
+        await store.dispatch(Actions.uploadBrandImage(testImageData as any));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -388,7 +398,7 @@ describe('Actions.Admin', () => {
             delete('/brand/image').
             reply(200, OK_RESPONSE);
 
-        await Actions.deleteBrandImage()(store.dispatch, store.getState);
+        await store.dispatch(Actions.deleteBrandImage());
 
         expect(nock.isDone()).toBe(true);
     });
@@ -403,7 +413,7 @@ describe('Actions.Admin', () => {
                 },
             ]);
 
-        await Actions.getClusterStatus()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getClusterStatus());
 
         const state = store.getState();
 
@@ -418,7 +428,7 @@ describe('Actions.Admin', () => {
             post('/ldap/test').
             reply(200, OK_RESPONSE);
 
-        await Actions.testLdap()(store.dispatch, store.getState);
+        await store.dispatch(Actions.testLdap());
 
         expect(nock.isDone()).toBe(true);
     });
@@ -428,7 +438,7 @@ describe('Actions.Admin', () => {
             post('/ldap/sync').
             reply(200, OK_RESPONSE);
 
-        await Actions.syncLdap()(store.dispatch, store.getState);
+        await store.dispatch(Actions.syncLdap());
 
         expect(nock.isDone()).toBe(true);
     });
@@ -442,7 +452,7 @@ describe('Actions.Admin', () => {
                 idp_certificate_file: true,
             });
 
-        await Actions.getSamlCertificateStatus()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getSamlCertificateStatus());
 
         const state = store.getState();
 
@@ -460,7 +470,7 @@ describe('Actions.Admin', () => {
             post('/saml/certificate/public').
             reply(200, OK_RESPONSE);
 
-        await Actions.uploadPublicSamlCertificate(testFileData as any)(store.dispatch, store.getState);
+        await store.dispatch(Actions.uploadPublicSamlCertificate(testFileData as any));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -472,7 +482,7 @@ describe('Actions.Admin', () => {
             post('/saml/certificate/private').
             reply(200, OK_RESPONSE);
 
-        await Actions.uploadPrivateSamlCertificate(testFileData as any)(store.dispatch, store.getState);
+        await store.dispatch(Actions.uploadPrivateSamlCertificate(testFileData as any));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -484,7 +494,7 @@ describe('Actions.Admin', () => {
             post('/saml/certificate/idp').
             reply(200, OK_RESPONSE);
 
-        await Actions.uploadIdpSamlCertificate(testFileData as any)(store.dispatch, store.getState);
+        await store.dispatch(Actions.uploadIdpSamlCertificate(testFileData as any));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -494,7 +504,7 @@ describe('Actions.Admin', () => {
             delete('/saml/certificate/public').
             reply(200, OK_RESPONSE);
 
-        await Actions.removePublicSamlCertificate()(store.dispatch, store.getState);
+        await store.dispatch(Actions.removePublicSamlCertificate());
 
         expect(nock.isDone()).toBe(true);
     });
@@ -504,7 +514,7 @@ describe('Actions.Admin', () => {
             delete('/saml/certificate/private').
             reply(200, OK_RESPONSE);
 
-        await Actions.removePrivateSamlCertificate()(store.dispatch, store.getState);
+        await store.dispatch(Actions.removePrivateSamlCertificate());
 
         expect(nock.isDone()).toBe(true);
     });
@@ -514,7 +524,7 @@ describe('Actions.Admin', () => {
             delete('/saml/certificate/idp').
             reply(200, OK_RESPONSE);
 
-        await Actions.removeIdpSamlCertificate()(store.dispatch, store.getState);
+        await store.dispatch(Actions.removeIdpSamlCertificate());
 
         expect(nock.isDone()).toBe(true);
     });
@@ -526,7 +536,7 @@ describe('Actions.Admin', () => {
             post('/ldap/certificate/public').
             reply(200, OK_RESPONSE);
 
-        await Actions.uploadPublicLdapCertificate(testFileData as any)(store.dispatch, store.getState);
+        await store.dispatch(Actions.uploadPublicLdapCertificate(testFileData as any));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -538,7 +548,7 @@ describe('Actions.Admin', () => {
             post('/ldap/certificate/private').
             reply(200, OK_RESPONSE);
 
-        await Actions.uploadPrivateLdapCertificate(testFileData as any)(store.dispatch, store.getState);
+        await store.dispatch(Actions.uploadPrivateLdapCertificate(testFileData as any));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -548,7 +558,7 @@ describe('Actions.Admin', () => {
             delete('/ldap/certificate/public').
             reply(200, OK_RESPONSE);
 
-        await Actions.removePublicLdapCertificate()(store.dispatch, store.getState);
+        await store.dispatch(Actions.removePublicLdapCertificate());
 
         expect(nock.isDone()).toBe(true);
     });
@@ -558,7 +568,7 @@ describe('Actions.Admin', () => {
             delete('/ldap/certificate/private').
             reply(200, OK_RESPONSE);
 
-        await Actions.removePrivateLdapCertificate()(store.dispatch, store.getState);
+        await store.dispatch(Actions.removePrivateLdapCertificate());
 
         expect(nock.isDone()).toBe(true);
     });
@@ -568,7 +578,7 @@ describe('Actions.Admin', () => {
             post('/elasticsearch/test').
             reply(200, OK_RESPONSE);
 
-        await Actions.testElasticsearch({})(store.dispatch, store.getState);
+        await store.dispatch(Actions.testElasticsearch({} as AdminConfig));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -578,7 +588,7 @@ describe('Actions.Admin', () => {
             post('/elasticsearch/purge_indexes').
             reply(200, OK_RESPONSE);
 
-        await Actions.purgeElasticsearchIndexes()(store.dispatch, store.getState);
+        await store.dispatch(Actions.purgeElasticsearchIndexes());
 
         expect(nock.isDone()).toBe(true);
     });
@@ -590,7 +600,7 @@ describe('Actions.Admin', () => {
             post('/license').
             reply(200, OK_RESPONSE);
 
-        await Actions.uploadLicense(testFileData as any)(store.dispatch, store.getState);
+        await store.dispatch(Actions.uploadLicense(testFileData as any));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -600,7 +610,7 @@ describe('Actions.Admin', () => {
             delete('/license').
             reply(200, OK_RESPONSE);
 
-        await Actions.removeLicense()(store.dispatch, store.getState);
+        await store.dispatch(Actions.removeLicense());
 
         expect(nock.isDone()).toBe(true);
     });
@@ -612,19 +622,19 @@ describe('Actions.Admin', () => {
             times(2).
             reply(200, [{name: 'channel_open_count', value: 495}, {name: 'channel_private_count', value: 19}, {name: 'post_count', value: 2763}, {name: 'unique_user_count', value: 316}, {name: 'team_count', value: 159}, {name: 'total_websocket_connections', value: 1}, {name: 'total_master_db_connections', value: 8}, {name: 'total_read_db_connections', value: 0}, {name: 'daily_active_users', value: 22}, {name: 'monthly_active_users', value: 114}, {name: 'registered_users', value: 500}]);
 
-        await Actions.getStandardAnalytics()(store.dispatch, store.getState);
-        await Actions.getStandardAnalytics(TestHelper.basicTeam!.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getStandardAnalytics());
+        await store.dispatch(Actions.getStandardAnalytics(TestHelper.basicTeam!.id));
 
         const state = store.getState();
 
         const analytics = state.entities.admin.analytics;
         expect(analytics).toBeTruthy();
-        expect(analytics[Stats.TOTAL_PUBLIC_CHANNELS] > 0).toBeTruthy();
+        expect(analytics[Stats.TOTAL_PUBLIC_CHANNELS]).toBeGreaterThan(0);
 
         const teamAnalytics = state.entities.admin.teamAnalytics;
         expect(teamAnalytics).toBeTruthy();
         expect(teamAnalytics[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(teamAnalytics[TestHelper.basicTeam!.id][Stats.TOTAL_PUBLIC_CHANNELS] > 0).toBeTruthy();
+        expect(teamAnalytics[TestHelper.basicTeam!.id][Stats.TOTAL_PUBLIC_CHANNELS]).toBeGreaterThan(0);
     });
 
     it('getAdvancedAnalytics', async () => {
@@ -634,19 +644,19 @@ describe('Actions.Admin', () => {
             times(2).
             reply(200, [{name: 'file_post_count', value: 24}, {name: 'hashtag_post_count', value: 876}, {name: 'incoming_webhook_count', value: 16}, {name: 'outgoing_webhook_count', value: 18}, {name: 'command_count', value: 14}, {name: 'session_count', value: 149}]);
 
-        await Actions.getAdvancedAnalytics()(store.dispatch, store.getState);
-        await Actions.getAdvancedAnalytics(TestHelper.basicTeam!.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getAdvancedAnalytics());
+        await store.dispatch(Actions.getAdvancedAnalytics(TestHelper.basicTeam!.id));
 
         const state = store.getState();
 
         const analytics = state.entities.admin.analytics;
         expect(analytics).toBeTruthy();
-        expect(analytics[Stats.TOTAL_SESSIONS] > 0).toBeTruthy();
+        expect(analytics[Stats.TOTAL_SESSIONS]).toBeGreaterThan(0);
 
         const teamAnalytics = state.entities.admin.teamAnalytics;
         expect(teamAnalytics).toBeTruthy();
         expect(teamAnalytics[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(teamAnalytics[TestHelper.basicTeam!.id][Stats.TOTAL_SESSIONS] > 0).toBeTruthy();
+        expect(teamAnalytics[TestHelper.basicTeam!.id][Stats.TOTAL_SESSIONS]).toBeGreaterThan(0);
     });
 
     it('getPostsPerDayAnalytics', async () => {
@@ -656,8 +666,8 @@ describe('Actions.Admin', () => {
             times(2).
             reply(200, [{name: '2017-06-18', value: 16}, {name: '2017-06-16', value: 209}, {name: '2017-06-12', value: 35}, {name: '2017-06-08', value: 227}, {name: '2017-06-07', value: 27}, {name: '2017-06-06', value: 136}, {name: '2017-06-05', value: 127}, {name: '2017-06-04', value: 39}, {name: '2017-06-02', value: 3}, {name: '2017-05-31', value: 52}, {name: '2017-05-30', value: 52}, {name: '2017-05-29', value: 9}, {name: '2017-05-26', value: 198}, {name: '2017-05-25', value: 144}, {name: '2017-05-24', value: 1130}, {name: '2017-05-23', value: 146}]);
 
-        await Actions.getPostsPerDayAnalytics()(store.dispatch, store.getState);
-        await Actions.getPostsPerDayAnalytics(TestHelper.basicTeam!.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getPostsPerDayAnalytics());
+        await store.dispatch(Actions.getPostsPerDayAnalytics(TestHelper.basicTeam!.id));
 
         const state = store.getState();
 
@@ -678,8 +688,8 @@ describe('Actions.Admin', () => {
             times(2).
             reply(200, [{name: '2017-06-18', value: 2}, {name: '2017-06-16', value: 47}, {name: '2017-06-12', value: 4}, {name: '2017-06-08', value: 55}, {name: '2017-06-07', value: 2}, {name: '2017-06-06', value: 1}, {name: '2017-06-05', value: 2}, {name: '2017-06-04', value: 13}, {name: '2017-06-02', value: 1}, {name: '2017-05-31', value: 3}, {name: '2017-05-30', value: 4}, {name: '2017-05-29', value: 3}, {name: '2017-05-26', value: 40}, {name: '2017-05-25', value: 26}, {name: '2017-05-24', value: 43}, {name: '2017-05-23', value: 3}]);
 
-        await Actions.getUsersPerDayAnalytics()(store.dispatch, store.getState);
-        await Actions.getUsersPerDayAnalytics(TestHelper.basicTeam!.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getUsersPerDayAnalytics());
+        await store.dispatch(Actions.getUsersPerDayAnalytics(TestHelper.basicTeam!.id));
 
         const state = store.getState();
 
@@ -700,7 +710,7 @@ describe('Actions.Admin', () => {
         nock(Client4.getBaseRoute()).
             post('/plugins').
             reply(200, testPlugin);
-        await Actions.uploadPlugin(testFileData as any, false)(store.dispatch, store.getState);
+        await store.dispatch(Actions.uploadPlugin(testFileData as any, false));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -713,7 +723,7 @@ describe('Actions.Admin', () => {
         let scope = nock(Client4.getBaseRoute()).
             post(urlMatch).
             reply(200, testPlugin);
-        await Actions.installPluginFromUrl(downloadUrl, false)(store.dispatch, store.getState);
+        await store.dispatch(Actions.installPluginFromUrl(downloadUrl, false));
 
         expect(scope.isDone()).toBe(true);
 
@@ -721,7 +731,7 @@ describe('Actions.Admin', () => {
         scope = nock(Client4.getBaseRoute()).
             post(urlMatch).
             reply(200, testPlugin);
-        await Actions.installPluginFromUrl(downloadUrl, true)(store.dispatch, store.getState);
+        await store.dispatch(Actions.installPluginFromUrl(downloadUrl, true));
 
         expect(scope.isDone()).toBe(true);
     });
@@ -734,7 +744,7 @@ describe('Actions.Admin', () => {
         nock(Client4.getBaseRoute()).
             post(urlMatch).
             reply(200, testPlugin);
-        await Actions.installPluginFromUrl(downloadUrl, false)(store.dispatch, store.getState);
+        await store.dispatch(Actions.installPluginFromUrl(downloadUrl, false));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -747,7 +757,7 @@ describe('Actions.Admin', () => {
             get('/plugins').
             reply(200, {active: [testPlugin], inactive: [testPlugin2]});
 
-        await Actions.getPlugins()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getPlugins());
 
         const state = store.getState();
 
@@ -773,7 +783,7 @@ describe('Actions.Admin', () => {
             get('/plugins/statuses').
             reply(200, [testPluginStatus, testPluginStatus2]);
 
-        await Actions.getPluginStatuses()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getPluginStatuses());
 
         const state = store.getState();
 
@@ -792,7 +802,7 @@ describe('Actions.Admin', () => {
             get('/plugins').
             reply(200, {active: [], inactive: [testPlugin]});
 
-        await Actions.getPlugins()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getPlugins());
 
         let state = store.getState();
         let plugins = state.entities.admin.plugins;
@@ -803,7 +813,7 @@ describe('Actions.Admin', () => {
             delete(`/plugins/${testPlugin.id}`).
             reply(200, OK_RESPONSE);
 
-        await Actions.removePlugin(testPlugin.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.removePlugin(testPlugin.id));
 
         state = store.getState();
         plugins = state.entities.admin.plugins;
@@ -818,7 +828,7 @@ describe('Actions.Admin', () => {
             get('/plugins').
             reply(200, {active: [], inactive: [testPlugin]});
 
-        await Actions.getPlugins()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getPlugins());
 
         let state = store.getState();
         let plugins = state.entities.admin.plugins;
@@ -830,7 +840,7 @@ describe('Actions.Admin', () => {
             post(`/plugins/${testPlugin.id}/enable`).
             reply(200, OK_RESPONSE);
 
-        await Actions.enablePlugin(testPlugin.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.enablePlugin(testPlugin.id));
 
         state = store.getState();
         plugins = state.entities.admin.plugins;
@@ -846,7 +856,7 @@ describe('Actions.Admin', () => {
             get('/plugins').
             reply(200, {active: [testPlugin], inactive: []});
 
-        await Actions.getPlugins()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getPlugins());
 
         let state = store.getState();
         let plugins = state.entities.admin.plugins;
@@ -858,7 +868,7 @@ describe('Actions.Admin', () => {
             post(`/plugins/${testPlugin.id}/disable`).
             reply(200, OK_RESPONSE);
 
-        await Actions.disablePlugin(testPlugin.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.disablePlugin(testPlugin.id));
 
         state = store.getState();
         plugins = state.entities.admin.plugins;
@@ -880,7 +890,7 @@ describe('Actions.Admin', () => {
             get('/ldap/groups?page=0&per_page=100').
             reply(200, ldapGroups);
 
-        await Actions.getLdapGroups(0, 100, null as any)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getLdapGroups(0, 100, null as any));
 
         const state = store.getState();
 
@@ -895,7 +905,7 @@ describe('Actions.Admin', () => {
             get('/ldap/groups?page=0&per_page=100&q=&is_linked=true').
             reply(200, NO_GROUPS_RESPONSE);
 
-        await Actions.getLdapGroups(0, 100, {q: '', is_linked: true})(store.dispatch, store.getState);
+        await store.dispatch(Actions.getLdapGroups(0, 100, {q: '', is_linked: true}));
 
         expect(scope.isDone()).toBe(true);
 
@@ -903,7 +913,7 @@ describe('Actions.Admin', () => {
             get('/ldap/groups?page=0&per_page=100&q=&is_linked=false').
             reply(200, NO_GROUPS_RESPONSE);
 
-        await Actions.getLdapGroups(0, 100, {q: '', is_linked: false})(store.dispatch, store.getState);
+        await store.dispatch(Actions.getLdapGroups(0, 100, {q: '', is_linked: false}));
 
         expect(scope.isDone()).toBe(true);
     });
@@ -913,7 +923,7 @@ describe('Actions.Admin', () => {
             get('/ldap/groups?page=0&per_page=100&q=&is_configured=true').
             reply(200, NO_GROUPS_RESPONSE);
 
-        await Actions.getLdapGroups(0, 100, {q: '', is_configured: true})(store.dispatch, store.getState);
+        await store.dispatch(Actions.getLdapGroups(0, 100, {q: '', is_configured: true}));
 
         expect(scope.isDone()).toBe(true);
 
@@ -921,7 +931,7 @@ describe('Actions.Admin', () => {
             get('/ldap/groups?page=0&per_page=100&q=&is_configured=false').
             reply(200, NO_GROUPS_RESPONSE);
 
-        await Actions.getLdapGroups(0, 100, {q: '', is_configured: false})(store.dispatch, store.getState);
+        await store.dispatch(Actions.getLdapGroups(0, 100, {q: '', is_configured: false}));
 
         expect(scope.isDone()).toBe(true);
     });
@@ -931,7 +941,7 @@ describe('Actions.Admin', () => {
             get('/ldap/groups?page=0&per_page=100&q=est').
             reply(200, NO_GROUPS_RESPONSE);
 
-        await Actions.getLdapGroups(0, 100, {q: 'est'})(store.dispatch, store.getState);
+        await store.dispatch(Actions.getLdapGroups(0, 100, {q: 'est'}));
 
         expect(scope.isDone()).toBe(true);
 
@@ -939,7 +949,7 @@ describe('Actions.Admin', () => {
             get('/ldap/groups?page=0&per_page=100&q=esta').
             reply(200, NO_GROUPS_RESPONSE);
 
-        await Actions.getLdapGroups(0, 100, {q: 'esta'})(store.dispatch, store.getState);
+        await store.dispatch(Actions.getLdapGroups(0, 100, {q: 'esta'}));
 
         expect(scope.isDone()).toBe(true);
     });
@@ -957,7 +967,7 @@ describe('Actions.Admin', () => {
             get('/ldap/groups?page=0&per_page=100').
             reply(200, ldapGroups);
 
-        await Actions.getLdapGroups(0, 100, null as any)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getLdapGroups(0, 100, null as any));
 
         const key = 'test1';
 
@@ -965,7 +975,7 @@ describe('Actions.Admin', () => {
             post(`/ldap/groups/${key}/link`).
             reply(200, {display_name: 'test1', id: 'new-mattermost-id'});
 
-        await Actions.linkLdapGroup(key)(store.dispatch, store.getState);
+        await store.dispatch(Actions.linkLdapGroup(key));
 
         const state = store.getState();
         const groups = state.entities.admin.ldapGroups;
@@ -987,7 +997,7 @@ describe('Actions.Admin', () => {
             get('/ldap/groups?page=0&per_page=100').
             reply(200, ldapGroups);
 
-        await Actions.getLdapGroups(0, 100, null as any)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getLdapGroups(0, 100, null as any));
 
         const key = 'test2';
 
@@ -995,7 +1005,7 @@ describe('Actions.Admin', () => {
             delete(`/ldap/groups/${key}/link`).
             reply(200, {ok: true});
 
-        await Actions.unlinkLdapGroup(key)(store.dispatch, store.getState);
+        await store.dispatch(Actions.unlinkLdapGroup(key));
 
         const state = store.getState();
         const groups = state.entities.admin.ldapGroups;
@@ -1013,14 +1023,14 @@ describe('Actions.Admin', () => {
                 idp_public_certificate: samlIdpPublicCertificateText,
             });
 
-        await Actions.getSamlMetadataFromIdp('')(store.dispatch, store.getState);
+        await store.dispatch(Actions.getSamlMetadataFromIdp(''));
 
         const state = store.getState();
         const metadataResponse = state.entities.admin.samlMetadataResponse;
         expect(metadataResponse).toBeTruthy();
-        expect(metadataResponse.idp_url === samlIdpURL).toBeTruthy();
-        expect(metadataResponse.idp_descriptor_url === samlIdpDescriptorURL).toBeTruthy();
-        expect(metadataResponse.idp_public_certificate === samlIdpPublicCertificateText).toBeTruthy();
+        expect(metadataResponse!.idp_url === samlIdpURL).toBeTruthy();
+        expect(metadataResponse!.idp_descriptor_url === samlIdpDescriptorURL).toBeTruthy();
+        expect(metadataResponse!.idp_public_certificate === samlIdpPublicCertificateText).toBeTruthy();
     });
 
     it('setSamlIdpCertificateFromMetadata', async () => {
@@ -1028,20 +1038,7 @@ describe('Actions.Admin', () => {
             post('/saml/certificate/idp').
             reply(200, OK_RESPONSE);
 
-        await Actions.setSamlIdpCertificateFromMetadata(samlIdpPublicCertificateText)(store.dispatch, store.getState);
-
-        expect(nock.isDone()).toBe(true);
-    });
-
-    it('sendWarnMetricAck', async () => {
-        const warnMetricAck = {
-            id: 'metric1',
-        };
-        nock(Client4.getBaseRoute()).
-            post('/warn_metrics/ack/metric1').
-            reply(200, OK_RESPONSE);
-
-        await Actions.sendWarnMetricAck(warnMetricAck.id, false)(store.dispatch);
+        await store.dispatch(Actions.setSamlIdpCertificateFromMetadata(samlIdpPublicCertificateText));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -1070,7 +1067,7 @@ describe('Actions.Admin', () => {
             get('/data_retention/policies?page=0&per_page=10').
             reply(200, policies);
 
-        await Actions.getDataRetentionCustomPolicies()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getDataRetentionCustomPolicies());
 
         const state = store.getState();
         const policesState = state.entities.admin.dataRetentionCustomPolicies;
@@ -1101,7 +1098,7 @@ describe('Actions.Admin', () => {
             get('/data_retention/policies/id1').
             reply(200, policy);
 
-        await Actions.getDataRetentionCustomPolicy('id1')(store.dispatch, store.getState);
+        await store.dispatch(Actions.getDataRetentionCustomPolicy('id1'));
 
         const state = store.getState();
         const policesState = state.entities.admin.dataRetentionCustomPolicies;
@@ -1129,7 +1126,7 @@ describe('Actions.Admin', () => {
                 total_count: 1,
             });
 
-        await Actions.getDataRetentionCustomPolicyTeams('id1')(store.dispatch, store.getState);
+        await store.dispatch(Actions.getDataRetentionCustomPolicyTeams('id1'));
 
         const state = store.getState();
         const teamsState = state.entities.teams.teams;
@@ -1153,7 +1150,7 @@ describe('Actions.Admin', () => {
                 total_count: 1,
             });
 
-        await Actions.getDataRetentionCustomPolicyChannels('id1')(store.dispatch, store.getState);
+        await store.dispatch(Actions.getDataRetentionCustomPolicyChannels('id1'));
 
         const state = store.getState();
         const teamsState = state.entities.channels.channels;
@@ -1198,7 +1195,7 @@ describe('Actions.Admin', () => {
                 team_count: 2,
                 channel_count: 1,
             });
-        await Actions.createDataRetentionCustomPolicy(policy)(store.dispatch, store.getState);
+        await store.dispatch(Actions.createDataRetentionCustomPolicy(policy));
 
         const state = store.getState();
         const policesState = state.entities.admin.dataRetentionCustomPolicies;
@@ -1221,7 +1218,7 @@ describe('Actions.Admin', () => {
                 team_count: 2,
                 channel_count: 1,
             });
-        await Actions.updateDataRetentionCustomPolicy('id1', {display_name: 'Test123', post_duration: 365} as CreateDataRetentionCustomPolicy)(store.dispatch, store.getState);
+        await store.dispatch(Actions.updateDataRetentionCustomPolicy('id1', {display_name: 'Test123', post_duration: 365} as CreateDataRetentionCustomPolicy));
 
         const updateState = store.getState();
         const policyState = updateState.entities.admin.dataRetentionCustomPolicies;
@@ -1250,7 +1247,7 @@ describe('Actions.Admin', () => {
                 team_count: 2,
                 channel_count: 1,
             });
-        await Actions.createDataRetentionCustomPolicy(policy)(store.dispatch, store.getState);
+        await store.dispatch(Actions.createDataRetentionCustomPolicy(policy));
 
         const state = store.getState();
         const policesState = state.entities.admin.dataRetentionCustomPolicies;
@@ -1283,13 +1280,13 @@ describe('Actions.Admin', () => {
                 total_count: 2,
             });
 
-        await Actions.getDataRetentionCustomPolicyTeams('id1')(store.dispatch, store.getState);
+        await store.dispatch(Actions.getDataRetentionCustomPolicyTeams('id1'));
 
         nock(Client4.getBaseRoute()).
             delete('/data_retention/policies/id1/teams').
             reply(200, OK_RESPONSE);
 
-        await Actions.removeDataRetentionCustomPolicyTeams('id1', ['teamId2'])(store.dispatch, store.getState);
+        await store.dispatch(Actions.removeDataRetentionCustomPolicyTeams('id1', ['teamId2']));
 
         const state = store.getState();
         const teamsState = state.entities.teams.teams;
@@ -1318,13 +1315,13 @@ describe('Actions.Admin', () => {
                 total_count: 1,
             });
 
-        await Actions.getDataRetentionCustomPolicyChannels('id1')(store.dispatch, store.getState);
+        await store.dispatch(Actions.getDataRetentionCustomPolicyChannels('id1'));
 
         nock(Client4.getBaseRoute()).
             delete('/data_retention/policies/id1/channels').
             reply(200, OK_RESPONSE);
 
-        await Actions.removeDataRetentionCustomPolicyChannels('id1', ['channelId2'])(store.dispatch, store.getState);
+        await store.dispatch(Actions.removeDataRetentionCustomPolicyChannels('id1', ['channelId2']));
 
         const state = store.getState();
         const channelsState = state.entities.channels.channels;

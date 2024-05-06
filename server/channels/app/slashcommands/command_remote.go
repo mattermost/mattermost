@@ -133,6 +133,7 @@ func (rp *RemoteProvider) doCreate(a *app.App, args *model.CommandArgs, margs ma
 	rc := &model.RemoteCluster{
 		Name:        name,
 		DisplayName: displayname,
+		SiteURL:     model.SiteURLPending + model.NewId(), // require a unique siteurl
 		Token:       model.NewId(),
 		CreatorId:   args.UserId,
 	}
@@ -207,7 +208,7 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 		return responsef(args.T("api.command_remote.accept_invitation.error", map[string]any{"Error": err.Error()}))
 	}
 
-	return responsef("##### " + args.T("api.command_remote.accept_invitation", map[string]any{"SiteURL": rc.SiteURL}))
+	return responsef("##### " + args.T("api.command_remote.accept_invitation", map[string]any{"SiteURL": rc.GetSiteURL()}))
 }
 
 // doRemove removes a remote cluster from the database, effectively revoking the trust relationship.
@@ -246,11 +247,11 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[st
 	fmt.Fprintf(&sb, "| :---- | :---- | :---- | :---- | :---- | :---- | :---- | \n")
 
 	for _, rc := range list {
-		accepted := formatBool(args.T, rc.SiteURL != "")
+		accepted := formatBool(args.T, rc.IsConfirmed())
 		online := formatBool(args.T, isOnline(rc.LastPingAt))
 		lastPing := formatTimestamp(rc.LastPingAt)
 
-		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s | %s |\n", rc.Name, rc.DisplayName, rc.RemoteId, rc.SiteURL, accepted, online, lastPing)
+		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s | %s |\n", rc.Name, rc.DisplayName, rc.RemoteId, rc.GetSiteURL(), accepted, online, lastPing)
 	}
 	return responsef(sb.String())
 }
@@ -273,7 +274,7 @@ func getRemoteClusterAutocompleteListItems(a *app.App, includeOffline bool) ([]m
 	for _, rc := range clusters {
 		item := model.AutocompleteListItem{
 			Item:     rc.RemoteId,
-			HelpText: fmt.Sprintf("%s  (%s)", rc.DisplayName, rc.SiteURL)}
+			HelpText: fmt.Sprintf("%s  (%s)", rc.DisplayName, rc.GetSiteURL())}
 		list = append(list, item)
 	}
 	return list, nil
@@ -294,7 +295,7 @@ func getRemoteClusterAutocompleteListItemsNotInChannel(a *app.App, channelID str
 	for _, rc := range all {
 		item := model.AutocompleteListItem{
 			Item:     rc.RemoteId,
-			HelpText: fmt.Sprintf("%s  (%s)", rc.DisplayName, rc.SiteURL)}
+			HelpText: fmt.Sprintf("%s  (%s)", rc.DisplayName, rc.GetSiteURL())}
 		list = append(list, item)
 	}
 	return list, nil

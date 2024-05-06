@@ -20,8 +20,8 @@
     align-items: center;
     justify-content: center;
     border: none;
-    background: transparent;
     border-radius: 4px;
+    background: transparent;
     color: rgba(v(center-channel-color-rgb), 0.4);
     fill: rgba(v(center-channel-color-rgb), 0.4);
 
@@ -85,7 +85,7 @@
             }
 
             .search-item__jump {
-                color: rgba(v(center-channel-color-rgb), 0.56);
+                color: rgba(v(center-channel-color-rgb), 0.75);
 
                 &:hover {
                     color: v(link-color);
@@ -94,13 +94,13 @@
 
             .post-menu__item {
                 display: inline-flex;
-                color: rgba(v(center-channel-color-rgb), 0.56);
-                fill: rgba(v(center-channel-color-rgb), 0.56);
+                color: rgba(v(center-channel-color-rgb), 0.64);
+                fill: rgba(v(center-channel-color-rgb), 0.64);
 
                 &:hover {
                     background: rgba(v(center-channel-color-rgb), 0.08);
-                    color: rgba(v(center-channel-color-rgb), 0.72);
-                    fill: rgba(v(center-channel-color-rgb), 0.72);
+                    color: rgba(v(center-channel-color-rgb), 0.8);
+                    fill: rgba(v(center-channel-color-rgb), 0.8);
                 }
 
                 &:active,

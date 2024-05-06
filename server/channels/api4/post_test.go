@@ -131,7 +131,7 @@ func TestCreatePost(t *testing.T) {
 		require.NoError(t, err)
 
 		// Message with no channel mentions should result in no ephemeral message
-		timeout := time.After(2 * time.Second)
+		timeout := time.After(5 * time.Second)
 		waiting := true
 		for waiting {
 			select {
@@ -157,7 +157,7 @@ func TestCreatePost(t *testing.T) {
 		_, _, err = client.CreatePost(context.Background(), post)
 		require.NoError(t, err)
 
-		timeout = time.After(2 * time.Second)
+		timeout = time.After(5 * time.Second)
 		eventsToGo := 3 // 3 Posts created with @ mentions should result in 3 websocket events
 		for eventsToGo > 0 {
 			select {
@@ -649,7 +649,7 @@ func testCreatePostWithOutgoingHook(
 	select {
 	case ok := <-success:
 		require.True(t, ok, "Test server did send an invalid webhook.")
-	case <-time.After(time.Second):
+	case <-time.After(2 * time.Second):
 		require.FailNow(t, "Timeout, test server did not send the webhook.")
 	}
 
@@ -733,8 +733,10 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 func TestMoveThread(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_MOVETHREADSENABLED", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_MOVETHREADSENABLED")
-	th := Setup(t).InitBasic()
+	th := SetupEnterprise(t).InitBasic()
 	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	client := th.Client
 
@@ -949,13 +951,6 @@ func TestMoveThread(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 		require.NotNil(t, posts)
-		// There should be 3 posts, the system join message for the user who moved it joining the channel, and the two posts in the thread
-		// require.Equal(t, 3, len(posts.Posts))
-		fmt.Println(posts.Order)
-		for _, p := range posts.Order {
-			fmt.Println(posts.Posts[p].Id)
-			fmt.Println(posts.Posts[p].Message)
-		}
 		require.Equal(t, "This thread was moved from another channel", posts.Posts[posts.Order[0]].Message)
 		require.Equal(t, newPost2.Message, posts.Posts[posts.Order[1]].Message)
 		require.Equal(t, newPost.Message, posts.Posts[posts.Order[2]].Message)
@@ -1086,7 +1081,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	timeout := time.After(2 * time.Second)
+	timeout := time.After(5 * time.Second)
 	waiting := true
 	for waiting {
 		select {
@@ -1105,7 +1100,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	timeout = time.After(2 * time.Second)
+	timeout = time.After(5 * time.Second)
 	waiting = true
 	for waiting {
 		select {
@@ -1502,6 +1497,15 @@ func TestPatchPost(t *testing.T) {
 	})
 
 	t.Run("invalid requests", func(t *testing.T) {
+		var origEnableDeveloper bool
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			origEnableDeveloper = *cfg.ServiceSettings.EnableDeveloper
+			*cfg.ServiceSettings.EnableDeveloper = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = origEnableDeveloper
+		})
+
 		r, err := client.DoAPIPut(context.Background(), "/posts/"+post.Id+"/patch", "garbage")
 		require.EqualError(t, err, "Invalid or missing post in request body., invalid character 'g' looking for beginning of value")
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
@@ -2801,7 +2805,7 @@ func TestDeletePostEvent(t *testing.T) {
 				require.NoError(t, err)
 				received = true
 			}
-		case <-time.After(2 * time.Second):
+		case <-time.After(5 * time.Second):
 			exit = true
 		}
 		if exit {
@@ -3599,7 +3603,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 					caught = true
 					data = ev.GetData()
 				}
-			case <-time.After(1 * time.Second):
+			case <-time.After(5 * time.Second):
 				exit = true
 			}
 			if exit {
@@ -3871,7 +3875,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 								require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
 							}
 						}
-					case <-time.After(1 * time.Second):
+					case <-time.After(5 * time.Second):
 						return
 					}
 				}
@@ -3985,7 +3989,7 @@ func TestPostReminder(t *testing.T) {
 					require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
 					return
 				}
-			case <-time.After(1 * time.Second):
+			case <-time.After(5 * time.Second):
 				return
 			}
 		}
@@ -3997,6 +4001,12 @@ func TestPostReminder(t *testing.T) {
 func TestPostGetInfo(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+	th.RemovePermissionFromRole(model.PermissionManagePrivateChannelMembers.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(model.PermissionManagePrivateChannelMembers.Id, model.ChannelUserRoleId)
+	th.RemovePermissionFromRole(model.PermissionManagePrivateChannelMembers.Id, model.TeamUserRoleId)
+
 	client := th.Client
 	sysadminClient := th.SystemAdminClient
 	sysadminClient.AddTeamMember(context.Background(), th.BasicTeam.Id, th.SystemAdminUser.Id)

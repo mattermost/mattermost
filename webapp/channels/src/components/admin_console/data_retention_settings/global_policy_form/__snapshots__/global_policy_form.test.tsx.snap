@@ -62,13 +62,21 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                 }
                 inputId="channel_message_retention_input"
                 inputType="number"
-                inputValue="60"
+                inputValue="100"
                 legend="Channel & direct message retention"
                 name="channel_message_retention"
                 onDropdownChange={[Function]}
                 onInputChange={[Function]}
                 options={
                   Array [
+                    Object {
+                      "label": <span
+                        className="option_hours"
+                      >
+                        Hours
+                      </span>,
+                      "value": "HOURS",
+                    },
                     Object {
                       "label": <span
                         className="option_days"
@@ -141,13 +149,21 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                 }
                 inputId="file_retention_input"
                 inputType="number"
-                inputValue="40"
+                inputValue="100"
                 legend="File retention"
                 name="file_retention"
                 onDropdownChange={[Function]}
                 onInputChange={[Function]}
                 options={
                   Array [
+                    Object {
+                      "label": <span
+                        className="option_hours"
+                      >
+                        Hours
+                      </span>,
+                      "value": "HOURS",
+                    },
                     Object {
                       "label": <span
                         className="option_days"

@@ -17,7 +17,6 @@ import (
 	"sync"
 
 	"github.com/blang/semver/v4"
-	"github.com/gorilla/mux"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
@@ -25,7 +24,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
 )
@@ -39,31 +37,6 @@ type pluginSignaturePath struct {
 	pluginID      string
 	bundlePath    string
 	signaturePath string
-}
-
-// Ensure routerService implements `product.RouterService`
-var _ product.RouterService = (*routerService)(nil)
-
-type routerService struct {
-	mu        sync.Mutex
-	routerMap map[string]*mux.Router
-}
-
-func newRouterService() *routerService {
-	return &routerService{
-		routerMap: make(map[string]*mux.Router),
-	}
-}
-
-func (rs *routerService) RegisterRouter(productID string, sub *mux.Router) {
-	rs.mu.Lock()
-	defer rs.mu.Unlock()
-	rs.routerMap[productID] = sub
-}
-
-func (rs *routerService) getHandler(productID string) (http.Handler, bool) {
-	handler, ok := rs.routerMap[productID]
-	return handler, ok
 }
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
@@ -549,7 +522,7 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 
 // GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 // and plugins that are installed locally.
-func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
+func (a *App) GetMarketplacePlugins(rctx request.CTX, filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
 	plugins := map[string]*model.MarketplacePlugin{}
 
 	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
@@ -566,7 +539,7 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 			return nil, appErr
 		}
 
-		appErr = a.mergeLocalPlugins(plugins)
+		appErr = a.mergeLocalPlugins(rctx, plugins)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -719,7 +692,7 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 }
 
 // mergeLocalPlugins merges locally installed plugins to remote marketplace plugins list.
-func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.MarketplacePlugin) *model.AppError {
+func (a *App) mergeLocalPlugins(rctx request.CTX, remoteMarketplacePlugins map[string]*model.MarketplacePlugin) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
@@ -745,7 +718,7 @@ func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.Marke
 		if plugin.Manifest.IconPath != "" {
 			iconData, err = getIcon(filepath.Join(plugin.Path, plugin.Manifest.IconPath))
 			if err != nil {
-				a.Log().Warn("Error loading local plugin icon", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("icon_path", plugin.Manifest.IconPath), mlog.Err(err))
+				rctx.Logger().Warn("Error loading local plugin icon", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("icon_path", plugin.Manifest.IconPath), mlog.Err(err))
 			}
 		}
 

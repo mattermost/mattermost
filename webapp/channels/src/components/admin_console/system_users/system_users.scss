@@ -1,0 +1,90 @@
+@import "sass/utils/_mixins";
+
+table.systemUsersTable {
+    thead {
+        tr {
+            th.actionsColumn {
+                padding-inline-start: 24px;
+            }
+        }
+    }
+
+    tbody {
+        tr {
+            td.usernameColumn > div {
+                $profilePictureSize: 40px;
+
+                display: grid;
+                width: max-content;
+                gap: 0 0;
+                grid-auto-flow: row;
+                grid-template-areas:
+                    "profilePictureContainer displayName"
+                    "profilePictureContainer userName"
+                    "profilePictureContainer error";
+                grid-template-columns: calc($profilePictureSize + 16px) 1fr;
+                grid-template-rows: 1fr 1fr;
+
+                .profilePictureContainer {
+                    width: $profilePictureSize;
+                    height: $profilePictureSize;
+                    align-self: center;
+                    grid-area: profilePictureContainer;
+
+                    > img {
+                        width: 100%;
+                        height: 100%;
+                        border-radius: 40px;
+                        object-fit: cover;
+                    }
+                }
+
+                .displayName {
+                    display: flex;
+                    align-items: center;
+                    align-self: start;
+                    color: var(--sys-denim-button-bg);
+                    font-weight: 600;
+                    grid-area: displayName;
+
+                    @include textEllipsis;
+
+                    .icon {
+                        color: rgba(var(--sys-denim-center-channel-text-rgb), 0.8);
+                    }
+                }
+
+                .userName {
+                    align-self: start;
+                    grid-area: userName;
+
+                    @include textEllipsis;
+                }
+
+                .error {
+                    max-width: 300px;
+                    align-self: start;
+                    grid-area: error;
+
+                    @include textEllipsis;
+
+                    // this need to be here, after textEllipsis because
+                    // we need to override white-space property coming from the mixing
+                    white-space: normal;
+                }
+            }
+
+            td.actionsColumn > button {
+                padding: 0 12px;
+            }
+        }
+    }
+}
+
+.systemUsers__mySqlAlertBanner {
+    margin-bottom: 20px;
+
+    .systemUsers__mySqlAlertBanner-buttons {
+        margin-top: 12px;
+    }
+}

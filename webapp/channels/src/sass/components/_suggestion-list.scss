@@ -37,7 +37,7 @@
         width: 16px;
         height: 16px;
         margin-left: 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 16px;
         line-height: 16px;
 
@@ -63,8 +63,8 @@
     max-height: 292px;
     padding-bottom: 12px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    background-color: v(center-channel-bg);
     border-radius: 4px;
+    background-color: v(center-channel-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
@@ -77,8 +77,8 @@
 
     &::-webkit-scrollbar-thumb {
         border: 1px solid v(center-channel-bg);
-        background-color: rgba(var(--center-channel-color-rgb), 0.24) !important;
         border-radius: 4px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.24) !important;
     }
 
     .modal & {
@@ -104,13 +104,13 @@
     flex: 0 0 3.7rem;
     align-items: center;
     justify-content: center;
-    background: rgba(var(--center-channel-color-rgb), 0.08);
     border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
     font-size: 20px;
     font-weight: 600;
 
     span {
-        opacity: 0.56;
+        opacity: 0.73;
     }
 }
 
@@ -124,7 +124,7 @@
     margin: 2px 0 0;
     font-size: 12px;
     line-height: 1.2;
-    opacity: 0.56;
+    opacity: 0.75;
     white-space: break-spaces;
 }
 
@@ -146,7 +146,7 @@
     justify-content: flex-start;
     padding: 0 0 0 2.4rem;
     margin: 1.2rem 0 0 0;
-    color: rgba(var(--center-channel-color-rgb), 0.6);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 1.2rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -196,11 +196,19 @@
     line-height: 20px;
     white-space: nowrap;
 
+    .modal & {
+        padding: 8px 3.2rem;
+
+        .suggestion-list__team-name {
+            right: 32px;
+        }
+    }
+
     .suggestion-list__ellipsis {
         display: flex;
         overflow: hidden;
         max-width: 89%;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         gap: 8px;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -212,7 +220,7 @@
 
             .suggestion-list__desc {
                 margin-left: 8px;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
             }
         }
 
@@ -268,7 +276,7 @@
         align-items: center;
         justify-content: center;
         fill: v(center-channel-color);
-        opacity: 0.56;
+        opacity: 0.73;
 
         &--standard {
             width: 2rem;
@@ -301,7 +309,7 @@
         width: 16px;
         height: 16px;
         margin-left: 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 16px;
         line-height: 16px;
 

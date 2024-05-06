@@ -38,36 +38,59 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </div>
       </div>
       <AdminPanelWithLink
-        className=""
         disabled={false}
         id="systemScheme"
-        linkTextDefault="Edit Scheme"
-        linkTextId="admin.permissions.systemSchemeBannerButton"
-        subtitleDefault="Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied."
-        subtitleId="admin.permissions.systemSchemeBannerText"
+        linkText={
+          Object {
+            "defaultMessage": "Edit Scheme",
+            "id": "admin.permissions.systemSchemeBannerButton",
+          }
+        }
+        subtitle={
+          Object {
+            "defaultMessage": "Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied.",
+            "id": "admin.permissions.systemSchemeBannerText",
+          }
+        }
         subtitleValues={
           Object {
             "link": [Function],
           }
         }
-        titleDefault="System Scheme"
-        titleId="admin.permissions.systemSchemeBannerTitle"
+        title={
+          Object {
+            "defaultMessage": "System Scheme",
+            "id": "admin.permissions.systemSchemeBannerTitle",
+          }
+        }
         url="/admin_console/user_management/permissions/system_scheme"
       />
       <AdminPanelWithLink
         className="permissions-block"
         id="team-override-schemes"
-        linkTextDefault="New Team Override Scheme"
-        linkTextId="admin.permissions.teamOverrideSchemesNewButton"
-        subtitleDefault="Use when specific teams need permission exceptions to the <link>System Scheme</link>"
-        subtitleId="admin.permissions.teamOverrideSchemesBannerText"
+        linkText={
+          Object {
+            "defaultMessage": "New Team Override Scheme",
+            "id": "admin.permissions.teamOverrideSchemesNewButton",
+          }
+        }
+        subtitle={
+          Object {
+            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>",
+            "id": "admin.permissions.teamOverrideSchemesBannerText",
+          }
+        }
         subtitleValues={
           Object {
             "link": [Function],
           }
         }
-        titleDefault="Team Override Schemes"
-        titleId="admin.permissions.teamOverrideSchemesTitle"
+        title={
+          Object {
+            "defaultMessage": "Team Override Schemes",
+            "id": "admin.permissions.teamOverrideSchemesTitle",
+          }
+        }
         url="/admin_console/user_management/permissions/team_override_scheme"
       >
         <Connect(PermissionsSchemeSummary)
@@ -142,36 +165,59 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </div>
       </div>
       <AdminPanelWithLink
-        className=""
         disabled={false}
         id="systemScheme"
-        linkTextDefault="Edit Scheme"
-        linkTextId="admin.permissions.systemSchemeBannerButton"
-        subtitleDefault="Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied."
-        subtitleId="admin.permissions.systemSchemeBannerText"
+        linkText={
+          Object {
+            "defaultMessage": "Edit Scheme",
+            "id": "admin.permissions.systemSchemeBannerButton",
+          }
+        }
+        subtitle={
+          Object {
+            "defaultMessage": "Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied.",
+            "id": "admin.permissions.systemSchemeBannerText",
+          }
+        }
         subtitleValues={
           Object {
             "link": [Function],
           }
         }
-        titleDefault="System Scheme"
-        titleId="admin.permissions.systemSchemeBannerTitle"
+        title={
+          Object {
+            "defaultMessage": "System Scheme",
+            "id": "admin.permissions.systemSchemeBannerTitle",
+          }
+        }
         url="/admin_console/user_management/permissions/system_scheme"
       />
       <AdminPanelWithLink
         className="permissions-block"
         id="team-override-schemes"
-        linkTextDefault="New Team Override Scheme"
-        linkTextId="admin.permissions.teamOverrideSchemesNewButton"
-        subtitleDefault="Use when specific teams need permission exceptions to the <link>System Scheme</link>"
-        subtitleId="admin.permissions.teamOverrideSchemesBannerText"
+        linkText={
+          Object {
+            "defaultMessage": "New Team Override Scheme",
+            "id": "admin.permissions.teamOverrideSchemesNewButton",
+          }
+        }
+        subtitle={
+          Object {
+            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>",
+            "id": "admin.permissions.teamOverrideSchemesBannerText",
+          }
+        }
         subtitleValues={
           Object {
             "link": [Function],
           }
         }
-        titleDefault="Team Override Schemes"
-        titleId="admin.permissions.teamOverrideSchemesTitle"
+        title={
+          Object {
+            "defaultMessage": "Team Override Schemes",
+            "id": "admin.permissions.teamOverrideSchemesTitle",
+          }
+        }
         url="/admin_console/user_management/permissions/team_override_scheme"
       >
         <div
@@ -224,37 +270,60 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </div>
       </div>
       <AdminPanelWithLink
-        className=""
         disabled={true}
         id="systemScheme"
-        linkTextDefault="Edit Scheme"
-        linkTextId="admin.permissions.systemSchemeBannerButton"
-        subtitleDefault="Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied."
-        subtitleId="admin.permissions.systemSchemeBannerText"
+        linkText={
+          Object {
+            "defaultMessage": "Edit Scheme",
+            "id": "admin.permissions.systemSchemeBannerButton",
+          }
+        }
+        subtitle={
+          Object {
+            "defaultMessage": "Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied.",
+            "id": "admin.permissions.systemSchemeBannerText",
+          }
+        }
         subtitleValues={
           Object {
             "link": [Function],
           }
         }
-        titleDefault="System Scheme"
-        titleId="admin.permissions.systemSchemeBannerTitle"
+        title={
+          Object {
+            "defaultMessage": "System Scheme",
+            "id": "admin.permissions.systemSchemeBannerTitle",
+          }
+        }
         url="/admin_console/user_management/permissions/system_scheme"
       />
       <AdminPanelWithLink
         className="permissions-block"
         disabled={true}
         id="team-override-schemes"
-        linkTextDefault="New Team Override Scheme"
-        linkTextId="admin.permissions.teamOverrideSchemesNewButton"
-        subtitleDefault="Use when specific teams need permission exceptions to the <link>System Scheme</link>"
-        subtitleId="admin.permissions.teamOverrideSchemesBannerText"
+        linkText={
+          Object {
+            "defaultMessage": "New Team Override Scheme",
+            "id": "admin.permissions.teamOverrideSchemesNewButton",
+          }
+        }
+        subtitle={
+          Object {
+            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>",
+            "id": "admin.permissions.teamOverrideSchemesBannerText",
+          }
+        }
         subtitleValues={
           Object {
             "link": [Function],
           }
         }
-        titleDefault="Team Override Schemes"
-        titleId="admin.permissions.teamOverrideSchemesTitle"
+        title={
+          Object {
+            "defaultMessage": "Team Override Schemes",
+            "id": "admin.permissions.teamOverrideSchemesTitle",
+          }
+        }
         url="/admin_console/user_management/permissions/team_override_scheme"
       >
         <div
@@ -264,19 +333,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             className="team-override-unavailable__inner"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Migration job in progress: Team Override Schemes are not available until the job server completes the permissions migration. Learn more in the {documentationLink}."
+              defaultMessage="Migration job in progress: Team Override Schemes are not available until the job server completes the permissions migration. Learn more in the <link>documentation</link>."
               id="admin.permissions.teamOverrideSchemesInProgress"
               values={
                 Object {
-                  "documentationLink": <ExternalLink
-                    href="https://docs.mattermost.com/administration/config-settings.html#jobs"
-                    location="permission_scheme_settings"
-                  >
-                    <Memo(MemoizedFormattedMessage)
-                      defaultMessage="documentation"
-                      id="admin.permissions.documentationLinkText"
-                    />
-                  </ExternalLink>,
+                  "link": [Function],
                 }
               }
             />
@@ -354,37 +415,60 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </div>
       </div>
       <AdminPanelWithLink
-        className=""
         disabled={true}
         id="systemScheme"
-        linkTextDefault="Edit Scheme"
-        linkTextId="admin.permissions.systemSchemeBannerButton"
-        subtitleDefault="Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied."
-        subtitleId="admin.permissions.systemSchemeBannerText"
+        linkText={
+          Object {
+            "defaultMessage": "Edit Scheme",
+            "id": "admin.permissions.systemSchemeBannerButton",
+          }
+        }
+        subtitle={
+          Object {
+            "defaultMessage": "Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied.",
+            "id": "admin.permissions.systemSchemeBannerText",
+          }
+        }
         subtitleValues={
           Object {
             "link": [Function],
           }
         }
-        titleDefault="System Scheme"
-        titleId="admin.permissions.systemSchemeBannerTitle"
+        title={
+          Object {
+            "defaultMessage": "System Scheme",
+            "id": "admin.permissions.systemSchemeBannerTitle",
+          }
+        }
         url="/admin_console/user_management/permissions/system_scheme"
       />
       <AdminPanelWithLink
         className="permissions-block"
         disabled={true}
         id="team-override-schemes"
-        linkTextDefault="New Team Override Scheme"
-        linkTextId="admin.permissions.teamOverrideSchemesNewButton"
-        subtitleDefault="Use when specific teams need permission exceptions to the <link>System Scheme</link>"
-        subtitleId="admin.permissions.teamOverrideSchemesBannerText"
+        linkText={
+          Object {
+            "defaultMessage": "New Team Override Scheme",
+            "id": "admin.permissions.teamOverrideSchemesNewButton",
+          }
+        }
+        subtitle={
+          Object {
+            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>",
+            "id": "admin.permissions.teamOverrideSchemesBannerText",
+          }
+        }
         subtitleValues={
           Object {
             "link": [Function],
           }
         }
-        titleDefault="Team Override Schemes"
-        titleId="admin.permissions.teamOverrideSchemesTitle"
+        title={
+          Object {
+            "defaultMessage": "Team Override Schemes",
+            "id": "admin.permissions.teamOverrideSchemesTitle",
+          }
+        }
         url="/admin_console/user_management/permissions/team_override_scheme"
       >
         <div
@@ -394,19 +478,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             className="team-override-unavailable__inner"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Migration job on hold: Team Override Schemes are not available until the job server can execute the permissions migration. The job will be automatically started when the job server is enabled. Learn more in the {documentationLink}."
+              defaultMessage="Migration job on hold: Team Override Schemes are not available until the job server can execute the permissions migration. The job will be automatically started when the job server is enabled. Learn more in the <link>documentation</link>."
               id="admin.permissions.teamOverrideSchemesNoJobsEnabled"
               values={
                 Object {
-                  "documentationLink": <ExternalLink
-                    href="https://docs.mattermost.com/administration/config-settings.html#jobs"
-                    location="permission_scheme_settings"
-                  >
-                    <Memo(MemoizedFormattedMessage)
-                      defaultMessage="documentation"
-                      id="admin.permissions.documentationLinkText"
-                    />
-                  </ExternalLink>,
+                  "link": [Function],
                 }
               }
             />
@@ -484,36 +560,59 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </div>
       </div>
       <AdminPanelWithLink
-        className=""
         disabled={false}
         id="systemScheme"
-        linkTextDefault="Edit Scheme"
-        linkTextId="admin.permissions.systemSchemeBannerButton"
-        subtitleDefault="Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied."
-        subtitleId="admin.permissions.systemSchemeBannerText"
+        linkText={
+          Object {
+            "defaultMessage": "Edit Scheme",
+            "id": "admin.permissions.systemSchemeBannerButton",
+          }
+        }
+        subtitle={
+          Object {
+            "defaultMessage": "Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied.",
+            "id": "admin.permissions.systemSchemeBannerText",
+          }
+        }
         subtitleValues={
           Object {
             "link": [Function],
           }
         }
-        titleDefault="System Scheme"
-        titleId="admin.permissions.systemSchemeBannerTitle"
+        title={
+          Object {
+            "defaultMessage": "System Scheme",
+            "id": "admin.permissions.systemSchemeBannerTitle",
+          }
+        }
         url="/admin_console/user_management/permissions/system_scheme"
       />
       <AdminPanelWithLink
         className="permissions-block"
         id="team-override-schemes"
-        linkTextDefault="New Team Override Scheme"
-        linkTextId="admin.permissions.teamOverrideSchemesNewButton"
-        subtitleDefault="Use when specific teams need permission exceptions to the <link>System Scheme</link>"
-        subtitleId="admin.permissions.teamOverrideSchemesBannerText"
+        linkText={
+          Object {
+            "defaultMessage": "New Team Override Scheme",
+            "id": "admin.permissions.teamOverrideSchemesNewButton",
+          }
+        }
+        subtitle={
+          Object {
+            "defaultMessage": "Use when specific teams need permission exceptions to the <link>System Scheme</link>",
+            "id": "admin.permissions.teamOverrideSchemesBannerText",
+          }
+        }
         subtitleValues={
           Object {
             "link": [Function],
           }
         }
-        titleDefault="Team Override Schemes"
-        titleId="admin.permissions.teamOverrideSchemesTitle"
+        title={
+          Object {
+            "defaultMessage": "Team Override Schemes",
+            "id": "admin.permissions.teamOverrideSchemesTitle",
+          }
+        }
         url="/admin_console/user_management/permissions/team_override_scheme"
       >
         <Connect(PermissionsSchemeSummary)

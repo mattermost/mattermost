@@ -3,14 +3,13 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
-import type {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
+import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
 import {getAllChannelsWithCount as getData, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
-import type {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
 import {Constants} from 'utils/constants';
 
@@ -35,14 +34,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    searchAllChannels: (term: string, opts: ChannelSearchOpts) => Promise<{ data: any }>;
-    getData: (page: number, perPage: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, includeDeleted?: boolean) => ActionFunc | ActionResult | Promise<ChannelWithTeamData[]>;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             getData,
             searchAllChannels,
         }, dispatch),
