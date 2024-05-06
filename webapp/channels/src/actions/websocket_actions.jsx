@@ -733,6 +733,12 @@ export function handleNewPostEvents(queue) {
             console.log('handleNewPostEvents - new posts received', posts);
         }
 
+        posts.forEach((post, index) => {
+            if (queue[index].data.should_ack) {
+                WebSocketClient.acknowledgePostedNotification(post.id, 'not_sent', 'too_many_posts');
+            }
+        });
+
         // Receive the posts as one continuous block since they were received within a short period
         const crtEnabled = isCollapsedThreadsEnabled(myGetState());
         const actions = posts.map((post) => receivedNewPost(post, crtEnabled));

@@ -73,12 +73,14 @@ function hoverOnChannelDescriptionAndVerifyBehavior() {
     const channelDescriptionText = `test description ${getRandomId()}`;
 
     // # Wait a little for channel to load
-    cy.wait(TIMEOUTS.FIVE_SEC);
+    cy.wait(TIMEOUTS.ONE_SEC);
 
     // # Scan within channel header description area
     cy.get('#channelHeaderDescription').should('be.visible').within(() => {
-        // * Verify that empty header text is visible and click it
-        cy.findByText('Add a channel header').should('be.visible').click();
+        // * Verify that empty header text is exists and click it.
+        //   Note that it is invisible until the mouse hovers it, which is unfeasible in Cypress
+        //   https://docs.cypress.io/api/commands/hover
+        cy.findByText('Add a channel header').click({force: true});
     });
 
     // # Scan inside the channel header modal

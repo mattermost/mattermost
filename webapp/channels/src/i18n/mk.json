@@ -134,6 +134,5 @@
   "workspace_limits.archived_file.archived": "Фајлот е архивиран",
   "workspace_limits.archived_file.archived_compact": "(архивиран)",
   "workspace_limits.archived_file.tooltip_description": "Вашето работно место го достигна ограничувањето за скадирање на фајлови од {storageLimit}. Да го видите ова пак, надградете во платен план",
-  "workspace_limits.archived_file.tooltip_title": "Одархивирај го овој фајл со надградба",
-  "workspace_limits.banner_upgrade_reason.free": "Вашето работно место ги надмина ограничувањата на дата на планот {planName}. Надградете на платен план за додатен капацитет."
+  "workspace_limits.archived_file.tooltip_title": "Одархивирај го овој фајл со надградба"
 }
