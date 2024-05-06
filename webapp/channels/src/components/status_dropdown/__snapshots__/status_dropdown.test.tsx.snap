@@ -2487,7 +2487,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
           }
         }
         icon={
-          <AccountOutlineIcon          
+          <AccountOutlineIcon
             color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
