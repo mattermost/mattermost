@@ -49,7 +49,7 @@ describe('PerformanceReporter', () => {
         await waitForReport();
 
         expect(sendBeacon).toHaveBeenCalled();
-        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/metrics');
+        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/perf');
         const report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
             start: performance.timeOrigin + testMarkA.startTime,
@@ -99,7 +99,7 @@ describe('PerformanceReporter', () => {
         await waitForReport();
 
         expect(sendBeacon).toHaveBeenCalled();
-        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/metrics');
+        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/perf');
         const report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
             counters: [
@@ -151,7 +151,7 @@ describe('PerformanceReporter', () => {
         await waitForReport();
 
         expect(sendBeacon).toHaveBeenCalled();
-        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/metrics');
+        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/perf');
         const report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
             counters: [
@@ -179,7 +179,7 @@ describe('PerformanceReporter', () => {
         await waitForReport();
 
         expect(sendBeacon).toHaveBeenCalled();
-        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/metrics');
+        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/perf');
         let report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
             histograms: [
@@ -206,7 +206,7 @@ describe('PerformanceReporter', () => {
         await waitForReport();
 
         expect(sendBeacon).toHaveBeenCalled();
-        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/metrics');
+        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/perf');
         report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
             histograms: [
@@ -302,7 +302,7 @@ describe('PerformanceReporter', () => {
         await waitForReport();
 
         expect(sendBeacon).toHaveBeenCalled();
-        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/metrics');
+        expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/perf');
         const report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
             labels: {
@@ -322,7 +322,7 @@ describe('PerformanceReporter', () => {
 
         sendBeacon.mockReturnValue(false);
         const mock = nock(client.getBaseRoute()).
-            post('/metrics').
+            post('/perf').
             reply(200);
 
         expect(sendBeacon).not.toHaveBeenCalled();

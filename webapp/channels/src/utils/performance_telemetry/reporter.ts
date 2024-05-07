@@ -260,7 +260,7 @@ export default class PerformanceReporter {
     }
 
     private sendReport(report: PerformanceReport) {
-        const url = this.client.getUrl() + '/api/v4/metrics';
+        const url = this.client.getClientMetricsRoute();
         const data = JSON.stringify(report);
 
         const beaconSent = navigator.sendBeacon(url, data);
