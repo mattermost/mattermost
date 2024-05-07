@@ -11,7 +11,7 @@ import (
 )
 
 func (api *API) InitMetrics() {
-	api.BaseRoutes.PerformanceMetrics.Handle("/", api.APISessionRequired(submitPerformanceReport)).Methods("POST")
+	api.BaseRoutes.PerformanceMetrics.Handle("", api.APISessionRequired(submitPerformanceReport)).Methods("POST")
 }
 
 func submitPerformanceReport(c *Context, w http.ResponseWriter, r *http.Request) {
