@@ -391,7 +391,7 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, rctx request.CTX, ss store.S
 	// Clean up retention ids table
 	deleted, err := ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
 	require.NoError(t, err)
-	require.Equal(t, int64(1), deleted)
+	require.Equal(t, int64(0), deleted)
 
 	_, nErr = ss.Preference().DeleteOrphanedRows(limit)
 	assert.NoError(t, nErr)

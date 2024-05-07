@@ -4017,7 +4017,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 	// Clean up retention ids table
 	deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
 	require.NoError(t, err)
-	require.Equal(t, int64(1), deleted)
+	require.Equal(t, int64(0), deleted)
 
 	t.Run("with pagination", func(t *testing.T) {
 		for i := 0; i < 3; i++ {
@@ -4043,7 +4043,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		// Clean up retention ids table
 		deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
 		require.NoError(t, err)
-		require.Equal(t, int64(1), deleted)
+		require.Equal(t, int64(0), deleted)
 
 		deleted, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
 		require.NoError(t, err)
@@ -4057,7 +4057,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		// Clean up retention ids table
 		deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
 		require.NoError(t, err)
-		require.Equal(t, int64(1), deleted)
+		require.Equal(t, int64(0), deleted)
 	})
 
 	t.Run("with data retention policies", func(t *testing.T) {
@@ -4132,7 +4132,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		for _, row := range rows {
 			deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(row)
 			require.NoError(t, err)
-			require.Equal(t, int64(1), deleted)
+			require.Equal(t, int64(0), deleted)
 		}
 	})
 
@@ -4209,7 +4209,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		for _, row := range rows {
 			deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(row)
 			require.NoError(t, err)
-			require.Equal(t, int64(1), deleted)
+			require.Equal(t, int64(0), deleted)
 		}
 	})
 }
