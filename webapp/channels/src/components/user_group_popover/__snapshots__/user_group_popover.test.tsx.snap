@@ -76,11 +76,9 @@ exports[`component/user_group_popover should match snapshot 1`] = `
         hide={[MockFunction]}
         returnFocus={[MockFunction]}
         searchTerm=""
-        showUserOverlay={[MockFunction]}
       >
         <Popover
           id="user-group-popover"
-          showUserOverlay={[MockFunction]}
         >
           <Popover
             bsClass="popover"

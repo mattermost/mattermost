@@ -140,7 +140,6 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                                 style={combinedFloatingStyles}
                                 className={classNames('user-profile-popover', A11yClassNames.POPUP)}
                                 {...getFloatingProps()}
-                                id='user-profile-popover' // This is placed here as id is being overwritten by getFloatingProps
                             >
                                 <ProfilePopover
                                     userId={props.userId}
