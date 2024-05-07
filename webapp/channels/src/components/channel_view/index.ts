@@ -11,6 +11,7 @@ import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/tea
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {goToLastViewedChannel} from 'actions/views/channel';
+import {getChannelTabPluginComponent} from 'selectors/plugins';
 
 import type {GlobalState} from 'types/store';
 
@@ -34,6 +35,7 @@ function mapStateToProps(state: GlobalState) {
     return {
         channelId: channel ? channel.id : '',
         deactivatedChannel: channel ? isDeactivatedChannel(state, channel.id) : false,
+        tabContent: getChannelTabPluginComponent(state, state.views.channel.channelTab),
         enableOnboardingFlow,
         channelIsArchived: channel ? channel.delete_at !== 0 : false,
         viewArchivedChannels,

@@ -252,6 +252,78 @@ export default class PluginRegistry {
         return id;
     });
 
+    // Add a tab to a channel. Requires a channel content component.
+    // Accepts the following:
+    // - text - string or React element to use as the text
+    // - icon - React element to use as the channel header button icon
+    // - channelId - id of channel to add tabs to
+    // - channelContentId - id of registered channel content component
+    // - props - any props to pass to the channel content component
+    registerChannelTab = reArg([
+        'text',
+        'icon',
+        'channelId',
+        'channelContentId',
+        'props',
+    ], ({
+        text,
+        icon,
+        channelId,
+        channelContentId,
+        props,
+    }: {
+        text: ReactResolvable;
+        icon: ReactResolvable;
+        channelId: string;
+        channelContentId: string;
+        props?: {[name: string]: any};
+    }) => {
+        const pluginComponentId = generateId();
+
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'ChannelTabButton',
+            data: {
+                id: pluginComponentId,
+                pluginId: this.id,
+                icon,
+                text,
+                channelId,
+                channelContentId,
+                props,
+            },
+        });
+
+        return pluginComponentId;
+    });
+
+    // Add a channel content component for use with channel tabs.
+    // Accepts the following:
+    // - component - a react component to display.
+    registerChannelContent = reArg([
+        'component',
+    ], ({
+        component,
+    }: {
+        text: ReactResolvable;
+        icon: ReactResolvable;
+        component: ReactResolvable;
+    }) => {
+        const id = generateId();
+
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'ChannelContentComponent',
+            data: {
+                id,
+                pluginId: this.id,
+                component,
+            },
+        });
+
+        return id;
+    });
+
     // Add a button to the channel intro message.
     // Accepts the following:
     // - icon - React element to use as the button's icon

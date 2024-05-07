@@ -41,6 +41,7 @@ export default keyMirror({
     REMOVE_CHANNEL_MEMBER_SUCCESS: null,
 
     SELECT_CHANNEL: null,
+    SELECT_CHANNEL_TAB: null,
     LEAVE_CHANNEL: null,
     REMOVE_MEMBER_FROM_CHANNEL: null,
     RECEIVED_CHANNEL: null,

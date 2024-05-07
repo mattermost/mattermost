@@ -1,5 +1,16 @@
 @charset "utf-8";
 
+.channel-header-tabs {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    position: relative;
+    z-index: 15;
+    padding: 0 14px;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    background: v(center-channel-bg);
+}
+
 .channel-header {
     position: relative;
     z-index: 15;
@@ -251,6 +262,7 @@
             margin: 0;
         }
     }
+
 }
 
 .row {

@@ -37,6 +37,7 @@ import {
     closeRightHandSide,
     showChannelMembers,
 } from 'actions/views/rhs';
+import {getChannelTabPluginComponentsForChannel} from 'selectors/plugins';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {getAnnouncementBarCount} from 'selectors/views/announcement_bar';
 import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
@@ -86,6 +87,8 @@ function makeMapStateToProps() {
             teamId: getCurrentTeamId(state),
             channel,
             channelMember: getMyCurrentChannelMembership(state),
+            selectedChannelTab: state.views.channel.channelTab,
+            channelTabComponents: getChannelTabPluginComponentsForChannel(state, channel?.id || ''),
             memberCount: stats?.member_count || 0,
             currentUser: user,
             dmUser,

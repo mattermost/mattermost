@@ -183,6 +183,19 @@ function channelPrefetchStatus(state: {[channelId: string]: string} = {}, action
     }
 }
 
+function channelTab(state = '', action: AnyAction) {
+    switch (action.type) {
+    case ChannelTypes.SELECT_CHANNEL_TAB:
+        return action.data;
+    case ChannelTypes.SELECT_CHANNEL:
+        return '';
+    case UserTypes.LOGOUT_SUCCESS:
+        return '';
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     postVisibility,
     lastChannelViewTime,
@@ -193,4 +206,5 @@ export default combineReducers({
     lastGetPosts,
     toastStatus,
     channelPrefetchStatus,
+    channelTab,
 });

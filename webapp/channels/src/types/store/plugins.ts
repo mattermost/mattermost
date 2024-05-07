@@ -45,6 +45,8 @@ export type PluginsState = {
         NeedsChannelSidebarComponent: NeedsChannelSidebarComponent[];
         CreateBoardFromTemplate: PluginComponent[];
         DesktopNotificationHooks: DesktopNotificationHook[];
+        ChannelTabButton: PluginComponent[];
+        ChannelContentComponent: PluginComponent[];
     };
 
     postTypes: {
@@ -106,6 +108,9 @@ export type PluginComponent = {
     shouldRender?: (state: GlobalState) => boolean;
     hook?: (post: Post, message?: string) => string;
     route?: string;
+    channelId?: string;
+    channelContentId?: string;
+    props?: {[name: string]: any};
 };
 
 export type AppBarComponent = PluginComponent & {
@@ -168,6 +173,16 @@ export type LeftHandSidebarItem = {
     pluginId: string;
     text: string | React.ReactElement;
     route: string;
+};
+
+export type ChannelTabButtonItem = {
+    id: string;
+    pluginId: string;
+    text: string | React.ReactElement;
+    icon: string | React.ReactElement;
+    channelId: string;
+    channelContentId: string;
+    props?: {[name: string]: any};
 };
 
 export type ProductComponent = {

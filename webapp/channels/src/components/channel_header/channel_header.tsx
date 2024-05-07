@@ -36,10 +36,12 @@ import {
 import {handleFormattedTextClick, isEmptyObject} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
+import type {ChannelTabButtonItem} from 'types/store/plugins';
 import type {RhsState} from 'types/store/rhs';
 
 import ChannelHeaderTitle from './channel_header_title';
 import ChannelInfoButton from './channel_info_button';
+import ChannelTab from './channel_tab';
 import HeaderIconWrapper from './components/header_icon_wrapper';
 
 const headerMarkdownOptions = {singleline: true, mentionHighlight: false, atMentions: true};
@@ -48,6 +50,8 @@ const popoverMarkdownOptions = {singleline: false, mentionHighlight: false, atMe
 export type Props = {
     teamId: string;
     currentUser: UserProfile;
+    selectedChannelTab: string;
+    channelTabComponents: ChannelTabButtonItem[];
     channel?: Channel;
     memberCount?: number;
     channelMember?: ChannelMembership;
@@ -262,6 +266,8 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             rhsState,
             hasGuests,
             hideGuestTags,
+            selectedChannelTab,
+            channelTabComponents,
         } = this.props;
         if (!channel) {
             return null;
@@ -578,42 +584,43 @@ class ChannelHeader extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div
-                id='channel-header'
-                aria-label={ariaLabelChannelHeader}
-                role='banner'
-                tabIndex={-1}
-                data-channelid={`${channel.id}`}
-                className='channel-header alt a11y__region'
-                data-a11y-sort-order='8'
-            >
-                <div className='flex-parent'>
-                    <div className='flex-child'>
-                        <div
-                            id='channelHeaderInfo'
-                            className='channel-header__info'
-                        >
+            <>
+                <div
+                    id='channel-header'
+                    aria-label={ariaLabelChannelHeader}
+                    role='banner'
+                    tabIndex={-1}
+                    data-channelid={`${channel.id}`}
+                    className='channel-header alt a11y__region'
+                    data-a11y-sort-order='8'
+                >
+                    <div className='flex-parent'>
+                        <div className='flex-child'>
                             <div
-                                className='channel-header__title dropdown'
+                                id='channelHeaderInfo'
+                                className='channel-header__info'
                             >
-                                <ChannelHeaderTitle
-                                    dmUser={dmUser}
-                                    gmMembers={gmMembers}
-                                />
                                 <div
-                                    className='channel-header__icons'
+                                    className='channel-header__title dropdown'
                                 >
-                                    {muteTrigger}
-                                    {memberListButton}
-                                    <HeaderIconWrapper
-                                        iconComponent={pinnedIcon}
-                                        ariaLabel={true}
-                                        buttonClass={pinnedIconClass}
-                                        buttonId={'channelHeaderPinButton'}
-                                        onClick={this.showPinnedPosts}
-                                        tooltipKey={'pinnedPosts'}
+                                    <ChannelHeaderTitle
+                                        dmUser={dmUser}
+                                        gmMembers={gmMembers}
                                     />
-                                    {this.props.isFileAttachmentsEnabled &&
+                                    <div
+                                        className='channel-header__icons'
+                                    >
+                                        {muteTrigger}
+                                        {memberListButton}
+                                        <HeaderIconWrapper
+                                            iconComponent={pinnedIcon}
+                                            ariaLabel={true}
+                                            buttonClass={pinnedIconClass}
+                                            buttonId={'channelHeaderPinButton'}
+                                            onClick={this.showPinnedPosts}
+                                            tooltipKey={'pinnedPosts'}
+                                        />
+                                        {this.props.isFileAttachmentsEnabled &&
                                         <HeaderIconWrapper
                                             iconComponent={channelFilesIcon}
                                             ariaLabel={true}
@@ -622,20 +629,39 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                                             onClick={this.showChannelFiles}
                                             tooltipKey={'channelFiles'}
                                         />
-                                    }
+                                        }
+                                    </div>
+                                    {headerTextContainer}
                                 </div>
-                                {headerTextContainer}
                             </div>
                         </div>
+                        <ChannelHeaderPlug
+                            channel={channel}
+                            channelMember={channelMember}
+                        />
+                        <CallButton/>
+                        <ChannelInfoButton channel={channel}/>
                     </div>
-                    <ChannelHeaderPlug
-                        channel={channel}
-                        channelMember={channelMember}
-                    />
-                    <CallButton/>
-                    <ChannelInfoButton channel={channel}/>
                 </div>
-            </div>
+                <div className='channel-header-tabs'>
+                    <ChannelTab
+                        id=''
+                        text='Messages'
+                        active={selectedChannelTab === ''}
+                    />
+                    {
+                        channelTabComponents.map((t) => (
+                            <ChannelTab
+                                key={`channel-tab-${t.id}`}
+                                id={t.id}
+                                text={t.text}
+                                icon={t.icon}
+                                active={selectedChannelTab === t.id}
+                            />
+                        ))
+                    }
+                </div>
+            </>
         );
     }
 }
