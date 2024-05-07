@@ -233,9 +233,6 @@ func TestCreatePost(t *testing.T) {
 }
 
 func TestCreatePostForPriority(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client

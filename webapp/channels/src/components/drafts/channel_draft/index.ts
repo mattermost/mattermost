@@ -24,7 +24,7 @@ function makeMapStateToProps() {
         const channel = getChannel(state, ownProps);
 
         const teamId = getCurrentTeamId(state);
-        const channelUrl = getChannelURL(state, channel, teamId);
+        const channelUrl = channel ? getChannelURL(state, channel, teamId) : '';
 
         return {
             channel,

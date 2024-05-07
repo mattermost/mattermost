@@ -173,7 +173,7 @@ describe('Verify Guest User Identification in different screens', () => {
         // * Verify Guest Badge in DM header
         cy.get('#channelHeaderTitle').should('be.visible').find('.Tag').should('be.visible').and('have.text', 'GUEST');
         cy.get('#channelHeaderDescription').within(($el) => {
-            cy.wrap($el).find('.has-guest-header').should('be.visible').and('have.text', 'This channel has guests');
+            cy.wrap($el).find('.has-guest-header').should('be.visible').and('have.text', 'Channel has guests');
         });
 
         // # Open a GM with Guest User and Sysadmin
