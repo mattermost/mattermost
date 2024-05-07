@@ -114,7 +114,7 @@ describe('Team Settings', () => {
 
             // # Set 'sample.mattermost.com' as the only allowed email domain and save
             cy.get('#allowedDomains').click().type(emailDomain).type(' ');
-            cy.findByText('Save').should('be.visible').click();
+            cy.findByText('Save').should('be.visible');
 
             // # Save and verify it took effect
             cy.uiSave();
