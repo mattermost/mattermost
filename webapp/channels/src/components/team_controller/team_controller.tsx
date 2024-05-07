@@ -104,6 +104,7 @@ function TeamController(props: Props) {
         function handleBlur() {
             window.isActive = false;
             blurTime.current = Date.now();
+            props.unsetActiveChannelOnServer();
         }
 
         function handleKeydown(event: KeyboardEvent) {
