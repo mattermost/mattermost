@@ -12,7 +12,10 @@ type Props = {
     enableLatex?: boolean;
 };
 
-const LatexBlock = ({content, enableLatex}: Props) => {
+const LatexBlock = ({
+    content,
+    enableLatex,
+}: Props) => {
     const [katex, setKatex] = useState<Katex | undefined>();
 
     useEffect(() => {
