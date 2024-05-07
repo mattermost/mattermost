@@ -4278,7 +4278,7 @@
   "notify_here.question": "By using **@here** you are about to send notifications to up to **{totalMembers} other people**. Are you sure you want to do this?",
   "notify_here.question_timezone": "By using **@here** you are about to send notifications to up to **{totalMembers} other people** in **{timezones, number} {timezones, plural, one {timezone} other {timezones}}**. Are you sure you want to do this?",
   "numMembers": "{num, number} {num, plural, one {member} other {members}}",
-  "onboarding_wizard.invite_members_cloud.title": "Who works with you?",
+  "onboarding_wizard.invite_members_cloud.title": "Invite your team members",
   "onboarding_wizard.invite_members.copied_link": "Link Copied",
   "onboarding_wizard.invite_members.copy_link": "Copy Link",
   "onboarding_wizard.invite_members.copy_link_input": "team invite link",
