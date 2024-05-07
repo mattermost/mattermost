@@ -40,13 +40,13 @@ export default function NotificationPermissionBar() {
             message={
                 <FormattedMessage
                     id='announcement_bar.notification.needs_permisson'
-                    defaultMessage='Mattermost needs your permission to show desktop notifications.'
+                    defaultMessage='We need your permission to show desktop notifications.'
                 />
             }
             ctaText={
                 <FormattedMessage
-                    id='announcement_bar.notification.give_permission'
-                    defaultMessage='Give Permission'
+                    id='announcement_bar.notification.enable_notifications'
+                    defaultMessage='Enable notifications'
                 />
             }
             showCTA={true}
