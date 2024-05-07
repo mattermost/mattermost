@@ -37,7 +37,6 @@
 
     .ThreadPane,
     .ThreadList + .no-results__holder {
-        border-radius: var(--radius-l);
         box-shadow: var(--elevation-2);
         grid-area: pane;
         outline: var(--border-light);
