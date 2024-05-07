@@ -42,12 +42,6 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 			a.Metrics().ObserveClientChannelSwitchDuration(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
 		case model.ClientTeamSwitchDuration:
 			a.Metrics().ObserveClientTeamSwitchDuration(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
-		case model.ClientThreadsLoadDuration:
-			a.Metrics().ObserveClientThreadsLoadDuration(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
-		case model.ClientMessagePendingDuration:
-			a.Metrics().ObserveClientMessagePendingDuration(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
-		case model.ClientMessagePostedDuration:
-			a.Metrics().ObserveClientMessagePostedDuration(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
 		case model.ClientRHSLoadDuration:
 			a.Metrics().ObserveClientRHSLoadDuration(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
 		default:

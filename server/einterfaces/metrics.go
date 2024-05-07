@@ -112,8 +112,5 @@ type MetricsInterface interface {
 	ObserveClientPageLoadDuration(platform, agent string, elapsed float64)
 	ObserveClientChannelSwitchDuration(platform, agent string, elapsed float64)
 	ObserveClientTeamSwitchDuration(platform, agent string, elapsed float64)
-	ObserveClientThreadsLoadDuration(platform, agent string, elapsed float64)
-	ObserveClientMessagePendingDuration(platform, agent string, elapsed float64)
-	ObserveClientMessagePostedDuration(platform, agent string, elapsed float64)
 	ObserveClientRHSLoadDuration(platform, agent string, elapsed float64)
 }

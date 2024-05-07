@@ -10,8 +10,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func (api *API) InitMetrics() {
-	api.BaseRoutes.PerformanceMetrics.Handle("", api.APISessionRequired(submitPerformanceReport)).Methods("POST")
+func (api *API) InitPerformanceMetrics() {
+	api.BaseRoutes.APIRoot.Handle("/perf", api.APISessionRequired(submitPerformanceReport)).Methods("POST")
 }
 
 func submitPerformanceReport(c *Context, w http.ResponseWriter, r *http.Request) {

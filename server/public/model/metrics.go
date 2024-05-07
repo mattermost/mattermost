@@ -23,9 +23,6 @@ const (
 	ClientPageLoadDuration       MetricType = "page_load"
 	ClientChannelSwitchDuration  MetricType = "channel_switch"
 	ClientTeamSwitchDuration     MetricType = "team_switch"
-	ClientThreadsLoadDuration    MetricType = "thread_load"
-	ClientMessagePendingDuration MetricType = "message_to_pending"
-	ClientMessagePostedDuration  MetricType = "message_to_posted"
 	ClientRHSLoadDuration        MetricType = "rhs_load"
 
 	performanceReportTTLMilliseconds = 300 * 1000 // 300 seconds/5 minutes

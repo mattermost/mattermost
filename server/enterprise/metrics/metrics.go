@@ -220,9 +220,6 @@ type MetricsInterfaceImpl struct {
 	ClientPageLoadDuration       *prometheus.HistogramVec
 	ClientChannelSwitchDuration  *prometheus.HistogramVec
 	ClientTeamSwitchDuration     *prometheus.HistogramVec
-	ClientThreadsLoadDuration    *prometheus.HistogramVec
-	ClientMessagePendingDuration *prometheus.HistogramVec
-	ClientMessagePostedDuration  *prometheus.HistogramVec
 	ClientRHSLoadDuration        *prometheus.HistogramVec
 }
 
@@ -1236,39 +1233,6 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.ClientTeamSwitchDuration)
 
-	m.ClientThreadsLoadDuration = prometheus.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Namespace: MetricsNamespace,
-			Subsystem: MetricsSubsystemClients,
-			Name:      "thread_load",
-			Help:      "Duration of threads to become visible when switching to threads view (milliseconds)",
-		},
-		[]string{"platform", "user_agent"},
-	)
-	m.Registry.MustRegister(m.ClientThreadsLoadDuration)
-
-	m.ClientMessagePendingDuration = prometheus.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Namespace: MetricsNamespace,
-			Subsystem: MetricsSubsystemClients,
-			Name:      "message_to_pending",
-			Help:      "Duration of a new post sent by that user to appear as pending after they click send or press enter (milliseconds)",
-		},
-		[]string{"platform", "user_agent"},
-	)
-	m.Registry.MustRegister(m.ClientMessagePendingDuration)
-
-	m.ClientMessagePostedDuration = prometheus.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Namespace: MetricsNamespace,
-			Subsystem: MetricsSubsystemClients,
-			Name:      "message_to_posted",
-			Help:      "Duration of a new post sent by that user to be received after they click send or press enter (milliseconds)",
-		},
-		[]string{"platform", "user_agent"},
-	)
-	m.Registry.MustRegister(m.ClientMessagePostedDuration)
-
 	m.ClientRHSLoadDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
@@ -1772,18 +1736,6 @@ func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, age
 
 func (mi *MetricsInterfaceImpl) ObserveClientTeamSwitchDuration(platform, agent string, elapsed float64) {
 	mi.ClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
-}
-
-func (mi *MetricsInterfaceImpl) ObserveClientThreadsLoadDuration(platform, agent string, elapsed float64) {
-	mi.ClientThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
-}
-
-func (mi *MetricsInterfaceImpl) ObserveClientMessagePendingDuration(platform, agent string, elapsed float64) {
-	mi.ClientMessagePendingDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
-}
-
-func (mi *MetricsInterfaceImpl) ObserveClientMessagePostedDuration(platform, agent string, elapsed float64) {
-	mi.ClientMessagePostedDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent string, elapsed float64) {
