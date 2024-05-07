@@ -167,7 +167,7 @@ const InviteMembers = (props: Props) => {
                 <Title>
                     <FormattedMessage
                         id={'onboarding_wizard.invite_members_cloud.title'}
-                        defaultMessage='Who works with you?'
+                        defaultMessage='Invite your team members'
                     />
                 </Title>
                 <Description>
