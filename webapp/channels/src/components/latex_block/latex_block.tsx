@@ -22,7 +22,13 @@ const LatexBlock = ({content, enableLatex}: Props) => {
     }, []);
 
     if (!enableLatex || katex === undefined) {
-        return <div className='post-body--code tex'>{content}</div>;
+        return (
+            <div
+                className='post-body--code tex'
+            >
+                {content}
+            </div>
+        );
     }
 
     try {
@@ -44,7 +50,9 @@ const LatexBlock = ({content, enableLatex}: Props) => {
         );
     } catch (e) {
         return (
-            <div className='post-body--code tex'>
+            <div
+                className='post-body--code tex'
+            >
                 <FormattedMessage
                     id='katex.error'
                     defaultMessage={'Couldn\'t compile your Latex code. Please review the syntax and try again.'}
