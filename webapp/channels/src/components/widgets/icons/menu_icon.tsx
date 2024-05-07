@@ -16,7 +16,7 @@ export default function MenuIcon(props: React.HTMLAttributes<HTMLSpanElement>) {
                 role='img'
                 aria-label={formatMessage({id: 'generic_icons.menu', defaultMessage: 'Menu Icon'})}
             >
-                <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+                <path d='M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z'/>
             </svg>
         </span>
     );

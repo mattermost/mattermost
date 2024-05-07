@@ -607,15 +607,15 @@
     overflow: hidden;
     width: 264px;
     flex-direction: column;
-    color: var(--sys-sidebar-text);
     background: var(--sys-sidebar-bg);
+    color: var(--sys-sidebar-text);
     grid-area: lhs;
 
     .filter-container {
         position: relative;
+        z-index: 1;
         padding: 8px 12px 0px 12px;
         box-shadow: 0px 8px 8px 0px rgba(var(--sys-sidebar-bg-rgb), 0.64);
-        z-index: 1;
 
         .search__icon {
             position: absolute;
@@ -651,16 +651,16 @@
                 &:focus,
                 &:focus:hover,
                 &.active {
-                    outline: 2px solid var(--sys-button-bg);
                     background: rgba(var(--sys-sidebar-text-rgb), 0.08);
+                    outline: 2px solid var(--sys-button-bg);
                 }
             }
     
             .input-clear {
                 .input-clear-x {
                     position: absolute;
-                    right: 16px;
                     top: 12px;
+                    right: 16px;
                     color: rgba(var(--sys-sidebar-text-rgb), 0.56);
                     font-weight: bold;
                 }
@@ -718,8 +718,8 @@
 
     .sidebar-category {
         .category-title {
-            margin-top: 24px;
             padding: 4px 12px 4px 20px;
+            margin-top: 24px;
             color: rgba(var(--sys-sidebar-text-rgb), 1);
             font-size: 12px;
             font-weight: 600;
@@ -796,10 +796,10 @@
     }
 
     .sidebar-section-indicator {
-        display: flex;
         position: absolute;
         top: 0;
         right: 0;
+        display: flex;
         height: 100%;
 
         i {
