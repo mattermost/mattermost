@@ -101,10 +101,6 @@ export const AtMention = (props: Props) => {
         ));
     };
 
-    if (!user && !group) {
-        return null;
-    }
-
     if (user) {
         const userMentionNameSuffix = props.mentionName.substring(user.username.length);
         const userDisplayName = displayUsername(user, props.teammateNameDisplay);

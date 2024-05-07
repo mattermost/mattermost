@@ -93,13 +93,29 @@ exports[`components/AtMention should match snapshot when mentioning a group that
 </Fragment>
 `;
 
-exports[`components/AtMention should match snapshot when mentioning a group that is allowed reference with group highlight disabled 1`] = `""`;
+exports[`components/AtMention should match snapshot when mentioning a group that is allowed reference with group highlight disabled 1`] = `
+<Fragment>
+  (at)-developers
+</Fragment>
+`;
 
-exports[`components/AtMention should match snapshot when mentioning a group that is not allowed reference 1`] = `""`;
+exports[`components/AtMention should match snapshot when mentioning a group that is not allowed reference 1`] = `
+<Fragment>
+  (at)-marketing
+</Fragment>
+`;
 
-exports[`components/AtMention should match snapshot when mentioning all 1`] = `""`;
+exports[`components/AtMention should match snapshot when mentioning all 1`] = `
+<Fragment>
+  (at)-all
+</Fragment>
+`;
 
-exports[`components/AtMention should match snapshot when mentioning all with mixed case 1`] = `""`;
+exports[`components/AtMention should match snapshot when mentioning all with mixed case 1`] = `
+<Fragment>
+  (at)-aLL
+</Fragment>
+`;
 
 exports[`components/AtMention should match snapshot when mentioning current user 1`] = `
 <Fragment>
@@ -236,6 +252,14 @@ exports[`components/AtMention should match snapshot when mentioning user with mi
 </Fragment>
 `;
 
-exports[`components/AtMention should match snapshot when not mentioning a user 1`] = `""`;
+exports[`components/AtMention should match snapshot when not mentioning a user 1`] = `
+<Fragment>
+  (at)-notauser
+</Fragment>
+`;
 
-exports[`components/AtMention should match snapshot when not mentioning a user with mixed case 1`] = `""`;
+exports[`components/AtMention should match snapshot when not mentioning a user with mixed case 1`] = `
+<Fragment>
+  (at)-NOTAuser
+</Fragment>
+`;
