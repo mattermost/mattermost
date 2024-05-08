@@ -121,4 +121,38 @@ func TestSubmitMetrics(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
+
+	t.Run("metrics enabled but client metrics are disabled", func(t *testing.T) {
+		metricsMock := setupMetricsMock()
+
+		platform.RegisterMetricsInterface(func(_ *platform.PlatformService, _, _ string) einterfaces.MetricsInterface {
+			return metricsMock
+		})
+		t.Cleanup(func() {
+			platform.RegisterMetricsInterface(func(_ *platform.PlatformService, _, _ string) einterfaces.MetricsInterface {
+				return nil
+			})
+		})
+
+		th := SetupEnterpriseWithServerOptions(t, []app.Option{app.StartMetrics})
+		defer th.TearDown()
+
+		// enable metrics and add the license
+		th.App.Srv().SetLicense(model.NewTestLicense())
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.MetricsSettings.Enable = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.MetricsSettings.EnableClientMetrics = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.MetricsSettings.ListenAddress = ":0" })
+
+		resp, err := th.Client.SubmitClientMetrics(th.Context.Context(), &model.PerformanceReport{
+			Version: "0.1",
+			Start:   time.Now().Add(-1 * time.Minute).UnixMilli(),
+			End:     time.Now().UnixMilli(),
+			Counters: []*model.MetricSample{
+				{Metric: model.ClientLongTasks, Value: 1},
+			},
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
 }

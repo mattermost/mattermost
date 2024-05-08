@@ -16,7 +16,7 @@ func (api *API) InitClientPerformanceMetrics() {
 
 func submitPerformanceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	// we return early if server does not have any metrics infra available
-	if c.App.Metrics() == nil {
+	if c.App.Metrics() == nil || !*c.App.Config().MetricsSettings.EnableClientMetrics {
 		return
 	}
 
