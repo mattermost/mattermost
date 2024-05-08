@@ -1139,7 +1139,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClients,
 			Name:      "time_to_first_byte",
-			Help:      "Duration of when a browser starts to request a page from a server to when the server first starts to return data (milliseconds)",
+			Help:      "Duration from when a browser starts to request a page from a server until when it starts to receive data in response (milliseconds)",
 		},
 		[]string{"platform", "user_agent"},
 	)
@@ -1150,7 +1150,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClients,
 			Name:      "first_contentful_paint",
-			Help:      "Duration of the load time of any content to be displayed on screen to a user (milliseconds)",
+			Help:      "Duration of how long it takes for any content to be displayed on screen to a user (milliseconds)",
 		},
 		[]string{"platform", "user_agent"},
 	)
@@ -1161,7 +1161,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClients,
 			Name:      "largest_contentful_paint",
-			Help:      "Duration of the load time of largest content to be displayed on screen to a user (milliseconds)",
+			Help:      "Duration of how long it takes for large content to be displayed on screen to a user (milliseconds)",
 		},
 		[]string{"platform", "user_agent"},
 	)
@@ -1172,7 +1172,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClients,
 			Name:      "interaction_to_next_paint",
-			Help:      "Duration of the longest click or keyboard interaction while app is running, ignoring outliers (milliseconds)",
+			Help:      "Measure of how long it takes for a user to see the effects of clicking with a mouse, tapping with a touchscreen, or pressing a key on the keyboard (milliseconds)",
 		},
 		[]string{"platform", "user_agent"},
 	)
@@ -1183,7 +1183,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClients,
 			Name:      "cumulative_layout_shift",
-			Help:      "Duration of a page's content shifts unexpectedly during its lifetime (milliseconds)",
+			Help:      "Measure of how much a page's content shifts unexpectedly",
 		},
 		[]string{"platform", "user_agent"},
 	)
@@ -1194,7 +1194,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClients,
 			Name:      "long_tasks",
-			Help:      "Counter of work that the browser does on the main UI thread",
+			Help:      "Counter of the number of times that the browser's main UI thread is blocked for more than 50ms by a single task",
 		},
 		[]string{"platform", "user_agent"},
 	)
@@ -1216,7 +1216,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClients,
 			Name:      "channel_switch",
-			Help:      "Duration of posts to become visible when changing channels (milliseconds)",
+			Help:      "Duration of the time taken from when a user clicks on a channel in the LHS to when posts in that channel become visible (milliseconds)",
 		},
 		[]string{"platform", "user_agent"},
 	)
@@ -1227,7 +1227,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClients,
 			Name:      "team_switch",
-			Help:      "Duration of posts to become visible when changing teams (milliseconds)",
+			Help:      "Duration of the time taken from when a user clicks on a team in the LHS to when posts in that team become visible (milliseconds)",
 		},
 		[]string{"platform", "user_agent"},
 	)
@@ -1238,7 +1238,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClients,
 			Name:      "rhs_load",
-			Help:      "Duration of posts to be visible when the RHS is opened (milliseconds)",
+			Help:      "Duration of the time taken from when a user clicks to open a thread in the RHS until when posts in that thread become visible (milliseconds)",
 		},
 		[]string{"platform", "user_agent"},
 	)

@@ -14,11 +14,11 @@ import (
 type MetricType string
 
 const (
-	ClientTimeToFirstByte        MetricType = "time_to_first_byte"
-	ClientFirstContentfulPaint   MetricType = "first_contentful_paint"
-	ClientLargestContentfulPaint MetricType = "largest_contentful_paint"
-	ClientInteractionToNextPaint MetricType = "interaction_to_next_paint"
-	ClientCumulativeLayoutShift  MetricType = "cumulative_layout_shift"
+	ClientTimeToFirstByte        MetricType = "TTFB"
+	ClientFirstContentfulPaint   MetricType = "FCP"
+	ClientLargestContentfulPaint MetricType = "LCP"
+	ClientInteractionToNextPaint MetricType = "INP"
+	ClientCumulativeLayoutShift  MetricType = "CLS"
 	ClientLongTasks              MetricType = "long_tasks"
 	ClientPageLoadDuration       MetricType = "page_load"
 	ClientChannelSwitchDuration  MetricType = "channel_switch"
