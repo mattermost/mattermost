@@ -495,7 +495,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
 		s.Require().NotNil(err)
-		s.Require().ErrorContains(err, "GetUserByEmail: Unable to find the user., failed to find User: resource: User id: email="+email)
+		s.Require().ErrorContains(err, "GetUserByEmail: Unable to find the user., failed to find User: resource \"User\" not found, id: email="+email)
 	})
 
 	s.RunForAllClients("Should not create a user w/o email", func(c client.Client) {
@@ -510,7 +510,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByUsername(username)
 		s.Require().NotNil(err)
-		s.Require().ErrorContains(err, "GetUserByUsername: Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join., failed to find User: resource: User id: username="+username)
+		s.Require().ErrorContains(err, "GetUserByUsername: Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join., failed to find User: resource \"User\" not found, id: username="+username)
 	})
 
 	s.RunForAllClients("Should not create a user w/o password", func(c client.Client) {
@@ -525,7 +525,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
 		s.Require().NotNil(err)
-		s.Require().ErrorContains(err, "GetUserByEmail: Unable to find the user., failed to find User: resource: User id: email="+email)
+		s.Require().ErrorContains(err, "GetUserByEmail: Unable to find the user., failed to find User: resource \"User\" not found, id: email="+email)
 	})
 
 	s.Run("Should create a user but w/o system-admin privileges", func() {
@@ -720,7 +720,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().Equal("GetUser: Unable to find the user., resource: User id: "+newUser.Id, err.Error())
+		s.Require().Equal("GetUser: Unable to find the user., resource \"User\" not found, id: "+newUser.Id, err.Error())
 	})
 
 	s.RunForSystemAdminAndLocal("Delete nonexistent user", func(c client.Client) {
@@ -821,7 +821,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().EqualError(err, "GetUser: Unable to find the user., resource: User id: "+newUser.Id)
+		s.Require().EqualError(err, "GetUser: Unable to find the user., resource \"User\" not found, id: "+newUser.Id)
 	})
 }
 
