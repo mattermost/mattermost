@@ -167,7 +167,7 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
     openLeft={true}
     openUp={false}
   >
-    <Connect(SystemPermissionGate)
+    <Memo(SystemPermissionGate)
       key="visit-marketplace-permissions"
       permissions={
         Array [
@@ -204,7 +204,7 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
           </span>
         </button>
       </div>
-    </Connect(SystemPermissionGate)>
+    </Memo(SystemPermissionGate)>
   </Menu>
 </MenuWrapper>
 `;

@@ -87,7 +87,7 @@ describe('Guest Account - Guest User Experience', () => {
 
         // * Verify Guest Badge in Channel Header
         cy.get('#channelHeaderDescription').within(($el) => {
-            cy.wrap($el).find('.has-guest-header').should('be.visible').and('have.text', 'This channel has guests');
+            cy.wrap($el).find('.has-guest-header').should('be.visible').and('have.text', 'Channel has guests');
         });
 
         // * Verify list of Users in Direct Messages Dialog
