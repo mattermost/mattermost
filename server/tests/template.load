@@ -22,9 +22,9 @@ CAST column Channels.Type to "channel_type" drop typemod,
      column Drafts.Priority to text,
      type int when (= precision 11) to integer drop typemod,
      type bigint when (= precision 20) to bigint drop typemod,
-     type text to varchar drop typemod,
+     type text to varchar drop typemod using remove-null-characters,
      type tinyint when (<= precision 4) to boolean using tinyint-to-boolean,
-     type json to jsonb drop typemod
+     type json to jsonb drop typemod using remove-null-characters
 
 EXCLUDING TABLE NAMES MATCHING ~<IR_>, ~<focalboard>
 
