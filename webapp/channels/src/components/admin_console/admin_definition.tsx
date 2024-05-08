@@ -2376,6 +2376,16 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.not(it.licensedForFeature('IDLoadedPushNotifications')),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
                         },
+                        {
+                            type: 'bool',
+                            key: 'MetricsSettings.EnableNotificationMetrics',
+                            label: defineMessage({id: 'admin.metrics.enableNotificationMetricsTitle', defaultMessage: 'Enable Notification Monitoring:'}),
+                            help_text: defineMessage({id: 'admin.metrics.enableNotificationMetricsDescription', defaultMessage: 'When true, Mattermost will enable notification data collection for web and Desktop App users.'}),
+                            isDisabled: it.any(
+                                it.configIsFalse('MetricsSettings', 'Enable'),
+                            ),
+                            isHidden: it.configIsFalse('FeatureFlags', 'NotificationMonitoring'),
+                        },
                     ],
                 },
             },

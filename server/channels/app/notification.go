@@ -1740,7 +1740,7 @@ func (a *App) CountNotification(notificationType model.NotificationType) {
 		return
 	}
 
-	if !a.Config().FeatureFlags.NotificationMonitoring {
+	if !(a.Config().FeatureFlags.NotificationMonitoring && *a.Config().MetricsSettings.EnableNotificationMetrics) {
 		return
 	}
 
@@ -1752,7 +1752,7 @@ func (a *App) CountNotificationAck(notificationType model.NotificationType) {
 		return
 	}
 
-	if !a.Config().FeatureFlags.NotificationMonitoring {
+	if !(a.Config().FeatureFlags.NotificationMonitoring && *a.Config().MetricsSettings.EnableNotificationMetrics) {
 		return
 	}
 
@@ -1768,7 +1768,7 @@ func (a *App) CountNotificationReason(
 		return
 	}
 
-	if !a.Config().FeatureFlags.NotificationMonitoring {
+	if !(a.Config().FeatureFlags.NotificationMonitoring && *a.Config().MetricsSettings.EnableNotificationMetrics) {
 		return
 	}
 
