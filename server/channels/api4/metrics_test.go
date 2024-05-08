@@ -110,7 +110,8 @@ func TestSubmitMetrics(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.MetricsSettings.ListenAddress = ":0" })
 
 		resp, err := th.Client.SubmitClientMetrics(th.Context.Context(), &model.PerformanceReport{
-			Version: "1.0",
+			Version: "0.1",
+			Start:   time.Now().Add(-1 * time.Minute).UnixMilli(),
 			End:     time.Now().UnixMilli(),
 			Counters: []*model.MetricSample{
 				{Metric: model.ClientLongTasks, Value: 1},
