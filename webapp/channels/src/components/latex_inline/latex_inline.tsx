@@ -13,7 +13,10 @@ type Props = {
     enableInlineLatex: boolean;
 };
 
-const LatexInline = ({ content, enableInlineLatex }: Props) => {
+const LatexInline = ({
+    content,
+    enableInlineLatex,
+}: Props) => {
     const [katex, setKatex] = useState<Katex | undefined>(undefined);
 
     useEffect(() => {
@@ -24,7 +27,6 @@ const LatexInline = ({ content, enableInlineLatex }: Props) => {
 
     if (!enableInlineLatex || katex === undefined) {
         return (
-            // returns latex code as plain test wrapped in $
             <span
                 className='post-body--code inline-tex'
             >
