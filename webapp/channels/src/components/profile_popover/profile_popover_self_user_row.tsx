@@ -5,15 +5,12 @@ import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {AccountOutlineIcon, SendIcon} from '@mattermost/compass-icons/components';
-
 import {openModal} from 'actions/views/modals';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import UserSettingsModal from 'components/user_settings/modal';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     userId: string;
@@ -25,7 +22,7 @@ type Props = {
     handleShowDirectChannel: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-const ProfilePopoverEdit = ({
+const ProfilePopoverSelfUserRow = ({
     userId,
     currentUserId,
     haveOverrideProp,
@@ -51,59 +48,36 @@ const ProfilePopoverEdit = ({
         return null;
     }
 
-    const sendMessageTooltip = (
-        <Tooltip id='sendMessageTooltip'>
-            <FormattedMessage
-                id='user_profile.send.dm.yourself'
-                defaultMessage='Send yourself a message'
-            />
-        </Tooltip>
-    );
-
     return (
         <div
-            data-toggle='tooltip'
-            className='popover__row first'
+            className='user-popover__bottom-row-container'
         >
             <button
-                id='editProfileButton'
                 type='button'
-                className='btn'
+                className='btn btn-primary btn-sm'
                 onClick={handleEditAccountSettings}
             >
-                <AccountOutlineIcon
-                    size={16}
-                    aria-label={formatMessage({
-                        id: 'generic_icons.edit',
-                        defaultMessage: 'Edit Icon',
-                    })}
-                />
+                <i className='icon icon-account-outline'/>
                 <FormattedMessage
                     id='user_profile.account.editProfile'
                     defaultMessage='Edit Profile'
                 />
             </button>
-            <OverlayTrigger
-                delayShow={Constants.OVERLAY_TIME_DELAY}
+            <WithTooltip
+                id='user_profile.send.dm.yourself'
+                title={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
                 placement='top'
-                overlay={sendMessageTooltip}
             >
                 <button
                     type='button'
-                    className='btn icon-btn'
+                    className='btn btn-icon btn-sm'
                     onClick={handleShowDirectChannel}
                 >
-                    <SendIcon
-                        size={18}
-                        aria-label={formatMessage({
-                            id: 'user_profile.send.dm.icon',
-                            defaultMessage: 'Send Message Icon',
-                        })}
-                    />
+                    <i className='icon icon-send'/>
                 </button>
-            </OverlayTrigger>
+            </WithTooltip>
         </div>
     );
 };
 
-export default ProfilePopoverEdit;
+export default ProfilePopoverSelfUserRow;

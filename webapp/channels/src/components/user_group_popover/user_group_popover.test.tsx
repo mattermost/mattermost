@@ -104,7 +104,6 @@ describe('component/user_group_popover', () => {
     const baseProps: ComponentProps<typeof UserGroupPopover> = {
         searchTerm: '',
         group: group1,
-        showUserOverlay: jest.fn(),
         hide: jest.fn(),
         returnFocus: jest.fn(),
         actions: {

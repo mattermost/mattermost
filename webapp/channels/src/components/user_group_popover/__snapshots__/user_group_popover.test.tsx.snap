@@ -76,7 +76,6 @@ exports[`component/user_group_popover should match snapshot 1`] = `
         hide={[MockFunction]}
         returnFocus={[MockFunction]}
         searchTerm=""
-        showUserOverlay={[MockFunction]}
       >
         <Popover
           id="user-group-popover"
@@ -270,7 +269,6 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                 }
                 hide={[MockFunction]}
                 searchState={0}
-                showUserOverlay={[MockFunction]}
               >
                 <Memo(GroupMemberList)
                   actions={
@@ -934,7 +932,6 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                   }
                   searchState={0}
                   searchTerm=""
-                  showUserOverlay={[MockFunction]}
                   teamUrl="/team1"
                 >
                   <UserList
@@ -1040,49 +1037,60 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                         }
                                       }
                                     >
-                                      <UserButton
-                                        aria-haspopup="dialog"
-                                        onClick={[Function]}
+                                      <ProfilePopoverController
+                                        hideStatus={false}
+                                        src="/api/v4/users/id0/image?_=0"
+                                        userId="id0"
                                       >
-                                        <button
+                                        <span
+                                          aria-expanded="false"
                                           aria-haspopup="dialog"
-                                          className="UserButton-bZNeGd lLsMM"
                                           onClick={[Function]}
+                                          onKeyDown={[Function]}
+                                          onKeyUp={[Function]}
+                                          onMouseDown={[Function]}
+                                          onPointerDown={[Function]}
                                         >
-                                          <Memo(Avatar)
-                                            className="avatar-post-preview"
-                                            size="sm"
-                                            tabIndex={-1}
-                                            url="/api/v4/users/id0/image?_=0"
-                                            username="username0"
-                                          >
-                                            <img
-                                              alt="username0 profile image"
-                                              className="Avatar Avatar-sm avatar-post-preview"
-                                              loading="lazy"
-                                              onError={[Function]}
-                                              src="/api/v4/users/id0/image?_=0"
-                                              tabIndex={-1}
-                                            />
-                                          </Memo(Avatar)>
-                                          <Username
-                                            className="overflow--ellipsis text-nowrap"
-                                          >
-                                            <span
-                                              className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                          <UserButton>
+                                            <button
+                                              className="UserButton-bZNeGd lLsMM"
                                             >
-                                              username0
-                                            </span>
-                                          </Username>
-                                          <Gap
-                                            className="group-member-list_gap"
-                                          >
-                                            <span
-                                              className="Gap-pVXiI hWeVKL group-member-list_gap"
-                                            />
-                                          </Gap>
-                                        </button>
-                                      </UserButton>
+                                              <Memo(Avatar)
+                                                className="avatar-post-preview"
+                                                size="sm"
+                                                tabIndex={-1}
+                                                url="/api/v4/users/id0/image?_=0"
+                                                username="username0"
+                                              >
+                                                <img
+                                                  alt="username0 profile image"
+                                                  className="Avatar Avatar-sm avatar-post-preview"
+                                                  loading="lazy"
+                                                  onError={[Function]}
+                                                  src="/api/v4/users/id0/image?_=0"
+                                                  tabIndex={-1}
+                                                />
+                                              </Memo(Avatar)>
+                                              <Username
+                                                className="overflow--ellipsis text-nowrap"
+                                              >
+                                                <span
+                                                  className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                                >
+                                                  username0
+                                                </span>
+                                              </Username>
+                                              <Gap
+                                                className="group-member-list_gap"
+                                              >
+                                                <span
+                                                  className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                                />
+                                              </Gap>
+                                            </button>
+                                          </UserButton>
+                                        </span>
+                                      </ProfilePopoverController>
                                       <DMContainer
                                         className="group-member-list_dm-button"
                                       >
@@ -1180,49 +1188,60 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                         }
                                       }
                                     >
-                                      <UserButton
-                                        aria-haspopup="dialog"
-                                        onClick={[Function]}
+                                      <ProfilePopoverController
+                                        hideStatus={false}
+                                        src="/api/v4/users/id1/image?_=0"
+                                        userId="id1"
                                       >
-                                        <button
+                                        <span
+                                          aria-expanded="false"
                                           aria-haspopup="dialog"
-                                          className="UserButton-bZNeGd lLsMM"
                                           onClick={[Function]}
+                                          onKeyDown={[Function]}
+                                          onKeyUp={[Function]}
+                                          onMouseDown={[Function]}
+                                          onPointerDown={[Function]}
                                         >
-                                          <Memo(Avatar)
-                                            className="avatar-post-preview"
-                                            size="sm"
-                                            tabIndex={-1}
-                                            url="/api/v4/users/id1/image?_=0"
-                                            username="username1"
-                                          >
-                                            <img
-                                              alt="username1 profile image"
-                                              className="Avatar Avatar-sm avatar-post-preview"
-                                              loading="lazy"
-                                              onError={[Function]}
-                                              src="/api/v4/users/id1/image?_=0"
-                                              tabIndex={-1}
-                                            />
-                                          </Memo(Avatar)>
-                                          <Username
-                                            className="overflow--ellipsis text-nowrap"
-                                          >
-                                            <span
-                                              className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                          <UserButton>
+                                            <button
+                                              className="UserButton-bZNeGd lLsMM"
                                             >
-                                              username1
-                                            </span>
-                                          </Username>
-                                          <Gap
-                                            className="group-member-list_gap"
-                                          >
-                                            <span
-                                              className="Gap-pVXiI hWeVKL group-member-list_gap"
-                                            />
-                                          </Gap>
-                                        </button>
-                                      </UserButton>
+                                              <Memo(Avatar)
+                                                className="avatar-post-preview"
+                                                size="sm"
+                                                tabIndex={-1}
+                                                url="/api/v4/users/id1/image?_=0"
+                                                username="username1"
+                                              >
+                                                <img
+                                                  alt="username1 profile image"
+                                                  className="Avatar Avatar-sm avatar-post-preview"
+                                                  loading="lazy"
+                                                  onError={[Function]}
+                                                  src="/api/v4/users/id1/image?_=0"
+                                                  tabIndex={-1}
+                                                />
+                                              </Memo(Avatar)>
+                                              <Username
+                                                className="overflow--ellipsis text-nowrap"
+                                              >
+                                                <span
+                                                  className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                                >
+                                                  username1
+                                                </span>
+                                              </Username>
+                                              <Gap
+                                                className="group-member-list_gap"
+                                              >
+                                                <span
+                                                  className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                                />
+                                              </Gap>
+                                            </button>
+                                          </UserButton>
+                                        </span>
+                                      </ProfilePopoverController>
                                       <DMContainer
                                         className="group-member-list_dm-button"
                                       >
@@ -1320,49 +1339,60 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                         }
                                       }
                                     >
-                                      <UserButton
-                                        aria-haspopup="dialog"
-                                        onClick={[Function]}
+                                      <ProfilePopoverController
+                                        hideStatus={false}
+                                        src="/api/v4/users/id10/image?_=0"
+                                        userId="id10"
                                       >
-                                        <button
+                                        <span
+                                          aria-expanded="false"
                                           aria-haspopup="dialog"
-                                          className="UserButton-bZNeGd lLsMM"
                                           onClick={[Function]}
+                                          onKeyDown={[Function]}
+                                          onKeyUp={[Function]}
+                                          onMouseDown={[Function]}
+                                          onPointerDown={[Function]}
                                         >
-                                          <Memo(Avatar)
-                                            className="avatar-post-preview"
-                                            size="sm"
-                                            tabIndex={-1}
-                                            url="/api/v4/users/id10/image?_=0"
-                                            username="username10"
-                                          >
-                                            <img
-                                              alt="username10 profile image"
-                                              className="Avatar Avatar-sm avatar-post-preview"
-                                              loading="lazy"
-                                              onError={[Function]}
-                                              src="/api/v4/users/id10/image?_=0"
-                                              tabIndex={-1}
-                                            />
-                                          </Memo(Avatar)>
-                                          <Username
-                                            className="overflow--ellipsis text-nowrap"
-                                          >
-                                            <span
-                                              className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                          <UserButton>
+                                            <button
+                                              className="UserButton-bZNeGd lLsMM"
                                             >
-                                              username10
-                                            </span>
-                                          </Username>
-                                          <Gap
-                                            className="group-member-list_gap"
-                                          >
-                                            <span
-                                              className="Gap-pVXiI hWeVKL group-member-list_gap"
-                                            />
-                                          </Gap>
-                                        </button>
-                                      </UserButton>
+                                              <Memo(Avatar)
+                                                className="avatar-post-preview"
+                                                size="sm"
+                                                tabIndex={-1}
+                                                url="/api/v4/users/id10/image?_=0"
+                                                username="username10"
+                                              >
+                                                <img
+                                                  alt="username10 profile image"
+                                                  className="Avatar Avatar-sm avatar-post-preview"
+                                                  loading="lazy"
+                                                  onError={[Function]}
+                                                  src="/api/v4/users/id10/image?_=0"
+                                                  tabIndex={-1}
+                                                />
+                                              </Memo(Avatar)>
+                                              <Username
+                                                className="overflow--ellipsis text-nowrap"
+                                              >
+                                                <span
+                                                  className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                                >
+                                                  username10
+                                                </span>
+                                              </Username>
+                                              <Gap
+                                                className="group-member-list_gap"
+                                              >
+                                                <span
+                                                  className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                                />
+                                              </Gap>
+                                            </button>
+                                          </UserButton>
+                                        </span>
+                                      </ProfilePopoverController>
                                       <DMContainer
                                         className="group-member-list_dm-button"
                                       >
@@ -1460,49 +1490,60 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                         }
                                       }
                                     >
-                                      <UserButton
-                                        aria-haspopup="dialog"
-                                        onClick={[Function]}
+                                      <ProfilePopoverController
+                                        hideStatus={false}
+                                        src="/api/v4/users/id11/image?_=0"
+                                        userId="id11"
                                       >
-                                        <button
+                                        <span
+                                          aria-expanded="false"
                                           aria-haspopup="dialog"
-                                          className="UserButton-bZNeGd lLsMM"
                                           onClick={[Function]}
+                                          onKeyDown={[Function]}
+                                          onKeyUp={[Function]}
+                                          onMouseDown={[Function]}
+                                          onPointerDown={[Function]}
                                         >
-                                          <Memo(Avatar)
-                                            className="avatar-post-preview"
-                                            size="sm"
-                                            tabIndex={-1}
-                                            url="/api/v4/users/id11/image?_=0"
-                                            username="username11"
-                                          >
-                                            <img
-                                              alt="username11 profile image"
-                                              className="Avatar Avatar-sm avatar-post-preview"
-                                              loading="lazy"
-                                              onError={[Function]}
-                                              src="/api/v4/users/id11/image?_=0"
-                                              tabIndex={-1}
-                                            />
-                                          </Memo(Avatar)>
-                                          <Username
-                                            className="overflow--ellipsis text-nowrap"
-                                          >
-                                            <span
-                                              className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                          <UserButton>
+                                            <button
+                                              className="UserButton-bZNeGd lLsMM"
                                             >
-                                              username11
-                                            </span>
-                                          </Username>
-                                          <Gap
-                                            className="group-member-list_gap"
-                                          >
-                                            <span
-                                              className="Gap-pVXiI hWeVKL group-member-list_gap"
-                                            />
-                                          </Gap>
-                                        </button>
-                                      </UserButton>
+                                              <Memo(Avatar)
+                                                className="avatar-post-preview"
+                                                size="sm"
+                                                tabIndex={-1}
+                                                url="/api/v4/users/id11/image?_=0"
+                                                username="username11"
+                                              >
+                                                <img
+                                                  alt="username11 profile image"
+                                                  className="Avatar Avatar-sm avatar-post-preview"
+                                                  loading="lazy"
+                                                  onError={[Function]}
+                                                  src="/api/v4/users/id11/image?_=0"
+                                                  tabIndex={-1}
+                                                />
+                                              </Memo(Avatar)>
+                                              <Username
+                                                className="overflow--ellipsis text-nowrap"
+                                              >
+                                                <span
+                                                  className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                                >
+                                                  username11
+                                                </span>
+                                              </Username>
+                                              <Gap
+                                                className="group-member-list_gap"
+                                              >
+                                                <span
+                                                  className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                                />
+                                              </Gap>
+                                            </button>
+                                          </UserButton>
+                                        </span>
+                                      </ProfilePopoverController>
                                       <DMContainer
                                         className="group-member-list_dm-button"
                                       >
@@ -1600,49 +1641,60 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                         }
                                       }
                                     >
-                                      <UserButton
-                                        aria-haspopup="dialog"
-                                        onClick={[Function]}
+                                      <ProfilePopoverController
+                                        hideStatus={false}
+                                        src="/api/v4/users/id12/image?_=0"
+                                        userId="id12"
                                       >
-                                        <button
+                                        <span
+                                          aria-expanded="false"
                                           aria-haspopup="dialog"
-                                          className="UserButton-bZNeGd lLsMM"
                                           onClick={[Function]}
+                                          onKeyDown={[Function]}
+                                          onKeyUp={[Function]}
+                                          onMouseDown={[Function]}
+                                          onPointerDown={[Function]}
                                         >
-                                          <Memo(Avatar)
-                                            className="avatar-post-preview"
-                                            size="sm"
-                                            tabIndex={-1}
-                                            url="/api/v4/users/id12/image?_=0"
-                                            username="username12"
-                                          >
-                                            <img
-                                              alt="username12 profile image"
-                                              className="Avatar Avatar-sm avatar-post-preview"
-                                              loading="lazy"
-                                              onError={[Function]}
-                                              src="/api/v4/users/id12/image?_=0"
-                                              tabIndex={-1}
-                                            />
-                                          </Memo(Avatar)>
-                                          <Username
-                                            className="overflow--ellipsis text-nowrap"
-                                          >
-                                            <span
-                                              className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                          <UserButton>
+                                            <button
+                                              className="UserButton-bZNeGd lLsMM"
                                             >
-                                              username12
-                                            </span>
-                                          </Username>
-                                          <Gap
-                                            className="group-member-list_gap"
-                                          >
-                                            <span
-                                              className="Gap-pVXiI hWeVKL group-member-list_gap"
-                                            />
-                                          </Gap>
-                                        </button>
-                                      </UserButton>
+                                              <Memo(Avatar)
+                                                className="avatar-post-preview"
+                                                size="sm"
+                                                tabIndex={-1}
+                                                url="/api/v4/users/id12/image?_=0"
+                                                username="username12"
+                                              >
+                                                <img
+                                                  alt="username12 profile image"
+                                                  className="Avatar Avatar-sm avatar-post-preview"
+                                                  loading="lazy"
+                                                  onError={[Function]}
+                                                  src="/api/v4/users/id12/image?_=0"
+                                                  tabIndex={-1}
+                                                />
+                                              </Memo(Avatar)>
+                                              <Username
+                                                className="overflow--ellipsis text-nowrap"
+                                              >
+                                                <span
+                                                  className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                                >
+                                                  username12
+                                                </span>
+                                              </Username>
+                                              <Gap
+                                                className="group-member-list_gap"
+                                              >
+                                                <span
+                                                  className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                                />
+                                              </Gap>
+                                            </button>
+                                          </UserButton>
+                                        </span>
+                                      </ProfilePopoverController>
                                       <DMContainer
                                         className="group-member-list_dm-button"
                                       >

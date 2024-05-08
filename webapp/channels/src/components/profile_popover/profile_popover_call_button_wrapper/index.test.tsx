@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {checkUserInCall} from './call_button';
+import {checkUserInCall} from 'components/profile_popover/profile_popover_call_button_wrapper';
 
 describe('checkUserInCall', () => {
     test('missing state', () => {

@@ -31,37 +31,27 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
       >
         <ProfilePicture
           channelId="channel_id"
-          hasMention={false}
-          isEmoji={false}
-          popoverPlacement="right"
           size="md"
           src="/api/v4/users/user_id/image?_=0"
           status="status"
           userId="user_id"
           username="username"
-          wrapperClass=""
         >
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            overlay={
-              <Memo(ProfilePopover)
-                channelId="channel_id"
-                className="user-profile-popover"
-                hide={[Function]}
-                src="/api/v4/users/user_id/image?_=0"
-                userId="user_id"
-              />
-            }
-            placement="right"
-            rootClose={true}
-            trigger={
-              Array [
-                "click",
-              ]
-            }
+          <ProfilePopoverController
+            channelId="channel_id"
+            src="/api/v4/users/user_id/image?_=0"
+            triggerComponentClass="status-wrapper"
+            userId="user_id"
           >
             <span
-              className="status-wrapper  "
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              className="status-wrapper"
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onPointerDown={[Function]}
             >
               <RoundButton
                 className="style--none"
@@ -76,7 +66,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                   >
                     <Memo(Avatar)
                       size="md"
-                      tabIndex={-1}
                       url="/api/v4/users/user_id/image?_=0"
                       username="username"
                     >
@@ -86,7 +75,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                         loading="lazy"
                         onError={[Function]}
                         src="/api/v4/users/user_id/image?_=0"
-                        tabIndex={-1}
                       />
                     </Memo(Avatar)>
                   </span>
@@ -125,7 +113,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                 </StatusOfflineIcon>
               </Memo(StatusIcon)>
             </span>
-          </OverlayTrigger>
+          </ProfilePopoverController>
         </ProfilePicture>
       </div>
       <div
@@ -240,37 +228,27 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
       >
         <ProfilePicture
           channelId="channel_id"
-          hasMention={false}
-          isEmoji={false}
-          popoverPlacement="right"
           size="md"
           src="/api/v4/users/user_id/image?_=0"
           status="status"
           userId="user_id"
           username="username"
-          wrapperClass=""
         >
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            overlay={
-              <Memo(ProfilePopover)
-                channelId="channel_id"
-                className="user-profile-popover"
-                hide={[Function]}
-                src="/api/v4/users/user_id/image?_=0"
-                userId="user_id"
-              />
-            }
-            placement="right"
-            rootClose={true}
-            trigger={
-              Array [
-                "click",
-              ]
-            }
+          <ProfilePopoverController
+            channelId="channel_id"
+            src="/api/v4/users/user_id/image?_=0"
+            triggerComponentClass="status-wrapper"
+            userId="user_id"
           >
             <span
-              className="status-wrapper  "
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              className="status-wrapper"
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onPointerDown={[Function]}
             >
               <RoundButton
                 className="style--none"
@@ -285,7 +263,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                   >
                     <Memo(Avatar)
                       size="md"
-                      tabIndex={-1}
                       url="/api/v4/users/user_id/image?_=0"
                       username="username"
                     >
@@ -295,7 +272,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                         loading="lazy"
                         onError={[Function]}
                         src="/api/v4/users/user_id/image?_=0"
-                        tabIndex={-1}
                       />
                     </Memo(Avatar)>
                   </span>
@@ -334,7 +310,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                 </StatusOfflineIcon>
               </Memo(StatusIcon)>
             </span>
-          </OverlayTrigger>
+          </ProfilePopoverController>
         </ProfilePicture>
       </div>
       <div
@@ -455,37 +431,27 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
       >
         <ProfilePicture
           channelId="channel_id"
-          hasMention={false}
-          isEmoji={false}
-          popoverPlacement="right"
           size="md"
           src="/api/v4/users/user_id/image?_=0"
           status="status"
           userId="user_id"
           username="username"
-          wrapperClass=""
         >
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            overlay={
-              <Memo(ProfilePopover)
-                channelId="channel_id"
-                className="user-profile-popover"
-                hide={[Function]}
-                src="/api/v4/users/user_id/image?_=0"
-                userId="user_id"
-              />
-            }
-            placement="right"
-            rootClose={true}
-            trigger={
-              Array [
-                "click",
-              ]
-            }
+          <ProfilePopoverController
+            channelId="channel_id"
+            src="/api/v4/users/user_id/image?_=0"
+            triggerComponentClass="status-wrapper"
+            userId="user_id"
           >
             <span
-              className="status-wrapper  "
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              className="status-wrapper"
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onPointerDown={[Function]}
             >
               <RoundButton
                 className="style--none"
@@ -500,7 +466,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                   >
                     <Memo(Avatar)
                       size="md"
-                      tabIndex={-1}
                       url="/api/v4/users/user_id/image?_=0"
                       username="username"
                     >
@@ -510,7 +475,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                         loading="lazy"
                         onError={[Function]}
                         src="/api/v4/users/user_id/image?_=0"
-                        tabIndex={-1}
                       />
                     </Memo(Avatar)>
                   </span>
@@ -549,7 +513,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                 </StatusOfflineIcon>
               </Memo(StatusIcon)>
             </span>
-          </OverlayTrigger>
+          </ProfilePopoverController>
         </ProfilePicture>
       </div>
       <div
@@ -732,37 +696,27 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
       >
         <ProfilePicture
           channelId="channel_id"
-          hasMention={false}
-          isEmoji={false}
-          popoverPlacement="right"
           size="md"
           src="/api/v4/users/user_id/image?_=0"
           status="status"
           userId="user_id"
           username="username"
-          wrapperClass=""
         >
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            overlay={
-              <Memo(ProfilePopover)
-                channelId="channel_id"
-                className="user-profile-popover"
-                hide={[Function]}
-                src="/api/v4/users/user_id/image?_=0"
-                userId="user_id"
-              />
-            }
-            placement="right"
-            rootClose={true}
-            trigger={
-              Array [
-                "click",
-              ]
-            }
+          <ProfilePopoverController
+            channelId="channel_id"
+            src="/api/v4/users/user_id/image?_=0"
+            triggerComponentClass="status-wrapper"
+            userId="user_id"
           >
             <span
-              className="status-wrapper  "
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              className="status-wrapper"
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onPointerDown={[Function]}
             >
               <RoundButton
                 className="style--none"
@@ -777,7 +731,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                   >
                     <Memo(Avatar)
                       size="md"
-                      tabIndex={-1}
                       url="/api/v4/users/user_id/image?_=0"
                       username="username"
                     >
@@ -787,7 +740,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                         loading="lazy"
                         onError={[Function]}
                         src="/api/v4/users/user_id/image?_=0"
-                        tabIndex={-1}
                       />
                     </Memo(Avatar)>
                   </span>
@@ -826,7 +778,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                 </StatusOfflineIcon>
               </Memo(StatusIcon)>
             </span>
-          </OverlayTrigger>
+          </ProfilePopoverController>
         </ProfilePicture>
       </div>
       <div

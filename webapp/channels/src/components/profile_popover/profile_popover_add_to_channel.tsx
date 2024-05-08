@@ -5,18 +5,16 @@ import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {AccountPlusOutlineIcon} from '@mattermost/compass-icons/components';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {canManageAnyChannelMembersInCurrentTeam as getCanManageAnyChannelMembersInCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam, getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 
 import AddUserToChannelModal from 'components/add_user_to_channel_modal';
-import OverlayTrigger from 'components/overlay_trigger';
 import ToggleModalButton from 'components/toggle_modal_button';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -33,7 +31,7 @@ function getIsInCurrentTeam(state: GlobalState, userId: string) {
     return Boolean(teamMember) && teamMember?.delete_at === 0;
 }
 
-const AddToChannel = ({
+const ProfilePopoverAddToChannel = ({
     handleCloseModals,
     returnFocus,
     user,
@@ -52,42 +50,37 @@ const AddToChannel = ({
     if (!canManageAnyChannelMembersInCurrentTeam || !isInCurrentTeam) {
         return null;
     }
-    const addToChannelMessage = formatMessage({
-        id: 'user_profile.add_user_to_channel',
-        defaultMessage: 'Add to a Channel',
-    });
 
     return (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id='user_profile.add_user_to_channel.icon'
+            title={formatMessage({
+                id: 'user_profile.add_user_to_channel',
+                defaultMessage: 'Add to a Channel',
+            })}
             placement='top'
-            overlay={
-                <Tooltip id='addToChannelTooltip'>
-                    {addToChannelMessage}
-                </Tooltip>
-            }
         >
-            <div>
+            {/* This span is neccessary as tooltip is not able to pass trigger props to a custom component */}
+            <span>
                 <ToggleModalButton
                     id='addToChannelButton'
-                    className='btn icon-btn'
-                    ariaLabel={addToChannelMessage}
+                    className='btn btn-icon btn-sm'
+                    ariaLabel={formatMessage({
+                        id: 'user_profile.add_user_to_channel',
+                        defaultMessage: 'Add to a Channel',
+                    })}
                     modalId={ModalIdentifiers.ADD_USER_TO_CHANNEL}
                     dialogType={AddUserToChannelModal}
                     dialogProps={{user, onExited: returnFocus}}
                     onClick={handleAddToChannel}
                 >
-                    <AccountPlusOutlineIcon
-                        size={18}
-                        aria-label={formatMessage({
-                            id: 'user_profile.add_user_to_channel.icon',
-                            defaultMessage: 'Add User to Channel Icon',
-                        })}
+                    <i
+                        className='icon icon-account-plus-outline'
                     />
                 </ToggleModalButton>
-            </div>
-        </OverlayTrigger>
+            </span>
+        </WithTooltip>
     );
 };
 
-export default AddToChannel;
+export default ProfilePopoverAddToChannel;
