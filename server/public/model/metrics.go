@@ -20,7 +20,6 @@ const (
 	ClientInteractionToNextPaint MetricType = "INP"
 	ClientCumulativeLayoutShift  MetricType = "CLS"
 	ClientLongTasks              MetricType = "long_tasks"
-	ClientPageLoadDuration       MetricType = "page_load"
 	ClientChannelSwitchDuration  MetricType = "channel_switch"
 	ClientTeamSwitchDuration     MetricType = "team_switch"
 	ClientRHSLoadDuration        MetricType = "rhs_load"
@@ -29,7 +28,7 @@ const (
 )
 
 var (
-	performanceReportVersion = semver.MustParse("1.0.0")
+	performanceReportVersion = semver.MustParse("0.1.0")
 	acceptedPlatforms        = sliceToMapKey("linux", "macos", "ios", "android", "windows", "other")
 	acceptedAgents           = sliceToMapKey("desktop", "firefox", "chrome", "safari", "edge", "other")
 )
@@ -53,13 +52,21 @@ type PerformanceReport struct {
 }
 
 func (r *PerformanceReport) IsValid() error {
+	if r == nil {
+		return fmt.Errorf("the report is nil")
+	}
+
 	reportVersion, err := semver.ParseTolerant(r.Version)
 	if err != nil {
 		return err
 	}
 
 	if reportVersion.Major != performanceReportVersion.Major || reportVersion.Minor > performanceReportVersion.Minor {
-		return fmt.Errorf("report version is not supported: server verion: %s, report version: %s", r.Version, performanceReportVersion.String())
+		return fmt.Errorf("report version is not supported: server version: %s, report version: %s", performanceReportVersion.String(), r.Version)
+	}
+
+	if r.Start >= r.End {
+		return fmt.Errorf("report timestamps are erroneous")
 	}
 
 	now := time.Now().UnixMilli()

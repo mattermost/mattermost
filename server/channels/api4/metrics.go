@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func (api *API) InitPerformanceMetrics() {
+func (api *API) InitClientPerformanceMetrics() {
 	api.BaseRoutes.APIRoot.Handle("/perf", api.APISessionRequired(submitPerformanceReport)).Methods("POST")
 }
 

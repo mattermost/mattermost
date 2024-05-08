@@ -36,8 +36,6 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 			a.Metrics().ObserveClientInteractionToNextPaint(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
 		case model.ClientCumulativeLayoutShift:
 			a.Metrics().ObserveClientCumulativeLayoutShift(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
-		case model.ClientPageLoadDuration:
-			a.Metrics().ObserveClientPageLoadDuration(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
 		case model.ClientChannelSwitchDuration:
 			a.Metrics().ObserveClientChannelSwitchDuration(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
 		case model.ClientTeamSwitchDuration:
