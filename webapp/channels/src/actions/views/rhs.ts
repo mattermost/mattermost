@@ -31,7 +31,7 @@ import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, ge
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
-import {measureAndReport} from 'utils/performance_telemetry';
+import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
 import type {GlobalState} from 'types/store';
@@ -515,7 +515,7 @@ export function toggleRhsExpanded() {
 }
 
 export function selectPost(post: Post, previousRhsState?: RhsState) {
-    performance.mark('PostList#postSelected');
+    performance.mark(Mark.PostSelected);
 
     return {
         type: ActionTypes.SELECT_POST,
@@ -648,8 +648,8 @@ export function setEditChannelMembers(active: boolean) {
 
 export function measureRhsOpened() {
     return () => {
-        measureAndReport('rhs_load', 'PostList#postSelected', undefined, true);
+        measureAndReport(Measure.RhsLoad, Mark.PostSelected, undefined, true);
 
-        performance.clearMarks('PostList#postSelected');
+        performance.clearMarks(Mark.PostSelected);
     };
 }

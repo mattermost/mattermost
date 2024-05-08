@@ -4,12 +4,13 @@
 export const enum Mark {
     ChannelLinkClicked = 'SidebarChannelLink#click',
     PostListLoaded = 'PostList#component',
-    PostSelected = 'PostList#PostSelected',
+    PostSelected = 'PostList#postSelected',
     TeamLinkClicked = 'TeamLink#click',
 }
 
 export const enum Measure {
     ChannelSwitch = 'channel_switch',
+    RhsLoad = 'rhs_load',
     TeamSwitch = 'team_switch',
 }
 
