@@ -188,6 +188,11 @@ func (_m *MetricsInterface) IncrementNotificationSuccessCounter(notificationType
 	_m.Called(notificationType)
 }
 
+// IncrementNotificationUnsupportedCounter provides a mock function with given fields: notificationType, notSentReason
+func (_m *MetricsInterface) IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
+	_m.Called(notificationType, notSentReason)
+}
+
 // IncrementPostBroadcast provides a mock function with given fields:
 func (_m *MetricsInterface) IncrementPostBroadcast() {
 	_m.Called()

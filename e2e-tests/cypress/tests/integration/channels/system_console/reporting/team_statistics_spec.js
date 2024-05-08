@@ -38,7 +38,7 @@ describe('System Console > Team Statistics', () => {
         cy.get('.grid-statistics__card').should('have.length', 4);
 
         // * Check that the title content for the stats is as expected.
-        cy.get('.admin-console__content').eq(0).find('.title').eq(0).should('contain', 'Total Active Users');
+        cy.get('.admin-console__content').eq(0).find('.title').eq(0).should('contain', 'Total Activated Users');
         cy.get('.admin-console__content').eq(0).find('.title').eq(1).should('contain', 'Public Channels');
         cy.get('.admin-console__content').eq(0).find('.title').eq(2).should('contain', 'Private Channels');
         cy.get('.admin-console__content').eq(0).find('.title').eq(3).should('contain', 'Total Posts');

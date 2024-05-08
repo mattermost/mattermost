@@ -34,12 +34,9 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
   noPadding={false}
   onGroupRemoved={[MockFunction]}
   onPageChangedCallback={[MockFunction]}
-  removeGroup={[MockFunction]}
   renderRow={[Function]}
-  setNewGroupRole={[MockFunction]}
   total={1}
   totalGroups={0}
-  type="team"
 />
 `;
 
@@ -512,11 +509,8 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
   noPadding={false}
   onGroupRemoved={[MockFunction]}
   onPageChangedCallback={[MockFunction]}
-  removeGroup={[MockFunction]}
   renderRow={[Function]}
-  setNewGroupRole={[MockFunction]}
   total={30}
   totalGroups={0}
-  type="team"
 />
 `;

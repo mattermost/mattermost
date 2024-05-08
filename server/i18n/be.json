@@ -400,14 +400,6 @@
     "translation": "Прагляд Паведамлення"
   },
   {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Аплаціце зараз"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Няўдалы Плацёж"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_renew_now",
     "translation": "Падоўжыць зараз"
   },
@@ -1650,10 +1642,6 @@
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Ваш пароль павінен утрымоўваць прынамсі {{.Min}} знакаў, а гэтак жа адну літару ў ніжнім рэгістры."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Ваш пароль павінен утрымоўваць прынамсі {{.Min}} знакаў."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -3004,10 +2992,6 @@
     "translation": "Не ўдалося праверыць, ці пуста сховішча карыстальнікаў."
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Ніводнае email-паведамленне не было паспяхова адпраўлена"
-  },
-  {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Не ўдалося адправіць аўтаматычны адказ ад карыстальніка."
   },
@@ -3394,10 +3378,6 @@
   {
     "id": "app.status.get.app_error",
     "translation": "Узнікла памылка пры атрыманні статуту."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Узнікла памылка пры стварэнні прамога агульнага канала."
   },
   {
     "id": "app.session.update_device_id.app_error",
@@ -4260,10 +4240,6 @@
     "translation": "Памылка чытання імпартнага файла."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Не ўдалося прачытаць аттачмент пры імпарце."
-  },
-  {
     "id": "app.import.attachment.file_upload.error",
     "translation": "Памылка пры загрузцы файла: \"{{.FilePath}}\""
   },
@@ -4310,10 +4286,6 @@
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "Не ўдалося атрымаць усіх карыстальнікаў з дапамогай AD/LDAP."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "памылка пры выдаленні ўдзелу ў камандзе ці канале"
   },
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
@@ -4706,10 +4678,6 @@
   {
     "id": "ent.cluster.config_changed.info",
     "translation": "Канфігурацыя кластара змянілася для id={{ .id }}. Кластар можа стаць нестабільным, і патрабуецца перазагрузка. Каб пераканацца, што кластар настроены правільна, вы павінны неадкладна выканаць паўторны перазапуск."
-  },
-  {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Не знойдзены канчатковы пункт API кластара."
   },
   {
     "id": "ent.actiance.export.write_file.appError",
@@ -6034,38 +6002,6 @@
   {
     "id": "api.templates.questions_footer.info",
     "translation": "Напішыце нам у любы час на email "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Ваш рахунак за Mattermost Cloud да аплаты"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Аплата робіцца за падпіску на Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Каб прагледзець рахунак і дадаць спосаб аплаты, абярыце Аплаціць зараз."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Ваш рахунак Mattermost Cloud за апошні разліковы перыяд быў апрацаваны. Аднак у нас няма вашых плацёжных рэквізітаў."
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Патрабуецца дзеянне: Аплата за Mattermost Cloud не праведзена"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Каб забяспечыць бесперабойную падпіску на Mattermost Cloud, звяжыцеся з вашай фінансавай установай для ўхілення асноўнай праблемы або абновіце аплатную інфармацыю. Пасля абнаўлення плацежных дадзеных Mattermost распачне спробу пагасіць рэшту запазычанасці."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Яны прывялі наступную прычыну:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Ваша фінансавая ўстанова адхіліла аплату вашай карты {{.CardBrand}}. ****{{.LastFour}}, звязаны з вашым працоўным прасторай Mattermost Cloud."
   },
   {
     "id": "api.templates.password_change_subject",
@@ -7772,10 +7708,6 @@
     "translation": "Вы адключылі свой уліковы запіс на {{.SiteURL}}."
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.templates.cloud_welcome_email.title",
     "translation": "Ваша 14-дзённая пробная версія {{.WorkSpace}} гатова да працы!"
   },
@@ -8786,14 +8718,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Налады Elasticsearch маюць неўсталяваныя значэнні."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Цяпер Ваш сервер абноўлены!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Пацвярджэнне абнаўлення Mattermost"
   },
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",

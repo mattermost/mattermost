@@ -2,13 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch} from 'redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
-import {openMenu as openRhsMenu} from 'actions/views/rhs';
 import {getIsRhsMenuOpen} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -30,12 +27,4 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch) {
-    return {
-        actions: bindActionCreators({
-            openRhsMenu,
-        }, dispatch),
-    };
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(SidebarRightMenu);
+export default connect(mapStateToProps)(SidebarRightMenu);

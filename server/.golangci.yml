@@ -26,11 +26,10 @@ linters:
     - goimports
     - makezero
     - whitespace
-    # TODO: enable this later
-    # - errcheck
+    - errcheck
 
 issues:
-  skip-dirs:
+  exclude-dirs:
     - channels/store/storetest/mocks
   exclude-rules:
     - linters:
@@ -57,3 +56,7 @@ issues:
     - linters:
       - staticcheck
       text: SA1019
+
+    - linters:
+        - errcheck
+      path: "channels|platform|cmd/mattermost|public/model|public/plugin|public/shared/mlog|enterprise/saml|enterprise/cloud|enterprise/ldap"
