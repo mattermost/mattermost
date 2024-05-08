@@ -1,6 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+export const enum Mark {
+    ChannelLinkClicked = 'SidebarChannelLink#click',
+    PostListLoaded = 'PostList#component',
+    PostSelected = 'PostList#PostSelected',
+    TeamLinkClicked = 'TeamLink#click',
+}
+
+export const enum Measure {
+    ChannelSwitch = 'channel_switch',
+    TeamSwitch = 'team_switch',
+}
+
 export function markAndReport(name: string): PerformanceMark {
     return performance.mark(name, {
         detail: {
