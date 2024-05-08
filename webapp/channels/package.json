@@ -103,6 +103,7 @@
   "devDependencies": {
     "@deanwhillier/jest-matchmedia-mock": "1.2.0",
     "@hot-loader/react-dom": "17.0.2",
+    "@mattermost/calls-common": "0.27.0",
     "@mattermost/eslint-plugin": "*",
     "@redux-devtools/extension": "3.2.3",
     "@stylistic/stylelint-plugin": "2.1.0",
