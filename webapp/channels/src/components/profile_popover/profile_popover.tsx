@@ -219,7 +219,6 @@ const ProfilePopover = ({
                     hide={hide}
                 />
                 <ProfilePopoverOtherUserRow
-                    channelId={channelId}
                     currentUserId={currentUserId}
                     fullname={fullname}
                     handleCloseModals={handleCloseModals}

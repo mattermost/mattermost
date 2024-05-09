@@ -14,6 +14,7 @@ import {General, Permissions} from 'mattermost-redux/constants';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+import {getDirectChannelName} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -52,6 +53,10 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
     const currentUser = TestHelper.getUserMock({id: 'currentUser', roles: 'role'});
     const currentTeam = TestHelper.getTeamMock({id: 'currentTeam'});
     const channel = TestHelper.getChannelMock({id: 'channelId', team_id: currentTeam.id, type: General.OPEN_CHANNEL});
+    const dmChannel = {
+        id: 'dmChannelId',
+        name: getDirectChannelName(user.id, currentUser.id),
+    };
 
     const state: DeepPartial<GlobalState> = {
         entities: {
@@ -84,9 +89,11 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
             channels: {
                 channels: {
                     [channel.id]: channel,
+                    [dmChannel.id]: dmChannel,
                 },
                 myMembers: {
                     [channel.id]: {},
+                    [dmChannel.id]: {},
                 },
             },
             general: {
@@ -140,7 +147,7 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         'plugins-com.mattermost.calls': {
-            profiles: {},
+            sessions: {},
         },
     };
     const props: Props = {
@@ -302,16 +309,16 @@ describe('components/ProfilePopover', () => {
         expect(screen.queryByLabelText('Start Call')).not.toBeInTheDocument();
     });
 
-    test('should disable start call button when user is in another call', async () => {
+    test('should disable start call button when call is ongoing in the DM', async () => {
         const [props, initialState] = getBasePropsAndState();
-        (initialState as any)['plugins-com.mattermost.calls'].profiles = {fakeChannel: {currentUser: {id: 'currentUser'}}};
+        (initialState as any)['plugins-com.mattermost.calls'].sessions = {dmChannelId: {currentUser: {user_id: 'currentUser'}}};
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        const button = (await screen.findByLabelText('Start Call')).closest('button');
+        const button = (await screen.findByLabelText('Call with user is ongoing')).closest('button');
         expect(button?.getAttribute('aria-disabled')).toBe('true');
     });
 
-    test('should not show the start call button when isCallsDefaultEnabledOnAllChannels, isCallsCanBeDisabledOnSpecificChannels is false and callsChannelState.enabled is false', async () => {
+    test('should not show the start call button when callsChannelState.enabled is false', async () => {
         (Client4.getCallsChannelState as jest.Mock).mockImplementationOnce(async () => ({enabled: false}));
         const [props, initialState] = getBasePropsAndState();
 

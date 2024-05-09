@@ -12,7 +12,6 @@ import ProfilePopoverCallButtonWrapper from 'components/profile_popover/profile_
 type Props = {
     user: UserProfile;
     fullname: string;
-    channelId?: string;
     currentUserId: string;
     haveOverrideProp: boolean;
     handleShowDirectChannel: (e: React.MouseEvent<HTMLButtonElement>) => void;
@@ -30,7 +29,6 @@ const ProfilePopoverOtherUserRow = ({
     returnFocus,
     hide,
     fullname,
-    channelId,
 }: Props) => {
     if (user.id === currentUserId || haveOverrideProp) {
         return null;
@@ -57,7 +55,6 @@ const ProfilePopoverOtherUserRow = ({
                     hide={hide}
                 />
                 <ProfilePopoverCallButtonWrapper
-                    channelId={channelId}
                     currentUserId={currentUserId}
                     fullname={fullname}
                     userId={user.id}
