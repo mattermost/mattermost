@@ -72,7 +72,10 @@ const ProfilePopoverCustomStatus = ({
     let customStatusContent;
     if (customStatusSet) {
         customStatusContent = (
-            <div className='user-popover__custom-status'>
+            <div
+                className='user-popover__custom-status'
+                aria-labelledby='user-popover__custom-status-title'
+            >
                 <CustomStatusEmoji
                     userID={user.id}
                     showTooltip={false}
@@ -104,7 +107,10 @@ const ProfilePopoverCustomStatus = ({
             id='user-popover-status'
             className='user-popover__time-status-container'
         >
-            <span className='user-popover__subtitle'>
+            <strong
+                id='user-popover__custom-status-title'
+                className='user-popover__subtitle'
+            >
                 <FormattedMessage
                     id='user_profile.custom_status'
                     defaultMessage='Status'
@@ -113,11 +119,10 @@ const ProfilePopoverCustomStatus = ({
                     <ExpiryTime
                         time={customStatus.expires_at!} // has to be defined since showExpiryTime is true
                         timezone={currentUserTimezone}
-                        className='ml-1'
                         withinBrackets={true}
                     />
                 )}
-            </span>
+            </strong>
             {customStatusContent}
         </div>
     );

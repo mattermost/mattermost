@@ -119,7 +119,7 @@ const ProfilePopoverTitle = ({
         <div className='user-profile-popover-title'>
             {roleTitle}
             <button
-                className='btn btn-icon btn-sm'
+                className='btn btn-icon btn-sm closeButtonRelativePosition'
                 onClick={handleClose}
             >
                 <i className='icon icon-close'/>

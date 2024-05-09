@@ -17,12 +17,12 @@ const ProfilePopoverPosition = ({
     const positionSubstringed = (position).substring(0, Constants.MAX_POSITION_LENGTH);
 
     return (
-        <div
+        <p
             className='user-profile-popover__non-heading'
             title={position}
         >
             {positionSubstringed}
-        </div>
+        </p>
     );
 };
 

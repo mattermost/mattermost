@@ -13,12 +13,12 @@ const ProfilePopoverBotDescription = ({
     botDescription,
 }: Props) => {
     return (
-        <div
+        <p
             className='user-profile-popover__non-heading'
             title={botDescription}
         >
             {botDescription}
-        </div>
+        </p>
     );
 };
 

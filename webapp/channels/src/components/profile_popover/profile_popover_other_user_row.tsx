@@ -41,7 +41,10 @@ const ProfilePopoverOtherUserRow = ({
                 className='btn btn-primary btn-sm'
                 onClick={handleShowDirectChannel}
             >
-                <i className='icon icon-send'/>
+                <i
+                    className='icon icon-send'
+                    aria-hidden='true'
+                />
                 <FormattedMessage
                     id='user_profile.send.dm'
                     defaultMessage='Message'

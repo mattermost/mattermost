@@ -57,7 +57,10 @@ const ProfilePopoverSelfUserRow = ({
                 className='btn btn-primary btn-sm'
                 onClick={handleEditAccountSettings}
             >
-                <i className='icon icon-account-outline'/>
+                <i
+                    className='icon icon-account-outline'
+                    aria-hidden='true'
+                />
                 <FormattedMessage
                     id='user_profile.account.editProfile'
                     defaultMessage='Edit Profile'
@@ -72,8 +75,12 @@ const ProfilePopoverSelfUserRow = ({
                     type='button'
                     className='btn btn-icon btn-sm'
                     onClick={handleShowDirectChannel}
+                    aria-label={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
                 >
-                    <i className='icon icon-send'/>
+                    <i
+                        className='icon icon-send'
+                        aria-hidden='true'
+                    />
                 </button>
             </WithTooltip>
         </div>

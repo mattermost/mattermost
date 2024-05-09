@@ -13,7 +13,7 @@ const ProfilePopoverUserName = ({
     username,
 }: Props) => {
     return (
-        <div
+        <p
             id='userPopoverUsername'
             className={
                 hasFullName ? 'user-profile-popover__non-heading' : 'user-profile-popover__heading'
@@ -21,7 +21,7 @@ const ProfilePopoverUserName = ({
             title={username}
         >
             {`@${username}`}
-        </div>
+        </p>
     );
 };
 

@@ -60,7 +60,7 @@ const ProfilePopoverAddToChannel = ({
             })}
             placement='top'
         >
-            {/* This span is neccessary as tooltip is not able to pass trigger props to a custom component */}
+            {/* This span is necessary as tooltip is not able to pass trigger props to a custom component */}
             <span>
                 <ToggleModalButton
                     id='addToChannelButton'
@@ -76,6 +76,7 @@ const ProfilePopoverAddToChannel = ({
                 >
                     <i
                         className='icon icon-account-plus-outline'
+                        aria-hidden='true'
                     />
                 </ToggleModalButton>
             </span>
