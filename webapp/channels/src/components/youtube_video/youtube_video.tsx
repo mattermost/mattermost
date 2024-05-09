@@ -77,7 +77,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                     frameBorder='0'
                     allowFullScreen={true}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerpolicy="strict-origin-when-cross-origin"
+                    referrerPolicy="strict-origin-when-cross-origin"
                     allowfullscreen=""
                     title={videoTitle}
                     sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
