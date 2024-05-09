@@ -121,6 +121,7 @@ const GlobalThreads = () => {
     useEffect(() => {
         if (!isLoading) {
             measureAndReport(Measure.GlobalThreadsLoad, Mark.GlobalThreadsLinkClicked, undefined, true);
+            performance.clearMarks(Mark.GlobalThreadsLinkClicked);
         }
     }, [isLoading]);
 
