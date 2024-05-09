@@ -588,6 +588,10 @@ func (c *Client4) bookmarkRoute(channelId, bookmarkId string) string {
 	return fmt.Sprintf(c.bookmarksRoute(channelId)+"/%v", bookmarkId)
 }
 
+func (c *Client4) perfMetricsRoute() string {
+	return "/perf"
+}
+
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
 	return c.DoAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
 }
@@ -8847,4 +8851,17 @@ func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId 
 		return nil, nil, NewAppError("ListChannelBookmarksForChannel", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return b, BuildResponse(r), nil
+}
+
+func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceReport) (*Response, error) {
+	buf, err := json.Marshal(report)
+	if err != nil {
+		return nil, NewAppError("SubmitClientMetrics", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	res, err := c.DoAPIPostBytes(ctx, c.perfMetricsRoute(), buf)
+	if err != nil {
+		return BuildResponse(res), err
+	}
+
+	return BuildResponse(res), nil
 }
