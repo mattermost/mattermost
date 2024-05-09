@@ -261,6 +261,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
 
 	props["EnableDiagnostics"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
+	props["EnableClientMetrics"] = strconv.FormatBool(*c.MetricsSettings.EnableClientMetrics)
 
 	props["EnableComplianceExport"] = strconv.FormatBool(*c.MessageExportSettings.EnableExport)
 
