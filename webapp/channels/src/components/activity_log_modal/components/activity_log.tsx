@@ -8,7 +8,7 @@ import type {Session} from '@mattermost/types/sessions';
 
 import {General} from 'mattermost-redux/constants';
 
-import {getMonthLong, t} from 'utils/i18n';
+import {getMonthLong} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
 
 import MoreInfo from './more_info';
@@ -43,7 +43,7 @@ type State = {
 type MobileSessionInfo = {
     devicePicture?: string;
     deviceTitle?: string;
-    devicePlatform: JSX.Element;
+    devicePlatform?: JSX.Element;
 };
 
 export default class ActivityLog extends React.PureComponent<Props, State> {
@@ -68,42 +68,52 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
     };
 
     mobileSessionInfo = (session: Session): MobileSessionInfo => {
-        let deviceTypeId;
-        let deviceTypeMessage;
+        let devicePlatform;
         let devicePicture;
         let deviceTitle;
 
         if (session.device_id.includes('apple')) {
             devicePicture = 'fa fa-apple';
             deviceTitle = localizeMessage('device_icons.apple', 'Apple Icon');
-            deviceTypeId = t('activity_log_modal.iphoneNativeClassicApp');
-            deviceTypeMessage = 'iPhone Native Classic App';
+            devicePlatform = (
+                <FormattedMessage
+                    id='activity_log_modal.iphoneNativeClassicApp'
+                    defaultMessage='iPhone Native Classic App'
+                />
+            );
 
             if (session.device_id.includes(General.PUSH_NOTIFY_APPLE_REACT_NATIVE)) {
-                deviceTypeId = t('activity_log_modal.iphoneNativeApp');
-                deviceTypeMessage = 'iPhone Native App';
+                devicePlatform = (
+                    <FormattedMessage
+                        id='activity_log_modal.iphoneNativeApp'
+                        defaultMessage='iPhone Native App'
+                    />
+                );
             }
         } else if (session.device_id.includes('android')) {
             devicePicture = 'fa fa-android';
             deviceTitle = localizeMessage('device_icons.android', 'Android Icon');
-            deviceTypeId = t('activity_log_modal.androidNativeClassicApp');
-            deviceTypeMessage = 'Android Native Classic App';
+            devicePlatform = (
+                <FormattedMessage
+                    id='activity_log_modal.androidNativeClassicApp'
+                    defaultMessage='Android Native Classic App'
+                />
+            );
 
             if (session.device_id.includes(General.PUSH_NOTIFY_ANDROID_REACT_NATIVE)) {
-                deviceTypeId = t('activity_log_modal.androidNativeApp');
-                deviceTypeMessage = 'Android Native App';
+                devicePlatform = (
+                    <FormattedMessage
+                        id='activity_log_modal.androidNativeApp'
+                        defaultMessage='Android Native App'
+                    />
+                );
             }
         }
 
         return {
             devicePicture,
             deviceTitle,
-            devicePlatform: (
-                <FormattedMessage
-                    id={deviceTypeId}
-                    defaultMessage={deviceTypeMessage}
-                />
-            ),
+            devicePlatform,
         };
     };
 
