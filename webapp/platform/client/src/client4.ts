@@ -492,7 +492,7 @@ export default class Client4 {
     }
 
     getClientMetricsRoute() {
-        return `${this.getBaseRoute()}/perf`;
+        return `${this.getBaseRoute()}/client_perf`;
     }
 
     getCSRFFromCookie() {
