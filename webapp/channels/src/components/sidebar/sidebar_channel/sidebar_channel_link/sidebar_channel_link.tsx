@@ -18,6 +18,7 @@ import Pluggable from 'plugins/pluggable';
 import Constants, {RHSStates} from 'utils/constants';
 import {wrapEmojis} from 'utils/emoji_utils';
 import {cmdOrCtrlPressed} from 'utils/keyboard';
+import {Mark} from 'utils/performance_telemetry';
 import {localizeMessage} from 'utils/utils';
 
 import type {RhsState} from 'types/store/rhs';
@@ -135,7 +136,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
     removeTooltipLink = (): void => this.gmItemRef.current?.removeAttribute?.('aria-describedby');
 
     handleChannelClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
-        mark('SidebarChannelLink#click');
+        mark(Mark.ChannelLinkClicked);
         this.handleSelectChannel(event);
 
         if (this.props.rhsOpen && this.props.rhsState === RHSStates.EDIT_HISTORY) {

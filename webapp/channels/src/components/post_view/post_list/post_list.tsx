@@ -13,7 +13,7 @@ import LoadingScreen from 'components/loading_screen';
 import VirtPostList from 'components/post_view/post_list_virtualized/post_list_virtualized';
 
 import {PostRequestTypes} from 'utils/constants';
-import {measureAndReport} from 'utils/performance_telemetry';
+import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getOldestPostId, getLatestPostId} from 'utils/post_utils';
 
 const MAX_NUMBER_OF_AUTO_RETRIES = 3;
@@ -22,18 +22,18 @@ export const MAX_EXTRA_PAGES_LOADED = 10;
 // Measures the time between channel or team switch started and the post list component rendering posts.
 // Set "fresh" to true when the posts have not been loaded before.
 function markAndMeasureChannelSwitchEnd(fresh = false) {
-    mark('PostList#component');
+    mark(Mark.PostListLoaded);
 
     // Send new performance metrics to server
-    const channelSwitch = measureAndReport('channel_switch', 'SidebarChannelLink#click', 'PostList#component', true);
-    const teamSwitch = measureAndReport('team_switch', 'TeamLink#click', 'PostList#component', true);
+    const channelSwitch = measureAndReport(Measure.ChannelSwitch, Mark.ChannelLinkClicked, Mark.PostListLoaded, true);
+    const teamSwitch = measureAndReport(Measure.TeamSwitch, Mark.TeamLinkClicked, Mark.PostListLoaded, true);
 
     // Send old performance metrics to Rudder
     if (shouldTrackPerformance()) {
         if (channelSwitch) {
-            const requestCount1 = countRequestsBetween('SidebarChannelLink#click', 'PostList#component');
+            const requestCount1 = countRequestsBetween(Mark.ChannelLinkClicked, Mark.PostListLoaded);
 
-            trackEvent('performance', 'channel_switch', {
+            trackEvent('performance', Measure.ChannelSwitch, {
                 duration: Math.round(channelSwitch.duration),
                 fresh,
                 requestCount: requestCount1,
@@ -41,9 +41,9 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
         }
 
         if (teamSwitch) {
-            const requestCount2 = countRequestsBetween('TeamLink#click', 'PostList#component');
+            const requestCount2 = countRequestsBetween(Mark.TeamLinkClicked, Mark.PostListLoaded);
 
-            trackEvent('performance', 'team_switch', {
+            trackEvent('performance', Measure.TeamSwitch, {
                 duration: Math.round(teamSwitch.duration),
                 fresh,
                 requestCount: requestCount2,
@@ -53,9 +53,9 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
 
     // Clear all the metrics so that we can differentiate between a channel and team switch next time this is called
     clearMarks([
-        'SidebarChannelLink#click',
-        'TeamLink#click',
-        'PostList#component',
+        Mark.ChannelLinkClicked,
+        Mark.TeamLinkClicked,
+        Mark.PostListLoaded,
     ]);
 }
 
