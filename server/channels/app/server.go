@@ -322,7 +322,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
-		return nil, errors.New("Failed find server templates in \"templates\" directory or MM_SERVER_PATH")
+		return nil, errors.New("Failed find server templates in \"templates\" directory")
 	}
 	htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
 	if err2 != nil {
