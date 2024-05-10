@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/tests"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
@@ -18,9 +19,8 @@ import (
 
 func (s *MmctlE2ETestSuite) TestExtractRunCmdF() {
 	s.SetupTestHelper().InitBasic()
-	serverPath := os.Getenv("MM_SERVER_PATH")
 	docName := "sample-doc.pdf"
-	docFilePath := filepath.Join(serverPath, "tests", docName)
+	docFilePath := filepath.Join(tests.GetPackagePath(), docName)
 
 	s.Run("no permissions", func() {
 		printer.Clean()
