@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessages} from 'react-intl';
 
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -11,11 +12,21 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import AbstractIncomingWebhook from 'components/integrations/abstract_incoming_webhook';
 
 import {getHistory} from 'utils/browser_history';
-import {t} from 'utils/i18n';
 
-const HEADER = {id: t('integrations.add'), defaultMessage: 'Add'};
-const FOOTER = {id: t('add_incoming_webhook.save'), defaultMessage: 'Save'};
-const LOADING = {id: t('add_incoming_webhook.saving'), defaultMessage: 'Saving...'};
+const messages = defineMessages({
+    footer: {
+        id: 'add_incoming_webhook.save',
+        defaultMessage: 'Save',
+    },
+    header: {
+        id: 'integrations.add',
+        defaultMessage: 'Add',
+    },
+    loading: {
+        id: 'add_incoming_webhook.saving',
+        defaultMessage: 'Saving...',
+    },
+});
 
 type Props = {
 
@@ -74,9 +85,9 @@ export default class AddIncomingWebhook extends React.PureComponent<Props, State
         return (
             <AbstractIncomingWebhook
                 team={this.props.team}
-                header={HEADER}
-                footer={FOOTER}
-                loading={LOADING}
+                header={messages.header}
+                footer={messages.footer}
+                loading={messages.loading}
                 enablePostUsernameOverride={this.props.enablePostUsernameOverride}
                 enablePostIconOverride={this.props.enablePostIconOverride}
                 action={this.addIncomingHook}
