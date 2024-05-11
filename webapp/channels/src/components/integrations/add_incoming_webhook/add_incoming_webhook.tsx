@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo, useState} from 'react';
 
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -43,45 +43,38 @@ type Props = {
     };
 };
 
-type State = {
-    serverError: string;
-};
+const AddIncomingWebhook = ({
+    team,
+    enablePostUsernameOverride,
+    enablePostIconOverride,
+    actions,
+}: Props) => {
+    const [serverError, setServerError] = useState('');
 
-export default class AddIncomingWebhook extends React.PureComponent<Props, State> {
-    constructor(props: Props) {
-        super(props);
+    const addIncomingHook = async (hook: IncomingWebhook) => {
+        setServerError('');
 
-        this.state = {
-            serverError: '',
-        };
-    }
-
-    addIncomingHook = async (hook: IncomingWebhook) => {
-        this.setState({serverError: ''});
-
-        const {data, error} = await this.props.actions.createIncomingHook(hook);
+        const {data, error} = await actions.createIncomingHook(hook);
         if (data) {
-            getHistory().push(`/${this.props.team.name}/integrations/confirm?type=incoming_webhooks&id=${data.id}`);
+            getHistory().push(`/${team.name}/integrations/confirm?type=incoming_webhooks&id=${data.id}`);
             return;
         }
-
         if (error) {
-            this.setState({serverError: error.message});
+            setServerError(error.message);
         }
     };
 
-    render() {
-        return (
-            <AbstractIncomingWebhook
-                team={this.props.team}
-                header={HEADER}
-                footer={FOOTER}
-                loading={LOADING}
-                enablePostUsernameOverride={this.props.enablePostUsernameOverride}
-                enablePostIconOverride={this.props.enablePostIconOverride}
-                action={this.addIncomingHook}
-                serverError={this.state.serverError}
-            />
-        );
-    }
-}
+    return (
+        <AbstractIncomingWebhook
+            team={team}
+            header={HEADER}
+            footer={FOOTER}
+            loading={LOADING}
+            enablePostUsernameOverride={enablePostUsernameOverride}
+            enablePostIconOverride={enablePostIconOverride}
+            action={addIncomingHook}
+            serverError={serverError}
+        />
+    );
+};
+export default memo(AddIncomingWebhook);
