@@ -1,8 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import WebSocketClient from 'client/web_websocket_client';
 import React from 'react';
 import {Redirect} from 'react-router-dom';
+import Constants from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
+import {isKeyPressed} from 'utils/keyboard';
+import {getBrowserTimezone} from 'utils/timezone';
+import * as UserAgent from 'utils/user_agent';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -11,13 +17,6 @@ import * as WebSocketActions from 'actions/websocket_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
 import LoadingScreen from 'components/loading_screen';
-
-import WebSocketClient from 'client/web_websocket_client';
-import Constants from 'utils/constants';
-import DesktopApp from 'utils/desktop_api';
-import {isKeyPressed} from 'utils/keyboard';
-import {getBrowserTimezone} from 'utils/timezone';
-import * as UserAgent from 'utils/user_agent';
 
 declare global {
     interface Window {
@@ -65,13 +64,13 @@ export default class LoggedIn extends React.PureComponent<Props> {
         // Initialize websocket
         WebSocketActions.initialize();
 
-        this.updateTimeZone()
+        this.updateTimeZone();
 
         // Make sure the websockets close and reset version
         window.addEventListener('beforeunload', this.handleBeforeUnload);
 
         // listen for the app visibility state
-        window.addEventListener("visibilitychange", this.handleVisibilityChange, false);
+        window.addEventListener('visibilitychange', this.handleVisibilityChange, false);
 
         // Listen for focused tab/window state
         window.addEventListener('focus', this.onFocusListener);
@@ -144,10 +143,12 @@ export default class LoggedIn extends React.PureComponent<Props> {
     }
 
     private handleVisibilityChange = (): void => {
-        if(!document.hidden) this.updateTimeZone()
-    }
+        if (!document.hidden) {
+            this.updateTimeZone();
+        }
+    };
 
-    private updateTimeZone(): void {        
+    private updateTimeZone(): void {
         this.props.actions.autoUpdateTimezone(getBrowserTimezone());
     }
 
