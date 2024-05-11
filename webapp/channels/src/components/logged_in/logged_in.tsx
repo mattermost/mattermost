@@ -127,7 +127,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
         if (!this.isValidState()) {
             return <LoadingScreen/>;
         }
-        
+
         if (this.props.mfaRequired) {
             if (this.props.location.pathname !== '/mfa/setup') {
                 return <Redirect to={'/mfa/setup'}/>;
@@ -139,7 +139,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
                 return <Redirect to={'/terms_of_service?redirect_to=' + encodeURIComponent(this.props.location.pathname)}/>;
             }
         }
-        
+
         return this.props.children;
     }
 
@@ -154,7 +154,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
     private onFocusListener(): void {
         GlobalActions.emitBrowserFocus(true);
     }
-    
+
     private onBlurListener(): void {
         GlobalActions.emitBrowserFocus(false);
     }
