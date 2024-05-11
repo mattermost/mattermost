@@ -32,6 +32,7 @@ func TestOAuthComplete_AccessDenied(t *testing.T) {
 		Params: &Params{
 			Service: "TestService",
 		},
+		AppContext: request.EmptyContext(th.TestLogger),
 	}
 	responseWriter := httptest.NewRecorder()
 	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/TestService/complete?error=access_denied", nil)

@@ -2744,7 +2744,6 @@
   "password_send.link": "如果帳號存在，將會寄送密碼重置郵件至：",
   "password_send.reset": "重置我的密碼",
   "password_send.title": "密碼重設",
-  "payment.field_required": "此欄位是必需的",
   "pending_post_actions.cancel": "取消",
   "pending_post_actions.retry": "重試",
   "permalink.error.access": "此永久連結通往被刪除的訊息或是您沒有觀看權限的頻道。",

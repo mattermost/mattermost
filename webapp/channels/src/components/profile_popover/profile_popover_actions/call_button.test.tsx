@@ -1,53 +1,53 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {checkUserInCall} from './call_button';
+import {isUserInCall} from './call_button';
 
-describe('checkUserInCall', () => {
+describe('isUserInCall', () => {
     test('missing state', () => {
-        expect(checkUserInCall({
+        expect(isUserInCall({
             'plugins-com.mattermost.calls': {},
-        } as any, 'userA')).toBe(false);
+        } as any, 'userA', 'channelID')).toBe(false);
     });
 
     test('call state missing', () => {
-        expect(checkUserInCall({
+        expect(isUserInCall({
             'plugins-com.mattermost.calls': {
-                profiles: {
+                sessions: {
                     channelID: null,
                 },
             },
-        } as any, 'userA')).toBe(false);
+        } as any, 'userA', 'channelID')).toBe(false);
     });
 
     test('user not in call', () => {
-        expect(checkUserInCall({
+        expect(isUserInCall({
             'plugins-com.mattermost.calls': {
-                profiles: {
+                sessions: {
                     channelID: {
                         sessionB: {
-                            id: 'userB',
+                            user_id: 'userB',
                         },
                     },
                 },
             },
-        } as any, 'userA')).toBe(false);
+        } as any, 'userA', 'channelID')).toBe(false);
     });
 
     test('user in call', () => {
-        expect(checkUserInCall({
+        expect(isUserInCall({
             'plugins-com.mattermost.calls': {
-                profiles: {
+                sessions: {
                     channelID: {
                         sessionB: {
-                            id: 'userB',
+                            user_id: 'userB',
                         },
                         sessionA: {
-                            id: 'userA',
+                            user_id: 'userA',
                         },
                     },
                 },
             },
-        } as any, 'userA')).toBe(true);
+        } as any, 'userA', 'channelID')).toBe(true);
     });
 });

@@ -310,7 +310,6 @@ const ProfilePopover = ({
                         username={user.username}
                     />
                     <ProfilePopoverActions
-                        channelId={channelId}
                         currentUserId={currentUserId}
                         fullname={fullname}
                         handleCloseModals={handleCloseModals}
