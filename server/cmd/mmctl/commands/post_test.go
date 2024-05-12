@@ -144,6 +144,38 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestPostDeleteCmdF() {
+	s.Run("delete a post", func() {
+		postID := "some-post-id"
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			DoAPIDelete(context.TODO(), "/posts/"+postID).
+			Return(nil, nil).
+			Times(1)
+
+		err := postDeleteCmdF(s.client, cmd, []string{postID})
+		s.Require().Nil(err)
+	})
+
+	s.Run("error when deleting a post", func() {
+		postID := "some-post-id"
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			DoAPIDelete(context.TODO(), "/posts/"+postID).
+			Return(nil, errors.New("some-error")).
+			Times(1)
+
+		err := postDeleteCmdF(s.client, cmd, []string{postID})
+		s.Require().Contains(err.Error(), "could not delete post")
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 	s.Run("no channel specified", func() {
 		sinceArg := "invalid-date"
