@@ -2801,7 +2801,6 @@
   "password_send.link": "Se l'account esiste, verrà inviata un'email per reimpostare la password a:",
   "password_send.reset": "Reimposta password",
   "password_send.title": "Reimposta Password",
-  "payment.field_required": "Il campo è richiesto",
   "pending_post_actions.cancel": "Annulla",
   "pending_post_actions.retry": "Riprova",
   "permalink.error.access": "Permalink appartenente a un messaggio cancellato o a un gruppo in cui non si può accedere.",
