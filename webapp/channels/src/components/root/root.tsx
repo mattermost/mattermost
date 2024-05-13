@@ -55,6 +55,7 @@ import * as Utils from 'utils/utils';
 import type {ProductComponent, PluginComponent} from 'types/store/plugins';
 
 import LuxonController from './luxon_controller';
+import PerformanceReporterController from './performance_reporter_controller';
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
 
@@ -447,6 +448,7 @@ export default class Root extends React.PureComponent<Props, State> {
             <RootProvider>
                 <MobileViewWatcher/>
                 <LuxonController/>
+                <PerformanceReporterController/>
                 <Switch>
                     <Route
                         path={'/error'}
