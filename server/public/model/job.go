@@ -125,20 +125,17 @@ func (j *Job) IsValid() *AppError {
 
 func (j *Job) IsValidStatusChange(newStatus string) bool {
 	currentStatus := j.Status
-	if currentStatus == JobStatusInProgress {
-		switch newStatus {
-		case JobStatusPending:
-			return true
-		case JobStatusCancelRequested:
-			return true
-		}
+
+	switch currentStatus {
+	case JobStatusInProgress:
+		return newStatus == JobStatusPending || newStatus == JobStatusCancelRequested
+	case JobStatusPending:
+		return newStatus == JobStatusCancelRequested
+	case JobStatusCancelRequested:
+		return newStatus == JobStatusCanceled
 	}
 
-	if currentStatus == JobStatusPending && newStatus == JobStatusCancelRequested {
-		return true
-	}
-
-	return currentStatus == JobStatusCancelRequested && newStatus == JobStatusCanceled
+	return false
 }
 
 func (j *Job) LogClone() any {

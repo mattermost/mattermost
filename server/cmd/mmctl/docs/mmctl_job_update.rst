@@ -9,7 +9,12 @@ Synopsis
 ~~~~~~~~
 
 
-Update the status of a job
+Update the status of a job. The following restrictions are in place:
+- in_progress -> pending
+- in_progress | pending -> cancel_requested
+- cancel_requested -> canceled
+
+Those restriction can be bypassed with --force=true
 
 ::
 
@@ -20,7 +25,9 @@ Examples
 
 ::
 
-    job update pending
+    job update myJobID pending
+    job update myJobID pending --force true
+    job update myJobID canceled --force true
 
 Options
 ~~~~~~~

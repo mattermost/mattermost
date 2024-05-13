@@ -390,6 +390,11 @@ func TestUpdateJobStatus(t *testing.T) {
 			Type:   jobType,
 			Status: model.JobStatusSuccess,
 		},
+		{
+			Id:     model.NewId(),
+			Type:   jobType,
+			Status: model.JobStatusPending,
+		},
 	}
 
 	for _, job := range jobs {
@@ -398,31 +403,34 @@ func TestUpdateJobStatus(t *testing.T) {
 		defer th.App.Srv().Store().Job().Delete(job.Id)
 	}
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-	}()
-	th.AddPermissionToRole(model.PermissionManageDataRetentionJob.Id, model.SystemAdminRoleId)
-
 	t.Run("Fail to update job status without permission", func(t *testing.T) {
 		resp, err := th.Client.UpdateJobStatus(context.Background(), jobs[0].Id, model.JobStatusCancelRequested, false)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("Change a pending job to cancel requested without force", func(t *testing.T) {
+	t.Run("Change a pending job to cancel requested without force with sysadmin client", func(t *testing.T) {
 		_, err := th.SystemAdminClient.UpdateJobStatus(context.Background(), jobs[0].Id, model.JobStatusCancelRequested, false)
 		require.NoError(t, err)
 	})
 
+	t.Run("Change a pending job to cancel requested without force with local client", func(t *testing.T) {
+		_, err := th.LocalClient.UpdateJobStatus(context.Background(), jobs[3].Id, model.JobStatusCancelRequested, false)
+		require.NoError(t, err)
+	})
+
 	t.Run("Fail to change a pending job to canceled without force", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.UpdateJobStatus(context.Background(), jobs[0].Id, model.JobStatusCanceled, false)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			resp, err := client.UpdateJobStatus(context.Background(), jobs[0].Id, model.JobStatusCanceled, false)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
 	})
 
 	t.Run("Change a pending job to canceled with force", func(t *testing.T) {
-		_, err := th.SystemAdminClient.UpdateJobStatus(context.Background(), jobs[0].Id, model.JobStatusCanceled, true)
-		require.NoError(t, err)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, err := client.UpdateJobStatus(context.Background(), jobs[0].Id, model.JobStatusCanceled, true)
+			require.NoError(t, err)
+		})
 	})
 }

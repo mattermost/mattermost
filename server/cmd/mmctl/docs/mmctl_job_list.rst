@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-List jobs
+Lists the lastest jobs
 
 ::
 
@@ -21,6 +21,9 @@ Examples
 ::
 
     job list
+    job list --ids jobID1,jobID2
+    job list --type ldap_sync --status success
+    job list --type ldap_sync --status success --page 0 --per-page 10
 
 Options
 ~~~~~~~
