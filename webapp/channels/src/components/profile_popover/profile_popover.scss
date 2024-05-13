@@ -1,8 +1,9 @@
-@import "sass/utils/_mixins";
+@import 'utils/mixins';
 
 .user-profile-popover-floating-overlay {
     // 99 being the z-index of the global header
-    z-index: 100;
+    // 1060 being the z-index of the user group popover
+    z-index: 1070;
 }
 
 .user-profile-popover {
