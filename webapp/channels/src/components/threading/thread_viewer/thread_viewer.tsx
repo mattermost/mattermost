@@ -31,7 +31,7 @@ export type Props = Attrs & {
     isCollapsedThreadsEnabled: boolean;
     appsEnabled: boolean;
     userThread?: UserThread | null;
-    channel: Channel | null;
+    channel?: Channel;
     selected?: Post | FakePost;
     currentUserId: string;
     currentTeamId: string;
@@ -52,7 +52,6 @@ export type Props = Attrs & {
     isThreadView: boolean;
     inputPlaceholder?: string;
     rootPostId: string;
-    fromSuppressed?: boolean;
     enableWebSocketEventScope: boolean;
 };
 
@@ -225,7 +224,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                                 <DeferredThreadViewerVirt
                                     inputPlaceholder={this.props.inputPlaceholder}
                                     key={this.props.selected.id}
-                                    channel={this.props.channel}
+                                    channelId={this.props.channel.id}
                                     onCardClick={this.handleCardClick}
                                     postIds={this.props.postIds}
                                     selected={this.props.selected}
@@ -233,7 +232,6 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                                     highlightedPostId={this.props.highlightedPostId}
                                     selectedPostFocusedAt={this.props.selectedPostFocusedAt}
                                     isThreadView={Boolean(this.props.isCollapsedThreadsEnabled && this.props.isThreadView)}
-                                    fromSuppressed={this.props.fromSuppressed}
                                 />
                             )}
                         </>

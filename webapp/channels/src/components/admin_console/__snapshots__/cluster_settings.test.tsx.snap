@@ -29,7 +29,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -55,7 +55,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -113,7 +113,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -134,7 +134,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -144,7 +144,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -165,7 +165,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -175,7 +175,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -196,7 +196,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -225,29 +225,6 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         }
         setByEnv={false}
         value={8074}
-      />
-      <AdminTextSetting
-        helpText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="The port used for streaming data between servers."
-            id="admin.cluster.StreamingPortDesc"
-          />
-        }
-        id="StreamingPort"
-        label={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Streaming Port:"
-            id="admin.cluster.StreamingPort"
-          />
-        }
-        onChange={[Function]}
-        placeholder={
-          Object {
-            "defaultMessage": "E.g.: \\"8075\\"",
-            "id": "admin.cluster.StreamingPortEx",
-          }
-        }
-        setByEnv={false}
       />
     </Memo(SettingsGroup)>
     <div
@@ -322,7 +299,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -348,7 +325,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -406,7 +383,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -427,7 +404,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -437,7 +414,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -458,7 +435,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -468,7 +445,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -489,7 +466,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -518,29 +495,6 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         }
         setByEnv={false}
         value={8074}
-      />
-      <AdminTextSetting
-        helpText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="The port used for streaming data between servers."
-            id="admin.cluster.StreamingPortDesc"
-          />
-        }
-        id="StreamingPort"
-        label={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Streaming Port:"
-            id="admin.cluster.StreamingPort"
-          />
-        }
-        onChange={[Function]}
-        placeholder={
-          Object {
-            "defaultMessage": "E.g.: \\"8075\\"",
-            "id": "admin.cluster.StreamingPortEx",
-          }
-        }
-        setByEnv={false}
       />
     </Memo(SettingsGroup)>
     <div
@@ -615,7 +569,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -641,7 +595,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -699,7 +653,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -720,7 +674,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -730,7 +684,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -751,7 +705,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -761,7 +715,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -782,7 +736,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -811,29 +765,6 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         }
         setByEnv={false}
         value={8074}
-      />
-      <AdminTextSetting
-        helpText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="The port used for streaming data between servers."
-            id="admin.cluster.StreamingPortDesc"
-          />
-        }
-        id="StreamingPort"
-        label={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Streaming Port:"
-            id="admin.cluster.StreamingPort"
-          />
-        }
-        onChange={[Function]}
-        placeholder={
-          Object {
-            "defaultMessage": "E.g.: \\"8075\\"",
-            "id": "admin.cluster.StreamingPortEx",
-          }
-        }
-        setByEnv={false}
       />
     </Memo(SettingsGroup)>
     <div
@@ -908,7 +839,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -934,7 +865,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -992,7 +923,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -1013,7 +944,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -1023,7 +954,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -1044,7 +975,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -1054,7 +985,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         disabled={false}
         falseText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="false"
+            defaultMessage="False"
             id="admin.false"
           />
         }
@@ -1075,7 +1006,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         setByEnv={false}
         trueText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="true"
+            defaultMessage="True"
             id="admin.true"
           />
         }
@@ -1104,29 +1035,6 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         }
         setByEnv={false}
         value={8074}
-      />
-      <AdminTextSetting
-        helpText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="The port used for streaming data between servers."
-            id="admin.cluster.StreamingPortDesc"
-          />
-        }
-        id="StreamingPort"
-        label={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Streaming Port:"
-            id="admin.cluster.StreamingPort"
-          />
-        }
-        onChange={[Function]}
-        placeholder={
-          Object {
-            "defaultMessage": "E.g.: \\"8075\\"",
-            "id": "admin.cluster.StreamingPortEx",
-          }
-        }
-        setByEnv={false}
       />
     </Memo(SettingsGroup)>
     <div

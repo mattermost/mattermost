@@ -175,10 +175,6 @@ export function getPostDraft(state: GlobalState, prefixId: string, suffixId: str
     return defaultDraft;
 }
 
-export function getIsRhsSuppressed(state: GlobalState): boolean {
-    return state.views.rhsSuppressed;
-}
-
 export function getIsRhsOpen(state: GlobalState): boolean {
     return state.views.rhs.isSidebarOpen && !state.views.rhsSuppressed;
 }

@@ -401,14 +401,14 @@ describe('actions/invite_actions', () => {
                     ],
                     notSent: [
                         {
-                            reason: 'This person is already a member.',
+                            reason: 'This person is already a member of the workspace. Invite them as a member instead of a guest.',
                             user: {
                                 id: 'user1',
                                 roles: 'system_user',
                             },
                         },
                         {
-                            reason: 'This person is already a member.',
+                            reason: 'This person is already a member of the workspace. Invite them as a member instead of a guest.',
                             user: {
                                 id: 'other-user',
                                 roles: 'system_user',
@@ -489,14 +489,14 @@ describe('actions/invite_actions', () => {
                     ],
                     notSent: [
                         {
-                            reason: 'This person is already a member.',
+                            reason: 'This person is already a member of the workspace. Invite them as a member instead of a guest.',
                             user: {
                                 id: 'user1',
                                 roles: 'system_user',
                             },
                         },
                         {
-                            reason: 'This person is already a member.',
+                            reason: 'This person is already a member of the workspace. Invite them as a member instead of a guest.',
                             user: {
                                 id: 'other-user',
                                 roles: 'system_user',
@@ -520,7 +520,7 @@ describe('actions/invite_actions', () => {
                     sent: [],
                     notSent: [
                         {
-                            reason: 'This person is already a member.',
+                            reason: 'This person is already a member of the workspace. Invite them as a member instead of a guest.',
                             user: {
                                 id: 'user1',
                                 roles: 'system_user',
@@ -534,7 +534,7 @@ describe('actions/invite_actions', () => {
                             },
                         },
                         {
-                            reason: 'This person is already a member.',
+                            reason: 'This person is already a member of the workspace. Invite them as a member instead of a guest.',
                             user: {
                                 id: 'other-user',
                                 roles: 'system_user',

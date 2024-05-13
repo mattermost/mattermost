@@ -109,7 +109,6 @@ type SqlStoreStores struct {
 	postPriority               store.PostPriorityStore
 	postAcknowledgement        store.PostAcknowledgementStore
 	postPersistentNotification store.PostPersistentNotificationStore
-	trueUpReview               store.TrueUpReviewStore
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
 }
@@ -235,7 +234,6 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.postPriority = newSqlPostPriorityStore(store)
 	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
-	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
 
@@ -637,10 +635,9 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 		}
 
 		return count > 0
-	} else {
-		mlog.Fatal("Failed to check if column exists because of missing driver")
-		return false
 	}
+	mlog.Fatal("Failed to check if column exists because of missing driver")
+	return false
 }
 
 func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
@@ -685,10 +682,9 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		}
 
 		return count > 0
-	} else {
-		mlog.Fatal("Failed to check if column exists because of missing driver")
-		return false
 	}
+	mlog.Fatal("Failed to check if column exists because of missing driver")
+	return false
 }
 
 func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
@@ -725,10 +721,9 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 		}
 
 		return count > 0
-	} else {
-		mlog.Fatal("Failed to check if column exists because of missing driver")
-		return false
 	}
+	mlog.Fatal("Failed to check if column exists because of missing driver")
+	return false
 }
 
 func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string) bool {
@@ -750,10 +745,9 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 		}
 
 		return true
-	} else {
-		mlog.Fatal("Failed to create column because of missing driver")
-		return false
 	}
+	mlog.Fatal("Failed to create column because of missing driver")
+	return false
 }
 
 func (ss *SqlStore) RemoveTableIfExists(tableName string) bool {
@@ -1035,10 +1029,6 @@ func (ss *SqlStore) PostAcknowledgement() store.PostAcknowledgementStore {
 
 func (ss *SqlStore) PostPersistentNotification() store.PostPersistentNotificationStore {
 	return ss.stores.postPersistentNotification
-}
-
-func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
-	return ss.stores.trueUpReview
 }
 
 func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
