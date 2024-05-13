@@ -2116,7 +2116,6 @@
   "password_send.link": "Якщо обліковий запис існує, електронний лист для зміни пароля буде надіслано на адресу:",
   "password_send.reset": "Скинути пароль ",
   "password_send.title": "Скидання пароля",
-  "payment.field_required": "Обов'язкове поле",
   "pending_post_actions.cancel": "Відміна",
   "pending_post_actions.retry": "Повторити",
   "permalink.error.access": "Постійне посилання належить до видаленого повідомлення або до каналу, на який ви не маєте доступу.",

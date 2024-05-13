@@ -9875,6 +9875,10 @@
     "translation": "A team member with that ID already exists."
   },
   {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "A team with this URL already exists."
+  },
+  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Unable to find an existing account matching your credentials. This team may require an invite from the team owner to join."
   },

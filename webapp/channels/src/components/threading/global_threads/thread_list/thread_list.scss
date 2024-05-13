@@ -9,7 +9,7 @@
     .Header {
         padding-right: 12px;
         padding-left: 12px;
-        border-bottom: var(--border);
+        border-bottom: var(--border-default);
         color: rgba(var(--center-channel-color-rgb), 0.75);
         grid-area: header;
 
@@ -69,7 +69,7 @@
     }
 
     .ThreadItem {
-        border-bottom: var(--border);
+        border-bottom: var(--border-default);
     }
 
     .virtualized-thread-list {

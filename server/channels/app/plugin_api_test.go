@@ -32,8 +32,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/channels/app/plugin_api_tests"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/v8/tests"
 )
 
 func getDefaultPluginSettingsSchema() string {
@@ -802,9 +803,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
 
-	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
-	require.True(t, found, "Cannot find tests folder")
-	fullPath := path.Join(testFolder, "manual.test_load_configuration_plugin", "main.go")
+	fullPath := path.Join(plugin_api_tests.GetPackagePath(), "manual.test_load_configuration_plugin", "main.go")
 
 	err = pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", `{"id": "testloadpluginconfig", "server": {"executable": "backend.exe"}, "settings_schema": {
 		"settings": [
@@ -837,9 +836,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
 
-	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
-	require.True(t, found, "Cannot find tests folder")
-	fullPath := path.Join(testFolder, "manual.test_load_configuration_defaults_plugin", "main.go")
+	fullPath := path.Join(plugin_api_tests.GetPackagePath(), "manual.test_load_configuration_defaults_plugin", "main.go")
 
 	err = pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", `{
 		"settings": [
@@ -927,8 +924,7 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	path, _ := fileutils.FindDir("tests")
-	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	tarData, err := os.ReadFile(filepath.Join(tests.GetPackagePath(), "testplugin.tar.gz"))
 	require.NoError(t, err)
 
 	_, appErr := api.InstallPlugin(bytes.NewReader(tarData), true)
@@ -1004,8 +1000,7 @@ func TestInstallPlugin(t *testing.T) {
 	defer th.TearDown()
 
 	// start an http server to serve plugin's tarball to the test.
-	path, _ := fileutils.FindDir("tests")
-	ts := httptest.NewServer(http.FileServer(http.Dir(path)))
+	ts := httptest.NewServer(http.FileServer(http.Dir(tests.GetPackagePath())))
 	defer ts.Close()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1203,8 +1198,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 
 func TestBasicAPIPlugins(t *testing.T) {
 	defaultSchema := getDefaultPluginSettingsSchema()
-	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
-	require.True(t, found, "Cannot read find app folder")
+	testFolder := plugin_api_tests.GetPackagePath()
 	dirs, err := os.ReadDir(testFolder)
 	require.NoError(t, err, "Cannot read test folder %v", testFolder)
 	for _, dir := range dirs {
@@ -1789,9 +1783,7 @@ func TestPluginHTTPConnHijack(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
-	require.True(t, found, "Cannot find tests folder")
-	fullPath := path.Join(testFolder, "manual.test_http_hijack_plugin", "main.go")
+	fullPath := path.Join(plugin_api_tests.GetPackagePath(), "manual.test_http_hijack_plugin", "main.go")
 
 	pluginCode, err := os.ReadFile(fullPath)
 	require.NoError(t, err)
@@ -1824,9 +1816,7 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
-	require.True(t, found, "Cannot find tests folder")
-	fullPath := path.Join(testFolder, "manual.test_http_upgrade_websocket_plugin", "main.go")
+	fullPath := path.Join(plugin_api_tests.GetPackagePath(), "manual.test_http_upgrade_websocket_plugin", "main.go")
 
 	pluginCode, err := os.ReadFile(fullPath)
 	require.NoError(t, err)
@@ -2373,9 +2363,7 @@ func TestPluginServeMetrics(t *testing.T) {
 		cfg.MetricsSettings.ListenAddress = prevAddress
 	})
 
-	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
-	require.True(t, found, "Cannot find tests folder")
-	fullPath := path.Join(testFolder, "manual.test_serve_metrics_plugin", "main.go")
+	fullPath := path.Join(plugin_api_tests.GetPackagePath(), "manual.test_serve_metrics_plugin", "main.go")
 
 	pluginCode, err := os.ReadFile(fullPath)
 	require.NoError(t, err)

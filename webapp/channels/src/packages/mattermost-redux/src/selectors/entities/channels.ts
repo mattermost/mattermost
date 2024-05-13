@@ -684,16 +684,12 @@ export const getTeamsUnreadStatuses: (state: GlobalState) => [Set<Team['id']>, M
     getAllChannels,
     getMyChannelMemberships,
     getChannelMessageCounts,
-    getUsers,
-    getCurrentUserId,
     isCollapsedThreadsEnabled,
     getThreadCounts,
     (
         channels,
         channelMemberships,
         channelMessageCounts,
-        users,
-        currentUserId,
         collapsedThreadsEnabled,
         teamThreadCounts,
     ) => {
