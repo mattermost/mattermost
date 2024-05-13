@@ -192,14 +192,14 @@ func (th *SearchTestHelper) createGuest(username, nickname, firstName, lastName 
 }
 
 func (th *SearchTestHelper) deleteUser(user *model.User) error {
-	return th.Store.User().PermanentDelete(user.Id)
+	return th.Store.User().PermanentDelete(th.Context, user.Id)
 }
 
 func (th *SearchTestHelper) deleteBotUser(botID string) error {
 	if err := th.deleteBot(botID); err != nil {
 		return err
 	}
-	return th.Store.User().PermanentDelete(botID)
+	return th.Store.User().PermanentDelete(th.Context, botID)
 }
 
 func (th *SearchTestHelper) cleanAllUsers() error {
@@ -233,7 +233,7 @@ func (th *SearchTestHelper) createBot(username, displayName, ownerID string) (*m
 	botModel.UserId = user.Id
 	bot, err := th.Store.Bot().Save(botModel)
 	if err != nil {
-		th.Store.User().PermanentDelete(bot.UserId)
+		th.Store.User().PermanentDelete(th.Context, bot.UserId)
 		return nil, errors.New(err.Error())
 	}
 

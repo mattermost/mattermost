@@ -194,7 +194,7 @@ describe('Integrations page', () => {
 
         integrationPageTitleIsBold('Incoming Webhooks');
         integrationPageTitleIsBold('Outgoing Webhooks');
-        integrationPageTitleIsBold('Slash Commands');
+        integrationPageTitleIsBold('Slash Commands', false);
         integrationPageTitleIsBold('OAuth 2.0 Applications');
         integrationPageTitleIsBold('Bot Accounts');
     });
@@ -443,7 +443,7 @@ describe('Integrations page', () => {
     });
 });
 
-function integrationPageTitleIsBold(title) {
+function integrationPageTitleIsBold(title, isBold = true) {
     cy.get('.section-title__text').contains(title).click();
-    cy.get('.item-details__name').should('be.visible').and('have.css', 'font-weight', '400');
+    cy.get('.item-details__name').should('be.visible').and('have.css', 'font-weight', isBold ? '600' : '400');
 }

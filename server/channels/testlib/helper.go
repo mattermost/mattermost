@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib/testdata"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
@@ -195,25 +196,15 @@ func (h *MainHelper) PreloadMigrations() {
 	var buf []byte
 	var err error
 
-	basePath := os.Getenv("MM_SERVER_PATH")
-	if basePath == "" {
-		_, errFile := os.Stat("mattermost-server/server")
-		if os.IsNotExist(errFile) {
-			basePath = "mattermost/server"
-		} else {
-			basePath = "mattermost-server/server"
-		}
-	}
-	relPath := "channels/testlib/testdata"
 	switch *h.Settings.DriverName {
 	case model.DatabaseDriverPostgres:
-		finalPath := filepath.Join(basePath, relPath, "postgres_migration_warmup.sql")
+		finalPath := filepath.Join(testdata.GetPackagePath(), "postgres_migration_warmup.sql")
 		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
 	case model.DatabaseDriverMysql:
-		finalPath := filepath.Join(basePath, relPath, "mysql_migration_warmup.sql")
+		finalPath := filepath.Join(testdata.GetPackagePath(), "mysql_migration_warmup.sql")
 		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))

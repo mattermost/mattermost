@@ -94,6 +94,8 @@ describe('components/AdvancedCreateComment', () => {
         savePreferences(): Promise<ActionResult> {
             throw new Error('Function not implemented.');
         },
+        shouldFocusRHS: true,
+        focusedRHS: jest.fn(),
     };
 
     const submitEvent = {

@@ -1,11 +1,6 @@
 @charset 'UTF-8';
 
 #browseChannelsModal {
-    .modal-content {
-        min-height: 600px;
-        max-height: calc(50vh - 240px);
-    }
-
     .modal-dialog {
         margin-top: calc(45vh - 240px) !important;
     }
@@ -21,6 +16,7 @@
 
         #searchIcon {
             position: absolute;
+            z-index: 2;
             top: 16px;
             left: 46px;
             color: rgba(var(--center-channel-color-rgb), 0.64);
@@ -70,11 +66,28 @@
             justify-content: center;
 
             .get-app__checkbox {
+                position: relative;
                 display: flex;
                 width: 16px;
                 height: 16px;
                 align-items: center;
                 border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+                border-radius: var(--radius-xs);
+                margin-right: 6px;
+                background-color: var(--center-channel-bg);
+
+                &.checked {
+                    border: none;
+                }
+
+                svg {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 16px;
+                    height: 16px;
+                    fill: var(--button-bg);
+                }
             }
 
             #hideJoinedPreferenceCheckbox {
@@ -227,19 +240,10 @@
             justify-content: space-between;
             padding-right: 4px;
         }
-
-        .close {
-            top: 22px;
-        }
     }
 
     .filter-controls {
-        padding: 0;
-
-        button {
-            min-width: 72px;
-            margin: 8px 32px;
-        }
+        padding-top: 24px;
     }
 }
 

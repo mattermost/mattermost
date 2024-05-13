@@ -140,7 +140,7 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 		defer signature.Close()
 
 		if err := ch.verifyPlugin(bundle, signature); err != nil {
-			mlog.Error("Failed to validate plugin signature.", mlog.Err(appErr))
+			logger.Error("Failed to validate plugin signature.", mlog.Err(appErr))
 			return
 		}
 	}

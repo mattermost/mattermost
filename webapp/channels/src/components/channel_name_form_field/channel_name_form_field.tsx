@@ -61,7 +61,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
     const [urlError, setURLError] = useState<string>('');
     const [inputCustomMessage, setInputCustomMessage] = useState<CustomMessageInputType | null>(null);
 
-    const {name: currentTeamName} = useSelector(getCurrentTeam);
+    const currentTeamName = useSelector(getCurrentTeam)?.name;
     const teamName = props.team ? props.team.name : currentTeamName;
 
     const handleOnDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
