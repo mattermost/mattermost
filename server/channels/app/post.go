@@ -681,6 +681,13 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
 		newPost.FileIds = receivedUpdatedPost.FileIds
 		newPost.SetProps(receivedUpdatedPost.GetProps())
+
+		// Allow updating to/from regular type to/from custom type
+		if strings.HasPrefix(newPost.Type, model.PostCustomTypePrefix) || newPost.Type == "" {
+			if strings.HasPrefix(receivedUpdatedPost.Type, model.PostCustomTypePrefix) || receivedUpdatedPost.Type == "" {
+				newPost.Type = receivedUpdatedPost.Type
+			}
+		}
 	}
 
 	// Avoid deep-equal checks if EditAt was already modified through message change
