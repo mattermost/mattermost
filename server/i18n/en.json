@@ -7579,10 +7579,6 @@
     "translation": " attached a file."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Cluster API endpoint not found."
-  },
-  {
     "id": "ent.cluster.config_changed.info",
     "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
@@ -7619,6 +7615,10 @@
     "translation": "Unable to add header to the CSV export."
   },
   {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": ""
+  },
+  {
     "id": "ent.compliance.csv.metadata.export.appError",
     "translation": "Unable to add metadata file to the zip file."
   },
@@ -7633,6 +7633,10 @@
   {
     "id": "ent.compliance.csv.post.export.appError",
     "translation": "Unable to export a post."
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": ""
   },
   {
     "id": "ent.compliance.csv.warning.appError",
@@ -8025,10 +8029,6 @@
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
     "translation": "An account with that username already exists. Please contact your Administrator."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
