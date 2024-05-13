@@ -109,7 +109,7 @@ function Content(props: ContentProps) {
                     openContactSales();
                 },
                 text: formatMessage({id: 'pricing_modal.btn.contactSales', defaultMessage: 'Contact Sales'}),
-                customClass: ButtonCustomiserClasses.active,
+                customClass: ButtonCustomiserClasses.special,
             };
         }
 

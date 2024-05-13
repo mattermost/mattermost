@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect} from 'react';
+import {useEffect, useMemo} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -29,9 +29,9 @@ import type {GlobalState} from 'types/store';
 const ShowStartTrialModal = () => {
     const isUserAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));
     const openStartTrialFormModal = useOpenStartTrialFormModal();
+    const getCategory = useMemo(makeGetCategory, []);
 
     const dispatch = useDispatch();
-    const getCategory = makeGetCategory();
 
     const userThreshold = 10;
     const TRUE = 'true';

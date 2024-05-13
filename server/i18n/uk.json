@@ -5520,10 +5520,6 @@
     "translation": "Your Enterprise Edition license has expired and some features may be disabled. Please renew your license now."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License Now"
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{.SiteName}}] {{.SenderName}} запросив вас приєднатися до команди {{.TeamDisplayName}}"
   },

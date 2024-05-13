@@ -8,7 +8,7 @@ import styled from 'styled-components';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -34,6 +34,7 @@ import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
 import type {GlobalState} from 'types/store';
 
 import ProductBranding from './product_branding';
+import ProductBrandingTeamEdition from './product_branding_team_edition';
 import ProductMenuItem from './product_menu_item';
 import ProductMenuList from './product_menu_list';
 
@@ -74,6 +75,7 @@ const ProductMenu = (): JSX.Element => {
     const switcherOpen = useSelector(isSwitcherOpen);
     const menuRef = useRef<HTMLDivElement>(null);
     const currentProductID = useCurrentProductId();
+    const license = useSelector(getLicense);
 
     const enableTutorial = useSelector(getConfig).EnableTutorial === 'true';
     const currentUserId = useSelector(getCurrentUserId);
@@ -137,7 +139,8 @@ const ProductMenu = (): JSX.Element => {
                         aria-label={formatMessage({id: 'global_header.productSwitchMenu', defaultMessage: 'Product switch menu'})}
                         aria-controls='product-switcher-menu'
                     />
-                    <ProductBranding/>
+                    {license.IsLicensed === 'false' && <ProductBrandingTeamEdition/>}
+                    {license.IsLicensed === 'true' && <ProductBranding/>}
                 </ProductMenuContainer>
                 <Menu
                     listId={'product-switcher-menu-dropdown'}
@@ -158,6 +161,11 @@ const ProductMenu = (): JSX.Element => {
                         onClick={handleClick}
                         handleVisitConsoleClick={handleVisitConsoleClick}
                     />
+                    <Menu.Group>
+                        <Menu.StartTrial
+                            id='startTrial'
+                        />
+                    </Menu.Group>
                 </Menu>
             </MenuWrapper>
         </div>

@@ -138,7 +138,7 @@ describe('Toast', () => {
             cy.uiClickSidebarItem(testChannelName);
 
             // # Scroll up so bottom is not visible
-            scrollUp();
+            scrollUpAndPostAMessage(otherUser, testChannelId, oldPostNumber);
 
             // # New message toast is present with expected number of messages
             cy.get('div.toast').should('be.visible');
