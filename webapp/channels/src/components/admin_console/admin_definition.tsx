@@ -2189,10 +2189,10 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'number',
                             key: 'TeamSettings.UserStatusAwayTimeout',
-                            label: defineMessage({id: 'admin.team.userStatusAwayTimeout.title', defaultMessage: 'User Status Away Timeout:'}),
-                            help_text: defineMessage({id: 'admin.team.userStatusAwayTimeout.desc', defaultMessage: 'This setting defines the number of seconds after which the user’s status indicator changes to "Away", when they are away from Mattermost.'}),
+                            label: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.title', defaultMessage: 'User Status Away Timeout:'}),
+                            help_text: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.desc', defaultMessage: 'This setting defines the number of seconds after which the user’s status indicator changes to "Away", when they are away from Mattermost.'}),
                             help_text_markdown: false,
-                            placeholder: defineMessage({id: 'admin.team.userStatusAwayTimeout.example', defaultMessage: 'E.g.: "300"'}),
+                            placeholder: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.example', defaultMessage: 'E.g.: "300"'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                     ],
