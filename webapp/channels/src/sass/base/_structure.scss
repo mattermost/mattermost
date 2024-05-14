@@ -87,10 +87,31 @@ body {
 }
 
 /* stylelint-disable -- grid-template indentation */
+
+body.app__body {
+    background-color: var(--sidebar-header-bg);
+}
+
 body.admin-onboarding #root {
     &.channel-view {
         display: flex;
         background-color: transparent;
+    }
+}
+
+.app__body.channel-view {
+    .channel-view {
+        --columns: min-content minmax(385px, 1fr) min-content;
+        grid-template:
+            'announcement announcement announcement' min-content
+            'header header header' min-content
+            'team-sidebar main app-sidebar'
+            'footer footer footer' min-content
+            / var(--columns);
+        ;
+        &:has(.backstage-body){
+            background-color: $bg--gray;
+        }
     }
 }
 
@@ -104,21 +125,6 @@ body.app__body #root {
         'main'
         'footer' min-content
     ;
-
-    &.channel-view {
-        background-color: var(--sidebar-header-bg);
-        --columns: min-content minmax(385px, 1fr) min-content;
-        grid-template:
-            'announcement announcement announcement' min-content
-            'header header header' min-content
-            'team-sidebar main app-sidebar'
-            'footer footer footer' min-content
-            / var(--columns);
-        ;
-        &:has(.backstage-body){
-            background-color: $bg--gray;
-        }
-    }
 
     &.console__root {
         background-color: inherit;
