@@ -100,7 +100,7 @@ body.admin-onboarding #root {
 }
 
 .app__body.channel-view {
-    #root.channel-view {
+    #root {
         --columns: min-content minmax(385px, 1fr) min-content;
         grid-template:
             'announcement announcement announcement' min-content
