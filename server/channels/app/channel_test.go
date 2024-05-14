@@ -2854,3 +2854,103 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		assert.NotNil(t, appErr)
 	})
 }
+
+func TestDeleteChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should send the correct websocket events", func(t *testing.T) {
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel2 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+
+		th.LinkUserToTeam(user1, th.BasicTeam)
+		th.LinkUserToTeam(user2, th.BasicTeam)
+		th.AddUserToChannel(user1, channel1)
+		th.AddUserToChannel(user1, channel2)
+
+		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventChannelDeleted}
+
+		messages1, closeWS1 := connectFakeWebSocket(t, th, user1.Id, "", eventTypesFilter)
+		defer closeWS1()
+		messages2, closeWS2 := connectFakeWebSocket(t, th, user2.Id, "", eventTypesFilter)
+		defer closeWS2()
+
+		err := th.App.DeleteChannel(th.Context, channel1, "")
+		require.Nil(t, err)
+
+		received := <-messages1
+		assert.Equal(t, model.WebsocketEventChannelDeleted, received.EventType())
+		received = <-messages2
+		assert.Equal(t, model.WebsocketEventChannelDeleted, received.EventType())
+
+		err = th.App.DeleteChannel(th.Context, channel2, "")
+		require.Nil(t, err)
+
+		select {
+		case shouldNotReceive := <-messages2:
+			assert.NotEqual(t, model.WebsocketEventChannelDeleted, shouldNotReceive.EventType())
+		case <-time.After(2 * time.Second):
+			return
+		}
+
+		received = <-messages1
+		assert.Equal(t, model.WebsocketEventChannelDeleted, received.EventType())
+	})
+}
+
+func TestRestoreChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should send the correct websocket events", func(t *testing.T) {
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel2 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+
+		th.LinkUserToTeam(user1, th.BasicTeam)
+		th.LinkUserToTeam(user2, th.BasicTeam)
+		th.AddUserToChannel(user1, channel1)
+		th.AddUserToChannel(user1, channel2)
+
+		err := th.App.DeleteChannel(th.Context, channel1, "")
+		require.Nil(t, err)
+		err = th.App.DeleteChannel(th.Context, channel2, "")
+		require.Nil(t, err)
+
+		channel1.DeleteAt = time.Now().UnixMilli()
+		channel2.DeleteAt = time.Now().UnixMilli()
+
+		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventChannelRestored}
+
+		messages1, closeWS1 := connectFakeWebSocket(t, th, user1.Id, "", eventTypesFilter)
+		defer closeWS1()
+		messages2, closeWS2 := connectFakeWebSocket(t, th, user2.Id, "", eventTypesFilter)
+		defer closeWS2()
+
+		_, err = th.App.RestoreChannel(th.Context, channel1, "")
+		require.Nil(t, err)
+
+		received := <-messages1
+		assert.Equal(t, model.WebsocketEventChannelRestored, received.EventType())
+		received = <-messages2
+		assert.Equal(t, model.WebsocketEventChannelRestored, received.EventType())
+
+		_, err = th.App.RestoreChannel(th.Context, channel2, "")
+		require.Nil(t, err)
+
+		select {
+		case shouldNotReceive := <-messages2:
+			assert.NotEqual(t, model.WebsocketEventChannelRestored, shouldNotReceive.EventType())
+		case <-time.After(2 * time.Second):
+			return
+		}
+
+		received = <-messages1
+		assert.Equal(t, model.WebsocketEventChannelRestored, received.EventType())
+	})
+}
