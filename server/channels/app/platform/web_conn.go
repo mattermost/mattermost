@@ -372,17 +372,6 @@ func (wc *WebConn) isSet(val string) bool {
 	return val != UnsetPresenceIndicator
 }
 
-// areAllInactive returns whether all of the connections
-// are inactive or not.
-func areAllInactive(conns []*WebConn) bool {
-	for _, conn := range conns {
-		if conn.active.Load() {
-			return false
-		}
-	}
-	return true
-}
-
 // GetSession returns the session of the connection.
 func (wc *WebConn) GetSession() *model.Session {
 	return wc.session.Load()
@@ -428,8 +417,15 @@ func (wc *WebConn) Pump() {
 
 func (wc *WebConn) readPump() {
 	defer func() {
+		if metrics := wc.Platform.metricsIFace; metrics != nil {
+			metrics.DecrementHTTPWebSockets(wc.originClient)
+		}
 		wc.WebSocket.Close()
 	}()
+	if metrics := wc.Platform.metricsIFace; metrics != nil {
+		metrics.IncrementHTTPWebSockets(wc.originClient)
+	}
+
 	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
 	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 	wc.WebSocket.SetPongHandler(func(string) error {

@@ -28,11 +28,11 @@ function mapStateToProps(state: GlobalState) {
     const enableUserCreation = config.EnableUserCreation === 'true';
     const isReadOnly = false;
     const team = getCurrentTeam(state);
-    const channel = getCurrentChannel(state) || {};
+    const channel = getCurrentChannel(state);
     const channelMember = getMyCurrentChannelMembership(state);
-    const teammate = getDirectTeammate(state, channel.id);
+    const teammate = channel ? getDirectTeammate(state, channel.id) : undefined;
     const currentUser = getCurrentUser(state);
-    const creator = getUser(state, channel.creator_id);
+    const creator = channel ? getUser(state, channel.creator_id) : undefined;
 
     const usersLimit = 10;
 

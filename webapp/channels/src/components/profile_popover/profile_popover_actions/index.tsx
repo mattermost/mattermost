@@ -13,7 +13,6 @@ import CallButton from './call_button';
 type Props = {
     user: UserProfile;
     fullname: string;
-    channelId?: string;
     currentUserId: string;
     haveOverrideProp: boolean;
     handleShowDirectChannel: (e: React.MouseEvent<HTMLButtonElement>) => void;
@@ -31,7 +30,6 @@ const ProfilePopoverActions = ({
     returnFocus,
     hide,
     fullname,
-    channelId,
 }: Props) => {
     const {formatMessage} = useIntl();
 
@@ -69,7 +67,6 @@ const ProfilePopoverActions = ({
                     hide={hide}
                 />
                 <CallButton
-                    channelId={channelId}
                     currentUserId={currentUserId}
                     fullname={fullname}
                     userId={user.id}

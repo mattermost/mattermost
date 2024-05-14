@@ -3088,10 +3088,6 @@
     "translation": "{{.ConvertedByUsername}} membuat saluran ini dari sebuah pesan grup dengan {{.GMMembers}}."
   },
   {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Kolom yang harus diisi tidak lengkap untuk mengirim email tunggakan."
-  },
-  {
     "id": "api.cloud.license_error",
     "translation": "Lisensi Anda tidak mendukung permintaan cloud."
   },
