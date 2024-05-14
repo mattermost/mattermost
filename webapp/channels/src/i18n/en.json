@@ -1443,6 +1443,7 @@
   "admin.log.levelOptions.DEBUG": "DEBUG",
   "admin.log.levelOptions.ERROR": "ERROR",
   "admin.log.levelOptions.INFO": "INFO",
+  "admin.log.levelOptions.WARN": "WARN",
   "admin.log.levelTitle": "Console Log Level:",
   "admin.log.locationDescription": "The location of the log files. If blank, they are stored in the ./logs directory. The path that you set must exist and Mattermost must have write permissions in it. Changing this setting requires a server restart before taking effect.",
   "admin.log.locationPlaceholder": "Enter your file location",
