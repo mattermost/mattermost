@@ -509,10 +509,10 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         }
 
         let inputType: 'text' | 'number' | 'textarea' = 'text';
-        let defaultValue: string | number = '';
+        let zeroValue: string | number = '';
         if (setting.type === Constants.SettingsTypes.TYPE_NUMBER) {
             inputType = 'number';
-            defaultValue = 0;
+            zeroValue = 0;
         } else if (setting.type === Constants.SettingsTypes.TYPE_LONG_TEXT) {
             inputType = 'textarea';
         }
@@ -523,7 +523,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         } else if (setting.multiple) {
             value = this.state[setting.key] ? this.state[setting.key].join(',') : '';
         } else {
-            value = this.state[setting.key] ?? (setting.default ?? defaultValue);
+            value = this.state[setting.key] ?? (setting.default ?? zeroValue);
         }
 
         let footer = null;
