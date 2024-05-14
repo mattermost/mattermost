@@ -121,9 +121,10 @@ body.app__body #root {
     overflow: hidden;
 
     grid-template:
-        'header' min-content
-        'main'
-        'footer' min-content
+        "announcement" min-content
+        "header" min-content
+        "main"
+        "footer" min-content
     ;
 
     &.console__root {
