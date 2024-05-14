@@ -6,6 +6,8 @@ package fileutils
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/mattermost/mattermost/server/v8"
 )
 
 func CommonBaseSearchPaths() []string {
@@ -17,6 +19,8 @@ func CommonBaseSearchPaths() []string {
 		"../../../..",
 	}
 
+	// this enables the server to be used in tests from a different repository
+	paths = append(paths, server.GetPackagePath())
 	return paths
 }
 
