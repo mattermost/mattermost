@@ -3,13 +3,13 @@
 mmctl job list
 --------------
 
-List jobs
+List the latest jobs
 
 Synopsis
 ~~~~~~~~
 
 
-Lists the lastest jobs
+List the latest jobs
 
 ::
 
@@ -21,9 +21,9 @@ Examples
 ::
 
     job list
-    job list --ids jobID1,jobID2
-    job list --type ldap_sync --status success
-    job list --type ldap_sync --status success --page 0 --per-page 10
+  	job list --ids jobID1,jobID2
+  	job list --type ldap_sync --status success
+  	job list --type ldap_sync --status success --page 0 --per-page 10
 
 Options
 ~~~~~~~

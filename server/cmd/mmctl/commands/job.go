@@ -22,19 +22,30 @@ var JobCmd = &cobra.Command{
 }
 
 var listJobsCmd = &cobra.Command{
-	Use:     "list",
-	Short:   "List jobs",
-	Example: "  job list",
-	Args:    cobra.NoArgs,
-	RunE:    withClient(listJobsCmdF),
+	Use:   "list",
+	Short: "List the latest jobs",
+	Example: `  job list
+	job list --ids jobID1,jobID2
+	job list --type ldap_sync --status success
+	job list --type ldap_sync --status success --page 0 --per-page 10`,
+	Args: cobra.NoArgs,
+	RunE: withClient(listJobsCmdF),
 }
 
 var updateJobCmd = &cobra.Command{
-	Use:     "update [job] [status]",
-	Short:   "Update the status of a job",
-	Example: "  job update pending",
-	Args:    cobra.MinimumNArgs(2),
-	RunE:    withClient(updateJobCmdF),
+	Use:   "update [job] [status]",
+	Short: "Update the status of a job",
+	Long: `Update the status of a job. The following restrictions are in place:
+	- in_progress -> pending
+	- in_progress | pending -> cancel_requested
+	- cancel_requested -> canceled
+	
+	Those restriction can be bypassed with --force=true`,
+	Example: `  job update myJobID pending
+	job update myJobID pending --force true
+	job update myJobID canceled --force true`,
+	Args: cobra.MinimumNArgs(2),
+	RunE: withClient(updateJobCmdF),
 }
 
 func init() {
