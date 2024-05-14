@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useState} from 'react';
+import React, {memo, useCallback, useState} from 'react';
 
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -51,7 +51,7 @@ const AddIncomingWebhook = ({
 }: Props) => {
     const [serverError, setServerError] = useState('');
 
-    const addIncomingHook = async (hook: IncomingWebhook) => {
+    const addIncomingHook = useCallback(async (hook: IncomingWebhook) => {
         setServerError('');
 
         const {data, error} = await actions.createIncomingHook(hook);
@@ -62,7 +62,7 @@ const AddIncomingWebhook = ({
         if (error) {
             setServerError(error.message);
         }
-    };
+    }, [actions, team.name]);
 
     return (
         <AbstractIncomingWebhook
