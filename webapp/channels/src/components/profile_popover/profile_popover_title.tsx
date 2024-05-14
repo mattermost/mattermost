@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -14,6 +14,9 @@ import {getRhsState} from 'selectors/rhs';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import Tag from 'components/widgets/tag/tag';
+
+import type {A11yFocusEventDetail} from 'utils/constants';
+import {A11yCustomEventTypes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -57,8 +60,22 @@ const ProfilePopoverTitle = ({
 }: Props) => {
     const {formatMessage} = useIntl();
 
+    const closeRef = useRef<HTMLButtonElement>(null);
+
     const isTeamAdmin = useSelector((state: GlobalState) => getIsTeamAdmin(state, userId));
     const isChannelAdmin = useSelector((state: GlobalState) => getIsChannelAdmin(state, userId, channelId));
+
+    useEffect(() => {
+        // Focus the close button when the popover first opens
+        document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
+            A11yCustomEventTypes.FOCUS, {
+                detail: {
+                    target: closeRef.current,
+                    keyboardOnly: true,
+                },
+            },
+        ));
+    }, []);
 
     function handleClose() {
         hide?.();
@@ -86,7 +103,7 @@ const ProfilePopoverTitle = ({
                 className='user-popover__role'
                 size={'sm'}
                 text={formatMessage({
-                    id: 'admin.permissions.roles.system_admin.name',
+                    id: 'user_profile.roleTitle.system_admin',
                     defaultMessage: 'System Admin',
                 })}
             />
@@ -97,7 +114,7 @@ const ProfilePopoverTitle = ({
                 className='user-popover__role'
                 size={'sm'}
                 text={formatMessage({
-                    id: 'admin.permissions.roles.team_admin.name',
+                    id: 'user_profile.roleTitle.team_admin',
                     defaultMessage: 'Team Admin',
                 })}
             />
@@ -108,7 +125,7 @@ const ProfilePopoverTitle = ({
                 className='user-popover__role'
                 size={'sm'}
                 text={formatMessage({
-                    id: 'admin.permissions.roles.channel_admin.name',
+                    id: 'user_profile.roleTitle.channel_admin',
                     defaultMessage: 'Channel Admin',
                 })}
             />
@@ -119,8 +136,10 @@ const ProfilePopoverTitle = ({
         <div className='user-profile-popover-title'>
             {roleTitle}
             <button
+                ref={closeRef}
                 className='btn btn-icon btn-sm closeButtonRelativePosition'
                 onClick={handleClose}
+                aria-label={formatMessage({id: 'user_profile.close', defaultMessage: 'Close user profile popover'})}
             >
                 <i className='icon icon-close'/>
             </button>
