@@ -87,6 +87,13 @@ body {
 }
 
 /* stylelint-disable -- grid-template indentation */
+body.admin-onboarding #root {
+    &.channel-view {
+        display: flex;
+        background-color: transparent;
+    }
+}
+
 #root,
 body.app__body #root {
     display: grid;
