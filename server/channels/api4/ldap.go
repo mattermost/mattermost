@@ -318,7 +318,7 @@ func migrateIDLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 func parseLdapCertificateRequest(r *http.Request, maxFileSize int64) (*multipart.FileHeader, *model.AppError) {
 	err := r.ParseMultipartForm(maxFileSize)
 	if err != nil {
-		return nil, model.NewAppError("addLdapCertificate", "api.admin.add_certificate.parseform.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("addLdapCertificate", "api.admin.add_certificate.parseform.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	m := r.MultipartForm
@@ -444,7 +444,7 @@ func addUserToGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request)
 	params := model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: true, ScopedUserID: &user.Id}
 	err := c.App.CreateDefaultMemberships(c.AppContext, params)
 	if err != nil {
-		c.Err = model.NewAppError("addUserToGroupSyncables", "api.admin.syncables_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("addUserToGroupSyncables", "api.admin.syncables_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 

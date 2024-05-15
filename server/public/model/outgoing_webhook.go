@@ -73,6 +73,7 @@ type OutgoingWebhookResponse struct {
 	Attachments  []*SlackAttachment `json:"attachments"`
 	Type         string             `json:"type"`
 	ResponseType string             `json:"response_type"`
+	Priority     *PostPriority      `json:"priority"`
 }
 
 const OutgoingHookResponseTypeComment = "comment"

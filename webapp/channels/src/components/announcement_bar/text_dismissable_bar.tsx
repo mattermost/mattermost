@@ -7,8 +7,6 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import Markdown from 'components/markdown';
 
-import alertIcon from 'images/icons/round-white-info-icon.svg';
-
 import AnnouncementBar from './default_announcement_bar';
 
 const localStoragePrefix = '__announcement__';
@@ -68,10 +66,7 @@ export default class TextDismissableBar extends React.PureComponent<Props, State
                 handleClose={this.handleDismiss}
                 message={
                     <>
-                        <img
-                            className='advisor-icon'
-                            src={alertIcon}
-                        />
+                        <i className='icon-information-outline'/>
                         {typeof text === 'string' ? (
                             <Markdown
                                 message={text}

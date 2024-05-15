@@ -65,19 +65,22 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         let message = this.props.message;
 
         if (this.props.post) {
-            const renderedSystemMessage = renderSystemMessage(this.props.post,
-                this.props.currentTeam,
+            const renderedSystemMessage = this.props.channel ? renderSystemMessage(this.props.post,
+                this.props.currentTeam?.name ?? '',
                 this.props.channel,
                 this.props.hideGuestTags,
                 this.props.isUserCanManageMembers,
                 this.props.isMilitaryTime,
-                this.props.timezone);
+                this.props.timezone) : null;
             if (renderedSystemMessage) {
                 return <div>{renderedSystemMessage}</div>;
             }
         }
 
         if (this.props.post && this.props.post.type === Posts.POST_TYPES.REMINDER) {
+            if (!this.props.currentTeam) {
+                return null;
+            }
             const renderedSystemBotMessage = renderReminderSystemBotMessage(this.props.post, this.props.currentTeam);
             return <div>{renderedSystemBotMessage}</div>;
         }

@@ -31,7 +31,7 @@ func makeSiteURL() string {
 	return "www.example.com/" + model.NewId()
 }
 
-func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterSave(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("Save", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "some_remote",
@@ -145,7 +145,7 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testRemoteClusterDelete(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterDelete(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("Delete", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "shortlived_remote",
@@ -167,7 +167,7 @@ func testRemoteClusterDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testRemoteClusterGet(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterGet(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("Get", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "shortlived_remote_2",
@@ -192,7 +192,7 @@ func testRemoteClusterGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testRemoteClusterGetByPluginID(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterGetByPluginID(t *testing.T, _ request.CTX, ss store.Store) {
 	const pluginID = "com.acme.bogus.plugin"
 
 	t.Run("GetByPluginID", func(t *testing.T) {
@@ -217,7 +217,7 @@ func testRemoteClusterGetByPluginID(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 }
 
-func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterGetAll(t *testing.T, _ request.CTX, ss store.Store) {
 	require.NoError(t, clearRemoteClusters(ss))
 
 	userId := model.NewId()
@@ -230,11 +230,15 @@ func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 		{Name: "another_online_remote", CreatorId: model.NewId(), SiteURL: makeSiteURL(), LastPingAt: now, Topics: ""},
 		{Name: "another_offline_remote", CreatorId: model.NewId(), SiteURL: makeSiteURL(), LastPingAt: pingLongAgo, Topics: " shared "},
 		{Name: "brand_new_offline_remote", CreatorId: userId, SiteURL: "", LastPingAt: 0, Topics: " bogus shared stuff "},
+		{Name: "offline_plugin_remote", CreatorId: model.NewId(), SiteURL: makeSiteURL(), PluginID: model.NewId(), LastPingAt: 0, Topics: " pluginshare "},
+		{Name: "online_plugin_remote", CreatorId: model.NewId(), SiteURL: makeSiteURL(), PluginID: model.NewId(), LastPingAt: now, Topics: " pluginshare "},
 	}
 
 	idsAll := make([]string, 0)
 	idsOnline := make([]string, 0)
 	idsShareTopic := make([]string, 0)
+	idsPlugin := make([]string, 0)
+	idsConfirmed := make([]string, 0)
 
 	for _, item := range data {
 		online := item.LastPingAt == now
@@ -246,6 +250,12 @@ func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		if strings.Contains(saved.Topics, " shared ") {
 			idsShareTopic = append(idsShareTopic, saved.RemoteId)
+		}
+		if item.PluginID != "" {
+			idsPlugin = append(idsPlugin, saved.RemoteId)
+		}
+		if item.SiteURL != "" {
+			idsConfirmed = append(idsConfirmed, saved.RemoteId)
 		}
 	}
 
@@ -315,10 +325,28 @@ func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 		remotes, err := ss.RemoteCluster().GetAll(filter)
 		require.NoError(t, err)
 		// make sure only confirmed returned
-		assert.Len(t, remotes, 4)
 		for _, rc := range remotes {
 			assert.NotEmpty(t, rc.SiteURL)
 		}
+		// make sure all confirmed returned
+		ids := getIds(remotes)
+		assert.ElementsMatch(t, ids, idsConfirmed)
+	})
+
+	t.Run("GetAll only plugins", func(t *testing.T) {
+		filter := model.RemoteClusterQueryFilter{
+			OnlyPlugins: true,
+		}
+		remotes, err := ss.RemoteCluster().GetAll(filter)
+		require.NoError(t, err)
+		// make sure only plugin remotes returned
+		for _, rc := range remotes {
+			assert.NotEmpty(t, rc.PluginID)
+			assert.True(t, rc.IsPlugin())
+		}
+		// make sure all the plugin remotes were returned.
+		ids := getIds(remotes)
+		assert.ElementsMatch(t, ids, idsPlugin)
 	})
 }
 
@@ -542,7 +570,7 @@ func getIds(remotes []*model.RemoteCluster) []string {
 	return ids
 }
 
-func testRemoteClusterGetByTopic(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterGetByTopic(t *testing.T, _ request.CTX, ss store.Store) {
 	require.NoError(t, clearRemoteClusters(ss))
 
 	rcData := []*model.RemoteCluster{
@@ -587,7 +615,7 @@ func testRemoteClusterGetByTopic(t *testing.T, rctx request.CTX, ss store.Store)
 	}
 }
 
-func testRemoteClusterUpdateTopics(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRemoteClusterUpdateTopics(t *testing.T, _ request.CTX, ss store.Store) {
 	remoteId := model.NewId()
 	rc := &model.RemoteCluster{
 		DisplayName: "Blap Inc",
