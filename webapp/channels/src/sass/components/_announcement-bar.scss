@@ -14,12 +14,12 @@
     text-align: center;
 
     .announcement-bar__text {
-        padding: 0 32px;
         display: flex;
         overflow: hidden;
         width: 100%;
         align-items: center;
         justify-content: center;
+        padding: 0 32px;
         white-space: nowrap;
 
         > span {
