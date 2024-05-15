@@ -848,7 +848,12 @@ func (a *App) RestoreChannel(c request.CTX, channel *model.Channel, userID strin
 	channel.DeleteAt = 0
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelRestored, channel.TeamId, "", "", nil, "")
+	var message *model.WebSocketEvent
+	if channel.Type == model.ChannelTypeOpen {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelRestored, channel.TeamId, "", "", nil, "")
+	} else {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelRestored, "", channel.Id, "", nil, "")
+	}
 	message.Add("channel_id", channel.Id)
 	a.Publish(message)
 
@@ -1581,7 +1586,12 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
+	var message *model.WebSocketEvent
+	if channel.Type == model.ChannelTypeOpen {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
+	} else {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, "", channel.Id, "", nil, "")
+	}
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
 	a.Publish(message)
@@ -3158,8 +3168,13 @@ func (a *App) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *mod
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
 
+	var message *model.WebSocketEvent
+	if channel.Type == model.ChannelTypeOpen {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
+	} else {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, "", channel.Id, "", nil, "")
+	}
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
 	a.Publish(message)
