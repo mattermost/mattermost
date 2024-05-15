@@ -67,7 +67,7 @@ describe('Bot display name', () => {
                     cy.get('@botPost').then((postIdA) => {
                         cy.get(`#post_${postIdA} button.user-popover`).click();
 
-                        cy.get('#user-profile-popover').
+                        cy.get('div.user-profile-popover').
                             should('be.visible');
 
                         cy.findByTestId(`popover-fullname-${bot.username}`).
@@ -83,7 +83,7 @@ describe('Bot display name', () => {
 
                             // * Verify changed display name
                             cy.get('@newBotPost').then(() => {
-                                cy.get('#user-profile-popover').
+                                cy.get('div.user-profile-popover').
                                     should('be.visible');
 
                                 cy.findByTestId(`popover-fullname-${bot.username}`).

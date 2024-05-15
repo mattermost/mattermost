@@ -14,7 +14,7 @@ import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
 import {isCallsEnabled as getIsCallsEnabled, getSessionsInCalls} from 'selectors/calls';
 
 import OverlayTrigger from 'components/overlay_trigger';
-import ProfilePopoverCallButton from 'components/profile_popover_call_button';
+import ProfilePopoverCallButton from 'components/profile_popover/profile_popover_calls_button';
 import Tooltip from 'components/tooltip';
 
 import Constants from 'utils/constants';
@@ -98,7 +98,7 @@ const CallButton = ({
         id: 'webapp.mattermost.feature.start_call',
         defaultMessage: 'Start Call',
     });
-    const iconButtonClassname = classNames('btn icon-btn', {'icon-btn-disabled': disabled});
+    const iconButtonClassname = classNames('style--none btn btn-icon btn-sm', {'icon-btn-disabled': disabled});
     const callButton = (
         <OverlayTrigger
             delayShow={Constants.OVERLAY_TIME_DELAY}
