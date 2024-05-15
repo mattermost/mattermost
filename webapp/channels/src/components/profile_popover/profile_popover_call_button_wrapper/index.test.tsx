@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isUserInCall} from './call_button';
+import {isUserInCall} from './index';
 
 describe('isUserInCall', () => {
     test('missing state', () => {

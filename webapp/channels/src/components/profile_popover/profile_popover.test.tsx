@@ -18,7 +18,7 @@ import {getDirectChannelName} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import ProfilePopover from '.';
+import ProfilePopover from './profile_popover';
 
 jest.mock('@mattermost/client', () => ({
     ...jest.requireActual('@mattermost/client'),

@@ -1,0 +1,6 @@
+button#startCallButton {
+    &.btn-disabled-styled {
+        cursor: not-allowed;
+        opacity: 0.65;
+    }
+}
