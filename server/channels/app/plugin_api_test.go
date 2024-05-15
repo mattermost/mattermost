@@ -431,6 +431,61 @@ func TestPluginAPIGetUsers(t *testing.T) {
 	}
 }
 
+func TestPluginAPIGetUsersByIds(t *testing.T) {
+	th := Setup(t).DeleteBots()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	user1, err := th.App.CreateUser(th.Context, &model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(th.Context, user1)
+
+	user2, err := th.App.CreateUser(th.Context, &model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user2" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(th.Context, user2)
+
+	user3, err := th.App.CreateUser(th.Context, &model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user3" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(th.Context, user3)
+
+	testCases := []struct {
+		Description  string
+		requestedIDs []string
+	}{
+		{
+			"no users",
+			[]string{},
+		},
+		{
+			"getting 1 and 3",
+			[]string{user1.Id, user3.Id},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			users, err := api.GetUsersByIds(testCase.requestedIDs)
+			assert.Nil(t, err)
+			assert.Equal(t, len(testCase.requestedIDs), len(users))
+			for _, user := range users {
+				assert.Contains(t, testCase.requestedIDs, user.Id)
+			}
+		})
+	}
+}
+
 func TestPluginAPIGetUsersInTeam(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
