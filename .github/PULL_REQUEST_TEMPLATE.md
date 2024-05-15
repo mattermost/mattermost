@@ -48,15 +48,15 @@ If no release notes are required, write NONE. Use past-tense. Newlines are strip
 
 Examples:
 
-```
+```release-note
 Added new API endpoints POST /api/v4/foo, GET api/v4/foo, and GET api/v4/foo/:foo_id.
 ```
 
-```
+```release-note
 Added a new config setting ServiceSettings.FooBar. Added a new column Foo to the Users table.
 ```
 
-```
+```release-note
 NONE
 ```
 -->
