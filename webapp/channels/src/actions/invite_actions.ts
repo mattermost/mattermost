@@ -116,7 +116,7 @@ export async function sendGuestInviteForUser(
     members: RelationOneToOne<Channel, Record<string, ChannelMembership>>,
 ) {
     if (!isGuest(user.roles)) {
-        return {notSent: {user, reason: localizeMessage('invite.members.user-is-not-guest', 'This person is already a member.')}};
+        return {notSent: {user, reason: localizeMessage('invite.members.user-is-not-guest', 'This person is already a member of the workspace. Invite them as a member instead of a guest.')}};
     }
     let memberOfAll = true;
     let memberOfAny = false;

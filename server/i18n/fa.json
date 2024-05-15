@@ -4360,18 +4360,6 @@
     "translation": "زمانی که شما دور بودید، {{.SenderName}} یک پیام مستقیم جدید برای شما ارسال کرد."
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "مجوزی وجود ندارد"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "این نوع مجوز از تولید توکن تمدید، پشتیبانی نمی کند"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "ایجاد توکن تمدید جدید ناموفق بود."
-  },
-  {
     "id": "app.job.update.app_error",
     "translation": "به روزرسانی کار امکان پذیر نیست."
   },
@@ -4732,10 +4720,6 @@
     "translation": "مجوز تجاری شما منقضی شده است و برخی از ویژگی ها ممکن است غیرفعال شوند. لطفا اشتراکتان را تمدید کنید."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "اکنون مجوز را تمدید کنید"
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "سوالات؟"
   },
@@ -4784,20 +4768,12 @@
     "translation": "اشتراک Mattermost شما آماده تمدید است"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "برای تمدید به حساب مشتری خود وارد شوید"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}، اشتراک شما قرار است تا {{.Days}} روز دیگر منقضی شود. ما امیدواریم که همکاری تیمی منعطف و امنی را که Mattermost فعال می‌کند، تجربه کرده باشید. به زودی تمدید کنید تا مطمئن شوید که تیم شما همچنان از این مزایا بهره مند خواهد شد."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "مجوز شما برای تمدید آماده شده است"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "اکنون تمدید کنید"
   },
   {
     "id": "api.templates.invite_subject",
@@ -5984,10 +5960,6 @@
     "translation": "مجوز برای ایمیل های تمدید ارسال نشد"
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "لینک تمدید مجوز ایجاد نشد"
-  },
-  {
     "id": "api.scheme.patch_scheme.license.error",
     "translation": "مجوز شما از طرح های مجوز بروزرسانی پشتیبانی نمی کند"
   },
@@ -6376,10 +6348,6 @@
   {
     "id": "api.license.request_trial_license.app_error",
     "translation": "دریافت مجوز آزمایشی امکان پذیر نیست ، لطفاً دوباره امتحان کنید یا با support@mattermost.com تماس بگیرید."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "خطا در دریافت لینک تمدید مجوز"
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
