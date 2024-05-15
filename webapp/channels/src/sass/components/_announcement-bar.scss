@@ -4,7 +4,7 @@
     z-index: 999;
     display: flex;
     overflow: hidden;
-    width: 100%;
+    width: 100vw;
     min-height: $announcement-bar-height;
     max-height: $announcement-bar-height;
     align-items: center;
@@ -14,6 +14,7 @@
     text-align: center;
 
     .announcement-bar__text {
+        padding: 0 32px;
         display: flex;
         overflow: hidden;
         width: 100%;
