@@ -28,9 +28,10 @@ scrape_configs:
         - localhost
       labels:
         job: mattermost
+        app: mattermost
         __path__: /logs/*.log
   # https://ruanbekker.medium.com/logging-with-docker-promtail-and-grafana-loki-d920fd790ca8
-  - job_name: flog_scrape
+  - job_name: docker
     docker_sd_configs:
       - host: unix:///var/run/docker.sock
         refresh_interval: 5s
@@ -40,3 +41,6 @@ scrape_configs:
         target_label: 'container'
       - source_labels: ['__meta_docker_container_log_stream']
         target_label: 'logstream'
+    pipeline_stages:
+      - static_labels:
+          job: docker
