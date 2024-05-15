@@ -137,7 +137,7 @@ body.app__body #root {
             'lhs center'
             'footer footer' min-content
         ;
-        grid-template-columns: min-content auto;
+        grid-template-columns: auto 1fr; /* lhs takes its content width, center takes remaining space */
     }
 
     &.container-fluid {
