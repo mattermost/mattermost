@@ -2893,7 +2893,6 @@ func TestDeleteChannel(t *testing.T) {
 		case shouldNotReceive := <-messages2:
 			assert.NotEqual(t, model.WebsocketEventChannelDeleted, shouldNotReceive.EventType())
 		case <-time.After(2 * time.Second):
-			return
 		}
 
 		received = <-messages1
@@ -2947,7 +2946,6 @@ func TestRestoreChannel(t *testing.T) {
 		case shouldNotReceive := <-messages2:
 			assert.NotEqual(t, model.WebsocketEventChannelRestored, shouldNotReceive.EventType())
 		case <-time.After(2 * time.Second):
-			return
 		}
 
 		received = <-messages1
