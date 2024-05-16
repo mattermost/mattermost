@@ -49,7 +49,7 @@ func TestMoveCommand(t *testing.T) {
 
 	command, err := th.App.CreateCommand(command)
 	assert.Nil(t, err)
-
+	token := command.Token
 	defer func() {
 		th.App.PermanentDeleteTeam(th.Context, sourceTeam)
 		th.App.PermanentDeleteTeam(th.Context, targetTeam)
@@ -62,6 +62,7 @@ func TestMoveCommand(t *testing.T) {
 	assert.EqualValues(t, targetTeam.Id, retrievedCommand.TeamId)
 
 	// Move it to the team it's already in. Nothing should change.
+	command.Token = token // we need to reassign the token because the previous MoveCommand sanitizes it
 	assert.Nil(t, th.App.MoveCommand(targetTeam, command))
 	retrievedCommand, err = th.App.GetCommand(command.Id)
 	assert.Nil(t, err)
