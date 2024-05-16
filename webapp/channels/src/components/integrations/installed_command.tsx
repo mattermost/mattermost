@@ -160,20 +160,22 @@ export default class InstalledCommand extends React.PureComponent<Props> {
                         {actions}
                     </div>
                     {description}
-                    <div className='item-details__row'>
-                        <span className='item-details__token'>
-                            <FormattedMessage
-                                id='installed_integrations.token'
-                                defaultMessage='Token: {token}'
-                                values={{
-                                    token: commandToken,
-                                }}
-                            />
-                            <CopyText
-                                value={commandToken}
-                            />
-                        </span>
-                    </div>
+                    {commandToken && commandToken.length > 0 && (
+                        <div className='item-details__row'>
+                            <span className='item-details__token'>
+                                <FormattedMessage
+                                    id='installed_integrations.token'
+                                    defaultMessage='Token: {token}'
+                                    values={{
+                                        token: commandToken,
+                                    }}
+                                />
+                                <CopyText
+                                    value={commandToken}
+                                />
+                            </span>
+                        </div>
+                    )}
                     <div className='item-details__row'>
                         <span className='item-details__creation'>
                             <FormattedMessage

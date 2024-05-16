@@ -138,6 +138,11 @@ func (a *App) ListTeamCommands(teamID string) ([]*model.Command, *model.AppError
 		return nil, model.NewAppError("ListTeamCommands", "app.command.listteamcommands.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// sanitize the commands
+	for i := range teamCmds {
+		teamCmds[i].Token = ""
+	}
+
 	return teamCmds, nil
 }
 
@@ -706,6 +711,7 @@ func (a *App) GetCommand(commandID string) (*model.Command, *model.AppError) {
 	}
 
 	command, err := a.Srv().Store().Command().Get(commandID)
+	command.Token = ""
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

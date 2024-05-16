@@ -38,7 +38,20 @@ describe('components/integrations/InstalledCommand', () => {
         const trigger = `- /${command.trigger} ${command.auto_complete_hint}`;
         expect(wrapper.find('.item-details__trigger').text()).toBe(trigger);
         expect(wrapper.find('.item-details__name').text()).toBe(command.display_name);
+        expect(wrapper.find('.item-details__token').exists()).toBe(true);
         expect(wrapper.find('.item-details__description').text()).toBe(command.description);
+    });
+
+    test('should match snapshot with no token', () => {
+        const props = {...requiredProps, command: {...command, token: ''}};
+        const wrapper = shallow(<InstalledCommand {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+
+        const trigger = `- /${command.trigger} ${command.auto_complete_hint}`;
+        expect(wrapper.find('.item-details__trigger').text()).toBe(trigger);
+        expect(wrapper.find('.item-details__name').text()).toBe(command.display_name);
+        expect(wrapper.find('.item-details__description').text()).toBe(command.description);
+        expect(wrapper.find('.item-details__token').exists()).toBe(false);
     });
 
     test('should match snapshot, not autocomplete, no display_name/description/auto_complete_hint', () => {

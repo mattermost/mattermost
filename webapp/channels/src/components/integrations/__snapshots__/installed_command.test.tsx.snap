@@ -288,6 +288,60 @@ exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
 </div>
 `;
 
+exports[`components/integrations/InstalledCommand should match snapshot with no token 1`] = `
+<div
+  className="backstage-list__item"
+>
+  <div
+    className="item-details"
+  >
+    <div
+      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+    >
+      <div
+        className="item-details__name"
+      >
+        <strong>
+          display_name
+        </strong>
+      </div>
+      <span
+        className="item-details__trigger"
+      >
+        - /trigger auto_complete_hint
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__description"
+      >
+        description
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__creation"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Created by {creator} on {createAt, date, full}"
+          id="installed_integrations.creation"
+          values={
+            Object {
+              "createAt": 1499722850203,
+              "creator": "username",
+            }
+          }
+        />
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`components/integrations/InstalledCommand should match snapshot, not autocomplete, no display_name/description/auto_complete_hint 1`] = `
 <div
   className="backstage-list__item"
