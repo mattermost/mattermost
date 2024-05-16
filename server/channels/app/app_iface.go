@@ -176,6 +176,9 @@ type AppIface interface {
 	GetChannelModerationsForChannel(c request.CTX, channel *model.Channel) ([]*model.ChannelModeration, *model.AppError)
 	// GetClusterPluginStatuses returns the status for plugins installed anywhere in the cluster.
 	GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError)
+	// GetCommandWithToken returns the command with the given ID, including the token.
+	// When possible, prefer using GetCommand.
+	GetCommandWithToken(commandID string) (*model.Command, *model.AppError)
 	// GetConfigFile proxies access to the given configuration file to the underlying config store.
 	GetConfigFile(name string) ([]byte, error)
 	// GetEmojiStaticURL returns a relative static URL for system default emojis,
@@ -672,7 +675,6 @@ type AppIface interface {
 	GetClusterId() string
 	GetClusterStatus(rctx request.CTX) []*model.ClusterInfo
 	GetCommand(commandID string) (*model.Command, *model.AppError)
-	GetCommandWithToken(commandID string) (*model.Command, *model.AppError)
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, *model.AppError)
 	GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError)
 	GetComplianceReport(reportId string) (*model.Compliance, *model.AppError)
