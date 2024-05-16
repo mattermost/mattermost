@@ -225,7 +225,7 @@
         }
 
         button#startCallButton {
-            &.disabledStyleButton {
+            &.icon-btn-disabled {
                 cursor: not-allowed;
                 opacity: 0.65;
             }

@@ -95,10 +95,10 @@ const CallButton = ({
         id: 'webapp.mattermost.feature.start_call',
         defaultMessage: 'Start Call',
     });
-    const iconButtonClassName = classNames('btn btn-icon btn-sm style--none', {disabledStyleButton: disabled});
+    const iconButtonClassName = classNames('btn btn-icon btn-sm style--none', {'icon-btn-disabled': disabled});
     const callButton = (
         <WithTooltip
-            id='startCallButtonTooltip'
+            id='startCallTooltip'
             title={startCallMessage}
             placement='top'
         >
