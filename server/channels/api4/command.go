@@ -155,7 +155,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd, appErr := c.App.GetCommand(c.Params.CommandId)
+	cmd, appErr := c.App.GetCommandWithToken(c.Params.CommandId)
 	if appErr != nil {
 		c.SetCommandNotFoundError()
 		return

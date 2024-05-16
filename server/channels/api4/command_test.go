@@ -47,6 +47,7 @@ func TestCreateCommand(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 	require.Equal(t, th.SystemAdminUser.Id, createdCmd.CreatorId, "user ids didn't match")
 	require.Equal(t, th.BasicTeam.Id, createdCmd.TeamId, "team ids didn't match")
+	require.NotEmpty(t, createdCmd.Token, "token should be set and returned")
 
 	_, resp, err = th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
 	require.Error(t, err)
@@ -110,7 +111,6 @@ func TestUpdateCommand(t *testing.T) {
 		Method:    model.CommandMethodGet,
 		Trigger:   "trigger2",
 		Id:        cmd1.Id,
-		Token:     "tokenchange",
 	}
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -125,7 +125,7 @@ func TestUpdateCommand(t *testing.T) {
 
 		require.Equal(t, cmd1.CreatorId, rcmd.CreatorId, "CreatorId should have not updated")
 
-		require.Equal(t, cmd1.Token, rcmd.Token, "Token should have not updated")
+		require.Empty(t, rcmd.Token, "Token should not have been returned")
 
 		cmd2.Id = GenerateTestID()
 
@@ -310,6 +310,7 @@ func TestListCommands(t *testing.T) {
 			if command.Trigger == "custom_command" {
 				foundCustom = true
 			}
+			require.Empty(t, command.Token, "Token should not be returned")
 		}
 		require.True(t, foundEcho, "Couldn't find echo command")
 		require.True(t, foundCustom, "Should list the custom command")
@@ -321,6 +322,7 @@ func TestListCommands(t *testing.T) {
 
 		require.Len(t, listCommands, 1, "Should list just one custom command")
 		require.Equal(t, listCommands[0].Trigger, "custom_command", "Wrong custom command trigger")
+		require.Empty(t, listCommands[0].Token, "Token should not be returned")
 	}, "ListCustomOnlyCommands")
 
 	t.Run("UserWithNoPermissionForCustomCommands", func(t *testing.T) {
@@ -342,6 +344,7 @@ func TestListCommands(t *testing.T) {
 			if command.Trigger == "custom_command" {
 				foundCustom = true
 			}
+			require.Empty(t, command.Token, "Token should not be returned")
 		}
 		require.True(t, foundEcho, "Couldn't find echo command")
 		require.False(t, foundCustom, "Should not list the custom command")
@@ -399,6 +402,7 @@ func TestListAutocompleteCommands(t *testing.T) {
 			if command.Trigger == "custom_command" {
 				foundCustom = true
 			}
+			require.Empty(t, command.Token, "Token should not be returned")
 		}
 		require.True(t, foundEcho, "Couldn't find echo command")
 		require.False(t, foundCustom, "Should not list the custom command")
@@ -417,6 +421,7 @@ func TestListAutocompleteCommands(t *testing.T) {
 			if command.Trigger == "custom_command" {
 				foundCustom = true
 			}
+			require.Empty(t, command.Token, "Token should not be returned")
 		}
 		require.True(t, foundEcho, "Couldn't find echo command")
 		require.False(t, foundCustom, "Should not list the custom command")
@@ -562,6 +567,7 @@ func TestGetCommand(t *testing.T) {
 			require.Equal(t, newCmd.URL, cmd.URL)
 			require.Equal(t, newCmd.Method, cmd.Method)
 			require.Equal(t, newCmd.Trigger, cmd.Trigger)
+			require.Empty(t, cmd.Token, "Token should not be returned")
 		})
 
 		t.Run("InvalidId", func(t *testing.T) {

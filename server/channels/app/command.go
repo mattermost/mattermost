@@ -713,6 +713,8 @@ func (a *App) GetCommand(commandID string) (*model.Command, *model.AppError) {
 	return cmd, appErr
 }
 
+// GetCommandWithToken returns the command with the given ID, including the token.
+// When possible, prefer using GetCommand.
 func (a *App) GetCommandWithToken(commandID string) (*model.Command, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCommands {
 		return nil, model.NewAppError("GetCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -779,7 +781,7 @@ func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppEr
 			return model.NewAppError("MoveCommand", "app.command.movecommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
-
+	command.Token = ""
 	return nil
 }
 
