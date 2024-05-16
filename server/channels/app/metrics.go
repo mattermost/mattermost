@@ -18,7 +18,7 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 	for _, c := range report.Counters {
 		switch c.Metric {
 		case model.ClientLongTasks:
-			a.Metrics().IncrementClientLongTasks(commonLabels["platform"], commonLabels["agent"], float64(c.Value))
+			a.Metrics().IncrementClientLongTasks(commonLabels["platform"], commonLabels["agent"], c.Value)
 		default:
 			// we intentionally skip unknown metrics
 		}
@@ -27,21 +27,21 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 	for _, h := range report.Histograms {
 		switch h.Metric {
 		case model.ClientTimeToFirstByte:
-			a.Metrics().ObserveClientTimeToFirstByte(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
+			a.Metrics().ObserveClientTimeToFirstByte(commonLabels["platform"], commonLabels["agent"], h.Value)
 		case model.ClientFirstContentfulPaint:
-			a.Metrics().ObserveClientFirstContentfulPaint(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
+			a.Metrics().ObserveClientFirstContentfulPaint(commonLabels["platform"], commonLabels["agent"], h.Value)
 		case model.ClientLargestContentfulPaint:
-			a.Metrics().ObserveClientLargestContentfulPaint(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
+			a.Metrics().ObserveClientLargestContentfulPaint(commonLabels["platform"], commonLabels["agent"], h.Value)
 		case model.ClientInteractionToNextPaint:
-			a.Metrics().ObserveClientInteractionToNextPaint(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
+			a.Metrics().ObserveClientInteractionToNextPaint(commonLabels["platform"], commonLabels["agent"], h.Value)
 		case model.ClientCumulativeLayoutShift:
-			a.Metrics().ObserveClientCumulativeLayoutShift(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
+			a.Metrics().ObserveClientCumulativeLayoutShift(commonLabels["platform"], commonLabels["agent"], h.Value)
 		case model.ClientChannelSwitchDuration:
-			a.Metrics().ObserveClientChannelSwitchDuration(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
+			a.Metrics().ObserveClientChannelSwitchDuration(commonLabels["platform"], commonLabels["agent"], h.Value)
 		case model.ClientTeamSwitchDuration:
-			a.Metrics().ObserveClientTeamSwitchDuration(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
+			a.Metrics().ObserveClientTeamSwitchDuration(commonLabels["platform"], commonLabels["agent"], h.Value)
 		case model.ClientRHSLoadDuration:
-			a.Metrics().ObserveClientRHSLoadDuration(commonLabels["platform"], commonLabels["agent"], float64(h.Value))
+			a.Metrics().ObserveClientRHSLoadDuration(commonLabels["platform"], commonLabels["agent"], h.Value)
 		default:
 			// we intentionally skip unknown metrics
 		}
