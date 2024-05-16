@@ -61,6 +61,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 		err := listCommandCmdF(c, &cobra.Command{}, []string{team.Id})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
+		command.Token = ""
 		s.Equal(command, printer.GetLines()[0])
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -124,6 +125,8 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 			err := listCommandCmdF(c, &cobra.Command{}, []string{})
 			s.Require().Nil(err)
 			s.Len(printer.GetLines(), 2)
+			command1.Token = ""
+			command2.Token = ""
 			s.ElementsMatch([]*model.Command{command1, command2}, printer.GetLines())
 			s.Len(printer.GetErrorLines(), 0)
 		})
