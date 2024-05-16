@@ -399,6 +399,22 @@ export default class Client4 {
         return `${this.getBrandRoute()}/image?t=${timestamp}`;
     }
 
+    getCustomFaviconUrl(timestamp: string) {
+        return `${this.getBrandRoute()}/favicon?t=${timestamp}`;
+    }
+
+    getCustomLightLogoUrl(timestamp: string) {
+        return `${this.getBrandRoute()}/light-logo?t=${timestamp}`;
+    }
+
+    getCustomDarkLogoUrl(timestamp: string) {
+        return `${this.getBrandRoute()}/dark-logo?t=${timestamp}`;
+    }
+
+    getCustomBackgroundUrl(timestamp: string) {
+        return `${this.getBrandRoute()}/background?t=${timestamp}`;
+    }
+
     getDataRetentionRoute() {
         return `${this.getBaseRoute()}/data_retention`;
     }

@@ -2166,19 +2166,29 @@ func (s *ThemeSettings) SetDefaults() {
 }
 
 type TeamSettings struct {
-	SiteName                        *string `access:"site_customization"`
-	MaxUsersPerTeam                 *int    `access:"site_users_and_teams"`
-	EnableJoinLeaveMessageByDefault *bool   `access:"site_users_and_teams"`
-	EnableUserCreation              *bool   `access:"authentication_signup"`
-	EnableOpenServer                *bool   `access:"authentication_signup"`
-	EnableUserDeactivation          *bool   `access:"experimental_features"`
-	RestrictCreationToDomains       *string `access:"authentication_signup"` // telemetry: none
-	EnableCustomUserStatuses        *bool   `access:"site_users_and_teams"`
-	EnableCustomBrand               *bool   `access:"site_customization"`
-	CustomBrandText                 *string `access:"site_customization"`
-	CustomDescriptionText           *string `access:"site_customization"`
-	RestrictDirectMessage           *string `access:"site_users_and_teams"`
-	EnableLastActiveTime            *bool   `access:"site_users_and_teams"`
+	SiteName                               *string `access:"site_customization"`
+	MaxUsersPerTeam                        *int    `access:"site_users_and_teams"`
+	EnableJoinLeaveMessageByDefault        *bool   `access:"site_users_and_teams"`
+	EnableUserCreation                     *bool   `access:"authentication_signup"`
+	EnableOpenServer                       *bool   `access:"authentication_signup"`
+	EnableUserDeactivation                 *bool   `access:"experimental_features"`
+	RestrictCreationToDomains              *string `access:"authentication_signup"` // telemetry: none
+	EnableCustomUserStatuses               *bool   `access:"site_users_and_teams"`
+	EnableCustomBrand                      *bool   `access:"site_customization"`
+	CustomBrandText                        *string `access:"site_customization"`
+	CustomDescriptionText                  *string `access:"site_customization"`
+	CustomLoginPageHeading                 *string `access:"site_customization"`
+	CustomLoginPageColorBackground         *string `access:"site_customization"`
+	CustomLoginPageColorText               *string `access:"site_customization"`
+	CustomLoginPageColorLoginContainer     *string `access:"site_customization"`
+	CustomLoginPageColorLoginContainerText *string `access:"site_customization"`
+	CustomLoginPageColorButtonBgColor      *string `access:"site_customization"`
+	CustomLoginPageColorButtonTextColor    *string `access:"site_customization"`
+	CustomLoginPageBackgroundImage         *string `access:"site_customization"`
+	CustomLoginPageCSS                     *string `access:"site_customization"`
+	CustomLoginPageShowFooter              *bool   `access:"site_customization"`
+	RestrictDirectMessage                  *string `access:"site_users_and_teams"`
+	EnableLastActiveTime                   *bool   `access:"site_users_and_teams"`
 	// In seconds.
 	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
 	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
@@ -2239,6 +2249,46 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.CustomDescriptionText == nil {
 		s.CustomDescriptionText = NewString(TeamSettingsDefaultCustomDescriptionText)
+	}
+
+	if s.CustomLoginPageHeading == nil {
+		s.CustomLoginPageHeading = NewString("")
+	}
+
+	if s.CustomLoginPageColorBackground == nil {
+		s.CustomLoginPageColorBackground = NewString("")
+	}
+
+	if s.CustomLoginPageColorText == nil {
+		s.CustomLoginPageColorText = NewString("")
+	}
+
+	if s.CustomLoginPageColorLoginContainer == nil {
+		s.CustomLoginPageColorLoginContainer = NewString("")
+	}
+
+	if s.CustomLoginPageColorLoginContainerText == nil {
+		s.CustomLoginPageColorLoginContainerText = NewString("")
+	}
+
+	if s.CustomLoginPageColorButtonBgColor == nil {
+		s.CustomLoginPageColorButtonBgColor = NewString("")
+	}
+
+	if s.CustomLoginPageColorButtonTextColor == nil {
+		s.CustomLoginPageColorButtonTextColor = NewString("")
+	}
+
+	if s.CustomLoginPageBackgroundImage == nil {
+		s.CustomLoginPageBackgroundImage = NewString("")
+	}
+
+	if s.CustomLoginPageCSS == nil {
+		s.CustomLoginPageCSS = NewString("")
+	}
+
+	if s.CustomLoginPageShowFooter == nil {
+		s.CustomLoginPageShowFooter = NewBool(true)
 	}
 
 	if s.RestrictDirectMessage == nil {

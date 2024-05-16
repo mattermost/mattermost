@@ -2,7 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback} from 'react';
+import {useSelector} from 'react-redux';
 import {Route} from 'react-router-dom';
+
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {Client4} from 'mattermost-redux/client';
 
 import AnnouncementBar from 'components/announcement_bar';
 
@@ -23,6 +27,42 @@ export type HFRouteProps = {
 export const HFRoute = ({path, component: Component}: HFRouteProps) => {
     const [headerProps, setHeaderProps] = useState<HeaderProps>({});
 
+    const {
+        EnableLdap,
+        EnableSaml,
+        EnableSignInWithEmail,
+        EnableSignInWithUsername,
+        EnableSignUpWithEmail,
+        EnableSignUpWithGitLab,
+        EnableSignUpWithOffice365,
+        EnableSignUpWithGoogle,
+        EnableSignUpWithOpenId,
+        EnableOpenServer,
+        LdapLoginFieldName,
+        GitLabButtonText,
+        GitLabButtonColor,
+        OpenIdButtonText,
+        OpenIdButtonColor,
+        SamlLoginButtonText,
+        EnableCustomBrand,
+        CustomBrandText,
+        CustomLoginPageHeading,
+        CustomLoginPageColorBackground,
+        CustomLoginPageColorText,
+        CustomLoginPageBackgroundImage,
+        CustomLoginPageCSS,
+        CustomLoginPageShowFooter,
+        CustomLoginPageColorLoginContainer,
+        CustomLoginPageColorLoginContainerText,
+        CustomLoginPageColorButtonBgColor,
+        CustomLoginPageColorButtonTextColor,
+        CustomDescriptionText,
+        SiteName,
+        ExperimentalPrimaryTeam,
+        ForgotPasswordLink,
+        PasswordEnableForgotLink,
+    } = useSelector(getConfig);
+
     const customizeHeader: CustomizeHeaderType = useCallback((props) => {
         setHeaderProps(props);
     }, []);
@@ -36,7 +76,7 @@ export const HFRoute = ({path, component: Component}: HFRouteProps) => {
                         <AnnouncementBar/>
                     </React.Suspense>
                     <div className='header-footer-route'>
-                        <div className='header-footer-route-container'>
+                        <div className='header-footer-route-container' style={EnableCustomBrand === "true" ? {background: CustomLoginPageColorBackground, color: CustomLoginPageColorText, backgroundImage: `url(${Client4.getCustomBackgroundUrl('0')})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"} : {}}>
                             <React.Suspense fallback={null}>
                                 <Header {...headerProps}/>
                             </React.Suspense>
@@ -44,7 +84,7 @@ export const HFRoute = ({path, component: Component}: HFRouteProps) => {
                                 <Component onCustomizeHeader={customizeHeader}/>
                             </React.Suspense>
                             <React.Suspense fallback={null}>
-                                <Footer/>
+                                {!EnableCustomBrand || CustomLoginPageShowFooter !== 'true' && <Footer/>}
                             </React.Suspense>
                         </div>
                     </div>

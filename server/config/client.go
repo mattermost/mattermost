@@ -310,9 +310,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["PasswordEnableForgotLink"] = strconv.FormatBool(*c.PasswordSettings.EnableForgotLink)
 
 	// Set default values for all options that require a license.
-	props["EnableCustomBrand"] = "false"
-	props["CustomBrandText"] = ""
-	props["CustomDescriptionText"] = ""
 	props["EnableLdap"] = "false"
 	props["LdapLoginFieldName"] = ""
 	props["LdapLoginButtonColor"] = ""
@@ -332,6 +329,16 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
+	props["CustomLoginPageHeading"] = ""
+	props["CustomLoginPageColorBackground"] = ""
+	props["CustomLoginPageColorText"] = ""
+	props["CustomLoginPageColorLoginContainer"] = ""
+	props["CustomLoginPageColorLoginContainerText"] = ""
+	props["CustomLoginPageColorButtonBgColor"] = ""
+	props["CustomLoginPageColorButtonTextColor"] = ""
+	props["CustomLoginPageBackgroundImage"] = ""
+	props["CustomLoginPageCSS"] = ""
+	props["CustomLoginPageShowFooter"] = "true"
 	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 	props["EnforceMultifactorAuthentication"] = "false"
 	props["EnableGuestAccounts"] = strconv.FormatBool(*c.GuestAccountsSettings.Enable)
@@ -383,6 +390,18 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["OpenIdButtonColor"] = *c.OpenIdSettings.ButtonColor
 			props["OpenIdButtonText"] = *c.OpenIdSettings.ButtonText
 		}
+
+		// Custom branding
+		props["CustomLoginPageHeading"] = *c.TeamSettings.CustomLoginPageHeading
+		props["CustomLoginPageColorBackground"] = *c.TeamSettings.CustomLoginPageColorBackground
+		props["CustomLoginPageColorText"] = *c.TeamSettings.CustomLoginPageColorText
+		props["CustomLoginPageColorLoginContainer"] = *c.TeamSettings.CustomLoginPageColorLoginContainer
+		props["CustomLoginPageColorLoginContainerText"] = *c.TeamSettings.CustomLoginPageColorLoginContainerText
+		props["CustomLoginPageColorButtonBgColor"] = *c.TeamSettings.CustomLoginPageColorButtonBgColor
+		props["CustomLoginPageColorButtonTextColor"] = *c.TeamSettings.CustomLoginPageColorButtonTextColor
+		props["CustomLoginPageBackgroundImage"] = *c.TeamSettings.CustomLoginPageBackgroundImage
+		props["CustomLoginPageCSS"] = *c.TeamSettings.CustomLoginPageCSS
+		props["CustomLoginPageShowFooter"] = strconv.FormatBool(*c.TeamSettings.CustomLoginPageShowFooter)
 	}
 
 	for key, value := range c.FeatureFlags.ToMap() {

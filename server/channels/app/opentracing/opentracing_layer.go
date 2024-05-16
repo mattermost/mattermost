@@ -3133,7 +3133,7 @@ func (a *OpenTracingAppLayer) DeleteAllKeysForPlugin(pluginID string) *model.App
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteBrandImage(rctx request.CTX) *model.AppError {
+func (a *OpenTracingAppLayer) DeleteBrandImage(rctx request.CTX, imageType string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteBrandImage")
 
@@ -3145,7 +3145,7 @@ func (a *OpenTracingAppLayer) DeleteBrandImage(rctx request.CTX) *model.AppError
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeleteBrandImage(rctx)
+	resultVar0 := a.app.DeleteBrandImage(rctx, imageType)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -5339,7 +5339,7 @@ func (a *OpenTracingAppLayer) GetBots(rctx request.CTX, options *model.BotGetOpt
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetBrandImage(rctx request.CTX) ([]byte, *model.AppError) {
+func (a *OpenTracingAppLayer) GetBrandImage(rctx request.CTX, imageType string) ([]byte, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetBrandImage")
 
@@ -5351,7 +5351,7 @@ func (a *OpenTracingAppLayer) GetBrandImage(rctx request.CTX) ([]byte, *model.Ap
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetBrandImage(rctx)
+	resultVar0, resultVar1 := a.app.GetBrandImage(rctx, imageType)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15181,7 +15181,7 @@ func (a *OpenTracingAppLayer) SaveAdminNotifyData(data *model.NotifyAdminData) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) *model.AppError {
+func (a *OpenTracingAppLayer) SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader, imageType string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveBrandImage")
 
@@ -15193,7 +15193,7 @@ func (a *OpenTracingAppLayer) SaveBrandImage(rctx request.CTX, imageData *multip
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SaveBrandImage(rctx, imageData)
+	resultVar0 := a.app.SaveBrandImage(rctx, imageData, imageType)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

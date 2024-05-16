@@ -8,6 +8,7 @@ import type {FormEvent} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link, useLocation, useHistory, Route} from 'react-router-dom';
+import styled from 'styled-components';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -66,6 +67,33 @@ type LoginProps = {
     onCustomizeHeader?: CustomizeHeaderType;
 }
 
+type LoginBlockProps = {
+    background: string
+    textColor: string
+}
+
+const LoginBlock = styled.div<LoginBlockProps>`
+    border-radius: 8px;
+    background: ${(props) => props.background};
+    color: ${(props) => props.textColor};
+    &&& input {
+        background: ${(props) => props.background};
+        color: ${(props) => props.textColor};
+    }
+    &&& input::placeholder {
+        color: ${(props) => props.textColor};
+    }
+
+    #password_toggle {
+        color: ${(props) => props.textColor};
+        background: ${(props) => props.background};
+    }
+    &&& legend {
+        color: ${(props) => props.textColor};
+        background: ${(props) => props.background};
+    }
+`
+
 const Login = ({onCustomizeHeader}: LoginProps) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -95,6 +123,16 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         SamlLoginButtonText,
         EnableCustomBrand,
         CustomBrandText,
+        CustomLoginPageHeading,
+        CustomLoginPageColorBackground,
+        CustomLoginPageColorText,
+        CustomLoginPageBackgroundImage,
+        CustomLoginPageCSS,
+        CustomLoginPageShowFooter,
+        CustomLoginPageColorLoginContainer,
+        CustomLoginPageColorLoginContainerText,
+        CustomLoginPageColorButtonBgColor,
+        CustomLoginPageColorButtonTextColor,
         CustomDescriptionText,
         SiteName,
         ExperimentalPrimaryTeam,
@@ -387,6 +425,19 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             passwordInput.current?.focus();
         }
     }, [emailParam, extraParam]);
+
+    useEffect(() => {
+        // TODO: only do this if the favicon-image is there
+        if (enableCustomBrand) {
+            let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.head.appendChild(link);
+            }
+            link.href = Client4.getCustomFaviconUrl('0')
+        }
+    }, [])
 
     useEffect(() => {
         if (onCustomizeHeader) {
@@ -707,7 +758,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     };
 
     const getCardTitle = () => {
-        if (CustomDescriptionText) {
+        if (enableCustomBrand && CustomDescriptionText) {
             return CustomDescriptionText;
         }
 
@@ -720,8 +771,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const getMessageSubtitle = () => {
         if (enableCustomBrand) {
+            let style = enableCustomBrand ? {color: CustomLoginPageColorText, opacity: 0.9} : {};
             return CustomBrandText ? (
-                <div className='login-body-custom-branding-markdown'>
+                <div className='login-body-custom-branding-markdown' style={style}>
                     <Markdown
                         message={CustomBrandText}
                         options={{mentionHighlight: false}}
@@ -743,20 +795,22 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         if (ForgotPasswordLink) {
+            let style = enableCustomBrand ? {color: CustomLoginPageColorButtonBgColor} : {};
             return (
                 <div className='login-body-card-form-link'>
                     <ExternalLink href={ForgotPasswordLink}>
-                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                        <span style={style}>{formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}</span>
                     </ExternalLink>
                 </div>
             );
         }
 
         if (enableSignInWithUsername || enableSignInWithEmail) {
+            let style = enableCustomBrand ? {color: CustomLoginPageColorButtonBgColor} : {};
             return (
                 <div className='login-body-card-form-link'>
                     <Link to='/reset_password'>
-                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
+                        <span style={style}>{formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}</span>
                     </Link>
                 </div>
             );
@@ -811,16 +865,23 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                         },
                     )}
                 >
-                    {enableCustomBrand && !brandImageError ? (
+                    {enableCustomBrand && !brandImageError && (
                         <img
                             className={classNames('login-body-custom-branding-image')}
                             alt='brand image'
                             src={Client4.getBrandImageUrl('0')}
                             onError={handleBrandImageError}
                         />
-                    ) : (
-                        <h1 className='login-body-message-title'>
+                    )}
+
+                    {(!enableCustomBrand || CustomLoginPageHeading === "") && (
+                        <h1 className='login-body-message-title' style={enableCustomBrand ? {color: CustomLoginPageColorText} : {}}>
                             {formatMessage({id: 'login.title', defaultMessage: 'Log in to your account'})}
+                        </h1>
+                    )}
+                    {enableCustomBrand && CustomLoginPageHeading !== "" && (
+                        <h1 className='login-body-message-title' style={enableCustomBrand ? {color: CustomLoginPageColorText} : {}}>
+                            {CustomLoginPageHeading}
                         </h1>
                     )}
                     {getMessageSubtitle()}
@@ -832,12 +893,14 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 </div>
                 <div className='login-body-action'>
                     {!isMobileView && getAlternateLink()}
-                    <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
-                        <div
+                    <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})} style={enableCustomBrand ? {background: CustomLoginPageColorLoginContainer} : {}}>
+                        <LoginBlock
                             className='login-body-card-content'
                             tabIndex={0}
+                            background={enableCustomBrand ? CustomLoginPageColorLoginContainer || '#ffffff' : '#ffffff'}
+                            textColor={enableCustomBrand ? CustomLoginPageColorLoginContainerText || '#000000' : '#00000'}
                         >
-                            <p className='login-body-card-title'>
+                            <p className='login-body-card-title' style={enableCustomBrand ? {color: CustomLoginPageColorLoginContainerText} : {}}>
                                 {getCardTitle()}
                             </p>
                             {enableCustomBrand && getMessageSubtitle()}
@@ -885,6 +948,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             onClick={preSubmit}
                                             defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
                                             savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
+                                            style={enableCustomBrand ? {background: CustomLoginPageColorButtonBgColor, color: CustomLoginPageColorButtonTextColor} : {}}
                                         />
                                     </div>
                                 </form>
@@ -907,7 +971,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                     ))}
                                 </div>
                             )}
-                        </div>
+                        </LoginBlock>
                     </div>
                 </div>
             </>

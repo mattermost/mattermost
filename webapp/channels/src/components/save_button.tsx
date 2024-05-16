@@ -15,6 +15,7 @@ type Props = {
     defaultMessage?: React.ReactNode;
     btnClass?: string;
     extraClasses?: string;
+    style: any;
 }
 
 export default class SaveButton extends React.PureComponent<Props> {
@@ -73,7 +74,7 @@ export default class SaveButton extends React.PureComponent<Props> {
                     loading={saving}
                     text={savingMessage}
                 >
-                    <span>{defaultMessage}</span>
+                    <span style={props.style}>{defaultMessage}</span>
                 </LoadingWrapper>
             </button>
         );

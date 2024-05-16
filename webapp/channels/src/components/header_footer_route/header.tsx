@@ -5,6 +5,7 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
+import {Client4} from 'mattermost-redux/client';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import BackButton from 'components/common/back_button';
@@ -19,8 +20,43 @@ export type HeaderProps = {
 }
 
 const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) => {
-    const {SiteName} = useSelector(getConfig);
     const license = useSelector(getLicense);
+
+    const {
+        EnableLdap,
+        EnableSaml,
+        EnableSignInWithEmail,
+        EnableSignInWithUsername,
+        EnableSignUpWithEmail,
+        EnableSignUpWithGitLab,
+        EnableSignUpWithOffice365,
+        EnableSignUpWithGoogle,
+        EnableSignUpWithOpenId,
+        EnableOpenServer,
+        LdapLoginFieldName,
+        GitLabButtonText,
+        GitLabButtonColor,
+        OpenIdButtonText,
+        OpenIdButtonColor,
+        SamlLoginButtonText,
+        EnableCustomBrand,
+        CustomBrandText,
+        CustomLoginPageHeading,
+        CustomLoginPageColorBackground,
+        CustomLoginPageColorText,
+        CustomLoginPageBackgroundImage,
+        CustomLoginPageCSS,
+        CustomLoginPageShowFooter,
+        CustomLoginPageColorLoginContainer,
+        CustomLoginPageColorLoginContainerText,
+        CustomLoginPageColorButtonBgColor,
+        CustomLoginPageColorButtonTextColor,
+        CustomDescriptionText,
+        SiteName,
+        ExperimentalPrimaryTeam,
+        ForgotPasswordLink,
+        PasswordEnableForgotLink,
+    } = useSelector(getConfig);
 
     const ariaLabel = SiteName || 'Mattermost';
 
@@ -36,6 +72,10 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
         } else {
             title = <Logo/>;
         }
+    }
+
+    if (EnableCustomBrand === 'true') {
+        title = <img src={Client4.getCustomLightLogoUrl('0')}/>
     }
 
     return (
