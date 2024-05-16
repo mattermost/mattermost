@@ -64,7 +64,6 @@ export default function ProfilePopoverCallButton({pluginCallComponents, channelM
 
     return (
         <div
-            className='callButtonContainer flex-child'
             onClick={clickHandler}
             onTouchEnd={clickHandler}
         >

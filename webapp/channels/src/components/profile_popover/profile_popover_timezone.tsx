@@ -3,7 +3,7 @@
 
 import {DateTime, Duration} from 'luxon';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import type {UserTimezone} from '@mattermost/types/users';
 
@@ -17,10 +17,16 @@ type ProfileTimezoneProps = {
     haveOverrideProp: boolean;
 }
 
-const returnTimeDiff = (
-    currentUserTimezone: string | undefined | null,
-    profileUserTimezone: string,
+const TimeZoneDifference = ({
+    currentUserTimezone,
+    profileUserTimezone,
+}: {
+    currentUserTimezone: string | undefined | null;
+    profileUserTimezone: string;
+},
 ) => {
+    const {formatMessage} = useIntl();
+
     if (!currentUserTimezone) {
         return null;
     }
@@ -32,23 +38,33 @@ const returnTimeDiff = (
     });
 
     if (!offset.valueOf()) {
-        return undefined;
+        return null;
     }
 
     const timeOffset = offset.toHuman({unitDisplay: 'short', signDisplay: 'never'});
 
     return offset.valueOf() > 0 ? (
-        <FormattedMessage
-            id='user_profile.account.hoursAhead'
-            defaultMessage='({timeOffset} ahead)'
-            values={{timeOffset}}
-        />
+        <>
+            {formatMessage(
+                {
+                    id: 'user_profile.account.hoursAhead',
+                    defaultMessage: '({timeOffset} ahead)',
+                },
+                {timeOffset},
+            )}
+        </>
     ) : (
-        <FormattedMessage
-            id='user_profile.account.hoursBehind'
-            defaultMessage='({timeOffset} behind)'
-            values={{timeOffset}}
-        />
+        <>
+            {
+                formatMessage(
+                    {
+                        id: 'user_profile.account.hoursBehind',
+                        defaultMessage: '({timeOffset} behind)',
+                    },
+                    {timeOffset},
+                )
+            }
+        </>
     );
 };
 
@@ -57,6 +73,8 @@ const ProfileTimezone = ({
     profileUserTimezone,
     haveOverrideProp,
 }: ProfileTimezoneProps) => {
+    const {formatMessage} = useIntl();
+
     if (haveOverrideProp || !profileUserTimezone) {
         return null;
     }
@@ -68,24 +86,27 @@ const ProfileTimezone = ({
         <div
             className='user-popover__time-status-container'
         >
-            <span className='user-popover__subtitle'>
-                {profileTimezoneShort ? (
-                    <FormattedMessage
-                        id='user_profile.account.localTimeWithTimezone'
-                        defaultMessage='Local Time ({timezone})'
-                        values={{
-                            timezone: profileTimezoneShort,
-                        }}
-                    />
-                ) : (
-                    <FormattedMessage
-                        id='user_profile.account.localTime'
-                        defaultMessage='Local Time'
-                    />
-                )}
-
-            </span>
-            <span>
+            <strong
+                id='user-popover__timezone-title'
+                className='user-popover__subtitle'
+            >
+                {profileTimezoneShort ? formatMessage(
+                    {
+                        id: 'user_profile.account.localTimeWithTimezone',
+                        defaultMessage: 'Local Time ({timezone})',
+                    },
+                    {
+                        timezone: profileTimezoneShort,
+                    },
+                ) : formatMessage({
+                    id: 'user_profile.account.localTime',
+                    defaultMessage: 'Local Time',
+                })}
+            </strong>
+            <p
+                aria-labelledby='user-popover__timezone-title'
+                className='user-popover__subtitle-text'
+            >
                 <Timestamp
                     useRelative={false}
                     useDate={false}
@@ -96,9 +117,11 @@ const ProfileTimezone = ({
                     }}
                 />
                 {' '}
-                {returnTimeDiff(currentUserTimezone, profileTimezone)}
-            </span>
-
+                <TimeZoneDifference
+                    currentUserTimezone={currentUserTimezone}
+                    profileUserTimezone={profileTimezone}
+                />
+            </p>
         </div>
     );
 };
