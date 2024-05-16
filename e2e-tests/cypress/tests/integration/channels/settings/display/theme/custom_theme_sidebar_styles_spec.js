@@ -70,12 +70,11 @@ describe('Custom Theme - Sidebar Styles', () => {
         cy.get('.settings-links').should('have.css', 'background-color', 'rgba(63, 67, 80, 0.04)');
 
         // * Check Sidebar Text color change
-        const rgbArr = themeRgbColor.sidebarText;
         cy.get('#displayButton').should('have.css', 'color', 'rgb(28, 88, 217)');
 
         // * Check Sidebar Header BG color change
         cy.get('#accountSettingsHeader').should('have.css', 'background', 'rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box');
-        
+
         // * Check Sidebar Header Text color change
         cy.get('#accountSettingsModalLabel').should('have.css', 'color', 'rgb(63, 67, 80)');
 
