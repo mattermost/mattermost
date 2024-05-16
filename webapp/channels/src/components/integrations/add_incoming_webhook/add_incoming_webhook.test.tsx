@@ -63,13 +63,17 @@ describe('components/integrations/AddIncomingWebhook', () => {
     });
 
     test('should have called createIncomingHook', () => {
-        const hook = {
+        const hook = TestHelper.getIncomingWebhookMock({
             channel_id: 'current_channel_id',
             display_name: 'display_name',
             description: 'description',
             username: 'username',
             icon_url: 'icon_url',
-        };
+            create_at: 0,
+            delete_at: 0,
+            update_at: 0,
+            id: '',
+        });
         const wrapper = renderWithContext(<AddIncomingWebhook {...props}/>, initialState as GlobalState);
 
         userEvent.selectOptions(wrapper.getByRole('combobox'), [hook.channel_id]);
@@ -82,10 +86,6 @@ describe('components/integrations/AddIncomingWebhook', () => {
 
         expect(createIncomingHook).toHaveBeenCalledTimes(1);
         const calledWith = createIncomingHook.mock.calls[0][0];
-        expect(calledWith.channel_id).toEqual(hook.channel_id);
-        expect(calledWith.display_name).toEqual(hook.display_name);
-        expect(calledWith.description).toEqual(hook.description);
-        expect(calledWith.username).toEqual(hook.username);
-        expect(calledWith.icon_url).toEqual(hook.icon_url);
+        expect(calledWith).toEqual(hook);
     });
 });
