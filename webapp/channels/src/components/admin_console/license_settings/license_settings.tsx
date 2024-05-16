@@ -7,7 +7,7 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 import type {StatusOK} from '@mattermost/types/client4';
 import type {ClientLicense} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
-import type {ServerLimits} from '@mattermost/types/limits';
+import type {UsersLimits} from '@mattermost/types/limits';
 import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -55,7 +55,7 @@ type Props = {
         ping: () => Promise<{status: string}>;
         requestTrialLicense: (users: number, termsAccepted: boolean, receiveEmailsAccepted: boolean, featureName: string) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
-        getServerLimits: () => Promise<ActionResult<ServerLimits, ServerError>>;
+        getUsersLimits: () => Promise<ActionResult<UsersLimits, ServerError>>;
         getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
             data?: UsersStats;
             error?: ServerError;
@@ -196,7 +196,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             this.props.actions.getLicenseConfig(),
         ]);
 
-        await this.props.actions.getServerLimits();
+        await this.props.actions.getUsersLimits();
 
         this.setState({serverError: null, removing: false});
     };

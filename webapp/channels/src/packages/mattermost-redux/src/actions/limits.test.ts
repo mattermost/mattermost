@@ -3,22 +3,18 @@
 
 import nock from 'nock';
 
-import type {ServerLimits} from '@mattermost/types/limits';
-
 import * as Actions from 'mattermost-redux/actions/limits';
 import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
 
-describe('getServerLimits', () => {
-    const URL_USERS_LIMITS = '/limits/server';
+describe('getUsersLimits', () => {
+    const URL_USERS_LIMITS = '/limits/users';
 
-    const defaultServerLimitsState: ServerLimits = {
+    const defaultUserLimitsState = {
         activeUserCount: 0,
         maxUsersLimit: 0,
-        maxPostLimit: 0,
-        postCount: 0,
     };
 
     let store = configureStore();
@@ -66,28 +62,26 @@ describe('getServerLimits', () => {
             },
         });
 
-        const {data} = await store.dispatch(Actions.getServerLimits());
-        expect(data).toEqual(defaultServerLimitsState);
+        const {data} = await store.dispatch(Actions.getUsersLimits());
+        expect(data).toEqual(defaultUserLimitsState);
     });
 
     test('should not return default state for non admin users', async () => {
-        const {data} = await store.dispatch(Actions.getServerLimits());
-        expect(data).not.toEqual(defaultServerLimitsState);
+        const {data} = await store.dispatch(Actions.getUsersLimits());
+        expect(data).not.toEqual(defaultUserLimitsState);
     });
 
     test('should return data if user is admin', async () => {
-        const userLimits: ServerLimits = {
+        const userLimits = {
             activeUserCount: 600,
-            maxUsersLimit: 10_000,
-            maxPostLimit: 5_000_000,
-            postCount: 10_000,
+            maxUsersLimit: 10000,
         };
 
         nock(Client4.getBaseRoute()).
             get(URL_USERS_LIMITS).
             reply(200, userLimits);
 
-        const {data} = await store.dispatch(Actions.getServerLimits());
+        const {data} = await store.dispatch(Actions.getUsersLimits());
         expect(data).toEqual(userLimits);
     });
 
@@ -97,7 +91,7 @@ describe('getServerLimits', () => {
             get(URL_USERS_LIMITS).
             reply(400, {message: errorMessage});
 
-        const {error} = await store.dispatch(Actions.getServerLimits());
+        const {error} = await store.dispatch(Actions.getUsersLimits());
         console.log(error);
         expect(error.message).toEqual(errorMessage);
     });

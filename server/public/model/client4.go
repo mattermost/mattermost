@@ -8771,6 +8771,22 @@ func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Respo
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) GetUserLimits(ctx context.Context) (*UserLimits, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var userLimits UserLimits
+	if r.StatusCode == http.StatusNotModified {
+		return &userLimits, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&userLimits); err != nil {
+		return nil, nil, NewAppError("GetUserLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &userLimits, BuildResponse(r), nil
+}
+
 // CreateChannelBookmark creates a channel bookmark based on the provided struct.
 func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmark, *Response, error) {
 	channelBookmarkJSON, err := json.Marshal(channelBookmark)
