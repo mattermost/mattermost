@@ -38,7 +38,7 @@ type PerformanceReportMeasure = {
 }
 
 type PerformanceReport = {
-    version: '1.0';
+    version: '0.1.0';
 
     labels: {
         platform: PlatformLabel;
@@ -227,7 +227,7 @@ export default class PerformanceReporter {
         const counterMeasures = this.countersToMeasures(now, counters);
 
         return {
-            version: '1.0',
+            version: '0.1.0',
 
             labels: {
                 platform: this.platformLabel,
