@@ -706,6 +706,14 @@ func (a *App) createCommand(cmd *model.Command) (*model.Command, *model.AppError
 }
 
 func (a *App) GetCommand(commandID string) (*model.Command, *model.AppError) {
+	cmd, appErr := a.GetCommandWithToken(commandID)
+	if cmd != nil {
+		cmd.Token = ""
+	}
+	return cmd, appErr
+}
+
+func (a *App) GetCommandWithToken(commandID string) (*model.Command, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCommands {
 		return nil, model.NewAppError("GetCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -720,7 +728,6 @@ func (a *App) GetCommand(commandID string) (*model.Command, *model.AppError) {
 			return nil, model.NewAppError("GetCommand", "app.command.getcommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
-	command.Token = ""
 	return command, nil
 }
 
@@ -752,7 +759,7 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 			return nil, model.NewAppError("UpdateCommand", "app.command.updatecommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
-
+	command.Token = ""
 	return command, nil
 }
 

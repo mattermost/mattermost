@@ -82,7 +82,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	oldCmd, err := c.App.GetCommand(c.Params.CommandId)
+	oldCmd, err := c.App.GetCommandWithToken(c.Params.CommandId)
 	if err != nil {
 		audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
 		c.SetCommandNotFoundError()

@@ -672,6 +672,7 @@ type AppIface interface {
 	GetClusterId() string
 	GetClusterStatus(rctx request.CTX) []*model.ClusterInfo
 	GetCommand(commandID string) (*model.Command, *model.AppError)
+	GetCommandWithToken(commandID string) (*model.Command, *model.AppError)
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, *model.AppError)
 	GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError)
 	GetComplianceReport(reportId string) (*model.Compliance, *model.AppError)
