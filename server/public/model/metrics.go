@@ -35,7 +35,7 @@ var (
 
 type MetricSample struct {
 	Metric    MetricType        `json:"metric"`
-	Value     int64             `json:"value"`
+	Value     float64           `json:"value"`
 	Timestamp int64             `json:"timestamp,omitempty"`
 	Labels    map[string]string `json:"labels,omitempty"`
 }
