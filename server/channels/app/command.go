@@ -711,7 +711,6 @@ func (a *App) GetCommand(commandID string) (*model.Command, *model.AppError) {
 	}
 
 	command, err := a.Srv().Store().Command().Get(commandID)
-	command.Token = ""
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -721,6 +720,7 @@ func (a *App) GetCommand(commandID string) (*model.Command, *model.AppError) {
 			return nil, model.NewAppError("GetCommand", "app.command.getcommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+	command.Token = ""
 	return command, nil
 }
 
