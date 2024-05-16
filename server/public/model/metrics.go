@@ -65,7 +65,7 @@ func (r *PerformanceReport) IsValid() error {
 		return fmt.Errorf("report version is not supported: server version: %s, report version: %s", performanceReportVersion.String(), r.Version)
 	}
 
-	if r.Start >= r.End {
+	if r.Start > r.End {
 		return fmt.Errorf("report timestamps are erroneous")
 	}
 
