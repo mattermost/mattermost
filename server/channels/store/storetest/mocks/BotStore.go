@@ -74,6 +74,24 @@ func (_m *BotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
 	return r0, r1
 }
 
+// MergeOwnerId provides a mock function with given fields: toOwnerId, fromOwnerId
+func (_m *BotStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+	ret := _m.Called(toOwnerId, fromOwnerId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MergeOwnerId")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toOwnerId, fromOwnerId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PermanentDelete provides a mock function with given fields: userID
 func (_m *BotStore) PermanentDelete(userID string) error {
 	ret := _m.Called(userID)

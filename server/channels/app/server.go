@@ -52,6 +52,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_process"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_file"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/merge_users"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/migrations"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/notify_admin"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/plugins"
@@ -1596,6 +1597,12 @@ func (s *Server) initJobs() {
 	s.Jobs.RegisterJobType(
 		model.JobTypeExportUsersToCSV,
 		export_users_to_csv.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeMergeUsers,
+		merge_users.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		nil,
 	)
 

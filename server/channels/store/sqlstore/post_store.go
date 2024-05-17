@@ -3253,3 +3253,54 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 
 	return meta, nil
 }
+
+func (s *SqlPostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId string) error {
+	// Attempt to move all posts and files
+	for {
+		var postIds []string
+		err := s.GetReplicaX().Select(&postIds, "SELECT Id FROM Posts WHERE UserId = ? LIMIT 1000", fromUserId)
+		if err != nil {
+			return errors.Wrapf(err, "failed to find Posts with userId=%s", fromUserId)
+		}
+
+		if len(postIds) == 0 {
+			break
+		}
+
+		transaction, err := s.GetMasterX().Beginx()
+		if err != nil {
+			return errors.Wrap(err, "begin_transaction")
+		}
+		defer finalizeTransactionX(transaction, &err)
+
+		postsQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("UserId", toUserId).
+			Where(
+				sq.Or{
+					sq.Eq{"Id": postIds},
+				},
+			)
+		if _, err = transaction.ExecBuilder(postsQuery); err != nil {
+			return errors.Wrap(err, "failed to update Posts")
+		}
+
+		fileInfoQuery := s.getQueryBuilder().
+			Update("FileInfo").
+			Set("CreatorId", toUserId).
+			Where(
+				sq.Or{
+					sq.Eq{"PostId": postIds},
+				},
+			)
+		if _, err = transaction.ExecBuilder(fileInfoQuery); err != nil {
+			return errors.Wrap(err, "failed to update Posts")
+		}
+
+		if err = transaction.Commit(); err != nil {
+			return errors.Wrap(err, "commit_transaction")
+		}
+	}
+
+	return nil
+}

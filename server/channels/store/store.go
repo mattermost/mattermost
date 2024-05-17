@@ -398,6 +398,7 @@ type PostStore interface {
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
+	BatchMergePostAndFileUserId(toUserId string, fromUserId string) error
 }
 
 type UserStore interface {
@@ -490,6 +491,7 @@ type BotStore interface {
 	Save(bot *model.Bot) (*model.Bot, error)
 	Update(bot *model.Bot) (*model.Bot, error)
 	PermanentDelete(userID string) error
+	MergeOwnerId(toOwnerId string, fromOwnerId string) error
 }
 
 type SessionStore interface {
@@ -516,6 +518,7 @@ type AuditStore interface {
 	Save(audit *model.Audit) error
 	Get(user_id string, offset int, limit int) (model.Audits, error)
 	PermanentDeleteByUser(userID string) error
+	BatchMergeUserId(toUserId string, fromUserId string) error
 }
 
 type ClusterDiscoveryStore interface {
@@ -743,6 +746,7 @@ type ReactionStore interface {
 	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteByUser(userID string) error
+	BatchMergeUserId(toUserId string, fromUserId string) error
 }
 
 type JobStore interface {
@@ -1035,6 +1039,7 @@ type ChannelBookmarkStore interface {
 	UpdateSortOrder(bookmarkId, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error)
 	Delete(bookmarkId string, deleteFile bool) error
 	GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error)
+	MergeOwnerId(toOwnerId string, fromOwnerId string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

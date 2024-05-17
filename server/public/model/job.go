@@ -39,6 +39,7 @@ const (
 	JobTypeRefreshPostStats             = "refresh_post_stats"
 	JobTypeDeleteOrphanDraftsMigration  = "delete_orphan_drafts_migration"
 	JobTypeExportUsersToCSV             = "export_users_to_csv"
+	JobTypeMergeUsers                   = "merge_users"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -71,6 +72,7 @@ var AllJobTypes = [...]string{
 	JobTypeLastAccessibleFile,
 	JobTypeCleanupDesktopTokens,
 	JobTypeRefreshPostStats,
+	JobTypeMergeUsers,
 }
 
 type Job struct {

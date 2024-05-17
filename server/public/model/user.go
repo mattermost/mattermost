@@ -1051,3 +1051,8 @@ type UserPostStats struct {
 	DaysActive   *int   `json:"days_active,omitempty"`
 	TotalPosts   *int   `json:"total_posts,omitempty"`
 }
+
+type UserMergeOpts struct {
+	FromUserId string
+	ToUserId   string
+}

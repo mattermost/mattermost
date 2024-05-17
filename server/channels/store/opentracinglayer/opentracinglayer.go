@@ -471,6 +471,24 @@ type OpenTracingLayerWebhookStore struct {
 	Root *OpenTracingLayer
 }
 
+func (s *OpenTracingLayerAuditStore) BatchMergeUserId(toUserId string, fromUserId string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AuditStore.BatchMergeUserId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.AuditStore.BatchMergeUserId(toUserId, fromUserId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AuditStore.Get")
@@ -559,6 +577,24 @@ func (s *OpenTracingLayerBotStore) GetAll(options *model.BotGetOptions) ([]*mode
 	}
 
 	return result, err
+}
+
+func (s *OpenTracingLayerBotStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.MergeOwnerId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.BotStore.MergeOwnerId(toOwnerId, fromOwnerId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerBotStore) PermanentDelete(userID string) error {
@@ -2759,6 +2795,24 @@ func (s *OpenTracingLayerChannelBookmarkStore) GetBookmarksForChannelSince(chann
 	}
 
 	return result, err
+}
+
+func (s *OpenTracingLayerChannelBookmarkStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelBookmarkStore.MergeOwnerId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ChannelBookmarkStore.MergeOwnerId(toOwnerId, fromOwnerId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (*model.ChannelBookmarkWithFileInfo, error) {
@@ -6256,6 +6310,24 @@ func (s *OpenTracingLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamID str
 	return result, err
 }
 
+func (s *OpenTracingLayerPostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.BatchMergePostAndFileUserId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostStore.BatchMergePostAndFileUserId(toUserId, fromUserId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerPostStore) ClearCaches() {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.ClearCaches")
@@ -7550,6 +7622,24 @@ func (s *OpenTracingLayerProductNoticesStore) View(userID string, notices []stri
 
 	defer span.Finish()
 	err := s.ProductNoticesStore.View(userID, notices)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerReactionStore) BatchMergeUserId(toUserId string, fromUserId string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.BatchMergeUserId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ReactionStore.BatchMergeUserId(toUserId, fromUserId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

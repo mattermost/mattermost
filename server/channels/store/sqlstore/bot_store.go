@@ -219,3 +219,11 @@ func (us SqlBotStore) PermanentDelete(botUserId string) error {
 	}
 	return nil
 }
+
+func (us SqlBotStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+	query := "UPDATE Bots SET OwnerId = ? WHERE OwnerId = ?"
+	if _, err := us.GetMasterX().Exec(query, toOwnerId, fromOwnerId); err != nil {
+		return errors.Wrap(err, "failed to update bots")
+	}
+	return nil
+}

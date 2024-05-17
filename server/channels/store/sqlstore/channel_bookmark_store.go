@@ -378,3 +378,12 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, 
 
 	return bookmarks, nil
 }
+
+func (s *SqlChannelBookmarkStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+	_, err := s.GetMasterX().Exec("UPDATE ChannelBookmarks SET OwnerId = ? WHERE OwnerId = ?", toOwnerId, fromOwnerId)
+	if err != nil {
+		return errors.Wrap(err, "failed to update channel bookmarks")
+	}
+
+	return nil
+}

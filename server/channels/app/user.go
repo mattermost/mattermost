@@ -2894,3 +2894,94 @@ func (a *App) getAllSystemAdmins() ([]*model.User, *model.AppError) {
 	}
 	return a.GetUsersFromProfiles(userOptions)
 }
+
+func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeOpts) *model.AppError {
+	toUser, appErr := a.GetUser(opts.ToUserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	fromUser, appErr := a.GetUser(opts.FromUserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	// Disable and logout the user being merged
+	a.UpdateActive(rctx, fromUser, false)
+
+	// batch update posts and files fromUser to toUser
+	err := a.Srv().Store().Post().BatchMergePostAndFileUserId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_posts_and_files.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	err = a.Srv().Store().Audit().BatchMergeUserId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_audits.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	err = a.Srv().Store().Bot().MergeOwnerId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_bots.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	err = a.Srv().Store().ChannelBookmark().MergeOwnerId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_channel_bookmarks.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	err = a.Srv().Store().Channel().BatchMergeCreatorId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	err = a.Srv().Store().Emoji().BatchMergeCreatorId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_emojis.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	err = a.Srv().Store().Webhook().BatchMergeUserId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_incoming_webhooks.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	err = a.Srv().Store().NotifyAdmin().BatchMergeUserId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_notify_admin.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	err = a.Srv().Store().PostAcknowledgement().BatchMergeUserId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_post_acknowledgements.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// don't think this is needed
+	err = a.Srv().Store().Post().BatchMergePostRemindersUserId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_post_reminders.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// don't think this is needed
+	err = a.Srv().Store().ProductNotices().BatchMergeUserId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_product_notices.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	err = a.Srv().Store().Reaction().BatchMergeUserId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_reactions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// don't think this is needed
+	err = a.Srv().Store().Thread().BatchMergeThreadMembershipUserId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_thread_memberships.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	err = a.Srv().Store().UserTermsOfService().BatchMergeUserId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_user_terms_of_service.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}

@@ -108,6 +108,24 @@ func (_m *PostStore) AnalyticsUserCountsWithPostsByDay(teamID string) (model.Ana
 	return r0, r1
 }
 
+// BatchMergePostAndFileUserId provides a mock function with given fields: toUserId, fromUserId
+func (_m *PostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId string) error {
+	ret := _m.Called(toUserId, fromUserId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchMergePostAndFileUserId")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toUserId, fromUserId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ClearCaches provides a mock function with given fields:
 func (_m *PostStore) ClearCaches() {
 	_m.Called()

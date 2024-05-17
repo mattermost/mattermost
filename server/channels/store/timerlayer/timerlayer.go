@@ -471,6 +471,22 @@ type TimerLayerWebhookStore struct {
 	Root *TimerLayer
 }
 
+func (s *TimerLayerAuditStore) BatchMergeUserId(toUserId string, fromUserId string) error {
+	start := time.Now()
+
+	err := s.AuditStore.BatchMergeUserId(toUserId, fromUserId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AuditStore.BatchMergeUserId", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
 	start := time.Now()
 
@@ -549,6 +565,22 @@ func (s *TimerLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 		s.Root.Metrics.ObserveStoreMethodDuration("BotStore.GetAll", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerBotStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+	start := time.Now()
+
+	err := s.BotStore.MergeOwnerId(toOwnerId, fromOwnerId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotStore.MergeOwnerId", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerBotStore) PermanentDelete(userID string) error {
@@ -2540,6 +2572,22 @@ func (s *TimerLayerChannelBookmarkStore) GetBookmarksForChannelSince(channelId s
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.GetBookmarksForChannelSince", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerChannelBookmarkStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+	start := time.Now()
+
+	err := s.ChannelBookmarkStore.MergeOwnerId(toOwnerId, fromOwnerId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.MergeOwnerId", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (*model.ChannelBookmarkWithFileInfo, error) {
@@ -5659,6 +5707,22 @@ func (s *TimerLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamID string) (
 	return result, err
 }
 
+func (s *TimerLayerPostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId string) error {
+	start := time.Now()
+
+	err := s.PostStore.BatchMergePostAndFileUserId(toUserId, fromUserId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.BatchMergePostAndFileUserId", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostStore) ClearCaches() {
 	start := time.Now()
 
@@ -6821,6 +6885,22 @@ func (s *TimerLayerProductNoticesStore) View(userID string, notices []string) er
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ProductNoticesStore.View", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerReactionStore) BatchMergeUserId(toUserId string, fromUserId string) error {
+	start := time.Now()
+
+	err := s.ReactionStore.BatchMergeUserId(toUserId, fromUserId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.BatchMergeUserId", success, elapsed)
 	}
 	return err
 }

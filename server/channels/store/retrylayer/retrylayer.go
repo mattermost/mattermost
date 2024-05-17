@@ -491,6 +491,27 @@ func isRepeatableError(err error) bool {
 	return false
 }
 
+func (s *RetryLayerAuditStore) BatchMergeUserId(toUserId string, fromUserId string) error {
+
+	tries := 0
+	for {
+		err := s.AuditStore.BatchMergeUserId(toUserId, fromUserId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
 
 	tries := 0
@@ -590,6 +611,27 @@ func (s *RetryLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerBotStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+
+	tries := 0
+	for {
+		err := s.BotStore.MergeOwnerId(toOwnerId, fromOwnerId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -3065,6 +3107,27 @@ func (s *RetryLayerChannelBookmarkStore) GetBookmarksForChannelSince(channelId s
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelBookmarkStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+
+	tries := 0
+	for {
+		err := s.ChannelBookmarkStore.MergeOwnerId(toOwnerId, fromOwnerId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -7121,6 +7184,27 @@ func (s *RetryLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamID string) (
 
 }
 
+func (s *RetryLayerPostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId string) error {
+
+	tries := 0
+	for {
+		err := s.PostStore.BatchMergePostAndFileUserId(toUserId, fromUserId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) ClearCaches() {
 
 	s.PostStore.ClearCaches()
@@ -8578,6 +8662,27 @@ func (s *RetryLayerProductNoticesStore) View(userID string, notices []string) er
 	tries := 0
 	for {
 		err := s.ProductNoticesStore.View(userID, notices)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerReactionStore) BatchMergeUserId(toUserId string, fromUserId string) error {
+
+	tries := 0
+	for {
+		err := s.ReactionStore.BatchMergeUserId(toUserId, fromUserId)
 		if err == nil {
 			return nil
 		}

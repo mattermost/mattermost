@@ -76,6 +76,7 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		return a.SessionHasPermissionTo(session, model.PermissionCreateLdapSyncJob), model.PermissionCreateLdapSyncJob
 	case
 		model.JobTypeMigrations,
+		model.JobTypeMergeUsers,
 		model.JobTypePlugins,
 		model.JobTypeProductNotices,
 		model.JobTypeExpiryNotify,

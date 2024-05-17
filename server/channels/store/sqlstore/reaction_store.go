@@ -425,3 +425,30 @@ func updatePostForReactionsOnInsert(transaction *sqlxTxWrapper, postId string) e
 
 	return err
 }
+
+func (s *SqlReactionStore) BatchMergeUserId(toUserId string, fromUserId string) error {
+	for {
+		var query string
+		if s.DriverName() == "postgres" {
+			query = "UPDATE reactions SET UserId = ? WHERE CreateAt = any (array (SELECT CreateAt FROM reactions WHERE UserId = ? LIMIT 1000))"
+		} else {
+			query = "UPDATE reactions SET UserId = ? WHERE UserId = ? LIMIT 1000"
+		}
+
+		sqlResult, err := s.GetMasterX().Exec(query, toUserId, fromUserId)
+		if err != nil {
+			return errors.Wrap(err, "failed to update audits")
+		}
+
+		rowsAffected, err := sqlResult.RowsAffected()
+		if err != nil {
+			return errors.Wrap(err, "failed to update audits")
+		}
+
+		if rowsAffected < 1000 {
+			break
+		}
+	}
+
+	return nil
+}

@@ -296,6 +296,14 @@ var PreferenceDeleteCmd = &cobra.Command{
 	RunE:    withClient(preferencesDeleteCmdF),
 }
 
+var MergeUsersCmd = &cobra.Command{
+	Use:     "merge [toUserId] [fromUserId]",
+	Short:   "Merge one user into another",
+	Example: `  merge toUserId fromUserId`,
+	Args:    cobra.MinimumNArgs(2),
+	RunE:    withClient(mergeUsersCmdF),
+}
+
 func init() {
 	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account")
 	_ = UserCreateCmd.MarkFlagRequired("username")
@@ -418,6 +426,7 @@ Global Flags:
 		PromoteGuestToUserCmd,
 		DemoteUserToGuestCmd,
 		PreferenceCmd,
+		MergeUsersCmd,
 	)
 	PreferenceCmd.AddCommand(
 		PreferenceListCmd,
@@ -1282,4 +1291,37 @@ func preferencesDeleteCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 	}
 
 	return errs.ErrorOrNil()
+}
+
+func mergeUsersCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
+	if len(userArgs) != 2 {
+		return errors.New("expected at least two arguments. See help text for details")
+	}
+
+	toUser, err := getUserFromArg(c, userArgs[0])
+	if err != nil {
+		return err
+	}
+
+	fromUser, err := getUserFromArg(c, userArgs[1])
+	if err != nil {
+		return err
+	}
+
+	data := make(map[string]string)
+
+	data["to_user_id"] = toUser.Id
+	data["from_user_id"] = fromUser.Id
+
+	job, _, err := c.CreateJob(context.TODO(), &model.Job{
+		Type: model.JobTypeMergeUsers,
+		Data: data,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create merge users job: %w", err)
+	}
+
+	printer.PrintT("Merge users job successfully created, ID: {{.Id}}", job)
+
+	return nil
 }

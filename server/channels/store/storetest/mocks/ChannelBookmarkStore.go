@@ -110,6 +110,24 @@ func (_m *ChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, si
 	return r0, r1
 }
 
+// MergeOwnerId provides a mock function with given fields: toOwnerId, fromOwnerId
+func (_m *ChannelBookmarkStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+	ret := _m.Called(toOwnerId, fromOwnerId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MergeOwnerId")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toOwnerId, fromOwnerId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: bookmark, increaseSortOrder
 func (_m *ChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (*model.ChannelBookmarkWithFileInfo, error) {
 	ret := _m.Called(bookmark, increaseSortOrder)
