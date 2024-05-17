@@ -22,7 +22,7 @@ func TestGetServerLimits(t *testing.T) {
 
 		// InitBasic creates 3 users by default
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
-		require.Equal(t, int64(10000), serverLimits.MaxUsersLimit)
+		require.Equal(t, int64(5000), serverLimits.MaxUsersLimit)
 
 		// 5 posts are created by default
 		require.Equal(t, int64(5), serverLimits.PostCount)
