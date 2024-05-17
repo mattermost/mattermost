@@ -52,6 +52,8 @@ import CheckInput from 'components/widgets/inputs/check';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
+import LoginSignupBlock from 'components/custom_branding/login_signup_block';
+import SaveButtonBranding from 'components/custom_branding/save_button_branding';
 
 import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
 import {isDesktopApp} from 'utils/user_agent';
@@ -97,6 +99,10 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         SiteName,
         CustomDescriptionText,
         CustomBrandHasBrand,
+        CustomBrandColorLoginContainer,
+        CustomBrandColorLoginContainerText,
+        CustomBrandColorButtonBgColor,
+        CustomBrandColorButtonTextColor,
         GitLabButtonText,
         GitLabButtonColor,
         OpenIdButtonText,
@@ -788,7 +794,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 </div>
                 <div className='signup-body-action'>
                     {!isMobileView && getAlternateLink()}
-                    <div className={classNames('signup-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
+                    <LoginSignupBlock className={classNames('signup-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             className='signup-body-card-content'
                             onKeyDown={onEnterKeyDown}
@@ -860,14 +866,16 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         onBlur={(e) => handleOnBlur(e, 'password')}
                                     />
                                     {getNewsletterCheck()}
-                                    <SaveButton
-                                        extraClasses='signup-body-card-form-button-submit large'
-                                        saving={isWaiting}
-                                        disabled={!canSubmit}
-                                        onClick={handleSubmit}
-                                        defaultMessage={formatMessage({id: 'signup_user_completed.create', defaultMessage: 'Create account'})}
-                                        savingMessage={formatMessage({id: 'signup_user_completed.saving', defaultMessage: 'Creating account…'})}
-                                    />
+                                    <SaveButtonBranding>
+                                        <SaveButton
+                                            extraClasses='signup-body-card-form-button-submit large'
+                                            saving={isWaiting}
+                                            disabled={!canSubmit}
+                                            onClick={handleSubmit}
+                                            defaultMessage={formatMessage({id: 'signup_user_completed.create', defaultMessage: 'Create account'})}
+                                            savingMessage={formatMessage({id: 'signup_user_completed.saving', defaultMessage: 'Creating account…'})}
+                                        />
+                                    </SaveButtonBranding>
                                 </div>
                             )}
                             {enableSignUpWithEmail && enableExternalSignup && (
@@ -902,7 +910,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                 </p>
                             )}
                         </div>
-                    </div>
+                    </LoginSignupBlock>
                 </div>
             </>
         );

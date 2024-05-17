@@ -333,8 +333,11 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["CustomBrandHeading"] = ""
 	props["CustomBrandHasLogo"] = "false"
 	props["CustomBrandHasBackground"] = "false"
-	fileExists, _ := fileStore.FileExists("brand/logo.png")
-	props["CustomBrandHasBrand"] = strconv.FormatBool(fileExists)
+	props["CustomBrandHasBrand"] = "false"
+	if *c.TeamSettings.EnableCustomBrand {
+		fileExists, _ := fileStore.FileExists("brand/logo.png")
+		props["CustomBrandHasBrand"] = strconv.FormatBool(fileExists)
+	}
 	props["CustomBrandColorBackground"] = ""
 	props["CustomBrandColorText"] = ""
 	props["CustomBrandColorLoginContainer"] = ""

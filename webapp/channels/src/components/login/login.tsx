@@ -8,7 +8,6 @@ import type {FormEvent} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link, useLocation, useHistory, Route} from 'react-router-dom';
-import styled from 'styled-components';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -47,6 +46,8 @@ import LoginOffice365Icon from 'components/widgets/icons/login_office_365_icon';
 import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
+import LoginSignupBlock from 'components/custom_branding/login_signup_block';
+import SaveButtonBranding from 'components/custom_branding/save_button_branding';
 
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
@@ -66,33 +67,6 @@ const MOBILE_SCREEN_WIDTH = 1200;
 type LoginProps = {
     onCustomizeHeader?: CustomizeHeaderType;
 }
-
-type LoginBlockProps = {
-    background: string
-    textColor: string
-}
-
-const LoginBlock = styled.div<LoginBlockProps>`
-    border-radius: 8px;
-    background: ${(props) => props.background};
-    color: ${(props) => props.textColor};
-    &&& input {
-        background: ${(props) => props.background};
-        color: ${(props) => props.textColor};
-    }
-    &&& input::placeholder {
-        color: ${(props) => props.textColor};
-    }
-
-    #password_toggle {
-        color: ${(props) => props.textColor};
-        background: ${(props) => props.background};
-    }
-    &&& legend {
-        color: ${(props) => props.textColor};
-        background: ${(props) => props.background};
-    }
-`
 
 const Login = ({onCustomizeHeader}: LoginProps) => {
     const {formatMessage} = useIntl();
@@ -878,11 +852,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 <div className='login-body-action'>
                     {!isMobileView && getAlternateLink()}
                     <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})} style={enableCustomBrand ? {background: CustomBrandColorLoginContainer} : {}}>
-                        <LoginBlock
+                        <LoginSignupBlock
                             className='login-body-card-content'
                             tabIndex={0}
-                            background={enableCustomBrand ? CustomBrandColorLoginContainer || '#ffffff' : '#ffffff'}
-                            textColor={enableCustomBrand ? CustomBrandColorLoginContainerText || '#000000' : '#00000'}
                         >
                             <p className='login-body-card-title' style={enableCustomBrand ? {color: CustomBrandColorLoginContainerText} : {}}>
                                 {getCardTitle()}
@@ -926,14 +898,16 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             disabled={isWaiting}
                                         />
                                         {getResetPasswordLink()}
-                                        <SaveButton
-                                            extraClasses='login-body-card-form-button-submit large'
-                                            saving={isWaiting}
-                                            onClick={preSubmit}
-                                            defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
-                                            savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
-                                            style={enableCustomBrand ? {background: CustomBrandColorButtonBgColor, color: CustomBrandColorButtonTextColor} : {}}
-                                        />
+                                        <SaveButtonBranding>
+                                            <SaveButton
+                                                extraClasses='login-body-card-form-button-submit large'
+                                                saving={isWaiting}
+                                                onClick={preSubmit}
+                                                defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
+                                                savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
+                                                style={enableCustomBrand ? {background: CustomBrandColorButtonBgColor, color: CustomBrandColorButtonTextColor} : {}}
+                                            />
+                                        </SaveButtonBranding>
                                     </div>
                                 </form>
                             )}
@@ -955,7 +929,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                     ))}
                                 </div>
                             )}
-                        </LoginBlock>
+                        </LoginSignupBlock>
                     </div>
                 </div>
             </>
