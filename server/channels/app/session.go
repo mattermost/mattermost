@@ -4,6 +4,7 @@
 package app
 
 import (
+	"crypto/subtle"
 	"errors"
 	"math"
 	"net/http"
@@ -57,7 +58,7 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 
 func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError) {
 	rc, appErr := a.GetRemoteCluster(remoteId)
-	if appErr == nil && rc.Token == token {
+	if appErr == nil && subtle.ConstantTimeCompare([]byte(rc.Token), []byte(token)) == 1 {
 		// Need a bare-bones session object for later checks
 		session := &model.Session{
 			Token:   token,

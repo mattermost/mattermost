@@ -34,7 +34,7 @@ describe('Announcement Banner', () => {
         cy.findByTestId('AnnouncementSettings.EnableBanner').
             should('be.visible').
             within(() => {
-                cy.findByText('true').
+                cy.findByTestId('AnnouncementSettings.EnableBannertrue').
                     should('be.visible').
                     click({force: true});
             });
@@ -75,7 +75,7 @@ describe('Announcement Banner', () => {
         cy.findByTestId('AnnouncementSettings.AllowBannerDismissal').
             should('be.visible').
             within(() => {
-                cy.findByText('true').
+                cy.findByTestId('AnnouncementSettings.AllowBannerDismissaltrue').
                     should('be.visible').
                     click({force: true});
             });
