@@ -32,7 +32,6 @@ export type ClientConfig = {
     CustomBrandColorButtonBgColor: string;
     CustomBrandColorButtonTextColor: string;
     CustomBrandBackgroundImage: string;
-    CustomBrandCSS: string;
     CustomBrandShowFooter: string;
     CustomBrandHasBackground: string;
     CustomBrandHasLogo: string;

@@ -345,7 +345,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["CustomBrandColorButtonBgColor"] = ""
 	props["CustomBrandColorButtonTextColor"] = ""
 	props["CustomBrandBackgroundImage"] = ""
-	props["CustomBrandCSS"] = ""
 	props["CustomBrandShowFooter"] = "true"
 	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 	props["EnforceMultifactorAuthentication"] = "false"
@@ -408,7 +407,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		props["CustomBrandColorButtonBgColor"] = *c.TeamSettings.CustomBrandColorButtonBgColor
 		props["CustomBrandColorButtonTextColor"] = *c.TeamSettings.CustomBrandColorButtonTextColor
 		props["CustomBrandBackgroundImage"] = *c.TeamSettings.CustomBrandBackgroundImage
-		props["CustomBrandCSS"] = *c.TeamSettings.CustomBrandCSS
 		props["CustomBrandShowFooter"] = strconv.FormatBool(*c.TeamSettings.CustomBrandShowFooter)
 		fileExists, _ := fileStore.FileExists("brand/light-logo.png")
 		fileExists2, _ := fileStore.FileExists("brand/dark-logo.png")
