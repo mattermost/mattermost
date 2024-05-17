@@ -24,6 +24,10 @@ const (
 	ClientTeamSwitchDuration     MetricType = "team_switch"
 	ClientRHSLoadDuration        MetricType = "rhs_load"
 
+	MobileClientLoadDuration          MetricType = "mobile_load"
+	MobileClientChannelSwitchDuration MetricType = "mobile_channel_switch"
+	MobileClientTeamSwitchDuration    MetricType = "mobile_team_switch"
+
 	performanceReportTTLMilliseconds = 300 * 1000 // 300 seconds/5 minutes
 )
 
