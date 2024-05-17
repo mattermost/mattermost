@@ -58,7 +58,10 @@ describe('components/external_link', () => {
             },
         };
         renderWithContext(
-            <ExternalLink location='test' href='https://mattermost.com'>
+            <ExternalLink
+                location='test'
+                href='https://mattermost.com'
+            >
                 {'Click Me'}
             </ExternalLink>,
             state,
@@ -84,7 +87,10 @@ describe('components/external_link', () => {
             },
         };
         renderWithContext(
-            <ExternalLink location='test' href='https://mattermost.com?test=true'>
+            <ExternalLink
+                location='test'
+                href='https://mattermost.com?test=true'
+            >
                 {'Click Me'}
             </ExternalLink>,
             state,
@@ -110,7 +116,10 @@ describe('components/external_link', () => {
             },
         };
         renderWithContext(
-            <ExternalLink location='test' href='https://google.com'>
+            <ExternalLink
+                location='test'
+                href='https://google.com'
+            >
                 {'Click Me'}
             </ExternalLink>,
             state,
