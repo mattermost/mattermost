@@ -101,7 +101,7 @@ const OverageUsersBannerNotice = () => {
                                 href={LicenseLinks.CONTACT_SALES}
                                 onClick={handleClick}
                             >
-                                {cta}
+                                <FormattedMessage {...cta}/>
                             </ExternalLink>
                         );
                     },
