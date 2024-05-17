@@ -12,10 +12,10 @@ import {sendVerificationEmail} from 'mattermost-redux/actions/users';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import ManWithMailboxSVG from 'components/common/svg_images_components/man_with_mailbox_svg';
+import BrandedBody from 'components/custom_branding/branded_body';
+import BrandedButton from 'components/custom_branding/branded_button';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import SaveButton from 'components/save_button';
-import BrandedButton from 'components/custom_branding/branded_button';
-import BrandedBody from 'components/custom_branding/branded_body';
 
 import {getRoleFromTrackFlow} from 'utils/utils';
 

@@ -16,7 +16,7 @@ import {
     uploadBackgroundImage,
     deleteBackgroundImage,
     uploadFaviconImage,
-    deleteFaviconImage
+    deleteFaviconImage,
 } from 'actions/admin_actions.jsx';
 
 import FormError from 'components/form_error';
@@ -28,6 +28,7 @@ import {Constants} from 'utils/constants';
 const HTTP_STATUS_OK = 200;
 
 type Props = {
+
     /*
    * Set for testing purpose
    */
@@ -165,29 +166,29 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
             error: '',
         });
 
-        let deleteAction = deleteBrandImage
-        let uploadAction = uploadBrandImage
+        let deleteAction = deleteBrandImage;
+        let uploadAction = uploadBrandImage;
         switch (this.props.id) {
-            case 'CustomBrandImage':
-                deleteAction = deleteBrandImage
-                uploadAction = uploadBrandImage
-                break
-            case 'CustomBrandLightLogoImage':
-                deleteAction = deleteLightLogoImage
-                uploadAction = uploadLightLogoImage
-                break
-            case 'CustomBrandDarkLogoImage':
-                deleteAction = deleteDarkLogoImage
-                uploadAction = uploadDarkLogoImage
-                break
-            case 'CustomBrandBackgroundImage':
-                deleteAction = deleteBackgroundImage
-                uploadAction = uploadBackgroundImage
-                break
-            case 'CustomBrandFaviconImage':
-                deleteAction = deleteFaviconImage
-                uploadAction = uploadFaviconImage
-                break
+        case 'CustomBrandImage':
+            deleteAction = deleteBrandImage;
+            uploadAction = uploadBrandImage;
+            break;
+        case 'CustomBrandLightLogoImage':
+            deleteAction = deleteLightLogoImage;
+            uploadAction = uploadLightLogoImage;
+            break;
+        case 'CustomBrandDarkLogoImage':
+            deleteAction = deleteDarkLogoImage;
+            uploadAction = uploadDarkLogoImage;
+            break;
+        case 'CustomBrandBackgroundImage':
+            deleteAction = deleteBackgroundImage;
+            uploadAction = uploadBackgroundImage;
+            break;
+        case 'CustomBrandFaviconImage':
+            deleteAction = deleteFaviconImage;
+            uploadAction = uploadFaviconImage;
+            break;
         }
 
         let error;

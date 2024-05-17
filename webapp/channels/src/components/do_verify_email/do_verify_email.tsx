@@ -15,10 +15,10 @@ import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
+import BrandedBody from 'components/custom_branding/branded_body';
+import BrandedButton from 'components/custom_branding/branded_button';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import LoadingScreen from 'components/loading_screen';
-import BrandedButton from 'components/custom_branding/branded_button';
-import BrandedBody from 'components/custom_branding/branded_body';
 
 import {AnnouncementBarTypes, AnnouncementBarMessages, Constants} from 'utils/constants';
 import {getRoleFromTrackFlow} from 'utils/utils';

@@ -8,8 +8,8 @@ import {useHistory} from 'react-router-dom';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import AccessProblemSVG from 'components/common/svg_images_components/access_problem_svg';
-import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
 import BrandedBody from 'components/custom_branding/branded_body';
+import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
 
 import './access_problem.scss';
 

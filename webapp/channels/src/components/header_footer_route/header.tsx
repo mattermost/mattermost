@@ -51,7 +51,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
                 className='custom-branding-logo'
                 src={Client4.getCustomLightLogoUrl('0')}
             />
-        )
+        );
     }
 
     return (

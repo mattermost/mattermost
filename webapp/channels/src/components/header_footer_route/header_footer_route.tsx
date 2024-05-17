@@ -49,7 +49,7 @@ export const HFRoute = ({path, component: Component}: HFRouteProps) => {
                                 <Component onCustomizeHeader={customizeHeader}/>
                             </React.Suspense>
                             <React.Suspense fallback={null}>
-                                {!EnableCustomBrand || CustomBrandShowFooter !== 'false' && <Footer/>}
+                                {(!EnableCustomBrand || CustomBrandShowFooter !== 'false') && <Footer/>}
                             </React.Suspense>
                         </BrandedHeaderFooterRoute>
                     </div>

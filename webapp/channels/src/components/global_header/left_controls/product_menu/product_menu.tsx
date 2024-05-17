@@ -142,10 +142,12 @@ const ProductMenu = (): JSX.Element => {
                         aria-controls='product-switcher-menu'
                     />
                     {license.IsLicensed === 'false' && <ProductBrandingTeamEdition/>}
-                    {license.IsLicensed === 'true' && EnableCustomBrand === 'true' && CustomBrandHasLogo === 'true' && <img
-                        src={Client4.getCustomDarkLogoUrl('0')}
-                        height={30}
-                    />}
+                    {license.IsLicensed === 'true' && EnableCustomBrand === 'true' && CustomBrandHasLogo === 'true' && (
+                        <img
+                            src={Client4.getCustomDarkLogoUrl('0')}
+                            height={30}
+                        />
+                    )}
                     {license.IsLicensed === 'true' && (EnableCustomBrand !== 'true' || CustomBrandHasLogo !== 'true') && <ProductBranding/>}
                 </ProductMenuContainer>
                 <Menu

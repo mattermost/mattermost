@@ -1937,7 +1937,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     it.any(
                                         it.licensedForSku(LicenseSkus.Enterprise),
                                         it.licensedForSku(LicenseSkus.Professional),
-                                    )
+                                    ),
                                 ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
@@ -1952,7 +1952,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     it.any(
                                         it.licensedForSku(LicenseSkus.Enterprise),
                                         it.licensedForSku(LicenseSkus.Professional),
-                                    )
+                                    ),
                                 ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
@@ -1967,7 +1967,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     it.any(
                                         it.licensedForSku(LicenseSkus.Enterprise),
                                         it.licensedForSku(LicenseSkus.Professional),
-                                    )
+                                    ),
                                 ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
@@ -1982,7 +1982,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     it.any(
                                         it.licensedForSku(LicenseSkus.Enterprise),
                                         it.licensedForSku(LicenseSkus.Professional),
-                                    )
+                                    ),
                                 ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
@@ -1998,7 +1998,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     it.any(
                                         it.licensedForSku(LicenseSkus.Enterprise),
                                         it.licensedForSku(LicenseSkus.Professional),
-                                    )
+                                    ),
                                 ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
@@ -2025,7 +2025,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     it.any(
                                         it.licensedForSku(LicenseSkus.Enterprise),
                                         it.licensedForSku(LicenseSkus.Professional),
-                                    )
+                                    ),
                                 ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
@@ -2041,7 +2041,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     it.any(
                                         it.licensedForSku(LicenseSkus.Enterprise),
                                         it.licensedForSku(LicenseSkus.Professional),
-                                    )
+                                    ),
                                 ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
@@ -2057,7 +2057,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     it.any(
                                         it.licensedForSku(LicenseSkus.Enterprise),
                                         it.licensedForSku(LicenseSkus.Professional),
-                                    )
+                                    ),
                                 ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
@@ -2073,7 +2073,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     it.any(
                                         it.licensedForSku(LicenseSkus.Enterprise),
                                         it.licensedForSku(LicenseSkus.Professional),
-                                    )
+                                    ),
                                 ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
@@ -2089,7 +2089,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     it.any(
                                         it.licensedForSku(LicenseSkus.Enterprise),
                                         it.licensedForSku(LicenseSkus.Professional),
-                                    )
+                                    ),
                                 ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
@@ -2105,7 +2105,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     it.any(
                                         it.licensedForSku(LicenseSkus.Enterprise),
                                         it.licensedForSku(LicenseSkus.Professional),
-                                    )
+                                    ),
                                 ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
@@ -2121,7 +2121,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     it.any(
                                         it.licensedForSku(LicenseSkus.Enterprise),
                                         it.licensedForSku(LicenseSkus.Professional),
-                                    )
+                                    ),
                                 ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
@@ -2137,7 +2137,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     it.any(
                                         it.licensedForSku(LicenseSkus.Enterprise),
                                         it.licensedForSku(LicenseSkus.Professional),
-                                    )
+                                    ),
                                 ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
