@@ -87,3 +87,523 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+
+  /api/v4/brand/light-logo:
+    get:
+      tags:
+        - brand
+      summary: Get light logo image
+      description: >
+        Get the previously uploaded light logo image. Returns 404 if no light logo image
+        has been uploaded.
+
+        ##### Permissions
+
+        No permission required.
+      operationId: GetLightLogoImage
+      responses:
+        "200":
+          description: Light logo image retrieval successful
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // GetBrandImage
+            img, err := Client.GetLightLogo()
+    post:
+      tags:
+        - brand
+      summary: Upload light logo image
+      description: |
+        Uploads a light logo image.
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: UploadLightLogoImage
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  description: The image to be uploaded
+                  type: string
+                  format: binary
+              required:
+                - image
+      responses:
+        "201":
+          description: Light logo image upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            file, err := os.Open("<Your image>")
+            if err != nil {
+              return err
+            }
+            defer file.Close()
+
+            data := &bytes.Buffer{}
+            if _, err := io.Copy(data, file); err != nil {
+              return err
+            }
+
+            ok, resp := Client.UploadLightLogo(data.Bytes())
+    delete:
+      tags:
+        - brand
+      summary: Delete current light logo image
+      description: >
+        Deletes the previously uploaded light logo image. Returns 404 if no light logo
+        image has been uploaded.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+        __Minimum server version: 5.6__
+      operationId: DeleteBrandImage
+      responses:
+        "200":
+          description: Brand image succesfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // Delete light logo image
+            resp := Client.DeleteLightLogo()
+
+  /api/v4/brand/dark-logo:
+    get:
+      tags:
+        - brand
+      summary: Get dark logo image
+      description: >
+        Get the previously uploaded dark logo image. Returns 404 if no dark logo image
+        has been uploaded.
+
+        ##### Permissions
+
+        No permission required.
+      operationId: GetDarkLogoImage
+      responses:
+        "200":
+          description: Dark logo image retrieval successful
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // GetBrandImage
+            img, err := Client.GetDarkLogo()
+    post:
+      tags:
+        - brand
+      summary: Upload dark logo image
+      description: |
+        Uploads a dark logo image.
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: UploadDarkLogoImage
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  description: The image to be uploaded
+                  type: string
+                  format: binary
+              required:
+                - image
+      responses:
+        "201":
+          description: Dark logo image upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            file, err := os.Open("<Your image>")
+            if err != nil {
+              return err
+            }
+            defer file.Close()
+
+            data := &bytes.Buffer{}
+            if _, err := io.Copy(data, file); err != nil {
+              return err
+            }
+
+            ok, resp := Client.UploadDarkLogo(data.Bytes())
+    delete:
+      tags:
+        - brand
+      summary: Delete current dark logo image
+      description: >
+        Deletes the previously uploaded dark logo image. Returns 404 if no dark logo
+        image has been uploaded.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+        __Minimum server version: 5.6__
+      operationId: DeleteBrandImage
+      responses:
+        "200":
+          description: Brand image succesfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // Delete dark logo image
+            resp := Client.DeleteDarkLogo()
+
+  /api/v4/brand/background:
+    get:
+      tags:
+        - brand
+      summary: Get background image
+      description: >
+        Get the previously uploaded background image. Returns 404 if no background image
+        has been uploaded.
+
+        ##### Permissions
+
+        No permission required.
+      operationId: GetBackgroundImage
+      responses:
+        "200":
+          description: Background image retrieval successful
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // GetBrandImage
+            img, err := Client.GetBackground()
+    post:
+      tags:
+        - brand
+      summary: Upload background image
+      description: |
+        Uploads a background image.
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: UploadBackgroundImage
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  description: The image to be uploaded
+                  type: string
+                  format: binary
+              required:
+                - image
+      responses:
+        "201":
+          description: Background image upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            file, err := os.Open("<Your image>")
+            if err != nil {
+              return err
+            }
+            defer file.Close()
+
+            data := &bytes.Buffer{}
+            if _, err := io.Copy(data, file); err != nil {
+              return err
+            }
+
+            ok, resp := Client.UploadBackground(data.Bytes())
+    delete:
+      tags:
+        - brand
+      summary: Delete current background image
+      description: >
+        Deletes the previously uploaded background image. Returns 404 if no background
+        image has been uploaded.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+        __Minimum server version: 5.6__
+      operationId: DeleteBrandImage
+      responses:
+        "200":
+          description: Brand image succesfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // Delete background image
+            resp := Client.DeleteBackground()
+
+  /api/v4/brand/favicon:
+    get:
+      tags:
+        - brand
+      summary: Get favicon image
+      description: >
+        Get the previously uploaded favicon image. Returns 404 if no favicon image
+        has been uploaded.
+
+        ##### Permissions
+
+        No permission required.
+      operationId: GetFaviconImage
+      responses:
+        "200":
+          description: Favicon image retrieval successful
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // GetBrandImage
+            img, err := Client.GetFavicon()
+    post:
+      tags:
+        - brand
+      summary: Upload favicon image
+      description: |
+        Uploads a favicon image.
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: UploadFaviconImage
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  description: The image to be uploaded
+                  type: string
+                  format: binary
+              required:
+                - image
+      responses:
+        "201":
+          description: Favicon image upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            file, err := os.Open("<Your image>")
+            if err != nil {
+              return err
+            }
+            defer file.Close()
+
+            data := &bytes.Buffer{}
+            if _, err := io.Copy(data, file); err != nil {
+              return err
+            }
+
+            ok, resp := Client.UploadFavicon(data.Bytes())
+    delete:
+      tags:
+        - brand
+      summary: Delete current favicon image
+      description: >
+        Deletes the previously uploaded favicon image. Returns 404 if no favicon
+        image has been uploaded.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+        __Minimum server version: 5.6__
+      operationId: DeleteBrandImage
+      responses:
+        "200":
+          description: Brand image succesfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-code-samples:
+        - lang: Go
+          source: |
+            import "github.com/mattermost/mattermost-server/v5/model"
+
+            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
+            Client.Login("email@domain.com", "Password1")
+
+            // Delete favicon image
+            resp := Client.DeleteFavicon()
