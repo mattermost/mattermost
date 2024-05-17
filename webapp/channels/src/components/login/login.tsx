@@ -811,7 +811,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                         'login-body-message',
                         {
                             'custom-branding': enableCustomBrand,
-                            'with-brand-image': enableCustomBrand && !brandImageError,
+                            'with-brand-image': enableCustomBrand && CustomBrandHasBrand === 'true' && !brandImageError,
                             'with-alternate-link': showSignup && !isMobileView,
                         },
                     )}
@@ -844,8 +844,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 </div>
                 <div className='login-body-action'>
                     {!isMobileView && getAlternateLink()}
-                    <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
-                        <LoginSignupBlock
+                    <LoginSignupBlock className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
+                        <div
                             className='login-body-card-content'
                             tabIndex={0}
                         >
@@ -921,8 +921,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                     ))}
                                 </div>
                             )}
-                        </LoginSignupBlock>
-                    </div>
+                        </div>
+                    </LoginSignupBlock>
                 </div>
             </>
         );

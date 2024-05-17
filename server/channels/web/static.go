@@ -40,6 +40,11 @@ func (w *Web) InitStatic() {
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.srv.Config().PluginSettings.ClientDirectory))))
 
 		faviconHandler := http.HandlerFunc(func(writer http.ResponseWriter, r *http.Request) {
+			if !*w.srv.Config().TeamSettings.EnableCustomBrand {
+				staticHandler.ServeHTTP(writer, r)
+				return
+			}
+
 			if exists, _ := w.srv.FileBackend().FileExists("brand/favicon.png"); !exists {
 				staticHandler.ServeHTTP(writer, r)
 				return
@@ -63,11 +68,20 @@ func (w *Web) InitStatic() {
 			webutils.WriteFileResponse("favicon.png", "image/png", size, modtime, *w.srv.Config().ServiceSettings.WebserverMode, fileReader, false, writer, r)
 		})
 
+		customCssHandler := http.HandlerFunc(func(writer http.ResponseWriter, r *http.Request) {
+			writer.Header().Set("Content-Type", "text/css")
+			if !*w.srv.Config().TeamSettings.EnableCustomBrand || *w.srv.Config().TeamSettings.CustomBrandCSS == "" {
+				return
+			}
+			writer.Write([]byte(*w.srv.Config().TeamSettings.CustomBrandCSS))
+		})
+
 		if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gzhttp.GzipHandler(staticHandler)
 			pluginHandler = gzhttp.GzipHandler(pluginHandler)
 		}
 
+		w.MainRouter.PathPrefix("/customcss").Handler(customCssHandler)
 		w.MainRouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
 		w.MainRouter.PathPrefix("/static/images/favicon/").Handler(faviconHandler)
 		w.MainRouter.PathPrefix("/static/").Handler(staticHandler)

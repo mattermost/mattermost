@@ -19,9 +19,9 @@ const BrandedHeaderFooterRouteStyled = styled.div<BrandedHeaderFooterRouteProps>
         background: ${(props) => props.background};
         color: ${(props) => props.color};
         background-image: ${(props) => `url(${props.backgroundImage})`};
-        background-position: "center";
-        background-repeat: "no-repeat";
-        background-size: "cover";
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
     }
 `;
 
