@@ -1952,7 +1952,7 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'longtext',
-                            key: 'TeamSettings.CustomBrandCss',
+                            key: 'TeamSettings.CustomBrandCSS',
                             label: defineMessage({id: 'admin.team.brandCssTitle', defaultMessage: '(Enterprise Only) Custom Css:'}),
                             help_text: defineMessage({id: 'admin.team.brandCssDescription', defaultMessage: 'Custom CSS applied to the whole application.'}),
                             isDisabled: it.any(
