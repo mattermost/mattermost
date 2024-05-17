@@ -18,6 +18,9 @@ type BrandedButtonStyledProps = {
 }
 
 const BrandedButtonStyled = styled.div<BrandedButtonStyledProps>`
+    &&&&&&&&&& a {
+        color: ${(props) => props.background} !important;
+    }
     &&&&&&&&&& > button {
         background: ${(props) => props.background};
         color: ${(props) => props.textColor} !important;

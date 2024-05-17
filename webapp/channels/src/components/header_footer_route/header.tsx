@@ -10,6 +10,7 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 
 import BackButton from 'components/common/back_button';
 import Logo from 'components/common/svg_images_components/logo_dark_blue_svg';
+import BrandedLink from 'components/custom_branding/branded_link';
 
 import './header.scss';
 
@@ -45,7 +46,12 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
     }
 
     if (EnableCustomBrand === 'true' && CustomBrandHasLogo === 'true') {
-        title = <img src={Client4.getCustomLightLogoUrl('0')}/>;
+        title = (
+            <img
+                className='custom-branding-logo'
+                src={Client4.getCustomLightLogoUrl('0')}
+            />
+        )
     }
 
     return (
@@ -74,11 +80,13 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
                 {alternateLink}
             </div>
             {onBackButtonClick && (
-                <BackButton
-                    className='header-back-button'
-                    url={backButtonURL}
-                    onClick={onBackButtonClick}
-                />
+                <BrandedLink>
+                    <BackButton
+                        className='header-back-button'
+                        url={backButtonURL}
+                        onClick={onBackButtonClick}
+                    />
+                </BrandedLink>
             )}
         </div>
     );

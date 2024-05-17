@@ -20,6 +20,10 @@
         align-items: center;
         justify-content: space-between;
 
+        .custom-branding-logo {
+            height: 30px;
+        }
+
         .header-logo-link {
             @include link;
 

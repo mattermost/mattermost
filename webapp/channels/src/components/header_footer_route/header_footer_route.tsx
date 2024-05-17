@@ -4,12 +4,11 @@
 import React, {useState, useCallback} from 'react';
 import {useSelector} from 'react-redux';
 import {Route} from 'react-router-dom';
-import styled from 'styled-components';
 
-import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import AnnouncementBar from 'components/announcement_bar';
+import BrandedHeaderFooterRoute from 'components/custom_branding/branded_header_footer_route';
 
 import type {HeaderProps} from './header';
 
@@ -23,39 +22,6 @@ export type CustomizeHeaderType = (props: HeaderProps) => void;
 export type HFRouteProps = {
     path: string;
     component: React.ComponentType<{onCustomizeHeader?: CustomizeHeaderType}>;
-};
-
-const StyledHeaderFooterRouteContainer = styled.div<{className: string; background: string; color: string; backgroundImage: string | null}>`
-    &&& {
-        background: ${(props) => props.background};
-        color: ${(props) => props.color};
-        background-image: ${(props) => `url(${props.backgroundImage})`};
-        background-position: "center";
-        background-repeat: "no-repeat";
-        background-size: "cover";
-    }
-`;
-
-const HeaderFooterRouteContainer = (props: {children: React.ReactNode}) => {
-    const {
-        EnableCustomBrand,
-        CustomBrandColorBackground,
-        CustomBrandColorText,
-        CustomBrandHasBackground,
-    } = useSelector(getConfig);
-
-    if (EnableCustomBrand === 'true') {
-        return (
-            <StyledHeaderFooterRouteContainer
-                className='header-footer-route-container'
-                background={CustomBrandColorBackground || ''}
-                color={CustomBrandColorText || ''}
-                backgroundImage={CustomBrandHasBackground === 'true' ? Client4.getCustomBackgroundUrl('0') : null}
-            >
-                {props.children}
-            </StyledHeaderFooterRouteContainer>);
-    }
-    return <div className='header-footer-route-container'>{props.children}</div>;
 };
 
 export const HFRoute = ({path, component: Component}: HFRouteProps) => {
@@ -75,7 +41,7 @@ export const HFRoute = ({path, component: Component}: HFRouteProps) => {
                         <AnnouncementBar/>
                     </React.Suspense>
                     <div className='header-footer-route'>
-                        <HeaderFooterRouteContainer>
+                        <BrandedHeaderFooterRoute className='header-footer-route-container'>
                             <React.Suspense fallback={null}>
                                 <Header {...headerProps}/>
                             </React.Suspense>
@@ -85,7 +51,7 @@ export const HFRoute = ({path, component: Component}: HFRouteProps) => {
                             <React.Suspense fallback={null}>
                                 {!EnableCustomBrand || CustomBrandShowFooter !== 'true' && <Footer/>}
                             </React.Suspense>
-                        </HeaderFooterRouteContainer>
+                        </BrandedHeaderFooterRoute>
                     </div>
                 </>
             )}
