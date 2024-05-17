@@ -33,7 +33,8 @@ import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/com
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import ManWithLaptopSVG from 'components/common/svg_images_components/man_with_laptop_svg';
 import LoginSignupBlock from 'components/custom_branding/login_signup_block';
-import SaveButtonBranding from 'components/custom_branding/save_button_branding';
+import BrandedBody from 'components/custom_branding/branded_body';
+import BrandedButton from 'components/custom_branding/branded_button';
 import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLink from 'components/external_link';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
@@ -99,10 +100,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         SiteName,
         CustomDescriptionText,
         CustomBrandHasBrand,
-        CustomBrandColorLoginContainer,
-        CustomBrandColorLoginContainerText,
-        CustomBrandColorButtonBgColor,
-        CustomBrandColorButtonTextColor,
         GitLabButtonText,
         GitLabButtonColor,
         OpenIdButtonText,
@@ -866,7 +863,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         onBlur={(e) => handleOnBlur(e, 'password')}
                                     />
                                     {getNewsletterCheck()}
-                                    <SaveButtonBranding>
+                                    <BrandedButton>
                                         <SaveButton
                                             extraClasses='signup-body-card-form-button-submit large'
                                             saving={isWaiting}
@@ -875,7 +872,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                             defaultMessage={formatMessage({id: 'signup_user_completed.create', defaultMessage: 'Create account'})}
                                             savingMessage={formatMessage({id: 'signup_user_completed.saving', defaultMessage: 'Creating account…'})}
                                         />
-                                    </SaveButtonBranding>
+                                    </BrandedButton>
                                 </div>
                             )}
                             {enableSignUpWithEmail && enableExternalSignup && (
@@ -918,9 +915,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
     return (
         <div className='signup-body'>
-            <div className='signup-body-content'>
+            <BrandedBody className='signup-body-content'>
                 {getContent()}
-            </div>
+            </BrandedBody>
         </div>
     );
 };

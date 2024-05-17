@@ -30,7 +30,8 @@ import type {ModeType, AlertBannerProps} from 'components/alert_banner';
 import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
 import WomanWithChatsSVG from 'components/common/svg_images_components/woman_with_chats_svg';
 import LoginSignupBlock from 'components/custom_branding/login_signup_block';
-import SaveButtonBranding from 'components/custom_branding/save_button_branding';
+import BrandedBody from 'components/custom_branding/branded_body';
+import BrandedButton from 'components/custom_branding/branded_button';
 import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLink from 'components/external_link';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
@@ -860,18 +861,12 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 </div>
                 <div className='login-body-action'>
                     {!isMobileView && getAlternateLink()}
-                    <div
-                        className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}
-                        style={enableCustomBrand ? {background: CustomBrandColorLoginContainer} : {}}
-                    >
+                    <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <LoginSignupBlock
                             className='login-body-card-content'
                             tabIndex={0}
                         >
-                            <p
-                                className='login-body-card-title'
-                                style={enableCustomBrand ? {color: CustomBrandColorLoginContainerText} : {}}
-                            >
+                            <p className='login-body-card-title'>
                                 {getCardTitle()}
                             </p>
                             {enableCustomBrand && getMessageSubtitle()}
@@ -913,16 +908,15 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             disabled={isWaiting}
                                         />
                                         {getResetPasswordLink()}
-                                        <SaveButtonBranding>
+                                        <BrandedButton>
                                             <SaveButton
                                                 extraClasses='login-body-card-form-button-submit large'
                                                 saving={isWaiting}
                                                 onClick={preSubmit}
                                                 defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
                                                 savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
-                                                style={enableCustomBrand ? {background: CustomBrandColorButtonBgColor, color: CustomBrandColorButtonTextColor} : {}}
                                             />
-                                        </SaveButtonBranding>
+                                        </BrandedButton>
                                     </div>
                                 </form>
                             )}
@@ -953,9 +947,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     return (
         <div className='login-body'>
-            <div className='login-body-content'>
+            <BrandedBody className='login-body-content'>
                 {getContent()}
-            </div>
+            </BrandedBody>
         </div>
     );
 };

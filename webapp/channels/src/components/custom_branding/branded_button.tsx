@@ -12,12 +12,12 @@ const hexToRgb = (hex: string): string => {
     return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '';
 };
 
-type SaveButtonBrandingStyledProps = {
+type BrandedButtonStyledProps = {
     background: string;
     textColor: string;
 }
 
-const SaveButtonBrandingStyled = styled.div<SaveButtonBrandingStyledProps>`
+const BrandedButtonStyled = styled.div<BrandedButtonStyledProps>`
     &&&&&&&&&& > button {
         background: ${(props) => props.background};
         color: ${(props) => props.textColor} !important;
@@ -26,7 +26,7 @@ const SaveButtonBrandingStyled = styled.div<SaveButtonBrandingStyledProps>`
         color: ${(props) => props.textColor} !important;
     }
     &&&&&&&&&& > button:disabled {
-        background: ${(props) => `rgba(${hexToRgb(props.background)}, 0.08)`};
+        background: ${(props) => `rgba(${hexToRgb(props.background)}, 0.16)`};
         color: ${(props) => `rgba(${hexToRgb(props.textColor)}, 0.32) !important`};
     }
     &&&&&&&&&& > button:disabled > span {
@@ -34,7 +34,7 @@ const SaveButtonBrandingStyled = styled.div<SaveButtonBrandingStyledProps>`
     }
 `;
 
-const SaveButtonBranding = (props: {className?: string; children: React.ReactNode}) => {
+const BrandedButton = (props: {className?: string; children: React.ReactNode}) => {
     const {
         CustomBrandColorButtonBgColor,
         CustomBrandColorButtonTextColor,
@@ -43,16 +43,16 @@ const SaveButtonBranding = (props: {className?: string; children: React.ReactNod
 
     if (EnableCustomBrand === 'true') {
         return (
-            <SaveButtonBrandingStyled
+            <BrandedButtonStyled
                 background={CustomBrandColorButtonBgColor || ''}
                 textColor={CustomBrandColorButtonTextColor || ''}
                 className={props.className || ''}
             >
                 {props.children}
-            </SaveButtonBrandingStyled>
+            </BrandedButtonStyled>
         );
     }
     return (<div className={props.className}>{props.children}</div>);
 };
 
-export default SaveButtonBranding;
+export default BrandedButton;
