@@ -71,7 +71,7 @@ func (r *PerformanceReport) IsValid() error {
 
 	now := time.Now().UnixMilli()
 	if r.End < float64(now-performanceReportTTLMilliseconds) {
-		return fmt.Errorf("report is outdated: %d", r.End)
+		return fmt.Errorf("report is outdated: %f", r.End)
 	}
 
 	return nil
