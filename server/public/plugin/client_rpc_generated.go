@@ -1841,35 +1841,6 @@ func (s *apiRPCServer) GetUsersInTeam(args *Z_GetUsersInTeamArgs, returns *Z_Get
 	return nil
 }
 
-type Z_GetUsersByIdsArgs struct {
-	A []string
-}
-
-type Z_GetUsersByIdsReturns struct {
-	A []*model.User
-	B *model.AppError
-}
-
-func (g *apiRPCClient) GetUsersByIds(ids []string) ([]*model.User, *model.AppError) {
-	_args := &Z_GetUsersByIdsArgs{ids}
-	_returns := &Z_GetUsersByIdsReturns{}
-	if err := g.client.Call("Plugin.GetUsersByIds", _args, _returns); err != nil {
-		log.Printf("RPC call to GetUsersByIds API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) GetUsersByIds(args *Z_GetUsersByIdsArgs, returns *Z_GetUsersByIdsReturns) error {
-	if hook, ok := s.impl.(interface {
-		GetUsersByIds(ids []string) ([]*model.User, *model.AppError)
-	}); ok {
-		returns.A, returns.B = hook.GetUsersByIds(args.A)
-	} else {
-		return encodableError(fmt.Errorf("API GetUsersByIds called but not implemented."))
-	}
-	return nil
-}
-
 type Z_GetPreferenceForUserArgs struct {
 	A string
 	B string

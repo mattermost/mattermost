@@ -2186,6 +2186,10 @@ func (_m *API) GetPostsBefore(channelId string, postId string, page int, perPage
 func (_m *API) GetPostsById(postIDs []string) ([]*model.Post, *model.AppError) {
 	ret := _m.Called(postIDs)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostsById")
+	}
+
 	var r0 []*model.Post
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func([]string) ([]*model.Post, *model.AppError)); ok {

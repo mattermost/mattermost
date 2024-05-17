@@ -67,15 +67,6 @@ func (u *UserService) ListByUsernames(usernames []string) ([]*model.User, error)
 	return users, normalizeAppErr(appErr)
 }
 
-// ListByIDs gets users by their ids.
-//
-// Minimum server version: 9.X TODO
-func (u *UserService) ListByIDs(ids []string) ([]*model.User, error) {
-	users, appErr := u.api.GetUsersByIds(ids)
-
-	return users, normalizeAppErr(appErr)
-}
-
 // ListInChannel returns a page of users in a channel. Page counting starts at 0.
 // The sortBy parameter can be: "username" or "status".
 //
