@@ -37,7 +37,7 @@ type I18nLike = {
 }
 
 export type InviteResult = (InviteNotSent | InviteEmail | InviteUser) & {
-    reason: I18nLike;
+    reason: string | I18nLike;
     path?: string;
 }
 
@@ -148,7 +148,9 @@ export default function ResultTable(props: Props) {
                         }
 
                         let reason;
-                        if (invitation.path) {
+                        if (typeof invitation.reason === 'string') {
+                            reason = invitation.reason;
+                        } else if (invitation.path) {
                             reason = messageWithLink(invitation.reason, invitation.path);
                         } else {
                             reason = (
