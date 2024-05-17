@@ -99,11 +99,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         EnableCustomBrand,
         CustomBrandText,
         CustomBrandHeading,
-        CustomBrandColorText,
-        CustomBrandColorLoginContainer,
-        CustomBrandColorLoginContainerText,
-        CustomBrandColorButtonBgColor,
-        CustomBrandColorButtonTextColor,
         CustomBrandHasBrand,
         CustomDescriptionText,
         SiteName,
@@ -730,11 +725,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const getMessageSubtitle = () => {
         if (enableCustomBrand) {
-            const style = enableCustomBrand ? {color: CustomBrandColorText, opacity: 0.9} : {};
             return CustomBrandText ? (
                 <div
                     className='login-body-custom-branding-markdown'
-                    style={style}
                 >
                     <Markdown
                         message={CustomBrandText}
@@ -757,22 +750,20 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         if (ForgotPasswordLink) {
-            const style = enableCustomBrand ? {color: CustomBrandColorButtonBgColor} : {};
             return (
                 <div className='login-body-card-form-link'>
                     <ExternalLink href={ForgotPasswordLink}>
-                        <span style={style}>{formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}</span>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
                     </ExternalLink>
                 </div>
             );
         }
 
         if (enableSignInWithUsername || enableSignInWithEmail) {
-            const style = enableCustomBrand ? {color: CustomBrandColorButtonBgColor} : {};
             return (
                 <div className='login-body-card-form-link'>
                     <Link to='/reset_password'>
-                        <span style={style}>{formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}</span>
+                        {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
                     </Link>
                 </div>
             );
@@ -837,18 +828,12 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     )}
 
                     {(!enableCustomBrand || CustomBrandHeading === '') && (
-                        <h1
-                            className='login-body-message-title'
-                            style={enableCustomBrand ? {color: CustomBrandColorText} : {}}
-                        >
+                        <h1 className='login-body-message-title'>
                             {formatMessage({id: 'login.title', defaultMessage: 'Log in to your account'})}
                         </h1>
                     )}
                     {enableCustomBrand && CustomBrandHeading !== '' && (
-                        <h1
-                            className='login-body-message-title'
-                            style={enableCustomBrand ? {color: CustomBrandColorText} : {}}
-                        >
+                        <h1 className='login-body-message-title'>
                             {CustomBrandHeading}
                         </h1>
                     )}
