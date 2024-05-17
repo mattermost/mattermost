@@ -8,8 +8,8 @@ import styled from 'styled-components';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {Client4} from 'mattermost-redux/client';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -142,7 +142,10 @@ const ProductMenu = (): JSX.Element => {
                         aria-controls='product-switcher-menu'
                     />
                     {license.IsLicensed === 'false' && <ProductBrandingTeamEdition/>}
-                    {license.IsLicensed === 'true' && EnableCustomBrand === 'true' && CustomBrandHasLogo === 'true' && <img src={Client4.getCustomDarkLogoUrl('0')} height={30} />}
+                    {license.IsLicensed === 'true' && EnableCustomBrand === 'true' && CustomBrandHasLogo === 'true' && <img
+                        src={Client4.getCustomDarkLogoUrl('0')}
+                        height={30}
+                    />}
                     {license.IsLicensed === 'true' && (EnableCustomBrand !== 'true' || CustomBrandHasLogo !== 'true') && <ProductBranding/>}
                 </ProductMenuContainer>
                 <Menu

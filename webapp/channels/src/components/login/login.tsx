@@ -29,6 +29,8 @@ import AlertBanner from 'components/alert_banner';
 import type {ModeType, AlertBannerProps} from 'components/alert_banner';
 import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
 import WomanWithChatsSVG from 'components/common/svg_images_components/woman_with_chats_svg';
+import LoginSignupBlock from 'components/custom_branding/login_signup_block';
+import SaveButtonBranding from 'components/custom_branding/save_button_branding';
 import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLink from 'components/external_link';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
@@ -46,8 +48,6 @@ import LoginOffice365Icon from 'components/widgets/icons/login_office_365_icon';
 import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
-import LoginSignupBlock from 'components/custom_branding/login_signup_block';
-import SaveButtonBranding from 'components/custom_branding/save_button_branding';
 
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
@@ -729,9 +729,12 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const getMessageSubtitle = () => {
         if (enableCustomBrand) {
-            let style = enableCustomBrand ? {color: CustomBrandColorText, opacity: 0.9} : {};
+            const style = enableCustomBrand ? {color: CustomBrandColorText, opacity: 0.9} : {};
             return CustomBrandText ? (
-                <div className='login-body-custom-branding-markdown' style={style}>
+                <div
+                    className='login-body-custom-branding-markdown'
+                    style={style}
+                >
                     <Markdown
                         message={CustomBrandText}
                         options={{mentionHighlight: false}}
@@ -753,7 +756,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         if (ForgotPasswordLink) {
-            let style = enableCustomBrand ? {color: CustomBrandColorButtonBgColor} : {};
+            const style = enableCustomBrand ? {color: CustomBrandColorButtonBgColor} : {};
             return (
                 <div className='login-body-card-form-link'>
                     <ExternalLink href={ForgotPasswordLink}>
@@ -764,7 +767,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         if (enableSignInWithUsername || enableSignInWithEmail) {
-            let style = enableCustomBrand ? {color: CustomBrandColorButtonBgColor} : {};
+            const style = enableCustomBrand ? {color: CustomBrandColorButtonBgColor} : {};
             return (
                 <div className='login-body-card-form-link'>
                     <Link to='/reset_password'>
@@ -832,13 +835,19 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                         />
                     )}
 
-                    {(!enableCustomBrand || CustomBrandHeading === "") && (
-                        <h1 className='login-body-message-title' style={enableCustomBrand ? {color: CustomBrandColorText} : {}}>
+                    {(!enableCustomBrand || CustomBrandHeading === '') && (
+                        <h1
+                            className='login-body-message-title'
+                            style={enableCustomBrand ? {color: CustomBrandColorText} : {}}
+                        >
                             {formatMessage({id: 'login.title', defaultMessage: 'Log in to your account'})}
                         </h1>
                     )}
-                    {enableCustomBrand && CustomBrandHeading !== "" && (
-                        <h1 className='login-body-message-title' style={enableCustomBrand ? {color: CustomBrandColorText} : {}}>
+                    {enableCustomBrand && CustomBrandHeading !== '' && (
+                        <h1
+                            className='login-body-message-title'
+                            style={enableCustomBrand ? {color: CustomBrandColorText} : {}}
+                        >
                             {CustomBrandHeading}
                         </h1>
                     )}
@@ -851,12 +860,18 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 </div>
                 <div className='login-body-action'>
                     {!isMobileView && getAlternateLink()}
-                    <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})} style={enableCustomBrand ? {background: CustomBrandColorLoginContainer} : {}}>
+                    <div
+                        className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}
+                        style={enableCustomBrand ? {background: CustomBrandColorLoginContainer} : {}}
+                    >
                         <LoginSignupBlock
                             className='login-body-card-content'
                             tabIndex={0}
                         >
-                            <p className='login-body-card-title' style={enableCustomBrand ? {color: CustomBrandColorLoginContainerText} : {}}>
+                            <p
+                                className='login-body-card-title'
+                                style={enableCustomBrand ? {color: CustomBrandColorLoginContainerText} : {}}
+                            >
                                 {getCardTitle()}
                             </p>
                             {enableCustomBrand && getMessageSubtitle()}

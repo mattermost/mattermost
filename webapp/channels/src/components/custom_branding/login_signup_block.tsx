@@ -8,9 +8,9 @@ import styled from 'styled-components';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 type LoginSignupBlockProps = {
-    background: string
-    linkColor: string
-    textColor: string
+    background: string;
+    linkColor: string;
+    textColor: string;
 }
 
 const LoginSignupBlockStyled = styled.div<LoginSignupBlockProps>`
@@ -60,9 +60,9 @@ const LoginSignupBlockStyled = styled.div<LoginSignupBlockProps>`
 `;
 
 type Props = {
-    tabIndex?: number,
-    className?: string,
-    children: React.ReactNode,
+    tabIndex?: number;
+    className?: string;
+    children: React.ReactNode;
 }
 
 const LoginSignupBlock = (props: Props) => {

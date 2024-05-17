@@ -32,6 +32,8 @@ import type {ModeType, AlertBannerProps} from 'components/alert_banner';
 import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import ManWithLaptopSVG from 'components/common/svg_images_components/man_with_laptop_svg';
+import LoginSignupBlock from 'components/custom_branding/login_signup_block';
+import SaveButtonBranding from 'components/custom_branding/save_button_branding';
 import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLink from 'components/external_link';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
@@ -52,8 +54,6 @@ import CheckInput from 'components/widgets/inputs/check';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
-import LoginSignupBlock from 'components/custom_branding/login_signup_block';
-import SaveButtonBranding from 'components/custom_branding/save_button_branding';
 
 import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
 import {isDesktopApp} from 'utils/user_agent';

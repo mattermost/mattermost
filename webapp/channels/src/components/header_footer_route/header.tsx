@@ -45,7 +45,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
     }
 
     if (EnableCustomBrand === 'true' && CustomBrandHasLogo === 'true') {
-        title = <img src={Client4.getCustomLightLogoUrl('0')}/>
+        title = <img src={Client4.getCustomLightLogoUrl('0')}/>;
     }
 
     return (

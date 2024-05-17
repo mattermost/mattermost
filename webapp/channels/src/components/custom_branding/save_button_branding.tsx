@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import React from 'react';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
@@ -5,13 +8,13 @@ import styled from 'styled-components';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 const hexToRgb = (hex: string): string => {
-  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '';
-}
+    var result = (/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i).exec(hex);
+    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '';
+};
 
 type SaveButtonBrandingStyledProps = {
-    background: string
-    textColor: string
+    background: string;
+    textColor: string;
 }
 
 const SaveButtonBrandingStyled = styled.div<SaveButtonBrandingStyledProps>`
@@ -31,12 +34,12 @@ const SaveButtonBrandingStyled = styled.div<SaveButtonBrandingStyledProps>`
     }
 `;
 
-const SaveButtonBranding = (props: {className?: string, children: React.ReactNode}) => {
+const SaveButtonBranding = (props: {className?: string; children: React.ReactNode}) => {
     const {
         CustomBrandColorButtonBgColor,
         CustomBrandColorButtonTextColor,
         EnableCustomBrand,
-    } = useSelector(getConfig);;
+    } = useSelector(getConfig);
 
     if (EnableCustomBrand === 'true') {
         return (
@@ -50,6 +53,6 @@ const SaveButtonBranding = (props: {className?: string, children: React.ReactNod
         );
     }
     return (<div className={props.className}>{props.children}</div>);
-}
+};
 
 export default SaveButtonBranding;

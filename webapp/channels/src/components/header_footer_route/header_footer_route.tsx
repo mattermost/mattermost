@@ -6,8 +6,8 @@ import {useSelector} from 'react-redux';
 import {Route} from 'react-router-dom';
 import styled from 'styled-components';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {Client4} from 'mattermost-redux/client';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import AnnouncementBar from 'components/announcement_bar';
 
@@ -25,7 +25,7 @@ export type HFRouteProps = {
     component: React.ComponentType<{onCustomizeHeader?: CustomizeHeaderType}>;
 };
 
-const StyledHeaderFooterRouteContainer = styled.div<{className: string, background: string, color: string, backgroundImage: string | null}>`
+const StyledHeaderFooterRouteContainer = styled.div<{className: string; background: string; color: string; backgroundImage: string | null}>`
     &&& {
         background: ${(props) => props.background};
         color: ${(props) => props.color};
@@ -34,7 +34,7 @@ const StyledHeaderFooterRouteContainer = styled.div<{className: string, backgrou
         background-repeat: "no-repeat";
         background-size: "cover";
     }
-`
+`;
 
 const HeaderFooterRouteContainer = (props: {children: React.ReactNode}) => {
     const {
@@ -44,20 +44,19 @@ const HeaderFooterRouteContainer = (props: {children: React.ReactNode}) => {
         CustomBrandHasBackground,
     } = useSelector(getConfig);
 
-    if (EnableCustomBrand === "true") {
+    if (EnableCustomBrand === 'true') {
         return (
             <StyledHeaderFooterRouteContainer
-                className="header-footer-route-container"
+                className='header-footer-route-container'
                 background={CustomBrandColorBackground || ''}
                 color={CustomBrandColorText || ''}
                 backgroundImage={CustomBrandHasBackground === 'true' ? Client4.getCustomBackgroundUrl('0') : null}
             >
                 {props.children}
-            </StyledHeaderFooterRouteContainer>)
+            </StyledHeaderFooterRouteContainer>);
     }
     return <div className='header-footer-route-container'>{props.children}</div>;
-
-}
+};
 
 export const HFRoute = ({path, component: Component}: HFRouteProps) => {
     const [headerProps, setHeaderProps] = useState<HeaderProps>({});
