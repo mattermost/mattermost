@@ -13,12 +13,15 @@ import {Permissions} from 'mattermost-redux/constants';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
+
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 
+import ExternalLink from 'components/external_link';
 import {makeAsyncComponent} from 'components/async_load';
 
-import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {ModalIdentifiers, LicenseLinks, TELEMETRY_CATEGORIES} from 'utils/constants';
+
 
 import './menu_item.scss';
 
@@ -84,20 +87,24 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
             id={props.id}
         >
             <FreeVersionBadge>{'FREE EDITION'}</FreeVersionBadge>
-            {isE0 &&
-                <div className='start_trial_content'>
-                    {formatMessage({
-                        id: 'navbar_dropdown.versionTextE0',
-                        defaultMessage: 'This is the free edition of Mattermost, ideal for evaluation and small teams.',
-                    })}
-                </div>}
-            {!isE0 &&
-                <div className='start_trial_content'>
-                    {formatMessage({
-                        id: 'navbar_dropdown.versionTextTeamEdition',
-                        defaultMessage: 'This is the free open source edition of Mattermost, ideal for evaluation and small teams.',
-                    })}
-                </div>}
+            <div className='editionText'>
+                {formatMessage(
+                    {
+                        id: 'navbar_dropdown.versionText',
+                        defaultMessage: 'This is the free <link>unsupported</link> edition of Mattermost.',
+                    },
+                    {
+                        link: (msg: React.ReactNode) => (
+                            <ExternalLink
+                                location='unsupported-link'
+                                href={LicenseLinks.UNSUPPORTED}
+                            >
+                                {msg}
+                            </ExternalLink>
+                        ),
+                    }
+                )}
+            </div>
             {showTrialButton &&
                 <button onClick={openLearnMoreTrialModal}>
                     {formatMessage({id: 'navbar_dropdown.startAnEnterpriseTrial', defaultMessage: 'Start an Enterprise trial'})}

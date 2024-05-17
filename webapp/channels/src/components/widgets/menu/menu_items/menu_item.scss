@@ -333,13 +333,12 @@
             }
         }
 
-        .start_trial_content {
+        .editionText {
             position: relative;
             width: 100%;
-        }
-
-        .editionName {
-            text-transform: capitalize;
+            a {
+                color: var(--link-color);
+            }
         }
     }
 }
