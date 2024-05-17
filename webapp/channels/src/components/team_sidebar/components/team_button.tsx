@@ -9,12 +9,11 @@ import {Link} from 'react-router-dom';
 
 import {mark, trackEvent} from 'actions/telemetry_actions.jsx';
 
-import CopyUrlContextMenu from 'components/copy_url_context_menu';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 import WithTooltip from 'components/with_tooltip';
 import {ShortcutKeys} from 'components/with_tooltip/shortcut';
 
-import {isDesktopApp} from 'utils/user_agent';
+import {Mark} from 'utils/performance_telemetry';
 
 const messages = defineMessages({
     nameUndefined: {
@@ -62,7 +61,7 @@ export default function TeamButton({
     const {formatMessage} = useIntl();
 
     const handleSwitch = useCallback((e: React.MouseEvent) => {
-        mark('TeamLink#click');
+        mark(Mark.TeamLinkClicked);
         e.preventDefault();
         switchTeam(url);
 
@@ -89,7 +88,10 @@ export default function TeamButton({
             teamClass = 'unread';
 
             badge = (
-                <span className={'unread-badge'}/>
+                <span
+                    data-testid={'team-badge-' + teamId}
+                    className={'unread-badge'}
+                />
             );
         } else if (isNotCreateTeamButton) {
             teamClass = '';
@@ -115,7 +117,12 @@ export default function TeamButton({
             });
 
             badge = (
-                <span className={classNames('badge badge-max-number pull-right small', {urgent: otherProps.hasUrgent})}>{mentions > 99 ? '99+' : mentions}</span>
+                <span
+                    data-testid={'team-badge-' + teamId}
+                    className={classNames('badge badge-max-number pull-right small', {urgent: otherProps.hasUrgent})}
+                >
+                    {mentions > 99 ? '99+' : mentions}
+                </span>
             );
         }
     }
@@ -155,7 +162,7 @@ export default function TeamButton({
         </WithTeamTooltip>
     );
 
-    let teamButton = (
+    const teamButton = (
         <Link
             id={`${url.slice(1)}TeamButton`}
             aria-label={ariaLabel}
@@ -165,20 +172,6 @@ export default function TeamButton({
             {btn}
         </Link>
     );
-
-    if (isDesktopApp()) {
-        // if this is not a "special" team button, give it a context menu
-        if (isNotCreateTeamButton) {
-            teamButton = (
-                <CopyUrlContextMenu
-                    link={url}
-                    menuId={url}
-                >
-                    {teamButton}
-                </CopyUrlContextMenu>
-            );
-        }
-    }
 
     return isDraggable ? (
         <Draggable
@@ -192,9 +185,9 @@ export default function TeamButton({
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
+                        tabIndex={-1}
                     >
                         <div
-
                             className={classNames([`team-container ${teamClass}`, {isDragging: snapshot.isDragging}])}
                         >
                             {teamButton}
@@ -205,7 +198,10 @@ export default function TeamButton({
             }}
         </Draggable>
     ) : (
-        <div className={`team-container ${teamClass}`}>
+        <div
+            data-testid={'team-container-' + teamId}
+            className={`team-container ${teamClass}`}
+        >
             {teamButton}
             {orderIndicator}
         </div>

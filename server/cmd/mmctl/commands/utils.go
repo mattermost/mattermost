@@ -14,6 +14,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	DefaultPageSize = 200
+)
+
 func checkInteractiveTerminal() error {
 	fileInfo, err := os.Stdout.Stat()
 	if err != nil {
