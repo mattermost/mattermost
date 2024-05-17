@@ -280,7 +280,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
         useDispatchMock.mockReturnValue(dummyDispatch);
         const wrapper = mountWithIntl(<reactRedux.Provider store={store}><MenuStartTrial id='startTrial'/></reactRedux.Provider>);
         expect(wrapper.find('button').exists()).toEqual(true);
-        expect(wrapper.find('div.start_trial_content').text()).toEqual('This is the free edition of Mattermost, ideal for evaluation and small teams.');
+        expect(wrapper.find('div.editionText').text()).toEqual('This is the free unsupported edition of Mattermost.');
         expect(wrapper.find('button').text()).toEqual('Start an Enterprise trial');
     });
 });

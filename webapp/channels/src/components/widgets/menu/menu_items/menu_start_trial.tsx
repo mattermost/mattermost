@@ -13,15 +13,13 @@ import {Permissions} from 'mattermost-redux/constants';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
-
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 
-import ExternalLink from 'components/external_link';
 import {makeAsyncComponent} from 'components/async_load';
+import ExternalLink from 'components/external_link';
 
 import {ModalIdentifiers, LicenseLinks, TELEMETRY_CATEGORIES} from 'utils/constants';
-
 
 import './menu_item.scss';
 
@@ -102,7 +100,7 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
                                 {msg}
                             </ExternalLink>
                         ),
-                    }
+                    },
                 )}
             </div>
             {showTrialButton &&
