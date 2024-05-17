@@ -4,7 +4,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
 <div
   className="signup-body"
 >
-  <div
+  <BrandedBody
     className="signup-body-content"
   >
     <div
@@ -35,7 +35,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
         alternateMessage="Already have an account?"
         className="signup-body-alternate-link"
       />
-      <div
+      <LoginSignupBlock
         className="signup-body-card"
       >
         <div
@@ -115,15 +115,17 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 .
               </span>
             </div>
-            <SaveButton
-              btnClass=""
-              defaultMessage="Create account"
-              disabled={true}
-              extraClasses="signup-body-card-form-button-submit large"
-              onClick={[Function]}
-              saving={false}
-              savingMessage="Creating account…"
-            />
+            <BrandedButton>
+              <SaveButton
+                btnClass=""
+                defaultMessage="Create account"
+                disabled={true}
+                extraClasses="signup-body-card-form-button-submit large"
+                onClick={[Function]}
+                saving={false}
+                savingMessage="Creating account…"
+              />
+            </BrandedButton>
           </div>
           <div
             className="signup-body-card-form-divider"
@@ -168,9 +170,9 @@ exports[`components/signup/Signup should match snapshot for all signup options e
             />
           </p>
         </div>
-      </div>
+      </LoginSignupBlock>
     </div>
-  </div>
+  </BrandedBody>
 </div>
 `;
 
@@ -178,7 +180,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
 <div
   className="signup-body"
 >
-  <div
+  <BrandedBody
     className="signup-body-content"
   >
     <div
@@ -209,7 +211,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
         alternateMessage="Already have an account?"
         className="signup-body-alternate-link"
       />
-      <div
+      <LoginSignupBlock
         className="signup-body-card"
       >
         <div
@@ -289,15 +291,17 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 .
               </span>
             </div>
-            <SaveButton
-              btnClass=""
-              defaultMessage="Create account"
-              disabled={true}
-              extraClasses="signup-body-card-form-button-submit large"
-              onClick={[Function]}
-              saving={false}
-              savingMessage="Creating account…"
-            />
+            <BrandedButton>
+              <SaveButton
+                btnClass=""
+                defaultMessage="Create account"
+                disabled={true}
+                extraClasses="signup-body-card-form-button-submit large"
+                onClick={[Function]}
+                saving={false}
+                savingMessage="Creating account…"
+              />
+            </BrandedButton>
           </div>
           <div
             className="signup-body-card-form-divider"
@@ -388,8 +392,8 @@ exports[`components/signup/Signup should match snapshot for all signup options e
             />
           </p>
         </div>
-      </div>
+      </LoginSignupBlock>
     </div>
-  </div>
+  </BrandedBody>
 </div>
 `;

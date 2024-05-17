@@ -50,6 +50,8 @@ func (a *App) SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader, 
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.save_image.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	a.Srv().Platform().RegenerateClientConfig()
+
 	return nil
 }
 
@@ -78,6 +80,8 @@ func (a *App) DeleteBrandImage(rctx request.CTX, imageType string) *model.AppErr
 	if !fileExists {
 		return model.NewAppError("DeleteBrandImage", "api.admin.delete_brand_image.storage.not_found", nil, "", http.StatusNotFound)
 	}
+
+	a.Srv().Platform().RegenerateClientConfig()
 
 	return a.RemoveFile(filePath)
 }

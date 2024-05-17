@@ -196,7 +196,7 @@ func (ps *PlatformService) ClientConfigHash() string {
 	return ps.clientConfigHash.Load().(string)
 }
 
-func (ps *PlatformService) regenerateClientConfig() {
+func (ps *PlatformService) RegenerateClientConfig() {
 	clientConfig := config.GenerateClientConfig(ps.Config(), ps.telemetryId, ps.License(), ps.FileBackend())
 	limitedClientConfig := config.GenerateLimitedClientConfig(ps.Config(), ps.telemetryId, ps.License(), ps.FileBackend())
 
@@ -301,7 +301,7 @@ func (ps *PlatformService) EnsureAsymmetricSigningKey() error {
 		},
 		D: key.ECDSAKey.D,
 	})
-	ps.regenerateClientConfig()
+	ps.RegenerateClientConfig()
 	return nil
 }
 
