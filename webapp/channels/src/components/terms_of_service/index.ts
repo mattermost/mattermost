@@ -21,7 +21,7 @@ function mapStateToProps(state: GlobalState) {
     return {
         onboardingFlowEnabled,
         termsEnabled: config.EnableCustomTermsOfService === 'true',
-        emojiMap: getEmojiMap(state),
+        emojiMap: getEmojiMap(state), // HARRISON TODO figure out how to have markdown load emojis
     };
 }
 

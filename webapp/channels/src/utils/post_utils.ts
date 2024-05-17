@@ -469,7 +469,7 @@ export function usePostAriaLabel(post: Post | undefined) {
         const authorDisplayName = getDisplayName(state, post.user_id);
         const reactions = getReactionsForPost(state, post?.id);
         const isFlagged = get(state, Preferences.CATEGORY_FLAGGED_POST, post.id, null) != null;
-        const emojiMap = getEmojiMap(state);
+        const emojiMap = getEmojiMap(state); // HARRISON this is fine since I assume the emojis have been loaded by the visible post
         const mentions = getMentionsFromMessage(state, post);
         const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state);
 
@@ -700,6 +700,7 @@ export function makeGetUniqueReactionsToPost(): (state: GlobalState, postId: Pos
             const reactionsForPost: Record<string, Reaction> = {};
 
             Object.entries(reactions).forEach(([userIdEmojiKey, emojiReaction]) => {
+                // HARRISON TODO we need to either make this component load its own emojis or function with undefined emojis (probably the former) because it never renders the components that use these hooks
                 if (emojiMap.get(emojiReaction.emoji_name)) {
                     reactionsForPost[userIdEmojiKey] = emojiReaction;
                 }

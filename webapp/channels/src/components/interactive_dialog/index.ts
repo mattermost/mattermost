@@ -30,7 +30,7 @@ function mapStateToProps(state: GlobalState) {
         submitLabel: data.dialog.submit_label,
         notifyOnCancel: data.dialog.notify_on_cancel,
         state: data.dialog.state,
-        emojiMap: getEmojiMap(state),
+        emojiMap: getEmojiMap(state), // HARRISON TODO figure out how to have markdown load emojis
     };
 }
 

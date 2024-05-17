@@ -7,13 +7,25 @@ import type {Dispatch} from 'redux';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+
 import {toggleReaction} from 'actions/post_actions';
 import {getEmojiMap} from 'selectors/emojis';
 import {getCurrentLocale} from 'selectors/i18n';
 
+import type EmojiMap from 'utils/emoji_map';
+
 import type {GlobalState} from 'types/store';
 
 import PostReaction from './post_recent_reactions';
+
+const getDefaultEmojis = createSelector(
+    'getDefaultEmojis',
+    getEmojiMap, // HARRISON this is fine other than me memoizing it
+    (emojiMap: EmojiMap) => {
+        return [emojiMap.get('thumbsup'), emojiMap.get('grinning'), emojiMap.get('white_check_mark')] as Emoji[];
+    },
+);
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
@@ -25,11 +37,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 function mapStateToProps(state: GlobalState) {
     const locale = getCurrentLocale(state);
-    const emojiMap = getEmojiMap(state);
-    const defaultEmojis = [emojiMap.get('thumbsup'), emojiMap.get('grinning'), emojiMap.get('white_check_mark')] as Emoji[];
 
     return {
-        defaultEmojis,
+        defaultEmojis: getDefaultEmojis(state),
         locale,
     };
 }

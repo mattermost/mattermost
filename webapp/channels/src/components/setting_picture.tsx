@@ -172,7 +172,7 @@ export default class SettingPicture extends Component<Props, State> {
                 <div className={`${imageContext}-img-preview`}>
                     <div className='img-preview__image'>
                         <div
-                            alt={`${imageContext} image preview`}
+                            aria-label={`${imageContext} image preview`}
                             style={imageStyles}
                             className={`${imageContext}-img-preview`}
                         />

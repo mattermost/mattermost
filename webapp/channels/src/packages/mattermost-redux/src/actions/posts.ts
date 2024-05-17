@@ -638,6 +638,8 @@ export function removeReaction(postId: string, emojiName: string): ActionFuncAsy
 
 export function getCustomEmojiForReaction(name: string): ActionFuncAsync {
     return async (dispatch, getState) => {
+        // HARRISON TODO this action can probably be removed
+        return {data: false};
         const nonExistentEmoji = getState().entities.emojis.nonExistentEmoji;
         const customEmojisByName = selectCustomEmojisByName(getState());
 

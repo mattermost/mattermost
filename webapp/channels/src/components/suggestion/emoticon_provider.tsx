@@ -114,7 +114,7 @@ export default class EmoticonProvider extends Provider {
         const matched: EmojiItem[] = [];
         const state = store.getState();
         const skintone = state.entities?.preferences?.myPreferences['emoji--emoji_skintone']?.value || 'default';
-        const emojiMap = getEmojiMap(state);
+        const emojiMap = getEmojiMap(state); // HARRISON this is fine
         const recentEmojis = getRecentEmojisNames(state);
 
         // Check for named emoji

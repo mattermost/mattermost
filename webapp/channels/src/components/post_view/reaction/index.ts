@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {Emoji as EmojiType} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 import type {GlobalState} from '@mattermost/types/store';
@@ -13,14 +13,13 @@ import type {GlobalState} from '@mattermost/types/store';
 import {removeReaction} from 'mattermost-redux/actions/posts';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {canAddReactions, canRemoveReactions} from 'mattermost-redux/selectors/entities/reactions';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
 
 import {addReaction} from 'actions/post_actions';
 
-import * as Emoji from 'utils/emoji';
+import {useEmojiByName} from 'data-layer/hooks/emojis';
 
 import Reaction from './reaction';
 
@@ -43,18 +42,6 @@ function makeMapStateToProps() {
     return function mapStateToProps(state: GlobalState, ownProps: Props) {
         const channelId = ownProps.post.channel_id;
 
-        let emoji;
-        if (Emoji.EmojiIndicesByAlias.has(ownProps.emojiName)) {
-            emoji = Emoji.Emojis[Emoji.EmojiIndicesByAlias.get(ownProps.emojiName) as number];
-        } else {
-            const emojis = getCustomEmojisByName(state);
-            emoji = emojis.get(ownProps.emojiName);
-        }
-
-        let emojiImageUrl = '';
-        if (emoji) {
-            emojiImageUrl = getEmojiImageUrl(emoji as EmojiType);
-        }
         const currentUserId = getCurrentUserId(state);
 
         return {
@@ -62,7 +49,6 @@ function makeMapStateToProps() {
             reactionCount: ownProps.reactions.length,
             canAddReactions: canAddReactions(state, channelId),
             canRemoveReactions: canRemoveReactions(state, channelId),
-            emojiImageUrl,
             currentUserReacted: didCurrentUserReact(state, ownProps.reactions),
         };
     };
@@ -78,4 +64,15 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(Reaction);
+const ReactionWithHooks = (props: any) => {
+    const emoji = useEmojiByName(props.emojiName);
+    const emojiImageUrl = emoji ? getEmojiImageUrl(emoji) : '';
+
+    return React.createElement(Reaction, {
+        ...props,
+        emojiImageUrl,
+    });
+};
+ReactionWithHooks.displayName = 'Reaction';
+
+export default connect(makeMapStateToProps, mapDispatchToProps)(ReactionWithHooks);

@@ -2,13 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useSelector} from 'react-redux';
 
 import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
 
-import {getEmojiMap} from 'selectors/emojis';
-
-import type {GlobalState} from 'types/store';
+import {useEmojiByName} from 'data-layer/hooks/emojis';
 
 interface ComponentProps {
     emojiName: string;
@@ -18,17 +15,13 @@ interface ComponentProps {
 }
 
 const RenderEmoji = ({emojiName, emojiStyle, size, onClick}: ComponentProps) => {
-    const emojiMap = useSelector((state: GlobalState) => getEmojiMap(state));
+    const emoji = useEmojiByName(emojiName);
 
-    if (!emojiName) {
+    if (!emoji) {
         return null;
     }
 
-    const emojiFromMap = emojiMap.get(emojiName);
-    if (!emojiFromMap) {
-        return null;
-    }
-    const emojiImageUrl = getEmojiImageUrl(emojiFromMap);
+    const emojiImageUrl = getEmojiImageUrl(emoji);
 
     return (
         <span

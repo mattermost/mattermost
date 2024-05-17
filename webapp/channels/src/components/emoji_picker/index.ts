@@ -21,7 +21,7 @@ function mapStateToProps(state: GlobalState) {
     return {
         customEmojisEnabled: getCustomEmojisEnabled(state),
         customEmojiPage: state.views.emoji.emojiPickerCustomPage,
-        emojiMap: getEmojiMap(state),
+        emojiMap: getEmojiMap(state), // HARRISON TODO figure this one out since this picker needs more info than just names/IDs, but does it?
         recentEmojis: getRecentEmojisNames(state),
         userSkinTone: getUserSkinTone(state),
         currentTeamName: getCurrentTeam(state)?.name ?? '',

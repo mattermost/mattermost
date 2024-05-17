@@ -1,30 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
+import React from 'react';
+import {connect, useSelector} from 'react-redux';
 import type {Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+
+import type {CustomEmoji} from '@mattermost/types/emojis';
 
 import {deleteCustomEmoji} from 'mattermost-redux/actions/emojis';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {useEmojiByName} from 'data-layer/hooks/emojis';
 import {getDisplayNameByUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
 import EmojiListItem from './emoji_list_item';
-import type {Props} from './emoji_list_item';
 
-function mapStateToProps(state: GlobalState, ownProps: Props) {
-    const emoji = state.entities.emojis.customEmoji[ownProps.emojiId!];
-    const creator = getUser(state, emoji.creator_id);
-
+function mapStateToProps(state: GlobalState) {
     return {
-        emoji,
-        creatorDisplayName: getDisplayNameByUser(state, creator),
-        creatorUsername: creator ? creator.username : '',
-        currentUserId: getCurrentUserId(state),
         currentTeam: getCurrentTeam(state),
     };
 }
@@ -37,4 +33,20 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(EmojiListItem);
+export default connect(mapStateToProps, mapDispatchToProps)((props: any) => {
+    const emoji = useEmojiByName(props.emojiName);
+    const creator = useSelector((state: GlobalState) => {
+        if (!emoji || 'creator_id' in emoji) {
+            return undefined;
+        }
+
+        return getUser(state, (emoji as unknown as CustomEmoji).creator_id);
+    });
+
+    return React.createElement(EmojiListItem, {
+        ...props,
+        creatorDisplayName: useSelector((state: GlobalState) => getDisplayNameByUser(state, creator)),
+        creatorUsername: creator ? creator.username : '',
+        currentUserId: useSelector(getCurrentUserId),
+    });
+});

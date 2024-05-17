@@ -11,6 +11,8 @@
     "import/resolver": "webpack"
   },
   "rules": {
+    "no-console": 1,
+    "no-unreachable": 0,
     "react/prop-types": [
       2,
       {

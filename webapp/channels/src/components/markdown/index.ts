@@ -56,7 +56,7 @@ function makeMapStateToProps() {
             team: getCurrentTeam(state),
             hasImageProxy: config.HasImageProxy === 'true',
             minimumHashtagLength: parseInt(config.MinimumHashtagLength || '', 10),
-            emojiMap: getEmojiMap(state),
+            emojiMap: getEmojiMap(state), // HARRISON TODO figure out how to have markdown load emojis
             channelId,
         };
     };

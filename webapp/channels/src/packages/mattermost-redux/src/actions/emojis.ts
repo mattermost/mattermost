@@ -36,6 +36,8 @@ export function createCustomEmoji(emoji: any, image: any) {
 }
 
 export function getCustomEmoji(emojiId: string) {
+    console.log('HARRISON getCustomEmoji', emojiId);
+
     return bindClientFunc({
         clientFunc: Client4.getCustomEmoji,
         onSuccess: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
@@ -47,6 +49,8 @@ export function getCustomEmoji(emojiId: string) {
 
 export function getCustomEmojiByName(name: string): ActionFuncAsync {
     return async (dispatch, getState) => {
+        console.log('HARRISON getCustomEmojiByName', name);
+
         let data;
 
         try {
@@ -74,6 +78,7 @@ export function getCustomEmojiByName(name: string): ActionFuncAsync {
 
 export function getCustomEmojisByName(names: string[]): ActionFuncAsync {
     return async (dispatch, getState) => {
+        console.log('HARRISON getCustomEmojisByName', names);
         const neededNames = filterNeededCustomEmojis(getState(), names);
 
         if (neededNames.length === 0) {
@@ -137,6 +142,8 @@ function filterNeededCustomEmojis(state: GlobalState, names: string[]) {
 
 export function getCustomEmojisInText(text: string): ActionFuncAsync {
     return async (dispatch) => {
+        // HARRISON TODO remove this function
+        return {data: false};
         if (!text) {
             return {data: true};
         }
@@ -152,6 +159,7 @@ export function getCustomEmojis(
     loadUsers = false,
 ): ActionFuncAsync<CustomEmoji[]> {
     return async (dispatch, getState) => {
+        return {data: false};
         let data;
         try {
             data = await Client4.getCustomEmojis(page, perPage, sort);
