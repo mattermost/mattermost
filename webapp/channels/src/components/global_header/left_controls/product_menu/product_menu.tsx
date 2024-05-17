@@ -143,7 +143,7 @@ const ProductMenu = (): JSX.Element => {
                     />
                     {license.IsLicensed === 'false' && <ProductBrandingTeamEdition/>}
                     {license.IsLicensed === 'true' && EnableCustomBrand === 'true' && <img src={Client4.getCustomDarkLogoUrl('0')} height={30} />}
-                    {license.IsLicensed === 'true' && EnableCustomBrand !== 'true' && <ProductBrandingTeamEdition/>}
+                    {license.IsLicensed === 'true' && EnableCustomBrand !== 'true' && <ProductBranding/>}
                 </ProductMenuContainer>
                 <Menu
                     listId={'product-switcher-menu-dropdown'}
