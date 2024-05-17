@@ -3,10 +3,10 @@ package cache
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/redis/go-redis/v9"
 	"github.com/tinylib/msgp/msgp"
 	"github.com/vmihailenco/msgpack/v5"
@@ -16,6 +16,7 @@ type Redis struct {
 	name          string
 	client        *redis.Client
 	defaultExpiry time.Duration
+	metrics       einterfaces.MetricsInterface
 }
 
 func NewRedis(opts *CacheOptions, client *redis.Client) (*Redis, error) {
@@ -51,6 +52,13 @@ func (r *Redis) SetWithDefaultExpiry(key string, value any) error {
 // SetWithExpiry adds the given key and value to the cache with the given expiry. If the key
 // already exists, it will overwrite the previous value
 func (r *Redis) SetWithExpiry(key string, value any, ttl time.Duration) error {
+	now := time.Now()
+	defer func() {
+		elapsed := float64(time.Since(now)) / float64(time.Second)
+		if r.metrics != nil {
+			r.metrics.ObserveRedisEndpointDuration(r.name, "Set", elapsed)
+		}
+	}()
 	var buf []byte
 	var err error
 	// We use a fast path for hot structs.
@@ -72,7 +80,10 @@ func (r *Redis) SetWithExpiry(key string, value any, ttl time.Duration) error {
 func (r *Redis) Get(key string, value any) error {
 	now := time.Now()
 	defer func() {
-		fmt.Printf("[time taken]------- %s %s\n", key, time.Since(now).String())
+		elapsed := float64(time.Since(now)) / float64(time.Second)
+		if r.metrics != nil {
+			r.metrics.ObserveRedisEndpointDuration(r.name, "Get", elapsed)
+		}
 	}()
 	val, err := r.client.Get(context.Background(), r.name+":"+key).Result()
 	if err != nil {
@@ -115,17 +126,38 @@ func (r *Redis) Get(key string, value any) error {
 
 // Remove deletes the value for a given key.
 func (r *Redis) Remove(key string) error {
+	now := time.Now()
+	defer func() {
+		elapsed := float64(time.Since(now)) / float64(time.Second)
+		if r.metrics != nil {
+			r.metrics.ObserveRedisEndpointDuration(r.name, "Del", elapsed)
+		}
+	}()
 	return r.client.Del(context.Background(), r.name+":"+key).Err()
 }
 
 // Keys returns a slice of the keys in the cache.
 func (r *Redis) Keys() ([]string, error) {
+	now := time.Now()
+	defer func() {
+		elapsed := float64(time.Since(now)) / float64(time.Second)
+		if r.metrics != nil {
+			r.metrics.ObserveRedisEndpointDuration(r.name, "Keys", elapsed)
+		}
+	}()
 	// TODO: migrate to a function that works on a batch of keys.
 	return r.client.Keys(context.Background(), r.name+":*").Result()
 }
 
 // Len returns the number of items in the cache.
 func (r *Redis) Len() (int, error) {
+	now := time.Now()
+	defer func() {
+		elapsed := float64(time.Since(now)) / float64(time.Second)
+		if r.metrics != nil {
+			r.metrics.ObserveRedisEndpointDuration(r.name, "Len", elapsed)
+		}
+	}()
 	// TODO: migrate to scan
 	keys, err := r.client.Keys(context.Background(), r.name+":*").Result()
 	if err != nil {

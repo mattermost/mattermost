@@ -207,6 +207,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.metricsIFace = metricsInterfaceFn(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
 	}
 
+	ps.cacheProvider.SetMetrics(ps.metricsIFace)
+
 	// Step 6: Store.
 	// Depends on Step 0 (config), 1 (cacheProvider), 3 (search engine), 5 (metrics) and cluster.
 	if ps.newStore == nil {

@@ -253,9 +253,10 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
+
 	if localCacheStore.channelMembersForUserCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   AllChannelMembersForUserCacheSize,
-		Name:                   "ChannnelMembersForUser",
+		Name:                   "ChannelMembersForUser",
 		DefaultExpiry:          AllChannelMembersForUserCacheDuration,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForUser,
 	}); err != nil {

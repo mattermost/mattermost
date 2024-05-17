@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -30,6 +31,8 @@ type Provider interface {
 	NewCache(opts *CacheOptions) (Cache, error)
 	// Connect opens a new connection to the cache using specific provider parameters.
 	Connect() (string, error)
+	// SetMetrics
+	SetMetrics(metrics einterfaces.MetricsInterface)
 	// Close releases any resources used by the cache provider.
 	Close() error
 	// Type returns what type of cache it generates.
@@ -57,6 +60,9 @@ func (c *cacheProvider) Connect() (string, error) {
 	return "OK", nil
 }
 
+func (c *cacheProvider) SetMetrics(metrics einterfaces.MetricsInterface) {
+}
+
 // Close releases any resources used by the cache provider.
 func (c *cacheProvider) Close() error {
 	return nil
@@ -67,7 +73,8 @@ func (c *cacheProvider) Type() string {
 }
 
 type redisProvider struct {
-	client *redis.Client
+	client  *redis.Client
+	metrics einterfaces.MetricsInterface
 }
 
 type RedisOptions struct {
@@ -92,7 +99,9 @@ func NewRedisProvider(opts *RedisOptions) Provider {
 
 // NewCache creates a new cache with given opts
 func (r *redisProvider) NewCache(opts *CacheOptions) (Cache, error) {
-	return NewRedis(opts, r.client)
+	rr, err := NewRedis(opts, r.client)
+	rr.metrics = r.metrics
+	return rr, err
 }
 
 // Connect opens a new connection to the cache using specific provider parameters.
@@ -102,6 +111,10 @@ func (r *redisProvider) Connect() (string, error) {
 		return "", fmt.Errorf("unable to establish connection with redis: %v", err)
 	}
 	return res, nil
+}
+
+func (r *redisProvider) SetMetrics(metrics einterfaces.MetricsInterface) {
+	r.metrics = metrics
 }
 
 func (r *redisProvider) Type() string {

@@ -62,6 +62,7 @@ type MetricsInterface interface {
 	ObserveFilesSearchDuration(elapsed float64)
 	ObserveStoreMethodDuration(method, success string, elapsed float64)
 	ObserveAPIEndpointDuration(endpoint, method, statusCode, originClient, pageLoadContext string, elapsed float64)
+	ObserveRedisEndpointDuration(cacheName, operation string, elapsed float64)
 	IncrementPostIndexCounter()
 	IncrementFileIndexCounter()
 	IncrementUserIndexCounter()

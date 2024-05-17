@@ -5,7 +5,9 @@
 package mocks
 
 import (
+	einterfaces "github.com/mattermost/mattermost/server/v8/einterfaces"
 	cache "github.com/mattermost/mattermost/server/v8/platform/services/cache"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -88,6 +90,11 @@ func (_m *Provider) NewCache(opts *cache.CacheOptions) (cache.Cache, error) {
 	}
 
 	return r0, r1
+}
+
+// SetMetrics provides a mock function with given fields: metrics
+func (_m *Provider) SetMetrics(metrics einterfaces.MetricsInterface) {
+	_m.Called(metrics)
 }
 
 // Type provides a mock function with given fields:
