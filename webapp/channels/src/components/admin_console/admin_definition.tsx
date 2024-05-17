@@ -1929,12 +1929,77 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+                            type: 'custom',
+                            component: BrandImageSetting,
+                            key: 'CustomBrandLightLogoImage',
+                            isDisabled: it.any(
+                                it.not(
+                                    it.any(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.licensedForSku(LicenseSkus.Professional),
+                                    )
+                                ),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+                            type: 'custom',
+                            component: BrandImageSetting,
+                            key: 'CustomBrandDarkLogoImage',
+                            isDisabled: it.any(
+                                it.not(
+                                    it.any(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.licensedForSku(LicenseSkus.Professional),
+                                    )
+                                ),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+                            type: 'custom',
+                            component: BrandImageSetting,
+                            key: 'CustomBrandBackgroundImage',
+                            isDisabled: it.any(
+                                it.not(
+                                    it.any(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.licensedForSku(LicenseSkus.Professional),
+                                    )
+                                ),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+                            type: 'custom',
+                            component: BrandImageSetting,
+                            key: 'CustomBrandFaviconImage',
+                            isDisabled: it.any(
+                                it.not(
+                                    it.any(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.licensedForSku(LicenseSkus.Professional),
+                                    )
+                                ),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
                             type: 'text',
                             key: 'TeamSettings.CustomBrandHeading',
-                            label: defineMessage({id: 'admin.team.brandHeadingTitle', defaultMessage: 'Custom Brand Heading:'}),
+                            label: defineMessage({id: 'admin.team.brandHeadingTitle', defaultMessage: '(Enterprise Only) Custom Brand Heading:'}),
                             help_text: defineMessage({id: 'admin.team.brandHeadingDescription', defaultMessage: 'Text that will appear below your custom brand image on your login screen. Supports Markdown-formatted text. Maximum 500 characters allowed.'}),
-                            max_length: Constants.MAX_CUSTOM_BRAND_TEXT_LENGTH,
                             isDisabled: it.any(
+                                it.not(
+                                    it.any(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.licensedForSku(LicenseSkus.Professional),
+                                    )
+                                ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),

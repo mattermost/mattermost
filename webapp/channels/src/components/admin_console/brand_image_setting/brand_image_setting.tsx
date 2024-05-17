@@ -6,7 +6,18 @@ import {FormattedMessage} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
+import {
+    uploadBrandImage,
+    deleteBrandImage,
+    uploadLightLogoImage,
+    deleteLightLogoImage,
+    uploadDarkLogoImage,
+    deleteDarkLogoImage,
+    uploadBackgroundImage,
+    deleteBackgroundImage,
+    uploadFaviconImage,
+    deleteFaviconImage
+} from 'actions/admin_actions.jsx';
 
 import FormError from 'components/form_error';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -17,7 +28,6 @@ import {Constants} from 'utils/constants';
 const HTTP_STATUS_OK = 200;
 
 type Props = {
-
     /*
    * Set for testing purpose
    */
@@ -70,9 +80,25 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
         this.fileInputRef = React.createRef();
     }
 
+    getImageUrl = () => {
+        if (this.props.id === 'CustomBrandLightLogoImage') {
+            return Client4.getCustomLightLogoUrl(String(this.state.brandImageTimestamp));
+        }
+        if (this.props.id === 'CustomBrandDarkLogoImage') {
+            return Client4.getCustomDarkLogoUrl(String(this.state.brandImageTimestamp));
+        }
+        if (this.props.id === 'CustomBrandBackgroundImage') {
+            return Client4.getCustomBackgroundUrl(String(this.state.brandImageTimestamp));
+        }
+        if (this.props.id === 'CustomBrandFaviconImage') {
+            return Client4.getCustomFaviconUrl(String(this.state.brandImageTimestamp));
+        }
+        return Client4.getBrandImageUrl(String(this.state.brandImageTimestamp));
+    };
+
     componentDidMount() {
         fetch(
-            Client4.getBrandImageUrl(String(this.state.brandImageTimestamp)),
+            this.getImageUrl(),
         ).then((resp) => {
             if (resp.status === HTTP_STATUS_OK) {
                 this.setState({brandImageExists: true});
@@ -139,9 +165,34 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
             error: '',
         });
 
+        let deleteAction = deleteBrandImage
+        let uploadAction = uploadBrandImage
+        switch (this.props.id) {
+            case 'CustomBrandImage':
+                deleteAction = deleteBrandImage
+                uploadAction = uploadBrandImage
+                break
+            case 'CustomBrandLightLogoImage':
+                deleteAction = deleteLightLogoImage
+                uploadAction = uploadLightLogoImage
+                break
+            case 'CustomBrandDarkLogoImage':
+                deleteAction = deleteDarkLogoImage
+                uploadAction = uploadDarkLogoImage
+                break
+            case 'CustomBrandBackgroundImage':
+                deleteAction = deleteBackgroundImage
+                uploadAction = uploadBackgroundImage
+                break
+            case 'CustomBrandFaviconImage':
+                deleteAction = deleteFaviconImage
+                uploadAction = uploadFaviconImage
+                break
+        }
+
         let error;
         if (this.state.deleteBrandImage) {
-            await deleteBrandImage(
+            await deleteAction(
                 () => {
                     this.setState({
                         deleteBrandImage: false,
@@ -157,7 +208,7 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
                 },
             );
         } else if (this.state.brandImage) {
-            await uploadBrandImage(
+            await uploadAction(
                 this.state.brandImage,
                 () => {
                     this.setState({
@@ -221,9 +272,7 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
                 <div className='remove-image__img mb-5'>
                     <img
                         alt='brand image'
-                        src={Client4.getBrandImageUrl(
-                            String(this.state.brandImageTimestamp),
-                        )}
+                        src={this.getImageUrl()}
                     />
                     {overlay}
                 </div>
@@ -231,10 +280,36 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
         } else {
             img = (
                 <p className='mt-2'>
-                    <FormattedMessage
-                        id='admin.team.noBrandImage'
-                        defaultMessage='No brand image uploaded'
-                    />
+                    {this.props.id === 'CustomBrandImage' && (
+                        <FormattedMessage
+                            id='admin.team.noBrandImage'
+                            defaultMessage='No brand image uploaded'
+                        />
+                    )}
+                    {this.props.id === 'CustomBrandLightLogoImage' && (
+                        <FormattedMessage
+                            id='admin.team.noBrandLightLogo'
+                            defaultMessage='No light logo image uploaded'
+                        />
+                    )}
+                    {this.props.id === 'CustomBrandDarkLogoImage' && (
+                        <FormattedMessage
+                            id='admin.team.noBrandDarkLogo'
+                            defaultMessage='No dark logo image uploaded'
+                        />
+                    )}
+                    {this.props.id === 'CustomBrandBackgroundImage' && (
+                        <FormattedMessage
+                            id='admin.team.noBrandBackground'
+                            defaultMessage='No background image uploaded'
+                        />
+                    )}
+                    {this.props.id === 'CustomBrandFaviconImage' && (
+                        <FormattedMessage
+                            id='admin.team.noBrandFavicon'
+                            defaultMessage='No favicon image uploaded'
+                        />
+                    )}
                 </p>
             );
         }
@@ -245,10 +320,36 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
                 className='form-group'
             >
                 <label className='control-label col-sm-4'>
-                    <FormattedMessage
-                        id='admin.team.brandImageTitle'
-                        defaultMessage='Custom Brand Image:'
-                    />
+                    {this.props.id === 'CustomBrandImage' && (
+                        <FormattedMessage
+                            id='admin.team.brandImageTitle'
+                            defaultMessage='Custom Brand Image:'
+                        />
+                    )}
+                    {this.props.id === 'CustomBrandLightLogoImage' && (
+                        <FormattedMessage
+                            id='admin.team.brandLightLogoTitle'
+                            defaultMessage='(Enterprise Only) Custom Light Logo:'
+                        />
+                    )}
+                    {this.props.id === 'CustomBrandDarkLogoImage' && (
+                        <FormattedMessage
+                            id='admin.team.brandDarkLogoTitle'
+                            defaultMessage='(Enterprise Only) Custom Dark Logo:'
+                        />
+                    )}
+                    {this.props.id === 'CustomBrandBackgroundImage' && (
+                        <FormattedMessage
+                            id='admin.team.brandBackgroundTitle'
+                            defaultMessage='(Enterprise Only) Custom Background:'
+                        />
+                    )}
+                    {this.props.id === 'CustomBrandFaviconImage' && (
+                        <FormattedMessage
+                            id='admin.team.brandFaviconTitle'
+                            defaultMessage='(Enterprise Only) Custom Favicon:'
+                        />
+                    )}
                 </label>
                 <div className='col-sm-8'>
                     <div className='remove-image'>{img}</div>
@@ -277,10 +378,36 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
                     <br/>
                     <FormError error={this.state.error}/>
                     <p className='help-text m-0'>
-                        <FormattedMessage
-                            id='admin.team.uploadDesc'
-                            defaultMessage='Customize your user experience by adding a custom image to your login screen. Recommended maximum image size is less than 2 MB.'
-                        />
+                        {this.props.id === 'CustomBrandImage' && (
+                            <FormattedMessage
+                                id='admin.team.uploadDesc'
+                                defaultMessage='Customize your user experience by adding a custom image to your login screen. Recommended maximum image size is less than 2 MB.'
+                            />
+                        )}
+                        {this.props.id === 'CustomBrandLightLogoImage' && (
+                            <FormattedMessage
+                                id='admin.team.uploadDescLightLogo'
+                                defaultMessage='Customize your user experience by adding a custom logo image to your login screen and mattermost header. Recommended maximum image size is less than 2 MB.'
+                            />
+                        )}
+                        {this.props.id === 'CustomBrandDarkLogoImage' && (
+                            <FormattedMessage
+                                id='admin.team.uploadDescDarkLogo'
+                                defaultMessage='Customize your user experience by adding a custom logo image to your login screen and mattermost header. Recommended maximum image size is less than 2 MB.'
+                            />
+                        )}
+                        {this.props.id === 'CustomBrandBackgroundImage' && (
+                            <FormattedMessage
+                                id='admin.team.uploadDescBackground'
+                                defaultMessage='Customize your user experience by adding a custom background image to your login screen. Recommended maximum image size is less than 2 MB.'
+                            />
+                        )}
+                        {this.props.id === 'CustomBrandFaviconImage' && (
+                            <FormattedMessage
+                                id='admin.team.uploadDescFavicon'
+                                defaultMessage='Customize your user experience by adding a custom favicon to your page. Recommended maximum image size 32x32 pixels.'
+                            />
+                        )}
                     </p>
                 </div>
             </div>
