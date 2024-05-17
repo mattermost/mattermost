@@ -49,7 +49,7 @@ describe('onboarding tasks manager', () => {
     };
 
     it('Places all the elements (6 ignoring plugins) when user is first admin or admin', () => {
-        const store = configureStore(initialState);
+        const {store} = configureStore(initialState);
 
         const wrapper = mount(
             <Provider store={store}>
@@ -66,7 +66,7 @@ describe('onboarding tasks manager', () => {
 
     it('Removes start_trial and visit_system_console when user is end user', () => {
         const endUserState = {...initialState, entities: {...initialState.entities, users: {...initialState.entities.users, currentUserId: user2}}};
-        const store = configureStore(endUserState);
+        const {store} = configureStore(endUserState);
 
         const wrapper = mount(
             <Provider store={store}>
@@ -82,7 +82,7 @@ describe('onboarding tasks manager', () => {
 
     it('Removes invite people task item when user is GUEST user', () => {
         const endUserState = {...initialState, entities: {...initialState.entities, users: {...initialState.entities.users, currentUserId: user3}}};
-        const store = configureStore(endUserState);
+        const {store} = configureStore(endUserState);
 
         const wrapper = mount(
             <Provider store={store}>

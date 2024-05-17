@@ -6,7 +6,12 @@
 
 import configureStore from 'store';
 
-const store = configureStore();
+const {
+    sagaMiddleware,
+    store,
+} = configureStore();
+
+export {sagaMiddleware, store};
 
 // Export the store to simplify debugging in production environments. This is not a supported API,
 // and should not be relied upon by plugins.

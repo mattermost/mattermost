@@ -24,7 +24,11 @@ const localForage = extendPrototype(baseLocalForage);
 
 export default function configureStore(preloadedState, additionalReducers) {
     const reducers = additionalReducers ? {...appReducers, ...additionalReducers} : appReducers;
-    const store = configureServiceStore({
+
+    const {
+        sagaMiddleware,
+        store,
+    } = configureServiceStore({
         appReducers: reducers,
         getAppReducers,
         preloadedState,
@@ -115,7 +119,10 @@ export default function configureStore(preloadedState, additionalReducers) {
         console.error('Failed to initialize localForage', e);
     });
 
-    return store;
+    return {
+        sagaMiddleware,
+        store,
+    };
 }
 
 /**

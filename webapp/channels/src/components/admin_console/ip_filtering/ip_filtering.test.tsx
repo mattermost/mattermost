@@ -63,7 +63,7 @@ describe('IPFiltering', () => {
                 },
             },
         },
-    });
+    }).store;
 
     const wrapWithIntlProviderAndStore = (component: JSX.Element) => (
         <Router>

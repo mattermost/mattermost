@@ -114,7 +114,7 @@ function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: b
         testReducers = newReducers;
     }
 
-    let testStore = configureStore(initialState, testReducers);
+    let testStore = configureStore(initialState, testReducers).store;
     if (useMockedStore) {
         testStore = mockStore(testStore.getState());
     }

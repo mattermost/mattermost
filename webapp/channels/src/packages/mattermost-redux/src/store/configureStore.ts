@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {composeWithDevTools} from '@redux-devtools/extension';
+import type {Reducer, Store} from 'redux';
 import {
     applyMiddleware,
     legacy_createStore,
 } from 'redux';
-import type {
-    Reducer,
-    Store} from 'redux';
+import type {SagaMiddleware} from 'redux-saga';
+import createSagaMiddleware from 'redux-saga';
 import thunk from 'redux-thunk';
 
 import type {GlobalState} from '@mattermost/types/store';
@@ -33,7 +33,10 @@ export default function configureStore<S extends GlobalState>({
     appReducers: Record<string, Reducer>;
     getAppReducers: () => Record<string, Reducer>;
     preloadedState: Partial<S>;
-}): Store {
+}): {
+        store: Store;
+        sagaMiddleware: SagaMiddleware;
+    } {
     const baseState = {
         ...initialState,
         ...preloadedState,
@@ -46,7 +49,9 @@ export default function configureStore<S extends GlobalState>({
         autoPause: true,
     });
 
-    const middleware = applyMiddleware(thunk);
+    const sagaMiddleware = createSagaMiddleware();
+
+    const middleware = applyMiddleware(thunk, sagaMiddleware);
 
     const enhancers = composeEnhancers(middleware);
 
@@ -74,5 +79,8 @@ export default function configureStore<S extends GlobalState>({
         });
     }
 
-    return store;
+    return {
+        sagaMiddleware,
+        store,
+    };
 }

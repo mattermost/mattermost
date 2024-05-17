@@ -7,7 +7,7 @@ import configureStore from './index';
 
 describe('configureStore', () => {
     test('should match initial state after logout', () => {
-        const store = configureStore();
+        const {store} = configureStore();
 
         const initialState = store.getState();
 

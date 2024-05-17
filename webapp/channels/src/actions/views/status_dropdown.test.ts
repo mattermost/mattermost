@@ -15,7 +15,7 @@ describe('status_dropdown view actions', () => {
     };
 
     it('setStatusDropdown should set the status dropdown open or not', () => {
-        const store = configureStore(initialState);
+        const {store} = configureStore(initialState);
 
         store.dispatch(setStatusDropdown(false));
 

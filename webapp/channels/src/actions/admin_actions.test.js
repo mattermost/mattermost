@@ -8,18 +8,18 @@ import configureStore from 'store';
 
 describe('Actions.Admin', () => {
     let store;
-    beforeEach(async () => {
-        store = await configureStore();
+    beforeEach(() => {
+        store = configureStore().store;
     });
 
-    test('Register a plugin adds the plugin to the state', async () => {
+    test('Register a plugin adds the plugin to the state', () => {
         const func = jest.fn();
         expect(store.getState().plugins.adminConsoleReducers).toEqual({});
         store.dispatch(Actions.registerAdminConsolePlugin('plugin-id', func));
         expect(store.getState().plugins.adminConsoleReducers).toEqual({'plugin-id': func});
     });
 
-    test('Unregister a plugin removes an existing plugin from the state', async () => {
+    test('Unregister a plugin removes an existing plugin from the state', () => {
         const func = jest.fn();
         expect(store.getState().plugins.adminConsoleReducers).toEqual({});
         store.dispatch(Actions.registerAdminConsolePlugin('plugin-id', func));
@@ -29,7 +29,7 @@ describe('Actions.Admin', () => {
         expect(store.getState().plugins.adminConsoleReducers).toEqual({});
     });
 
-    test('Unregister an unexisting plugin do nothing', async () => {
+    test('Unregister an unexisting plugin do nothing', () => {
         const func = jest.fn();
         expect(store.getState().plugins.adminConsoleReducers).toEqual({});
         store.dispatch(Actions.registerAdminConsolePlugin('plugin-id', func));
@@ -39,7 +39,7 @@ describe('Actions.Admin', () => {
         expect(store.getState().plugins.adminConsoleReducers).toEqual({'plugin-id': func});
     });
 
-    test('Register a custom plugin setting adds the component to the state', async () => {
+    test('Register a custom plugin setting adds the component to the state', () => {
         expect(store.getState().plugins.adminConsoleCustomComponents).toEqual({});
 
         store.dispatch(Actions.registerAdminConsoleCustomSetting('plugin-id', 'settingA', React.Component, {showTitle: true}));

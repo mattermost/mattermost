@@ -61,9 +61,9 @@ describe('lhs view actions', () => {
         expect(store.getActions()).toEqual(compareStore.getActions());
     });
 
-    test('selectStaticPage', async () => {
-        const testStore = configureStore({...initialState});
-        await testStore.dispatch(Actions.selectStaticPage('test'));
+    test('selectStaticPage', () => {
+        const testStore = configureStore({...initialState}).store;
+        testStore.dispatch(Actions.selectStaticPage('test'));
         expect(testStore.getState().views.lhs.currentStaticPageId).toEqual('test');
     });
 });

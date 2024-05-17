@@ -358,7 +358,7 @@ function newTestReporter(telemetryEnabled = true, loggedIn = true) {
     const client = new Client4();
     client.setUrl(siteUrl);
 
-    const reporter = new TestPerformanceReporter(client, configureStore({
+    const store = configureStore({
         entities: {
             general: {
                 config: {
@@ -369,7 +369,8 @@ function newTestReporter(telemetryEnabled = true, loggedIn = true) {
                 currentUserId: loggedIn ? 'currentUserId' : '',
             },
         },
-    }));
+    }).store
+    const reporter = new TestPerformanceReporter(client, store);
 
     return {client, reporter};
 }

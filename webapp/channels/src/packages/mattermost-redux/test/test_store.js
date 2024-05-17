@@ -4,7 +4,7 @@
 import configureStore from 'mattermost-redux/store';
 
 export default function testConfigureStore(preloadedState) {
-    const store = configureStore({preloadedState, appReducers: {}, getAppReducers: () => {}});
+    const {store} = configureStore({preloadedState, appReducers: {}, getAppReducers: () => {}});
 
     return store;
 }

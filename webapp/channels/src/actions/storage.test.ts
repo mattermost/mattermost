@@ -5,9 +5,9 @@ import * as Actions from 'actions/storage';
 import configureStore from 'store';
 
 describe('Actions.Storage', () => {
-    let store = configureStore();
-    beforeEach(async () => {
-        store = await configureStore();
+    let store = configureStore().store;
+    beforeEach(() => {
+        store = configureStore().store;
     });
 
     it('setGlobalItem', async () => {
@@ -17,7 +17,7 @@ describe('Actions.Storage', () => {
         expect(typeof store.getState().storage.storage.test.timestamp).not.toBe('undefined');
     });
 
-    it('removeGlobalItem', async () => {
+    it('removeGlobalItem', () => {
         store.dispatch(Actions.setGlobalItem('test1', 'value1'));
         store.dispatch(Actions.setGlobalItem('test2', 'value2'));
 
@@ -30,7 +30,7 @@ describe('Actions.Storage', () => {
         expect(store.getState().storage.storage.test2.value).toBe('value2');
     });
 
-    it('actionOnGlobalItemsWithPrefix', async () => {
+    it('actionOnGlobalItemsWithPrefix', () => {
         const touchedPairs: Array<[string, number]> = [];
 
         store.dispatch(Actions.setGlobalItem('prefix_test1', 1));

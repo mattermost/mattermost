@@ -84,6 +84,7 @@
     "redux": "4.2.0",
     "redux-batched-actions": "0.5.0",
     "redux-persist": "6.0.0",
+    "redux-saga": "1.2.3",
     "redux-thunk": "2.4.2",
     "regenerator-runtime": "0.13.10",
     "rudder-sdk-js": "1.0.16",

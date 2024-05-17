@@ -50,9 +50,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         ldapPictureAttributeSet: false,
     };
 
-    let store: ReturnType<typeof configureStore>;
+    let store: ReturnType<typeof configureStore>['store'];
     beforeEach(() => {
-        store = configureStore();
+        store = configureStore().store;
     });
 
     test('submitUser() should have called updateMe', () => {

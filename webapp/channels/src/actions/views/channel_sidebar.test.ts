@@ -71,7 +71,7 @@ describe('adjustTargetIndexForMove', () => {
             const testCase = testCases[i];
 
             test('at ' + i, async () => {
-                const store = configureStore(initialState);
+                const {store} = configureStore(initialState);
 
                 const targetIndex = testCase.inChannelIds.indexOf('new');
 
@@ -111,7 +111,7 @@ describe('adjustTargetIndexForMove', () => {
             const testCase = testCases[i];
 
             test('at ' + i, async () => {
-                const store = configureStore(initialState);
+                const {store} = configureStore(initialState);
 
                 const targetIndex = testCase.inChannelIds.indexOf('one');
 
@@ -151,7 +151,7 @@ describe('adjustTargetIndexForMove', () => {
             const testCase = testCases[i];
 
             test('at ' + i, async () => {
-                const store = configureStore(initialState);
+                const {store} = configureStore(initialState);
 
                 const targetIndex = testCase.inChannelIds.indexOf('seven');
 
@@ -228,7 +228,7 @@ describe('multiSelectChannelTo', () => {
     };
 
     test('should only select current channel if is selected ID and none other are selected', () => {
-        const store = configureStore(initialState);
+        const {store} = configureStore(initialState);
 
         store.dispatch(Actions.multiSelectChannelTo('category1_one'));
 
@@ -236,7 +236,7 @@ describe('multiSelectChannelTo', () => {
     });
 
     test('should select group of channels in ascending order', () => {
-        const store = configureStore({
+        const {store} = configureStore({
             ...initialState,
             views: {
                 channelSidebar: {
@@ -252,7 +252,7 @@ describe('multiSelectChannelTo', () => {
     });
 
     test('should select group of channels in descending order and sort by ascending', () => {
-        const store = configureStore({
+        const {store} = configureStore({
             ...initialState,
             views: {
                 channelSidebar: {
@@ -268,7 +268,7 @@ describe('multiSelectChannelTo', () => {
     });
 
     test('should select group of channels where some other channels were already selected', () => {
-        const store = configureStore({
+        const {store} = configureStore({
             ...initialState,
             views: {
                 channelSidebar: {
@@ -284,7 +284,7 @@ describe('multiSelectChannelTo', () => {
     });
 
     test('should select group of channels where some other channels were already selected but in new selection', () => {
-        const store = configureStore({
+        const {store} = configureStore({
             ...initialState,
             views: {
                 channelSidebar: {
@@ -300,7 +300,7 @@ describe('multiSelectChannelTo', () => {
     });
 
     test('should select group of channels across categories', () => {
-        const store = configureStore({
+        const {store} = configureStore({
             ...initialState,
             views: {
                 channelSidebar: {

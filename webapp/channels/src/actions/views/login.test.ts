@@ -16,7 +16,7 @@ import TestHelper from 'packages/mattermost-redux/test/test_helper';
 describe('actions/views/login', () => {
     describe('login', () => {
         test('should return successful when login is successful', async () => {
-            const store = configureStore();
+            const {store} = configureStore();
 
             TestHelper.initBasic(Client4);
             nock(Client4.getBaseRoute()).
@@ -29,7 +29,7 @@ describe('actions/views/login', () => {
         });
 
         test('should return error when when login fails', async () => {
-            const store = configureStore();
+            const {store} = configureStore();
 
             TestHelper.initBasic(Client4);
             nock(Client4.getBaseRoute()).
@@ -44,7 +44,7 @@ describe('actions/views/login', () => {
 
     describe('loginById', () => {
         test('should return successful when login is successful', async () => {
-            const store = configureStore();
+            const {store} = configureStore();
 
             TestHelper.initBasic(Client4);
             nock(Client4.getBaseRoute()).
@@ -57,7 +57,7 @@ describe('actions/views/login', () => {
         });
 
         test('should return error when when login fails', async () => {
-            const store = configureStore();
+            const {store} = configureStore();
 
             TestHelper.initBasic(Client4);
             nock(Client4.getBaseRoute()).

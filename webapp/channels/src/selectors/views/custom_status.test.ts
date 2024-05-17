@@ -28,20 +28,20 @@ describe('getCustomStatus', () => {
     const user = TestHelper.getUserMock();
     const getCustomStatus = makeGetCustomStatus();
 
-    it('should return undefined when current user has no custom status set', async () => {
-        const store = await configureStore();
+    it('should return undefined when current user has no custom status set', () => {
+        const {store} = configureStore();
         (UserSelectors.getCurrentUser as jest.Mock).mockReturnValue(user);
         expect(getCustomStatus(store.getState())).toBeUndefined();
     });
 
-    it('should return undefined when user with given id has no custom status set', async () => {
-        const store = await configureStore();
+    it('should return undefined when user with given id has no custom status set', () => {
+        const {store} = configureStore();
         (UserSelectors.getUser as jest.Mock).mockReturnValue(user);
         expect(getCustomStatus(store.getState(), user.id)).toBeUndefined();
     });
 
-    it('should return undefined when user with invalid json for custom status set', async () => {
-        const store = await configureStore();
+    it('should return undefined when user with invalid json for custom status set', () => {
+        const {store} = configureStore();
         const newUser = {...user};
         newUser.props.customStatus = 'not a JSON string';
 
@@ -49,8 +49,8 @@ describe('getCustomStatus', () => {
         expect(getCustomStatus(store.getState(), user.id)).toBeUndefined();
     });
 
-    it('should return customStatus object when there is custom status set', async () => {
-        const store = await configureStore();
+    it('should return customStatus object when there is custom status set', () => {
+        const {store} = configureStore();
         const newUser = {...user};
         newUser.props.customStatus = JSON.stringify(customStatus);
         (UserSelectors.getCurrentUser as jest.Mock).mockReturnValue(newUser);
@@ -65,14 +65,14 @@ describe('getRecentCustomStatuses', () => {
         },
     };
 
-    it('should return empty arr if there are no recent custom statuses', async () => {
-        const store = await configureStore();
+    it('should return empty arr if there are no recent custom statuses', () => {
+        const {store} = configureStore();
         (PreferenceSelectors.get as jest.Mock).mockReturnValue(preference.myPreference.value);
         expect(getRecentCustomStatuses(store.getState())).toStrictEqual([]);
     });
 
-    it('should return arr of custom statuses if there are recent custom statuses', async () => {
-        const store = await configureStore();
+    it('should return arr of custom statuses if there are recent custom statuses', () => {
+        const {store} = configureStore();
         preference.myPreference.value = JSON.stringify([customStatus]);
         (PreferenceSelectors.get as jest.Mock).mockReturnValue(preference.myPreference.value);
         expect(getRecentCustomStatuses(store.getState())).toStrictEqual([customStatus]);
@@ -84,13 +84,13 @@ describe('isCustomStatusEnabled', () => {
         EnableCustomUserStatuses: 'true',
     };
 
-    it('should return false if EnableCustomUserStatuses is false in the config', async () => {
-        const store = await configureStore();
+    it('should return false if EnableCustomUserStatuses is false in the config', () => {
+        const {store} = configureStore();
         expect(isCustomStatusEnabled(store.getState())).toBeFalsy();
     });
 
-    it('should return true if EnableCustomUserStatuses is true in the config', async () => {
-        const store = await configureStore();
+    it('should return true if EnableCustomUserStatuses is true in the config', () => {
+        const {store} = configureStore();
         (GeneralSelectors.getConfig as jest.Mock).mockReturnValue(config);
         expect(isCustomStatusEnabled(store.getState())).toBeTruthy();
     });
@@ -104,21 +104,21 @@ describe('showStatusDropdownPulsatingDot and showPostHeaderUpdateStatusButton', 
         },
     };
 
-    it('should return true if user has not opened the custom status modal before', async () => {
-        const store = await configureStore();
+    it('should return true if user has not opened the custom status modal before', () => {
+        const {store} = configureStore();
         (PreferenceSelectors.get as jest.Mock).mockReturnValue(preference.myPreference.value);
         expect(showStatusDropdownPulsatingDot(store.getState())).toBeTruthy();
     });
 
-    it('should return false if user has opened the custom status modal before', async () => {
-        const store = await configureStore();
+    it('should return false if user has opened the custom status modal before', () => {
+        const {store} = configureStore();
         preference.myPreference.value = JSON.stringify({[Preferences.CUSTOM_STATUS_MODAL_VIEWED]: true});
         (PreferenceSelectors.get as jest.Mock).mockReturnValue(preference.myPreference.value);
         expect(showPostHeaderUpdateStatusButton(store.getState())).toBeFalsy();
     });
 
-    it('should return false if user was created less than seven days before from today', async () => {
-        const store = await configureStore();
+    it('should return false if user was created less than seven days before from today', () => {
+        const {store} = configureStore();
         (PreferenceSelectors.get as jest.Mock).mockReturnValue(preference.myPreference.value);
         const todayTimestamp = new Date().getTime();
 
@@ -130,8 +130,8 @@ describe('showStatusDropdownPulsatingDot and showPostHeaderUpdateStatusButton', 
         expect(showStatusDropdownPulsatingDot(store.getState())).toBeFalsy();
     });
 
-    it('should return true if user was created more than seven days before from today', async () => {
-        const store = await configureStore();
+    it('should return true if user was created more than seven days before from today', () => {
+        const {store} = configureStore();
         preference.myPreference.value = JSON.stringify({[Preferences.CUSTOM_STATUS_MODAL_VIEWED]: false});
         (PreferenceSelectors.get as jest.Mock).mockReturnValue(preference.myPreference.value);
         const todayTimestamp = new Date().getTime();
