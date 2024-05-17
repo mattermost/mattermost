@@ -141,7 +141,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: entry.name,
             value: entry.duration,
-            timestamp: Math.round(performance.timeOrigin + entry.startTime),
+            timestamp: performance.timeOrigin + entry.startTime,
         });
     }
 
@@ -166,7 +166,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: metric.name,
             value: metric.value,
-            timestamp: Math.round(performance.timeOrigin + performance.now()),
+            timestamp: performance.timeOrigin + performance.now(),
         });
     }
 
@@ -267,7 +267,7 @@ export default class PerformanceReporter {
             counterMeasures.push({
                 metric: name,
                 value,
-                timestamp: Math.round(now),
+                timestamp: now,
             });
         }
 
