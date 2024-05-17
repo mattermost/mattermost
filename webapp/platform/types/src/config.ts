@@ -34,6 +34,10 @@ export type ClientConfig = {
     CustomBrandBackgroundImage: string;
     CustomBrandCSS: string;
     CustomBrandShowFooter: string;
+    CustomBrandHasBackground: string;
+    CustomBrandHasLogo: string;
+    CustomBrandHasFavicon: string;
+    CustomBrandHasBrand: string;
     CustomTermsOfServiceId: string;
     CustomTermsOfServiceReAcceptancePeriod: string;
     CustomUrlSchemes: string;

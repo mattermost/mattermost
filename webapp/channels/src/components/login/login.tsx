@@ -129,6 +129,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         CustomBrandColorLoginContainerText,
         CustomBrandColorButtonBgColor,
         CustomBrandColorButtonTextColor,
+        CustomBrandHasBrand,
         CustomDescriptionText,
         SiteName,
         ExperimentalPrimaryTeam,
@@ -861,7 +862,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                         },
                     )}
                 >
-                    {enableCustomBrand && !brandImageError && (
+                    {enableCustomBrand && CustomBrandHasBrand === 'true' && !brandImageError && (
                         <img
                             className={classNames('login-body-custom-branding-image')}
                             alt='brand image'

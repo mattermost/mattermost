@@ -197,8 +197,8 @@ func (ps *PlatformService) ClientConfigHash() string {
 }
 
 func (ps *PlatformService) regenerateClientConfig() {
-	clientConfig := config.GenerateClientConfig(ps.Config(), ps.telemetryId, ps.License())
-	limitedClientConfig := config.GenerateLimitedClientConfig(ps.Config(), ps.telemetryId, ps.License())
+	clientConfig := config.GenerateClientConfig(ps.Config(), ps.telemetryId, ps.License(), ps.FileBackend())
+	limitedClientConfig := config.GenerateLimitedClientConfig(ps.Config(), ps.telemetryId, ps.License(), ps.FileBackend())
 
 	if clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := ps.Store.TermsOfService().GetLatest(true)

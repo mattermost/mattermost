@@ -8,11 +8,12 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 // GenerateClientConfig renders the given configuration for a client.
-func GenerateClientConfig(c *model.Config, telemetryID string, license *model.License) map[string]string {
-	props := GenerateLimitedClientConfig(c, telemetryID, license)
+func GenerateClientConfig(c *model.Config, telemetryID string, license *model.License, fileStore filestore.FileBackend) map[string]string {
+	props := GenerateLimitedClientConfig(c, telemetryID, license, fileStore)
 
 	props["EnableCustomUserStatuses"] = strconv.FormatBool(*c.TeamSettings.EnableCustomUserStatuses)
 	props["EnableLastActiveTime"] = strconv.FormatBool(*c.TeamSettings.EnableLastActiveTime)
@@ -231,7 +232,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 }
 
 // GenerateLimitedClientConfig renders the given configuration for an untrusted client.
-func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *model.License) map[string]string {
+func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *model.License, fileStore filestore.FileBackend) map[string]string {
 	props := make(map[string]string)
 
 	props["Version"] = model.CurrentVersion
@@ -330,6 +331,11 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
 	props["CustomBrandHeading"] = ""
+	props["CustomBrandHasLogo"] = "false"
+	props["CustomBrandHasFavicon"] = "false"
+	props["CustomBrandHasBackground"] = "false"
+	fileExists, _ := fileStore.FileExists("brand/logo.png")
+	props["CustomBrandHasBrand"] = strconv.FormatBool(fileExists)
 	props["CustomBrandColorBackground"] = ""
 	props["CustomBrandColorText"] = ""
 	props["CustomBrandColorLoginContainer"] = ""
@@ -402,6 +408,13 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		props["CustomBrandBackgroundImage"] = *c.TeamSettings.CustomBrandBackgroundImage
 		props["CustomBrandCSS"] = *c.TeamSettings.CustomBrandCSS
 		props["CustomBrandShowFooter"] = strconv.FormatBool(*c.TeamSettings.CustomBrandShowFooter)
+		fileExists, _ = fileStore.FileExists("brand/light-logo.png")
+		fileExists2, _ := fileStore.FileExists("brand/light-logo.png")
+		props["CustomBrandHasLogo"] = strconv.FormatBool(fileExists && fileExists2)
+		fileExists, _ = fileStore.FileExists("brand/favicon.png")
+		props["CustomBrandHasFavicon"] = strconv.FormatBool(fileExists)
+		fileExists, _ = fileStore.FileExists("brand/background.png")
+		props["CustomBrandHasBackground"] = strconv.FormatBool(fileExists)
 	}
 
 	for key, value := range c.FeatureFlags.ToMap() {
