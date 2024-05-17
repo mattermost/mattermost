@@ -499,11 +499,11 @@ func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId stri
 
 	for _, userID := range userIDs {
 		a.InvalidateCacheForUser(userID)
-	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventGroupAdded, "", channel.Id, "", nil, "")
-	message.Add("teammate_ids", model.ArrayToJSON(userIDs))
-	a.Publish(message)
+		message := model.NewWebSocketEvent(model.WebsocketEventGroupAdded, "", channel.Id, userID, nil, "")
+		message.Add("teammate_ids", model.ArrayToJSON(userIDs))
+		a.Publish(message)
+	}
 
 	return channel, nil
 }
