@@ -3,7 +3,7 @@
 .announcement-bar {
     display: flex;
     overflow: hidden;
-    width: 100%;
+    width: 100vw;
     min-height: $announcement-bar-height;
     max-height: $announcement-bar-height;
     align-items: center;
@@ -18,6 +18,7 @@
         width: 100%;
         align-items: center;
         justify-content: center;
+        padding: 0 32px;
         white-space: nowrap;
 
         > span {
