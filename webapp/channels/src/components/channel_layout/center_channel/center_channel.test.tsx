@@ -24,6 +24,7 @@ describe('components/channel_layout/CenterChannel', () => {
         isCollapsedThreadsEnabled: true,
         currentUserId: 'testUserId',
         isMobileView: false,
+        plugins: [],
         actions: {
             getProfiles: jest.fn(),
         },

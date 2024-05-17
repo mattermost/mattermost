@@ -194,6 +194,8 @@ const initialComponents: PluginsState['components'] = {
     NeedsChannelSidebarComponent: [],
     CreateBoardFromTemplate: [],
     DesktopNotificationHooks: [],
+    ChannelTabButton: [],
+    ChannelContentComponent: [],
 };
 
 function components(state: PluginsState['components'] = initialComponents, action: AnyAction) {

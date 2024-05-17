@@ -25,6 +25,7 @@ describe('components/channel_view', () => {
         goToLastViewedChannel: jest.fn(),
         isFirstAdmin: false,
         enableWebSocketEventScope: false,
+        tabContent: undefined,
     };
 
     it('Should match snapshot with base props', () => {

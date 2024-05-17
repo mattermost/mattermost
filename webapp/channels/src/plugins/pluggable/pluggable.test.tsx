@@ -41,6 +41,8 @@ describe('plugins/Pluggable', () => {
             NeedsChannelSidebarComponent: [],
             CreateBoardFromTemplate: [],
             DesktopNotificationHooks: [],
+            ChannelTabButton: [],
+            ChannelContentComponent: [],
         },
         theme: Preferences.THEMES.denim,
     };

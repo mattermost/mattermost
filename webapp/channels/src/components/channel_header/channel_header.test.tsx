@@ -27,6 +27,8 @@ describe('components/ChannelHeader', () => {
             goToLastViewedChannel: jest.fn(),
             showChannelMembers: jest.fn(),
         },
+        selectedChannelTab: '',
+        channelTabComponents: [],
         announcementBarCount: 1,
         teamId: 'team_id',
         channel: TestHelper.getChannelMock({}),
