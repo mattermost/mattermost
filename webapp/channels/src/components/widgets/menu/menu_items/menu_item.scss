@@ -338,6 +338,9 @@
             width: 100%;
             a {
                 color: var(--link-color);
+                &:hover {
+                    background: none;
+                }
             }
         }
     }
