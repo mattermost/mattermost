@@ -1929,12 +1929,151 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+                            type: 'text',
+                            key: 'TeamSettings.CustomBrandHeading',
+                            label: defineMessage({id: 'admin.team.brandHeadingTitle', defaultMessage: 'Custom Brand Heading:'}),
+                            help_text: defineMessage({id: 'admin.team.brandHeadingDescription', defaultMessage: 'Text that will appear below your custom brand image on your login screen. Supports Markdown-formatted text. Maximum 500 characters allowed.'}),
+                            max_length: Constants.MAX_CUSTOM_BRAND_TEXT_LENGTH,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
                             type: 'longtext',
                             key: 'TeamSettings.CustomBrandText',
                             label: defineMessage({id: 'admin.team.brandTextTitle', defaultMessage: 'Custom Brand Text:'}),
-                            help_text: defineMessage({id: 'admin.team.brandTextDescription', defaultMessage: 'Text that will appear below your custom brand image on your login screen. Supports Markdown-formatted text. Maximum 500 characters allowed.'}),
+                            help_text: defineMessage({id: 'admin.team.brandTextDescription', defaultMessage: 'Text that will appear below your custom brand heading on your login screen. Supports Markdown-formatted text. Maximum 500 characters allowed.'}),
                             max_length: Constants.MAX_CUSTOM_BRAND_TEXT_LENGTH,
                             isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+                            type: 'longtext',
+                            key: 'TeamSettings.CustomBrandCss',
+                            label: defineMessage({id: 'admin.team.brandCssTitle', defaultMessage: '(Enterprise Only) Custom Css:'}),
+                            help_text: defineMessage({id: 'admin.team.brandCssDescription', defaultMessage: 'Custom CSS applied to the whole application.'}),
+                            isDisabled: it.any(
+                                it.not(
+                                    it.any(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.licensedForSku(LicenseSkus.Professional),
+                                    )
+                                ),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+                            type: 'color',
+                            key: 'TeamSettings.CustomBrandColorText',
+                            label: defineMessage({id: 'admin.team.brandColorTextTitle', defaultMessage: '(Enterprise Only) Text color:'}),
+                            help_text: defineMessage({id: 'admin.team.brandColorTextDescription', defaultMessage: 'The color of the text in the login/singup pages.'}),
+                            isDisabled: it.any(
+                                it.not(
+                                    it.any(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.licensedForSku(LicenseSkus.Professional),
+                                    )
+                                ),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+                            type: 'color',
+                            key: 'TeamSettings.CustomBrandColorBackground',
+                            label: defineMessage({id: 'admin.team.brandColorTextTitle', defaultMessage: '(Enterprise Only) Background color:'}),
+                            help_text: defineMessage({id: 'admin.team.brandColorTextDescription', defaultMessage: 'The color of the background in the login/singup pages.'}),
+                            isDisabled: it.any(
+                                it.not(
+                                    it.any(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.licensedForSku(LicenseSkus.Professional),
+                                    )
+                                ),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+                            type: 'color',
+                            key: 'TeamSettings.CustomBrandColorLoginContainer',
+                            label: defineMessage({id: 'admin.team.brandColorLoginContainerTitle', defaultMessage: '(Enterprise Only) Login Container background color:'}),
+                            help_text: defineMessage({id: 'admin.team.brandColorLoginContainerDescription', defaultMessage: 'The color of the background in the login/singup form block.'}),
+                            isDisabled: it.any(
+                                it.not(
+                                    it.any(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.licensedForSku(LicenseSkus.Professional),
+                                    )
+                                ),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+                            type: 'color',
+                            key: 'TeamSettings.CustomBrandColorLoginContainerText',
+                            label: defineMessage({id: 'admin.team.brandColorLoginContainerTextTitle', defaultMessage: '(Enterprise Only) Login Container Text color:'}),
+                            help_text: defineMessage({id: 'admin.team.brandColorLoginContainerTextDescription', defaultMessage: 'The color of the text in the login/singup form block.'}),
+                            isDisabled: it.any(
+                                it.not(
+                                    it.any(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.licensedForSku(LicenseSkus.Professional),
+                                    )
+                                ),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+                            type: 'color',
+                            key: 'TeamSettings.CustomBrandColorButtonBackground',
+                            label: defineMessage({id: 'admin.team.brandColorButtonBackgroundTitle', defaultMessage: '(Enterprise Only) Button background color:'}),
+                            help_text: defineMessage({id: 'admin.team.brandColorButtonBackgroundDescription', defaultMessage: 'The color of the background of the buttons in the login/singup pages.'}),
+                            isDisabled: it.any(
+                                it.not(
+                                    it.any(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.licensedForSku(LicenseSkus.Professional),
+                                    )
+                                ),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+                            type: 'color',
+                            key: 'TeamSettings.CustomBrandColorButtonText',
+                            label: defineMessage({id: 'admin.team.brandColorButtonTextTitle', defaultMessage: '(Enterprise Only) Button text color:'}),
+                            help_text: defineMessage({id: 'admin.team.brandColorButtonTextDescription', defaultMessage: 'The color of the text of the buttons in the login/singup pages.'}),
+                            isDisabled: it.any(
+                                it.not(
+                                    it.any(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.licensedForSku(LicenseSkus.Professional),
+                                    )
+                                ),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'TeamSettings.CustomBrandShowFooter',
+                            label: defineMessage({id: 'admin.team.brandShowFooterTitle', defaultMessage: '(Enterprise Only) Show footer:'}),
+                            help_text: defineMessage({id: 'admin.team.brandShowFooterDescription', defaultMessage: 'Show the footer in the login/singup pages.'}),
+                            isDisabled: it.any(
+                                it.not(
+                                    it.any(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.licensedForSku(LicenseSkus.Professional),
+                                    )
+                                ),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),

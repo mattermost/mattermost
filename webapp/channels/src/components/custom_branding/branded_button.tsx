@@ -39,16 +39,16 @@ const BrandedButtonStyled = styled.div<BrandedButtonStyledProps>`
 
 const BrandedButton = (props: {className?: string; children: React.ReactNode}) => {
     const {
-        CustomBrandColorButtonBgColor,
-        CustomBrandColorButtonTextColor,
+        CustomBrandColorButtonBackground,
+        CustomBrandColorButtonText,
         EnableCustomBrand,
     } = useSelector(getConfig);
 
     if (EnableCustomBrand === 'true') {
         return (
             <BrandedButtonStyled
-                background={CustomBrandColorButtonBgColor || ''}
-                textColor={CustomBrandColorButtonTextColor || ''}
+                background={CustomBrandColorButtonBackground || ''}
+                textColor={CustomBrandColorButtonText || ''}
                 className={props.className || ''}
             >
                 {props.children}

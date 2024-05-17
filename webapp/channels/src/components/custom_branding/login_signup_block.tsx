@@ -69,7 +69,7 @@ const LoginSignupBlock = (props: Props) => {
     const {
         CustomBrandColorLoginContainer,
         CustomBrandColorLoginContainerText,
-        CustomBrandColorButtonBgColor,
+        CustomBrandColorButtonBackground,
         EnableCustomBrand,
     } = useSelector(getConfig);
 
@@ -78,7 +78,7 @@ const LoginSignupBlock = (props: Props) => {
             <LoginSignupBlockStyled
                 background={CustomBrandColorLoginContainer || ''}
                 textColor={CustomBrandColorLoginContainerText || ''}
-                linkColor={CustomBrandColorButtonBgColor || ''}
+                linkColor={CustomBrandColorButtonBackground || ''}
                 className={props.className || ''}
             >
                 {props.children}

@@ -38,7 +38,7 @@ type Props = {
 const BrandedBody = (props: Props) => {
     const {
         CustomBrandColorText,
-        CustomBrandColorButtonBgColor,
+        CustomBrandColorButtonBackground,
         EnableCustomBrand,
     } = useSelector(getConfig);
 
@@ -46,7 +46,7 @@ const BrandedBody = (props: Props) => {
         return (
             <BrandedBodyStyled
                 textColor={CustomBrandColorText || ''}
-                linkColor={CustomBrandColorButtonBgColor || ''}
+                linkColor={CustomBrandColorButtonBackground || ''}
                 className={props.className || ''}
             >
                 {props.children}

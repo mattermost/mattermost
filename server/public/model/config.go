@@ -2182,8 +2182,8 @@ type TeamSettings struct {
 	CustomBrandColorText               *string `access:"site_customization"`
 	CustomBrandColorLoginContainer     *string `access:"site_customization"`
 	CustomBrandColorLoginContainerText *string `access:"site_customization"`
-	CustomBrandColorButtonBgColor      *string `access:"site_customization"`
-	CustomBrandColorButtonTextColor    *string `access:"site_customization"`
+	CustomBrandColorButtonBackground   *string `access:"site_customization"`
+	CustomBrandColorButtonText         *string `access:"site_customization"`
 	CustomBrandBackgroundImage         *string `access:"site_customization"`
 	CustomBrandCSS                     *string `access:"site_customization"`
 	CustomBrandShowFooter              *bool   `access:"site_customization"`
@@ -2271,12 +2271,12 @@ func (s *TeamSettings) SetDefaults() {
 		s.CustomBrandColorLoginContainerText = NewString("")
 	}
 
-	if s.CustomBrandColorButtonBgColor == nil {
-		s.CustomBrandColorButtonBgColor = NewString("")
+	if s.CustomBrandColorButtonBackground == nil {
+		s.CustomBrandColorButtonBackground = NewString("")
 	}
 
-	if s.CustomBrandColorButtonTextColor == nil {
-		s.CustomBrandColorButtonTextColor = NewString("")
+	if s.CustomBrandColorButtonText == nil {
+		s.CustomBrandColorButtonText = NewString("")
 	}
 
 	if s.CustomBrandBackgroundImage == nil {

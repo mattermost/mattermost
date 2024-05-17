@@ -342,8 +342,8 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["CustomBrandColorText"] = ""
 	props["CustomBrandColorLoginContainer"] = ""
 	props["CustomBrandColorLoginContainerText"] = ""
-	props["CustomBrandColorButtonBgColor"] = ""
-	props["CustomBrandColorButtonTextColor"] = ""
+	props["CustomBrandColorButtonBackground"] = ""
+	props["CustomBrandColorButtonText"] = ""
 	props["CustomBrandBackgroundImage"] = ""
 	props["CustomBrandShowFooter"] = "true"
 	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
@@ -404,8 +404,8 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		props["CustomBrandColorText"] = *c.TeamSettings.CustomBrandColorText
 		props["CustomBrandColorLoginContainer"] = *c.TeamSettings.CustomBrandColorLoginContainer
 		props["CustomBrandColorLoginContainerText"] = *c.TeamSettings.CustomBrandColorLoginContainerText
-		props["CustomBrandColorButtonBgColor"] = *c.TeamSettings.CustomBrandColorButtonBgColor
-		props["CustomBrandColorButtonTextColor"] = *c.TeamSettings.CustomBrandColorButtonTextColor
+		props["CustomBrandColorButtonBackground"] = *c.TeamSettings.CustomBrandColorButtonBackground
+		props["CustomBrandColorButtonText"] = *c.TeamSettings.CustomBrandColorButtonText
 		props["CustomBrandBackgroundImage"] = *c.TeamSettings.CustomBrandBackgroundImage
 		props["CustomBrandShowFooter"] = strconv.FormatBool(*c.TeamSettings.CustomBrandShowFooter)
 		fileExists, _ := fileStore.FileExists("brand/light-logo.png")
