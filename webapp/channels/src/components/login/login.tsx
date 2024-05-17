@@ -123,16 +123,12 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         SamlLoginButtonText,
         EnableCustomBrand,
         CustomBrandText,
-        CustomLoginPageHeading,
-        CustomLoginPageColorBackground,
-        CustomLoginPageColorText,
-        CustomLoginPageBackgroundImage,
-        CustomLoginPageCSS,
-        CustomLoginPageShowFooter,
-        CustomLoginPageColorLoginContainer,
-        CustomLoginPageColorLoginContainerText,
-        CustomLoginPageColorButtonBgColor,
-        CustomLoginPageColorButtonTextColor,
+        CustomBrandHeading,
+        CustomBrandColorText,
+        CustomBrandColorLoginContainer,
+        CustomBrandColorLoginContainerText,
+        CustomBrandColorButtonBgColor,
+        CustomBrandColorButtonTextColor,
         CustomDescriptionText,
         SiteName,
         ExperimentalPrimaryTeam,
@@ -771,7 +767,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const getMessageSubtitle = () => {
         if (enableCustomBrand) {
-            let style = enableCustomBrand ? {color: CustomLoginPageColorText, opacity: 0.9} : {};
+            let style = enableCustomBrand ? {color: CustomBrandColorText, opacity: 0.9} : {};
             return CustomBrandText ? (
                 <div className='login-body-custom-branding-markdown' style={style}>
                     <Markdown
@@ -795,7 +791,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         if (ForgotPasswordLink) {
-            let style = enableCustomBrand ? {color: CustomLoginPageColorButtonBgColor} : {};
+            let style = enableCustomBrand ? {color: CustomBrandColorButtonBgColor} : {};
             return (
                 <div className='login-body-card-form-link'>
                     <ExternalLink href={ForgotPasswordLink}>
@@ -806,7 +802,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         if (enableSignInWithUsername || enableSignInWithEmail) {
-            let style = enableCustomBrand ? {color: CustomLoginPageColorButtonBgColor} : {};
+            let style = enableCustomBrand ? {color: CustomBrandColorButtonBgColor} : {};
             return (
                 <div className='login-body-card-form-link'>
                     <Link to='/reset_password'>
@@ -874,14 +870,14 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                         />
                     )}
 
-                    {(!enableCustomBrand || CustomLoginPageHeading === "") && (
-                        <h1 className='login-body-message-title' style={enableCustomBrand ? {color: CustomLoginPageColorText} : {}}>
+                    {(!enableCustomBrand || CustomBrandHeading === "") && (
+                        <h1 className='login-body-message-title' style={enableCustomBrand ? {color: CustomBrandColorText} : {}}>
                             {formatMessage({id: 'login.title', defaultMessage: 'Log in to your account'})}
                         </h1>
                     )}
-                    {enableCustomBrand && CustomLoginPageHeading !== "" && (
-                        <h1 className='login-body-message-title' style={enableCustomBrand ? {color: CustomLoginPageColorText} : {}}>
-                            {CustomLoginPageHeading}
+                    {enableCustomBrand && CustomBrandHeading !== "" && (
+                        <h1 className='login-body-message-title' style={enableCustomBrand ? {color: CustomBrandColorText} : {}}>
+                            {CustomBrandHeading}
                         </h1>
                     )}
                     {getMessageSubtitle()}
@@ -893,14 +889,14 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 </div>
                 <div className='login-body-action'>
                     {!isMobileView && getAlternateLink()}
-                    <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})} style={enableCustomBrand ? {background: CustomLoginPageColorLoginContainer} : {}}>
+                    <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})} style={enableCustomBrand ? {background: CustomBrandColorLoginContainer} : {}}>
                         <LoginBlock
                             className='login-body-card-content'
                             tabIndex={0}
-                            background={enableCustomBrand ? CustomLoginPageColorLoginContainer || '#ffffff' : '#ffffff'}
-                            textColor={enableCustomBrand ? CustomLoginPageColorLoginContainerText || '#000000' : '#00000'}
+                            background={enableCustomBrand ? CustomBrandColorLoginContainer || '#ffffff' : '#ffffff'}
+                            textColor={enableCustomBrand ? CustomBrandColorLoginContainerText || '#000000' : '#00000'}
                         >
-                            <p className='login-body-card-title' style={enableCustomBrand ? {color: CustomLoginPageColorLoginContainerText} : {}}>
+                            <p className='login-body-card-title' style={enableCustomBrand ? {color: CustomBrandColorLoginContainerText} : {}}>
                                 {getCardTitle()}
                             </p>
                             {enableCustomBrand && getMessageSubtitle()}
@@ -948,7 +944,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             onClick={preSubmit}
                                             defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
                                             savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
-                                            style={enableCustomBrand ? {background: CustomLoginPageColorButtonBgColor, color: CustomLoginPageColorButtonTextColor} : {}}
+                                            style={enableCustomBrand ? {background: CustomBrandColorButtonBgColor, color: CustomBrandColorButtonTextColor} : {}}
                                         />
                                     </div>
                                 </form>
