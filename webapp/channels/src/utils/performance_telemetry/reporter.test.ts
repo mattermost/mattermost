@@ -52,23 +52,23 @@ describe('PerformanceReporter', () => {
         expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/client_perf');
         const report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
-            start: performance.timeOrigin + testMarkA.startTime,
-            end: performance.timeOrigin + testMarkB.startTime,
+            start: Math.round(performance.timeOrigin + testMarkA.startTime),
+            end: Math.round(performance.timeOrigin + testMarkB.startTime),
             histograms: [
                 {
                     metric: 'testMeasureA',
                     value: testMarkB.startTime - testMarkA.startTime,
-                    timestamp: performance.timeOrigin + testMarkA.startTime,
+                    timestamp: Math.round(performance.timeOrigin + testMarkA.startTime),
                 },
                 {
                     metric: 'testMeasureB',
                     value: testMarkC.startTime - testMarkA.startTime,
-                    timestamp: performance.timeOrigin + testMarkA.startTime,
+                    timestamp: Math.round(performance.timeOrigin + testMarkA.startTime),
                 },
                 {
                     metric: 'testMeasureC',
                     value: testMarkC.startTime - testMarkB.startTime,
-                    timestamp: performance.timeOrigin + testMarkB.startTime,
+                    timestamp: Math.round(performance.timeOrigin + testMarkB.startTime),
                 },
             ],
         });
@@ -94,7 +94,7 @@ describe('PerformanceReporter', () => {
 
         expect(reporter.handleObservations).toHaveBeenCalled();
 
-        const timestamp = performance.timeOrigin + performance.now();
+        const timestamp = Math.round(performance.timeOrigin + performance.now());
 
         await waitForReport();
 
