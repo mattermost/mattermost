@@ -332,7 +332,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
 	props["CustomBrandHeading"] = ""
 	props["CustomBrandHasLogo"] = "false"
-	props["CustomBrandHasFavicon"] = "false"
 	props["CustomBrandHasBackground"] = "false"
 	fileExists, _ := fileStore.FileExists("brand/logo.png")
 	props["CustomBrandHasBrand"] = strconv.FormatBool(fileExists)
@@ -409,11 +408,9 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		props["CustomBrandCSS"] = *c.TeamSettings.CustomBrandCSS
 		props["CustomBrandShowFooter"] = strconv.FormatBool(*c.TeamSettings.CustomBrandShowFooter)
 		fileExists, _ = fileStore.FileExists("brand/light-logo.png")
-		fileExists2, _ := fileStore.FileExists("brand/light-logo.png")
+		fileExists2, _ := fileStore.FileExists("brand/dark-logo.png")
 		props["CustomBrandHasLogo"] = strconv.FormatBool(fileExists && fileExists2)
 		fileExists, _ = fileStore.FileExists("brand/favicon.png")
-		props["CustomBrandHasFavicon"] = strconv.FormatBool(fileExists)
-		fileExists, _ = fileStore.FileExists("brand/background.png")
 		props["CustomBrandHasBackground"] = strconv.FormatBool(fileExists)
 	}
 

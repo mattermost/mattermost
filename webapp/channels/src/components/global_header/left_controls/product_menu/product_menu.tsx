@@ -77,7 +77,7 @@ const ProductMenu = (): JSX.Element => {
     const menuRef = useRef<HTMLDivElement>(null);
     const currentProductID = useCurrentProductId();
     const license = useSelector(getLicense);
-    const {EnableCustomBrand} = useSelector(getConfig);
+    const {EnableCustomBrand, CustomBrandHasLogo} = useSelector(getConfig);
 
     const enableTutorial = useSelector(getConfig).EnableTutorial === 'true';
     const currentUserId = useSelector(getCurrentUserId);
@@ -142,8 +142,8 @@ const ProductMenu = (): JSX.Element => {
                         aria-controls='product-switcher-menu'
                     />
                     {license.IsLicensed === 'false' && <ProductBrandingTeamEdition/>}
-                    {license.IsLicensed === 'true' && EnableCustomBrand === 'true' && <img src={Client4.getCustomDarkLogoUrl('0')} height={30} />}
-                    {license.IsLicensed === 'true' && EnableCustomBrand !== 'true' && <ProductBranding/>}
+                    {license.IsLicensed === 'true' && EnableCustomBrand === 'true' && CustomBrandHasLogo === 'true' && <img src={Client4.getCustomDarkLogoUrl('0')} height={30} />}
+                    {license.IsLicensed === 'true' && (EnableCustomBrand !== 'true' || CustomBrandHasLogo !== 'true') && <ProductBranding/>}
                 </ProductMenuContainer>
                 <Menu
                     listId={'product-switcher-menu-dropdown'}

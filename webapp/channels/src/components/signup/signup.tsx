@@ -96,6 +96,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         LdapLoginFieldName,
         SiteName,
         CustomDescriptionText,
+        CustomBrandHasBrand,
         GitLabButtonText,
         GitLabButtonColor,
         OpenIdButtonText,
@@ -766,7 +767,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                         },
                     )}
                 >
-                    {enableCustomBrand && !brandImageError ? (
+                    {enableCustomBrand && CustomBrandHasBrand === 'true' && !brandImageError ? (
                         <img
                             className={classNames('signup-body-custom-branding-image')}
                             alt='brand image'

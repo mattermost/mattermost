@@ -25,6 +25,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
     const {
         EnableCustomBrand,
         SiteName,
+        CustomBrandHasLogo,
     } = useSelector(getConfig);
 
     const ariaLabel = SiteName || 'Mattermost';
@@ -43,7 +44,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
         }
     }
 
-    if (EnableCustomBrand === 'true') {
+    if (EnableCustomBrand === 'true' && CustomBrandHasLogo === 'true') {
         title = <img src={Client4.getCustomLightLogoUrl('0')}/>
     }
 

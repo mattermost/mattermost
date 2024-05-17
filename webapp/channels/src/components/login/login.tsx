@@ -424,19 +424,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     }, [emailParam, extraParam]);
 
     useEffect(() => {
-        // TODO: only do this if the favicon-image is there
-        if (enableCustomBrand) {
-            let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
-            if (!link) {
-                link = document.createElement('link');
-                link.rel = 'icon';
-                document.head.appendChild(link);
-            }
-            link.href = Client4.getCustomFaviconUrl('0')
-        }
-    }, [])
-
-    useEffect(() => {
         if (onCustomizeHeader) {
             onCustomizeHeader({
                 onBackButtonClick: showMfa ? handleHeaderBackButtonOnClick : undefined,

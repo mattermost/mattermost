@@ -399,10 +399,6 @@ export default class Client4 {
         return `${this.getBrandRoute()}/image?t=${timestamp}`;
     }
 
-    getCustomFaviconUrl(timestamp: string) {
-        return `${this.getBrandRoute()}/favicon?t=${timestamp}`;
-    }
-
     getCustomLightLogoUrl(timestamp: string) {
         return `${this.getBrandRoute()}/light-logo?t=${timestamp}`;
     }
