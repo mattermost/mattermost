@@ -33,9 +33,6 @@ concurrency:
   group: "${{ github.workflow }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
   cancel-in-progress: true
 
-permissions:
-  issues: write
-
 jobs:
   resolve-ref:
     runs-on: ubuntu-22.04
@@ -71,6 +68,9 @@ jobs:
     runs-on: ubuntu-22.04
     needs:
       - resolve-ref
+    permissions:
+      issues: write
+      pull-requests: write
     defaults:
       run:
         shell: bash
