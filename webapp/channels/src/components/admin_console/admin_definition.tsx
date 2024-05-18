@@ -1942,7 +1942,7 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'text',
                             key: 'TeamSettings.CustomDescriptionText',
-                            label: defineMessage({id: 'admin.team.brandDescriptionTitle', defaultMessage: 'Login form subtitle: '}),
+                            label: defineMessage({id: 'admin.team.brandDescriptionTitle', defaultMessage: 'Login form title: '}),
                             help_text: defineMessage({id: 'admin.team.brandDescriptionHelp', defaultMessage: 'Displays as a title above the login form. If left blank, "Log in" is displayed.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                         },

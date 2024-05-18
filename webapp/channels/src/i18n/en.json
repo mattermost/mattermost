@@ -2627,7 +2627,7 @@
   "admin.team.brandDarkLogoTitle": "(Enterprise Only) Custom logo for dark backgrounds:",
   "admin.team.brandDesc": "Enable custom branding to show an image of your choice, uploaded below, and some help text, written below, on the login page.",
   "admin.team.brandDescriptionHelp": "Displays as a title above the login form. When not specified, the phrase \"Log in\" is displayed.",
-  "admin.team.brandDescriptionTitle": "Login form subtitle: ",
+  "admin.team.brandDescriptionTitle": "Login form title: ",
   "admin.team.brandFaviconTitle": "(Enterprise Only) Custom Favicon:",
   "admin.team.brandHeadingDescription": "When left empty, the login page heading will be \"Log in to your account\"",
   "admin.team.brandHeadingTitle": "(Enterprise Only) Login page heading:",
