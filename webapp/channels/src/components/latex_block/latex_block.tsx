@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import CodeBlock from 'components/code_block/code_block';
 import type {KatexOptions} from 'katex';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -34,11 +35,10 @@ export default class LatexBlock extends React.PureComponent<Props, State> {
     render(): React.ReactNode {
         if (!this.props.enableLatex || this.state.katex === undefined) {
             return (
-                <div
-                    className='post-body--code tex'
-                >
-                    {this.props.content}
-                </div>
+                <CodeBlock
+                    code={this.props.content}
+                    language='latex'
+                />
             );
         }
 
