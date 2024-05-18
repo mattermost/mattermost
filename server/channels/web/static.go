@@ -45,6 +45,11 @@ func (w *Web) InitStatic() {
 				return
 			}
 
+			if w.srv.License() == nil {
+				staticHandler.ServeHTTP(writer, r)
+				return
+			}
+
 			if exists, _ := w.srv.FileBackend().FileExists("brand/favicon.png"); !exists {
 				staticHandler.ServeHTTP(writer, r)
 				return
@@ -70,6 +75,9 @@ func (w *Web) InitStatic() {
 
 		customCssHandler := http.HandlerFunc(func(writer http.ResponseWriter, r *http.Request) {
 			writer.Header().Set("Content-Type", "text/css")
+			if w.srv.License() == nil {
+				return
+			}
 			if !*w.srv.Config().TeamSettings.EnableCustomBrand || *w.srv.Config().TeamSettings.CustomBrandCSS == "" {
 				return
 			}

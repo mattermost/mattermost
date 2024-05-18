@@ -330,19 +330,19 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
                     {this.props.id === 'CustomBrandLightLogoImage' && (
                         <FormattedMessage
                             id='admin.team.brandLightLogoTitle'
-                            defaultMessage='(Enterprise Only) Custom Light Logo:'
+                            defaultMessage='(Enterprise Only) Custom logo for light backgrounds:'
                         />
                     )}
                     {this.props.id === 'CustomBrandDarkLogoImage' && (
                         <FormattedMessage
                             id='admin.team.brandDarkLogoTitle'
-                            defaultMessage='(Enterprise Only) Custom Dark Logo:'
+                            defaultMessage='(Enterprise Only) Custom logo for dark backgrounds:'
                         />
                     )}
                     {this.props.id === 'CustomBrandBackgroundImage' && (
                         <FormattedMessage
                             id='admin.team.brandBackgroundTitle'
-                            defaultMessage='(Enterprise Only) Custom Background:'
+                            defaultMessage='(Enterprise Only) Login page background image:'
                         />
                     )}
                     {this.props.id === 'CustomBrandFaviconImage' && (
@@ -388,25 +388,25 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
                         {this.props.id === 'CustomBrandLightLogoImage' && (
                             <FormattedMessage
                                 id='admin.team.uploadDescLightLogo'
-                                defaultMessage='Customize your user experience by adding a custom logo image to your login screen and mattermost header. Recommended maximum image size is less than 2 MB.'
+                                defaultMessage='Logos must be at least 100px in height in SVG or transparent PNG formats.'
                             />
                         )}
                         {this.props.id === 'CustomBrandDarkLogoImage' && (
                             <FormattedMessage
                                 id='admin.team.uploadDescDarkLogo'
-                                defaultMessage='Customize your user experience by adding a custom logo image to your login screen and mattermost header. Recommended maximum image size is less than 2 MB.'
+                                defaultMessage='Logos must be at least 100px in height in SVG or transparent PNG formats.'
                             />
                         )}
                         {this.props.id === 'CustomBrandBackgroundImage' && (
                             <FormattedMessage
                                 id='admin.team.uploadDescBackground'
-                                defaultMessage='Customize your user experience by adding a custom background image to your login screen. Recommended maximum image size is less than 2 MB.'
+                                defaultMessage='Add a custom background image to your login screen. It’s best to ensure text is still legible when placed on top.'
                             />
                         )}
                         {this.props.id === 'CustomBrandFaviconImage' && (
                             <FormattedMessage
                                 id='admin.team.uploadDescFavicon'
-                                defaultMessage='Customize your user experience by adding a custom favicon to your page. Recommended maximum image size 32x32 pixels.'
+                                defaultMessage='This is the icon that will display in the browser tab when your site is viewed in a web browser. This image should be 16x16 pixels.'
                             />
                         )}
                     </p>

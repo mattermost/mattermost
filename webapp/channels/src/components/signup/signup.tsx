@@ -98,7 +98,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         SamlLoginButtonText,
         LdapLoginFieldName,
         SiteName,
-        CustomDescriptionText,
         CustomBrandHasBrand,
         GitLabButtonText,
         GitLabButtonColor,
@@ -386,10 +385,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     };
 
     const getCardTitle = () => {
-        if (CustomDescriptionText) {
-            return CustomDescriptionText;
-        }
-
         if (!enableSignUpWithEmail && enableExternalSignup) {
             return formatMessage({id: 'signup_user_completed.cardtitle.external', defaultMessage: 'Create your account with one of the following:'});
         }
