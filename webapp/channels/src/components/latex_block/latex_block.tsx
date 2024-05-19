@@ -28,6 +28,7 @@ const LatexBlock = ({
         return (
             <div
                 className='post-body--code tex'
+                data-testid='latex-disabled'
             >
                 {content}
             </div>
@@ -36,7 +37,7 @@ const LatexBlock = ({
 
     try {
         const katexOptions: KatexOptions = {
-            throwOnError: false,
+            throwOnError: true,
             displayMode: true,
             maxSize: 200,
             maxExpand: 100,
@@ -49,12 +50,14 @@ const LatexBlock = ({
             <div
                 className='post-body--code tex'
                 dangerouslySetInnerHTML={{__html: html}}
+                data-testid='latex-enabled'
             />
         );
     } catch (e) {
         return (
             <div
                 className='post-body--code tex'
+                data-testid='latex-error'
             >
                 <FormattedMessage
                     id='katex.error'
