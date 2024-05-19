@@ -462,11 +462,11 @@ export default class Root extends React.PureComponent<Props, State> {
                         path={'/access_problem'}
                         component={AccessProblem}
                     />
-                    <HFTRoute
+                    <HFRoute
                         path={'/reset_password'}
                         component={PasswordResetSendLink}
                     />
-                    <HFTRoute
+                    <HFRoute
                         path={'/reset_password_complete'}
                         component={PasswordResetForm}
                     />

@@ -41,6 +41,30 @@ body {
     padding: 40px 0 0;
     margin: 0 auto;
 
+    &.reset-password {
+        max-width: 540px;
+        width: 100%;
+        align-items: center;
+        p, h1 {
+            text-align: center;
+        }
+        .input-line {
+            padding: 0 24px;
+            display: flex;
+            width: 100%;
+            .form-group {
+                flex-grow: 1;
+            }
+            .Input_fieldset {
+                height: 48px;
+            }
+            button {
+                margin-left: 8px;
+                height: 48px;
+            }
+        }
+    }
+
     .medium-center {
         width: 70%;
         margin-right: auto;
