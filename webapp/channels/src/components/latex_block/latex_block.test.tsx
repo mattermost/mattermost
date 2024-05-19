@@ -17,6 +17,7 @@ describe('components/LatexBlock', () => {
     test('should match snapshot', async () => {
         render(<LatexBlock {...defaultProps}/>);
         const wrapper = await screen.findAllByTestId('latex-enabled');
+        expect(wrapper.length).toBe(1);
         expect(wrapper.at(0)).toMatchSnapshot();
     });
 
@@ -28,6 +29,7 @@ describe('components/LatexBlock', () => {
 
         render(<LatexBlock {...props}/>);
         const wrapper = await screen.findAllByTestId('latex-disabled');
+        expect(wrapper.length).toBe(1);
         expect(wrapper.at(0)).toMatchSnapshot();
     });
 
@@ -39,6 +41,7 @@ describe('components/LatexBlock', () => {
 
         render(withIntl(<LatexBlock {...props}/>));
         const wrapper = await screen.findAllByTestId('latex-error');
+        expect(wrapper.length).toBe(1);
         expect(wrapper.at(0)).toMatchSnapshot();
     });
 });
