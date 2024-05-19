@@ -742,6 +742,7 @@ func TestMoveThread(t *testing.T) {
 	basicUser1 := th.BasicUser
 	basicUser2 := th.BasicUser2
 	basicUser3 := th.CreateUser()
+	teamAdminUser := th.TeamAdminUser
 
 	// Create a new public channel to move the post to
 	publicChannel, resp, err := client.CreateChannel(ctx, &model.Channel{
@@ -952,6 +953,50 @@ func TestMoveThread(t *testing.T) {
 		require.Equal(t, newPost2.Message, posts.Posts[posts.Order[1]].Message)
 		require.Equal(t, newPost.Message, posts.Posts[posts.Order[2]].Message)
 		require.Equal(t, rootPost.Message, posts.Posts[posts.Order[3]].Message)
+	})
+
+	t.Run("Move thread when permitted role is channel admin", func(t *testing.T) {
+		// Set permitted role as channel admin
+		enabled := true
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings = model.WranglerSettings{MoveThreadToAnotherTeamEnable: &enabled,
+				PermittedWranglerRoles: []string{model.PermissionsChannelAdmin}}
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings = model.WranglerSettings{}
+		})
+
+		// Login as channel admin and add to channel
+		th.LoginTeamAdmin()
+		th.AddUserToChannel(teamAdminUser, publicChannel)
+		defer th.LoginBasic()
+
+		// Create a new post to move
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test post",
+		}
+		newPost, resp, err := client.CreatePost(ctx, post)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, newPost)
+
+		// Move the post to the public channel
+		moveThreadParams := &model.MoveThreadParams{
+			ChannelId: publicChannel.Id,
+		}
+		resp, err = client.MoveThread(ctx, newPost.Id, moveThreadParams)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Check that the post was moved to the public channel
+		posts, resp, err := client.GetPostsForChannel(ctx, publicChannel.Id, 0, 100, "", true, false)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, posts)
+		// There should be 2 posts, the system join message for the user who moved it joining the channel, and the post we moved
+		require.Equal(t, 2, len(posts.Posts))
+		require.Equal(t, newPost.Message, posts.Posts[posts.Order[0]].Message)
 	})
 }
 
