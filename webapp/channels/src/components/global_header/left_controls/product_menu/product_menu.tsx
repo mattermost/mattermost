@@ -145,7 +145,7 @@ const ProductMenu = (): JSX.Element => {
                     {license.IsLicensed === 'true' && EnableCustomBrand === 'true' && CustomBrandHasLogo === 'true' && (
                         <img
                             src={Client4.getCustomDarkLogoUrl('0')}
-                            height={30}
+                            height={24}
                         />
                     )}
                     {license.IsLicensed === 'true' && (EnableCustomBrand !== 'true' || CustomBrandHasLogo !== 'true') && <ProductBranding/>}
