@@ -4,24 +4,29 @@
 import classNames from 'classnames';
 import React, {useState, useCallback, memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useLocation, useHistory} from 'react-router-dom';
 import {useDispatch, useSelector} from 'react-redux';
+import {useLocation, useHistory} from 'react-router-dom';
 
 import {resetUserPassword} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import Constants from 'utils/constants';
-
-import Input, {SIZE} from 'components/widgets/inputs/input/input';
+import WomanWithLockSvg from 'components/common/svg_images_components/woman_with_lock_svg';
 import BrandedButton from 'components/custom_branding/branded_button';
 import BrandedInput from 'components/custom_branding/branded_input';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
+
+import {isValidPassword, getPasswordConfig} from 'utils/utils';
+
+import Constants from 'utils/constants';
 
 const PasswordResetForm = () => {
     const intl = useIntl();
     const history = useHistory();
     const location = useLocation();
-    const siteName = useSelector(getConfig).SiteName;
+    const config = useSelector(getConfig);
+    const siteName = config.SiteName;
     const dispatch = useDispatch();
+    const {error: passwordInfo} = isValidPassword('', getPasswordConfig(config), intl);
 
     const [error, setError] = useState<React.ReactNode>(null);
     const [password, setPassword] = useState<string>('');
@@ -54,18 +59,21 @@ const PasswordResetForm = () => {
     return (
         <div className='col-sm-12'>
             <div className='signup-team__container reset-password'>
+                <WomanWithLockSvg/>
                 <FormattedMessage
                     id='password_form.title'
                     tagName='h1'
-                    defaultMessage='Password Reset'
+                    defaultMessage='Create a new password'
                 />
                 <form onSubmit={handlePasswordReset}>
                     <p>
                         <FormattedMessage
                             id='password_form.enter'
-                            defaultMessage='Enter a new password for your {siteName} account.'
+                            defaultMessage='Enter a new password for your {siteName} account below.'
                             values={{siteName}}
                         />
+                        <br/>
+                        {passwordInfo as string}
                     </p>
                     <div className='input-line'>
                         <div className={classNames('form-group', {'has-error': error})}>
@@ -77,7 +85,7 @@ const PasswordResetForm = () => {
                                     name='password'
                                     placeholder={intl.formatMessage({
                                         id: 'password_form.pwd',
-                                        defaultMessage: 'Password',
+                                        defaultMessage: 'New password',
                                     })}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -96,7 +104,7 @@ const PasswordResetForm = () => {
                             >
                                 <FormattedMessage
                                     id='password_form.change'
-                                    defaultMessage='Change my password'
+                                    defaultMessage='Save password'
                                 />
                             </button>
                         </BrandedButton>

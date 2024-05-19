@@ -42,16 +42,16 @@ body {
     margin: 0 auto;
 
     &.reset-password {
-        max-width: 540px;
         width: 100%;
+        max-width: 540px;
         align-items: center;
         p, h1 {
             text-align: center;
         }
         .input-line {
-            padding: 0 24px;
             display: flex;
             width: 100%;
+            padding: 0 24px;
             .form-group {
                 flex-grow: 1;
             }
@@ -59,8 +59,8 @@ body {
                 height: 48px;
             }
             button {
-                margin-left: 8px;
                 height: 48px;
+                margin-left: 8px;
             }
         }
     }

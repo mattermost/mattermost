@@ -1,21 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import throttle from 'lodash/throttle';
 import React, {useState, useCallback, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
-import throttle from 'lodash/throttle';
 import {useLocation, useHistory} from 'react-router-dom';
 
+import {sendPasswordResetEmail} from 'mattermost-redux/actions/users';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
-import {sendPasswordResetEmail} from 'mattermost-redux/actions/users';
-
-import Input, {SIZE} from 'components/widgets/inputs/input/input';
+import WomanWithLock from 'components/common/svg_images_components/woman_with_lock_svg';
+import ManWithMailBox from 'components/common/svg_images_components/man_with_mailbox_svg';
 import BrandedButton from 'components/custom_branding/branded_button';
 import BrandedInput from 'components/custom_branding/branded_input';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
 import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
 const MOBILE_SCREEN_WIDTH = 1200;
 
@@ -24,9 +25,9 @@ type Props = {
 }
 
 const PasswordResetSendLink = ({onCustomizeHeader}: Props) => {
-    const [errorText, setErrorText] = useState<React.ReactNode>(null)
-    const [linkSent, setLinkSent] = useState<boolean>(false)
-    const [email, setEmail] = useState<string>('')
+    const [errorText, setErrorText] = useState<React.ReactNode>(null);
+    const [linkSent, setLinkSent] = useState<boolean>(false);
+    const [email, setEmail] = useState<string>('');
     const dispatch = useDispatch();
     const intl = useIntl();
     const history = useHistory();
@@ -48,15 +49,15 @@ const PasswordResetSendLink = ({onCustomizeHeader}: Props) => {
         }
 
         // End of error checking clear error
-        setErrorText(null)
+        setErrorText(null);
 
         const {data, error} = await dispatch(sendPasswordResetEmail(emailClean));
         if (data) {
-            setErrorText(null)
-            setLinkSent(true)
+            setErrorText(null);
+            setLinkSent(true);
         } else if (error) {
-            setErrorText(error.message)
-            setLinkSent(false)
+            setErrorText(error.message);
+            setLinkSent(false);
         }
     }, [email, sendPasswordResetEmail]);
 
@@ -118,6 +119,7 @@ const PasswordResetSendLink = ({onCustomizeHeader}: Props) => {
             <div>
                 <div className='col-sm-12'>
                     <div className='signup-team__container reset-password'>
+                        <ManWithMailBox/>
                         <FormattedMessage
                             id='password_send.title_link_send'
                             tagName='h1'
@@ -156,6 +158,8 @@ const PasswordResetSendLink = ({onCustomizeHeader}: Props) => {
         <div>
             <div className='col-sm-12'>
                 <div className='signup-team__container reset-password'>
+                    <WomanWithLock/>
+
                     <FormattedMessage
                         id='password_send.title'
                         tagName='h1'
@@ -208,6 +212,6 @@ const PasswordResetSendLink = ({onCustomizeHeader}: Props) => {
             </div>
         </div>
     );
-}
+};
 
 export default PasswordResetSendLink;
