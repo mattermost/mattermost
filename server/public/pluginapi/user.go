@@ -49,6 +49,15 @@ func (u *UserService) List(options *model.UserGetOptions) ([]*model.User, error)
 	return users, normalizeAppErr(appErr)
 }
 
+// ListByUserIDs gets users by their IDs.
+//
+// Minimum server version: 9.8
+func (u *UserService) ListByUserIDs(userIDs []string) ([]*model.User, error) {
+	users, appErr := u.api.GetUsersByIds(userIDs)
+
+	return users, normalizeAppErr(appErr)
+}
+
 // ListByUsernames gets users by their usernames.
 //
 // Minimum server version: 5.6

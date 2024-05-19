@@ -135,7 +135,7 @@ func incrementWebsocketCounter(wc *platform.WebConn) {
 		return
 	}
 
-	if !wc.Platform.Config().FeatureFlags.NotificationMonitoring {
+	if !(wc.Platform.Config().FeatureFlags.NotificationMonitoring && *wc.Platform.Config().MetricsSettings.EnableNotificationMetrics) {
 		return
 	}
 

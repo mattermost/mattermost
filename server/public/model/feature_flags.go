@@ -56,6 +56,8 @@ type FeatureFlags struct {
 
 	NotificationMonitoring bool
 
+	ExperimentalAuditSettingsSystemConsoleUI bool
+
 	ClientMetrics bool
 }
 
@@ -80,6 +82,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ChannelBookmarks = false
 	f.WebSocketEventScope = false
 	f.NotificationMonitoring = true
+	f.ExperimentalAuditSettingsSystemConsoleUI = false
 	f.ClientMetrics = false
 }
 
