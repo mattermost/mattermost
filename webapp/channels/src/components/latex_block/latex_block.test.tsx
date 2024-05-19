@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, act} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import React from 'react';
 
 import LatexBlock from 'components/latex_block/latex_block';
@@ -15,9 +15,7 @@ describe('components/LatexBlock', () => {
     };
 
     test('should match snapshot', async () => {
-        await act(async () => {
-            render(<LatexBlock {...defaultProps}/>);
-        });
+        render(<LatexBlock {...defaultProps}/>);
         const wrapper = await screen.findAllByTestId('latex-enabled');
         expect(wrapper.at(0)).toMatchSnapshot();
     });
@@ -28,9 +26,7 @@ describe('components/LatexBlock', () => {
             enableLatex: false,
         };
 
-        await act(async () => {
-            render(<LatexBlock {...props}/>);
-        });
+        render(<LatexBlock {...props}/>);
         const wrapper = await screen.findAllByTestId('latex-disabled');
         expect(wrapper.at(0)).toMatchSnapshot();
     });
@@ -41,9 +37,7 @@ describe('components/LatexBlock', () => {
             enableLatex: true,
         };
 
-        await act(async () => {
-            render(withIntl(<LatexBlock {...props}/>));
-        });
+        render(withIntl(<LatexBlock {...props}/>));
         const wrapper = await screen.findAllByTestId('latex-error');
         expect(wrapper.at(0)).toMatchSnapshot();
     });
