@@ -111,8 +111,8 @@ func TestSubmitMetrics(t *testing.T) {
 
 		resp, err := th.Client.SubmitClientMetrics(th.Context.Context(), &model.PerformanceReport{
 			Version: "0.1",
-			Start:   time.Now().Add(-1 * time.Minute).UnixMilli(),
-			End:     time.Now().UnixMilli(),
+			Start:   float64(time.Now().Add(-1 * time.Minute).UnixMilli()),
+			End:     float64(time.Now().UnixMilli()),
 			Counters: []*model.MetricSample{
 				{Metric: model.ClientLongTasks, Value: 1},
 			},
@@ -145,8 +145,8 @@ func TestSubmitMetrics(t *testing.T) {
 
 		resp, err := th.Client.SubmitClientMetrics(th.Context.Context(), &model.PerformanceReport{
 			Version: "0.1",
-			Start:   time.Now().Add(-1 * time.Minute).UnixMilli(),
-			End:     time.Now().UnixMilli(),
+			Start:   float64(time.Now().Add(-1 * time.Minute).UnixMilli()),
+			End:     float64(time.Now().UnixMilli()),
 			Counters: []*model.MetricSample{
 				{Metric: model.ClientLongTasks, Value: 1},
 			},
