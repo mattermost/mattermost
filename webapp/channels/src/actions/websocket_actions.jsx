@@ -44,7 +44,7 @@ import {
     receivedNewPost,
     receivedPost,
 } from 'mattermost-redux/actions/posts';
-import {getBatchedUserProfilesStatusesAndGroupsFromPosts} from 'mattermost-redux/actions/profiles_statuses_groups';
+import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/profiles_statuses_groups';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
@@ -74,6 +74,7 @@ import {
     getCurrentChannelId,
     getRedirectChannelNameForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
@@ -241,7 +242,11 @@ export function reconnect() {
             // we can request for getPosts again when socket is connected
             dispatch(getPosts(currentChannelId));
         }
-        dispatch(StatusActions.loadStatusesForChannelAndSidebar());
+
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+        if (enabledUserStatuses) {
+            dispatch(StatusActions.addVisibleUsersInCurrentChannelToStatusPool());
+        }
 
         const crtEnabled = isCollapsedThreadsEnabled(state);
         dispatch(TeamActions.getMyTeamUnreads(crtEnabled, true));
@@ -702,7 +707,7 @@ export function handleNewPostEvent(msg) {
         }
 
         myDispatch(handleNewPost(post, msg));
-        myDispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts([post]));
+        myDispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
         // Since status updates aren't real time, assume another user is online if they have posted and:
         // 1. The user hasn't set their status manually to something that isn't online
@@ -745,7 +750,7 @@ export function handleNewPostEvents(queue) {
 
         // Load the posts' threads
         myDispatch(getPostThreads(posts));
-        myDispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts(posts));
+        myDispatch(batchFetchStatusesProfilesGroupsFromPosts(posts));
     };
 }
 
@@ -761,7 +766,7 @@ export function handlePostEditEvent(msg) {
     const crtEnabled = isCollapsedThreadsEnabled(getState());
     dispatch(receivedPost(post, crtEnabled));
 
-    dispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts([post]));
+    dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 }
 
 async function handlePostDeleteEvent(msg) {

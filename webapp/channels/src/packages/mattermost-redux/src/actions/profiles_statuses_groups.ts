@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable no-console */
-
 import type {GroupSearchParams} from '@mattermost/types/groups';
 import type {PostList, Post, PostAcknowledgement, PostEmbed, PostPreviewMetadata} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
@@ -18,27 +16,28 @@ const MAX_USER_STATUSES_BUFFER = 200;
 const MAX_USER_PROFILES_BATCH = 100;
 
 const pendingUserIdsForStatuses = new Set<string>();
-let userStatusesIntervalId: NodeJS.Timeout | null = null;
+const pendingUserIdsForProfiles = new Set<string>();
+
+let intervalIdForFetchingPool: NodeJS.Timeout | null = null;
+
+type UserIdsSingleOrArray = Array<UserProfile['id']> | UserProfile['id'];
+type AddUserIdForStatusAndProfileFetchingPool = {
+    userIdsForStatus?: UserIdsSingleOrArray;
+    userIdsForProfile?: UserIdsSingleOrArray;
+}
 
 /**
- * Adds list of user ids to the status fetching pool. Which gets fetched based on user interval pooling duration
- * Do not use if status is required immediately.
+ * Adds list(s) of user id(s) to the status and profile fetching pool. Which gets fetched based on user interval pooling duration
+ * Do not use if status or profile is required immediately.
  */
-export function addUserIdsToStatusFetchingPool(inputUserIds: Array<UserProfile['id']>, poolingInterval: number): ActionFunc<boolean> {
+export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, userIdsForProfile}: AddUserIdForStatusAndProfileFetchingPool): ActionFunc<boolean> {
     return (dispatch) => {
-        if (!poolingInterval || poolingInterval <= 0) {
-            return {data: false};
-        }
-
         function getPendingStatusesById() {
-            console.log('addUserIdsToStatusFetchingPool start', pendingUserIdsForStatuses);
-
             // Since we can only fetch a defined number of user statuses at a time, we need to batch the requests
             if (pendingUserIdsForStatuses.size >= MAX_USER_STATUSES_BUFFER) {
                 // We use temp buffer here to store up until max buffer size
                 // and clear out processed user ids
                 const bufferedUserIds: string[] = [];
-
                 let bufferCounter = 0;
                 for (const pendingUserId of pendingUserIdsForStatuses) {
                     bufferedUserIds.push(pendingUserId);
@@ -51,59 +50,26 @@ export function addUserIdsToStatusFetchingPool(inputUserIds: Array<UserProfile['
                     }
                 }
 
-                console.log('addUserIdsToStatusFetchingPool', 'overflow executing only for', bufferedUserIds.length);
-
-                dispatch(getStatusesByIds(bufferedUserIds));
+                if (bufferedUserIds.length > 0) {
+                    // eslint-disable-next-line no-console
+                    console.log('status', 'overflow of', pendingUserIdsForStatuses.size, 'executing for', bufferedUserIds.length);
+                    dispatch(getStatusesByIds(bufferedUserIds));
+                }
             } else {
                 // If we have less than max buffer size, we can directly fetch the statuses
-                console.log('addUserIdsToStatusFetchingPool', 'less than buffer executing for', pendingUserIdsForStatuses.size);
-
-                dispatch(getStatusesByIds(Array.from(pendingUserIdsForStatuses)));
+                const lessThanBufferUserIds = Array.from(pendingUserIdsForStatuses);
+                if (lessThanBufferUserIds.length > 0) {
+                    // eslint-disable-next-line no-console
+                    console.log('status', 'underflow of', pendingUserIdsForStatuses.size, 'executing');
+                    dispatch(getStatusesByIds(lessThanBufferUserIds));
+                }
                 pendingUserIdsForStatuses.clear();
             }
         }
 
-        inputUserIds.forEach((userId) => {
-            pendingUserIdsForStatuses.add(userId);
-        });
-
-        // Start the interval if it is not already running
-        if (userStatusesIntervalId === null) {
-            userStatusesIntervalId = setInterval(() => {
-                if (pendingUserIdsForStatuses.size > 0) {
-                    getPendingStatusesById();
-                } else {
-                    console.log('addUserIdsToStatusFetchingPool', 'no pending user ids');
-                }
-            }, poolingInterval);
-        }
-
-        return {data: true};
-    };
-}
-
-export function cleanupUserStatusesInterval() {
-    if (userStatusesIntervalId !== null) {
-        clearInterval(userStatusesIntervalId);
-        userStatusesIntervalId = null;
-    }
-}
-
-const pendingUserIdsForProfiles = new Set<string>();
-let userProfilesIntervalId: NodeJS.Timeout | null = null;
-
-function addUserIdForProfileFetchingPool(userId: string, poolingInterval: number): ActionFunc<boolean> {
-    return (dispatch) => {
-        if (!poolingInterval || poolingInterval <= 0) {
-            return {data: false};
-        }
-
         function getPendingProfilesById() {
-            console.log('addUserIdForProfileFetchingPool start', pendingUserIdsForProfiles);
-
             if (pendingUserIdsForProfiles.size >= MAX_USER_PROFILES_BATCH) {
                 const bufferedUserIds: Array<UserProfile['id']> = [];
-
                 let bufferCounter = 0;
                 for (const pendingUserId of pendingUserIdsForProfiles) {
                     bufferedUserIds.push(pendingUserId);
@@ -117,35 +83,80 @@ function addUserIdForProfileFetchingPool(userId: string, poolingInterval: number
                         break;
                     }
                 }
-            }
 
-            dispatch(getProfilesByIds(Array.from(pendingUserIdsForProfiles)));
-            pendingUserIdsForProfiles.clear();
+                // eslint-disable-next-line no-console
+                console.log('profiles', 'overflow of', pendingUserIdsForProfiles.size, 'executing for', bufferedUserIds.length);
+
+                dispatch(getProfilesByIds(bufferedUserIds));
+            } else {
+                // eslint-disable-next-line no-console
+                console.log('profiles', 'underflow of', pendingUserIdsForProfiles.size, 'executing');
+
+                dispatch(getProfilesByIds(Array.from(pendingUserIdsForProfiles)));
+                pendingUserIdsForProfiles.clear();
+            }
         }
 
-        pendingUserIdsForProfiles.add(userId);
+        // TODO: Make this configurable
+        const poolingInterval = 3000;
 
-        // Start the interval if it is not already running
-        if (userProfilesIntervalId === null) {
-            userProfilesIntervalId = setInterval(() => {
+        if (userIdsForStatus) {
+            if (Array.isArray(userIdsForStatus)) {
+                userIdsForStatus.forEach((userId) => {
+                    pendingUserIdsForStatuses.add(userId);
+                });
+            } else {
+                pendingUserIdsForStatuses.add(userIdsForStatus);
+            }
+        }
+
+        if (userIdsForProfile) {
+            if (Array.isArray(userIdsForProfile)) {
+                userIdsForProfile.forEach((userId) => {
+                    pendingUserIdsForProfiles.add(userId);
+                });
+            } else {
+                pendingUserIdsForProfiles.add(userIdsForProfile);
+            }
+        }
+
+        // Escape hatch to fetch immediately or when we haven't received the pooling interval from config yet
+        if (poolingInterval <= 0) {
+            if (pendingUserIdsForStatuses.size > 0) {
+                getPendingStatusesById();
+            }
+
+            if (pendingUserIdsForProfiles.size > 0) {
+                getPendingProfilesById();
+            }
+        } else if (intervalIdForFetchingPool === null) {
+            // Start the interval if it is not already running
+            intervalIdForFetchingPool = setInterval(() => {
+                if (pendingUserIdsForStatuses.size > 0) {
+                    getPendingStatusesById();
+                } else {
+                    // eslint-disable-next-line no-console
+                    console.log('status', 'no pending user ids');
+                }
+
                 if (pendingUserIdsForProfiles.size > 0) {
-                    console.log('addUserIdForProfileFetchingPool', 'executing with interval for pending', pendingUserIdsForProfiles.size);
-
                     getPendingProfilesById();
                 } else {
-                    console.log('addUserIdForProfileFetchingPool', 'no pending user ids');
+                    // eslint-disable-next-line no-console
+                    console.log('profiles', 'no pending user ids');
                 }
             }, poolingInterval);
         }
 
+        // Now here the interval is already running and we have added the user ids to the pool so we don't need to do anything
         return {data: true};
     };
 }
 
-export function cleanupUserProfilesInterval() {
-    if (userProfilesIntervalId !== null) {
-        clearInterval(userProfilesIntervalId);
-        userProfilesIntervalId = null;
+export function cleanUpStatusAndProfileFetchingPool() {
+    if (intervalIdForFetchingPool !== null) {
+        clearInterval(intervalIdForFetchingPool);
+        intervalIdForFetchingPool = null;
     }
 }
 
@@ -153,13 +164,21 @@ export function cleanupUserProfilesInterval() {
  * Gets in batch the user profiles, user statuses and user groups for the users in the posts list
  * This action however doesn't refetch the profiles and statuses except for groups if they are already fetched once
  */
-export function getBatchedUserProfilesStatusesAndGroupsFromPosts(postsArrayOrMap: Post[]|PostList['posts']): ActionFunc<boolean> {
+export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[]|PostList['posts']|Post): ActionFunc<boolean> {
     return (dispatch, getState) => {
         if (!postsArrayOrMap) {
             return {data: false};
         }
 
-        const posts = Array.isArray(postsArrayOrMap) ? postsArrayOrMap : Object.values(postsArrayOrMap);
+        let posts: Post[] = [];
+        if (Array.isArray(postsArrayOrMap)) {
+            posts = postsArrayOrMap;
+        } else if (typeof postsArrayOrMap === 'object' && 'id' in postsArrayOrMap) {
+            posts = [postsArrayOrMap as Post];
+        } else if (typeof postsArrayOrMap === 'object') {
+            posts = Object.values(postsArrayOrMap);
+        }
+
         if (posts.length === 0) {
             return {data: false};
         }
@@ -173,8 +192,6 @@ export function getBatchedUserProfilesStatusesAndGroupsFromPosts(postsArrayOrMap
         const users = getUsers(state);
         const userStatuses = getUserStatuses(state);
 
-        const poolingInterval = 5 * 1000;
-
         posts.forEach((post) => {
             if (post.metadata) {
                 // Add users listed in permalink previews
@@ -184,10 +201,10 @@ export function getBatchedUserProfilesStatusesAndGroupsFromPosts(postsArrayOrMap
                             const permalinkPostPreviewMetaData = embed.data as PostPreviewMetadata;
 
                             if (permalinkPostPreviewMetaData.post?.user_id && !users[permalinkPostPreviewMetaData.post.user_id] && permalinkPostPreviewMetaData.post.user_id !== currentUserId) {
-                                dispatch(addUserIdForProfileFetchingPool(permalinkPostPreviewMetaData.post.user_id, poolingInterval));
+                                dispatch(addUserIdsForStatusAndProfileFetchingPool({userIdsForProfile: permalinkPostPreviewMetaData.post.user_id}));
                             }
                             if (permalinkPostPreviewMetaData.post?.user_id && !userStatuses[permalinkPostPreviewMetaData.post.user_id] && permalinkPostPreviewMetaData.post.user_id !== currentUserId && isUserStatusesConfigEnabled) {
-                                dispatch(addUserIdsToStatusFetchingPool([permalinkPostPreviewMetaData.post.user_id], poolingInterval));
+                                dispatch(addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus: permalinkPostPreviewMetaData.post.user_id}));
                             }
                         }
                     });
@@ -197,7 +214,7 @@ export function getBatchedUserProfilesStatusesAndGroupsFromPosts(postsArrayOrMap
                 if (post.metadata.acknowledgements) {
                     post.metadata.acknowledgements.forEach((ack: PostAcknowledgement) => {
                         if (ack.acknowledged_at > 0 && ack.user_id && !users[ack.user_id] && ack.user_id !== currentUserId) {
-                            dispatch(addUserIdForProfileFetchingPool(ack.user_id, poolingInterval));
+                            dispatch(addUserIdsForStatusAndProfileFetchingPool({userIdsForProfile: ack.user_id}));
                         }
                     });
                 }
@@ -206,13 +223,13 @@ export function getBatchedUserProfilesStatusesAndGroupsFromPosts(postsArrayOrMap
             // This is sufficient to check if the profile is already fetched
             // as we receive the websocket events for the profiles changes
             if (!users[post.user_id] && post.user_id !== currentUserId) {
-                dispatch(addUserIdForProfileFetchingPool(post.user_id, poolingInterval));
+                dispatch(addUserIdsForStatusAndProfileFetchingPool({userIdsForProfile: post.user_id}));
             }
 
             // This is sufficient to check if the status is already fetched
             // as we do the pooling for statuses for current channel's channel members every 1 minute in channel_controller
             if (!userStatuses[post.user_id] && post.user_id !== currentUserId && isUserStatusesConfigEnabled) {
-                dispatch(addUserIdsToStatusFetchingPool([post.user_id], poolingInterval));
+                dispatch(addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus: post.user_id}));
             }
 
             // We need to check for all @mentions in the post, they can be either users or groups

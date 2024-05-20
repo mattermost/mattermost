@@ -7,7 +7,7 @@ import {
     getPostThreads,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
-import {getBatchedUserProfilesStatusesAndGroupsFromPosts} from 'mattermost-redux/actions/profiles_statuses_groups';
+import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/profiles_statuses_groups';
 import {getUser} from 'mattermost-redux/actions/users';
 
 import {handleNewPost} from 'actions/post_actions';
@@ -46,7 +46,7 @@ jest.mock('mattermost-redux/actions/posts', () => ({
 
 jest.mock('mattermost-redux/actions/profiles_statuses_groups', () => ({
     ...jest.requireActual('mattermost-redux/actions/profiles_statuses_groups'),
-    getBatchedUserProfilesStatusesAndGroupsFromPosts: jest.fn(() => ({type: ''})),
+    batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => ({type: ''})),
 }));
 
 jest.mock('mattermost-redux/actions/groups', () => ({
@@ -494,7 +494,7 @@ describe('handleNewPostEvent', () => {
 
         testStore.dispatch(handleNewPostEvent(msg));
         expect(handleNewPost).toHaveBeenCalledWith(post, msg);
-        expect(getBatchedUserProfilesStatusesAndGroupsFromPosts).toHaveBeenCalledWith([post]);
+        expect(batchFetchStatusesProfilesGroupsFromPosts).toHaveBeenCalledWith([post]);
     });
 
     test('should set other user to online', () => {
@@ -624,7 +624,7 @@ describe('handleNewPostEvents', () => {
         });
 
         expect(getPostThreads).toHaveBeenCalledWith(posts);
-        expect(getBatchedUserProfilesStatusesAndGroupsFromPosts).toHaveBeenCalledWith(posts);
+        expect(batchFetchStatusesProfilesGroupsFromPosts).toHaveBeenCalledWith(posts);
     });
 });
 

@@ -5,10 +5,10 @@ import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {cleanupUserProfilesInterval, cleanupUserStatusesInterval} from 'mattermost-redux/actions/profiles_statuses_groups';
+import {cleanUpStatusAndProfileFetchingPool} from 'mattermost-redux/actions/profiles_statuses_groups';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 
-import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
+import {addVisibleUsersInCurrentChannelToStatusPool} from 'actions/status_actions';
 
 import CenterChannel from 'components/channel_layout/center_channel';
 import LoadingScreen from 'components/loading_screen';
@@ -41,8 +41,10 @@ export default function ChannelController(props: Props) {
 
         return () => {
             document.body.classList.remove(...BODY_CLASS_FOR_CHANNEL);
-            cleanupUserProfilesInterval();
-            cleanupUserStatusesInterval();
+
+            // This cleans up the status and profile setInterval of fetching pool we use to batch requests
+            // when fetching statuses and profiles for a list of users.
+            cleanUpStatusAndProfileFetchingPool();
         };
     }, []);
 
@@ -50,14 +52,14 @@ export default function ChannelController(props: Props) {
         let loadStatusesIntervalId: NodeJS.Timeout;
         if (enabledUserStatuses) {
             loadStatusesIntervalId = setInterval(() => {
-                dispatch(loadStatusesForChannelAndSidebar());
+                dispatch(addVisibleUsersInCurrentChannelToStatusPool());
             }, Constants.STATUS_INTERVAL);
         }
 
         return () => {
             clearInterval(loadStatusesIntervalId);
         };
-    }, [dispatch, enabledUserStatuses]);
+    }, [enabledUserStatuses]);
 
     return (
         <>

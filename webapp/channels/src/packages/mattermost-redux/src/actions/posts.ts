@@ -20,7 +20,7 @@ import {
     deletePreferences,
     savePreferences,
 } from 'mattermost-redux/actions/preferences';
-import {getBatchedUserProfilesStatusesAndGroupsFromPosts} from 'mattermost-redux/actions/profiles_statuses_groups';
+import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/profiles_statuses_groups';
 import {decrementThreadCounts} from 'mattermost-redux/actions/threads';
 import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {Client4, DEFAULT_LIMIT_AFTER, DEFAULT_LIMIT_BEFORE} from 'mattermost-redux/client';
@@ -162,7 +162,7 @@ export function getPost(postId: string): ActionFuncAsync<Post> {
         }
 
         dispatch(receivedPost(post, crtEnabled));
-        dispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts([post]));
+        dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
         return {data: post};
     };
@@ -705,7 +705,9 @@ async function getPaginatedPostThread(rootId: string, options: FetchPaginatedThr
 
 export function getPostThread(rootId: string, fetchThreads = true): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
-        const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
+        const state = getState();
+        const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
         let posts;
         try {
@@ -720,7 +722,10 @@ export function getPostThread(rootId: string, fetchThreads = true): ActionFuncAs
             receivedPosts(posts),
             receivedPostsInThread(posts, rootId),
         ]));
-        dispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts(posts.posts));
+
+        if (enabledUserStatuses) {
+            dispatch(batchFetchStatusesProfilesGroupsFromPosts(posts.posts));
+        }
 
         return {data: posts};
     };
@@ -758,7 +763,7 @@ export function getNewestPostThread(rootId: string): ActionFuncAsync {
             receivedPosts(posts),
             receivedPostsInThread(posts, rootId),
         ]));
-        dispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts(posts.posts));
+        dispatch(batchFetchStatusesProfilesGroupsFromPosts(posts.posts));
 
         return {data: posts};
     };
@@ -780,7 +785,7 @@ export function getPosts(channelId: string, page = 0, perPage = Posts.POST_CHUNK
             receivedPosts(posts),
             receivedPostsInChannel(posts, channelId, page === 0, posts.prev_post_id === ''),
         ]));
-        dispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts(posts.posts));
+        dispatch(batchFetchStatusesProfilesGroupsFromPosts(posts.posts));
 
         return {data: posts};
     };
@@ -788,9 +793,11 @@ export function getPosts(channelId: string, page = 0, perPage = Posts.POST_CHUNK
 
 export function getPostsUnread(channelId: string, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
-        const shouldLoadRecent = getUnreadScrollPositionPreference(getState()) === Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST;
-        const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
-        const userId = getCurrentUserId(getState());
+        const state = getState();
+        const shouldLoadRecent = getUnreadScrollPositionPreference(state) === Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST;
+        const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
+        const userId = getCurrentUserId(state);
+
         let posts;
         let recentPosts;
         try {
@@ -821,7 +828,7 @@ export function getPostsUnread(channelId: string, fetchThreads = true, collapsed
         }
 
         dispatch(batchActions(actions));
-        dispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts(posts.posts));
+        dispatch(batchFetchStatusesProfilesGroupsFromPosts(posts.posts));
 
         return {data: posts};
     };
@@ -843,7 +850,7 @@ export function getPostsSince(channelId: string, since: number, fetchThreads = t
             receivedPosts(posts),
             receivedPostsSince(posts, channelId),
         ]));
-        dispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts(posts.posts));
+        dispatch(batchFetchStatusesProfilesGroupsFromPosts(posts.posts));
 
         return {data: posts};
     };
@@ -865,7 +872,7 @@ export function getPostsBefore(channelId: string, postId: string, page = 0, perP
             receivedPosts(posts),
             receivedPostsBefore(posts, channelId, postId, posts.prev_post_id === ''),
         ]));
-        dispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts(posts.posts));
+        dispatch(batchFetchStatusesProfilesGroupsFromPosts(posts.posts));
 
         return {data: posts};
     };
@@ -887,7 +894,7 @@ export function getPostsAfter(channelId: string, postId: string, page = 0, perPa
             receivedPosts(posts),
             receivedPostsAfter(posts, channelId, postId, posts.next_post_id === ''),
         ]));
-        dispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts(posts.posts));
+        dispatch(batchFetchStatusesProfilesGroupsFromPosts(posts.posts));
 
         return {data: posts};
     };
@@ -933,7 +940,7 @@ export function getPostsAround(channelId: string, postId: string, perPage = Post
             receivedPosts(posts),
             receivedPostsInChannel(posts, channelId, after.next_post_id === '', before.prev_post_id === ''),
         ]));
-        dispatch(getBatchedUserProfilesStatusesAndGroupsFromPosts(posts.posts));
+        dispatch(batchFetchStatusesProfilesGroupsFromPosts(posts.posts));
 
         return {data: posts};
     };
