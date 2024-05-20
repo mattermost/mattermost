@@ -99,8 +99,8 @@ body.admin-onboarding #root {
     }
 }
 
-.app__body.channel-view {
-    #root {
+.app__body {
+    #root.channel-view {
         --columns: min-content minmax(385px, 1fr) min-content;
         grid-template:
             'announcement announcement announcement' min-content
