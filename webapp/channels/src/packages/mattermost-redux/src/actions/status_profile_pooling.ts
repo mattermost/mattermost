@@ -9,11 +9,12 @@ import {searchGroups} from 'mattermost-redux/actions/groups';
 import {getNeededAtMentionedUsernamesAndGroups} from 'mattermost-redux/actions/posts';
 import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentUser, getCurrentUserId, getIsUserStatusesConfigEnabled, getUsers} from 'mattermost-redux/selectors/entities/common';
+import {getUsersStatusAndProfileFetchingPoolInterval} from 'mattermost-redux/selectors/entities/general';
 import {getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-const MAX_USER_STATUSES_BUFFER = 200; // users ids per 'users/status/ids'request
-const MAX_USER_PROFILES_BATCH = 100; // users ids per 'users/ids' request
+const MAX_USER_IDS_PER_STATUS_REQUEST = 200; // users ids per 'users/status/ids'request
+const MAX_USER_IDS_PER_PROFILES_REQUEST = 100; // users ids per 'users/ids' request
 
 const pendingUserIdsForStatuses = new Set<string>();
 const pendingUserIdsForProfiles = new Set<string>();
@@ -31,10 +32,10 @@ type AddUserIdForStatusAndProfileFetchingPool = {
  * Do not use if status or profile is required immediately.
  */
 export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, userIdsForProfile}: AddUserIdForStatusAndProfileFetchingPool): ActionFunc<boolean> {
-    return (dispatch) => {
+    return (dispatch, getState) => {
         function getPendingStatusesById() {
             // Since we can only fetch a defined number of user statuses at a time, we need to batch the requests
-            if (pendingUserIdsForStatuses.size >= MAX_USER_STATUSES_BUFFER) {
+            if (pendingUserIdsForStatuses.size >= MAX_USER_IDS_PER_STATUS_REQUEST) {
                 // We use temp buffer here to store up until max buffer size
                 // and clear out processed user ids
                 const bufferedUserIds: string[] = [];
@@ -49,7 +50,7 @@ export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, use
 
                     bufferCounter++;
 
-                    if (bufferCounter >= MAX_USER_STATUSES_BUFFER) {
+                    if (bufferCounter >= MAX_USER_IDS_PER_STATUS_REQUEST) {
                         break;
                     }
                 }
@@ -73,7 +74,7 @@ export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, use
         }
 
         function getPendingProfilesById() {
-            if (pendingUserIdsForProfiles.size >= MAX_USER_PROFILES_BATCH) {
+            if (pendingUserIdsForProfiles.size >= MAX_USER_IDS_PER_PROFILES_REQUEST) {
                 const bufferedUserIds: Array<UserProfile['id']> = [];
                 let bufferCounter = 0;
                 for (const pendingUserId of pendingUserIdsForProfiles) {
@@ -88,7 +89,7 @@ export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, use
 
                     // We can only fetch a defined number of user profiles at a time
                     // So we break out of the loop if we reach the max batch size
-                    if (bufferCounter >= MAX_USER_PROFILES_BATCH) {
+                    if (bufferCounter >= MAX_USER_IDS_PER_PROFILES_REQUEST) {
                         break;
                     }
                 }
@@ -110,7 +111,7 @@ export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, use
         }
 
         // TODO: Make this configurable
-        const poolingInterval = 3000;
+        const poolingInterval = getUsersStatusAndProfileFetchingPoolInterval(getState());
 
         if (userIdsForStatus) {
             if (Array.isArray(userIdsForStatus)) {
@@ -137,7 +138,7 @@ export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, use
         }
 
         // Escape hatch to fetch immediately or when we haven't received the pooling interval from config yet
-        if (poolingInterval <= 0) {
+        if (!poolingInterval || poolingInterval <= 0) {
             if (pendingUserIdsForStatuses.size > 0) {
                 getPendingStatusesById();
             }
@@ -146,6 +147,9 @@ export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, use
                 getPendingProfilesById();
             }
         } else if (intervalIdForFetchingPool === null) {
+            // eslint-disable-next-line no-console
+            console.log('status', 'profile', 'pooling interval', poolingInterval, 'starting');
+
             // Start the interval if it is not already running
             intervalIdForFetchingPool = setInterval(() => {
                 if (pendingUserIdsForStatuses.size > 0) {
