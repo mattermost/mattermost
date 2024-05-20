@@ -34,7 +34,7 @@ const (
 var (
 	performanceReportVersion = semver.MustParse("0.1.0")
 	acceptedPlatforms        = sliceToMapKey("linux", "macos", "ios", "android", "windows", "other")
-	acceptedAgents           = sliceToMapKey("desktop", "firefox", "chrome", "safari", "edge", "other")
+	acceptedAgents           = sliceToMapKey("desktop", "firefox", "chrome", "safari", "edge", "rnapp", "other")
 )
 
 type MetricSample struct {
