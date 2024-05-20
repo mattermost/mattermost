@@ -6,7 +6,7 @@
         <mj-wrapper mj-class="email">
             <mj-section>
                 <mj-column>
-                    <mj-image mj-class="logo" src="{{.Props.SiteURL}}/static/images/logo_email_dark.png" />
+                    <mj-image mj-class="logo" src="{{.Props.SiteURL}}{{if .Props.UseCustomLogo}}/api/v4/brand/light-logo?t=0{{else}}/static/images/logo_email_dark.png{{end}}" />
                 </mj-column>
             </mj-section>
             <mj-section>
