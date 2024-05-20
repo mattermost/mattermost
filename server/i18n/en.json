@@ -5683,10 +5683,6 @@
     "translation": "Failed to get user count"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Failed to get post count"
-  },
-  {
     "id": "app.login.doLogin.updateLastLogin.error",
     "translation": "Could not update last login timestamp"
   },
