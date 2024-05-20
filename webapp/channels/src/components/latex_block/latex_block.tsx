@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import CodeBlock from 'components/code_block/code_block';
 import type {KatexOptions} from 'katex';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import CodeBlock from 'components/code_block/code_block';
 
 type Katex = typeof import('katex');
 
