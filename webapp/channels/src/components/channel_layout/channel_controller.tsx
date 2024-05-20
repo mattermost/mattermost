@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {cleanUpStatusAndProfileFetchingPool} from 'mattermost-redux/actions/profiles_statuses_groups';
+import {cleanUpStatusAndProfileFetchingPool} from 'mattermost-redux/actions/status_profile_pooling';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 
 import {addVisibleUsersInCurrentChannelToStatusPool} from 'actions/status_actions';

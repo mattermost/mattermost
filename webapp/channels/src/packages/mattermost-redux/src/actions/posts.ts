@@ -20,7 +20,7 @@ import {
     deletePreferences,
     savePreferences,
 } from 'mattermost-redux/actions/preferences';
-import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/profiles_statuses_groups';
+import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_pooling';
 import {decrementThreadCounts} from 'mattermost-redux/actions/threads';
 import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {Client4, DEFAULT_LIMIT_AFTER, DEFAULT_LIMIT_BEFORE} from 'mattermost-redux/client';

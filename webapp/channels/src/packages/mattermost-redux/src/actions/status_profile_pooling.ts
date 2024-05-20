@@ -12,8 +12,8 @@ import {getCurrentUser, getCurrentUserId, getIsUserStatusesConfigEnabled, getUse
 import {getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-const MAX_USER_STATUSES_BUFFER = 200;
-const MAX_USER_PROFILES_BATCH = 100;
+const MAX_USER_STATUSES_BUFFER = 200; // users ids per 'users/status/ids'request
+const MAX_USER_PROFILES_BATCH = 100; // users ids per 'users/ids' request
 
 const pendingUserIdsForStatuses = new Set<string>();
 const pendingUserIdsForProfiles = new Set<string>();
@@ -40,6 +40,10 @@ export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, use
                 const bufferedUserIds: string[] = [];
                 let bufferCounter = 0;
                 for (const pendingUserId of pendingUserIdsForStatuses) {
+                    if (pendingUserId.length === 0) {
+                        continue;
+                    }
+
                     bufferedUserIds.push(pendingUserId);
                     pendingUserIdsForStatuses.delete(pendingUserId);
 
@@ -62,8 +66,9 @@ export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, use
                     // eslint-disable-next-line no-console
                     console.log('status', 'underflow of', pendingUserIdsForStatuses.size, 'executing');
                     dispatch(getStatusesByIds(lessThanBufferUserIds));
+
+                    pendingUserIdsForStatuses.clear();
                 }
-                pendingUserIdsForStatuses.clear();
             }
         }
 
@@ -72,6 +77,10 @@ export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, use
                 const bufferedUserIds: Array<UserProfile['id']> = [];
                 let bufferCounter = 0;
                 for (const pendingUserId of pendingUserIdsForProfiles) {
+                    if (pendingUserId.length === 0) {
+                        continue;
+                    }
+
                     bufferedUserIds.push(pendingUserId);
                     pendingUserIdsForProfiles.delete(pendingUserId);
 
@@ -89,11 +98,14 @@ export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, use
 
                 dispatch(getProfilesByIds(bufferedUserIds));
             } else {
-                // eslint-disable-next-line no-console
-                console.log('profiles', 'underflow of', pendingUserIdsForProfiles.size, 'executing');
+                const lessThanBufferUserIds = Array.from(pendingUserIdsForProfiles);
+                if (lessThanBufferUserIds.length > 0) {
+                    // eslint-disable-next-line no-console
+                    console.log('profiles', 'underflow of', pendingUserIdsForProfiles.size, 'executing');
+                    dispatch(getProfilesByIds(lessThanBufferUserIds));
 
-                dispatch(getProfilesByIds(Array.from(pendingUserIdsForProfiles)));
-                pendingUserIdsForProfiles.clear();
+                    pendingUserIdsForProfiles.clear();
+                }
             }
         }
 
@@ -103,7 +115,9 @@ export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, use
         if (userIdsForStatus) {
             if (Array.isArray(userIdsForStatus)) {
                 userIdsForStatus.forEach((userId) => {
-                    pendingUserIdsForStatuses.add(userId);
+                    if (userId.length > 0) {
+                        pendingUserIdsForStatuses.add(userId);
+                    }
                 });
             } else {
                 pendingUserIdsForStatuses.add(userIdsForStatus);
@@ -113,7 +127,9 @@ export function addUserIdsForStatusAndProfileFetchingPool({userIdsForStatus, use
         if (userIdsForProfile) {
             if (Array.isArray(userIdsForProfile)) {
                 userIdsForProfile.forEach((userId) => {
-                    pendingUserIdsForProfiles.add(userId);
+                    if (userId.length > 0) {
+                        pendingUserIdsForProfiles.add(userId);
+                    }
                 });
             } else {
                 pendingUserIdsForProfiles.add(userIdsForProfile);

@@ -5,7 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {addUserIdsForStatusAndProfileFetchingPool} from 'mattermost-redux/actions/profiles_statuses_groups';
+import {addUserIdsForStatusAndProfileFetchingPool} from 'mattermost-redux/actions/status_profile_pooling';
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 
@@ -19,7 +19,7 @@ jest.mock('mattermost-redux/actions/users', () => ({
     }),
 }));
 
-jest.mock('mattermost-redux/actions/profiles_statuses_groups', () => ({
+jest.mock('mattermost-redux/actions/status_profile_pooling', () => ({
     addUserIdsForStatusAndProfileFetchingPool: jest.fn(() => {
         return {type: ''};
     }),

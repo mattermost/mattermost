@@ -3,7 +3,7 @@
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {addUserIdsForStatusAndProfileFetchingPool} from 'mattermost-redux/actions/profiles_statuses_groups';
+import {addUserIdsForStatusAndProfileFetchingPool} from 'mattermost-redux/actions/status_profile_pooling';
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';

@@ -7,7 +7,7 @@ import {
     getPostThreads,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
-import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/profiles_statuses_groups';
+import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_pooling';
 import {getUser} from 'mattermost-redux/actions/users';
 
 import {handleNewPost} from 'actions/post_actions';
@@ -44,8 +44,8 @@ jest.mock('mattermost-redux/actions/posts', () => ({
     getMentionsAndStatusesForPosts: jest.fn(),
 }));
 
-jest.mock('mattermost-redux/actions/profiles_statuses_groups', () => ({
-    ...jest.requireActual('mattermost-redux/actions/profiles_statuses_groups'),
+jest.mock('mattermost-redux/actions/status_profile_pooling', () => ({
+    ...jest.requireActual('mattermost-redux/actions/status_profile_pooling'),
     batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => ({type: ''})),
 }));
 

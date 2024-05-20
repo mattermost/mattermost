@@ -44,7 +44,7 @@ import {
     receivedNewPost,
     receivedPost,
 } from 'mattermost-redux/actions/posts';
-import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/profiles_statuses_groups';
+import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_pooling';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
