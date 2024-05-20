@@ -10010,10 +10010,6 @@
     "translation": "ユーザー数を取得できませんでした"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "投稿数を取得できませんでした"
-  },
-  {
     "id": "ent.compliance.csv.metadata.close.appError",
     "translation": "ZIPファイルをクローズできませんでした"
   },
