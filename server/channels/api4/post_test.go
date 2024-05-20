@@ -244,8 +244,8 @@ func TestCreatePost(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.Zero(t, *respPost.RemoteId)
 
-		createdPost, err := th.App.GetSinglePost(respPost.Id, false)
-		require.NoError(t, err)
+		createdPost, appErr := th.App.GetSinglePost(respPost.Id, false)
+		require.Nil(t, appErr)
 		require.Zero(t, *createdPost.RemoteId)
 	})
 }
