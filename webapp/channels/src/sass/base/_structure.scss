@@ -143,11 +143,6 @@ body.app__body #root {
         display: block;
     }
 
-    > :only-child {
-        width: 100%;
-    }
-
-
     .announcement-bar {
         grid-area: announcement;
     }
