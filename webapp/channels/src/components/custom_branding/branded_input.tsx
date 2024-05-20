@@ -19,6 +19,8 @@ type BrandedInputStyledProps = {
 }
 
 const BrandedInputStyled = styled.div<BrandedInputStyledProps>`
+    flex-grow: 1;
+
     &&&&& input {
         background: ${(props) => props.background};
         color: ${(props) => props.textColor};

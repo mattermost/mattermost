@@ -19,8 +19,10 @@ const Footer = React.lazy(() => import('./footer'));
 
 export type CustomizeHeaderType = (props: HeaderProps) => void;
 
+const LoggedIn = React.lazy(() => import('components/logged_in'));
+
 export type HFRouteProps = {
-    path: string;
+    path?: string;
     component: React.ComponentType<{onCustomizeHeader?: CustomizeHeaderType}>;
 };
 
@@ -58,3 +60,18 @@ export const HFRoute = ({path, component: Component}: HFRouteProps) => {
         />
     );
 };
+
+export const LoggedInHFRoute = ({component: Component, ...rest}: HFRouteProps) => (
+    <Route
+        {...rest}
+        render={(props) => (
+            <React.Suspense fallback={null}>
+                <LoggedIn {...props}>
+                    <React.Suspense fallback={null}>
+                        <HFRoute component={Component} {...props}></HFRoute>
+                    </React.Suspense>
+                </LoggedIn>
+            </React.Suspense>
+        )}
+    />
+);
