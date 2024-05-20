@@ -10008,9 +10008,5 @@
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "获取用户计数失败"
-  },
-  {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "获取消息计数失败"
   }
 ]
