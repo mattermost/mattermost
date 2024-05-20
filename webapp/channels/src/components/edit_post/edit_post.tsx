@@ -146,7 +146,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         return () => document.removeEventListener(AppEvents.FOCUS_EDIT_TEXTBOX, focusTextBox);
     }, []);
 
-    useEffect(() => {        
+    useEffect(() => {
         if (selectionRange.start === selectionRange.end) {
             Utils.setCaretPosition(textboxRef.current?.getInputBox(), selectionRange.start);
         } else {
@@ -318,7 +318,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
     const handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
         const {ctrlSend, codeBlockOnCtrlEnter} = rest;
-        
+
         const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
         const ctrlKeyCombo = Keyboard.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
         const ctrlAltCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.altKey;
@@ -420,7 +420,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             ...draftRef.current,
             message: newMessage,
         };
-        
+
         setEditText(newMessage);
         setCaretPosition(newCaretPosition);
         setShowEmojiPicker(false);
@@ -428,7 +428,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     };
 
     const handleMouseUpKeyUp = (e: React.MouseEvent | React.KeyboardEvent) => {
-        setCaretPosition((e.target as HTMLInputElement).selectionStart ?? 0)
+        setCaretPosition((e.target as HTMLInputElement).selectionStart ?? 0);
     };
 
     const handleGifClick = (gif: string) => {
