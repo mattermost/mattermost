@@ -15,9 +15,8 @@ import BrandedButton from 'components/custom_branding/branded_button';
 import BrandedInput from 'components/custom_branding/branded_input';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
-import {isValidPassword, getPasswordConfig} from 'utils/utils';
-
 import Constants from 'utils/constants';
+import {isValidPassword, getPasswordConfig} from 'utils/utils';
 
 const PasswordResetForm = () => {
     const intl = useIntl();

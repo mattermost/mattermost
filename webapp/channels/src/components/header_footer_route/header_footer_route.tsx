@@ -68,7 +68,10 @@ export const LoggedInHFRoute = ({component: Component, ...rest}: HFRouteProps) =
             <React.Suspense fallback={null}>
                 <LoggedIn {...props}>
                     <React.Suspense fallback={null}>
-                        <HFRoute component={Component} {...props}></HFRoute>
+                        <HFRoute
+                            component={Component}
+                            {...props}
+                        />
                     </React.Suspense>
                 </LoggedIn>
             </React.Suspense>

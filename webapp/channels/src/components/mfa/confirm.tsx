@@ -6,8 +6,8 @@ import {FormattedMessage} from 'react-intl';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 
+import LaptopWithCheckmark from 'components/common/svg_images_components/laptop_with_checkmark_svg';
 import BrandedButton from 'components/custom_branding/branded_button';
-import WomanWithLock from 'components/common/svg_images_components/woman_with_lock_svg';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -54,7 +54,7 @@ export default class Confirm extends React.PureComponent<Props> {
     public render(): JSX.Element {
         return (
             <div className='signup-team__container mfa mfa-confirm'>
-                <WomanWithLock/>
+                <LaptopWithCheckmark/>
                 <h1>
                     <FormattedMessage
                         id='mfa.confirmTitle'

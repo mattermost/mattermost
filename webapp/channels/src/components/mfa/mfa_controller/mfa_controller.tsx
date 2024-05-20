@@ -4,12 +4,10 @@
 import throttle from 'lodash/throttle';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {Route, Switch} from 'react-router-dom';
-import {useLocation, useRouteMatch, useHistory} from 'react-router-dom';
+import {Route, Switch, useLocation, useRouteMatch, useHistory} from 'react-router-dom';
 
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
 import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
-
 
 import Confirm from '../confirm';
 import Setup from '../setup';
@@ -92,7 +90,7 @@ const MFAController = (props: Props) => {
                                 path={`${match.url}/setup`}
                                 render={(props) => (
                                     <Setup
-                                        state={{enforceMultifactorAuthentication: enforceMultifactorAuthentication}}
+                                        state={{enforceMultifactorAuthentication}}
                                         updateParent={updateParent}
                                         {...props}
                                     />
@@ -102,7 +100,7 @@ const MFAController = (props: Props) => {
                                 path={`${match.url}/confirm`}
                                 render={(props) => (
                                     <Confirm
-                                        state={{enforceMultifactorAuthentication: enforceMultifactorAuthentication}}
+                                        state={{enforceMultifactorAuthentication}}
                                         updateParent={updateParent}
                                         {...props}
                                     />
@@ -114,6 +112,6 @@ const MFAController = (props: Props) => {
             </div>
         </div>
     );
-}
+};
 
 export default MFAController;

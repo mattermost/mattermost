@@ -78,7 +78,7 @@ const LoginSignupBlockStyled = styled.div<LoginSignupBlockProps>`
         color: ${(props) => props.linkColor};
     }
     &&&&& i {
-        color: ${(props) => props.textColor + '8F' };
+        color: ${(props) => props.textColor + '8F'};
     }
 `;
 

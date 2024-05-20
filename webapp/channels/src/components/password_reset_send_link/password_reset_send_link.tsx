@@ -10,8 +10,8 @@ import {useLocation, useHistory} from 'react-router-dom';
 import {sendPasswordResetEmail} from 'mattermost-redux/actions/users';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
-import WomanWithLock from 'components/common/svg_images_components/woman_with_lock_svg';
 import ManWithMailBox from 'components/common/svg_images_components/man_with_mailbox_svg';
+import WomanWithLock from 'components/common/svg_images_components/woman_with_lock_svg';
 import BrandedButton from 'components/custom_branding/branded_button';
 import BrandedInput from 'components/custom_branding/branded_input';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';

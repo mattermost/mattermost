@@ -2,19 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled from 'styled-components';
 import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import styled from 'styled-components';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import BrandedButton from 'components/custom_branding/branded_button';
+import BrandedInput from 'components/custom_branding/branded_input';
 import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
-import BrandedButton from 'components/custom_branding/branded_button';
-import BrandedInput from 'components/custom_branding/branded_input';
 
 import logoImage from 'images/logo.png';
-
 import * as Utils from 'utils/utils';
 
 type MFAControllerState = {
@@ -47,7 +46,7 @@ const MfaSetupContainer = styled.div`
             justify-content: center;
         }
     }
-`
+`;
 
 const QRContainer = styled.div`
     width: 100%;
@@ -62,7 +61,7 @@ const QRContainer = styled.div`
     img {
         margin-bottom: 16px;
     }
-`
+`;
 
 type Props = {
 
