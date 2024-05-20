@@ -387,7 +387,7 @@
                                     <tbody>
                                       <tr>
                                         <td style="width:132px;">
-                                          <img alt height="21" src="{{.Props.SiteURL}}/static/images/logo_email_dark.png" style="border:0;display:block;outline:none;text-decoration:none;height:21.76px;width:100%;font-size:13px;" width="132">
+                                          <img alt height="21" src="{{.Props.SiteURL}}{{if .Props.UseCustomLogo}}/api/v4/brand/light-logo?t=0{{else}}/static/images/logo_email_dark.png{{end}}" style="border:0;display:block;outline:none;text-decoration:none;height:21.76px;width:100%;font-size:13px;" width="132">
                                         </td>
                                       </tr>
                                     </tbody>

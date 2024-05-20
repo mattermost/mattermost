@@ -42,6 +42,7 @@ func (es *Service) SendChangeUsernameEmail(newUsername, email, locale, siteURL s
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 	data.Props["Title"] = T("api.templates.username_change_body.title")
 	data.Props["Info"] = T("api.templates.username_change_body.info",
 		map[string]any{"TeamDisplayName": es.config().TeamSettings.SiteName, "NewUsername": newUsername})
@@ -70,6 +71,7 @@ func (es *Service) SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, tok
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 	data.Props["Title"] = T("api.templates.email_change_verify_body.title")
 	data.Props["Info"] = T("api.templates.email_change_verify_body.info",
 		map[string]any{"TeamDisplayName": es.config().TeamSettings.SiteName})
@@ -101,6 +103,7 @@ func (es *Service) SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL stri
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 	data.Props["Title"] = T("api.templates.email_change_body.title")
 	data.Props["Info"] = T("api.templates.email_change_body.info",
 		map[string]any{"TeamDisplayName": es.config().TeamSettings.SiteName, "NewEmail": newEmail})
@@ -133,6 +136,7 @@ func (es *Service) SendVerifyEmail(userEmail, locale, siteURL, token, redirect s
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 	data.Props["Title"] = T("api.templates.verify_body.title")
 	data.Props["SubTitle1"] = T("api.templates.verify_body.subTitle1")
 	data.Props["ServerURL"] = T("api.templates.verify_body.serverURL", map[string]any{"ServerURL": serverURL})
@@ -164,6 +168,7 @@ func (es *Service) SendSignInChangeEmail(email, method, locale, siteURL string) 
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 	data.Props["Title"] = T("api.templates.signin_change_email.body.title")
 	data.Props["Info"] = T("api.templates.signin_change_email.body.info",
 		map[string]any{"SiteName": es.config().TeamSettings.SiteName, "Method": method})
@@ -199,6 +204,7 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 	data.Props["Title"] = T("api.templates.welcome_body.title")
 	data.Props["SubTitle1"] = T("api.templates.welcome_body.subTitle1")
 	data.Props["ServerURL"] = T("api.templates.welcome_body.serverURL", map[string]any{"ServerURL": serverURL})
@@ -288,6 +294,7 @@ func (es *Service) SendPasswordChangeEmail(email, method, locale, siteURL string
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 	data.Props["Title"] = T("api.templates.password_change_body.title")
 	data.Props["Info"] = T("api.templates.password_change_body.info",
 		map[string]any{"TeamDisplayName": es.config().TeamSettings.SiteName, "TeamURL": siteURL, "Method": method})
@@ -313,6 +320,7 @@ func (es *Service) SendUserAccessTokenAddedEmail(email, locale, siteURL string) 
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 	data.Props["Title"] = T("api.templates.user_access_token_body.title")
 	data.Props["Info"] = T("api.templates.user_access_token_body.info",
 		map[string]any{"SiteName": es.config().TeamSettings.SiteName, "SiteURL": siteURL})
@@ -340,6 +348,7 @@ func (es *Service) SendPasswordResetEmail(email string, token *model.Token, loca
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 	data.Props["Title"] = T("api.templates.reset_body.title")
 	data.Props["SubTitle"] = T("api.templates.reset_body.subTitle")
 	data.Props["Info"] = T("api.templates.reset_body.info")
@@ -368,6 +377,7 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 
 	if activated {
 		data.Props["Info"] = T("api.templates.mfa_activated_body.info", map[string]any{"SiteURL": siteURL})
@@ -424,6 +434,7 @@ func (es *Service) SendInviteEmails(
 
 			data := es.NewEmailTemplateData("")
 			data.Props["SiteURL"] = siteURL
+			data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 			data.Props["SubTitle"] = i18n.T("api.templates.invite_body.subTitle")
 			data.Props["Button"] = i18n.T("api.templates.invite_body.button")
 			data.Props["SenderName"] = senderName
@@ -516,6 +527,7 @@ func (es *Service) SendGuestInviteEmails(
 
 			data := es.NewEmailTemplateData("")
 			data.Props["SiteURL"] = siteURL
+			data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 			data.Props["Title"] = i18n.T("api.templates.invite_body.title", map[string]any{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			data.Props["SubTitle"] = i18n.T("api.templates.invite_body_guest.subTitle")
 			data.Props["Button"] = i18n.T("api.templates.invite_body.button")
@@ -666,6 +678,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 
 		data := es.NewEmailTemplateData("")
 		data.Props["SiteURL"] = siteURL
+		data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 		data.Props["SubTitle"] = i18n.T("api.templates.invite_body.subTitle")
 		data.Props["Button"] = i18n.T("api.templates.invite_body.button")
 		data.Props["SenderName"] = senderName
@@ -786,6 +799,7 @@ func (es *Service) SendDeactivateAccountEmail(email string, locale, siteURL stri
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 	data.Props["Title"] = T("api.templates.deactivate_body.title", map[string]any{"ServerURL": serverURL})
 	data.Props["Info"] = T("api.templates.deactivate_body.info",
 		map[string]any{"SiteURL": siteURL})
@@ -912,6 +926,7 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ct
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 	data.Props["Title"] = T("api.templates.license_up_for_renewal_title")
 	data.Props["SubTitle"] = T("api.templates.license_up_for_renewal_subtitle", map[string]any{"UserName": name, "Days": daysToExpiration})
 	data.Props["SubTitleTwo"] = ctaTitle
@@ -943,6 +958,7 @@ func (es *Service) SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 	data.Props["Title"] = T("api.templates.remove_expired_license.body.title")
 	data.Props["Link"] = ctaLink
 	data.Props["LinkButton"] = ctaText
@@ -966,6 +982,7 @@ func (es *Service) SendIPFiltersChangedEmail(email string, initiatingUser *model
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
+	data.Props["UseCustomLogo"] = es.clientConfig()["EnableCustomBrand"] == "true" && es.clientConfig()["CustomBrandHasLogo"] == "true"
 	data.Props["Title"] = T("api.templates.ip_filters_changed.title")
 	data.Props["SubTitle"] = T("api.templates.ip_filters_changed.subTitle", map[string]any{"InitiatingUsername": initiatingUser.Username, "SiteURL": siteURL})
 	data.Props["ButtonURL"] = siteURL + "/admin_console/site_config/ip_filtering"

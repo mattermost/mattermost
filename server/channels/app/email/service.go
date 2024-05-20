@@ -42,8 +42,9 @@ func condenseSiteURL(siteURL string) string {
 }
 
 type Service struct {
-	config  func() *model.Config
-	license func() *model.License
+	config       func() *model.Config
+	clientConfig func() map[string]string
+	license      func() *model.License
 
 	userService *users.UserService
 	store       store.Store
@@ -55,8 +56,9 @@ type Service struct {
 }
 
 type ServiceConfig struct {
-	ConfigFn  func() *model.Config
-	LicenseFn func() *model.License
+	ConfigFn       func() *model.Config
+	ClientConfigFn func() map[string]string
+	LicenseFn      func() *model.License
 
 	TemplatesContainer *templates.Container
 	UserService        *users.UserService
@@ -69,6 +71,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 	}
 	service := &Service{
 		config:             config.ConfigFn,
+		clientConfig:       config.ClientConfigFn,
 		templatesContainer: config.TemplatesContainer,
 		license:            config.LicenseFn,
 		store:              config.Store,
