@@ -35,8 +35,8 @@ var (
 
 type MetricSample struct {
 	Metric    MetricType        `json:"metric"`
-	Value     int64             `json:"value"`
-	Timestamp int64             `json:"timestamp,omitempty"`
+	Value     float64           `json:"value"`
+	Timestamp float64           `json:"timestamp,omitempty"`
 	Labels    map[string]string `json:"labels,omitempty"`
 }
 
@@ -45,8 +45,8 @@ type PerformanceReport struct {
 	Version    string            `json:"version"`
 	ClientID   string            `json:"client_id"`
 	Labels     map[string]string `json:"labels"`
-	Start      int64             `json:"start"`
-	End        int64             `json:"end"`
+	Start      float64           `json:"start"`
+	End        float64           `json:"end"`
 	Counters   []*MetricSample   `json:"counters"`
 	Histograms []*MetricSample   `json:"histograms"`
 }
@@ -65,13 +65,13 @@ func (r *PerformanceReport) IsValid() error {
 		return fmt.Errorf("report version is not supported: server version: %s, report version: %s", performanceReportVersion.String(), r.Version)
 	}
 
-	if r.Start >= r.End {
+	if r.Start > r.End {
 		return fmt.Errorf("report timestamps are erroneous")
 	}
 
 	now := time.Now().UnixMilli()
-	if r.End < now-performanceReportTTLMilliseconds {
-		return fmt.Errorf("report is outdated: %d", r.End)
+	if r.End < float64(now-performanceReportTTLMilliseconds) {
+		return fmt.Errorf("report is outdated: %f", r.End)
 	}
 
 	return nil

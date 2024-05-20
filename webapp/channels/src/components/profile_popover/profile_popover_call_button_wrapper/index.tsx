@@ -6,21 +6,18 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {PhoneInTalkIcon} from '@mattermost/compass-icons/components';
-
 import {Client4} from 'mattermost-redux/client';
 import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
 
 import {isCallsEnabled as getIsCallsEnabled, getSessionsInCalls} from 'selectors/calls';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import ProfilePopoverCallButton from 'components/profile_popover_call_button';
-import Tooltip from 'components/tooltip';
+import ProfilePopoverCallButton from 'components/profile_popover/profile_popover_calls_button';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants from 'utils/constants';
 import {getDirectChannelName} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
+
 type Props = {
     userId: string;
     currentUserId: string;
@@ -98,29 +95,26 @@ const CallButton = ({
         id: 'webapp.mattermost.feature.start_call',
         defaultMessage: 'Start Call',
     });
-    const iconButtonClassname = classNames('btn icon-btn', {'icon-btn-disabled': disabled});
+    const iconButtonClassName = classNames('btn btn-icon btn-sm style--none', {'icon-btn-disabled': disabled});
     const callButton = (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id='startCallTooltip'
+            title={startCallMessage}
             placement='top'
-            overlay={
-                <Tooltip id='startCallTooltip'>
-                    {startCallMessage}
-                </Tooltip>
-            }
         >
             <button
                 id='startCallButton'
                 type='button'
                 aria-disabled={disabled}
-                className={iconButtonClassname}
+                className={iconButtonClassName}
+                aria-label={startCallMessage}
             >
-                <PhoneInTalkIcon
-                    size={18}
-                    aria-label={startCallMessage}
+                <span
+                    className='icon icon-phone'
+                    aria-hidden='true'
                 />
             </button>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 
     if (disabled) {

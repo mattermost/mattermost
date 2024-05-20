@@ -87,19 +87,20 @@ body {
 }
 
 /* stylelint-disable -- grid-template indentation */
-#root,
-body.app__body #root {
-    display: grid;
-    overflow: hidden;
 
-    grid-template:
-        'header' min-content
-        'main'
-        'footer' min-content
-    ;
+body.app__body {
+    background-color: var(--sidebar-header-bg);
+}
 
+body.admin-onboarding #root {
     &.channel-view {
-        background-color: var(--sidebar-header-bg);
+        display: flex;
+        background-color: transparent;
+    }
+}
+
+.app__body.channel-view {
+    #root {
         --columns: min-content minmax(385px, 1fr) min-content;
         grid-template:
             'announcement announcement announcement' min-content
@@ -112,6 +113,19 @@ body.app__body #root {
             background-color: $bg--gray;
         }
     }
+}
+
+#root,
+body.app__body #root {
+    display: grid;
+    overflow: hidden;
+
+    grid-template:
+        "announcement" min-content
+        "header" min-content
+        "main"
+        "footer" min-content
+    ;
 
     &.console__root {
         background-color: inherit;
@@ -123,7 +137,7 @@ body.app__body #root {
             'lhs center'
             'footer footer' min-content
         ;
-        grid-template-columns: min-content auto;
+        grid-template-columns: auto 1fr; /* lhs takes its content width, center takes remaining space */
     }
 
     &.container-fluid {
