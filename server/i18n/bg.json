@@ -2956,18 +2956,6 @@
     "translation": "[{{.SiteName}}] Ново директно съобщение от {{.SenderDisplayName}} на {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Няма наличен лиценз"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Този тип лиценз не поддържа генериране на маркери за подновяване"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Неуспешно генериране на нов маркер за подновяване."
-  },
-  {
     "id": "app.job.update.app_error",
     "translation": "Заданието не може да се обнови."
   },
@@ -3874,10 +3862,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "Корпоративния лиценз е изтекъл и някои функции може да бъдат забранени. Моля, подновете го."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Подновяване на лиценза"
   },
   {
     "id": "api.templates.post_body.button",
@@ -5208,10 +5192,6 @@
   {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Не можете да получите пробен лиценз, моля опитайте отново или се свържете със support@mattermost.com."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Грешка при получаване на връзката за подновяване на лиценза"
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -8392,10 +8372,6 @@
     "translation": "Вашият абонамент за Mattermost подлежи на подновяване"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Влезте в клиентския си профил, за да подновите"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, абонаментът Ви изтича след {{.Days}} дни. Надяваме се, че ще се насладите на гъвкавото и сигурно екипно сътрудничество, което Mattermost позволява. Подновете абонамента си скоро, за да гарантирате, че екипът Ви ще продължи да се възползва от тези предимства."
   },
@@ -8404,16 +8380,8 @@
     "translation": "Лицензът Ви подлежи на подновяване"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Поднови сега"
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Неуспешно изпращане на ел.поща за подновяване на лиценза"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Неуспешно генериране връзката за подновяване на лиценза"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",

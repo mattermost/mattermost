@@ -5512,10 +5512,6 @@
     "translation": "엔터프라이즈 에디션 라이선스가 만료되었으며 일부 기능이 비활성화될 수 있습니다. 지금 라이선스를 갱신해주세요."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "지금 라이선스를 갱신하세요"
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }}님이 당신을 {{ .TeamDisplayName }} 팀에 게스트로 초대했습니다"
   },
@@ -7396,10 +7392,6 @@
     "translation": "시스템"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "바로 갱신"
-  },
-  {
     "id": "api.templates.cloud_welcome_email.subject",
     "translation": "축하합니다!"
   },
@@ -7410,14 +7402,6 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "이 기능을 사용하기 위해선 엔터프라이즈 에디션으로 업그레이드해야 합니다."
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "이 라이선스는 포탈에 갱신할 수 없습니다"
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "라이선스 갱신 링크를 가져오는 중에 오류가 발생했습니다"
   },
   {
     "id": "api.invalid_redirect_url",
@@ -7578,10 +7562,6 @@
   {
     "id": "api.custom_status.disabled",
     "translation": "사용자 정의 상태 기능이 비활성화 되어 있습니다. 자세한 내용은 관리자에게 문의하세요."
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "라이선스 갱신 링크를 생성하지 못했습니다"
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
@@ -7864,14 +7844,6 @@
     "translation": "api 엔드포인트는 라이선스를 필요로 합니다"
   },
   {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "들어오는 webhook 카운트를 얻어오지 못했습니다"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "활성화된 전체 사용자수를 얻어올 수 없습니다."
-  },
-  {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "다운로드하려는 작업타입은 잠시 지원되지 않습니다"
   },
@@ -7974,10 +7946,6 @@
   {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Mattermost 구독이 갱신될 예정입니다"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "갱신하려면 고객 계정으로 로그인하세요"
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
