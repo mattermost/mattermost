@@ -22,9 +22,14 @@ const BrandedButtonStyled = styled.div<BrandedButtonStyledProps>`
         color: ${(props) => props.background} !important;
     }
     &&&&&&&&&& > button {
-        background: ${(props) => props.background};
+        background: ${(props) => `rgba(${hexToRgb(props.background)}, 0.92)`};
         color: ${(props) => props.textColor} !important;
     }
+
+    &&&&&&&&&& > button:hover {
+        background: ${(props) => `rgba(${hexToRgb(props.background)}, 1)`};
+    }
+
     &&&&&&&&&& > button > span{
         color: ${(props) => props.textColor} !important;
     }

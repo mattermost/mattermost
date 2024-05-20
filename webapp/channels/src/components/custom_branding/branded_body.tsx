@@ -27,6 +27,13 @@ const BrandedBodyStyled = styled.div<BrandedBodyProps>`
     &&&&& a {
         color: ${(props) => props.linkColor};
     }
+
+    @media screen and (max-width: 1199px){
+        &&&&& .login-body-action,
+        &&&&& .signup-body-action {
+            padding: 16px;
+        }
+    }
 `;
 
 type Props = {

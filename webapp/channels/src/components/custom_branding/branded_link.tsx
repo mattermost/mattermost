@@ -15,6 +15,10 @@ const BrandedLinkStyled = styled.div<BrandedLinkStyledProps>`
     &&&&&&&&&& a {
         color: ${(props) => props.textColor};
     }
+
+    &&& alternate-link__link {
+        color: ${(props) => props.textColor};
+    }
 `;
 
 const BrandedLink = (props: {className?: string; children: React.ReactNode}) => {

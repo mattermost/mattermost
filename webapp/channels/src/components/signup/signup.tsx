@@ -773,10 +773,11 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                             onError={handleBrandImageError}
                         />
                     ) : (
-                        <h1 className='signup-body-message-title'>
-                            {formatMessage({id: 'signup_user_completed.title', defaultMessage: 'Let’s get started'})}
-                        </h1>
+                        <div></div>
                     )}
+                    <h1 className='signup-body-message-title'>
+                        {formatMessage({id: 'signup_user_completed.title', defaultMessage: 'Let’s get started'})}
+                    </h1>
                     {getMessageSubtitle()}
                     {!enableCustomBrand && (
                         <div className='signup-body-message-svg'>

@@ -25,5 +25,17 @@
         // MM-45313 - Hack for issue in iOS Safari with scrolling
         -webkit-overflow-scrolling: touch;
         overflow-y: auto;
+
+        .hfroute-header + div {
+            flex:1;
+            align-content: center;
+            margin-bottom: 80px;
+        }
+
+        &:has(.hfroute-footer){
+            .hfroute-header + div {
+                margin-bottom: 0;
+            }
+        }
     }
 }

@@ -7,6 +7,11 @@ import styled from 'styled-components';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
+const hexToRgb = (hex: string): string => {
+    var result = (/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i).exec(hex);
+    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '';
+};
+
 type LoginSignupBlockProps = {
     background: string;
     linkColor: string;
@@ -17,11 +22,18 @@ const LoginSignupBlockStyled = styled.div<LoginSignupBlockProps>`
     &&&&& {
         border-radius: 8px;
         background: ${(props) => props.background};
+        border-color: ${(props) => props.textColor + '14'};
         color: ${(props) => props.textColor};
     }
+
     &&&&& > div:first-child > p:first-child {
         color: ${(props) => props.textColor};
     }
+
+    &&&&& p {
+        color: ${(props) => `rgba(${hexToRgb(props.textColor)}, 0.75)`};
+    }
+
     &&&&& > div {
         border-radius: 8px;
         background: ${(props) => props.background};
@@ -43,6 +55,15 @@ const LoginSignupBlockStyled = styled.div<LoginSignupBlockProps>`
         color: ${(props) => props.textColor};
         background: ${(props) => props.background};
     }
+
+    &&&&& fieldset {
+        color: ${(props) => `rgba(${hexToRgb(props.textColor)}, 0.16)`};
+    }
+
+    &&&&& fieldset:hover {
+        border-color: ${(props) => props.textColor + '3D'};
+    }
+
     &&&&& fieldset:focus-within {
         border-color: ${(props) => props.linkColor};
         color: ${(props) => props.linkColor};
@@ -55,7 +76,7 @@ const LoginSignupBlockStyled = styled.div<LoginSignupBlockProps>`
         color: ${(props) => props.linkColor};
     }
     &&&&& i {
-        color: ${(props) => props.linkColor};
+        color: ${(props) => props.textColor + '8F' };
     }
 `;
 
