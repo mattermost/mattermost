@@ -25,7 +25,7 @@ jest.mock('components/product_notices_modal', () => () => <div/>);
 jest.mock('plugins/pluggable', () => () => <div/>);
 
 jest.mock('actions/status_actions', () => ({
-    addVisibleUsersInCurrentChannelToStatusPool: jest.fn().mockImplementation(() => () => {}),
+    addVisibleUsersInCurrentChannelToStatusPoll: jest.fn().mockImplementation(() => () => {}),
 }));
 
 jest.mock('mattermost-redux/selectors/entities/general', () => ({
@@ -46,7 +46,7 @@ describe('ChannelController', () => {
         jest.useFakeTimers();
     });
 
-    it('dispatches addVisibleUsersInCurrentChannelToStatusPool when enableUserStatuses is true', () => {
+    it('dispatches addVisibleUsersInCurrentChannelToStatusPoll when enableUserStatuses is true', () => {
         mockState.entities.general.config.EnableUserStatuses = 'true';
         const store = mockStore(mockState);
 
@@ -60,10 +60,10 @@ describe('ChannelController', () => {
             jest.advanceTimersByTime(Constants.STATUS_INTERVAL);
         });
 
-        expect(actions.addVisibleUsersInCurrentChannelToStatusPool).toHaveBeenCalled();
+        expect(actions.addVisibleUsersInCurrentChannelToStatusPoll).toHaveBeenCalled();
     });
 
-    it('does not dispatch addVisibleUsersInCurrentChannelToStatusPool when enableUserStatuses is false', () => {
+    it('does not dispatch addVisibleUsersInCurrentChannelToStatusPoll when enableUserStatuses is false', () => {
         const store = mockStore(mockState);
         mockState.entities.general.config.EnableUserStatuses = 'false';
 
@@ -77,7 +77,7 @@ describe('ChannelController', () => {
             jest.advanceTimersByTime(Constants.STATUS_INTERVAL);
         });
 
-        expect(actions.addVisibleUsersInCurrentChannelToStatusPool).not.toHaveBeenCalled();
+        expect(actions.addVisibleUsersInCurrentChannelToStatusPoll).not.toHaveBeenCalled();
     });
 });
 

@@ -210,7 +210,7 @@ export type ClientConfig = {
     WranglerMoveThreadFromGroupMessageChannelEnable: string;
     ServiceEnvironment: string;
     UniqueEmojiReactionLimitPerPost: string;
-    UsersStatusAndProfileFetchingPoolIntervalMilliseconds: string;
+    UsersStatusAndProfileFetchingPollIntervalMilliseconds: string;
 };
 
 export type License = {

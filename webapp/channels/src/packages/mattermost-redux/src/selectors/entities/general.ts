@@ -123,13 +123,13 @@ export const getGiphyFetchInstance: (state: GlobalState) => GiphyFetch | null = 
     },
 );
 
-export const getUsersStatusAndProfileFetchingPoolInterval: (state: GlobalState) => number | null = createSelector(
-    'getUsersStatusAndProfileFetchingPoolInterval',
+export const getUsersStatusAndProfileFetchingPollInterval: (state: GlobalState) => number | null = createSelector(
+    'getUsersStatusAndProfileFetchingPollInterval',
     getConfig,
     (config) => {
-        const usersStatusAndProfileFetchingPoolInterval = config.UsersStatusAndProfileFetchingPoolIntervalMilliseconds;
-        if (usersStatusAndProfileFetchingPoolInterval) {
-            return parseInt(usersStatusAndProfileFetchingPoolInterval, 10);
+        const usersStatusAndProfileFetchingPollInterval = config.UsersStatusAndProfileFetchingPollIntervalMilliseconds;
+        if (usersStatusAndProfileFetchingPollInterval) {
+            return parseInt(usersStatusAndProfileFetchingPollInterval, 10);
         }
 
         return null;

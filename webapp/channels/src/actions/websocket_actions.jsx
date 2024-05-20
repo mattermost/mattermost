@@ -45,7 +45,7 @@ import {
     receivedPost,
 } from 'mattermost-redux/actions/posts';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
-import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_pooling';
+import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
     getThread as fetchThread,
@@ -245,7 +245,7 @@ export function reconnect() {
 
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
         if (enabledUserStatuses) {
-            dispatch(StatusActions.addVisibleUsersInCurrentChannelToStatusPool());
+            dispatch(StatusActions.addVisibleUsersInCurrentChannelToStatusPoll());
         }
 
         const crtEnabled = isCollapsedThreadsEnabled(state);

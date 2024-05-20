@@ -25,7 +25,7 @@ import {Preferences, Posts, RequestStatus} from '../constants';
 
 const OK_RESPONSE = {status: 'OK'};
 
-jest.mock('mattermost-redux/actions/status_profile_pooling', () => ({
+jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
     batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => {
         return {type: ''};
     }),

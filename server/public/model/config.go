@@ -179,7 +179,7 @@ const (
 	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/pl/ios-app/"
 
 	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds                       = 5000
-	ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPoolIntervalMilliseconds = 3000
+	ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPollIntervalMilliseconds = 3000
 
 	AnalyticsSettingsDefaultMaxUsersForStatistics = 2500
 
@@ -1021,7 +1021,7 @@ type ExperimentalSettings struct {
 	DisableRefetchingOnBrowserFocus                       *bool   `access:"experimental_features"`
 	DelayChannelAutocomplete                              *bool   `access:"experimental_features"`
 	DisableWakeUpReconnectHandler                         *bool   `access:"experimental_features"`
-	UsersStatusAndProfileFetchingPoolIntervalMilliseconds *int64  `access:"experimental_features"`
+	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1065,8 +1065,8 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.DisableWakeUpReconnectHandler = NewBool(false)
 	}
 
-	if s.UsersStatusAndProfileFetchingPoolIntervalMilliseconds == nil {
-		s.UsersStatusAndProfileFetchingPoolIntervalMilliseconds = NewInt64(ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPoolIntervalMilliseconds)
+	if s.UsersStatusAndProfileFetchingPollIntervalMilliseconds == nil {
+		s.UsersStatusAndProfileFetchingPollIntervalMilliseconds = NewInt64(ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPollIntervalMilliseconds)
 	}
 }
 
