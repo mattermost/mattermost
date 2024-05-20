@@ -332,6 +332,10 @@
                 background-color: unset;
                 box-shadow: none;
 
+                fieldset {
+                    background-color: var(--center-channel-bg);
+                }
+
                 .signup-body-card-content {
                     padding: 24px 24px;
 
@@ -346,12 +350,6 @@
                     .signup-body-card-form {
                         .signup-body-card-form-email-input {
                             margin-top: 0;
-                        }
-
-                        .signup-body-card-form-email-input,
-                        .signup-body-card-form-name-input,
-                        .signup-body-card-form-password-input {
-                            background-color: var(--center-channel-bg);
                         }
                     }
                 }

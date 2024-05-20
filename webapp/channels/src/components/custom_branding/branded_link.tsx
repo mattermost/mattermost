@@ -23,14 +23,14 @@ const BrandedLinkStyled = styled.div<BrandedLinkStyledProps>`
 
 const BrandedLink = (props: {className?: string; children: React.ReactNode}) => {
     const {
-        CustomBrandColorText,
+        CustomBrandColorButtonBackground,
         EnableCustomBrand,
     } = useSelector(getConfig);
 
     if (EnableCustomBrand === 'true') {
         return (
             <BrandedLinkStyled
-                textColor={CustomBrandColorText || ''}
+                textColor={CustomBrandColorButtonBackground || ''}
                 className={props.className || ''}
             >
                 {props.children}

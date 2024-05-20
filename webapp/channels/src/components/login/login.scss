@@ -101,6 +101,10 @@
                 @include shake-horizontally;
             }
 
+            fieldset {
+                background-color: var(--center-channel-bg);
+            }
+
             .login-body-card-content {
                 display: flex;
                 flex: 1;
@@ -289,11 +293,6 @@
                     .login-body-card-form {
                         .login-body-card-form-input {
                             margin-top: 0;
-                        }
-
-                        .login-body-card-form-input,
-                        .login-body-card-form-password-input {
-                            background-color: var(--center-channel-bg);
                         }
                     }
                 }

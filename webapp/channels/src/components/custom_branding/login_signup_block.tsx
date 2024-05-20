@@ -57,11 +57,13 @@ const LoginSignupBlockStyled = styled.div<LoginSignupBlockProps>`
     }
 
     &&&&& fieldset {
-        color: ${(props) => `rgba(${hexToRgb(props.textColor)}, 0.16)`};
+        color: ${(props) => props.textColor};
+        border-color: ${(props) => `rgba(${hexToRgb(props.textColor)}, 0.16)`};
+        background: ${(props) => props.background};
     }
 
     &&&&& fieldset:hover {
-        border-color: ${(props) => props.textColor + '3D'};
+        border-color: ${(props) => `rgba(${hexToRgb(props.textColor)}, 0.24)`};
     }
 
     &&&&& fieldset:focus-within {
