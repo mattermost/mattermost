@@ -121,7 +121,7 @@ func (fi *FileInfo) IsValid() *AppError {
 }
 
 func (fi *FileInfo) IsImage() bool {
-	return strings.HasPrefix(fi.MimeType, "image")
+	return strings.HasPrefix(fi.MimeType, "image") || strings.EqualFold(fi.Extension, "heic") || strings.EqualFold(fi.Extension, "heif")
 }
 
 func (fi *FileInfo) IsSvg() bool {

@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as lineBreakHelpers from 'tests/helpers/line_break_helpers';
+import * as ua from 'tests/helpers/user_agent_mocks';
+import Constants, {FileTypes, ValidationErrors} from 'utils/constants';
+import * as Utils from 'utils/utils';
+
 import type {UserProfile} from '@mattermost/types/users';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 
 import store from 'stores/redux_store';
-
-import * as lineBreakHelpers from 'tests/helpers/line_break_helpers';
-import * as ua from 'tests/helpers/user_agent_mocks';
-import Constants, {ValidationErrors} from 'utils/constants';
-import * as Utils from 'utils/utils';
+import {getFileType} from "utils/utils";
 
 describe('Utils.getDisplayNameByUser', () => {
     afterEach(() => {
@@ -583,8 +584,7 @@ describe('Utils.getSuggestionBoxAlgn', () => {
 
     textArea.value = 'a'.repeat(30);
 
-    jest.spyOn(textArea, 'offsetWidth', 'get').
-        mockImplementation(() => 950);
+    jest.spyOn(textArea, 'offsetWidth', 'get').mockImplementation(() => 950);
 
     textArea.getBoundingClientRect = jest.fn(() => ({
         left: 50,
@@ -684,5 +684,12 @@ describe('Utils.numberToFixedDynamic', () => {
             const actual = Utils.numberToFixedDynamic(testCase.num, testCase.places);
             expect(actual).toBe(testCase.expected);
         });
+    });
+});
+
+describe('getFileType', () => {
+    test.each(['heic', 'heif'])('should accept %s files also as an image', (type) => {
+        const res = getFileType(type);
+        expect(res).toBe(FileTypes.IMAGE);
     });
 });

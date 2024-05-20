@@ -10,6 +10,7 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	_ "github.com/strukturag/libheif/go/heif"
 	"io"
 	"sync"
 

@@ -24,6 +24,7 @@ RUN apt-get update \
   poppler-utils \
   tidy \
   tzdata \
+  libheif \
   && rm -rf /var/lib/apt/lists/*
 
 # Set mattermost group/user and download Mattermost

@@ -73,4 +73,13 @@ func TestFileInfoIsImage(t *testing.T) {
 		info.MimeType = "text/plain"
 		assert.False(t, info.IsImage(), "Text file should not be considered as an image")
 	})
+
+	t.Run("Extension is set to heic is considered an image", func(t *testing.T) {
+		info.Extension = "heic"
+		assert.True(t, info.IsImage(), "HEIC file should be considered as an image")
+	})
+	t.Run("Extension is set to heif is considered an image", func(t *testing.T) {
+		info.Extension = "heif"
+		assert.True(t, info.IsImage(), "HEIF file should be considered as an image")
+	})
 }
