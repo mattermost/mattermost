@@ -7,19 +7,37 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       COMPOSE_PROJECT_NAME: ghactions
-      BUILD_IMAGE: mattermost/mattermost-build-server:20230904_golang-1.20.7
+      BUILD_IMAGE: mattermost/mattermost-build-server:1.21.8
+      TEST_IMAGE: migration-test-image
     defaults:
       run:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Run docker compose
         run: |
           cd build
           docker compose --ansi never run --rm start_dependencies
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
+      - name: Fix MySQL user permissions
+        run: |
+          cd build
+          docker exec ${COMPOSE_PROJECT_NAME}-mysql-1 sh -c "sed -i '/# default-authentication-plugin/c\default-authentication-plugin=mysql_native_password' /etc/my.cnf"
+          docker exec ${COMPOSE_PROJECT_NAME}-mysql-1 sh -c "mysql -u root -pmostest -e \"ALTER USER 'mmuser'@'%' IDENTIFIED WITH mysql_native_password BY 'mostest';\""
+          docker exec ${COMPOSE_PROJECT_NAME}-mysql-1 sh -c "mysql -u root -pmostest -e \"ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'mostest';\""
+          docker restart ${COMPOSE_PROJECT_NAME}-mysql-1 && sleep 10
+      - name: Build test image
+        run: |
+          echo -e "FROM $BUILD_IMAGE\n\nRUN apt update && \
+            apt remove -y pgloader && \
+            apt install -y sbcl unzip libsqlite3-dev make curl gawk freetds-dev libzip-dev && \
+            git clone https://github.com/dimitri/pgloader.git && \
+            cd pgloader && \
+            make && \
+            mv build/bin/pgloader /bin" >> dockerfile_tmp
+          docker build -t $TEST_IMAGE - < dockerfile_tmp
       - name: Generate test-data
         run: |
           docker run --net ${COMPOSE_PROJECT_NAME}_mm-test \
@@ -29,7 +47,7 @@ jobs:
             -e GOCACHE=/go/cache \
             -v $PWD:/mattermost \
             -w /mattermost \
-            $BUILD_IMAGE \
+            $TEST_IMAGE \
             make test-data
       - name: Migrate the DB and compare
         run: |
@@ -40,10 +58,10 @@ jobs:
           -e GOCACHE=/go/cache \
           -v $PWD:/mattermost \
           -w /mattermost \
-          $BUILD_IMAGE \
+          $TEST_IMAGE \
           make test-migration
       - name: Upload artifacts
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
         with:
           name: Migration logs
           path: server/migration.log

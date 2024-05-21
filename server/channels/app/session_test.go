@@ -5,8 +5,12 @@ package app
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"slices"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -363,10 +367,10 @@ func TestGetCloudSession(t *testing.T) {
 func TestGetRemoteClusterSession(t *testing.T) {
 	th := Setup(t)
 	token := model.NewId()
-	remoteId := model.NewId()
+	remoteID := model.NewId()
 
 	rc := model.RemoteCluster{
-		RemoteId:     remoteId,
+		RemoteId:     remoteID,
 		RemoteTeamId: model.NewId(),
 		Name:         "test",
 		Token:        token,
@@ -377,14 +381,14 @@ func TestGetRemoteClusterSession(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("Valid remote token should return session", func(t *testing.T) {
-		session, err := th.App.GetRemoteClusterSession(token, remoteId)
+		session, err := th.App.GetRemoteClusterSession(token, remoteID)
 		require.Nil(t, err)
 		require.NotNil(t, session)
 		require.Equal(t, token, session.Token)
 	})
 
 	t.Run("Invalid remote token should return error", func(t *testing.T) {
-		session, err := th.App.GetRemoteClusterSession(model.NewId(), remoteId)
+		session, err := th.App.GetRemoteClusterSession(model.NewId(), remoteID)
 		require.NotNil(t, err)
 		require.Nil(t, session)
 	})
@@ -394,4 +398,51 @@ func TestGetRemoteClusterSession(t *testing.T) {
 		require.NotNil(t, err)
 		require.Nil(t, session)
 	})
+}
+
+func TestSessionsLimit(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := th.BasicUser
+	var sessions []*model.Session
+
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+	for i := 0; i < maxSessionsLimit; i++ {
+		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+		require.Nil(t, err)
+		sessions = append(sessions, session)
+		time.Sleep(1 * time.Millisecond)
+	}
+
+	gotSessions, _ := th.App.GetSessions(th.Context, user.Id)
+	require.Equal(t, maxSessionsLimit, len(gotSessions), "should have maxSessionsLimit number of sessions")
+
+	// Ensure we are retrieving the same sessions.
+	slices.Reverse(gotSessions)
+	for i, sess := range gotSessions {
+		require.Equal(t, sessions[i].Id, sess.Id)
+	}
+
+	// Now add 10 more.
+	for i := 0; i < 10; i++ {
+		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+		require.Nil(t, err, "should not have an error creating user sessions")
+
+		// Remove oldest, append newest.
+		sessions = sessions[1:]
+		sessions = append(sessions, session)
+		time.Sleep(1 * time.Millisecond)
+	}
+
+	// Ensure that we still only have the max allowed.
+	gotSessions, _ = th.App.GetSessions(th.Context, user.Id)
+	require.Equal(t, maxSessionsLimit, len(gotSessions), "should have maxSessionsLimit number of sessions")
+
+	// Ensure the the oldest sessions were removed first.
+	slices.Reverse(gotSessions)
+	for i, sess := range gotSessions {
+		require.Equal(t, sessions[i].Id, sess.Id)
+	}
 }

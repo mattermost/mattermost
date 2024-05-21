@@ -178,12 +178,25 @@ func (scs *Service) doSync() time.Duration {
 	var task syncTask
 	var ok bool
 	var shortestWait time.Duration
+	metrics := scs.server.GetMetrics()
+
+	if metrics != nil {
+		scs.mux.Lock()
+		size := len(scs.tasks)
+		scs.mux.Unlock()
+		metrics.ObserveSharedChannelsQueueSize(int64(size))
+	}
 
 	for {
 		task, ok, shortestWait = scs.removeOldestTask()
 		if !ok {
 			break
 		}
+
+		if metrics != nil {
+			metrics.ObserveSharedChannelsTaskInQueueDuration(time.Since(task.AddedAt).Seconds())
+		}
+
 		if err := scs.processTask(task); err != nil {
 			// put task back into map so it will update again
 			if task.incRetry() {
@@ -236,17 +249,21 @@ func (scs *Service) removeOldestTask() (syncTask, bool, time.Duration) {
 
 // processTask updates one or more remote clusters with any new channel content.
 func (scs *Service) processTask(task syncTask) error {
-	var err error
-	var remotes []*model.RemoteCluster
+	// map is used to ensure remotes don't get sync'd twice, such as when
+	// they have the autoinvited flag and have explicitly subscribed to a channel.
+	remotesMap := make(map[string]*model.RemoteCluster)
 
 	if task.remoteID == "" {
 		filter := model.RemoteClusterQueryFilter{
 			InChannel:     task.channelID,
 			OnlyConfirmed: true,
 		}
-		remotes, err = scs.server.GetStore().RemoteCluster().GetAll(filter)
+		remotes, err := scs.server.GetStore().RemoteCluster().GetAll(filter)
 		if err != nil {
 			return err
+		}
+		for _, r := range remotes {
+			remotesMap[r.RemoteId] = r
 		}
 
 		// add all remotes that have the autoinvited option.
@@ -257,7 +274,9 @@ func (scs *Service) processTask(task syncTask) error {
 		if err != nil {
 			return err
 		}
-		remotes = append(remotes, remotesAutoInvited...)
+		for _, r := range remotesAutoInvited {
+			remotesMap[r.RemoteId] = r
+		}
 	} else {
 		rc, err := scs.server.GetStore().RemoteCluster().Get(task.remoteID)
 		if err != nil {
@@ -266,10 +285,10 @@ func (scs *Service) processTask(task syncTask) error {
 		if !rc.IsOnline() {
 			return fmt.Errorf("Failed updating shared channel '%s' for offline remote cluster '%s'", task.channelID, rc.DisplayName)
 		}
-		remotes = []*model.RemoteCluster{rc}
+		remotesMap[rc.RemoteId] = rc
 	}
 
-	for _, rc := range remotes {
+	for _, rc := range remotesMap {
 		rtask := task
 		rtask.remoteID = rc.RemoteId
 		if err := scs.syncForRemote(rtask, rc); err != nil {
@@ -402,10 +421,16 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 		}
 		if _, err = scs.server.GetStore().SharedChannel().SaveUser(scu); err != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error adding user to shared channel users",
-				mlog.String("remote_id", rc.RemoteId),
 				mlog.String("user_id", user.Id),
 				mlog.String("channel_id", user.Id),
+				mlog.String("remote_id", rc.RemoteId),
 				mlog.Err(err),
+			)
+		} else {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Added user to shared channel users",
+				mlog.String("user_id", user.Id),
+				mlog.String("channel_id", user.Id),
+				mlog.String("remote_id", rc.RemoteId),
 			)
 		}
 		return true, true, nil
@@ -420,30 +445,55 @@ func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *mod
 		return
 	}
 
+	if rc.IsPlugin() {
+		scs.sendProfileImageToPlugin(user, channelID, rc)
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), ProfileImageSyncTimeout)
 	defer cancel()
 
 	rcs.SendProfileImage(ctx, user.Id, rc, scs.app, func(userId string, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
 		if resp.IsSuccess() {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Users profile image synchronized",
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.String("user_id", user.Id),
-			)
-
-			if err2 := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(user.Id, channelID, rc.RemoteId); err2 != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error updating users LastSyncTime after profile image update",
-					mlog.String("remote_id", rc.RemoteId),
-					mlog.String("user_id", user.Id),
-					mlog.Err(err2),
-				)
-			}
+			scs.recordProfileImageSuccess(user.Id, channelID, rc.RemoteId)
 			return
 		}
 
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error synchronizing users profile image",
-			mlog.String("remote_id", rc.RemoteId),
 			mlog.String("user_id", user.Id),
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", rc.RemoteId),
 			mlog.Err(err),
 		)
 	})
+}
+
+func (scs *Service) sendProfileImageToPlugin(user *model.User, channelID string, rc *model.RemoteCluster) {
+	if err := scs.app.OnSharedChannelsProfileImageSyncMsg(user, rc); err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error synchronizing users profile image for plugin",
+			mlog.String("user_id", user.Id),
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.Err(err),
+		)
+	}
+	scs.recordProfileImageSuccess(user.Id, channelID, rc.RemoteId)
+}
+
+func (scs *Service) recordProfileImageSuccess(userID, channelID, remoteID string) {
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Users profile image synchronized",
+		mlog.String("user_id", userID),
+		mlog.String("channel_id", channelID),
+		mlog.String("remote_id", remoteID),
+	)
+
+	// update LastSyncAt for user in SharedChannelUsers table
+	if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(userID, channelID, remoteID); err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error updating users LastSyncTime after profile image update",
+			mlog.String("user_id", userID),
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+			mlog.Err(err),
+		)
+	}
 }

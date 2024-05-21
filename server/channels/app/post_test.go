@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"sync"
 	"testing"
@@ -791,7 +790,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
@@ -2451,9 +2450,6 @@ func TestCountMentionsFromPost(t *testing.T) {
 	})
 
 	t.Run("should count urgent mentions", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -2985,11 +2981,11 @@ func TestReplyToPostWithLag(t *testing.T) {
 
 func TestSharedChannelSyncForPostActions(t *testing.T) {
 	t.Run("creating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := setupSharedChannels(t).InitBasic()
 		defer th.TearDown()
 
-		remoteClusterService := NewMockSharedChannelService(nil)
-		th.Server.SetSharedChannelSyncService(remoteClusterService)
+		sharedChannelService := NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
+		th.Server.SetSharedChannelSyncService(sharedChannelService)
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
 
@@ -3004,16 +3000,16 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err, "Creating a post should not error")
 
-		require.Len(t, remoteClusterService.channelNotifications, 1)
-		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
+		require.Len(t, sharedChannelService.channelNotifications, 1)
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[0])
 	})
 
 	t.Run("updating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := setupSharedChannels(t).InitBasic()
 		defer th.TearDown()
 
-		remoteClusterService := NewMockSharedChannelService(nil)
-		th.Server.SetSharedChannelSyncService(remoteClusterService)
+		sharedChannelService := NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
+		th.Server.SetSharedChannelSyncService(sharedChannelService)
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
 
@@ -3031,17 +3027,17 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		_, err = th.App.UpdatePost(th.Context, post, true)
 		require.Nil(t, err, "Updating a post should not error")
 
-		require.Len(t, remoteClusterService.channelNotifications, 2)
-		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
-		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[1])
+		require.Len(t, sharedChannelService.channelNotifications, 2)
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[0])
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[1])
 	})
 
 	t.Run("deleting a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := setupSharedChannels(t).InitBasic()
 		defer th.TearDown()
 
-		remoteClusterService := NewMockSharedChannelService(nil)
-		th.Server.SetSharedChannelSyncService(remoteClusterService)
+		sharedChannelService := NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
+		th.Server.SetSharedChannelSyncService(sharedChannelService)
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
 
@@ -3060,10 +3056,10 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		require.Nil(t, err, "Deleting a post should not error")
 
 		// one creation and two deletes
-		require.Len(t, remoteClusterService.channelNotifications, 3)
-		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
-		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[1])
-		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[2])
+		require.Len(t, sharedChannelService.channelNotifications, 3)
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[0])
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[1])
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[2])
 	})
 }
 

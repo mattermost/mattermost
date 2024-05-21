@@ -12,7 +12,6 @@ const (
 	JobTypeMessageExport                = "message_export"
 	JobTypeElasticsearchPostIndexing    = "elasticsearch_post_indexing"
 	JobTypeElasticsearchPostAggregation = "elasticsearch_post_aggregation"
-	JobTypeElasticsearchFixChannelIndex = "elasticsearch_fix_channel_index"
 	JobTypeBlevePostIndexing            = "bleve_post_indexing"
 	JobTypeLdapSync                     = "ldap_sync"
 	JobTypeMigrations                   = "migrations"
@@ -38,6 +37,8 @@ const (
 	JobTypeCleanupDesktopTokens         = "cleanup_desktop_tokens"
 	JobTypeDeleteEmptyDraftsMigration   = "delete_empty_drafts_migration"
 	JobTypeRefreshPostStats             = "refresh_post_stats"
+	JobTypeDeleteOrphanDraftsMigration  = "delete_orphan_drafts_migration"
+	JobTypeExportUsersToCSV             = "export_users_to_csv"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"

@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 import {Preferences, Permissions} from 'mattermost-redux/constants';
@@ -28,7 +28,6 @@ import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import EditPost from './edit_post';
-import type {Actions} from './edit_post';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
@@ -56,7 +55,7 @@ function mapStateToProps(state: GlobalState) {
         teamId,
         channelId,
         maxPostSize: parseInt(config.MaxPostSize || '0', 10) || Constants.DEFAULT_CHARACTER_LIMIT,
-        readOnlyChannel: !isCurrentUserSystemAdmin(state) && channel.name === Constants.DEFAULT_CHANNEL,
+        readOnlyChannel: !isCurrentUserSystemAdmin(state) && channel?.name === Constants.DEFAULT_CHANNEL,
         useChannelMentions,
         isRHSOpened: getIsRhsOpen(state),
         isEditHistoryShowing: getRhsState(state) === RHSStates.EDIT_HISTORY,
@@ -65,7 +64,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<any>, Actions>({
+        actions: bindActionCreators({
             scrollPostListToBottom,
             addMessageIntoHistory,
             editPost,

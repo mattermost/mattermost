@@ -10,12 +10,14 @@ import type {ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 import styled, {css} from 'styled-components';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
+import ProfilePopover from 'components/profile_popover';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Avatar from 'components/widgets/users/avatar';
@@ -55,11 +57,6 @@ export type Props = {
     hide: () => void;
 
     /**
-     * Function to call to show a profile popover and hide parent popover
-     */
-    showUserOverlay: (user: UserProfile) => void;
-
-    /**
      * State of current search
      */
     searchState: Load;
@@ -72,8 +69,8 @@ export type Props = {
     searchTerm: string;
 
     actions: {
-        getUsersInGroup: (groupId: string, page: number, perPage: number, sort: string) => Promise<{ data: UserProfile[] }>;
-        openDirectChannelToUserId: (userId?: string) => Promise<{ error: ServerError }>;
+        getUsersInGroup: (groupId: string, page: number, perPage: number, sort: string) => Promise<ActionResult<UserProfile[]>>;
+        openDirectChannelToUserId: (userId: string) => Promise<ActionResult>;
         closeRightHandSide: () => void;
     };
 }
@@ -87,7 +84,6 @@ const GroupMemberList = (props: Props) => {
         teamUrl,
         searchTerm,
         searchState,
-        showUserOverlay,
     } = props;
 
     const history = useHistory();
@@ -130,7 +126,7 @@ const GroupMemberList = (props: Props) => {
             return;
         }
         setCurrentDMLoading(user.id);
-        actions.openDirectChannelToUserId(user.id).then((result: { error: ServerError }) => {
+        actions.openDirectChannelToUserId(user.id).then((result: ActionResult) => {
             if (!result.error) {
                 actions.closeRightHandSide();
                 setCurrentDMLoading(undefined);
@@ -169,20 +165,23 @@ const GroupMemberList = (props: Props) => {
                     key={user.id}
                     role='listitem'
                 >
-                    <UserButton
-                        onClick={() => showUserOverlay(user)}
-                        aria-haspopup='dialog'
+                    <ProfilePopover
+                        userId={user.id}
+                        src={Utils.imageURLForUser(user?.id ?? '')}
+                        hideStatus={user.is_bot}
                     >
-                        <Avatar
-                            username={user.username}
-                            size={'sm'}
-                            url={Utils.imageURLForUser(user?.id ?? '')}
-                            className={'avatar-post-preview'}
-                            tabIndex={-1}
-                        />
-                        <Username className='overflow--ellipsis text-nowrap'>{name}</Username>
-                        <Gap className='group-member-list_gap'/>
-                    </UserButton>
+                        <UserButton>
+                            <Avatar
+                                username={user.username}
+                                size={'sm'}
+                                url={Utils.imageURLForUser(user?.id ?? '')}
+                                className={'avatar-post-preview'}
+                                tabIndex={-1}
+                            />
+                            <Username className='overflow--ellipsis text-nowrap'>{name}</Username>
+                            <Gap className='group-member-list_gap'/>
+                        </UserButton>
+                    </ProfilePopover>
                     <DMContainer className='group-member-list_dm-button'>
                         <SimpleTooltip
                             id={`name-${user.id}`}
@@ -394,7 +393,7 @@ const LargeLoadingItem = styled.div`
 
 const LoadFailedItem = styled(LargeLoadingItem)`
     padding: 16px;
-    color: rgba(var(--center-channel-color-rgb), 0.72);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     text-align: center;
     font-size: 12px;
 `;

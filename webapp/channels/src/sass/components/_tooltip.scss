@@ -47,15 +47,45 @@
     }
 
     .tooltip-help {
-        color: rgba(255, 255, 255, 0.64);
+        color: rgba(255, 255, 255, 0.75);
+    }
+
+    .tooltip-large-emoji {
+        margin-bottom: 2px;
+    }
+
+    .tooltip-title {
+        font-weight: 600;
+        line-height: 15px;
+
+        .emoticon {
+            margin-right: 6px;
+        }
+    }
+
+    .tooltip-hint {
+        font-size: 11px;
+        line-height: 16px;
+        opacity: 56%;
+    }
+
+    .tooltip-shortcuts-container {
+        display: flex;
+        justify-content: center;
+        padding: 4px 0;
+        gap: 2px;
+    }
+
+    .emoticon {
+        vertical-align: center;
     }
 }
 
 .floating-ui-tooltip {
     max-width: 220px;
     padding: 4px 8px;
-    background: #000;
     border-radius: 4px;
+    background: #000;
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
     color: #fff;
     font-size: 12px;

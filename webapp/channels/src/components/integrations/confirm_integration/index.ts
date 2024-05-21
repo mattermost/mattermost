@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 
 import {getBotAccounts} from 'mattermost-redux/selectors/entities/bots';
-import {getCommands, getOAuthApps, getIncomingHooks, getOutgoingHooks} from 'mattermost-redux/selectors/entities/integrations';
+import {getCommands, getOAuthApps, getIncomingHooks, getOutgoingHooks, getOutgoingOAuthConnections} from 'mattermost-redux/selectors/entities/integrations';
 
 import type {GlobalState} from 'types/store';
 
@@ -17,6 +17,7 @@ function mapStateToProps(state: GlobalState) {
         incomingHooks: getIncomingHooks(state),
         outgoingHooks: getOutgoingHooks(state),
         bots: getBotAccounts(state),
+        outgoingOAuthConnections: getOutgoingOAuthConnections(state),
     };
 }
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostMetadata, PostPriorityMetadata} from './posts';
+import type {PostMetadata, PostPriorityMetadata} from './posts';
 
 export type Draft = {
     create_at: number;

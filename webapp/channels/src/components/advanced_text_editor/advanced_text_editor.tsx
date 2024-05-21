@@ -26,6 +26,7 @@ import MessageSubmitError from 'components/message_submit_error';
 import MsgTyping from 'components/msg_typing';
 import OverlayTrigger from 'components/overlay_trigger';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
+import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
@@ -684,7 +685,7 @@ const AdvanceTextEditor = ({
                         {labels}
                         <Textbox
                             hasLabels={Boolean(labels)}
-                            suggestionList={RhsSuggestionList}
+                            suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}
                             onKeyDown={handleKeyDown}
@@ -718,7 +719,7 @@ const AdvanceTextEditor = ({
                                 {showFormatJSX}
                             </TexteditorActions>
                         )}
-                        {showFormattingSpacer || shouldShowPreview || attachmentPreview ? (
+                        {showFormattingSpacer || shouldShowPreview || attachmentPreview || isRHS ? (
                             <FormattingBarSpacer>
                                 {formattingBar}
                             </FormattingBarSpacer>

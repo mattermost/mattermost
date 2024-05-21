@@ -27,6 +27,9 @@ import * as Utils from 'utils/utils';
 import MfaSection from './mfa_section';
 import UserAccessTokenSection from './user_access_token_section';
 
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
+
 const SECTION_MFA = 'mfa';
 const SECTION_PASSWORD = 'password';
 const SECTION_SIGNIN = 'signin';
@@ -53,7 +56,7 @@ type Props = {
     setRequireConfirm: () => void;
     canUseAccessTokens: boolean;
     enableOAuthServiceProvider: boolean;
-    enableSignUpWithEmail: boolean;
+    allowedToSwitchToEmail: boolean;
     enableSignUpWithGitLab: boolean;
     enableSignUpWithGoogle: boolean;
     enableSignUpWithOpenId: boolean;
@@ -668,7 +671,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         </div>
                     );
                 }
-            } else if (this.props.enableSignUpWithEmail) {
+            } else if (this.props.allowedToSwitchToEmail) {
                 let link;
                 if (user.auth_service === Constants.LDAP_SERVICE) {
                     link =
@@ -915,7 +918,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     inputs={inputs}
                     serverError={this.state.serverError}
                     updateSection={this.handleUpdateSection}
-                    width='full'
+                    isFullWidth={true}
                     cancelButtonText={
                         <FormattedMessage
                             id='user.settings.security.close'
@@ -963,7 +966,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
         // If there are other sign-in methods and either email is enabled or the user's account is email, then allow switching
         let signInSection;
         if (
-            (this.props.enableSignUpWithEmail || user.auth_service === '') &&
+            (this.props.allowedToSwitchToEmail || user.auth_service === '') &&
             numMethods > 0 &&
             this.props.experimentalEnableAuthenticationTransfer
         ) {
@@ -990,45 +993,25 @@ export class SecurityTab extends React.PureComponent<Props, State> {
 
         return (
             <div>
-                <div className='modal-header'>
-                    <button
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label={this.props.intl.formatMessage({
-                            id: 'user.settings.security.close',
-                            defaultMessage: 'Close',
-                        })}
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4
-                        className='modal-title'
-                    >
-                        <div className='modal-back'>
-                            <i
-                                className='fa fa-angle-left'
-                                title={this.props.intl.formatMessage({
-                                    id: 'generic_icons.collapse',
-                                    defaultMessage: 'Collapse Icon',
-                                })}
-                                onClick={this.props.collapseModal}
-                            />
-                        </div>
+                <SettingMobileHeader
+                    closeModal={this.props.closeModal}
+                    collapseModal={this.props.collapseModal}
+                    text={
                         <FormattedMessage
                             id='user.settings.security.title'
                             defaultMessage='Security Settings'
                         />
-                    </h4>
-                </div>
+                    }
+                />
                 <div className='user-settings'>
-                    <h3 className='tab-header'>
-                        <FormattedMessage
-                            id='user.settings.security.title'
-                            defaultMessage='Security Settings'
-                        />
-                    </h3>
+                    <SettingDesktopHeader
+                        text={
+                            <FormattedMessage
+                                id='user.settings.security.title'
+                                defaultMessage='Security Settings'
+                            />
+                        }
+                    />
                     <div className='divider-dark first'/>
                     {passwordSection}
                     <div className='divider-light'/>

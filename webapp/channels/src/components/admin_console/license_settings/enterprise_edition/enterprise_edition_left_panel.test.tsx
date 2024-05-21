@@ -10,8 +10,6 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
 
-import * as useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
-
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -239,35 +237,5 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         );
 
         expect(screen.getByText('Expires in 5 days')).toHaveClass('expiration-days-danger');
-    });
-
-    test('should display add seats button when there are more than 60 days until expiry and self hosted expansion is available', () => {
-        const testLicense = {
-            ...license,
-            ExpiresAt: moment().add(61, 'days').valueOf().toString(),
-        };
-
-        const testState = mergeObjects(initialState, {
-            entities: {
-                general: {
-                    license: testLicense,
-                },
-            },
-        });
-        const props = {
-            ...baseProps,
-            license: testLicense,
-        };
-
-        jest.spyOn(useCanSelfHostedExpand, 'default').mockImplementation(() => true);
-
-        renderWithContext(
-            <EnterpriseEditionLeftPanel
-                {...props}
-            />,
-            testState,
-        );
-
-        expect(screen.getByText('+ Add seats')).toBeVisible();
     });
 });

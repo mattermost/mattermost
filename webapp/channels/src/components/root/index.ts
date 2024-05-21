@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getFirstAdminSetupComplete} from 'mattermost-redux/actions/general';
 import {getProfiles} from 'mattermost-redux/actions/users';
@@ -12,9 +12,8 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {shouldShowTermsOfService, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {Action} from 'mattermost-redux/types/actions';
 
-import {migrateRecentEmojis} from 'actions/emoji_actions';
+import {loadRecentlyUsedCustomEmojis, migrateRecentEmojis} from 'actions/emoji_actions';
 import {loadConfigAndMe, registerCustomPostRenderer} from 'actions/views/root';
 import {getShowLaunchingWorkspace} from 'selectors/onboarding';
 import {shouldShowAppBar} from 'selectors/plugins';
@@ -29,8 +28,8 @@ import {initializeProducts} from 'plugins/products';
 
 import type {GlobalState} from 'types/store/index';
 
+import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
 import Root from './root';
-import type {Actions} from './root';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
@@ -47,6 +46,9 @@ function mapStateToProps(state: GlobalState) {
         telemetryEnabled: config.DiagnosticsEnabled === 'true',
         noAccounts: config.NoAccounts === 'true',
         telemetryId: config.DiagnosticId,
+        iosDownloadLink: config.IosAppDownloadLink,
+        androidDownloadLink: config.AndroidAppDownloadLink,
+        appDownloadLink: config.AppDownloadLink,
         permalinkRedirectTeamName: permalinkRedirectTeam ? permalinkRedirectTeam.name : '',
         showTermsOfService,
         plugins,
@@ -62,13 +64,16 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             loadConfigAndMe,
             getFirstAdminSetupComplete,
             getProfiles,
+            loadRecentlyUsedCustomEmojis,
             migrateRecentEmojis,
             registerCustomPostRenderer,
             initializeProducts,
+            handleLoginLogoutSignal,
+            redirectToOnboardingOrDefaultTeam,
         }, dispatch),
     };
 }

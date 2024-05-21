@@ -15,7 +15,7 @@ import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general'
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import * as GlobalActions from 'actions/global_actions';
 import * as PostActions from 'actions/post_actions';
@@ -34,14 +34,13 @@ import {isUrlSafe, getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import {localizeMessage, getUserIdFromChannelName} from 'utils/utils';
 
-import type {DoAppCallResult} from 'types/apps';
 import type {GlobalState} from 'types/store';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForCommandArgs} from './apps';
 import {trackEvent} from './telemetry_actions';
 
-export function executeCommand(message: string, args: CommandArgs): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
         const state = getState() as GlobalState;
 
         let msg = message;
@@ -87,7 +86,10 @@ export function executeCommand(message: string, args: CommandArgs): ActionFunc {
                 dispatch(GlobalActions.sendEphemeralPost('/leave is not supported in reply threads. Use it in the center channel instead.', args.channel_id, args.root_id));
                 return {data: true};
             }
-            const channel = getCurrentChannel(state) || {};
+            const channel = getCurrentChannel(state);
+            if (!channel) {
+                return {data: false};
+            }
             if (channel.type === Constants.PRIVATE_CHANNEL) {
                 dispatch(openModal({modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL, dialogType: LeaveChannelModal, dialogProps: {channel}}));
                 return {data: true};
@@ -155,7 +157,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFunc {
                         return createErrorMessage(errorMessage!);
                     }
 
-                    const res = await dispatch(doAppSubmit(creq, intlShim)) as DoAppCallResult;
+                    const res = await dispatch(doAppSubmit(creq, intlShim));
 
                     if (res.error) {
                         const errorResponse = res.error;

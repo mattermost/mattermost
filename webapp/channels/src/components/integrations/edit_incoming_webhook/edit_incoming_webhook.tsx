@@ -65,7 +65,6 @@ type Props = {
 };
 
 type State = {
-    showConfirmModal: boolean;
     serverError: string;
 };
 
@@ -76,7 +75,6 @@ export default class EditIncomingWebhook extends React.PureComponent<Props, Stat
         super(props);
 
         this.state = {
-            showConfirmModal: false,
             serverError: '',
         };
     }

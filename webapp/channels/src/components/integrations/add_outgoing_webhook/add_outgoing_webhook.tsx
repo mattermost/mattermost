@@ -29,7 +29,7 @@ export type Props = {
         /**
         * The function to call to add a new outgoing webhook
         */
-        createOutgoingHook: (hook: OutgoingWebhook) => Promise<ActionResult>;
+        createOutgoingHook: (hook: OutgoingWebhook) => Promise<ActionResult<OutgoingWebhook>>;
     };
 
     /**

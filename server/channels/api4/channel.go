@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
@@ -88,6 +89,16 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&channel)
 	if err != nil || channel == nil {
 		c.SetInvalidParamWithErr("channel", err)
+		return
+	}
+
+	if channel.TeamId == "" {
+		c.SetInvalidParamWithDetails("team_id", i18n.T("api.channel.create_channel.missing_team_id.error"))
+		return
+	}
+
+	if channel.DisplayName == "" {
+		c.SetInvalidParamWithDetails("display_name", i18n.T("api.channel.create_channel.missing_display_name.error"))
 		return
 	}
 
@@ -427,7 +438,7 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds, err := model.NonSortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	userIds, err := model.NonSortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("createDirectChannel", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -522,12 +533,11 @@ func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	const maxGroupUsers = 7
-	userIds, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	userIds, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("createGroupChannel", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
-	} else if len(userIds) == 0 || len(userIds) > maxGroupUsers {
+	} else if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
@@ -711,7 +721,7 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	channelIDs, sortErr := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	channelIDs, sortErr := model.SortedArrayFromJSON(r.Body)
 	if sortErr != nil {
 		c.Err = model.NewAppError("getChannelsMemberCount", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(sortErr)
 		return
@@ -732,8 +742,8 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	for _, channel := range channels {
-		if !c.App.HasPermissionToReadChannel(c.AppContext, c.AppContext.Session().UserId, channel) {
-			c.SetPermissionError(model.PermissionReadChannel)
+		if !c.App.HasPermissionToChannelMemberCount(c.AppContext, c.AppContext.Session().UserId, channel) {
+			c.SetPermissionError(model.PermissionListTeamChannels)
 			return
 		}
 	}
@@ -925,7 +935,7 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	channelIds, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	channelIds, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("getPublicChannelsByIdsForTeam", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -1468,7 +1478,7 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userIds, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	userIds, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("getChannelMembersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -1594,7 +1604,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func readMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 
-	channelIds, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	channelIds, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("readMultipleChannels", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -1800,7 +1810,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			if v, ok2 := err.(*model.AppError); ok2 {
 				c.Err = v
 			} else {
-				c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
+				c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 			return
 		}

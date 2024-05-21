@@ -44,8 +44,6 @@ function CommentedOn({post, parentPostUser, onCommentClick}: Props) {
     const parentUserProfile = (
         <UserProfile
             userId={parentPostUserId}
-            hasMention={true}
-            disablePopover={false}
         />
     );
 

@@ -17,12 +17,19 @@ exports[`admin_console/system_roles should match snapshot 1`] = `
       className="admin-console__content"
     >
       <AdminPanel
-        className=""
         id="SystemRoles"
-        subtitleDefault="Manage different levels of access to the system console."
-        subtitleId="admin.permissions.systemRolesBannerText"
-        titleDefault="Admin Roles"
-        titleId="admin.permissions.systemRolesBannerTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Manage different levels of access to the system console.",
+            "id": "admin.permissions.systemRolesBannerText",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Admin Roles",
+            "id": "admin.permissions.systemRolesBannerTitle",
+          }
+        }
       >
         <div
           className="SystemRoles"
@@ -63,6 +70,7 @@ exports[`admin_console/system_roles should match snapshot 1`] = `
                 Object {
                   "cells": Object {
                     "description": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Access to modifying everything."
                       id="admin.permissions.roles.system_admin.description"
                     />,
                     "edit": <span
@@ -79,9 +87,11 @@ exports[`admin_console/system_roles should match snapshot 1`] = `
                       </Link>
                     </span>,
                     "role": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="System Admin"
                       id="admin.permissions.roles.system_admin.name"
                     />,
                     "type": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="System Role"
                       id="admin.permissions.roles.system_admin.type"
                     />,
                   },

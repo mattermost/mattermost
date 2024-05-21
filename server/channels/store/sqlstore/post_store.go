@@ -282,7 +282,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	return posts, -1, nil
 }
 
-func (s *SqlPostStore) Save(post *model.Post) (*model.Post, error) {
+func (s *SqlPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
 	posts, _, err := s.SaveMultiple([]*model.Post{post})
 	if err != nil {
 		return nil, err
@@ -2460,28 +2460,51 @@ func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, erro
 
 func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error) {
 	posts := []*model.PostForIndexing{}
-	table := "Posts"
-	// We force this index to avoid any chances of index merge intersection.
-	if s.DriverName() == model.DatabaseDriverMysql {
-		table += " USE INDEX(idx_posts_create_at_id)"
-	}
-	query := `SELECT
-			Posts.*, Channels.TeamId
-		FROM ` + table + `
-		LEFT JOIN
-			Channels
-		ON
-			Posts.ChannelId = Channels.Id
-		WHERE
-			Posts.CreateAt > ?
-		OR
-			(Posts.CreateAt = ? AND Posts.Id > ?)
-		ORDER BY
-			Posts.CreateAt ASC, Posts.Id ASC
-		LIMIT
-			?`
-	err := s.GetSearchReplicaX().Select(&posts, query, startTime, startTime, startPostID, limit)
 
+	var err error
+	// In order to use an index scan for both MySQL and Postgres, we need to
+	// diverge the implementation of the query, specifically in the WHERE
+	// condition: for MySQL, we need to do
+	//     (CreateAt > ?) OR (CreateAt = ? AND Id > ?)
+	// while for Postgres we need
+	//     (CreateAt, Id) > (?, ?)
+	// The wrong choice for any of the two databases makes the query go from
+	// milliseconds to dozens of seconds.
+	// More information in: https://github.com/mattermost/mattermost/pull/26517
+	// and https://community.mattermost.com/core/pl/ui5dz96shinetb8nq83myggbma
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query := `SELECT
+				Posts.*, Channels.TeamId
+			FROM Posts USE INDEX(idx_posts_create_at_id)
+			LEFT JOIN
+				Channels
+			ON
+				Posts.ChannelId = Channels.Id
+			WHERE
+				Posts.CreateAt > ?
+				OR
+				(Posts.CreateAt = ? AND Posts.Id > ?)
+			ORDER BY
+				Posts.CreateAt ASC, Posts.Id ASC
+			LIMIT
+				?`
+		err = s.GetSearchReplicaX().Select(&posts, query, startTime, startTime, startPostID, limit)
+	} else {
+		query := `SELECT
+				Posts.*, Channels.TeamId
+			FROM Posts
+			LEFT JOIN
+				Channels
+			ON
+				Posts.ChannelId = Channels.Id
+			WHERE
+				(Posts.CreateAt, Posts.Id) > (?, ?)
+			ORDER BY
+				Posts.CreateAt ASC, Posts.Id ASC
+			LIMIT
+				?`
+		err = s.GetSearchReplicaX().Select(&posts, query, startTime, startPostID, limit)
+	}
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
@@ -2686,7 +2709,7 @@ func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExpo
 	return posts, nil
 }
 
-func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, error) {
+func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error) {
 	query := s.getQueryBuilder().
 		Select("p.*", "Users.Username as User").
 		From("Posts p").
@@ -2696,12 +2719,16 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 			sq.Gt{"p.Id": afterId},
 			sq.Eq{"p.RootId": ""},
 			sq.Eq{"p.DeleteAt": 0},
-			sq.Eq{"Channels.DeleteAt": 0},
-			sq.Eq{"Users.DeleteAt": 0},
 			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
 		}).
 		OrderBy("p.Id").
 		Limit(uint64(limit))
+
+	if !includeArchivedChannels {
+		query = query.Where(
+			sq.Eq{"Channels.DeleteAt": 0},
+		)
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

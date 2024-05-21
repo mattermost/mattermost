@@ -32,7 +32,7 @@ const (
 const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
-	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream)).Methods("POST")
+	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, handlerParamFileAPI)).Methods("POST")
 	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile)).Methods("GET")
 	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail)).Methods("GET")
 	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink)).Methods("GET")
@@ -41,7 +41,7 @@ func (api *API) InitFile() {
 
 	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFiles)).Methods("POST")
 
-	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods("GET")
+	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods("GET", "HEAD")
 }
 
 func parseMultipartRequestHeader(req *http.Request) (boundary string, err error) {
@@ -150,9 +150,15 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	clientId := r.Form.Get("client_id")
 	audit.AddEventParameter(auditRec, "client_id", clientId)
 
+	creatorId := c.AppContext.Session().UserId
+	if isBookmark, err := strconv.ParseBool(r.URL.Query().Get(model.BookmarkFileOwner)); err == nil && isBookmark {
+		creatorId = model.BookmarkFileOwner
+		audit.AddEventParameter(auditRec, model.BookmarkFileOwner, true)
+	}
+
 	info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, c.Params.Filename, r.Body,
 		app.UploadFileSetTeamId(FileTeamId),
-		app.UploadFileSetUserId(c.AppContext.Session().UserId),
+		app.UploadFileSetUserId(creatorId),
 		app.UploadFileSetTimestamp(timestamp),
 		app.UploadFileSetContentLength(r.ContentLength),
 		app.UploadFileSetClientId(clientId))
@@ -267,6 +273,11 @@ NextPart:
 			continue NextPart
 		}
 
+		isBookmark := false
+		if val, queryErr := strconv.ParseBool(r.URL.Query().Get(model.BookmarkFileOwner)); queryErr == nil {
+			isBookmark = val
+		}
+
 		// A file part.
 
 		if c.Params.ChannelId == "" && asStream == nil {
@@ -279,7 +290,7 @@ NextPart:
 				return nil
 			}
 
-			return uploadFileMultipartLegacy(c, mr, timestamp)
+			return uploadFileMultipartLegacy(c, mr, timestamp, isBookmark)
 		}
 
 		c.RequireChannelId()
@@ -312,9 +323,15 @@ NextPart:
 		audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 		audit.AddEventParameter(auditRec, "client_id", clientId)
 
+		creatorId := c.AppContext.Session().UserId
+		if isBookmark {
+			creatorId = model.BookmarkFileOwner
+			audit.AddEventParameter(auditRec, model.BookmarkFileOwner, true)
+		}
+
 		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, filename, part,
 			app.UploadFileSetTeamId(FileTeamId),
-			app.UploadFileSetUserId(c.AppContext.Session().UserId),
+			app.UploadFileSetUserId(creatorId),
 			app.UploadFileSetTimestamp(timestamp),
 			app.UploadFileSetContentLength(-1),
 			app.UploadFileSetClientId(clientId))
@@ -353,7 +370,7 @@ NextPart:
 // borrowing from http.ParseMultipartForm.  If successful it returns a
 // *model.FileUploadResponse filled in with the individual model.FileInfo's.
 func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
-	timestamp time.Time) *model.FileUploadResponse {
+	timestamp time.Time, isBookmark bool) *model.FileUploadResponse {
 	// Parse the entire form.
 	form, err := mr.ReadForm(*c.App.Config().FileSettings.MaxFileSize)
 	if err != nil {
@@ -414,9 +431,15 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 		audit.AddEventParameter(auditRec, "channel_id", channelId)
 		audit.AddEventParameter(auditRec, "client_id", clientId)
 
+		creatorId := c.AppContext.Session().UserId
+		if isBookmark {
+			creatorId = model.BookmarkFileOwner
+			audit.AddEventParameter(auditRec, model.BookmarkFileOwner, true)
+		}
+
 		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, fileHeader.Filename, f,
 			app.UploadFileSetTeamId(FileTeamId),
-			app.UploadFileSetUserId(c.AppContext.Session().UserId),
+			app.UploadFileSetUserId(creatorId),
 			app.UploadFileSetTimestamp(timestamp),
 			app.UploadFileSetContentLength(-1),
 			app.UploadFileSetClientId(clientId))
@@ -460,7 +483,13 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	audit.AddEventParameterAuditable(auditRec, "file", info)
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
+	perm := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent)
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !perm {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -492,7 +521,13 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
+	perm := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent)
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !perm {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -535,12 +570,18 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	audit.AddEventParameterAuditable(auditRec, "file", info)
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
+	perm := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent)
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !perm {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
-	if info.PostId == "" {
+	if info.PostId == "" && info.CreatorId != model.BookmarkFileOwner {
 		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 		return
 	}
@@ -568,7 +609,13 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
+	perm := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent)
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !perm {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -602,7 +649,13 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
+	perm := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent)
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !perm {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}

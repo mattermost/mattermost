@@ -62,7 +62,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		c.Err = model.NewAppError("getConfig", "api.config.get_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getConfig", "api.config.get_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -72,7 +72,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License().IsCloud() {
 		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
 		if jsonErr != nil {
-			c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			return
 		}
 		w.Write(js)
@@ -98,7 +98,7 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.App.ReloadConfig(); err != nil {
-		c.Err = model.NewAppError("configReload", "api.config.reload_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("configReload", "api.config.reload_config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -163,6 +163,15 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		// and appCfg is the existing earlier config and if it's nil, server sets a default value.
 		if *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
 			c.Err = model.NewAppError("updateConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
+			return
+		}
+	}
+
+	// if ES autocomplete was enabled, we need to make sure that index has been checked.
+	// we need to stop enabling ES autocomplete otherwise.
+	if !*appCfg.ElasticsearchSettings.EnableAutocomplete && *cfg.ElasticsearchSettings.EnableAutocomplete {
+		if !c.App.SearchEngine().ElasticsearchEngine.IsAutocompletionEnabled() {
+			c.Err = model.NewAppError("updateConfig", "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error", nil, "", http.StatusBadRequest)
 			return
 		}
 	}

@@ -61,15 +61,10 @@ export type Props = {
     teamIsGroupConstrained: boolean;
     isLicensedForLDAPGroups?: boolean;
     intl: IntlShape;
-    teamUrl: string;
-    isFirstAdmin: boolean;
     isCloud: boolean;
     isStarterFree: boolean;
     isFreeTrial: boolean;
     usageDeltaTeams: number;
-    location: {
-        pathname: string;
-    };
     guestAccessEnabled: boolean;
     canInviteTeamMember: boolean;
     actions: {

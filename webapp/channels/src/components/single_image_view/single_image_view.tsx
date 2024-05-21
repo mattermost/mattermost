@@ -22,7 +22,7 @@ import type {PropsFromRedux} from './index';
 const PREVIEW_IMAGE_MIN_DIMENSION = 50;
 const DISPROPORTIONATE_HEIGHT_RATIO = 20;
 
-interface Props extends PropsFromRedux {
+export interface Props extends PropsFromRedux {
     postId: string;
     fileInfo: FileInfo;
     isRhsOpen: boolean;

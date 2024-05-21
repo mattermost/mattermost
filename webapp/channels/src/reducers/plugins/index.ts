@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import remove from 'lodash/remove';
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {ClientPluginManifest} from '@mattermost/types/plugins';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 import {extractPluginConfiguration} from 'utils/plugins/plugin_setting_extraction';
@@ -57,7 +57,7 @@ function sortComponents(a: PluginComponent, b: PluginComponent) {
     return 0;
 }
 
-function removePostPluginComponents(state: PluginsState['postTypes'], action: GenericAction) {
+function removePostPluginComponents(state: PluginsState['postTypes'], action: AnyAction) {
     if (!action.data) {
         return state;
     }
@@ -79,7 +79,7 @@ function removePostPluginComponents(state: PluginsState['postTypes'], action: Ge
     return state;
 }
 
-function removePostPluginComponent(state: PluginsState['postTypes'], action: GenericAction) {
+function removePostPluginComponent(state: PluginsState['postTypes'], action: AnyAction) {
     const nextState = {...state};
     const keys = Object.keys(nextState);
     for (let i = 0; i < keys.length; i++) {
@@ -93,7 +93,7 @@ function removePostPluginComponent(state: PluginsState['postTypes'], action: Gen
     return state;
 }
 
-function removePluginComponents(state: PluginsState['components'], action: GenericAction) {
+function removePluginComponents(state: PluginsState['components'], action: AnyAction) {
     if (!action.data) {
         return state;
     }
@@ -121,7 +121,7 @@ function removePluginComponents(state: PluginsState['components'], action: Gener
     return state;
 }
 
-function removePluginComponent(state: PluginsState['components'], action: GenericAction) {
+function removePluginComponent(state: PluginsState['components'], action: AnyAction) {
     let newState = state;
     const types = Object.keys(state);
     for (let i = 0; i < types.length; i++) {
@@ -138,7 +138,7 @@ function removePluginComponent(state: PluginsState['components'], action: Generi
     return newState;
 }
 
-function plugins(state: IDMappedObjects<ClientPluginManifest> = {}, action: GenericAction) {
+function plugins(state: IDMappedObjects<ClientPluginManifest> = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_WEBAPP_PLUGINS: {
         if (action.data) {
@@ -195,7 +195,7 @@ const initialComponents: PluginsState['components'] = {
     DesktopNotificationHooks: [],
 };
 
-function components(state: PluginsState['components'] = initialComponents, action: GenericAction) {
+function components(state: PluginsState['components'] = initialComponents, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_COMPONENT: {
         if (action.name && action.data) {
@@ -232,7 +232,7 @@ function components(state: PluginsState['components'] = initialComponents, actio
     }
 }
 
-function postTypes(state: PluginsState['postTypes'] = {}, action: GenericAction) {
+function postTypes(state: PluginsState['postTypes'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_POST_COMPONENT: {
         if (action.data) {
@@ -261,7 +261,7 @@ function postTypes(state: PluginsState['postTypes'] = {}, action: GenericAction)
     }
 }
 
-function postCardTypes(state: PluginsState['postTypes'] = {}, action: GenericAction) {
+function postCardTypes(state: PluginsState['postTypes'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_POST_CARD_COMPONENT: {
         if (action.data) {
@@ -290,7 +290,7 @@ function postCardTypes(state: PluginsState['postTypes'] = {}, action: GenericAct
     }
 }
 
-function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: GenericAction) {
+function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_ADMIN_CONSOLE_REDUCER: {
         if (action.data) {
@@ -323,7 +323,7 @@ function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: Gen
     }
 }
 
-function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string, AdminConsolePluginComponent>} = {}, action: GenericAction) {
+function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string, AdminConsolePluginComponent>} = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_COMPONENT: {
         if (!action.data) {
@@ -361,7 +361,7 @@ function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string,
     }
 }
 
-function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action: GenericAction) {
+function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER:
         if (action.data) {
@@ -386,7 +386,7 @@ function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action
     }
 }
 
-function userSettings(state: PluginsState['userSettings'] = {}, action: GenericAction) {
+function userSettings(state: PluginsState['userSettings'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS:
         if (action.data) {

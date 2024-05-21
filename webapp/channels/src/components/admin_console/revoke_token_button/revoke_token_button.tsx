@@ -4,15 +4,15 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-interface RevokeTokenButtonProps {
+export interface RevokeTokenButtonProps {
     actions: {
         revokeUserAccessToken: (
             tokenId: string
-        ) => Promise<ActionFunc | ActionResult> | ActionFunc | ActionResult;
+        ) => Promise<ActionResult>;
     };
     tokenId: string;
     onError: (errorMessage: string) => void;

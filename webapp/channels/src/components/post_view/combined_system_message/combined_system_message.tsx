@@ -8,7 +8,6 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts} from 'mattermost-redux/constants';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import Markdown from 'components/markdown';
 
@@ -200,8 +199,8 @@ export type Props = {
     showJoinLeave: boolean;
     userProfiles: UserProfile[];
     actions: {
-        getMissingProfilesByIds: (userIds: string[]) => ActionFunc ;
-        getMissingProfilesByUsernames: (usernames: string[]) => ActionFunc;
+        getMissingProfilesByIds: (userIds: string[]) => void;
+        getMissingProfilesByUsernames: (usernames: string[]) => void;
     };
 }
 

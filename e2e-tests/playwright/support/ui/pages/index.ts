@@ -6,6 +6,7 @@ import {LandingLoginPage} from './landing_login';
 import {LoginPage} from './login';
 import {ResetPasswordPage} from './reset_password';
 import {SignupPage} from './signup';
+import {SystemConsolePage} from './system_console';
 
 const pages = {
     ChannelsPage,
@@ -13,6 +14,7 @@ const pages = {
     LoginPage,
     ResetPasswordPage,
     SignupPage,
+    SystemConsolePage,
 };
 
 export {pages, ChannelsPage, LandingLoginPage, LoginPage, SignupPage};

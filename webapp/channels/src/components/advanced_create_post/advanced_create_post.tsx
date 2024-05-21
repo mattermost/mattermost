@@ -18,6 +18,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {Posts} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -83,7 +84,7 @@ export type Props = {
     currentChannelMembersCount: number;
 
     // Data used in multiple places of the component
-    currentChannel: Channel;
+    currentChannel?: Channel;
 
     //Data used for DM prewritten messages
     currentChannelTeammateUsername?: string;
@@ -169,10 +170,10 @@ export type Props = {
         addMessageIntoHistory: (message: string) => void;
 
         // func called for navigation through messages by Up arrow
-        moveHistoryIndexBack: (index: string) => Promise<void>;
+        moveHistoryIndexBack: (index: string) => Promise<ActionResult>;
 
         // func called for navigation through messages by Down arrow
-        moveHistoryIndexForward: (index: string) => Promise<void>;
+        moveHistoryIndexForward: (index: string) => Promise<ActionResult>;
 
         submitReaction: (postId: string, action: string, emojiName: string) => void;
 
@@ -189,10 +190,10 @@ export type Props = {
         clearDraftUploads: () => void;
 
         //hooks called before a message is sent to the server
-        runMessageWillBePostedHooks: (originalPost: Post) => ActionResult;
+        runMessageWillBePostedHooks: (originalPost: Post) => Promise<ActionResult<Post>>;
 
         //hooks called before a slash command is sent to the server
-        runSlashCommandWillBePostedHooks: (originalMessage: string, originalArgs: CommandArgs) => ActionResult;
+        runSlashCommandWillBePostedHooks: (originalMessage: string, originalArgs: CommandArgs) => Promise<ActionResult>;
 
         // func called for setting drafts
         setDraft: (name: string, value: PostDraft | null, draftChannelId: string, save?: boolean) => void;
@@ -206,19 +207,19 @@ export type Props = {
         //Function to open a modal
         openModal: <P>(modalData: ModalData<P>) => void;
 
-        executeCommand: (message: string, args: CommandArgs) => ActionResult;
+        executeCommand: (message: string, args: CommandArgs) => Promise<ActionResult>;
 
         //Function to get the users timezones in the channel
-        getChannelTimezones: (channelId: string) => ActionResult;
+        getChannelTimezones: (channelId: string) => Promise<ActionResult<string[]>>;
         scrollPostListToBottom: () => void;
 
         //Function to set or unset emoji picker for last message
-        emitShortcutReactToLastPostFrom: (emittedFrom: string) => void;
+        emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
 
         getChannelMemberCountsByGroup: (channelId: string) => void;
 
         //Function used to advance the tutorial forward
-        savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
+        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
 
         searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
     };
@@ -238,7 +239,7 @@ type State = {
     uploadsProgressPercent: {[clientID: string]: FilePreviewInfo};
     renderScrollbar: boolean;
     scrollbarWidth: number;
-    currentChannel: Channel;
+    currentChannel?: Channel;
     errorClass: string | null;
     serverError: (ServerError & {submittedMessage?: string}) | null;
     postError?: React.ReactNode;
@@ -270,7 +271,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             currentChannel: props.currentChannel,
         };
         if (
-            props.currentChannel.id !== state.currentChannel.id ||
+            props.currentChannel?.id !== state.currentChannel?.id ||
             (props.isRemoteDraft && props.draft.message !== state.message)
         ) {
             updatedState = {
@@ -320,14 +321,14 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
     componentDidUpdate(prevProps: Props, prevState: State) {
         const {currentChannel, actions} = this.props;
-        if (prevProps.currentChannel.id !== currentChannel.id) {
+        if (prevProps.currentChannel?.id !== currentChannel?.id) {
             this.lastChannelSwitchAt = Date.now();
             this.focusTextbox();
             this.saveDraftWithShow(prevProps);
             this.getChannelMemberCountsByGroup();
         }
 
-        if (currentChannel.id !== prevProps.currentChannel.id) {
+        if (currentChannel?.id !== prevProps.currentChannel?.id) {
             actions.setShowPreview(false);
         }
 
@@ -355,7 +356,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     getChannelMemberCountsByGroup = () => {
         const {useLDAPGroupMentions, useCustomGroupMentions, currentChannel, actions, draft} = this.props;
 
-        if ((useLDAPGroupMentions || useCustomGroupMentions) && currentChannel.id) {
+        if ((useLDAPGroupMentions || useCustomGroupMentions) && currentChannel?.id) {
             const mentions = mentionsMinusSpecialMentionsInText(draft.message);
 
             if (mentions.length === 1) {
@@ -457,7 +458,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     doSubmit = async (e?: React.FormEvent) => {
-        const channelId = this.props.currentChannel.id;
+        const channelId = this.props.currentChannel?.id;
+        if (!channelId) {
+            return;
+        }
+
         if (e) {
             e.preventDefault();
         }
@@ -627,6 +632,10 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             useCustomGroupMentions,
         } = this.props;
 
+        if (!updateChannel) {
+            return;
+        }
+
         this.setShowPreview(false);
         this.isDraftSubmitting = true;
 
@@ -670,7 +679,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 }
             }
 
-            const {data} = await this.props.actions.getChannelTimezones(this.props.currentChannel.id);
+            const {data} = await this.props.actions.getChannelTimezones(updateChannel.id);
             channelTimezoneCount = data ? data.length : 0;
         }
 
@@ -735,7 +744,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         await this.doSubmit(e);
     };
 
-    sendMessage = async (originalPost: Post) => {
+    sendMessage = async (originalPost: Post): Promise<ActionResult> => {
         const {
             actions,
             currentChannel,
@@ -746,6 +755,10 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             groupsWithAllowReference,
             useCustomGroupMentions,
         } = this.props;
+
+        if (!currentChannel) {
+            return {data: false};
+        }
 
         let post = originalPost;
 
@@ -783,7 +796,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             return hookResult;
         }
 
-        post = hookResult.data;
+        post = hookResult.data!;
 
         actions.onSubmitPost(post, draft.fileInfos);
         actions.scrollPostListToBottom();
@@ -863,8 +876,10 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     emitTypingEvent = () => {
-        const channelId = this.props.currentChannel.id;
-        GlobalActions.emitLocalUserTypingEvent(channelId, '');
+        const channelId = this.props.currentChannel?.id;
+        if (channelId) {
+            GlobalActions.emitLocalUserTypingEvent(channelId, '');
+        }
     };
 
     handleChange = (e: React.ChangeEvent<TextboxElement>) => {
@@ -888,9 +903,13 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.handleDraftChange(draft);
     };
 
-    handleDraftChange = (draft: PostDraft, channelId = this.props.currentChannel.id, instant = false) => {
+    handleDraftChange = (draft: PostDraft, channelId = this.props.currentChannel?.id, instant = false) => {
         if (this.saveDraftFrame) {
             clearTimeout(this.saveDraftFrame);
+        }
+
+        if (!channelId) {
+            return;
         }
 
         if (instant) {
@@ -904,7 +923,10 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.draftsForChannel[channelId] = draft;
     };
 
-    removeDraft = (channelId = this.props.currentChannel.id) => {
+    removeDraft = (channelId = this.props.currentChannel?.id) => {
+        if (!channelId) {
+            return;
+        }
         this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);
         this.draftsForChannel[channelId] = null;
     };
@@ -985,6 +1007,9 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     removePreview = (id: string) => {
+        if (!this.props.currentChannel) {
+            return;
+        }
         let modifiedDraft = {} as PostDraft;
         const draft = {...this.props.draft};
 
@@ -1202,7 +1227,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     handleEmojiClick = (emoji: Emoji) => {
-        const emojiAlias = ('short_names' in emoji && emoji.short_names && emoji.short_names[0]) || emoji.name;
+        const emojiAlias = getEmojiName(emoji);
 
         if (!emojiAlias) {
             //Oops.. There went something wrong
@@ -1263,6 +1288,9 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     handlePostPriorityApply = (settings?: PostPriorityMetadata) => {
+        if (!this.props.currentChannel) {
+            return;
+        }
         const updatedDraft = {
             ...this.props.draft,
         };
@@ -1308,7 +1336,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             return true;
         }
 
-        if (currentChannel.type === Constants.DM_CHANNEL) {
+        if (currentChannel?.type === Constants.DM_CHANNEL) {
             return true;
         }
 

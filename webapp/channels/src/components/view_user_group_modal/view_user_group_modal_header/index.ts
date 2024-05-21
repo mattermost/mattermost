@@ -3,28 +3,18 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {addUsersToGroup, archiveGroup, removeUsersFromGroup, restoreGroup} from 'mattermost-redux/actions/groups';
 import {Permissions} from 'mattermost-redux/constants';
 import {getGroup as getGroupById, isMyGroup} from 'mattermost-redux/selectors/entities/groups';
 import {haveIGroupPermission} from 'mattermost-redux/selectors/entities/roles';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
-import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
 
 import ViewUserGroupModalHeader from './view_user_group_modal_header';
-
-type Actions = {
-    openModal: <P>(modalData: ModalData<P>) => void;
-    removeUsersFromGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
-    addUsersToGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
-    archiveGroup: (groupId: string) => Promise<ActionResult>;
-    restoreGroup: (groupId: string) => Promise<ActionResult>;
-};
 
 type OwnProps = {
     groupId: string;
@@ -53,7 +43,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             openModal,
             removeUsersFromGroup,
             addUsersToGroup,

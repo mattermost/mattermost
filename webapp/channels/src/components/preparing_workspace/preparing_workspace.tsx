@@ -65,10 +65,10 @@ type SubmissionState = typeof SubmissionStates[keyof typeof SubmissionStates];
 const WAIT_FOR_REDIRECT_TIME = 2000 - START_TRANSITIONING_OUT;
 
 export type Actions = {
-    createTeam: (team: Team) => ActionResult;
-    updateTeam: (team: Team) => ActionResult;
-    checkIfTeamExists: (teamName: string) => ActionResult;
-    getProfiles: (page: number, perPage: number, options: Record<string, any>) => ActionResult;
+    createTeam: (team: Team) => Promise<ActionResult>;
+    updateTeam: (team: Team) => Promise<ActionResult>;
+    checkIfTeamExists: (teamName: string) => Promise<ActionResult<boolean>>;
+    getProfiles: (page: number, perPage: number, options: Record<string, any>) => Promise<ActionResult>;
 }
 
 type Props = RouterProps & {
@@ -213,7 +213,7 @@ const PreparingWorkspace = ({
         trackSubmitFail[redirectTo]();
     }, []);
 
-    const createTeam = async (OrganizationName: string): Promise<{error: string | null; newTeam: Team | null}> => {
+    const createTeam = async (OrganizationName: string): Promise<{error: string | null; newTeam: Team | undefined | null}> => {
         const data = await actions.createTeam(makeNewTeam(OrganizationName, teamNameToUrl(OrganizationName || '').url));
         if (data.error) {
             return {error: genericSubmitError, newTeam: null};

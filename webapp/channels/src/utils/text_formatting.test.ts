@@ -17,10 +17,63 @@ import {
     highlightWithoutNotificationKeywords,
     parseSearchTerms,
     autolinkChannelMentions,
+    Tokens,
+    isFormatTokenLimitError,
+    doFormatText,
+    replaceTokens,
 } from 'utils/text_formatting';
 import type {ChannelNamesMap} from 'utils/text_formatting';
 
 const emptyEmojiMap = new EmojiMap(new Map());
+
+describe('tokens', () => {
+    test('should throw an error when too many elements are added to the map', () => {
+        const tokens = new Tokens();
+        const testValue = {value: 'test', originalText: 'test'};
+        for (let i = 0; i < 999; i++) {
+            tokens.set(`${i}`, testValue);
+        }
+        expect(() => tokens.set('999', testValue)).not.toThrow();
+        expect(() => tokens.set('0', testValue)).not.toThrow();
+        expect(() => tokens.set('1000', testValue)).toThrow('maximum number of tokens reached');
+    });
+});
+
+describe('isFormatTokenLimitError', () => {
+    const ttcc = [
+        {
+            name: 'undefined',
+            error: undefined,
+            expected: false,
+        },
+        {
+            name: 'string',
+            error: 'some error',
+            expected: false,
+        },
+        {
+            name: 'object',
+            error: {someProperty: 'foo'},
+            expected: false,
+        },
+        {
+            name: 'other error',
+            error: new Error('foo'),
+            expected: false,
+        },
+        {
+            name: 'correct error',
+            error: new Error('maximum number of tokens reached'),
+            expected: true,
+        },
+    ];
+
+    for (const tc of ttcc) {
+        test(`should return ${tc.expected} when the error is ${tc.name}`, () => {
+            expect(isFormatTokenLimitError(tc.error)).toEqual(tc.expected);
+        });
+    }
+});
 
 describe('formatText', () => {
     test('jumbo emoji should be able to handle up to 3 spaces before the emoji character', () => {
@@ -491,4 +544,35 @@ describe('parseSearchTerms', () => {
             expect(output).toStrictEqual(t.expected);
         });
     }
+});
+
+describe('doFormatText', () => {
+    test('too many tokens results in returning the same input string', () => {
+        let originalText = '@sysadmin '.repeat(501);
+        let result = doFormatText(originalText, {atMentions: true}, emptyEmojiMap);
+        expect(result).not.toEqual(originalText);
+
+        originalText = originalText.repeat(2);
+        result = doFormatText(originalText, {atMentions: true}, emptyEmojiMap);
+        expect(result).toEqual(originalText);
+    });
+});
+
+describe('replaceTokens', () => {
+    describe('properly escape especial replace patterns', () => {
+        const ttcc = [
+            'foo$&foo',
+            'foo$`foo',
+            'foo$\'foo',
+        ];
+
+        for (const tc of ttcc) {
+            test(tc, () => {
+                const tokens = new Tokens([['$alias$', {originalText: 'foo', value: tc}]]);
+
+                const result = replaceTokens('$alias$', tokens);
+                expect(result).toEqual(tc);
+            });
+        }
+    });
 });

@@ -24,6 +24,7 @@ exports[`components/admin_console/reset_email_modal/reset_email_modal.tsx should
       "remove": [Function],
     }
   }
+  onExited={[MockFunction]}
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
@@ -138,6 +139,7 @@ exports[`components/admin_console/reset_email_modal/reset_email_modal.tsx should
       "remove": [Function],
     }
   }
+  onExited={[MockFunction]}
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}

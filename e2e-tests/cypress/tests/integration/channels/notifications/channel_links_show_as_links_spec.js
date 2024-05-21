@@ -50,8 +50,8 @@ describe('Notifications', () => {
 
                     // # Open 'Notifications' of 'Settings' modal
                     cy.uiOpenSettingsModal().within(() => {
-                        // # Open 'Email Notifications' setting and set to 'Immediately'
-                        cy.findByRole('heading', {name: 'Email Notifications'}).should('be.visible').click();
+                        // # Open 'Email notifications' setting and set to 'Immediately'
+                        cy.findByRole('heading', {name: 'Email notifications'}).should('be.visible').click();
                         cy.findByRole('radio', {name: 'Immediately'}).click().should('be.checked');
 
                         // # Save then close the modal

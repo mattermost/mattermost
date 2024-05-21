@@ -15,7 +15,6 @@ import {
     disablePlugin,
 } from 'mattermost-redux/actions/admin';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import PluginManagement from './plugin_management';
 
@@ -27,7 +26,7 @@ function mapStateToProps(state: any) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             uploadPlugin,

@@ -50,6 +50,9 @@ type MetricsInterface interface {
 	DecrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
 	IncrementWebsocketReconnectEvent(eventType string)
 
+	IncrementHTTPWebSockets(originClient string)
+	DecrementHTTPWebSockets(originClient string)
+
 	AddMemCacheHitCounter(cacheName string, amount float64)
 	AddMemCacheMissCounter(cacheName string, amount float64)
 
@@ -79,9 +82,34 @@ type MetricsInterface interface {
 	ObserveRemoteClusterClockSkew(remoteID string, skew float64)
 	IncrementRemoteClusterConnStateChangeCounter(remoteID string, online bool)
 
+	IncrementSharedChannelsSyncCounter(remoteID string)
+	ObserveSharedChannelsTaskInQueueDuration(elapsed float64)
+	ObserveSharedChannelsQueueSize(size int64)
+	ObserveSharedChannelsSyncCollectionDuration(remoteID string, elapsed float64)
+	ObserveSharedChannelsSyncSendDuration(remoteID string, elapsed float64)
+	ObserveSharedChannelsSyncCollectionStepDuration(remoteID string, step string, elapsed float64)
+	ObserveSharedChannelsSyncSendStepDuration(remoteID string, step string, elapsed float64)
+
 	IncrementJobActive(jobType string)
 	DecrementJobActive(jobType string)
 
 	SetReplicaLagAbsolute(node string, value float64)
 	SetReplicaLagTime(node string, value float64)
+
+	IncrementNotificationCounter(notificationType model.NotificationType)
+	IncrementNotificationAckCounter(notificationType model.NotificationType)
+	IncrementNotificationSuccessCounter(notificationType model.NotificationType)
+	IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason)
+	IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason)
+	IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason)
+
+	ObserveClientTimeToFirstByte(platform, agent string, elapsed float64)
+	ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64)
+	ObserveClientLargestContentfulPaint(platform, agent string, elapsed float64)
+	ObserveClientInteractionToNextPaint(platform, agent string, elapsed float64)
+	ObserveClientCumulativeLayoutShift(platform, agent string, elapsed float64)
+	IncrementClientLongTasks(platform, agent string, inc float64)
+	ObserveClientChannelSwitchDuration(platform, agent string, elapsed float64)
+	ObserveClientTeamSwitchDuration(platform, agent string, elapsed float64)
+	ObserveClientRHSLoadDuration(platform, agent string, elapsed float64)
 }

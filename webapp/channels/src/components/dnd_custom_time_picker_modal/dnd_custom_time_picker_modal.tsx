@@ -12,7 +12,6 @@ import {GenericModal} from '@mattermost/components';
 import type {UserStatus} from '@mattermost/types/users';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import DatePicker from 'components/date_picker';
@@ -36,7 +35,7 @@ type Props = {
 
     theme: Theme;
     actions: {
-        setStatus: (status: UserStatus) => ActionFunc;
+        setStatus: (status: UserStatus) => void;
     };
 };
 

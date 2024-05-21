@@ -160,6 +160,13 @@ func (api *apiTimerLayer) GetUsers(options *model.UserGetOptions) ([]*model.User
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetUsersByIds(userIDs []string) ([]*model.User, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetUsersByIds(userIDs)
+	api.recordTime(startTime, "GetUsersByIds", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetUser(userID string) (*model.User, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetUser(userID)
@@ -655,6 +662,13 @@ func (api *apiTimerLayer) UpdateChannelMemberNotifications(channelId, userID str
 	_returnsA, _returnsB := api.apiImpl.UpdateChannelMemberNotifications(channelId, userID, notifications)
 	api.recordTime(startTime, "UpdateChannelMemberNotifications", _returnsB == nil)
 	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.PatchChannelMembersNotifications(members, notifyProps)
+	api.recordTime(startTime, "PatchChannelMembersNotifications", _returnsA == nil)
+	return _returnsA
 }
 
 func (api *apiTimerLayer) GetGroup(groupId string) (*model.Group, *model.AppError) {
@@ -1344,9 +1358,9 @@ func (api *apiTimerLayer) SyncSharedChannel(channelID string) error {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) InviteRemoteToChannel(channelID string, remoteID string, userID string) error {
+func (api *apiTimerLayer) InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.InviteRemoteToChannel(channelID, remoteID, userID)
+	_returnsA := api.apiImpl.InviteRemoteToChannel(channelID, remoteID, userID, shareIfNotShared)
 	api.recordTime(startTime, "InviteRemoteToChannel", _returnsA == nil)
 	return _returnsA
 }
@@ -1356,4 +1370,11 @@ func (api *apiTimerLayer) UninviteRemoteFromChannel(channelID string, remoteID s
 	_returnsA := api.apiImpl.UninviteRemoteFromChannel(channelID, remoteID)
 	api.recordTime(startTime, "UninviteRemoteFromChannel", _returnsA == nil)
 	return _returnsA
+}
+
+func (api *apiTimerLayer) UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateUserRoles(userID, newRoles)
+	api.recordTime(startTime, "UpdateUserRoles", _returnsB == nil)
+	return _returnsA, _returnsB
 }

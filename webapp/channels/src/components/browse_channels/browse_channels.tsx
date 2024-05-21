@@ -6,7 +6,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-import type {Channel, ChannelMembership, ChannelSearchOpts} from '@mattermost/types/channels';
+import type {Channel, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -40,10 +40,10 @@ export enum Filter {
 export type FilterType = keyof typeof Filter;
 
 type Actions = {
-    getChannels: (teamId: string, page: number, perPage: number) => Promise<ActionResult<Channel[], Error>>;
-    getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => Promise<ActionResult<Channel[], Error>>;
+    getChannels: (teamId: string, page: number, perPage: number) => Promise<ActionResult<Channel[]>>;
+    getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => Promise<ActionResult<Channel[]>>;
     joinChannel: (currentUserId: string, teamId: string, channelId: string) => Promise<ActionResult>;
-    searchAllChannels: (term: string, opts?: ChannelSearchOpts) => Promise<ActionResult<Channel[], Error>>;
+    searchAllChannels: (term: string, opts?: ChannelSearchOpts) => Promise<ActionResult<Channel[] | ChannelsWithTotalCount>>;
     openModal: <P>(modalData: ModalData<P>) => void;
     closeModal: (modalId: string) => void;
 
@@ -61,7 +61,7 @@ export type Props = {
     privateChannels: Channel[];
     currentUserId: string;
     teamId: string;
-    teamName: string;
+    teamName?: string;
     channelsRequestStarted?: boolean;
     canShowArchivedChannels?: boolean;
     myChannelMemberships: RelationOneToOne<Channel, ChannelMembership>;
@@ -103,6 +103,11 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     }
 
     componentDidMount() {
+        if (!this.props.teamId) {
+            this.loadComplete();
+            return;
+        }
+
         const promises = [
             this.props.actions.getChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2),
         ];
@@ -178,7 +183,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
             this.setState({serverError: result.error.message});
         } else {
             this.props.actions.getChannelsMemberCount([channel.id]);
-            getHistory().push(getRelativeChannelURL(teamName, channel.name));
+            getHistory().push(getRelativeChannelURL(teamName!, channel.name));
             this.closeEditRHS();
         }
 
@@ -201,7 +206,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         const searchTimeoutId = window.setTimeout(
             async () => {
                 try {
-                    const {data} = await this.props.actions.searchAllChannels(term, {team_ids: [this.props.teamId], nonAdminSearch: true, include_deleted: true});
+                    const {data} = await this.props.actions.searchAllChannels(term, {team_ids: [this.props.teamId], nonAdminSearch: true, include_deleted: true}) as ActionResult<Channel[]>;
                     if (searchTimeoutId !== this.searchTimeoutId) {
                         return;
                     }
@@ -288,6 +293,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     render() {
         const {teamId, channelsRequestStarted, shouldHideJoinedChannels} = this.props;
         const {search, serverError: serverErrorState, searching} = this.state;
+
         this.activeChannels = this.getActiveChannels();
 
         let serverError;
