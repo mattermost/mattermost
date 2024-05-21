@@ -9,7 +9,23 @@ import SaveButton from 'components/save_button';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
+let mockState: any;
+
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux') as typeof import('react-redux'),
+    useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
+}));
+
 describe('components/login/LoginMfa', () => {
+    mockState = {
+        entities: {
+            general: {
+                config: {
+                    EnableCustomBrand: 'false',
+                },
+            },
+        },
+    };
     const baseProps = {
         loginId: 'login_id',
         password: 'password',

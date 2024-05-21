@@ -38,6 +38,7 @@ const PasswordResetSendLink = ({onCustomizeHeader}: Props) => {
         e.preventDefault();
 
         const emailClean = email.trim().toLowerCase();
+        console.log(emailClean)
         if (!email || !isEmail(emailClean)) {
             setErrorText((
                 <FormattedMessage
@@ -138,6 +139,7 @@ const PasswordResetSendLink = ({onCustomizeHeader}: Props) => {
                         <BrandedButton>
                             <button
                                 id='passwordResetReturnToLoginButton'
+                                data-testid='returnToLogin'
                                 type='submit'
                                 className='btn btn-primary'
                                 onClick={handleHeaderBackButtonOnClick}
@@ -178,6 +180,7 @@ const PasswordResetSendLink = ({onCustomizeHeader}: Props) => {
                                 <BrandedInput>
                                     <Input
                                         id='passwordResetEmailInput'
+                                        data-testid='email'
                                         type='email'
                                         className='form-control'
                                         name='email'
@@ -197,6 +200,7 @@ const PasswordResetSendLink = ({onCustomizeHeader}: Props) => {
                                 <button
                                     id='passwordResetButton'
                                     type='submit'
+                                    data-testid='reset-button'
                                     className='btn btn-primary'
                                 >
                                     <FormattedMessage

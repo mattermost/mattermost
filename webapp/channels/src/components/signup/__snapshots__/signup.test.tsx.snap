@@ -10,6 +10,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
     <div
       className="signup-body-message with-alternate-link"
     >
+      <div />
       <h1
         className="signup-body-message-title"
       >
@@ -186,6 +187,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
     <div
       className="signup-body-message with-alternate-link"
     >
+      <div />
       <h1
         className="signup-body-message-title"
       >
