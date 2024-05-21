@@ -128,6 +128,11 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		if pref.Category == model.PreferenceLimitVisibleDmsGms && pref.Value > "40" {
+			c.SetInvalidParam("preference.value")
+			return
+		}
+
 		sanitizedPreferences = append(sanitizedPreferences, pref)
 	}
 
