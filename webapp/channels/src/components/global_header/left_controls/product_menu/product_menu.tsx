@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef} from 'react';
+import React, {useRef, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
+import tinycolor from 'tinycolor2';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
 import {Client4} from 'mattermost-redux/client';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getInt} from 'mattermost-redux/selectors/entities/preferences';
+import {getInt, getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
@@ -84,6 +85,7 @@ const ProductMenu = (): JSX.Element => {
     const tutorialStep = useSelector((state: GlobalState) => getInt(state, TutorialTourName.EXPLORE_OTHER_TOOLS, currentUserId, 0));
     const triggerStep = useSelector((state: GlobalState) => getInt(state, OnboardingTaskCategory, OnboardingTasksName.EXPLORE_OTHER_TOOLS, FINISHED));
     const exploreToolsTourTriggered = triggerStep === GenericTaskSteps.STARTED;
+    const theme = useSelector(getTheme);
 
     const {playbooksPlugin} = useGetPluginsActivationState();
 
@@ -106,6 +108,10 @@ const ProductMenu = (): JSX.Element => {
         }
         dispatch(setProductMenuSwitcherOpen(false));
     });
+
+    const useDarkLogo = useMemo(() => {
+        return tinycolor(theme.sidebarHeaderBg).isDark();
+    }, [theme.sidebarHeaderBg])
 
     const productItems = products?.map((product) => {
         let tourTip;
@@ -144,7 +150,7 @@ const ProductMenu = (): JSX.Element => {
                     {license.IsLicensed === 'false' && <ProductBrandingTeamEdition/>}
                     {license.IsLicensed === 'true' && EnableCustomBrand === 'true' && CustomBrandHasLogo === 'true' && (
                         <img
-                            src={Client4.getCustomDarkLogoUrl('0')}
+                            src={useDarkLogo ? Client4.getCustomDarkLogoUrl('0') : Client4.getCustomLightLogoUrl('0')}
                             height={24}
                         />
                     )}

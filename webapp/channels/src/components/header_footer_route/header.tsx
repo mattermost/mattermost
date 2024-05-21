@@ -4,6 +4,7 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
+import tinycolor from 'tinycolor2';
 
 import {Client4} from 'mattermost-redux/client';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -27,6 +28,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
         EnableCustomBrand,
         SiteName,
         CustomBrandHasLogo,
+        CustomBrandColorBackground,
     } = useSelector(getConfig);
 
     const ariaLabel = SiteName || 'Mattermost';
@@ -46,10 +48,11 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
     }
 
     if (EnableCustomBrand === 'true' && CustomBrandHasLogo === 'true') {
+        const useDarkLogo = tinycolor(CustomBrandColorBackground || '#ffffff').isDark();
         title = (
             <img
                 className='custom-branding-logo'
-                src={Client4.getCustomLightLogoUrl('0')}
+                src={useDarkLogo ? Client4.getCustomDarkLogoUrl('0') : Client4.getCustomLightLogoUrl('0')}
             />
         );
     }
