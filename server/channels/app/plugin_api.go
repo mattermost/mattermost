@@ -246,6 +246,10 @@ func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *m
 	return api.app.GetUsersFromProfiles(options)
 }
 
+func (api *PluginAPI) GetUsersByIds(usersID []string) ([]*model.User, *model.AppError) {
+	return api.app.GetUsers(usersID)
+}
+
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
 	return api.app.GetUser(userID)
 }

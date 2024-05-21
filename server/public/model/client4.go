@@ -580,12 +580,36 @@ func (c *Client4) permissionsRoute() string {
 	return "/permissions"
 }
 
+func (c *Client4) limitsRoute() string {
+	return "/limits"
+}
+
+func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var serverLimits ServerLimits
+	if r.StatusCode == http.StatusNotModified {
+		return &serverLimits, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&serverLimits); err != nil {
+		return nil, nil, NewAppError("GetServerLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &serverLimits, BuildResponse(r), nil
+}
+
 func (c *Client4) bookmarksRoute(channelId string) string {
 	return c.channelRoute(channelId) + "/bookmarks"
 }
 
 func (c *Client4) bookmarkRoute(channelId, bookmarkId string) string {
 	return fmt.Sprintf(c.bookmarksRoute(channelId)+"/%v", bookmarkId)
+}
+
+func (c *Client4) clientPerfMetricsRoute() string {
+	return "/client_perf"
 }
 
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
@@ -8847,4 +8871,17 @@ func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId 
 		return nil, nil, NewAppError("ListChannelBookmarksForChannel", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return b, BuildResponse(r), nil
+}
+
+func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceReport) (*Response, error) {
+	buf, err := json.Marshal(report)
+	if err != nil {
+		return nil, NewAppError("SubmitClientMetrics", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	res, err := c.DoAPIPostBytes(ctx, c.clientPerfMetricsRoute(), buf)
+	if err != nil {
+		return BuildResponse(res), err
+	}
+
+	return BuildResponse(res), nil
 }

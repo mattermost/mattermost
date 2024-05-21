@@ -2624,18 +2624,6 @@
     "translation": "[{{.SiteName}}] Nytt direktmeddelande från {{.SenderDisplayName}} den {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Ingen licens finns"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Din typ av licens stödjer inte skapande av förnyelsenyckel"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Fel då nyckel för licensförnyelse skulle skapas."
-  },
-  {
     "id": "app.job.update.app_error",
     "translation": "Kunde inte uppdatera jobbet."
   },
@@ -4836,10 +4824,6 @@
     "translation": "Kunde inte skapa token-data för e-postverifiering"
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Förnya licensen nu"
-  },
-  {
     "id": "api.templates.post_body.button",
     "translation": "Svara i Mattermost"
   },
@@ -5542,10 +5526,6 @@
   {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Kunde inte få en prova-på-licens. Försök igen eller kontakta support@mattermost.com."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Fel då länken för licensförnyelse skulle hämtas"
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -8406,10 +8386,6 @@
     "translation": "Det går inte att ta bort token för att göra mejlverifieringstoken ogiltiga"
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Misslyckades med att generera länken för licensförnyelse"
-  },
-  {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Den här funktionen kräver en uppgradering till Enterprise Edition."
   },
@@ -8422,20 +8398,12 @@
     "translation": "Din Mattermost-prenumeration ska förnyas"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Logga in på ditt kundkonto för att förnya"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, din prenumeration löper ut om {{.Days}} dagar. Vi hoppas att du uppskattar det flexibla och säkra teamsamarbete som Mattermost möjliggör. Förnya prenumerationen för att ditt team ska kunna fortsätta njuta av funktionerna."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "Din licens ska förnyas"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Förnya nu"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -8568,10 +8536,6 @@
   {
     "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
     "translation": "Det går inte att hämta inlägg från en arkiverad kanal"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Det går inte att förnya licensen via portalen"
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
@@ -9018,34 +8982,6 @@
     "translation": "CWS Server är inte tillgänglig."
   },
   {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Det gick inte att få fram totala antalet utgående webhooks"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Det gick inte att få fram totala antalet inkommande webhooks"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Det gick inte att få fram antalet aktiva användare"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "True up-granskning är inte tillåten för cloud-instanser"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "True up-granskning kräver en licens"
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Det gick inte att hämta en statuspost för true up"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Det gick inte att skapa en statuspost för true up"
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "Användaren med användarnamn \"{{.Username}}\" finns redan."
   },
@@ -9088,10 +9024,6 @@
   {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
     "translation": "CWS Server misslyckades med att prenumerera på nyhetsbrev."
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Har inte skickat in en korrekt granskningsprofil till CWS."
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
@@ -10070,10 +10002,6 @@
     "translation": "Misslyckades att hämta antal användare"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Misslyckades med att hämta antal inlägg"
-  },
-  {
     "id": "api.post.check_for_out_of_team_mentions.message.one",
     "translation": "Omnämnandet av @{{.Username}} gav ingen notifiering eftersom hen inte är medlem i detta team."
   },
@@ -10088,5 +10016,13 @@
   {
     "id": "api.channel.create_channel.missing_team_id.error",
     "translation": "Saknar team_id i request-meddelandet"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "Kunde inte stänga zip-filen"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Kunde inte identifiera början på export-filen."
   }
 ]

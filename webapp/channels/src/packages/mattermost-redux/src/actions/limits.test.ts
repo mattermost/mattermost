@@ -17,8 +17,6 @@ describe('getServerLimits', () => {
     const defaultServerLimitsState: ServerLimits = {
         activeUserCount: 0,
         maxUsersLimit: 0,
-        maxPostLimit: 0,
-        postCount: 0,
     };
 
     let store = configureStore();
@@ -79,8 +77,6 @@ describe('getServerLimits', () => {
         const userLimits: ServerLimits = {
             activeUserCount: 600,
             maxUsersLimit: 10_000,
-            maxPostLimit: 5_000_000,
-            postCount: 10_000,
         };
 
         nock(Client4.getBaseRoute()).

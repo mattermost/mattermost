@@ -4721,11 +4721,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Wersja 16.2+"
+    "translation": "Wersja 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -4733,11 +4733,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 118+"
+    "translation": "Wersja 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 118+"
+    "translation": "Wersja 122+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5522,10 +5522,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "Twoja licencja Enterprise Edition wygasła i niektóre funkcjonalności mogą być niedostępne. Proszę odnowić swoją licencję."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Odśwież licencję"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -7228,10 +7224,6 @@
     "translation": "Nie można uzyskać licencji próbnej, proszę spróbować ponownie lub skontaktować się z support@mattermost.com."
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Błąd pobierania linku do odnowienia licencji"
-  },
-  {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
     "translation": "Nie udało się zastosować nowej licencji próbnej. Zastosowano już wcześniej licencję próbną do tej instancji Mattermost... Jeśli chcesz przedłużyć okres próbny, prosimy o [kontakt z naszym zespołem sprzedaży](https://mattermost.com/contact-us/)."
   },
@@ -7316,10 +7308,6 @@
     "translation": "Nie udało się wysłać wiadomości e-mail z prośbą o przedłużenie licencji"
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Nie udało się wygenerować linku odnowienia licencji"
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Jedno lub więcej z poniższych uprawnień, które próbujesz dodać lub usunąć jest niedozwolone"
   },
@@ -7396,10 +7384,6 @@
     "translation": "Uwierzytelnianie zakończone"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Zaloguj się do swojego konta klienta, aby odnowić"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, Twoja subskrypcja ma wygasnąć za {{.Days}} dni. Mamy nadzieję, że korzystasz z elastycznej i bezpiecznej współpracy zespołowej, którą umożliwia Mattermost. Odnów wkrótce, aby Twój zespół mógł nadal korzystać z tych korzyści."
   },
@@ -7438,10 +7422,6 @@
   {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Twoja subskrypcja Mattermost wymaga przedłużenia"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Odnów teraz"
   },
   {
     "id": "api.templates.invite_body_footer.learn_more",
@@ -8420,18 +8400,6 @@
     "translation": "Kiedy Cię nie było, {{.SenderName}} wysłał Ci nową Bezpośrednią Wiadomość."
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Brak licencji"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Ten typ licencji nie obsługuje generowania tokenów odnowieniowych"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Nie udało się wygenerować nowego tokena odnowienia."
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults w config.json jest błędna. Proszę ustawić na true, aby pobrać wyniki tego zadania."
   },
@@ -8570,10 +8538,6 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Liczba identyfikatorów postów osiągnęła maksymalny rozmiar {{.MaxLength}}"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Odnowienie tej licencji na portalu nie jest możliwe"
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
@@ -9020,34 +8984,6 @@
     "translation": "Serwer CWS nie jest dostępny."
   },
   {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Nie można uzyskać całkowitej liczby wychodzących webhooków"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Nie można uzyskać całkowitej liczby przychodzących webhooków"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Nie można uzyskać całkowitej liczby aktywnych użytkowników"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "Przegląd True up nie jest dozwolony dla instancji w chmurze"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "Prawdziwy przegląd wymaga licencji"
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Nie można uzyskać prawdziwych zapisów statusu"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Nie można utworzyć rekordu statusu true up"
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "użytkownik o nazwie \"{{.Username}}\" już istnieje."
   },
@@ -9230,10 +9166,6 @@
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
     "translation": "Błąd brak podanej nazwy organizacji dla samodzielnego hostowania onboardingu."
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Nie udało się przesłać do CWS profilu true up review."
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -10088,7 +10020,11 @@
     "translation": "Nie udało się uzyskać liczby użytkowników"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Nie udało się uzyskać liczby postów"
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "Nie można zamknąć pliku zip"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Nie można wyszukać początku pliku eksportu."
   }
 ]

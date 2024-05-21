@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -27,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -1990,9 +1990,7 @@ func TestPluginWebSocketSession(t *testing.T) {
 	pluginID := "com.mattermost.websocket_session_test"
 
 	// Compile plugin
-	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
-	require.True(t, found, "Cannot find tests folder")
-	fullPath := path.Join(testFolder, "manual.test_websocket_session", "main.go")
+	fullPath := filepath.Join(server.GetPackagePath(), "channels", "app", "plugin_api_tests", "manual.test_websocket_session", "main.go")
 	pluginCode, err := os.ReadFile(fullPath)
 	require.NoError(t, err)
 	require.NotEmpty(t, pluginCode)

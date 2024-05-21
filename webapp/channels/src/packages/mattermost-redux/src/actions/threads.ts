@@ -42,9 +42,20 @@ export function fetchThreads(userId: string, teamId: string, {before = '', after
     };
 }
 
-export function getThreads(userId: string, teamId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, unread = false, extended = true} = {}): ActionFuncAsync<UserThreadList> {
-    return async (dispatch) => {
-        const response = await dispatch(fetchThreads(userId, teamId, {before, after, perPage, unread, totalsOnly: false, threadsOnly: true, extended}));
+export function getThreadsForCurrentTeam({before = '', after = '', unread = false} = {}): ActionFuncAsync<UserThreadList> {
+    return async (dispatch, getState) => {
+        const userId = getCurrentUserId(getState());
+        const teamId = getCurrentTeamId(getState());
+
+        const response = await dispatch(fetchThreads(userId, teamId, {
+            before,
+            after,
+            perPage: ThreadConstants.THREADS_PAGE_SIZE,
+            unread,
+            totalsOnly: false,
+            threadsOnly: true,
+            extended: true,
+        }));
 
         if (response.error) {
             return response;
