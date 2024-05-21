@@ -76,7 +76,8 @@ describe('getServerLimits', () => {
     test('should return data if user is admin', async () => {
         const userLimits: ServerLimits = {
             activeUserCount: 600,
-            maxUsersLimit: 10_000,
+            maxUsersLimit: 5_000,
+
         };
 
         nock(Client4.getBaseRoute()).
