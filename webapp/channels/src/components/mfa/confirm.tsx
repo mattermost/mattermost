@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import styled from 'styled-components';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 
@@ -13,6 +14,11 @@ import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
 const KeyCodes = Constants.KeyCodes;
+
+const ButtonContainer = styled.div`
+    display: flex;
+    justify-content: center;
+`
 
 type MFAControllerState = {
     enforceMultifactorAuthentication: boolean;
@@ -74,7 +80,7 @@ export default class Confirm extends React.PureComponent<Props> {
                                     defaultMessage='Your account is now secure. Next time you sign in, you will be asked to enter a code from the Google Authenticator app on your phone.'
                                 />
                             </p>
-                            <p>
+                            <ButtonContainer>
                                 <BrandedButton>
                                     <button
                                         type='submit'
@@ -86,7 +92,7 @@ export default class Confirm extends React.PureComponent<Props> {
                                         />
                                     </button>
                                 </BrandedButton>
-                            </p>
+                            </ButtonContainer>
                         </form>
                     </div>
                 </div>

@@ -11,9 +11,17 @@ import Confirm from 'components/mfa/confirm';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import Constants from 'utils/constants';
 
+let mockState: any;
+
 jest.mock('actions/global_actions', () => ({
     redirectUserToDefaultTeam: jest.fn(),
 }));
+
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux') as typeof import('react-redux'),
+    useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
+}));
+
 
 describe('components/mfa/components/Confirm', () => {
     const originalAddEventListener = document.body.addEventListener;
@@ -24,6 +32,16 @@ describe('components/mfa/components/Confirm', () => {
             enforceMultifactorAuthentication: true,
         },
     };
+
+    mockState = {
+        entities: {
+            general: {
+                config: {
+                    EnableCustomBrand: 'false',
+                },
+            },
+        },
+    }
 
     afterAll(() => {
         document.body.addEventListener = originalAddEventListener;
