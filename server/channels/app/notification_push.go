@@ -473,6 +473,7 @@ func (s *Server) StopPushNotificationsHubWorkers() {
 }
 
 func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushResponse, error) {
+	msg.ServerId = "3xgkwbfk97naif5e6cbnfp7fqc"
 	msgJSON, err := json.Marshal(msg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode to JSON: %w", err)
