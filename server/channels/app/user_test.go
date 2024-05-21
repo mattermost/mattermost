@@ -1692,7 +1692,6 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 	user, err = th.App.UpdateUserRolesWithUser(th.Context, user, model.SystemUserRoleId, false)
 	require.Nil(t, err)
 	assert.Equal(t, user.Roles, model.SystemUserRoleId)
-
 }
 
 func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
