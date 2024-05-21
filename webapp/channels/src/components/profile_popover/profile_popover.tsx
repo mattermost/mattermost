@@ -37,6 +37,7 @@ import ProfilePopoverTitle from './profile_popover_title';
 
 import './profile_popover.scss';
 
+const PLUGGABLE_COMPONENT_NAME_PROFILE_POPOVER = 'PopoverUserAttributes';
 export interface Props {
     userId: string;
     src: string;
@@ -47,11 +48,6 @@ export interface Props {
     returnFocus?: () => void;
     overwriteIcon?: string;
     overwriteName?: string;
-}
-
-function getDefaultChannelId(state: GlobalState) {
-    const selectedPost = getSelectedPost(state);
-    return selectedPost.exists ? selectedPost.channel_id : getCurrentChannelId(state);
 }
 
 /**
@@ -146,17 +142,6 @@ const ProfilePopover = ({
         }
     }, []);
 
-    useEffect(() => {
-        const pluggablesContainer = document.querySelector('#user-profile-popover-pluggables');
-        if (pluggablesContainer) {
-            if (pluggablesContainer.children.length > 1) {
-                pluggablesContainer.classList.add('user-profile-popover-has-pluggables');
-            } else {
-                pluggablesContainer.classList.remove('user-profile-popover-has-pluggables');
-            }
-        }
-    }, []);
-
     if (!user) {
         return null;
     }
@@ -194,9 +179,9 @@ const ProfilePopover = ({
                     haveOverrideProp={haveOverrideProp}
                     isBot={user.is_bot}
                 />
-                <div id='user-profile-popover-pluggables'>
+                <div className='user-profile-popover-pluggables'>
                     <Pluggable
-                        pluggableName='PopoverUserAttributes'
+                        pluggableName={PLUGGABLE_COMPONENT_NAME_PROFILE_POPOVER}
                         user={user}
                         hide={hide}
                         status={hideStatus ? null : status}
@@ -251,5 +236,10 @@ const ProfilePopover = ({
         </>
     );
 };
+
+function getDefaultChannelId(state: GlobalState) {
+    const selectedPost = getSelectedPost(state);
+    return selectedPost.exists ? selectedPost.channel_id : getCurrentChannelId(state);
+}
 
 export default React.memo(ProfilePopover);
