@@ -6,7 +6,6 @@ import React from 'react';
 import type {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
 
 import {ToPaidPlanBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_paid_plan_nudge_banner';
-import PostLimitsAnnouncementBar from 'components/announcement_bar/post_limits_announcement_bar';
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 
 import CloudAnnualRenewalAnnouncementBar from './cloud_annual_renewal';
@@ -111,10 +110,6 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             <>
                 {adminConfiguredAnnouncementBar}
                 {errorBar}
-                <PostLimitsAnnouncementBar
-                    license={this.props.license}
-                    userIsAdmin={this.props.userIsAdmin}
-                />
                 <UsersLimitsAnnouncementBar
                     license={this.props.license}
                     userIsAdmin={this.props.userIsAdmin}
