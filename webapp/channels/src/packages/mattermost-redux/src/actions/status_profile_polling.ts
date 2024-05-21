@@ -56,16 +56,12 @@ export function addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus, use
                 }
 
                 if (bufferedUserIds.length > 0) {
-                    // eslint-disable-next-line no-console
-                    console.log('status', 'overflow of', pendingUserIdsForStatuses.size, 'executing for', bufferedUserIds.length);
                     dispatch(getStatusesByIds(bufferedUserIds));
                 }
             } else {
                 // If we have less than max buffer size, we can directly fetch the statuses
                 const lessThanBufferUserIds = Array.from(pendingUserIdsForStatuses);
                 if (lessThanBufferUserIds.length > 0) {
-                    // eslint-disable-next-line no-console
-                    console.log('status', 'underflow of', pendingUserIdsForStatuses.size, 'executing');
                     dispatch(getStatusesByIds(lessThanBufferUserIds));
 
                     pendingUserIdsForStatuses.clear();
@@ -94,15 +90,12 @@ export function addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus, use
                     }
                 }
 
-                // eslint-disable-next-line no-console
-                console.log('profiles', 'overflow of', pendingUserIdsForProfiles.size, 'executing for', bufferedUserIds.length);
-
-                dispatch(getProfilesByIds(bufferedUserIds));
+                if (bufferedUserIds.length > 0) {
+                    dispatch(getProfilesByIds(bufferedUserIds));
+                }
             } else {
                 const lessThanBufferUserIds = Array.from(pendingUserIdsForProfiles);
                 if (lessThanBufferUserIds.length > 0) {
-                    // eslint-disable-next-line no-console
-                    console.log('profiles', 'underflow of', pendingUserIdsForProfiles.size, 'executing');
                     dispatch(getProfilesByIds(lessThanBufferUserIds));
 
                     pendingUserIdsForProfiles.clear();
@@ -146,23 +139,14 @@ export function addUserIdsForStatusAndProfileFetchingPoll({userIdsForStatus, use
                 getPendingProfilesById();
             }
         } else if (intervalIdForFetchingPoll === null) {
-            // eslint-disable-next-line no-console
-            console.log('status', 'profile', 'polling interval', pollingInterval, 'starting');
-
             // Start the interval if it is not already running
             intervalIdForFetchingPoll = setInterval(() => {
                 if (pendingUserIdsForStatuses.size > 0) {
                     getPendingStatusesById();
-                } else {
-                    // eslint-disable-next-line no-console
-                    console.log('status', 'no pending user ids');
                 }
 
                 if (pendingUserIdsForProfiles.size > 0) {
                     getPendingProfilesById();
-                } else {
-                    // eslint-disable-next-line no-console
-                    console.log('profiles', 'no pending user ids');
                 }
             }, pollingInterval);
         }
