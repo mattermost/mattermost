@@ -111,7 +111,7 @@ const ProductMenu = (): JSX.Element => {
 
     const useDarkLogo = useMemo(() => {
         return tinycolor(theme.sidebarHeaderBg).isDark();
-    }, [theme.sidebarHeaderBg])
+    }, [theme.sidebarHeaderBg]);
 
     const productItems = products?.map((product) => {
         let tourTip;

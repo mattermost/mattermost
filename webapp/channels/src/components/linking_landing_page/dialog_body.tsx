@@ -60,7 +60,7 @@ const DialogBody = ({siteUrl, rememberChecked, onChecked, location, downloadLink
         }
         return () => {
             window.removeEventListener('beforeunload', clearLandingPreferenceIfNotChecked);
-        }
+        };
     }, []);
 
     if (redirectPage) {
@@ -117,7 +117,7 @@ const DialogBody = ({siteUrl, rememberChecked, onChecked, location, downloadLink
                     }}
                     onClick={() => {
                         setPreference(LandingPreferenceTypes.BROWSER, true);
-                        setNavigating(true)
+                        setNavigating(true);
                     }}
                     className='btn btn-tertiary btn-lg'
                 >

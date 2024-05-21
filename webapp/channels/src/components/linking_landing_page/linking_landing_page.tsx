@@ -4,10 +4,12 @@
 import React, {useState, useMemo, useEffect, useCallback} from 'react';
 import {useSelector} from 'react-redux';
 
-import BrowserStore from 'stores/browser_store';
-
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+
+import BrowserStore from 'stores/browser_store';
+
+import BrandedLanding from 'components/custom_branding/branded_landing';
 
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
@@ -15,13 +17,11 @@ import {LandingPreferenceTypes} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
-import BrandedLanding from 'components/custom_branding/branded_landing';
-
-import Header from './header';
 import DialogBody from './dialog_body';
+import Header from './header';
 
 const LinkingLandingPage = () => {
-    const [location, setLocation] = useState("");
+    const [location, setLocation] = useState('');
     const [rememberChecked, setRememberChecked] = useState(false);
 
     const {
@@ -47,6 +47,7 @@ const LinkingLandingPage = () => {
 
     const handleChecked = useCallback((value: boolean) => {
         setRememberChecked(value);
+
         // If it was checked, and now we're unchecking it, clear the preference
         if (!value) {
             BrowserStore.clearLandingPreference(SiteURL);
@@ -78,7 +79,6 @@ const LinkingLandingPage = () => {
         }
     };
 
-
     const isEmbedded = () => {
         // this cookie is set by any plugin that facilitates iframe embedding (e.g. mattermost-plugin-msteams-sync).
         const cookieName = 'MMEMBED';
@@ -108,7 +108,6 @@ const LinkingLandingPage = () => {
         return AppDownloadLink;
     };
 
-
     if (checkLandingPreferenceBrowser() || isEmbedded()) {
         openInBrowser();
         return null;
@@ -136,6 +135,6 @@ const LinkingLandingPage = () => {
             </div>
         </BrandedLanding>
     );
-}
+};
 
 export default LinkingLandingPage;

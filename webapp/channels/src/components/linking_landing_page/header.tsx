@@ -5,8 +5,8 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 import tinycolor from 'tinycolor2';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {Client4} from 'mattermost-redux/client';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import MattermostLogoSvg from 'images/logo.svg';
 
@@ -42,7 +42,6 @@ const LinkingLandingPageHeader = () => {
                 </div>
             );
         }
-
     }
 
     return (
@@ -50,6 +49,6 @@ const LinkingLandingPageHeader = () => {
             {logo}
         </div>
     );
-}
+};
 
 export default LinkingLandingPageHeader;
