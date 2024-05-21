@@ -47,8 +47,8 @@ const BrandedLandingStyled = styled.div<BrandedLandingProps>`
     }
 
     &&&& .btn-tertiary {
-        background: ${(props) => `rgba(${hexToRgb(props.buttonText)}, 1)`};
-        color: ${(props) => `rgba(${hexToRgb(props.buttonBg)}, 1)`};
+        background: ${(props) => `rgba(${hexToRgb(props.buttonBg)}, 0.08)`};
+        color: ${(props) => props.buttonBg};
     }
 `;
 
