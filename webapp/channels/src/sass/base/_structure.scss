@@ -99,16 +99,8 @@ body.admin-onboarding #root {
     }
 }
 
-.app__body.channel-view {
-    #root {
-        --columns: min-content minmax(385px, 1fr) min-content;
-        grid-template:
-            'announcement announcement announcement' min-content
-            'header header header' min-content
-            'team-sidebar main app-sidebar'
-            'footer footer footer' min-content
-            / var(--columns);
-        ;
+.app__body {
+    #root.channel-view {
         &:has(.backstage-body){
             background-color: $bg--gray;
         }
@@ -119,13 +111,19 @@ body.admin-onboarding #root {
 body.app__body #root {
     display: grid;
     overflow: hidden;
+    min-height: 100%;
 
+    --columns: min-content minmax(385px, 1fr) min-content;
     grid-template:
-        "announcement" min-content
-        "header" min-content
-        "main"
-        "footer" min-content
-    ;
+        "announcement announcement announcement" min-content
+        "header header header" min-content
+        "team-sidebar main app-sidebar"
+        "footer footer footer" min-content / var(--columns);
+
+    > :only-child {
+        grid-area: main;
+        width: 100%;
+    }
 
     &.console__root {
         background-color: inherit;
@@ -144,11 +142,6 @@ body.app__body #root {
         background: none;
         display: block;
     }
-
-    > :only-child {
-        width: 100%;
-    }
-
 
     .announcement-bar {
         grid-area: announcement;
