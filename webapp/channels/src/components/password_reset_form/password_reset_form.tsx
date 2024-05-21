@@ -79,6 +79,7 @@ const PasswordResetForm = () => {
                             <BrandedInput>
                                 <Input
                                     id='resetPasswordInput'
+                                    data-testid='resetPasswordInput'
                                     type='password'
                                     className='form-control'
                                     name='password'
