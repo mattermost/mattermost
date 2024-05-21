@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {Tooltip} from 'react-bootstrap';
 import classNames from 'classnames';
+import React, {useRef, useState} from 'react';
+import {Tooltip} from 'react-bootstrap';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import OverlayTrigger from 'components/overlay_trigger';
 
 import Constants from 'utils/constants';
-import {copyToClipboard} from 'utils/utils';
 import {t} from 'utils/i18n';
+import {copyToClipboard} from 'utils/utils';
 
 type Props = {
     content: string;
@@ -21,13 +21,20 @@ type Props = {
 };
 
 const CopyButton: React.FC<Props> = (props: Props) => {
+    const intl = useIntl();
+
     const [isCopied, setIsCopied] = useState(false);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const copyText = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>): void => {
         e.preventDefault();
         setIsCopied(true);
 
-        setTimeout(() => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
+
+        timerRef.current = setTimeout(() => {
             setIsCopied(false);
         }, 2000);
 
@@ -69,16 +76,16 @@ const CopyButton: React.FC<Props> = (props: Props) => {
             <span
                 className={spanClassName}
                 onClick={copyText}
+                aria-label={intl.formatMessage({id: getId(), defaultMessage: getDefaultMessage()})}
+                role='button'
             >
                 {!isCopied &&
                     <i
-                        role='button'
                         className='icon icon-content-copy'
                     />
                 }
                 {isCopied &&
                     <i
-                        role='button'
                         className='icon icon-check'
                     />
                 }

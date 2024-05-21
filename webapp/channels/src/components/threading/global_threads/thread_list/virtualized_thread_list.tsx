@@ -3,10 +3,12 @@
 
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import InfiniteLoader from 'react-window-infinite-loader';
 import {FixedSizeList} from 'react-window';
+import InfiniteLoader from 'react-window-infinite-loader';
 
-import {UserThread} from '@mattermost/types/threads';
+import type {UserThread} from '@mattermost/types/threads';
+
+import ThreadsConstants from 'mattermost-redux/constants/threads';
 
 import {Constants} from 'utils/constants';
 
@@ -77,7 +79,7 @@ function VirtualizedThreadList({
                     itemCount={total}
                     loadMoreItems={loadMoreItems}
                     isItemLoaded={isItemLoaded}
-                    minimumBatchSize={Constants.THREADS_PAGE_SIZE}
+                    minimumBatchSize={ThreadsConstants.THREADS_PAGE_SIZE}
                 >
                     {({onItemsRendered, ref}) => {
                         return (

@@ -40,7 +40,6 @@ func parseContentLength(cl string) int64 {
 		return -1
 	}
 	return n
-
 }
 
 func (rt *PluginResponseWriter) GenerateResponse() *http.Response {

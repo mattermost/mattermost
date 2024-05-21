@@ -36,7 +36,9 @@ exports[`ListItem should match snapshot when rendering GroupChannel 1`] = `
     <div
       className="more-modal__actions--round"
     >
-      <AddIcon />
+      <i
+        className="icon icon-plus"
+      />
     </div>
   </div>
 </div>
@@ -63,7 +65,9 @@ exports[`ListItem should match snapshot when rendering user 1`] = `
     <div
       className="more-modal__actions--round"
     >
-      <AddIcon />
+      <i
+        className="icon icon-plus"
+      />
     </div>
   </div>
 </div>

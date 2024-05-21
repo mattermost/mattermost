@@ -108,23 +108,19 @@ exports[`admin_console/team_channel_settings/AbstractList should match snapshot,
       />
     </div>
     <button
-      className="btn btn-link prev disabled"
+      className="btn btn-tertiary prev disabled"
       disabled={true}
       type="button"
     >
-      <PreviousIcon
-        additionalClassName={null}
-      />
+      <Memo(PreviousIcon) />
     </button>
     <button
-      className="btn btn-link next disabled"
+      className="btn btn-tertiary next disabled"
       data-testid="page-link-next"
       disabled={true}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>

@@ -2,17 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {Action, ActionResult} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from 'types/store';
-
-import {CustomGroupPatch} from '@mattermost/types/groups';
 import {patchGroup} from 'mattermost-redux/actions/groups';
-import {ModalData} from 'types/actions';
-import {openModal} from 'actions/views/modals';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
+
+import {openModal} from 'actions/views/modals';
+
+import type {GlobalState} from 'types/store';
 
 import UpdateUserGroupModal from './update_user_group_modal';
 
@@ -28,14 +26,9 @@ function makeMapStateToProps(state: GlobalState, props: OwnProps) {
     };
 }
 
-type Actions = {
-    patchGroup: (groupId: string, group: CustomGroupPatch) => Promise<ActionResult>;
-    openModal: <P>(modalData: ModalData<P>) => void;
-}
-
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             patchGroup,
             openModal,
         }, dispatch),

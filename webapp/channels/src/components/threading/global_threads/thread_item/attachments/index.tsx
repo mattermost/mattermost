@@ -3,10 +3,10 @@
 
 import React from 'react';
 
-import {Post} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
 
-import FileCard from './file_card';
 import AttachmentCard from './attachment_card';
+import FileCard from './file_card';
 
 type Props = {
     post: Post;

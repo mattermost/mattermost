@@ -9,9 +9,12 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"golang.org/x/sync/errgroup"
 )
 
 type storeType struct {
@@ -30,7 +33,7 @@ func newStoreType(name, driver string) *storeType {
 	}
 }
 
-func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
+func StoreTest(t *testing.T, f func(*testing.T, request.CTX, store.Store)) {
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -39,16 +42,18 @@ func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	}()
 	for _, st := range storeTypes {
 		st := st
+		rctx := request.TestContext(t)
+
 		t.Run(st.Name, func(t *testing.T) {
 			if testing.Short() {
 				t.SkipNow()
 			}
-			f(t, st.Store)
+			f(t, rctx, st.Store)
 		})
 	}
 }
 
-func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storetest.SqlStore)) {
+func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, request.CTX, store.Store, storetest.SqlStore)) {
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -57,16 +62,18 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storete
 	}()
 	for _, st := range storeTypes {
 		st := st
+		rctx := request.TestContext(t)
+
 		t.Run(st.Name, func(t *testing.T) {
 			if testing.Short() {
 				t.SkipNow()
 			}
-			f(t, st.Store, sqlstore.NewStoreTestWrapper(st.SqlStore))
+			f(t, rctx, st.Store, sqlstore.NewStoreTestWrapper(st.SqlStore))
 		})
 	}
 }
 
-func initStores() {
+func initStores(logger mlog.LoggerIFace) {
 	if testing.Short() {
 		return
 	}
@@ -91,23 +98,29 @@ func initStores() {
 			panic(err)
 		}
 	}()
-	var wg sync.WaitGroup
+	var eg errgroup.Group
 	for _, st := range storeTypes {
 		st := st
-		wg.Add(1)
-		go func() {
+		eg.Go(func() error {
 			var err error
-			defer wg.Done()
-			st.SqlStore = sqlstore.New(*st.SqlSettings, nil)
+
+			st.SqlStore, err = sqlstore.New(*st.SqlSettings, logger, nil)
+			if err != nil {
+				return err
+			}
 			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, getMockCacheProvider())
 			if err != nil {
-				panic(err)
+				return err
 			}
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
-		}()
+
+			return nil
+		})
 	}
-	wg.Wait()
+	if err := eg.Wait(); err != nil {
+		panic(err)
+	}
 }
 
 var tearDownStoresOnce sync.Once

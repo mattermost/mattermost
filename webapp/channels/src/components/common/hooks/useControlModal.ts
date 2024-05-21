@@ -4,11 +4,14 @@
 import {useMemo} from 'react';
 import {useDispatch} from 'react-redux';
 
-import {ModalData} from 'types/actions';
 import {openModal, closeModal} from 'actions/views/modals';
-import {ModalIdentifiers} from 'utils/constants';
+
 import AirGappedSelfHostedPurchaseModal from 'components/air_gapped_self_hosted_purchase_modal';
 import ScreeningInProgressModal from 'components/screening_in_progress_modal';
+
+import {ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
 
 export interface ControlModal {
     open: () => void;

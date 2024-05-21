@@ -16,6 +16,12 @@ type SharedChannelServiceIFace interface {
 	NotifyUserProfileChanged(userID string)
 	SendChannelInvite(channel *model.Channel, userId string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error
 	Active() bool
+	InviteRemoteToChannel(channelID, remoteID, userID string, shareIfNotShared bool) error
+	UninviteRemoteFromChannel(channelID, remoteID string) error
+	ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
+	CheckChannelNotShared(channelID string) error
+	CheckChannelIsShared(channelID string) error
+	CheckCanInviteToSharedChannel(channelId string) error
 }
 
 type MockOptionSharedChannelService func(service *mockSharedChannelService)

@@ -7,7 +7,7 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {shouldShowUnreadsCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import ShowUnreadsCategory from './show_unreads_category';
 

@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import marked, {MarkedOptions} from 'marked';
+import marked from 'marked';
+import type {MarkedOptions} from 'marked';
 
+import EmojiMap from 'utils/emoji_map';
 import * as PostUtils from 'utils/post_utils';
 import * as TextFormatting from 'utils/text_formatting';
-import {getScheme, isUrlSafe, shouldOpenInNewTab} from 'utils/url';
-import EmojiMap from 'utils/emoji_map';
+import {mightTriggerExternalRequest, getScheme, isUrlSafe, shouldOpenInNewTab} from 'utils/url';
 
 import {parseImageDimensions} from './helpers';
 
@@ -39,23 +40,29 @@ export default class Renderer extends marked.Renderer {
         let searchedContent = '';
 
         if (this.formattingOptions.searchPatterns) {
-            const tokens = new Map();
+            try {
+                const tokens = new TextFormatting.Tokens();
 
-            let searched = TextFormatting.sanitizeHtml(code);
-            searched = TextFormatting.highlightSearchTerms(
-                searched,
-                tokens,
-                this.formattingOptions.searchPatterns,
-            );
-
-            if (tokens.size > 0) {
-                searched = TextFormatting.replaceTokens(searched, tokens);
-
-                searchedContent = (
-                    '<div class="post-code__search-highlighting">' +
-                        searched +
-                    '</div>'
+                let searched = TextFormatting.sanitizeHtml(code);
+                searched = TextFormatting.highlightSearchTerms(
+                    searched,
+                    tokens,
+                    this.formattingOptions.searchPatterns,
                 );
+
+                if (tokens.size > 0) {
+                    searched = TextFormatting.replaceTokens(searched, tokens);
+
+                    searchedContent = (
+                        '<div class="post-code__search-highlighting">' +
+                            searched +
+                        '</div>'
+                    );
+                }
+            } catch (error) {
+                if (!TextFormatting.isFormatTokenLimitError(error)) {
+                    throw error;
+                }
             }
         }
 
@@ -68,13 +75,20 @@ export default class Renderer extends marked.Renderer {
         let output = text;
 
         if (this.formattingOptions.searchPatterns) {
-            const tokens = new Map();
-            output = TextFormatting.highlightSearchTerms(
-                output,
-                tokens,
-                this.formattingOptions.searchPatterns,
-            );
-            output = TextFormatting.replaceTokens(output, tokens);
+            try {
+                const tokens = new TextFormatting.Tokens();
+                output = TextFormatting.highlightSearchTerms(
+                    output,
+                    tokens,
+                    this.formattingOptions.searchPatterns,
+                );
+                output = TextFormatting.replaceTokens(output, tokens);
+            } catch (error) {
+                if (!TextFormatting.isFormatTokenLimitError(error)) {
+                    throw error;
+                }
+                output = text;
+            }
         }
 
         return (
@@ -121,6 +135,13 @@ export default class Renderer extends marked.Renderer {
 
     public link(href: string, title: string, text: string, isUrl = false) {
         let outHref = href;
+
+        if (this.formattingOptions.unsafeLinks && mightTriggerExternalRequest(href, this.formattingOptions.siteURL)) {
+            if (text === href) {
+                return text;
+            }
+            return text + ' : ' + href;
+        }
 
         if (!href.startsWith('/')) {
             const scheme = getScheme(href);
@@ -221,7 +242,7 @@ export default class Renderer extends marked.Renderer {
             // style it properly. We need to use a CSS counter to tell the ::before elements which numbers to show.
             output += ` style="counter-reset: list ${start - 1}"`;
         }
-        output += `>\n${content}</${type}>`;
+        output += `>${content}</${type}>`;
 
         return output;
     }
@@ -258,9 +279,7 @@ function unescapeHtmlEntities(html: string) {
         if (n === 'colon') {
             return ':';
         } else if (n.charAt(0) === '#') {
-            return n.charAt(1) === 'x' ?
-                String.fromCharCode(parseInt(n.substring(2), 16)) :
-                String.fromCharCode(Number(n.substring(1)));
+            return n.charAt(1) === 'x' ? String.fromCharCode(parseInt(n.substring(2), 16)) : String.fromCharCode(Number(n.substring(1)));
         }
         return '';
     });

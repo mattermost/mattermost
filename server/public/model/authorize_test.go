@@ -19,7 +19,6 @@ func TestAuthPreSave(t *testing.T) {
 }
 
 func TestAuthIsValid(t *testing.T) {
-
 	ad := AuthData{}
 
 	require.NotNil(t, ad.IsValid())

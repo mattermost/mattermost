@@ -3,15 +3,13 @@
 
 import React from 'react';
 
-import {Post} from '@mattermost/types/posts';
-import {Reaction as ReactionType} from '@mattermost/types/reactions';
-
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import type {Post} from '@mattermost/types/posts';
+import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
 import * as Utils from 'utils/utils';
 
 import ReactionTooltip from './reaction_tooltip';
+
 import './reaction.scss';
 
 type State = {
@@ -209,23 +207,22 @@ export default class Reaction extends React.PureComponent<Props, State> {
             ariaLabelEmoji = `${Utils.localizeMessage('reaction.removeReact.ariaLabel', 'remove reaction')} ${emojiNameWithSpaces}`;
         }
 
+        const emojiIcon = (
+            <img
+                className='Reaction__emoji emoticon'
+                src={this.props.emojiImageUrl}
+            />
+        );
+
         return (
-            <OverlayTrigger
-                delayShow={500}
-                placement='top'
-                shouldUpdatePosition={true}
-                overlay={
-                    <Tooltip id={`${this.props.post.id}-${this.props.emojiName}-reaction`}>
-                        <ReactionTooltip
-                            canAddReactions={canAddReactions}
-                            canRemoveReactions={canRemoveReactions}
-                            currentUserReacted={currentUserReacted}
-                            emojiName={emojiName}
-                            reactions={reactions}
-                        />
-                    </Tooltip>
-                }
-                onEnter={this.loadMissingProfiles}
+            <ReactionTooltip
+                id={`${this.props.post.id}-${this.props.emojiName}-reaction`}
+                canAddReactions={canAddReactions}
+                canRemoveReactions={canRemoveReactions}
+                currentUserReacted={currentUserReacted}
+                emojiName={emojiName}
+                reactions={reactions}
+                onShow={this.loadMissingProfiles}
             >
                 <button
                     id={`postReaction-${this.props.post.id}-${this.props.emojiName}`}
@@ -235,10 +232,7 @@ export default class Reaction extends React.PureComponent<Props, State> {
                     ref={this.reactionButtonRef}
                 >
                     <span className='d-flex align-items-center'>
-                        <img
-                            className='Reaction__emoji emoticon'
-                            src={this.props.emojiImageUrl}
-                        />
+                        {emojiIcon}
                         <span
                             ref={this.reactionCountRef}
                             className='Reaction__count'
@@ -256,7 +250,7 @@ export default class Reaction extends React.PureComponent<Props, State> {
                         </span>
                     </span>
                 </button>
-            </OverlayTrigger>
+            </ReactionTooltip>
         );
     }
 }

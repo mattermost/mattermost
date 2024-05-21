@@ -3,42 +3,34 @@
 
 import React from 'react';
 
-import {ChannelNotifyProps} from '@mattermost/types/channels';
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
 
 import {NotificationLevels} from 'utils/constants';
 
 type Actions = {
-    updateChannelNotifyProps: (userId: string, channelId: string, props: ChannelNotifyProps) => void;
-}
+    updateChannelNotifyProps: (userId: string, channelId: string, props: Pick<ChannelNotifyProps, 'mark_unread'>) => void;
+};
 
 type Props = {
     user: { id: string };
     channel: { id: string };
     actions: Actions;
-}
+};
 
-export default class UnmuteChannelButton extends React.PureComponent<Props> {
-    handleClick = (): void => {
-        const {
-            user,
-            channel,
-            actions: {
-                updateChannelNotifyProps,
-            },
-        } = this.props;
-
-        updateChannelNotifyProps(user.id, channel.id, {mark_unread: NotificationLevels.ALL} as ChannelNotifyProps);
+const UnmuteChannelButton = ({user, channel, actions}: Props) => {
+    const handleClick = () => {
+        actions.updateChannelNotifyProps(user.id, channel.id, {mark_unread: NotificationLevels.ALL});
     };
 
-    render(): JSX.Element {
-        return (
-            <button
-                type='button'
-                className='navbar-toggle icon icon__mute'
-                onClick={this.handleClick}
-            >
-                <span className='fa fa-bell-slash-o icon'/>
-            </button>
-        );
-    }
-}
+    return (
+        <button
+            type='button'
+            className='navbar-toggle icon icon__mute'
+            onClick={handleClick}
+        >
+            <span className='fa fa-bell-slash-o icon'/>
+        </button>
+    );
+};
+
+export default React.memo(UnmuteChannelButton);

@@ -2,39 +2,35 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 import timezones from 'timezones.json';
 
-import {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import {CollapsedThreads} from '@mattermost/types/config';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {updateMe} from 'mattermost-redux/actions/users';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
+import {updateMe} from 'mattermost-redux/actions/users';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {get, isCollapsedThreadsAllowed, getCollapsedThreadsPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezoneFull, getCurrentTimezoneLabel} from 'mattermost-redux/selectors/entities/timezone';
+import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
-import {CollapsedThreads} from '@mattermost/types/config';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {UserProfile} from '@mattermost/types/users';
-
-import {GlobalState} from 'types/store';
+import {getLanguages, isLanguageAvailable} from 'i18n/i18n';
 import {Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import UserSettingsDisplay from './user_settings_display';
 
-type Actions = {
-    autoUpdateTimezone: (deviceTimezone: string) => void;
-    savePreferences: (userId: string, preferences: PreferenceType[]) => void;
-    updateMe: (user: UserProfile) => Promise<ActionResult>;
+type OwnProps = {
+    user: UserProfile;
 }
 
 export function makeMapStateToProps() {
-    return (state: GlobalState) => {
+    return (state: GlobalState, props: OwnProps) => {
         const config = getConfig(state);
         const currentUserId = getCurrentUserId(state);
         const userTimezone = getCurrentTimezoneFull(state);
@@ -43,9 +39,7 @@ export function makeMapStateToProps() {
         const timezoneLabel = getCurrentTimezoneLabel(state);
         const allowCustomThemes = config.AllowCustomThemes === 'true';
         const enableLinkPreviews = config.EnableLinkPreviews === 'true';
-        const defaultClientLocale = config.DefaultClientLocale as string;
         const enableThemeSelection = config.EnableThemeSelection === 'true';
-        const enableTimezone = config.ExperimentalTimezone === 'true';
         const lockTeammateNameDisplay = getLicense(state).LockTeammateNameDisplay === 'true' && config.LockTeammateNameDisplay === 'true';
         const configTeammateNameDisplay = config.TeammateNameDisplay as string;
         const emojiPickerEnabled = config.EnableEmojiPicker === 'true';
@@ -56,14 +50,19 @@ export function makeMapStateToProps() {
             lastActiveDisplay = false;
         }
 
+        let userLocale = props.user.locale;
+        if (!isLanguageAvailable(state, userLocale)) {
+            userLocale = config.DefaultClientLocale as string;
+        }
+
         return {
             lockTeammateNameDisplay,
             allowCustomThemes,
             configTeammateNameDisplay,
             enableLinkPreviews,
-            defaultClientLocale,
+            locales: getLanguages(state),
+            userLocale,
             enableThemeSelection,
-            enableTimezone,
             timezones,
             timezoneLabel,
             userTimezone,
@@ -88,9 +87,9 @@ export function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             autoUpdateTimezone,
             savePreferences,
             updateMe,

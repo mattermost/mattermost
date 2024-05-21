@@ -32,7 +32,7 @@
 @mixin leveled-color($hover, $active) {
     &:hover {
         &:not(:disabled) {
-            color: rgba($hover, 0.72);
+            color: rgba($hover, 0.75);
         }
     }
 
@@ -48,10 +48,21 @@
     position: relative;
     padding: 4px 10px;
     border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-family: Open Sans;
     font-style: normal;
     font-weight: 600;
+
+    &.ReplyButton {
+        overflow:visible;
+        height: 24px;
+        padding-left: 8px;
+    }
+
+    &.FollowButton {
+        overflow:visible;
+        height: 24px;
+    }
 
     &.allowTextOverflow {
         min-width: 4rem;
@@ -107,11 +118,11 @@
     }
 
     .Button_prepended {
-        margin-right: 0.5em;
+        margin-right: 0.4em;
     }
 
     .Button_appended {
-        margin-left: 0.5em;
+        margin-left: 0.4em;
     }
 
     .dot {
@@ -120,8 +131,8 @@
         right: 6px;
         width: 4px;
         height: 4px;
-        background: rgba(var(--sidebar-text-active-border-rgb), 1);
         border-radius: 50%;
+        background: rgba(var(--sidebar-text-active-border-rgb), 1);
     }
 }
 

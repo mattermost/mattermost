@@ -10,7 +10,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
       aria-live="assertive"
       class="sr-only"
     >
-       emoji
+      grinning emoji
     </div>
     <div
       class="emoji-picker__search-container"
@@ -159,9 +159,9 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
       class="emoji-picker__footer"
     >
       <div
-        class="emoji-picker__preview emoji-picker__preview-placeholder"
+        class="emoji-picker__preview"
       >
-        Select an Emoji
+        Preview for grinning emoji
       </div>
     </div>
   </div>

@@ -19,37 +19,38 @@ import (
 )
 
 const (
-	PostSystemMessagePrefix        = "system_"
-	PostTypeDefault                = ""
-	PostTypeSlackAttachment        = "slack_attachment"
-	PostTypeSystemGeneric          = "system_generic"
-	PostTypeJoinLeave              = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
-	PostTypeJoinChannel            = "system_join_channel"
-	PostTypeGuestJoinChannel       = "system_guest_join_channel"
-	PostTypeLeaveChannel           = "system_leave_channel"
-	PostTypeJoinTeam               = "system_join_team"
-	PostTypeLeaveTeam              = "system_leave_team"
-	PostTypeAutoResponder          = "system_auto_responder"
-	PostTypeAddRemove              = "system_add_remove" // Deprecated, use PostAddToChannel or PostRemoveFromChannel instead
-	PostTypeAddToChannel           = "system_add_to_channel"
-	PostTypeAddGuestToChannel      = "system_add_guest_to_chan"
-	PostTypeRemoveFromChannel      = "system_remove_from_channel"
-	PostTypeMoveChannel            = "system_move_channel"
-	PostTypeAddToTeam              = "system_add_to_team"
-	PostTypeRemoveFromTeam         = "system_remove_from_team"
-	PostTypeHeaderChange           = "system_header_change"
-	PostTypeDisplaynameChange      = "system_displayname_change"
-	PostTypeConvertChannel         = "system_convert_channel"
-	PostTypePurposeChange          = "system_purpose_change"
-	PostTypeChannelDeleted         = "system_channel_deleted"
-	PostTypeChannelRestored        = "system_channel_restored"
-	PostTypeEphemeral              = "system_ephemeral"
-	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
-	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
-	PostTypeSystemWarnMetricStatus = "warn_metric_status"
-	PostTypeMe                     = "me"
-	PostCustomTypePrefix           = "custom_"
-	PostTypeReminder               = "reminder"
+	PostSystemMessagePrefix      = "system_"
+	PostTypeDefault              = ""
+	PostTypeSlackAttachment      = "slack_attachment"
+	PostTypeSystemGeneric        = "system_generic"
+	PostTypeJoinLeave            = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
+	PostTypeJoinChannel          = "system_join_channel"
+	PostTypeGuestJoinChannel     = "system_guest_join_channel"
+	PostTypeLeaveChannel         = "system_leave_channel"
+	PostTypeJoinTeam             = "system_join_team"
+	PostTypeLeaveTeam            = "system_leave_team"
+	PostTypeAutoResponder        = "system_auto_responder"
+	PostTypeAddRemove            = "system_add_remove" // Deprecated, use PostAddToChannel or PostRemoveFromChannel instead
+	PostTypeAddToChannel         = "system_add_to_channel"
+	PostTypeAddGuestToChannel    = "system_add_guest_to_chan"
+	PostTypeRemoveFromChannel    = "system_remove_from_channel"
+	PostTypeMoveChannel          = "system_move_channel"
+	PostTypeAddToTeam            = "system_add_to_team"
+	PostTypeRemoveFromTeam       = "system_remove_from_team"
+	PostTypeHeaderChange         = "system_header_change"
+	PostTypeDisplaynameChange    = "system_displayname_change"
+	PostTypeConvertChannel       = "system_convert_channel"
+	PostTypePurposeChange        = "system_purpose_change"
+	PostTypeChannelDeleted       = "system_channel_deleted"
+	PostTypeChannelRestored      = "system_channel_restored"
+	PostTypeEphemeral            = "system_ephemeral"
+	PostTypeChangeChannelPrivacy = "system_change_chan_privacy"
+	PostTypeWrangler             = "system_wrangler"
+	PostTypeGMConvertedToChannel = "system_gm_to_channel"
+	PostTypeAddBotTeamsChannels  = "add_bot_teams_channels"
+	PostTypeMe                   = "me"
+	PostCustomTypePrefix         = "custom_"
+	PostTypeReminder             = "reminder"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -62,24 +63,22 @@ const (
 
 	PropsAddChannelMember = "add_channel_member"
 
-	PostPropsAddedUserId       = "addedUserId"
-	PostPropsDeleteBy          = "deleteBy"
-	PostPropsOverrideIconURL   = "override_icon_url"
-	PostPropsOverrideIconEmoji = "override_icon_emoji"
-
+	PostPropsAddedUserId              = "addedUserId"
+	PostPropsDeleteBy                 = "deleteBy"
+	PostPropsOverrideIconURL          = "override_icon_url"
+	PostPropsOverrideIconEmoji        = "override_icon_emoji"
+	PostPropsOverrideUsername         = "override_username"
+	PostPropsFromWebhook              = "from_webhook"
+	PostPropsFromBot                  = "from_bot"
+	PostPropsFromOAuthApp             = "from_oauth_app"
+	PostPropsWebhookDisplayName       = "webhook_display_name"
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
-
-	PostPropsPreviewedPost = "previewed_post"
+	PostPropsPreviewedPost            = "previewed_post"
 
 	PostPriorityUrgent               = "urgent"
 	PostPropsRequestedAck            = "requested_ack"
 	PostPropsPersistentNotifications = "persistent_notifications"
-)
-
-const (
-	ModifierMessages string = "messages"
-	ModifierFiles    string = "files"
 )
 
 type Post struct {
@@ -147,6 +146,10 @@ func (o *Post) Auditable() map[string]interface{} {
 	}
 }
 
+func (o *Post) LogClone() any {
+	return o.Auditable()
+}
+
 type PostEphemeral struct {
 	UserID string `json:"user_id"`
 	Post   *Post  `json:"post"`
@@ -190,6 +193,10 @@ type GetPersistentNotificationsPostsParams struct {
 	PerPage      int
 }
 
+type MoveThreadParams struct {
+	ChannelId string `json:"channel_id"`
+}
+
 type SearchParameter struct {
 	Terms                  *string `json:"terms"`
 	IsOrSearch             *bool   `json:"is_or_search"`
@@ -197,7 +204,6 @@ type SearchParameter struct {
 	Page                   *int    `json:"page"`
 	PerPage                *int    `json:"per_page"`
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
-	Modifier               *string `json:"modifier"` // whether it's messages or file
 }
 
 type AnalyticsPostCountsOptions struct {
@@ -325,13 +331,20 @@ type GetPostsSinceOptions struct {
 
 type GetPostsSinceForSyncCursor struct {
 	LastPostUpdateAt int64
-	LastPostId       string
+	LastPostUpdateID string
+	LastPostCreateAt int64
+	LastPostCreateID string
+}
+
+func (c GetPostsSinceForSyncCursor) IsEmpty() bool {
+	return c.LastPostCreateAt == 0 && c.LastPostCreateID == "" && c.LastPostUpdateAt == 0 && c.LastPostUpdateID == ""
 }
 
 type GetPostsSinceForSyncOptions struct {
 	ChannelId       string
 	ExcludeRemoteId string
 	IncludeDeleted  bool
+	SinceCreateAt   bool // determines whether the cursor will be based on CreateAt or UpdateAt
 }
 
 type GetPostsOptions struct {
@@ -432,9 +445,10 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeChannelRestored,
 		PostTypeChangeChannelPrivacy,
 		PostTypeAddBotTeamsChannels,
-		PostTypeSystemWarnMetricStatus,
 		PostTypeReminder,
-		PostTypeMe:
+		PostTypeMe,
+		PostTypeWrangler,
+		PostTypeGMConvertedToChannel:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -472,6 +486,39 @@ func (o *Post) SanitizeProps() {
 	for _, p := range o.Participants {
 		p.Sanitize(map[string]bool{})
 	}
+}
+
+func (o *Post) ContainsIntegrationsReservedProps() []string {
+	return containsIntegrationsReservedProps(o.GetProps())
+}
+
+func (o *PostPatch) ContainsIntegrationsReservedProps() []string {
+	if o == nil || o.Props == nil {
+		return nil
+	}
+	return containsIntegrationsReservedProps(*o.Props)
+}
+
+func containsIntegrationsReservedProps(props StringInterface) []string {
+	foundProps := []string{}
+
+	if props != nil {
+		reservedProps := []string{
+			PostPropsFromWebhook,
+			PostPropsOverrideUsername,
+			PostPropsWebhookDisplayName,
+			PostPropsOverrideIconURL,
+			PostPropsOverrideIconEmoji,
+		}
+
+		for _, key := range reservedProps {
+			if _, ok := props[key]; ok {
+				foundProps = append(foundProps, key)
+			}
+		}
+	}
+
+	return foundProps
 }
 
 func (o *Post) PreSave() {
@@ -849,4 +896,12 @@ func (o *Post) IsUrgent() bool {
 	}
 
 	return *postPriority.Priority == PostPriorityUrgent
+}
+
+func (o *Post) CleanPost() *Post {
+	o.Id = ""
+	o.CreateAt = 0
+	o.UpdateAt = 0
+	o.EditAt = 0
+	return o
 }

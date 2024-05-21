@@ -1,34 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {Link} from 'react-router-dom';
-import classNames from 'classnames';
 
-import Pluggable from 'plugins/pluggable';
+import type {Channel} from '@mattermost/types/channels';
 
 import {mark, trackEvent} from 'actions/telemetry_actions';
 
-import CopyUrlContextMenu from 'components/copy_url_context_menu';
+import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
+import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
 
+import Pluggable from 'plugins/pluggable';
 import Constants, {RHSStates} from 'utils/constants';
 import {wrapEmojis} from 'utils/emoji_utils';
 import {cmdOrCtrlPressed} from 'utils/keyboard';
-import {isDesktopApp} from 'utils/user_agent';
+import {Mark} from 'utils/performance_telemetry';
 import {localizeMessage} from 'utils/utils';
-import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
 
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import type {RhsState} from 'types/store/rhs';
 
 import ChannelMentionBadge from '../channel_mention_badge';
 import ChannelPencilIcon from '../channel_pencil_icon';
 import SidebarChannelIcon from '../sidebar_channel_icon';
 import SidebarChannelMenu from '../sidebar_channel_menu';
-
-import {Channel} from '@mattermost/types/channels';
-import {RhsState} from 'types/store/rhs';
 
 type Props = {
     channel: Channel;
@@ -138,7 +136,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
     removeTooltipLink = (): void => this.gmItemRef.current?.removeAttribute?.('aria-describedby');
 
     handleChannelClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
-        mark('SidebarChannelLink#click');
+        mark(Mark.ChannelLinkClicked);
         this.handleSelectChannel(event);
 
         if (this.props.rhsOpen && this.props.rhsState === RHSStates.EDIT_HISTORY) {
@@ -291,7 +289,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                 selected: isChannelSelected,
             },
         ]);
-        let element = (
+        return (
             <Link
                 className={className}
                 id={`sidebarItem_${channel.name}`}
@@ -304,18 +302,5 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                 {channelsTutorialTip}
             </Link>
         );
-
-        if (isDesktopApp()) {
-            element = (
-                <CopyUrlContextMenu
-                    link={this.props.link}
-                    menuId={channel.id}
-                >
-                    {element}
-                </CopyUrlContextMenu>
-            );
-        }
-
-        return element;
     }
 }

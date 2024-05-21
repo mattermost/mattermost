@@ -22,14 +22,6 @@
             button[disabled] {
                 color: rgba(var(--center-channel-color-rgb), 0.32);
             }
-
-            button.update-group-back {
-                padding: 13px 20px;
-                margin-right: 8px;
-                background: rgba(var(--button-bg-rgb), 0.08);
-                color: rgb(var(--button-bg-rgb));
-                line-height: 14px;
-            }
         }
     }
 }

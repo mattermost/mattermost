@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {ListChildComponentProps, areEqual} from 'react-window';
+import {areEqual} from 'react-window';
+import type {ListChildComponentProps} from 'react-window';
 
-import {CustomEmoji, Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import type {CustomEmoji, Emoji, SystemEmoji} from '@mattermost/types/emojis';
 
-import {CategoryOrEmojiRow, EmojiCursor} from 'components/emoji_picker/types';
-import {isCategoryHeaderRow} from 'components/emoji_picker/utils';
 import EmojiPickerCategorySection from 'components/emoji_picker/components/emoji_picker_category_row';
 import EmojiPickerItem from 'components/emoji_picker/components/emoji_picker_item';
+import type {CategoryOrEmojiRow, EmojiCursor} from 'components/emoji_picker/types';
+import {isCategoryHeaderRow} from 'components/emoji_picker/utils';
 
 interface Props extends ListChildComponentProps<CategoryOrEmojiRow[]> {
     cursorRowIndex: number;

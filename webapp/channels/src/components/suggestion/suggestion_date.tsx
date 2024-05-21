@@ -1,13 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo} from 'react';
 
 import Popover from 'components/widgets/popover';
 
 type SuggestionItem = {
+    date: string;
+    label: string;
+}
+
+type SuggestionItemProps = {
     key: string;
-    ref: string;
     item: SuggestionItem;
     term: string;
     matchedPretext: string;
@@ -24,43 +28,46 @@ type Props = {
     terms: string[];
     preventClose: () => void;
     handleEscape: () => void;
-    components: Array<React.ComponentType<SuggestionItem>>;
+    components: Array<React.ComponentType<SuggestionItemProps>>;
 }
 
-export default class SuggestionDate extends React.PureComponent<Props> {
-    render() {
-        if (this.props.items.length === 0) {
-            return null;
-        }
+const SuggestionDate = ({
+    items,
+    terms,
+    components,
+    matchedPretext,
+    onCompleteWord,
+    preventClose,
+    handleEscape,
+}: Props) => {
+    if (items.length === 0) {
+        return null;
+    }
 
-        const item = this.props.items[0];
-        const term = this.props.terms[0];
+    const item = items[0];
+    const term = terms[0];
 
-        // ReactComponent names need to be upper case when used in JSX
-        const Component = this.props.components[0];
+    // ReactComponent names need to be upper case when used in JSX
+    const Component = components[0];
 
-        const itemComponent = (
+    return (
+        <Popover
+            id='search-autocomplete__popover'
+            className='search-help-popover autocomplete visible'
+            placement='bottom'
+        >
             <Component
                 key={term}
-                ref={term}
                 item={item}
                 term={term}
-                matchedPretext={this.props.matchedPretext[0]}
+                matchedPretext={matchedPretext[0]}
                 isSelection={false}
-                onClick={this.props.onCompleteWord}
-                preventClose={this.props.preventClose}
-                handleEscape={this.props.handleEscape}
+                onClick={onCompleteWord}
+                preventClose={preventClose}
+                handleEscape={handleEscape}
             />
-        );
+        </Popover>
+    );
+};
 
-        return (
-            <Popover
-                id='search-autocomplete__popover'
-                className='search-help-popover autocomplete visible'
-                placement='bottom'
-            >
-                {itemComponent}
-            </Popover>
-        );
-    }
-}
+export default memo(SuggestionDate);

@@ -5,15 +5,14 @@ import classNames from 'classnames';
 import React, {useCallback} from 'react';
 
 import Timestamp from 'components/timestamp';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
-
-import {
-    GroupChannel,
-    isGroupChannel,
-    OptionValue,
-} from '../types';
 
 import UserDetails from './user_details';
+
+import {isGroupChannel} from '../types';
+import type {
+    GroupChannel,
+    OptionValue,
+} from '../types';
 
 const TIME_SPEC: React.ComponentProps<typeof Timestamp> = {
     useTime: false,
@@ -77,7 +76,7 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
 
             <div className='more-modal__actions'>
                 <div className='more-modal__actions--round'>
-                    <AddIcon/>
+                    <i className='icon icon-plus'/>
                 </div>
             </div>
         </div>
@@ -92,7 +91,7 @@ function GMDetails(props: {option: GroupChannel}) {
 
     return (
         <>
-            <div className='more-modal__gm-icon bg-text-200'>
+            <div className='more-modal__gm-icon'>
                 {option.profiles.length}
             </div>
             <div className='more-modal__details'>

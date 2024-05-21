@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/user_settings/display/user_settings_theme/user_settings_theme.jsx should match snapshot 1`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Open to manage your theme"

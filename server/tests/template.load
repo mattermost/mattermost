@@ -1,0 +1,42 @@
+LOAD DATABASE
+     FROM      mysql://{{ .mysql_user }}:{{ .mysql_password }}@mysql:3306/{{ .source_schema }}
+     INTO      pgsql://{{ .pg_user }}:{{ .pg_password }}@postgres:5432/{{ .target_schema }}
+
+WITH data only,
+     workers = 8, concurrency = 1,
+     multiple readers per thread, rows per range = 50000,
+     create no tables, create no indexes,
+     preserve index names
+
+SET PostgreSQL PARAMETERS
+     maintenance_work_mem to '128MB',
+     work_mem to '12MB'
+
+SET MySQL PARAMETERS
+      net_read_timeout  = '120',
+      net_write_timeout = '120'
+
+CAST column Channels.Type to "channel_type" drop typemod,
+     column Teams.Type to "team_type" drop typemod,
+     column UploadSessions.Type to "upload_session_type" drop typemod,
+     column Drafts.Priority to text,
+     type int when (= precision 11) to integer drop typemod,
+     type bigint when (= precision 20) to bigint drop typemod,
+     type text to varchar drop typemod,
+     type tinyint when (<= precision 4) to boolean using tinyint-to-boolean,
+     type json to jsonb drop typemod
+
+EXCLUDING TABLE NAMES MATCHING ~<IR_>, ~<focalboard>
+
+BEFORE LOAD DO
+     $$ ALTER SCHEMA public RENAME TO {{ .source_schema }}; $$,
+     $$ DROP INDEX IF EXISTS idx_posts_message_txt; $$,
+     $$ DROP INDEX IF EXISTS idx_fileinfo_content_txt; $$
+
+AFTER LOAD DO
+     $$ UPDATE {{ .source_schema }}.db_migrations set name='add_createat_to_teamembers' where version=92; $$,
+     $$ CREATE INDEX IF NOT EXISTS idx_posts_message_txt ON {{ .source_schema }}.posts USING gin(to_tsvector('english', message)); $$,
+     $$ CREATE INDEX IF NOT EXISTS idx_fileinfo_content_txt ON {{ .source_schema }}.fileinfo USING gin(to_tsvector('english', content)); $$,
+     $$ ALTER SCHEMA {{ .source_schema }} RENAME TO public; $$,
+     $$ SELECT pg_catalog.set_config('search_path', '"$user", public', false); $$,
+     $$ ALTER USER {{ .pg_user }} SET SEARCH_PATH TO 'public'; $$;

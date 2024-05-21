@@ -1,29 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, useCallback, useRef} from 'react';
-import {useSelector} from 'react-redux';
-import {DayModifiers, DayPickerProps} from 'react-day-picker';
-import {useIntl} from 'react-intl';
 import {DateTime} from 'luxon';
-
-import moment, {Moment} from 'moment-timezone';
+import type {Moment} from 'moment-timezone';
+import moment from 'moment-timezone';
+import React, {useEffect, useState, useCallback, useRef} from 'react';
+import type {DayModifiers, DayPickerProps} from 'react-day-picker';
+import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Input from 'components/widgets/inputs/input/input';
-import DatePicker from 'components/date_picker';
-import Menu from 'components/widgets/menu/menu';
-import Timestamp from 'components/timestamp';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {getCurrentLocale} from 'selectors/i18n';
+
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import DatePicker from 'components/date_picker';
+import Timestamp from 'components/timestamp';
+import Input from 'components/widgets/inputs/input/input';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
+import Constants, {A11yCustomEventTypes} from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
-import {localizeMessage} from 'utils/utils';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
-import Constants, {A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
@@ -89,7 +91,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
     const setTimeAndOptions = () => {
         const currentTime = getCurrentMomentForTimezone(timezone);
         let startTime = moment(time).startOf('day');
-        if (time.date() === currentTime.date()) {
+        if (currentTime.isSame(time, 'date')) {
             startTime = getRoundedTime(currentTime);
         }
         setTimeOptions(getTimeInIntervals(startTime));
@@ -169,7 +171,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
                             id='customStatus__calendar-input'
                             readOnly={true}
                             className='dateTime__calendar-input'
-                            label={localizeMessage('dnd_custom_time_picker_modal.date', 'Date')}
+                            label={formatMessage({id: 'dnd_custom_time_picker_modal.date', defaultMessage: 'Date'})}
                             onClick={() => handlePopperOpenState(true)}
                             tabIndex={-1}
                             inputPrefix={inputIcon}

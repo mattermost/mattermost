@@ -15,7 +15,7 @@ exports[`components/integrations/EditCommand should have match renderExtra 1`] =
       id="update_command.question"
     />
   }
-  modalClass=""
+  modalClass="integrations-backstage-modal"
   onCancel={[Function]}
   onConfirm={[Function]}
   show={false}
@@ -29,7 +29,7 @@ exports[`components/integrations/EditCommand should have match renderExtra 1`] =
 `;
 
 exports[`components/integrations/EditCommand should match snapshot 1`] = `
-<AbstractCommand
+<injectIntl(AbstractCommand)
   action={[Function]}
   footer={
     Object {
@@ -85,7 +85,7 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
           id="update_command.question"
         />
       }
-      modalClass=""
+      modalClass="integrations-backstage-modal"
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}

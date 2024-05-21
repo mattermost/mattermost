@@ -293,7 +293,6 @@ func TestFirstNImages(t *testing.T) {
 		}
 		assert.Len(t, firstNImages(six, -10), LinkMetadataMaxImages, "On negative, go for defaults")
 	})
-
 }
 
 func TestTruncateOpenGraph(t *testing.T) {

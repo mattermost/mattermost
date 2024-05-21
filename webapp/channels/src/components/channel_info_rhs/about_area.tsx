@@ -4,15 +4,15 @@
 import React from 'react';
 import styled from 'styled-components';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+
 import Constants from 'utils/constants';
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-
-import {DMUser} from './channel_info_rhs';
+import AboutAreaChannel from './about_area_channel';
 import AboutAreaDM from './about_area_dm';
 import AboutAreaGM from './about_area_gm';
-import AboutAreaChannel from './about_area_channel';
+import type {DMUser} from './channel_info_rhs';
 
 const Container = styled.div`
     overflow-wrap: anywhere;
@@ -30,7 +30,7 @@ const Container = styled.div`
         padding: 0px;
         background: transparent;
         border: 0px;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 `;
 

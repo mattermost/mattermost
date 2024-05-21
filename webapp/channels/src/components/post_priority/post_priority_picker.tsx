@@ -2,19 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState, memo} from 'react';
-import {useSelector} from 'react-redux';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {AlertOutlineIcon, AlertCircleOutlineIcon, MessageTextOutlineIcon, CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
+import type {PostPriorityMetadata} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 
 import {getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
 
-import BetaTag from '../widgets/tag/beta_tag';
-
-import {PostPriority, PostPriorityMetadata} from '@mattermost/types/posts';
+import BetaTag from 'components/widgets/tag/beta_tag';
 
 import Menu, {MenuGroup, MenuItem, ToggleItem} from './post_priority_picker_item';
+
 import './post_priority_picker.scss';
 
 type Props = {
@@ -32,15 +33,15 @@ const ImportantIcon = styled(AlertCircleOutlineIcon)`
 `;
 
 const StandardIcon = styled(MessageTextOutlineIcon)`
-    fill: rgba(var(--center-channel-color-rgb), 0.56);
+    fill: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 const AcknowledgementIcon = styled(CheckCircleOutlineIcon)`
-    fill: rgba(var(--center-channel-color-rgb), 0.56);
+    fill: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 const PersistentNotificationsIcon = styled(BellRingOutlineIcon)`
-    fill: rgba(var(--center-channel-color-rgb), 0.56);
+    fill: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 const Header = styled.h4`

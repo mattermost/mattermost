@@ -4,6 +4,7 @@
 package app
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -12,7 +13,80 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.RegisterPluginOpts) (remoteID string, err error) {
+	// check for pluginID already registered
+	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(opts.PluginID)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			// anything other than not_found is unrecoverable
+			return "", err
+		}
+	}
+
+	// if plugin is already registered then treat this as an update.
+	if rc != nil {
+		rctx.Logger().Debug("Plugin already registered for Shared Channels",
+			mlog.String("plugin_id", opts.PluginID),
+			mlog.String("remote_id", rc.RemoteId),
+		)
+
+		rc.DisplayName = opts.Displayname
+		rc.Options = opts.GetOptionFlags()
+
+		if _, err = a.Srv().Store().RemoteCluster().Update(rc); err != nil {
+			return "", err
+		}
+		return rc.RemoteId, nil
+	}
+
+	rc = &model.RemoteCluster{
+		Name:        opts.Displayname,
+		DisplayName: opts.Displayname,
+		SiteURL:     model.SiteURLPlugin + opts.PluginID, // require a unique siteurl
+		Token:       model.NewId(),
+		CreatorId:   opts.CreatorID,
+		PluginID:    opts.PluginID,
+		Options:     opts.GetOptionFlags(),
+	}
+
+	rcSaved, err := a.Srv().Store().RemoteCluster().Save(rc)
+	if err != nil {
+		return "", err
+	}
+
+	rctx.Logger().Debug("Registered new plugin for Shared Channels",
+		mlog.String("plugin_id", opts.PluginID),
+		mlog.String("remote_id", rcSaved.RemoteId),
+	)
+
+	// ping the plugin remote immediately if the service is running
+	// If the service is not available the ping will happen once the
+	// service starts. This is expected since plugins start before the
+	// service.
+	rcService, _ := a.GetRemoteClusterService()
+	if rcService != nil {
+		rcService.PingNow(rcSaved)
+	}
+
+	return rcSaved.RemoteId, nil
+}
+
+func (a *App) UnregisterPluginForSharedChannels(pluginID string) error {
+	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
+	if err != nil {
+		return err
+	}
+
+	_, appErr := a.DeleteRemoteCluster(rc.RemoteId)
+	if appErr != nil {
+		return appErr
+	}
+	return nil
+}
 
 func (a *App) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError) {
 	rc, err := a.Srv().Store().RemoteCluster().Save(rc)

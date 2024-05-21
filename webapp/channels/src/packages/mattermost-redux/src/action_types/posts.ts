@@ -41,13 +41,12 @@ export default keyMirror({
     POST_DELETED: null,
     POST_REMOVED: null,
 
+    POST_PINNED_CHANGED: null,
+
     RECEIVED_FOCUSED_POST: null,
-    RECEIVED_POST_SELECTED: null,
     RECEIVED_EDIT_POST: null,
     RECEIVED_REACTION: null,
-    RECEIVED_REACTIONS: null,
     REACTION_DELETED: null,
-    RECEIVED_OPEN_GRAPH_METADATA: null,
 
     ADD_MESSAGE_INTO_HISTORY: null,
     RESET_HISTORY_INDEX: null,
@@ -59,4 +58,7 @@ export default keyMirror({
     CREATE_ACK_POST_SUCCESS: null,
 
     DELETE_ACK_POST_SUCCESS: null,
+
+    MOVE_POST_SUCCESS: null,
+    MOVE_POST_FAILURE: null,
 });

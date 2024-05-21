@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-
+import React from 'react';
 import {Provider} from 'react-redux';
 
-import {PluginStatusRedux} from '@mattermost/types/plugins';
+import type {PluginStatusRedux} from '@mattermost/types/plugins';
 
 import ConfirmModal from 'components/confirm_modal';
-import {mountWithIntl as mount} from 'tests/helpers/intl-test-helper';
 
+import {mountWithIntl as mount} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
-import MarketplaceItemPlugin, {UpdateDetails, UpdateDetailsProps, UpdateConfirmationModal, UpdateConfirmationModalProps, MarketplaceItemPluginProps} from './marketplace_item_plugin';
+import MarketplaceItemPlugin, {UpdateDetails, UpdateConfirmationModal} from './marketplace_item_plugin';
+import type {UpdateDetailsProps, UpdateConfirmationModalProps, MarketplaceItemPluginProps} from './marketplace_item_plugin';
 
 describe('components/MarketplaceItemPlugin', () => {
     describe('UpdateDetails', () => {

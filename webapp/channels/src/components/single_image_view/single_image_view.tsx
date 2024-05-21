@@ -1,27 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import classNames from 'classnames';
+import React from 'react';
+import type {KeyboardEvent, MouseEvent} from 'react';
+
+import type {FileInfo} from '@mattermost/types/files';
 
 import {getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
-import {FileInfo} from '@mattermost/types/files';
 
+import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
+
 import {FileTypes, ModalIdentifiers} from 'utils/constants';
 import {
     getFileType,
 } from 'utils/utils';
-
-import FilePreviewModal from 'components/file_preview_modal';
 
 import type {PropsFromRedux} from './index';
 
 const PREVIEW_IMAGE_MIN_DIMENSION = 50;
 const DISPROPORTIONATE_HEIGHT_RATIO = 20;
 
-interface Props extends PropsFromRedux {
+export interface Props extends PropsFromRedux {
     postId: string;
     fileInfo: FileInfo;
     isRhsOpen: boolean;
@@ -82,7 +83,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         }
     };
 
-    handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    handleImageClick = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLDivElement | HTMLImageElement>)) => {
         e.preventDefault();
 
         this.props.actions.openModal({

@@ -193,6 +193,10 @@
   padding: 0px 0px 0px 12px !important;
 }
 
+.divider {
+  opacity: 12%;
+}
+
 @media all and (min-width: 541px) {
   .emailBody {
     padding: 32px !important;

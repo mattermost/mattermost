@@ -2,19 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
-import ReactSelect, {ValueType} from 'react-select';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import ReactSelect from 'react-select';
+import type {ValueType} from 'react-select';
 
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import ExternalLink from 'components/external_link';
 import SettingItemMax from 'components/setting_item_max';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import * as I18n from 'i18n/i18n.jsx';
-import {isKeyPressed} from 'utils/keyboard';
+import type {Language} from 'i18n/i18n';
 import Constants from 'utils/constants';
-
-import {UserProfile} from '@mattermost/types/users';
-import ExternalLink from 'components/external_link';
+import {isKeyPressed} from 'utils/keyboard';
 
 type Actions = {
     updateMe: (user: UserProfile) => Promise<ActionResult>;
@@ -24,6 +26,7 @@ type Props = {
     intl: IntlShape;
     user: UserProfile;
     locale: string;
+    locales: Record<string, Language>;
     updateSection: (section: string) => void;
     actions: Actions;
 };
@@ -45,11 +48,10 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
     reactSelectContainer: React.RefObject<HTMLDivElement>;
     constructor(props: Props) {
         super(props);
-        const locales: any = I18n.getLanguages();
         const userLocale = props.locale;
         const selectedOption = {
-            value: locales[userLocale].value,
-            label: locales[userLocale].name,
+            value: props.locales[userLocale].value,
+            label: props.locales[userLocale].name,
         };
         this.reactSelectContainer = React.createRef();
 
@@ -153,7 +155,8 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {intl} = this.props;
+        const {intl, locales} = this.props;
+
         let serverError;
         if (this.state.serverError) {
             serverError = (
@@ -162,7 +165,6 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
         }
 
         const options: SelectedOption[] = [];
-        const locales: any = I18n.getLanguages();
 
         const languages = Object.keys(locales).
             map((l) => {
@@ -254,7 +256,6 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
                         defaultMessage='Language'
                     />
                 }
-                width='medium'
                 submit={this.changeLanguage}
                 saving={this.state.isSaving}
                 inputs={[input]}

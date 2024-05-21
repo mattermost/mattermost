@@ -13,10 +13,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
 func TestExtract(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+
 	testCases := []struct {
 		Name         string
 		TestFileName string
@@ -127,7 +130,7 @@ func TestExtract(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			data, err := testutils.ReadTestFile(tc.TestFileName)
 			require.NoError(t, err)
-			text, err := Extract(tc.TestFileName, bytes.NewReader(data), tc.Settings)
+			text, err := Extract(logger, tc.TestFileName, bytes.NewReader(data), tc.Settings)
 			if tc.ExpectError {
 				require.Error(t, err)
 			} else {
@@ -145,7 +148,7 @@ func TestExtract(t *testing.T) {
 	t.Run("Unsupported binary file", func(t *testing.T) {
 		data, err := testutils.ReadTestFile("testjpg.jpg")
 		require.NoError(t, err)
-		text, err := Extract("testjpg.jpg", bytes.NewReader(data), ExtractSettings{})
+		text, err := Extract(logger, "testjpg.jpg", bytes.NewReader(data), ExtractSettings{})
 		require.NoError(t, err)
 		require.Equal(t, "", text)
 	})
@@ -153,13 +156,17 @@ func TestExtract(t *testing.T) {
 	t.Run("Wrong docx extension", func(t *testing.T) {
 		data, err := testutils.ReadTestFile("sample-doc.pdf")
 		require.NoError(t, err)
-		text, err := Extract("sample-doc.docx", bytes.NewReader(data), ExtractSettings{})
+		text, err := Extract(logger, "sample-doc.docx", bytes.NewReader(data), ExtractSettings{})
 		require.NoError(t, err)
 		require.Equal(t, "", text)
 	})
 }
 
 type customTestPdfExtractor struct{}
+
+func (te *customTestPdfExtractor) Name() string {
+	return "customTestPdfExtractor"
+}
 
 func (te *customTestPdfExtractor) Match(filename string) bool {
 	return strings.HasSuffix(filename, ".pdf")
@@ -171,6 +178,10 @@ func (te *customTestPdfExtractor) Extract(filename string, r io.ReadSeeker) (str
 
 type failingExtractor struct{}
 
+func (te *failingExtractor) Name() string {
+	return "failingExtractor"
+}
+
 func (te *failingExtractor) Match(filename string) bool {
 	return true
 }
@@ -180,11 +191,12 @@ func (te *failingExtractor) Extract(filename string, r io.ReadSeeker) (string, e
 }
 
 func TestExtractWithExtraExtractors(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
 	t.Run("override existing extractor", func(t *testing.T) {
 		data, err := testutils.ReadTestFile("sample-doc.pdf")
 		require.NoError(t, err)
 
-		text, err := ExtractWithExtraExtractors("sample-doc.pdf", bytes.NewReader(data), ExtractSettings{}, []Extractor{&customTestPdfExtractor{}})
+		text, err := ExtractWithExtraExtractors(logger, "sample-doc.pdf", bytes.NewReader(data), ExtractSettings{}, []Extractor{&customTestPdfExtractor{}})
 		require.NoError(t, err)
 		require.Equal(t, text, "this is a text generated content")
 	})
@@ -193,7 +205,7 @@ func TestExtractWithExtraExtractors(t *testing.T) {
 		data, err := testutils.ReadTestFile("sample-doc.pdf")
 		require.NoError(t, err)
 
-		text, err := ExtractWithExtraExtractors("sample-doc.pdf", bytes.NewReader(data), ExtractSettings{}, []Extractor{&failingExtractor{}})
+		text, err := ExtractWithExtraExtractors(logger, "sample-doc.pdf", bytes.NewReader(data), ExtractSettings{}, []Extractor{&failingExtractor{}})
 		require.NoError(t, err)
 		assert.Contains(t, text, "simple")
 		assert.Contains(t, text, "document")

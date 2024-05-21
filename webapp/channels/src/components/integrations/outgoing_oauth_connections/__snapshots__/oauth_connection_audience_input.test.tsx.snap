@@ -1,0 +1,417 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot when an audience url with a wildcard is configured, and typed in value starts with configured audience url 1`] = `
+<BrowserRouter>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 1,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "undefinedundefined",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Provider
+      store={
+        Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        }
+      }
+    >
+      <OAuthConnectionAudienceInput
+        onChange={[MockFunction]}
+        placeholder=""
+        value="https://aud.com/api/it_matches"
+      >
+        <input
+          autoComplete="off"
+          className="form-control"
+          id="url"
+          maxLength={1024}
+          onChange={[Function]}
+          placeholder=""
+          value="https://aud.com/api/it_matches"
+        />
+        <div
+          className="outgoing-oauth-audience-match-message-container"
+        >
+          <span>
+            <InformationOutlineIcon
+              size={20}
+            >
+              <svg
+                fill="currentColor"
+                height={20}
+                version="1.1"
+                viewBox="0 0 24 24"
+                width={20}
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </InformationOutlineIcon>
+          </span>
+          <span
+            className="outgoing-oauth-audience-match-message"
+          >
+            <FormattedMessage
+              defaultMessage="Not linked to an OAuth connection"
+              id="add_outgoing_oauth_connection.not_connected"
+            >
+              <span>
+                Not linked to an OAuth connection
+              </span>
+            </FormattedMessage>
+          </span>
+        </div>
+      </OAuthConnectionAudienceInput>
+    </Provider>
+  </Router>
+</BrowserRouter>
+`;
+
+exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot when typed in value does not have an exact match 1`] = `
+<BrowserRouter>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 1,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "undefinedundefined",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Provider
+      store={
+        Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        }
+      }
+    >
+      <OAuthConnectionAudienceInput
+        onChange={[MockFunction]}
+        placeholder=""
+        value="https://aud.com/api/no_match"
+      >
+        <input
+          autoComplete="off"
+          className="form-control"
+          id="url"
+          maxLength={1024}
+          onChange={[Function]}
+          placeholder=""
+          value="https://aud.com/api/no_match"
+        />
+        <div
+          className="outgoing-oauth-audience-match-message-container"
+        >
+          <span>
+            <InformationOutlineIcon
+              size={20}
+            >
+              <svg
+                fill="currentColor"
+                height={20}
+                version="1.1"
+                viewBox="0 0 24 24"
+                width={20}
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </InformationOutlineIcon>
+          </span>
+          <span
+            className="outgoing-oauth-audience-match-message"
+          >
+            <FormattedMessage
+              defaultMessage="Not linked to an OAuth connection"
+              id="add_outgoing_oauth_connection.not_connected"
+            >
+              <span>
+                Not linked to an OAuth connection
+              </span>
+            </FormattedMessage>
+          </span>
+        </div>
+      </OAuthConnectionAudienceInput>
+    </Provider>
+  </Router>
+</BrowserRouter>
+`;
+
+exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot when typed in value matches a configured audience 1`] = `
+<BrowserRouter>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 1,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "undefinedundefined",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Provider
+      store={
+        Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        }
+      }
+    >
+      <OAuthConnectionAudienceInput
+        onChange={[MockFunction]}
+        placeholder=""
+        value="https://aud.com/api"
+      >
+        <input
+          autoComplete="off"
+          className="form-control"
+          id="url"
+          maxLength={1024}
+          onChange={[Function]}
+          placeholder=""
+          value="https://aud.com/api"
+        />
+        <div
+          className="outgoing-oauth-audience-match-message-container"
+        >
+          <span>
+            <InformationOutlineIcon
+              size={20}
+            >
+              <svg
+                fill="currentColor"
+                height={20}
+                version="1.1"
+                viewBox="0 0 24 24"
+                width={20}
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </InformationOutlineIcon>
+          </span>
+          <span
+            className="outgoing-oauth-audience-match-message"
+          >
+            <FormattedMessage
+              defaultMessage="Not linked to an OAuth connection"
+              id="add_outgoing_oauth_connection.not_connected"
+            >
+              <span>
+                Not linked to an OAuth connection
+              </span>
+            </FormattedMessage>
+          </span>
+        </div>
+      </OAuthConnectionAudienceInput>
+    </Provider>
+  </Router>
+</BrowserRouter>
+`;
+
+exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot with existing connections 1`] = `
+<BrowserRouter>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 1,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "undefinedundefined",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Provider
+      store={
+        Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        }
+      }
+    >
+      <OAuthConnectionAudienceInput
+        onChange={[MockFunction]}
+        placeholder=""
+        value=""
+      >
+        <input
+          autoComplete="off"
+          className="form-control"
+          id="url"
+          maxLength={1024}
+          onChange={[Function]}
+          placeholder=""
+          value=""
+        />
+        <div
+          className="outgoing-oauth-audience-match-message-container"
+        >
+          <span>
+            <InformationOutlineIcon
+              size={20}
+            >
+              <svg
+                fill="currentColor"
+                height={20}
+                version="1.1"
+                viewBox="0 0 24 24"
+                width={20}
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </InformationOutlineIcon>
+          </span>
+          <span
+            className="outgoing-oauth-audience-match-message"
+          >
+            <FormattedMessage
+              defaultMessage="Not linked to an OAuth connection"
+              id="add_outgoing_oauth_connection.not_connected"
+            >
+              <span>
+                Not linked to an OAuth connection
+              </span>
+            </FormattedMessage>
+          </span>
+        </div>
+      </OAuthConnectionAudienceInput>
+    </Provider>
+  </Router>
+</BrowserRouter>
+`;
+
+exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot with no existing connections 1`] = `
+<BrowserRouter>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 1,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "undefinedundefined",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Provider
+      store={
+        Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        }
+      }
+    >
+      <OAuthConnectionAudienceInput
+        onChange={[MockFunction]}
+        placeholder=""
+        value=""
+      >
+        <input
+          autoComplete="off"
+          className="form-control"
+          id="url"
+          maxLength={1024}
+          onChange={[Function]}
+          placeholder=""
+          value=""
+        />
+      </OAuthConnectionAudienceInput>
+    </Provider>
+  </Router>
+</BrowserRouter>
+`;

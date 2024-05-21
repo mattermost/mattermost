@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import ChipsList, {ChipsInfoType} from 'components/admin_console/workspace-optimization/chips_list';
+import ChipsList from 'components/admin_console/workspace-optimization/chips_list';
+import type {ChipsInfoType} from 'components/admin_console/workspace-optimization/chips_list';
 
 import {ItemStatus} from './dashboard.type';
 

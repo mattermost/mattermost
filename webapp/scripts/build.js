@@ -6,7 +6,7 @@
 const chalk = require('chalk');
 const concurrently = require('concurrently');
 
-const {getPlatformCommands} = require('./utils.js');
+const {getExitCode, getPlatformCommands} = require('./utils.js');
 
 async function buildAll() {
     console.log(chalk.inverse.bold('Building subpackages...') + '\n');
@@ -20,9 +20,9 @@ async function buildAll() {
         );
 
         await result;
-    } catch (e) {
-        console.error(chalk.inverse.bold.red('Failed to build subpackages'), e);
-        return;
+    } catch (closeEvents) {
+        console.error(chalk.inverse.bold.red('Failed to build subpackages'), closeEvents);
+        return getExitCode(closeEvents);
     }
 
     console.log('\n' + chalk.inverse.bold('Subpackages built! Building web app...') + '\n');
@@ -34,12 +34,15 @@ async function buildAll() {
             {command: 'npm:build --workspace=channels', name: 'webapp', prefixColor: 'cyan'},
         ]);
         await result;
-    } catch (e) {
-        console.error(chalk.inverse.bold.red('Failed to build web app'), e);
-        return;
+    } catch (closeEvents) {
+        console.error(chalk.inverse.bold.red('Failed to build web app'), closeEvents);
+        return getExitCode(closeEvents);
     }
 
-    console.log('\n' + chalk.inverse.bold('Web app built! '));
+    console.log('\n' + chalk.inverse.bold('Web app built!'));
+    return 0;
 }
 
-buildAll();
+buildAll().then((exitCode) => {
+    process.exitCode = exitCode;
+});

@@ -13,6 +13,16 @@ import (
 )
 
 func TestNotifyAdmin(t *testing.T) {
+	t.Run("error when notifying with empty data", func(t *testing.T) {
+		th := Setup(t).InitBasic().InitLogin()
+		defer th.TearDown()
+
+		statusCode, err := th.Client.NotifyAdmin(context.Background(), nil)
+
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, statusCode)
+	})
+
 	t.Run("error when plan is unknown when notifying on upgrade", func(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()
@@ -23,9 +33,8 @@ func TestNotifyAdmin(t *testing.T) {
 		})
 
 		require.Error(t, err)
-		require.Equal(t, ": Unable to save notify data.", err.Error())
+		require.Equal(t, "Unable to save notify data.", err.Error())
 		require.Equal(t, http.StatusInternalServerError, statusCode)
-
 	})
 
 	t.Run("error when plan is unknown when notifying to trial", func(t *testing.T) {
@@ -39,9 +48,8 @@ func TestNotifyAdmin(t *testing.T) {
 		})
 
 		require.Error(t, err)
-		require.Equal(t, ": Unable to save notify data.", err.Error())
+		require.Equal(t, "Unable to save notify data.", err.Error())
 		require.Equal(t, http.StatusInternalServerError, statusCode)
-
 	})
 
 	t.Run("error when feature is unknown when notifying on upgrade", func(t *testing.T) {
@@ -54,7 +62,7 @@ func TestNotifyAdmin(t *testing.T) {
 		})
 
 		require.Error(t, err)
-		require.Equal(t, ": Unable to save notify data.", err.Error())
+		require.Equal(t, "Unable to save notify data.", err.Error())
 		require.Equal(t, http.StatusInternalServerError, statusCode)
 	})
 
@@ -69,7 +77,7 @@ func TestNotifyAdmin(t *testing.T) {
 		})
 
 		require.Error(t, err)
-		require.Equal(t, ": Unable to save notify data.", err.Error())
+		require.Equal(t, "Unable to save notify data.", err.Error())
 		require.Equal(t, http.StatusInternalServerError, statusCode)
 	})
 
@@ -91,7 +99,7 @@ func TestNotifyAdmin(t *testing.T) {
 		})
 		require.Error(t, err)
 
-		require.Equal(t, ": Already notified admin", err.Error())
+		require.Equal(t, "Already notified admin", err.Error())
 		require.Equal(t, http.StatusForbidden, statusCode)
 	})
 
@@ -119,9 +127,8 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 		statusCode, err := th.SystemAdminClient.TriggerNotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{})
 
 		require.Error(t, err)
-		require.Equal(t, ": Internal error during cloud api request.", err.Error())
+		require.Equal(t, "Internal error during cloud api request.", err.Error())
 		require.Equal(t, http.StatusForbidden, statusCode)
-
 	})
 
 	t.Run("error when non admins try to trigger notifications", func(t *testing.T) {
@@ -133,7 +140,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 		statusCode, err := th.Client.TriggerNotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{})
 
 		require.Error(t, err)
-		require.Equal(t, ": You do not have the appropriate permissions.", err.Error())
+		require.Equal(t, "You do not have the appropriate permissions.", err.Error())
 		require.Equal(t, http.StatusForbidden, statusCode)
 	})
 

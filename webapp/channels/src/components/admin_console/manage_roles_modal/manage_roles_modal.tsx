@@ -5,33 +5,38 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import BotTag from 'components/widgets/tag/bot_tag';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import Avatar from 'components/widgets/users/avatar';
-import {isSuccess} from 'types/actions';
 import ExternalLink from 'components/external_link';
+import BotTag from 'components/widgets/tag/bot_tag';
+import Avatar from 'components/widgets/users/avatar';
+
 import {DeveloperLinks} from 'utils/constants';
 
+import {isSuccess} from 'types/actions';
+
 export type Props = {
-    show: boolean;
     user?: UserProfile;
     userAccessTokensEnabled: boolean;
 
     // defining custom function type instead of using React.MouseEventHandler
     // to make the event optional
-    onModalDismissed: (e?: React.MouseEvent<HTMLButtonElement>) => void;
-    actions: { updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>};
+    onSuccess: (roles: string) => void;
+    onExited: () => void;
+    actions: {
+        updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>;
+    };
 }
 
 type State = {
+    show: boolean;
     user?: UserProfile;
     error: any | null;
     hasPostAllRole: boolean;
@@ -44,6 +49,7 @@ function getStateFromProps(props: Props): State {
     const roles = props.user && props.user.roles ? props.user.roles : '';
 
     return {
+        show: true,
         user: props.user,
         error: null,
         hasPostAllRole: UserUtils.hasPostAllRole(roles),
@@ -118,6 +124,10 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         }
     };
 
+    onHide = () => {
+        this.setState({show: false});
+    };
+
     handleSave = async () => {
         this.setState({error: null});
 
@@ -138,7 +148,8 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         this.trackRoleChanges(roles, this.props.user!.roles);
 
         if (isSuccess(result)) {
-            this.props.onModalDismissed();
+            this.props.onSuccess(roles);
+            this.onHide();
         } else {
             this.handleError(
                 <FormattedMessage
@@ -341,8 +352,9 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
     render() {
         return (
             <Modal
-                show={this.props.show}
-                onHide={this.props.onModalDismissed}
+                show={this.state.show}
+                onHide={this.onHide}
+                onExited={this.props.onExited}
                 dialogClassName='a11y__modal manage-teams'
                 role='dialog'
                 aria-labelledby='manageRolesModalLabel'
@@ -365,8 +377,8 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                 <Modal.Footer>
                     <button
                         type='button'
-                        className='btn btn-link'
-                        onClick={this.props.onModalDismissed}
+                        className='btn btn-tertiary'
+                        onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='admin.manage_roles.cancel'

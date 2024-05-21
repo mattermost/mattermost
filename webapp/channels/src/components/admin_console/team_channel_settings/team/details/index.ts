@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionCreatorsMapObject, Dispatch, bindActionCreators} from 'redux';
-import {RouteComponentProps} from 'react-router-dom';
 import {connect} from 'react-redux';
+import type {RouteComponentProps} from 'react-router-dom';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {GlobalState} from 'types/store';
-
-import {getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getTeam as fetchTeam, membersMinusGroupMembers, patchTeam, removeUserFromTeam, updateTeamMemberSchemeRoles, addUserToTeam, deleteTeam, unarchiveTeam} from 'mattermost-redux/actions/teams';
-import {getAllGroups, getGroupsAssociatedToTeam} from 'mattermost-redux/selectors/entities/groups';
 import {
     getGroupsAssociatedToTeam as fetchAssociatedGroups,
     linkGroupSyncable,
     unlinkGroupSyncable,
     patchGroupSyncable,
 } from 'mattermost-redux/actions/groups';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import {getTeam as fetchTeam, membersMinusGroupMembers, patchTeam, removeUserFromTeam, updateTeamMemberSchemeRoles, addUserToTeam, deleteTeam, unarchiveTeam} from 'mattermost-redux/actions/teams';
+import {getAllGroups, getGroupsAssociatedToTeam} from 'mattermost-redux/selectors/entities/groups';
+import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
-import TeamDetails, {Props} from './team_details';
+import type {GlobalState} from 'types/store';
+
+import TeamDetails from './team_details';
 
 type Params = {
     team_id: string;
@@ -45,9 +45,9 @@ function mapStateToProps(state: GlobalState, props: OwnProps) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Props['actions']>({
+        actions: bindActionCreators({
             getTeam: fetchTeam,
             getGroups: fetchAssociatedGroups,
             patchTeam,

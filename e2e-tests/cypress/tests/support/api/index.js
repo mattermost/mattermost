@@ -8,6 +8,7 @@ import './cloud';
 import './cluster';
 import './common';
 import './data_retention';
+import './group';
 import './keycloak';
 import './ldap';
 import './playbooks';

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent} from 'react';
+import React from 'react';
+import type {ChangeEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import SettingItemMax from 'components/setting_item_max';
@@ -105,10 +106,9 @@ export default class ManageAutoResponder extends React.PureComponent<Props> {
                 title={
                     <FormattedMessage
                         id='user.settings.notifications.autoResponder'
-                        defaultMessage='Automatic Direct Message Replies'
+                        defaultMessage='Automatic direct message replies'
                     />
                 }
-                width='medium'
                 shiftEnter={true}
                 submit={this.props.submit}
                 saving={this.props.saving}

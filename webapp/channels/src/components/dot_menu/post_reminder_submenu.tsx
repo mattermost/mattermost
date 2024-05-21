@@ -2,20 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
+import {FormattedMessage, FormattedDate, FormattedTime, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {FormattedMessage, FormattedDate, FormattedTime, useIntl} from 'react-intl';
 import {ChevronRightIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Post} from '@mattermost/types/posts';
 
-import * as Menu from 'components/menu';
-import {getCurrentMomentForTimezone} from 'utils/timezone';
-import {openModal} from 'actions/views/modals';
-import {ModalIdentifiers} from 'utils/constants';
-import {toUTCUnix} from 'utils/datetime';
-import PostReminderCustomTimePicker from 'components/post_reminder_custom_time_picker_modal';
 import {addPostReminder} from 'mattermost-redux/actions/posts';
 
-import {Post} from '@mattermost/types/posts';
+import {openModal} from 'actions/views/modals';
+
+import * as Menu from 'components/menu';
+import PostReminderCustomTimePicker from 'components/post_reminder_custom_time_picker_modal';
+
+import {ModalIdentifiers} from 'utils/constants';
+import {toUTCUnix} from 'utils/datetime';
+import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 type Props = {
     userId: string;
@@ -61,8 +63,8 @@ function PostReminderSubmenu(props: Props) {
                 // add 2 hours in current time
                 endTime = currentDate.add(2, 'hours');
             } else if (id === PostReminders.TOMORROW) {
-                // add one day in current date
-                endTime = currentDate.add(1, 'day');
+                // set to next day 9 in the morning
+                endTime = currentDate.add(1, 'day').set({hour: 9, minute: 0});
             }
 
             dispatch(addPostReminder(props.userId, props.post.id, toUTCUnix(endTime.toDate())));
@@ -110,7 +112,7 @@ function PostReminderSubmenu(props: Props) {
 
         let trailingElements = null;
         if (postReminder === PostReminders.TOMORROW) {
-            const tomorrow = getCurrentMomentForTimezone(props.timezone).add(1, 'day').toDate();
+            const tomorrow = getCurrentMomentForTimezone(props.timezone).add(1, 'day').set({hour: 9, minute: 0}).toDate();
 
             trailingElements = (
                 <span className={`postReminder-${postReminder}_timestamp`}>
@@ -144,6 +146,10 @@ function PostReminderSubmenu(props: Props) {
     return (
         <Menu.SubMenu
             id={`remind_post_${props.post.id}`}
+            menuAriaLabel={formatMessage({
+                id: 'post_info.post_reminder.sub_menu.header',
+                defaultMessage: 'Set a reminder for:',
+            })}
             labels={
                 <FormattedMessage
                     id='post_info.post_reminder.menu'

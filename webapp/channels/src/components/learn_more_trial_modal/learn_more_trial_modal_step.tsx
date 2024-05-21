@@ -2,15 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 
-import TrialBenefitsModalStepMore from 'components/trial_benefits_modal/trial_benefits_modal_step_more';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 
-import './learn_more_trial_modal_step.scss';
-import {AboutLinks, LicenseLinks} from 'utils/constants';
 import ExternalLink from 'components/external_link';
+import TrialBenefitsModalStepMore from 'components/trial_benefits_modal/trial_benefits_modal_step_more';
+
+import {AboutLinks, LicenseLinks} from 'utils/constants';
+
+import './learn_more_trial_modal_step.scss';
 
 export type LearnMoreTrialModalStepProps = {
     id: string;

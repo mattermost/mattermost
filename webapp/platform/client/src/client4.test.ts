@@ -4,7 +4,7 @@
 import nock from 'nock';
 
 import Client4, {ClientError, HEADER_X_VERSION_ID} from './client4';
-import {TelemetryHandler} from './telemetry';
+import type {TelemetryHandler} from './telemetry';
 
 describe('Client4', () => {
     beforeAll(() => {
@@ -39,15 +39,6 @@ describe('Client4', () => {
             await client.getMe();
 
             expect(client.serverVersion).toEqual('5.3.0.5.3.0.abc123');
-        });
-    });
-
-    describe('fetchWithGraphQL', () => {
-        test('Should have correct graphql url', async () => {
-            const client = new Client4();
-            client.setUrl('http://mattermost.example.com');
-
-            expect(client.getGraphQLUrl()).toEqual('http://mattermost.example.com/api/v5/graphql');
         });
     });
 });

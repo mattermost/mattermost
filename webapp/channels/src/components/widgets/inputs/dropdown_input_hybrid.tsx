@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, CSSProperties, useEffect, useRef} from 'react';
-import ReactSelect, {Props as SelectProps, components, IndicatorContainerProps, ControlProps, OptionProps} from 'react-select';
 import classNames from 'classnames';
+import React, {useState, useEffect, useRef} from 'react';
+import type {CSSProperties} from 'react';
+import ReactSelect, {components} from 'react-select';
+import type {Props as SelectProps, IndicatorContainerProps, ControlProps, OptionProps} from 'react-select';
 
 import 'components/widgets/inputs/input/input.scss';
 import './dropdown_input_hybrid.scss';
@@ -13,7 +15,7 @@ type OptionType = {
     value: string;
 }
 
-type Props<T> = Omit<SelectProps<T>, 'onChange'> & {
+type Props<T extends OptionType> = Omit<SelectProps<T>, 'onChange'> & {
     value: T;
     legend?: string;
     error?: string;
@@ -42,6 +44,8 @@ const baseStyles = {
         boxShadow: 'none',
         padding: '0 2px',
         cursor: 'pointer',
+        minHeight: '40px',
+        borderRadius: '0',
     }),
     indicatorSeparator: (provided: CSSProperties) => ({
         ...provided,
@@ -124,15 +128,13 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
     }, [focused, inputFocused]);
 
     const getMenuStyles = () =>
-        (showInput ?
-            {
-                menu: (provided: CSSProperties) => ({
-                    ...provided,
-                    width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '0px',
-                    left: inputRef.current ? `-${inputRef.current.offsetWidth}px` : '0px',
-                }),
-            } :
-            {});
+        (showInput ? {
+            menu: (provided: CSSProperties) => ({
+                ...provided,
+                width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '0px',
+                left: inputRef.current ? `-${inputRef.current.offsetWidth}px` : '0px',
+            }),
+        } : {});
 
     const onInputBlur = () => setInputFocused(false);
 
@@ -206,6 +208,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                         className={classNames('Input form-control')}
                         ref={inputRef}
                         id={inputId}
+                        disabled={props.disabled}
                     />
                 </div>
                 <div
@@ -232,6 +235,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                         hideSelectedOptions={true}
                         isSearchable={false}
                         menuPortalTarget={document.body}
+                        isDisabled={props.disabled}
                         {...otherProps}
                     />
                 </div>

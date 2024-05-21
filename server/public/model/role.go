@@ -342,6 +342,7 @@ func init() {
 		PermissionSysconsoleWriteIntegrationsCors.Id,
 		PermissionSysconsoleReadProductsBoards.Id,
 		PermissionSysconsoleWriteProductsBoards.Id,
+		PermissionManageOutgoingOAuthConnections.Id,
 	}
 
 	SystemCustomGroupAdminDefaultPermissions = []string{
@@ -581,6 +582,15 @@ func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []s
 	return result
 }
 
+func isModeratedBookmarkPermission(permission string) bool {
+	for _, mbp := range ModeratedBookmarkPermissions {
+		if mbp.Id == permission {
+			return true
+		}
+	}
+	return false
+}
+
 // GetChannelModeratedPermissions returns a map of channel moderated permissions that the role has access to
 func (r *Role) GetChannelModeratedPermissions(channelType ChannelType) map[string]bool {
 	moderatedPermissions := make(map[string]bool)
@@ -596,10 +606,21 @@ func (r *Role) GetChannelModeratedPermissions(channelType ChannelType) map[strin
 			}
 
 			if moderated == permission {
-				// Special case where the channel moderated permission for `manage_members` is different depending on whether the channel is private or public
+				// Special case where the channel moderated permission for `manage_members` is different depending
+				// on whether the channel is private or public
 				if moderated == PermissionManagePublicChannelMembers.Id || moderated == PermissionManagePrivateChannelMembers.Id {
 					canManagePublic := channelType == ChannelTypeOpen && moderated == PermissionManagePublicChannelMembers.Id
 					canManagePrivate := channelType == ChannelTypePrivate && moderated == PermissionManagePrivateChannelMembers.Id
+					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
+
+					// Special case where the channel moderated permission for `manage_bookmarks` is different
+					// depending on whether the channel is private or public.
+					//
+					// Only AddBookmark is checked even if the permission includes four (add, delete, edit and
+					// order) as all of them are enabled or disabled in together
+				} else if isModeratedBookmarkPermission(moderated) {
+					canManagePublic := channelType == ChannelTypeOpen && moderated == PermissionAddBookmarkPublicChannel.Id
+					canManagePrivate := channelType == ChannelTypePrivate && moderated == PermissionAddBookmarkPrivateChannel.Id
 					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
 				} else {
 					moderatedPermissions[moderatedPermissionValue] = true
@@ -749,6 +770,7 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.channel_guest.description",
 		Permissions: []string{
 			PermissionReadChannel.Id,
+			PermissionReadChannelContent.Id,
 			PermissionAddReaction.Id,
 			PermissionRemoveReaction.Id,
 			PermissionUploadFile.Id,
@@ -766,6 +788,7 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.channel_user.description",
 		Permissions: []string{
 			PermissionReadChannel.Id,
+			PermissionReadChannelContent.Id,
 			PermissionAddReaction.Id,
 			PermissionRemoveReaction.Id,
 			PermissionManagePublicChannelMembers.Id,
@@ -780,6 +803,14 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManagePrivateChannelMembers.Id,
 			PermissionDeletePost.Id,
 			PermissionEditPost.Id,
+			PermissionAddBookmarkPublicChannel.Id,
+			PermissionEditBookmarkPublicChannel.Id,
+			PermissionDeleteBookmarkPublicChannel.Id,
+			PermissionOrderBookmarkPublicChannel.Id,
+			PermissionAddBookmarkPrivateChannel.Id,
+			PermissionEditBookmarkPrivateChannel.Id,
+			PermissionDeleteBookmarkPrivateChannel.Id,
+			PermissionOrderBookmarkPrivateChannel.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -792,6 +823,14 @@ func MakeDefaultRoles() map[string]*Role {
 		Permissions: []string{
 			PermissionManageChannelRoles.Id,
 			PermissionUseGroupMentions.Id,
+			PermissionAddBookmarkPublicChannel.Id,
+			PermissionEditBookmarkPublicChannel.Id,
+			PermissionDeleteBookmarkPublicChannel.Id,
+			PermissionOrderBookmarkPublicChannel.Id,
+			PermissionAddBookmarkPrivateChannel.Id,
+			PermissionEditBookmarkPrivateChannel.Id,
+			PermissionDeleteBookmarkPrivateChannel.Id,
+			PermissionOrderBookmarkPrivateChannel.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -870,6 +909,14 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionConvertPrivateChannelToPublic.Id,
 			PermissionDeletePost.Id,
 			PermissionDeleteOthersPosts.Id,
+			PermissionAddBookmarkPublicChannel.Id,
+			PermissionEditBookmarkPublicChannel.Id,
+			PermissionDeleteBookmarkPublicChannel.Id,
+			PermissionOrderBookmarkPublicChannel.Id,
+			PermissionAddBookmarkPrivateChannel.Id,
+			PermissionEditBookmarkPrivateChannel.Id,
+			PermissionDeleteBookmarkPrivateChannel.Id,
+			PermissionOrderBookmarkPrivateChannel.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
@@ -30,13 +32,13 @@ func init() {
 	einterfaces.RegisterOAuthProvider(model.UserAuthServiceGitlab, provider)
 }
 
-func userFromGitLabUser(glu *GitLabUser) *model.User {
+func userFromGitLabUser(logger mlog.LoggerIFace, glu *GitLabUser) *model.User {
 	user := &model.User{}
 	username := glu.Username
 	if username == "" {
 		username = glu.Login
 	}
-	user.Username = model.CleanUsername(username)
+	user.Username = model.CleanUsername(logger, username)
 	splitName := strings.Split(glu.Name, " ")
 	if len(splitName) == 2 {
 		user.FirstName = splitName[0]
@@ -82,7 +84,7 @@ func (glu *GitLabUser) getAuthData() string {
 	return strconv.FormatInt(glu.Id, 10)
 }
 
-func (m *GitLabProvider) GetUserFromJSON(data io.Reader, tokenUser *model.User) (*model.User, error) {
+func (gp *GitLabProvider) GetUserFromJSON(c request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error) {
 	glu, err := gitLabUserFromJSON(data)
 	if err != nil {
 		return nil, err
@@ -91,17 +93,17 @@ func (m *GitLabProvider) GetUserFromJSON(data io.Reader, tokenUser *model.User) 
 		return nil, err
 	}
 
-	return userFromGitLabUser(glu), nil
+	return userFromGitLabUser(c.Logger(), glu), nil
 }
 
-func (m *GitLabProvider) GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error) {
+func (gp *GitLabProvider) GetSSOSettings(_ request.CTX, config *model.Config, service string) (*model.SSOSettings, error) {
 	return &config.GitLabSettings, nil
 }
 
-func (m *GitLabProvider) GetUserFromIdToken(idToken string) (*model.User, error) {
+func (gp *GitLabProvider) GetUserFromIdToken(_ request.CTX, idToken string) (*model.User, error) {
 	return nil, nil
 }
 
-func (m *GitLabProvider) IsSameUser(dbUser, oauthUser *model.User) bool {
+func (gp *GitLabProvider) IsSameUser(_ request.CTX, dbUser, oauthUser *model.User) bool {
 	return dbUser.AuthData == oauthUser.AuthData
 }

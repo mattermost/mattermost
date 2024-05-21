@@ -2,21 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
-
 import {useDispatch, useSelector} from 'react-redux';
 
-import {Modal} from 'react-bootstrap';
-
-import PDFPreview from 'components/pdf_preview';
+import type {FileInfo} from '@mattermost/types/files';
 
 import {closeModal} from 'actions/views/modals';
-import {ModalIdentifiers} from 'utils/constants';
 import {isModalOpen} from 'selectors/views/modals';
-import {GlobalState} from 'types/store';
+
+import ExternalLink from 'components/external_link';
+import PDFPreview from 'components/pdf_preview';
+
+import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import './cloud_invoice_preview.scss';
-import ExternalLink from 'components/external_link';
 
 type Props = {
     onHide?: () => void;
@@ -70,8 +72,8 @@ function CloudInvoicePreview(props: Props) {
                             extension: 'pdf',
                             size: 0,
                             name: '',
-                        }}
-                        fileUrl={props.url}
+                        } as FileInfo}
+                        fileUrl={props.url ?? ''}
                         scale={1.4}
                         handleBgClose={() => {}}
                     />

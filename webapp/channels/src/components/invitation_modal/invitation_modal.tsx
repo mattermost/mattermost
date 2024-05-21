@@ -3,28 +3,26 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
+import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {injectIntl, IntlShape} from 'react-intl';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {debounce} from 'mattermost-redux/actions/helpers';
-import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import {Team} from '@mattermost/types/teams';
-
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import deepFreeze from 'mattermost-redux/utils/deep_freeze';
+import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {isEmail} from 'mattermost-redux/utils/helpers';
-
-import {getRoleForTrackFlow} from 'utils/utils';
-
-import ResultView, {ResultState, defaultResultState, InviteResults} from './result_view';
-import InviteView, {InviteState, initializeInviteState} from './invite_view';
-import NoPermissionsView from './no_permissions_view';
 import {InviteType} from './invite_as';
+import InviteView, {initializeInviteState} from './invite_view';
+import type {InviteState} from './invite_view';
+import NoPermissionsView from './no_permissions_view';
+import ResultView, {defaultResultState} from './result_view';
+import type {ResultState, InviteResults} from './result_view';
 
 import './invitation_modal.scss';
 
@@ -35,32 +33,32 @@ type Backdrop = 'static' | boolean
 
 export type Props = {
     actions: {
-        searchChannels: (teamId: string, term: string) => ActionFunc;
+        searchChannels: (teamId: string, term: string) => Promise<ActionResult<Channel[]>>;
         regenerateTeamInviteId: (teamId: string) => void;
 
-        searchProfiles: (term: string, options?: Record<string, string>) => Promise<{data: UserProfile[]}>;
+        searchProfiles: (term: string, options?: Record<string, string>) => Promise<ActionResult<UserProfile[]>>;
         sendGuestsInvites: (
             currentTeamId: string,
             channels: Channel[],
             users: UserProfile[],
             emails: string[],
             message: string,
-        ) => Promise<{data: InviteResults}>;
+        ) => Promise<ActionResult<InviteResults>>;
         sendMembersInvites: (
             teamId: string,
             users: UserProfile[],
             emails: string[]
-        ) => Promise<{data: InviteResults}>;
+        ) => Promise<ActionResult<InviteResults>>;
         sendMembersInvitesToChannels: (
             teamId: string,
             channels: Channel[],
             users: UserProfile[],
             emails: string[],
             message: string,
-        ) => Promise<{data: InviteResults}>;
+        ) => Promise<ActionResult<InviteResults>>;
     };
-    currentTeam: Team;
-    currentChannel: Channel;
+    currentTeam?: Team;
+    currentChannel?: Channel;
     townSquareDisplayName: string;
     invitableChannels: Channel[];
     emailInvitationsEnabled: boolean;
@@ -73,6 +71,7 @@ export type Props = {
     channelToInvite?: Channel;
     initialValue?: string;
     inviteAsGuest?: boolean;
+    roleForTrackFlow: {started_by_role: string};
 }
 
 export const View = {
@@ -159,12 +158,14 @@ export class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     invite = async () => {
-        const roleForTrackFlow = getRoleForTrackFlow();
+        if (!this.props.currentTeam) {
+            return;
+        }
         const inviteAs = this.state.invite.inviteType;
         if (inviteAs === InviteType.MEMBER && this.props.isCloud) {
-            trackEvent('cloud_invite_users', 'click_send_invitations', {num_invitations: this.state.invite.usersEmails.length, ...roleForTrackFlow});
+            trackEvent('cloud_invite_users', 'click_send_invitations', {num_invitations: this.state.invite.usersEmails.length, ...this.props.roleForTrackFlow});
         }
-        trackEvent('invite_users', 'click_invite', roleForTrackFlow);
+        trackEvent('invite_users', 'click_invite', this.props.roleForTrackFlow);
 
         const users: UserProfile[] = [];
         const emails: string[] = [];
@@ -186,10 +187,10 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                     emails,
                     this.state.invite.customMessage.open ? this.state.invite.customMessage.message : '',
                 );
-                invites = result.data;
+                invites = result.data!;
             } else {
                 const result = await this.props.actions.sendMembersInvites(this.props.currentTeam.id, users, emails);
-                invites = result.data;
+                invites = result.data!;
             }
         } else if (inviteAs === InviteType.GUEST) {
             const result = await this.props.actions.sendGuestsInvites(
@@ -199,7 +200,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                 emails,
                 this.state.invite.customMessage.open ? this.state.invite.customMessage.message : '',
             );
-            invites = result.data;
+            invites = result.data!;
         }
 
         if (this.state.invite.usersEmailsSearch !== '') {
@@ -246,7 +247,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
         }));
     };
 
-    debouncedSearchChannels = debounce((term) => this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
+    debouncedSearchChannels = debounce((term) => this.props.currentTeam && this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
 
     channelsLoader = async (value: string) => {
         if (!value) {
@@ -287,9 +288,9 @@ export class InvitationModal extends React.PureComponent<Props, State> {
 
     debouncedSearchProfiles = debounce((term: string, callback: (users: UserProfile[]) => void) => {
         this.props.actions.searchProfiles(term).
-            then(({data}: {data: UserProfile[]}) => {
-                callback(data);
-                if (data.length === 0) {
+            then(({data}: ActionResult<UserProfile[]>) => {
+                callback(data!);
+                if (data!.length === 0) {
                     this.setState({termWithoutResults: term});
                 } else {
                     this.setState({termWithoutResults: null});
@@ -357,6 +358,10 @@ export class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     render() {
+        if (!this.props.currentTeam) {
+            return null;
+        }
+
         let view = (
             <InviteView
                 setInviteAs={this.setInviteAs}
@@ -411,7 +416,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
             <Modal
                 id='invitationModal'
                 data-testid='invitationModal'
-                dialogClassName='a11y__modal'
+                dialogClassName='a11y__modal modal--overflow'
                 className='InvitationModal'
                 show={this.state.show}
                 onHide={this.handleHide}

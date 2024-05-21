@@ -42,6 +42,7 @@ type S3FileBackend struct {
 	timeout        time.Duration
 	presignExpires time.Duration
 	isCloud        bool // field to indicate whether this is running under Mattermost cloud or not.
+	uploadPartSize int64
 }
 
 type S3FileBackendAuthError struct {
@@ -88,8 +89,17 @@ func (s *S3FileBackendNoBucketError) Error() string {
 	return "no such bucket"
 }
 
-// NewS3FileBackend returns an instance of an S3FileBackend.
+// NewS3FileBackend returns an instance of an S3FileBackend and determine if we are in Mattermost cloud or not.
 func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
+	return newS3FileBackend(settings, os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != "")
+}
+
+// NewS3FileBackendWithoutBifrost returns an instance of an S3FileBackend that will not use bifrost.
+func NewS3FileBackendWithoutBifrost(settings FileBackendSettings) (*S3FileBackend, error) {
+	return newS3FileBackend(settings, false)
+}
+
+func newS3FileBackend(settings FileBackendSettings, isCloud bool) (*S3FileBackend, error) {
 	timeout := time.Duration(settings.AmazonS3RequestTimeoutMilliseconds) * time.Millisecond
 	backend := &S3FileBackend{
 		endpoint:       settings.AmazonS3Endpoint,
@@ -105,8 +115,8 @@ func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 		skipVerify:     settings.SkipVerify,
 		timeout:        timeout,
 		presignExpires: time.Duration(settings.AmazonS3PresignExpiresSeconds) * time.Second,
+		uploadPartSize: settings.AmazonS3UploadPartSizeBytes,
 	}
-	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
 	cli, err := backend.s3New(isCloud)
 	if err != nil {
 		return nil, err
@@ -114,6 +124,14 @@ func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 	backend.client = cli
 	backend.isCloud = isCloud
 	return backend, nil
+}
+
+type s3Trace struct {
+}
+
+func (*s3Trace) Write(in []byte) (int, error) {
+	mlog.Debug(string(in))
+	return len(in), nil
 }
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
@@ -170,10 +188,14 @@ func (b *S3FileBackend) s3New(isCloud bool) (*s3.Client, error) {
 	}
 
 	if b.trace {
-		s3Clnt.TraceOn(os.Stdout)
+		s3Clnt.TraceOn(&s3Trace{})
 	}
 
 	return s3Clnt, nil
+}
+
+func (b *S3FileBackend) DriverName() string {
+	return driverS3
 }
 
 func (b *S3FileBackend) TestConnection() error {
@@ -342,7 +364,7 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	if err != nil {
 		return errors.Wrapf(err, "unable to prefix path %s", oldPath)
 	}
-	newPath = b.prefixedPathFast(newPath)
+	newPath = filepath.Join(b.pathPrefix, newPath)
 	srcOpts := s3.CopySrcOptions{
 		Bucket: b.bucket,
 		Object: oldPath,
@@ -368,12 +390,68 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	return nil
 }
 
+// DecodeFilePathIfNeeded is a special method to URL decode all older
+// file paths. It is only needed for the migration, and will be removed
+// as soon as the migration is complete.
+func (b *S3FileBackend) DecodeFilePathIfNeeded(path string) error {
+	// Encode and check if file path changes.
+	// If there is no change, then there is no need to do anything.
+	if path == s3utils.EncodePath(path) {
+		return nil
+	}
+
+	// Check if encoded path exists.
+	exists, err := b.lookupOriginalPath(s3utils.EncodePath(path))
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return nil
+	}
+
+	// If yes, then it needs to be migrated.
+	// This is basically a copy of MoveFile without the path encoding.
+	// We avoid any further refactoring because this method will be removed anyways.
+	oldPath := filepath.Join(b.pathPrefix, s3utils.EncodePath(path))
+	newPath := filepath.Join(b.pathPrefix, path)
+	srcOpts := s3.CopySrcOptions{
+		Bucket: b.bucket,
+		Object: oldPath,
+	}
+	if b.encrypt {
+		srcOpts.Encryption = encrypt.NewSSE()
+	}
+
+	dstOpts := s3.CopyDestOptions{
+		Bucket: b.bucket,
+		Object: newPath,
+	}
+	if b.encrypt {
+		dstOpts.Encryption = encrypt.NewSSE()
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	if _, err := b.client.CopyObject(ctx, dstOpts, srcOpts); err != nil {
+		return errors.Wrapf(err, "unable to copy the file to %s to the new destination", newPath)
+	}
+
+	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel2()
+	if err := b.client.RemoveObject(ctx2, b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
+		return errors.Wrapf(err, "unable to remove the file old file %s", oldPath)
+	}
+
+	return nil
+}
+
 func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 	oldPath, err := b.prefixedPath(oldPath)
 	if err != nil {
 		return errors.Wrapf(err, "unable to prefix path %s", oldPath)
 	}
-	newPath = b.prefixedPathFast(newPath)
+	newPath = filepath.Join(b.pathPrefix, newPath)
 	srcOpts := s3.CopySrcOptions{
 		Bucket: b.bucket,
 		Object: oldPath,
@@ -414,14 +492,14 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 
 func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, error) {
 	var contentType string
-	path = b.prefixedPathFast(path)
+	path = filepath.Join(b.pathPrefix, path)
 	if ext := filepath.Ext(path); isFileExtImage(ext) {
 		contentType = getImageMimeType(ext)
 	} else {
 		contentType = "binary/octet-stream"
 	}
 
-	options := s3PutOptions(b.encrypt, contentType)
+	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize)
 
 	objSize := int64(-1)
 	if b.isCloud {
@@ -465,7 +543,7 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 		contentType = "binary/octet-stream"
 	}
 
-	options := s3PutOptions(b.encrypt, contentType)
+	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize)
 	sse := options.ServerSideEncryption
 	partName := fp + ".part"
 	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
@@ -509,7 +587,6 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 		return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
 	}
 	return info.Size, nil
-
 }
 
 func (b *S3FileBackend) RemoveFile(path string) error {
@@ -632,16 +709,6 @@ func (b *S3FileBackend) GeneratePublicLink(path string) (string, time.Duration, 
 	return req.String(), b.presignExpires, nil
 }
 
-// prefixedPathFast is a variation of prefixedPath
-// where we don't check for the file path. This is for cases
-// where we know the file won't exist - like while writing a new file.
-func (b *S3FileBackend) prefixedPathFast(s string) string {
-	if b.isCloud {
-		s = s3utils.EncodePath(s)
-	}
-	return filepath.Join(b.pathPrefix, s)
-}
-
 func (b *S3FileBackend) lookupOriginalPath(s string) (bool, error) {
 	exists, err := b._fileExists(filepath.Join(b.pathPrefix, s))
 	if err != nil {
@@ -676,20 +743,17 @@ func (b *S3FileBackend) prefixedPath(s string) (string, error) {
 			// More info at: https://github.com/aws/aws-sdk-go/blob/a57c4d92784a43b716645a57b6fa5fb94fb6e419/aws/signer/v4/v4.go#L8
 			s = s3utils.EncodePath(s)
 		}
-
 	}
 	return filepath.Join(b.pathPrefix, s), nil
 }
 
-func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
+func s3PutOptions(encrypted bool, contentType string, uploadPartSize int64) s3.PutObjectOptions {
 	options := s3.PutObjectOptions{}
 	if encrypted {
 		options.ServerSideEncryption = encrypt.NewSSE()
 	}
 	options.ContentType = contentType
-	// We set the part size to the minimum allowed value of 5MBs
-	// to avoid an excessive allocation in minio.PutObject implementation.
-	options.PartSize = 1024 * 1024 * 5
+	options.PartSize = uint64(uploadPartSize)
 
 	return options
 }

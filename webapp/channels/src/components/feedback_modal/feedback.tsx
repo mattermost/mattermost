@@ -2,13 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
-
-import {injectIntl, WrappedComponentProps} from 'react-intl';
+import {injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
-import {Feedback} from '@mattermost/types/cloud';
+import type {Feedback} from '@mattermost/types/cloud';
+
 import {closeModal} from 'actions/views/modals';
+
 import RadioButtonGroup from 'components/common/radio_group';
 
 import {ModalIdentifiers} from 'utils/constants';

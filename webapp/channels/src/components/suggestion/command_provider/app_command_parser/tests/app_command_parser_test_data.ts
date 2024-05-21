@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {
-    AppBinding,
-    AppForm,
     AppFieldTypes,
 } from './app_command_parser_test_dependencies';
+import type {
+    AppBinding,
+    AppForm} from './app_command_parser_test_dependencies';
 
 export const reduxTestState = {
     entities: {
@@ -39,7 +40,7 @@ export const reduxTestState = {
                 },
             },
             channelsInTeam: {
-                'team-id': ['current_channel_id'],
+                'team-id': new Set(['current_channel_id']),
             },
             messageCounts: {
                 current_channel_id: {total: 10},

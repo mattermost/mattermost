@@ -130,10 +130,10 @@ describe('Authentication', () => {
             cy.get('.admin-console__header').should('be.visible').and('have.text', 'Password');
 
             cy.findByTestId('passwordMinimumLengthinput').should('be.visible').and('have.value', '8');
-            cy.findByLabelText('At least one lowercase letter').get('input').should('not.be.checked');
-            cy.findByLabelText('At least one uppercase letter').get('input').should('not.be.checked');
-            cy.findByLabelText('At least one number').get('input').should('not.be.checked');
-            cy.findByLabelText('At least one symbol (e.g. "~!@#$%^&*()")').get('input').should('not.be.checked');
+            cy.findByText('At least one lowercase letter').siblings().should('not.be.checked');
+            cy.findByText('At least one uppercase letter').siblings().should('not.be.checked');
+            cy.findByText('At least one number').siblings().should('not.be.checked');
+            cy.findByText('At least one symbol (e.g. "~!@#$%^&*()")').siblings().should('not.be.checked');
 
             if (!isCloudLicensed) {
                 cy.findByTestId('maximumLoginAttemptsinput').should('be.visible').and('have.value', '10');

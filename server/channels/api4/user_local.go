@@ -6,11 +6,13 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -85,7 +87,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam("role")
 			return
 		}
-		roleValid := utils.StringInSlice(role, roleNamesAll)
+		roleValid := slices.Contains(roleNamesAll, role)
 		if !roleValid {
 			c.SetInvalidParam("role")
 			return
@@ -192,9 +194,9 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 	} else if inTeamId != "" {
 		if sort == "last_activity_at" {
-			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(c.AppContext, c.Params.TeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 		} else if sort == "create_at" {
-			profiles, appErr = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+			profiles, appErr = c.App.GetNewUsersForTeamPage(c.AppContext, c.Params.TeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 		} else {
 			etag = c.App.GetUsersInTeamEtag(inTeamId, "")
 			if c.HandleEtag(etag, "Get Users in Team", w, r) {
@@ -231,9 +233,11 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body)
-
-	if len(userIds) == 0 {
+	userIDs, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("localGetUsersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(userIDs) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
@@ -245,15 +249,15 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sinceString != "" {
-		since, err := strconv.ParseInt(sinceString, 10, 64)
-		if err != nil {
-			c.SetInvalidParamWithErr("since", err)
+		since, parseErr := strconv.ParseInt(sinceString, 10, 64)
+		if parseErr != nil {
+			c.SetInvalidParamWithErr("since", parseErr)
 			return
 		}
 		options.Since = since
 	}
 
-	users, appErr := c.App.GetUsersByIds(userIds, options)
+	users, appErr := c.App.GetUsersByIds(userIDs, options)
 	if appErr != nil {
 		c.Err = appErr
 		return

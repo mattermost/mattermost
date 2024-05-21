@@ -8,7 +8,7 @@ exports[`components/AccessHistoryModal should match snapshot when audits exist 1
   backdrop={true}
   bsClass="modal"
   bsSize="large"
-  dialogClassName="a11y__modal modal--scroll"
+  dialogClassName="a11y__modal modal--scroll access-history-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   keyboard={true}
@@ -68,7 +68,7 @@ exports[`components/AccessHistoryModal should match snapshot when audits exist 1
     componentClass="div"
   >
     <button
-      className="btn btn-link"
+      className="btn btn-tertiary"
       id="closeModalButton"
       type="button"
     >
@@ -89,7 +89,7 @@ exports[`components/AccessHistoryModal should match snapshot when no audits exis
   backdrop={true}
   bsClass="modal"
   bsSize="large"
-  dialogClassName="a11y__modal modal--scroll"
+  dialogClassName="a11y__modal modal--scroll access-history-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   keyboard={true}
@@ -140,7 +140,7 @@ exports[`components/AccessHistoryModal should match snapshot when no audits exis
     componentClass="div"
   >
     <button
-      className="btn btn-link"
+      className="btn btn-tertiary"
       id="closeModalButton"
       type="button"
     >

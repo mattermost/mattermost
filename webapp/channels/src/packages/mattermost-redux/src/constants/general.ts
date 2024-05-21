@@ -8,12 +8,11 @@ export default {
     PAGE_SIZE_MAXIMUM: 200,
     LOGS_PAGE_SIZE_DEFAULT: 10000,
     AUDITS_CHUNK_SIZE: 100,
-    PROFILE_CHUNK_SIZE: 100,
+    PROFILE_CHUNK_SIZE: 100, // WARN: Do not change this without changing the cache key on server side as well. See https://github.com/mattermost/mattermost/pull/26391.
     CHANNELS_CHUNK_SIZE: 50,
     TEAMS_CHUNK_SIZE: 50,
     JOBS_CHUNK_SIZE: 50,
     SEARCH_TIMEOUT_MILLISECONDS: 100,
-    STATUS_INTERVAL: 60000,
     AUTOCOMPLETE_SPLIT_CHARACTERS: ['.', '-', '_'],
     OUT_OF_OFFICE: 'ooo',
     OFFLINE: 'offline',
@@ -76,4 +75,5 @@ export default {
     ALWAYS_ON: 'always_on',
     DEFAULT_GROUP: 'board',
     CUSTOM_GROUP_USER_ROLE: 'custom_group_user',
+    MAX_GET_ROLES_BY_NAMES: 100,
 };

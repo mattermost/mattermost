@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 
 import Completed from './onboarding_tasklist_completed';
-import {shallow} from 'enzyme';
 
 let mockState: any;
 const mockDispatch = jest.fn();

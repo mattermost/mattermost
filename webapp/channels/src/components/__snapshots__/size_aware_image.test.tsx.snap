@@ -1,0 +1,391 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/SizeAwareImage should load download and copy link buttons when an image is mounted 1`] = `
+<Fragment>
+  <div
+    className="image-loading__container class"
+    style={
+      Object {
+        "maxWidth": 300,
+      }
+    }
+  >
+    <svg
+      style={
+        Object {
+          "maxHeight": 200,
+          "maxWidth": 300,
+          "verticalAlign": "middle",
+        }
+      }
+      viewBox="0 0 300 200"
+      xmlns="http://www.w3.org/2000/svg"
+    />
+  </div>
+  <div
+    className="file-preview__button"
+    style={
+      Object {
+        "display": "none",
+      }
+    }
+  >
+    <figure
+      className="image-loaded-container"
+    >
+      <img
+        aria-label="file thumbnail photo-1533709752211-118fcaf03312"
+        className="class"
+        onClick={[Function]}
+        onError={[Function]}
+        onKeyDown={[Function]}
+        onLoad={[Function]}
+        src="https://example.com/image.png"
+        tabIndex={0}
+      />
+      <span
+        className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
+      >
+        <OverlayTrigger
+          className="hidden-xs"
+          defaultOverlayShown={false}
+          delayShow={500}
+          overlay={
+            <Tooltip
+              className="hidden-xs"
+              id="copy-link-tooltip"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Copy link"
+                id="single_image_view.copy_link_tooltip"
+              />
+            </Tooltip>
+          }
+          placement="top"
+          rootClose={true}
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            aria-label="Copy link"
+            className="style--none size-aware-image__copy_link"
+            onClick={[Function]}
+          >
+            <LinkVariantIcon
+              className="style--none"
+              size={20}
+            />
+          </button>
+        </OverlayTrigger>
+        <OverlayTrigger
+          className="hidden-xs"
+          defaultOverlayShown={false}
+          delayShow={500}
+          overlay={
+            <Tooltip
+              className="hidden-xs"
+              id="download-preview-tooltip"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Download"
+                id="single_image_view.download_tooltip"
+              />
+            </Tooltip>
+          }
+          placement="top"
+          rootClose={true}
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <a
+            aria-label="Download"
+            className="style--none size-aware-image__download"
+            download={true}
+            href="https://example.com/image.png"
+            rel="noopener noreferrer"
+            role="button"
+            target="_blank"
+          >
+            <DownloadOutlineIcon
+              className="style--none"
+              size={20}
+            />
+          </a>
+        </OverlayTrigger>
+      </span>
+    </figure>
+  </div>
+</Fragment>
+`;
+
+exports[`components/SizeAwareImage should match snapshot when handleSmallImageContainer prop is passed 1`] = `
+<Fragment>
+  <div
+    className="image-loading__container class"
+    style={
+      Object {
+        "maxWidth": 300,
+      }
+    }
+  >
+    <svg
+      style={
+        Object {
+          "maxHeight": 200,
+          "maxWidth": 300,
+          "verticalAlign": "middle",
+        }
+      }
+      viewBox="0 0 300 200"
+      xmlns="http://www.w3.org/2000/svg"
+    />
+  </div>
+  <div
+    className="file-preview__button"
+    style={
+      Object {
+        "display": "none",
+      }
+    }
+  >
+    <figure
+      className="image-loaded-container"
+    >
+      <img
+        aria-label="file thumbnail photo-1533709752211-118fcaf03312"
+        className="class"
+        onClick={[Function]}
+        onError={[Function]}
+        onKeyDown={[Function]}
+        onLoad={[Function]}
+        src="https://example.com/image.png"
+        tabIndex={0}
+      />
+      <span
+        className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
+      >
+        <OverlayTrigger
+          className="hidden-xs"
+          defaultOverlayShown={false}
+          delayShow={500}
+          overlay={
+            <Tooltip
+              className="hidden-xs"
+              id="copy-link-tooltip"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Copy link"
+                id="single_image_view.copy_link_tooltip"
+              />
+            </Tooltip>
+          }
+          placement="top"
+          rootClose={true}
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            aria-label="Copy link"
+            className="style--none size-aware-image__copy_link"
+            onClick={[Function]}
+          >
+            <LinkVariantIcon
+              className="style--none"
+              size={20}
+            />
+          </button>
+        </OverlayTrigger>
+        <OverlayTrigger
+          className="hidden-xs"
+          defaultOverlayShown={false}
+          delayShow={500}
+          overlay={
+            <Tooltip
+              className="hidden-xs"
+              id="download-preview-tooltip"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Download"
+                id="single_image_view.download_tooltip"
+              />
+            </Tooltip>
+          }
+          placement="top"
+          rootClose={true}
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <a
+            aria-label="Download"
+            className="style--none size-aware-image__download"
+            download={true}
+            rel="noopener noreferrer"
+            role="button"
+            target="_blank"
+          >
+            <DownloadOutlineIcon
+              className="style--none"
+              size={20}
+            />
+          </a>
+        </OverlayTrigger>
+      </span>
+    </figure>
+  </div>
+</Fragment>
+`;
+
+exports[`components/SizeAwareImage should render a placeholder and has loader when showLoader is true 1`] = `
+<Fragment>
+  <div
+    className="image-loading__container class"
+    style={
+      Object {
+        "maxWidth": 300,
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "left": "50%",
+          "position": "absolute",
+          "top": "50%",
+          "transform": "translate(-50%, -50%)",
+        }
+      }
+    >
+      <LoadingImagePreview
+        containerClass="file__image-loading"
+      />
+    </div>
+    <svg
+      style={
+        Object {
+          "maxHeight": 200,
+          "maxWidth": 300,
+          "verticalAlign": "middle",
+        }
+      }
+      viewBox="0 0 300 200"
+      xmlns="http://www.w3.org/2000/svg"
+    />
+  </div>
+  <div
+    className="file-preview__button"
+    style={
+      Object {
+        "display": "none",
+      }
+    }
+  >
+    <figure
+      className="image-loaded-container"
+    >
+      <img
+        aria-label="file thumbnail photo-1533709752211-118fcaf03312"
+        className="class"
+        onClick={[Function]}
+        onError={[Function]}
+        onKeyDown={[Function]}
+        onLoad={[Function]}
+        src="https://example.com/image.png"
+        tabIndex={0}
+      />
+      <span
+        className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
+      >
+        <OverlayTrigger
+          className="hidden-xs"
+          defaultOverlayShown={false}
+          delayShow={500}
+          overlay={
+            <Tooltip
+              className="hidden-xs"
+              id="copy-link-tooltip"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Copy link"
+                id="single_image_view.copy_link_tooltip"
+              />
+            </Tooltip>
+          }
+          placement="top"
+          rootClose={true}
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            aria-label="Copy link"
+            className="style--none size-aware-image__copy_link"
+            onClick={[Function]}
+          >
+            <LinkVariantIcon
+              className="style--none"
+              size={20}
+            />
+          </button>
+        </OverlayTrigger>
+        <OverlayTrigger
+          className="hidden-xs"
+          defaultOverlayShown={false}
+          delayShow={500}
+          overlay={
+            <Tooltip
+              className="hidden-xs"
+              id="download-preview-tooltip"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Download"
+                id="single_image_view.download_tooltip"
+              />
+            </Tooltip>
+          }
+          placement="top"
+          rootClose={true}
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <a
+            aria-label="Download"
+            className="style--none size-aware-image__download"
+            download={true}
+            rel="noopener noreferrer"
+            role="button"
+            target="_blank"
+          >
+            <DownloadOutlineIcon
+              className="style--none"
+              size={20}
+            />
+          </a>
+        </OverlayTrigger>
+      </span>
+    </figure>
+  </div>
+</Fragment>
+`;

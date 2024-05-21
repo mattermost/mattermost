@@ -104,7 +104,6 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 		// will have affected the script, so look for the new subpath, not the old one.
 		oldScript := getSubpathScript(subpath)
 		newRootHTML = strings.Replace(newRootHTML, fmt.Sprintf("</style><script>%s</script>", oldScript), "</style>", 1)
-
 	} else if !alreadyRewritten && subpath != "/" {
 		// Otherwise, inject the script to define `window.publicPath`.
 		script := getSubpathScript(subpath)

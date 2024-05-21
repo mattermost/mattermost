@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {getHistory} from 'utils/browser_history';
-import {closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
+import {redirectUserToDefaultTeam, toggleSideBarRightMenuAction, getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
 import {close as closeLhs} from 'actions/views/lhs';
+import {closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
 import LocalStorageStore from 'stores/local_storage_store';
 import reduxStore from 'stores/redux_store';
-import {redirectUserToDefaultTeam, toggleSideBarRightMenuAction, getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
 
 import mockStore from 'tests/test_store';
+import {getHistory} from 'utils/browser_history';
 
 jest.mock('actions/views/rhs', () => ({
     closeMenu: jest.fn(),
@@ -23,7 +23,7 @@ jest.mock('actions/views/lhs', () => ({
 }));
 
 jest.mock('mattermost-redux/actions/users', () => ({
-    loadMeREST: () => ({type: 'MOCK_RECEIVED_ME'}),
+    loadMe: () => ({type: 'MOCK_RECEIVED_ME'}),
 }));
 
 jest.mock('stores/redux_store', () => {
@@ -90,8 +90,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -112,8 +112,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1'],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1']),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -164,8 +164,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -185,8 +185,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1'],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1']),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -237,8 +237,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -257,8 +257,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1'],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1']),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -303,8 +303,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     users: {
@@ -344,8 +344,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -382,8 +382,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1', directChannelId],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1', directChannelId]),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -440,8 +440,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -479,8 +479,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1', directChannelId, groupChannelId],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1', directChannelId, groupChannelId]),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -532,8 +532,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -554,8 +554,8 @@ describe('actions/global_actions', () => {
                             },
                         },
                         channelsInTeam: {
-                            team1: ['channel-in-team-1'],
-                            team2: ['channel-in-team-2'],
+                            team1: new Set(['channel-in-team-1']),
+                            team2: new Set(['channel-in-team-2']),
                         },
                     },
                     users: {
@@ -575,10 +575,12 @@ describe('actions/global_actions', () => {
     });
 
     test('toggleSideBarRightMenuAction', () => {
-        const dispatchMock = async () => {
-            return {data: true};
+        const dispatchMock = (arg: any) => {
+            if (typeof arg === 'function') {
+                arg(dispatchMock);
+            }
         };
-        toggleSideBarRightMenuAction()(dispatchMock);
+        dispatchMock(toggleSideBarRightMenuAction());
         expect(closeRhsMenu).toHaveBeenCalled();
         expect(closeRightHandSide).toHaveBeenCalled();
         expect(closeLhs).toHaveBeenCalled();

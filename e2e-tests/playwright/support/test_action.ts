@@ -16,6 +16,6 @@ export async function hideDynamicChannelsContent(page: Page) {
 
 export async function waitForAnimationEnd(locator: Locator) {
     return locator.evaluate((element) =>
-        Promise.all(element.getAnimations({subtree: true}).map((animation) => animation.finished))
+        Promise.all(element.getAnimations({subtree: true}).map((animation) => animation.finished)),
     );
 }

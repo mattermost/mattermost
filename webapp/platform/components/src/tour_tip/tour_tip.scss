@@ -5,10 +5,19 @@
         &.tippy-box {
             padding: 18px 24px 24px;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            background: var(--center-channel-bg);
-            border-radius: 4px;
-            color: var(--center-channel-color-rgb);
+            background: var(--button-bg);
+            border-radius: var(--radius-s);
+            color: var(--button-color);
             filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.12));
+
+            a {
+                color: rgba(var(--button-color-rgb), 0.8);
+
+                &:hover {
+                    color: var(--button-color);
+                    text-decoration: underline;
+                }
+            }
 
             .tippy-content {
                 padding: 0;
@@ -19,15 +28,97 @@
                 height: 12px;
                 border-color: rgba(var(--center-channel-color-rgb), 0.16);
                 color: var(--center-channel-bg);
+                color: var(--center-channel-bg);
             }
 
             .tippy-arrow::before {
                 width: 12px;
                 height: 12px;
                 border-color: rgba(var(--center-channel-color-rgb), 0.16);
-                background: var(--center-channel-bg);
-                color: var(--center-channel-bg);
+                background: var(--button-bg);
+                color: var(--button-color);
                 transform-origin: center;
+            }
+
+            button[class^='StyledChip-'],
+            button[class*='StyledChip-'] {
+                color: var(--button-color);
+                background-color: rgba(var(--button-color-rgb), 0.08);
+                box-shadow: none;
+                margin: 0 8px 8px 0;
+
+                &:hover {
+                    background-color: rgba(var(--button-color-rgb), 0.16);
+                }
+            }
+
+            .btn {
+                &.btn-primary {
+                    background: var(--button-color);
+                    color: var(--button-bg) !important;
+
+                    &:hover:not(.disabled) {
+                        background:
+                            linear-gradient(
+                                0deg,
+                                rgba(var(--button-bg-rgb), 0.08) 0%,
+                                rgba(var(--button-bg-rgb), 0.08) 100%),
+                                var(--button-color);
+                    }
+
+                    &:active {
+                        background:
+                            linear-gradient(
+                                0deg,
+                                rgba(var(--button-bg-rgb), 0.16) 0%,
+                                rgba(var(--button-bg-rgb), 0.16) 100%),
+                                var(--button-color);
+                    }
+
+                    &:focus {
+                        box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+                    }
+
+                    .icon-chevron-right::before {
+                        margin-right: -7px;
+                    }
+                }
+
+                &.btn-tertiary {
+                    background: rgba(var(--button-color-rgb), 0.08);
+                    color: var(--button-color);
+
+                    &:hover {
+                        background: rgba(var(--button-color-rgb), 0.12);
+                    }
+
+                    &:active {
+                        background: rgba(var(--button-color-rgb), 0.16);
+                    }
+
+                    &:focus {
+                        box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+                    }
+
+                    .icon-chevron-left::before {
+                        margin-left: -7px;
+                    }
+                }
+
+                &.btn-icon {
+                    margin-right: -8px;
+                    margin-left: 1.2rem;
+                    color: rgba(var(--button-color-rgb), 0.64);
+
+                    &:hover {
+                        background: rgba(var(--button-color-rgb), 0.08);
+                        color: rgba(var(--button-color-rgb), 0.8);
+                    }
+
+                    &.active {
+                        background: rgba(var(--button-color-rgb), 0.16);
+                    }
+                }
             }
 
             // fix for https://mattermost.atlassian.net/browse/MM-41711. This covers the current placements we use for the channels and other tools tour
@@ -155,37 +246,8 @@
             line-height: 2rem;
         }
 
-        &__close {
-            display: flex;
-            overflow: hidden;
-            width: 3.2rem;
-            height: 3.2rem;
-            align-items: center;
-            justify-content: center;
-            border: unset;
-            margin-right: -8px;
-            margin-left: 1.2rem;
-            background: transparent;
-            border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            font-weight: 600;
-
-            &:hover {
-                background: rgba(var(--center-channel-color-rgb), 0.08);
-            }
-
-            &.active {
-                background: rgba(var(--center-channel-color-rgb), 0.08);
-            }
-
-            i {
-                font-size: 1.8rem;
-                line-height: 1.8rem;
-
-                ::before {
-                    margin-right: 0;
-                }
-            }
+        .Tag {
+            margin-left: 4px;
         }
     }
 
@@ -215,11 +277,12 @@
         align-items: center;
         justify-content: center;
         margin-top: 2.4rem;
+        border-radius: var(--radius-s);
 
         img {
             width: 100%;
             height: 136px;
-            border-radius: 4px;
+            border-radius: var(--radius-s);
             object-fit: cover;
         }
     }
@@ -228,75 +291,6 @@
         display: flex;
         flex-grow: 1;
         justify-content: flex-end;
-    }
-
-    &__btn {
-        display: flex;
-        height: 3.2rem;
-        align-items: center;
-        padding: 10px 16px;
-        border: none;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 600;
-        line-height: 12px;
-    }
-
-    &__confirm-btn {
-        background: var(--button-bg);
-        color: var(--button-color);
-
-        &:hover:not(.disabled) {
-            background:
-                linear-gradient(
-                    0deg,
-                    rgba(var(--center-channel-color-rgb), 0.16),
-                    rgba(var(--center-channel-color-rgb), 0.16)
-                ),
-                var(--button-bg);
-        }
-
-        &:active {
-            background:
-                linear-gradient(
-                    0deg,
-                    rgba(var(--center-channel-color-rgb), 0.32),
-                    rgba(var(--center-channel-color-rgb), 0.32)
-                ),
-                var(--button-bg);
-        }
-
-        &:focus {
-            box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
-        }
-
-        .icon-chevron-right::before {
-            margin-right: -7px;
-        }
-    }
-
-    &__cancel-btn {
-        margin-right: 4px;
-        background: rgba(var(--button-bg-rgb), 0.08);
-        border-radius: 4px;
-        color: var(--button-bg);
-        text-decoration: none;
-
-        &:hover {
-            background: rgba(var(--button-bg-rgb), 0.04);
-        }
-
-        &:active {
-            background: rgba(var(--button-bg-rgb), 0.08);
-        }
-
-        &:focus {
-            box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
-        }
-
-        .icon-chevron-left::before {
-            margin-left: -7px;
-        }
     }
 
     &__dot-ctr {
@@ -314,7 +308,7 @@
         justify-content: center;
         margin-right: 4px;
         background: transparent;
-        border-radius: 50%;
+        border-radius: var(--radius-full);
 
         &:last-child {
             margin-right: 0;
@@ -322,7 +316,7 @@
     }
 
     &__dot-ring-active {
-        background: rgba(var(--button-bg-rgb), 0.16);
+        background: rgba(var(--button-color-rgb), 0.16);
     }
 
     &__dot {
@@ -331,11 +325,11 @@
         left: 3px;
         width: 6px;
         height: 6px;
-        background: rgba(var(--button-bg-rgb), 0.32);
-        border-radius: 6px;
+        background: rgba(var(--button-color-rgb), 0.32);
+        border-radius: var(--radius-full);
 
         &.active {
-            background: rgba(var(--button-bg-rgb), 1);
+            background: rgba(var(--button-color-rgb), 1);
         }
     }
 
@@ -399,58 +393,4 @@
     left: 1px !important;
     border-width: 0 0 1px 1px !important;
     transform: rotate(-45deg) !important;
-}
-
-// this style is defined outside of the block scope because is intended to affect the tippy element
-.tippy-blue-style {
-    background: var(--button-bg) !important;
-    color: var(--sidebar-text) !important;
-
-    .tippy-arrow {
-        border-color: var(--button-bg) !important;
-        color: var(--button-bg) !important;
-
-        &::before {
-            border-width: 0 !important;
-            border-color: var(--button-bg) !important;
-            border-left-color: initial;
-            background-color: var(--button-bg) !important;
-            transform-origin: unset !important;
-        }
-    }
-
-    .tour-tip__header {
-        font-weight: 600;
-    }
-
-    .icon-close {
-        color: var(--sidebar-text) !important;
-    }
-
-    // style buttons while in the blue style
-    .tour-tip {
-        &__btn {
-            background: var(--button-color);
-            color: var(--button-bg);
-
-            &:hover,
-            &:active,
-            &:focus {
-                background: var(--button-color);
-                color: var(--button-bg);
-            }
-        }
-
-        &__dot-ring {
-            .tour-tip__dot {
-                background: var(--offline-indicator);
-            }
-        }
-
-        &__dot-ring-active {
-            .active {
-                background: var(--button-color);
-            }
-        }
-    }
 }

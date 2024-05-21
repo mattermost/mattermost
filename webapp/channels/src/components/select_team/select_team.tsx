@@ -1,37 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode, MouseEvent} from 'react';
+import React from 'react';
+import type {ReactNode, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {Permissions} from 'mattermost-redux/constants';
+import type {CloudUsage} from '@mattermost/types/cloud';
+import type {Team} from '@mattermost/types/teams';
 
-import {CloudUsage} from '@mattermost/types/cloud';
-import {Team} from '@mattermost/types/teams';
+import {Permissions} from 'mattermost-redux/constants';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import * as UserAgent from 'utils/user_agent';
-import Constants from 'utils/constants';
-
-import logoImage from 'images/logo.png';
-
 import AnnouncementBar from 'components/announcement_bar';
-
 import BackButton from 'components/common/back_button';
-import LoadingScreen from 'components/loading_screen';
-
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
+import InfiniteScroll from 'components/common/infinite_scroll';
 import SiteNameAndDescription from 'components/common/site_name_and_description';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import LoadingScreen from 'components/loading_screen';
+import LearnAboutTeamsLink from 'components/main_menu/learn_about_teams_link';
+import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import InfiniteScroll from '../common/infinite_scroll';
+import logoImage from 'images/logo.png';
+import Constants from 'utils/constants';
+import * as UserAgent from 'utils/user_agent';
 
 import SelectTeamItem from './components/select_team_item';
+import './select_team.scss';
 
 export const TEAMS_PER_PAGE = 30;
 const TEAM_MEMBERSHIP_DENIAL_ERROR_ID = 'api.team.add_members.user_denied';
@@ -280,12 +278,15 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                     id='teamsYouCanJoinContent'
                     className='signup__content'
                 >
-                    <h4>
-                        <FormattedMessage
-                            id='signup_team.join_open'
-                            defaultMessage='Teams you can join: '
-                        />
-                    </h4>
+                    <div className='SelectTeam__sub-header'>
+                        <h4>
+                            <FormattedMessage
+                                id='signup_team.join_open'
+                                defaultMessage='Teams you can join: '
+                            />
+                        </h4>
+                        <LearnAboutTeamsLink/>
+                    </div>
                     <InfiniteScroll
                         callBack={this.fetchMoreTeams}
                         styleClass='signup-team-all'

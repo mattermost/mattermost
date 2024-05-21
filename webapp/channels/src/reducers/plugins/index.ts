@@ -1,18 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import remove from 'lodash/remove';
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import remove from 'lodash/remove';
+import type {ClientPluginManifest} from '@mattermost/types/plugins';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-import {IDMappedObjects} from '@mattermost/types/utilities';
-import {ClientPluginManifest} from '@mattermost/types/plugins';
-
-import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
 
 import {ActionTypes} from 'utils/constants';
+import {extractPluginConfiguration} from 'utils/plugins/plugin_setting_extraction';
+
+import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
 
 function hasMenuId(menu: Menu|PluginComponent, menuId: string) {
     if (!menu.subMenu) {
@@ -56,7 +57,7 @@ function sortComponents(a: PluginComponent, b: PluginComponent) {
     return 0;
 }
 
-function removePostPluginComponents(state: PluginsState['postTypes'], action: GenericAction) {
+function removePostPluginComponents(state: PluginsState['postTypes'], action: AnyAction) {
     if (!action.data) {
         return state;
     }
@@ -78,7 +79,7 @@ function removePostPluginComponents(state: PluginsState['postTypes'], action: Ge
     return state;
 }
 
-function removePostPluginComponent(state: PluginsState['postTypes'], action: GenericAction) {
+function removePostPluginComponent(state: PluginsState['postTypes'], action: AnyAction) {
     const nextState = {...state};
     const keys = Object.keys(nextState);
     for (let i = 0; i < keys.length; i++) {
@@ -92,7 +93,7 @@ function removePostPluginComponent(state: PluginsState['postTypes'], action: Gen
     return state;
 }
 
-function removePluginComponents(state: PluginsState['components'], action: GenericAction) {
+function removePluginComponents(state: PluginsState['components'], action: AnyAction) {
     if (!action.data) {
         return state;
     }
@@ -120,7 +121,7 @@ function removePluginComponents(state: PluginsState['components'], action: Gener
     return state;
 }
 
-function removePluginComponent(state: PluginsState['components'], action: GenericAction) {
+function removePluginComponent(state: PluginsState['components'], action: AnyAction) {
     let newState = state;
     const types = Object.keys(state);
     for (let i = 0; i < types.length; i++) {
@@ -137,7 +138,7 @@ function removePluginComponent(state: PluginsState['components'], action: Generi
     return newState;
 }
 
-function plugins(state: IDMappedObjects<ClientPluginManifest> = {}, action: GenericAction) {
+function plugins(state: IDMappedObjects<ClientPluginManifest> = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_WEBAPP_PLUGINS: {
         if (action.data) {
@@ -181,6 +182,10 @@ const initialComponents: PluginsState['components'] = {
     ChannelHeaderButton: [],
     MobileChannelHeaderButton: [],
     PostDropdownMenu: [],
+    PostAction: [],
+    PostEditorAction: [],
+    CodeBlockAction: [],
+    NewMessagesSeparatorAction: [],
     Product: [],
     RightHandSidebarComponent: [],
     UserGuideDropdownItem: [],
@@ -190,7 +195,7 @@ const initialComponents: PluginsState['components'] = {
     DesktopNotificationHooks: [],
 };
 
-function components(state: PluginsState['components'] = initialComponents, action: GenericAction) {
+function components(state: PluginsState['components'] = initialComponents, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_COMPONENT: {
         if (action.name && action.data) {
@@ -227,7 +232,7 @@ function components(state: PluginsState['components'] = initialComponents, actio
     }
 }
 
-function postTypes(state: PluginsState['postTypes'] = {}, action: GenericAction) {
+function postTypes(state: PluginsState['postTypes'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_POST_COMPONENT: {
         if (action.data) {
@@ -256,7 +261,7 @@ function postTypes(state: PluginsState['postTypes'] = {}, action: GenericAction)
     }
 }
 
-function postCardTypes(state: PluginsState['postTypes'] = {}, action: GenericAction) {
+function postCardTypes(state: PluginsState['postTypes'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_POST_CARD_COMPONENT: {
         if (action.data) {
@@ -285,7 +290,7 @@ function postCardTypes(state: PluginsState['postTypes'] = {}, action: GenericAct
     }
 }
 
-function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: GenericAction) {
+function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_ADMIN_CONSOLE_REDUCER: {
         if (action.data) {
@@ -318,7 +323,7 @@ function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: Gen
     }
 }
 
-function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string, AdminConsolePluginComponent>} = {}, action: GenericAction) {
+function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string, AdminConsolePluginComponent>} = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_COMPONENT: {
         if (!action.data) {
@@ -356,7 +361,7 @@ function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string,
     }
 }
 
-function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action: GenericAction) {
+function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER:
         if (action.data) {
@@ -381,12 +386,18 @@ function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action
     }
 }
 
-function insightsHandlers(state: PluginsState['insightsHandlers'] = {}, action: GenericAction) {
+function userSettings(state: PluginsState['userSettings'] = {}, action: AnyAction) {
     switch (action.type) {
-    case ActionTypes.RECEIVED_PLUGIN_INSIGHT:
+    case ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS:
         if (action.data) {
+            const extractedConfiguration = extractPluginConfiguration(action.data.setting, action.data.pluginId);
+            if (!extractedConfiguration) {
+                // eslint-disable-next-line no-console
+                console.warn(`Plugin ${action.data.pluginId} is trying to register an invalid configuration. Contact the plugin developer to fix this issue.`);
+                return state;
+            }
             const nextState = {...state};
-            nextState[action.data.pluginId] = action.data.handler;
+            nextState[action.data.pluginId] = extractedConfiguration;
             return nextState;
         }
         return state;
@@ -397,6 +408,7 @@ function insightsHandlers(state: PluginsState['insightsHandlers'] = {}, action: 
             return nextState;
         }
         return state;
+
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:
@@ -433,7 +445,7 @@ export default combineReducers({
     // a plugin to render on system console
     siteStatsHandlers,
 
-    // object where every key is a plugin id and the value is a promise to fetch insights from
-    // a plugin to render on the insights page
-    insightsHandlers,
+    // objects where every key is a plugin id and the value is configuration schema to show in
+    // the user settings modal
+    userSettings,
 });

@@ -6,12 +6,16 @@ package api4
 import (
 	"context"
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
@@ -104,4 +108,42 @@ func TestListImports(t *testing.T) {
 
 		require.NoError(t, os.RemoveAll(importDir))
 	}, "change import directory")
+}
+
+func TestImportInLocalMode(t *testing.T) {
+	th := SetupWithServerOptions(t, []app.Option{app.RunEssentialJobs})
+	defer th.TearDown()
+
+	testsDir, _ := fileutils.FindDir("tests")
+	require.NotEmpty(t, testsDir)
+
+	job := &model.Job{
+		Type: model.JobTypeImportProcess,
+		Data: map[string]string{
+			"import_file": path.Join(testsDir, "import_test.zip"),
+			"local_mode":  "true",
+		},
+	}
+
+	received, _, err := th.SystemAdminClient.CreateJob(context.Background(), job)
+	require.NoError(t, err)
+	defer th.App.Srv().Store().Job().Delete(received.Id)
+
+	cnt1, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{UsersPostsOnly: true})
+	require.NoError(t, err)
+
+	var appErr *model.AppError
+	for !(received.Status == model.JobStatusSuccess || received.Status == model.JobStatusError) {
+		received, appErr = th.App.GetJob(th.Context, received.Id)
+		require.Nil(t, appErr)
+		time.Sleep(5 * time.Second)
+		th.Context.Logger().Debug("Job status", mlog.String("status", received.Status))
+	}
+
+	require.Equal(t, model.JobStatusSuccess, received.Status)
+
+	cnt2, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{UsersPostsOnly: true})
+	require.NoError(t, err)
+	// Just a sanity check to ensure new posts are actually added in the system.
+	require.Greater(t, cnt2, cnt1)
 }

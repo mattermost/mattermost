@@ -1,0 +1,949 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/MessageExportSettings should match snapshot, disabled, actiance 1`] = `
+<form
+  className="form-horizontal"
+  onSubmit={[Function]}
+  role="form"
+>
+  <div
+    className="wrapper--fixed"
+  >
+    <AdminHeader>
+      <MemoizedFormattedMessage
+        defaultMessage="Compliance Export"
+        id="admin.complianceExport.title"
+      />
+    </AdminHeader>
+    <Memo(SettingsGroup)>
+      <BooleanSetting
+        disabled={false}
+        falseText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="False"
+            id="admin.false"
+          />
+        }
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
+            id="admin.service.complianceExportDesc"
+            values={
+              Object {
+                "link": [Function],
+              }
+            }
+          />
+        }
+        id="enableComplianceExport"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Enable Compliance Export:"
+            id="admin.service.complianceExportTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        trueText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="True"
+            id="admin.true"
+          />
+        }
+        value={false}
+      />
+      <AdminTextSetting
+        disabled={true}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Set the start time of the daily scheduled compliance export job. Choose a time when fewer people are using your system. Must be a 24-hour time stamp in the form HH:MM."
+            id="admin.complianceExport.exportJobStartTime.description"
+          />
+        }
+        id="exportJobStartTime"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Compliance Export Time:"
+            id="admin.complianceExport.exportJobStartTime.title"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"02:00\\"",
+            "id": "admin.complianceExport.exportJobStartTime.example",
+          }
+        }
+        setByEnv={false}
+        value="01:00"
+      />
+      <Memo(DropdownSetting)
+        disabled={true}
+        helpText={
+          <FormattedMarkdownMessage
+            defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address."
+            id="admin.complianceExport.exportFormat.description"
+            values={
+              Object {
+                "lineBreak": "
+",
+                "url": "http://localhost:8065/admin_console/environment/file_storage",
+              }
+            }
+          />
+        }
+        id="exportFormat"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Export Format:"
+            id="admin.complianceExport.exportFormat.title"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        value="actiance"
+        values={
+          Array [
+            Object {
+              "text": "Actiance XML",
+              "value": "actiance",
+            },
+            Object {
+              "text": "CSV",
+              "value": "csv",
+            },
+            Object {
+              "text": "GlobalRelay EML",
+              "value": "globalrelay",
+            },
+          ]
+        }
+      />
+      <Connect(JobTable)
+        createJobButtonText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Run Compliance Export Job Now"
+            id="admin.complianceExport.createJob.title"
+          />
+        }
+        createJobHelpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Initiates a Compliance Export job immediately."
+            id="admin.complianceExport.createJob.help"
+          />
+        }
+        disabled={true}
+        getExtraInfoText={[Function]}
+        jobType="message_export"
+      />
+    </Memo(SettingsGroup)>
+    <div
+      className="admin-console-save"
+    >
+      <SaveButton
+        btnClass=""
+        defaultMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Save"
+            id="save_button.save"
+          />
+        }
+        disabled={true}
+        extraClasses=""
+        onClick={[Function]}
+        saving={false}
+        savingMessage="Saving Config..."
+      />
+      <div
+        className="error-message"
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+      <Overlay
+        animation={[Function]}
+        placement="top"
+        rootClose={false}
+        show={false}
+        target={null}
+      >
+        <Tooltip
+          id="error-tooltip"
+        />
+      </Overlay>
+    </div>
+  </div>
+</form>
+`;
+
+exports[`components/MessageExportSettings should match snapshot, disabled, globalrelay 1`] = `
+<form
+  className="form-horizontal"
+  onSubmit={[Function]}
+  role="form"
+>
+  <div
+    className="wrapper--fixed"
+  >
+    <AdminHeader>
+      <MemoizedFormattedMessage
+        defaultMessage="Compliance Export"
+        id="admin.complianceExport.title"
+      />
+    </AdminHeader>
+    <Memo(SettingsGroup)>
+      <BooleanSetting
+        disabled={false}
+        falseText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="False"
+            id="admin.false"
+          />
+        }
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
+            id="admin.service.complianceExportDesc"
+            values={
+              Object {
+                "link": [Function],
+              }
+            }
+          />
+        }
+        id="enableComplianceExport"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Enable Compliance Export:"
+            id="admin.service.complianceExportTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        trueText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="True"
+            id="admin.true"
+          />
+        }
+        value={false}
+      />
+      <AdminTextSetting
+        disabled={true}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Set the start time of the daily scheduled compliance export job. Choose a time when fewer people are using your system. Must be a 24-hour time stamp in the form HH:MM."
+            id="admin.complianceExport.exportJobStartTime.description"
+          />
+        }
+        id="exportJobStartTime"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Compliance Export Time:"
+            id="admin.complianceExport.exportJobStartTime.title"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"02:00\\"",
+            "id": "admin.complianceExport.exportJobStartTime.example",
+          }
+        }
+        setByEnv={false}
+        value="01:00"
+      />
+      <Memo(DropdownSetting)
+        disabled={true}
+        helpText={
+          <FormattedMarkdownMessage
+            defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address."
+            id="admin.complianceExport.exportFormat.description"
+            values={
+              Object {
+                "lineBreak": "
+",
+                "url": "http://localhost:8065/admin_console/environment/file_storage",
+              }
+            }
+          />
+        }
+        id="exportFormat"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Export Format:"
+            id="admin.complianceExport.exportFormat.title"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        value="globalrelay"
+        values={
+          Array [
+            Object {
+              "text": "Actiance XML",
+              "value": "actiance",
+            },
+            Object {
+              "text": "CSV",
+              "value": "csv",
+            },
+            Object {
+              "text": "GlobalRelay EML",
+              "value": "globalrelay",
+            },
+          ]
+        }
+      />
+      <Memo(SettingsGroup)
+        id="globalRelaySettings"
+      >
+        <Memo(RadioSetting)
+          disabled={true}
+          helpText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="The type of GlobalRelay customer account that your organization has."
+              id="admin.complianceExport.globalRelayCustomerType.description"
+            />
+          }
+          id="globalRelayCustomerType"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Customer Type:"
+              id="admin.complianceExport.globalRelayCustomerType.title"
+            />
+          }
+          onChange={[Function]}
+          setByEnv={false}
+          value="A10"
+          values={
+            Array [
+              Object {
+                "text": "A9/Type 9",
+                "value": "A9",
+              },
+              Object {
+                "text": "A10/Type 10",
+                "value": "A10",
+              },
+              Object {
+                "text": "Custom",
+                "value": "CUSTOM",
+              },
+            ]
+          }
+        />
+        <AdminTextSetting
+          disabled={true}
+          helpText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="The username that is used to authenticate against the GlobalRelay SMTP server."
+              id="admin.complianceExport.globalRelaySMTPUsername.description"
+            />
+          }
+          id="globalRelaySMTPUsername"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="SMTP Username:"
+              id="admin.complianceExport.globalRelaySMTPUsername.title"
+            />
+          }
+          onChange={[Function]}
+          placeholder={
+            Object {
+              "defaultMessage": "E.g.: \\"globalRelayUser\\"",
+              "id": "admin.complianceExport.globalRelaySMTPUsername.example",
+            }
+          }
+          setByEnv={false}
+          value="globalRelayUser"
+        />
+        <AdminTextSetting
+          disabled={true}
+          helpText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="The password that is used to authenticate against the GlobalRelay SMTP server."
+              id="admin.complianceExport.globalRelaySMTPPassword.description"
+            />
+          }
+          id="globalRelaySMTPPassword"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="SMTP Password:"
+              id="admin.complianceExport.globalRelaySMTPPassword.title"
+            />
+          }
+          onChange={[Function]}
+          placeholder={
+            Object {
+              "defaultMessage": "E.g.: \\"globalRelayPassword\\"",
+              "id": "admin.complianceExport.globalRelaySMTPPassword.example",
+            }
+          }
+          setByEnv={false}
+          value="globalRelayPassword"
+        />
+        <AdminTextSetting
+          disabled={true}
+          helpText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="The email address that your GlobalRelay server monitors for incoming Compliance Exports."
+              id="admin.complianceExport.globalRelayEmailAddress.description"
+            />
+          }
+          id="globalRelayEmailAddress"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Email Address:"
+              id="admin.complianceExport.globalRelayEmailAddress.title"
+            />
+          }
+          onChange={[Function]}
+          placeholder={
+            Object {
+              "defaultMessage": "E.g.: \\"globalrelay@mattermost.com\\"",
+              "id": "admin.complianceExport.globalRelayEmailAddress.example",
+            }
+          }
+          setByEnv={false}
+          value="globalRelay@mattermost.com"
+        />
+      </Memo(SettingsGroup)>
+      <Connect(JobTable)
+        createJobButtonText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Run Compliance Export Job Now"
+            id="admin.complianceExport.createJob.title"
+          />
+        }
+        createJobHelpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Initiates a Compliance Export job immediately."
+            id="admin.complianceExport.createJob.help"
+          />
+        }
+        disabled={true}
+        getExtraInfoText={[Function]}
+        jobType="message_export"
+      />
+    </Memo(SettingsGroup)>
+    <div
+      className="admin-console-save"
+    >
+      <SaveButton
+        btnClass=""
+        defaultMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Save"
+            id="save_button.save"
+          />
+        }
+        disabled={true}
+        extraClasses=""
+        onClick={[Function]}
+        saving={false}
+        savingMessage="Saving Config..."
+      />
+      <div
+        className="error-message"
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+      <Overlay
+        animation={[Function]}
+        placement="top"
+        rootClose={false}
+        show={false}
+        target={null}
+      >
+        <Tooltip
+          id="error-tooltip"
+        />
+      </Overlay>
+    </div>
+  </div>
+</form>
+`;
+
+exports[`components/MessageExportSettings should match snapshot, enabled, actiance 1`] = `
+<form
+  className="form-horizontal"
+  onSubmit={[Function]}
+  role="form"
+>
+  <div
+    className="wrapper--fixed"
+  >
+    <AdminHeader>
+      <MemoizedFormattedMessage
+        defaultMessage="Compliance Export"
+        id="admin.complianceExport.title"
+      />
+    </AdminHeader>
+    <Memo(SettingsGroup)>
+      <BooleanSetting
+        disabled={false}
+        falseText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="False"
+            id="admin.false"
+          />
+        }
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
+            id="admin.service.complianceExportDesc"
+            values={
+              Object {
+                "link": [Function],
+              }
+            }
+          />
+        }
+        id="enableComplianceExport"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Enable Compliance Export:"
+            id="admin.service.complianceExportTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        trueText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="True"
+            id="admin.true"
+          />
+        }
+        value={true}
+      />
+      <AdminTextSetting
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Set the start time of the daily scheduled compliance export job. Choose a time when fewer people are using your system. Must be a 24-hour time stamp in the form HH:MM."
+            id="admin.complianceExport.exportJobStartTime.description"
+          />
+        }
+        id="exportJobStartTime"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Compliance Export Time:"
+            id="admin.complianceExport.exportJobStartTime.title"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"02:00\\"",
+            "id": "admin.complianceExport.exportJobStartTime.example",
+          }
+        }
+        setByEnv={false}
+        value="01:00"
+      />
+      <Memo(DropdownSetting)
+        disabled={false}
+        helpText={
+          <FormattedMarkdownMessage
+            defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address."
+            id="admin.complianceExport.exportFormat.description"
+            values={
+              Object {
+                "lineBreak": "
+",
+                "url": "http://localhost:8065/admin_console/environment/file_storage",
+              }
+            }
+          />
+        }
+        id="exportFormat"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Export Format:"
+            id="admin.complianceExport.exportFormat.title"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        value="actiance"
+        values={
+          Array [
+            Object {
+              "text": "Actiance XML",
+              "value": "actiance",
+            },
+            Object {
+              "text": "CSV",
+              "value": "csv",
+            },
+            Object {
+              "text": "GlobalRelay EML",
+              "value": "globalrelay",
+            },
+          ]
+        }
+      />
+      <Connect(JobTable)
+        createJobButtonText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Run Compliance Export Job Now"
+            id="admin.complianceExport.createJob.title"
+          />
+        }
+        createJobHelpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Initiates a Compliance Export job immediately."
+            id="admin.complianceExport.createJob.help"
+          />
+        }
+        disabled={false}
+        getExtraInfoText={[Function]}
+        jobType="message_export"
+      />
+    </Memo(SettingsGroup)>
+    <div
+      className="admin-console-save"
+    >
+      <SaveButton
+        btnClass=""
+        defaultMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Save"
+            id="save_button.save"
+          />
+        }
+        disabled={true}
+        extraClasses=""
+        onClick={[Function]}
+        saving={false}
+        savingMessage="Saving Config..."
+      />
+      <div
+        className="error-message"
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+      <Overlay
+        animation={[Function]}
+        placement="top"
+        rootClose={false}
+        show={false}
+        target={null}
+      >
+        <Tooltip
+          id="error-tooltip"
+        />
+      </Overlay>
+    </div>
+  </div>
+</form>
+`;
+
+exports[`components/MessageExportSettings should match snapshot, enabled, globalrelay 1`] = `
+<form
+  className="form-horizontal"
+  onSubmit={[Function]}
+  role="form"
+>
+  <div
+    className="wrapper--fixed"
+  >
+    <AdminHeader>
+      <MemoizedFormattedMessage
+        defaultMessage="Compliance Export"
+        id="admin.complianceExport.title"
+      />
+    </AdminHeader>
+    <Memo(SettingsGroup)>
+      <BooleanSetting
+        disabled={false}
+        falseText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="False"
+            id="admin.false"
+          />
+        }
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more."
+            id="admin.service.complianceExportDesc"
+            values={
+              Object {
+                "link": [Function],
+              }
+            }
+          />
+        }
+        id="enableComplianceExport"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Enable Compliance Export:"
+            id="admin.service.complianceExportTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        trueText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="True"
+            id="admin.true"
+          />
+        }
+        value={true}
+      />
+      <AdminTextSetting
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Set the start time of the daily scheduled compliance export job. Choose a time when fewer people are using your system. Must be a 24-hour time stamp in the form HH:MM."
+            id="admin.complianceExport.exportJobStartTime.description"
+          />
+        }
+        id="exportJobStartTime"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Compliance Export Time:"
+            id="admin.complianceExport.exportJobStartTime.title"
+          />
+        }
+        onChange={[Function]}
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"02:00\\"",
+            "id": "admin.complianceExport.exportJobStartTime.example",
+          }
+        }
+        setByEnv={false}
+        value="01:00"
+      />
+      <Memo(DropdownSetting)
+        disabled={false}
+        helpText={
+          <FormattedMarkdownMessage
+            defaultMessage="Format of the compliance export. Corresponds to the system that you want to import the data into.{lineBreak} {lineBreak}For Actiance XML, compliance export files are written to the exports subdirectory of the configured [Local Storage Directory]({url}). For Global Relay EML, they are emailed to the configured email address."
+            id="admin.complianceExport.exportFormat.description"
+            values={
+              Object {
+                "lineBreak": "
+",
+                "url": "http://localhost:8065/admin_console/environment/file_storage",
+              }
+            }
+          />
+        }
+        id="exportFormat"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Export Format:"
+            id="admin.complianceExport.exportFormat.title"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        value="globalrelay"
+        values={
+          Array [
+            Object {
+              "text": "Actiance XML",
+              "value": "actiance",
+            },
+            Object {
+              "text": "CSV",
+              "value": "csv",
+            },
+            Object {
+              "text": "GlobalRelay EML",
+              "value": "globalrelay",
+            },
+          ]
+        }
+      />
+      <Memo(SettingsGroup)
+        id="globalRelaySettings"
+      >
+        <Memo(RadioSetting)
+          disabled={false}
+          helpText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="The type of GlobalRelay customer account that your organization has."
+              id="admin.complianceExport.globalRelayCustomerType.description"
+            />
+          }
+          id="globalRelayCustomerType"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Customer Type:"
+              id="admin.complianceExport.globalRelayCustomerType.title"
+            />
+          }
+          onChange={[Function]}
+          setByEnv={false}
+          value="A10"
+          values={
+            Array [
+              Object {
+                "text": "A9/Type 9",
+                "value": "A9",
+              },
+              Object {
+                "text": "A10/Type 10",
+                "value": "A10",
+              },
+              Object {
+                "text": "Custom",
+                "value": "CUSTOM",
+              },
+            ]
+          }
+        />
+        <AdminTextSetting
+          disabled={false}
+          helpText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="The username that is used to authenticate against the GlobalRelay SMTP server."
+              id="admin.complianceExport.globalRelaySMTPUsername.description"
+            />
+          }
+          id="globalRelaySMTPUsername"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="SMTP Username:"
+              id="admin.complianceExport.globalRelaySMTPUsername.title"
+            />
+          }
+          onChange={[Function]}
+          placeholder={
+            Object {
+              "defaultMessage": "E.g.: \\"globalRelayUser\\"",
+              "id": "admin.complianceExport.globalRelaySMTPUsername.example",
+            }
+          }
+          setByEnv={false}
+          value="globalRelayUser"
+        />
+        <AdminTextSetting
+          disabled={false}
+          helpText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="The password that is used to authenticate against the GlobalRelay SMTP server."
+              id="admin.complianceExport.globalRelaySMTPPassword.description"
+            />
+          }
+          id="globalRelaySMTPPassword"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="SMTP Password:"
+              id="admin.complianceExport.globalRelaySMTPPassword.title"
+            />
+          }
+          onChange={[Function]}
+          placeholder={
+            Object {
+              "defaultMessage": "E.g.: \\"globalRelayPassword\\"",
+              "id": "admin.complianceExport.globalRelaySMTPPassword.example",
+            }
+          }
+          setByEnv={false}
+          value="globalRelayPassword"
+        />
+        <AdminTextSetting
+          disabled={false}
+          helpText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="The email address that your GlobalRelay server monitors for incoming Compliance Exports."
+              id="admin.complianceExport.globalRelayEmailAddress.description"
+            />
+          }
+          id="globalRelayEmailAddress"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Email Address:"
+              id="admin.complianceExport.globalRelayEmailAddress.title"
+            />
+          }
+          onChange={[Function]}
+          placeholder={
+            Object {
+              "defaultMessage": "E.g.: \\"globalrelay@mattermost.com\\"",
+              "id": "admin.complianceExport.globalRelayEmailAddress.example",
+            }
+          }
+          setByEnv={false}
+          value="globalRelay@mattermost.com"
+        />
+      </Memo(SettingsGroup)>
+      <Connect(JobTable)
+        createJobButtonText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Run Compliance Export Job Now"
+            id="admin.complianceExport.createJob.title"
+          />
+        }
+        createJobHelpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Initiates a Compliance Export job immediately."
+            id="admin.complianceExport.createJob.help"
+          />
+        }
+        disabled={false}
+        getExtraInfoText={[Function]}
+        jobType="message_export"
+      />
+    </Memo(SettingsGroup)>
+    <div
+      className="admin-console-save"
+    >
+      <SaveButton
+        btnClass=""
+        defaultMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Save"
+            id="save_button.save"
+          />
+        }
+        disabled={true}
+        extraClasses=""
+        onClick={[Function]}
+        saving={false}
+        savingMessage="Saving Config..."
+      />
+      <div
+        className="error-message"
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+      <Overlay
+        animation={[Function]}
+        placement="top"
+        rootClose={false}
+        show={false}
+        target={null}
+      >
+        <Tooltip
+          id="error-tooltip"
+        />
+      </Overlay>
+    </div>
+  </div>
+</form>
+`;

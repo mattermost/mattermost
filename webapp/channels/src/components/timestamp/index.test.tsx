@@ -3,7 +3,7 @@
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import * as Timestamp from './timestamp';
 
@@ -18,11 +18,6 @@ describe('mapStateToProps', () => {
 
     const initialState = {
         entities: {
-            general: {
-                config: {
-                    ExperimentalTimezone: 'true',
-                },
-            },
             preferences: {
                 myPreferences: {},
             },
@@ -123,14 +118,6 @@ describe('mapStateToProps', () => {
 
             const props = mapStateToProps(testState, {timeZone: 'America/Phoenix'});
             expect(props.timeZone).toBe('America/Phoenix');
-        });
-
-        test('timeZone should be the value of prop.timeZone when given, even when timezone are disabled', () => {
-            const testState = {...initialState};
-            testState.entities.general.config.ExperimentalTimezone = 'false';
-
-            const props = mapStateToProps(testState, {timeZone: 'America/Chicago'});
-            expect(props.timeZone).toBe('America/Chicago');
         });
     });
 

@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/widgets/loadingLoadingSpinner showing spinner with text 1`] = `
+<span
+  className="LoadingSpinner with-text"
+  data-testid="loadingSpinner"
+  id="loadingSpinner"
+>
+  <span
+    className="fa fa-spinner fa-fw fa-pulse spinner"
+    title="Loading Icon"
+  />
+  test
+</span>
+`;
+
+exports[`components/widgets/loadingLoadingSpinner showing spinner without text 1`] = `
+<span
+  className="LoadingSpinner"
+  data-testid="loadingSpinner"
+  id="loadingSpinner"
+>
+  <span
+    className="fa fa-spinner fa-fw fa-pulse spinner"
+    title="Loading Icon"
+  />
+</span>
+`;

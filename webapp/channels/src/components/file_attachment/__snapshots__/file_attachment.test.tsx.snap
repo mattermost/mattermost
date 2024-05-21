@@ -10,7 +10,7 @@ exports[`FileAttachment should match snapshot, after change from file to image 1
     href="#"
     onClick={[Function]}
   >
-    <Connect(FileThumbnail)
+    <Connect(Component)
       fileInfo={
         Object {
           "archived": false,
@@ -99,7 +99,7 @@ exports[`FileAttachment should match snapshot, regular file 1`] = `
     href="#"
     onClick={[Function]}
   >
-    <Connect(FileThumbnail)
+    <Connect(Component)
       fileInfo={
         Object {
           "archived": false,
@@ -332,7 +332,7 @@ exports[`FileAttachment should match snapshot, svg image 1`] = `
     href="#"
     onClick={[Function]}
   >
-    <Connect(FileThumbnail)
+    <Connect(Component)
       fileInfo={
         Object {
           "archived": false,
@@ -532,7 +532,7 @@ exports[`FileAttachment should match snapshot, without compact display and witho
     href="#"
     onClick={[Function]}
   >
-    <Connect(FileThumbnail)
+    <Connect(Component)
       fileInfo={
         Object {
           "archived": false,

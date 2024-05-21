@@ -1,32 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
-import Scrollbars from 'react-custom-scrollbars';
-import isEqual from 'lodash/isEqual';
 import classNames from 'classnames';
+import isEqual from 'lodash/isEqual';
+import React from 'react';
+import Scrollbars from 'react-custom-scrollbars';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {PluginRedux} from '@mattermost/types/plugins';
-
-import {generateIndex, Index} from 'utils/admin_console_index';
-import {getHistory} from 'utils/browser_history';
-import {localizeMessage} from 'utils/utils';
+import type {PluginRedux} from '@mattermost/types/plugins';
 
 import AdminSidebarCategory from 'components/admin_console/admin_sidebar/admin_sidebar_category';
-import AdminSidebarHeader from 'components/admin_console/admin_sidebar_header';
 import AdminSidebarSection from 'components/admin_console/admin_sidebar/admin_sidebar_section';
-import Highlight from 'components/admin_console/highlight';
-import SearchIcon from 'components/widgets/icons/search_icon';
+import AdminSidebarHeader from 'components/admin_console/admin_sidebar_header';
+import SearchKeywordMarking from 'components/admin_console/search_keyword_marking';
 import QuickInput from 'components/quick_input';
+import SearchIcon from 'components/widgets/icons/search_icon';
 
-import AdminDefinition from '../admin_definition';
+import {generateIndex} from 'utils/admin_console_index';
+import type {Index} from 'utils/admin_console_index';
+import {getHistory} from 'utils/browser_history';
+
+import type AdminDefinition from '../admin_definition';
 
 import type {PropsFromRedux} from './index';
 
 export interface Props extends PropsFromRedux {
     intl: IntlShape;
-    onFilterChange: (term: string) => void;
+    onSearchChange: (term: string) => void;
 }
 
 type State = {
@@ -93,11 +94,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
         }
     }
 
-    onFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const filter = e.target.value;
         if (filter === '') {
             this.setState({sections: null, filter});
-            this.props.onFilterChange(filter);
+            this.props.onSearchChange(filter);
             return;
         }
 
@@ -114,7 +115,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
         }
         const sections = this.idx.search(query);
         this.setState({sections, filter});
-        this.props.onFilterChange(filter);
+        this.props.onSearchChange(filter);
 
         if (this.props.navigationBlocked) {
             return;
@@ -138,7 +139,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
             currentSiteName = ' - ' + this.props.siteName;
         }
 
-        document.title = localizeMessage('sidebar_right_menu.console', 'System Console') + currentSiteName;
+        document.title = this.props.intl.formatMessage({id: 'sidebar_right_menu.console', defaultMessage: 'System Console'}) + currentSiteName;
     };
 
     visibleSections = () => {
@@ -159,7 +160,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
         };
         const result = new Set();
         for (const section of Object.values(adminDefinition)) {
-            for (const item of Object.values(section)) {
+            for (const item of Object.values(section.subsections)) {
                 if (isVisible(item)) {
                     result.add(item.url);
                 }
@@ -178,7 +179,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
             }
             if (!isSectionHidden) {
                 const sidebarItems: JSX.Element[] = [];
-                Object.entries(section).forEach(([subKey, item]) => {
+                Object.entries(section.subsections).forEach(([subKey, item]) => {
                     if (!item.title) {
                         return;
                     }
@@ -208,10 +209,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                             name={item.url}
                             restrictedIndicator={item.restrictedIndicator?.shouldDisplay(license, subscriptionProduct) ? item.restrictedIndicator.value(cloud) : undefined}
                             title={
-                                <FormattedMessage
-                                    id={item.title}
-                                    defaultMessage={item.title_default}
-                                />
+                                typeof item.title === 'string' ?
+                                    item.title :
+                                    <FormattedMessage
+                                        {...item.title}
+                                    />
                             }
                         />
                     ));
@@ -236,10 +238,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                         icon={section.icon}
                         sectionClass=''
                         title={
-                            <FormattedMessage
-                                id={section.sectionTitle}
-                                defaultMessage={section.sectionTitleDefault}
-                            />
+                            typeof section.sectionTitle === 'string' ?
+                                section.sectionTitle :
+                                <FormattedMessage
+                                    {...section.sectionTitle}
+                                />
                         }
                     >
                         {sidebarItems}
@@ -283,7 +286,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
 
     handleClearFilter = () => {
         this.setState({sections: null, filter: ''});
-        this.props.onFilterChange('');
+        this.props.onSearchChange('');
     };
 
     render() {
@@ -299,9 +302,9 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                     <QuickInput
                         className={'filter ' + (this.state.filter ? 'active' : '')}
                         type='text'
-                        onChange={this.onFilterChange}
+                        onChange={this.handleSearchChange}
                         value={this.state.filter}
-                        placeholder={localizeMessage('admin.sidebar.filter', 'Find settings')}
+                        placeholder={this.props.intl.formatMessage({id: 'admin.sidebar.filter', defaultMessage: 'Find settings'})}
                         ref={this.searchRef}
                         id='adminSidebarFilter'
                         clearable={true}
@@ -317,11 +320,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                     renderView={renderScrollView}
                 >
                     <div className='nav-pills__container'>
-                        <Highlight filter={this.state.filter}>
+                        <SearchKeywordMarking keyword={this.state.filter}>
                             <ul className={classNames('nav nav-pills nav-stacked', {'task-list-shown': showTaskList})}>
                                 {this.renderRootMenu(this.props.adminDefinition)}
                             </ul>
-                        </Highlight>
+                        </SearchKeywordMarking>
                     </div>
                 </Scrollbars>
             </div>
