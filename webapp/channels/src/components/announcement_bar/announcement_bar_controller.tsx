@@ -12,6 +12,7 @@ import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
 import ConfigurationAnnouncementBar from './configuration_bar';
 import AnnouncementBar from './default_announcement_bar';
+import NotificationPermissionBar from './notification_permission_bar';
 import OverageUsersBanner from './overage_users_banner';
 import PaymentAnnouncementBar from './payment_announcement_bar';
 import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal';
@@ -99,6 +100,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         // Even if all Foo, Bar and Baz render, only Baz is visible as it's further down.
         return (
             <>
+                <NotificationPermissionBar/>
                 {adminConfiguredAnnouncementBar}
                 {errorBar}
                 <UsersLimitsAnnouncementBar
