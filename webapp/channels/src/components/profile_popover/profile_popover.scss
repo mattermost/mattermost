@@ -167,6 +167,11 @@
             }
         }
 
+        .user-profile-popover-has-pluggables {
+            padding: 0 16px 12px 16px;
+            @include textEllipsis;
+        }
+
         .user-popover__custom-status {
             display: flex;
             align-items: center;

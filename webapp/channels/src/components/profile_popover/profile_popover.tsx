@@ -146,6 +146,17 @@ const ProfilePopover = ({
         }
     }, []);
 
+    useEffect(() => {
+        const pluggablesContainer = document.querySelector('#user-profile-popover-pluggables');
+        if (pluggablesContainer) {
+            if (pluggablesContainer.children.length > 1) {
+                pluggablesContainer.classList.add('user-profile-popover-has-pluggables');
+            } else {
+                pluggablesContainer.classList.remove('user-profile-popover-has-pluggables');
+            }
+        }
+    }, []);
+
     if (!user) {
         return null;
     }
@@ -183,13 +194,15 @@ const ProfilePopover = ({
                     haveOverrideProp={haveOverrideProp}
                     isBot={user.is_bot}
                 />
-                <Pluggable
-                    pluggableName='PopoverUserAttributes'
-                    user={user}
-                    hide={hide}
-                    status={hideStatus ? null : status}
-                    fromWebhook={fromWebhook}
-                />
+                <div id='user-profile-popover-pluggables'>
+                    <Pluggable
+                        pluggableName='PopoverUserAttributes'
+                        user={user}
+                        hide={hide}
+                        status={hideStatus ? null : status}
+                        fromWebhook={fromWebhook}
+                    />
+                </div>
                 <ProfilePopoverTimezone
                     currentUserTimezone={currentUserTimezone}
                     profileUserTimezone={user.timezone}
