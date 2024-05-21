@@ -135,6 +135,12 @@ type API interface {
 	// Minimum server version: 5.10
 	GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 
+	// GetUsersByIds gets a list of users by their IDs.
+	//
+	// @tag User
+	// Minimum server version: 9.8
+	GetUsersByIds(userIDs []string) ([]*model.User, *model.AppError)
+
 	// GetUser gets a user.
 	//
 	// @tag User

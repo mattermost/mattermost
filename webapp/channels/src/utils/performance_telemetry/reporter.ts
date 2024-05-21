@@ -17,13 +17,28 @@ import type {PlatformLabel, UserAgentLabel} from './platform_detection';
 import {getPlatformLabel, getUserAgentLabel} from './platform_detection';
 
 type PerformanceReportMeasure = {
+
+    /**
+     * metric is the name of a counter or histogram metric which must match a MetricType constant as defined in
+     * model/metrics.go on the server.
+     */
     metric: string;
+
+    /**
+     * value is the floating point value of the metric. It's often a millisecond duration, but it's meaning depends
+     * on which metric this is.
+     */
     value: number;
+
+    /**
+     * timestamp is an integer value representing when the metric was measured as a millisecond value. Some browsers
+     * use floating point numbers for performance timestamps, so we need to make sure to round this.
+     */
     timestamp: number;
 }
 
 type PerformanceReport = {
-    version: '1.0';
+    version: '0.1.0';
 
     labels: {
         platform: PlatformLabel;
@@ -212,7 +227,7 @@ export default class PerformanceReporter {
         const counterMeasures = this.countersToMeasures(now, counters);
 
         return {
-            version: '1.0',
+            version: '0.1.0',
 
             labels: {
                 platform: this.platformLabel,

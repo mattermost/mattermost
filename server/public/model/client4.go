@@ -580,6 +580,26 @@ func (c *Client4) permissionsRoute() string {
 	return "/permissions"
 }
 
+func (c *Client4) limitsRoute() string {
+	return "/limits"
+}
+
+func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var serverLimits ServerLimits
+	if r.StatusCode == http.StatusNotModified {
+		return &serverLimits, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&serverLimits); err != nil {
+		return nil, nil, NewAppError("GetServerLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &serverLimits, BuildResponse(r), nil
+}
+
 func (c *Client4) bookmarksRoute(channelId string) string {
 	return c.channelRoute(channelId) + "/bookmarks"
 }
