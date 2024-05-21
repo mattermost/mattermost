@@ -270,7 +270,7 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
                 );
             }
             img = (
-                <div className='remove-image__img mb-5'>
+                <div className={'remove-image__img mb-5 '+(this.props.id === 'CustomBrandDarkLogoImage' ? 'bg--dark' : '')}>
                     <img
                         alt='brand image'
                         src={this.getImageUrl()}
