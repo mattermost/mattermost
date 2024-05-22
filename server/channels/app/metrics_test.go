@@ -60,8 +60,8 @@ func TestMobileMetrics(t *testing.T) {
 		}
 
 		histograms := []*model.MetricSample{}
-		var start int64 = 125
-		var end int64 = start + int64(len(ttcc))
+		var start float64 = 125
+		end := start + float64(len(ttcc))
 		// Precheck
 		for i, tc := range ttcc {
 			actualMetric, err := tc.histogramVec.GetMetricWith(prometheus.Labels{"platform": platform, "agent": agent})
@@ -72,7 +72,7 @@ func TestMobileMetrics(t *testing.T) {
 			histograms = append(histograms, &model.MetricSample{
 				Metric:    tc.metricName,
 				Value:     tc.elapsed,
-				Timestamp: start + int64(i),
+				Timestamp: start + float64(i),
 			})
 		}
 
