@@ -4,6 +4,7 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
+import tinycolor from 'tinycolor2';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
@@ -12,17 +13,12 @@ type BrandedBodyProps = {
     textColor: string;
 }
 
-const hexToRgb = (hex: string): string => {
-    var result = (/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i).exec(hex);
-    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '';
-};
-
 const BrandedBodyStyled = styled.div<BrandedBodyProps>`
     &&&&&, &&&&& h1, &&&&& div {
         color: ${(props) => props.textColor};
     }
     &&&&& p {
-        color: ${(props) => `rgba(${hexToRgb(props.textColor)}, 0.75)`};
+        color: ${(props) => tinycolor(props.textColor).setAlpha(0.75).toRgbString()};
     }
     &&&&& a {
         color: ${(props) => props.linkColor};

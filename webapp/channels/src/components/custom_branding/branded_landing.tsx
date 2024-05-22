@@ -4,14 +4,10 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
+import tinycolor from 'tinycolor2';
 
 import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-const hexToRgb = (hex: string): string => {
-    var result = (/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i).exec(hex);
-    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '';
-};
 
 type BrandedLandingProps = {
     background: string;
@@ -47,7 +43,7 @@ const BrandedLandingStyled = styled.div<BrandedLandingProps>`
     }
 
     &&&& .btn-tertiary {
-        background: ${(props) => `rgba(${hexToRgb(props.buttonBg)}, 0.08)`};
+        background: ${(props) => tinycolor(props.buttonBg).setAlpha(0.08).toRgbString()};
         color: ${(props) => props.buttonBg};
     }
 `;

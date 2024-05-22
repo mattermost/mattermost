@@ -4,13 +4,9 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
+import tinycolor from 'tinycolor2';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-const hexToRgb = (hex: string): string => {
-    var result = (/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i).exec(hex);
-    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '';
-};
 
 type BrandedButtonStyledProps = {
     background: string;
@@ -22,23 +18,23 @@ const BrandedButtonStyled = styled.div<BrandedButtonStyledProps>`
         color: ${(props) => props.background} !important;
     }
     &&&&&&&&&& > button {
-        background: ${(props) => `rgba(${hexToRgb(props.background)}, 0.92)`};
+        background: ${(props) => tinycolor(props.background).setAlpha(0.92).toRgbString()};
         color: ${(props) => props.textColor} !important;
     }
 
     &&&&&&&&&& > button:hover {
-        background: ${(props) => `rgba(${hexToRgb(props.background)}, 1)`};
+        background: ${(props) => tinycolor(props.background).setAlpha(1).toRgbString()};
     }
 
     &&&&&&&&&& > button > span{
         color: ${(props) => props.textColor} !important;
     }
     &&&&&&&&&& > button:disabled {
-        background: ${(props) => `rgba(${hexToRgb(props.background)}, 0.16)`};
-        color: ${(props) => `rgba(${hexToRgb(props.textColor)}, 0.32) !important`};
+        background: ${(props) => tinycolor(props.background).setAlpha(0.16).toRgbString()};
+        color: ${(props) => tinycolor(props.textColor).setAlpha(0.32).toRgbString() + " !important"};
     }
     &&&&&&&&&& > button:disabled > span {
-        color: ${(props) => `rgba(${hexToRgb(props.textColor)}, 0.32) !important`};
+        color: ${(props) => tinycolor(props.textColor).setAlpha(0.32).toRgbString() + " !important"};
     }
 `;
 

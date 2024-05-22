@@ -4,13 +4,9 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
+import tinycolor from 'tinycolor2';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-const hexToRgb = (hex: string): string => {
-    var result = (/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i).exec(hex);
-    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '';
-};
 
 type LoginSignupBlockProps = {
     background: string;
@@ -31,7 +27,7 @@ const LoginSignupBlockStyled = styled.div<LoginSignupBlockProps>`
     }
 
     &&&&& p {
-        color: ${(props) => `rgba(${hexToRgb(props.textColor)}, 0.75)`};
+        color: ${(props) => tinycolor(props.textColor).setAlpha(0.75).toRgbString()};
     }
 
     &&&&& > div {
@@ -58,12 +54,12 @@ const LoginSignupBlockStyled = styled.div<LoginSignupBlockProps>`
 
     &&&&& fieldset {
         color: ${(props) => props.textColor};
-        border-color: ${(props) => `rgba(${hexToRgb(props.textColor)}, 0.16)`};
+        border-color: ${(props) => tinycolor(props.textColor).setAlpha(0.16).toRgbString()};
         background: ${(props) => props.background};
     }
 
     &&&&& fieldset:hover {
-        border-color: ${(props) => `rgba(${hexToRgb(props.textColor)}, 0.24)`};
+        border-color: ${(props) => tinycolor(props.textColor).setAlpha(0.24).toRgbString()};
     }
 
     &&&&& fieldset:focus-within {

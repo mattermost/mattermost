@@ -4,14 +4,10 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
+import tinycolor from 'tinycolor2';
 
 import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-const hexToRgb = (hex: string): string => {
-    var result = (/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i).exec(hex);
-    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '';
-};
 
 type BrandedHeaderFooterRouteProps = {
     background: string;
@@ -32,16 +28,16 @@ const BrandedHeaderFooterRouteStyled = styled.div<BrandedHeaderFooterRouteProps>
 
     &&&& .hfroute-footer .footer-copyright,
     &&&& .hfroute-footer .footer-link {
-        color: ${(props) => `rgba(${hexToRgb(props.color)}, 0.64)`};
+        color: ${(props) => tinycolor(props.color).setAlpha(0.64).toRgbString()};
 
     }
 
     &&&&& .AccessProblem__description {
-        color: ${(props) => `rgba(${hexToRgb(props.color)}, 0.72)`};
+        color: ${(props) => tinycolor(props.color).setAlpha(0.72).toRgbString()};
     }
 
     &&&&& .signup-team__container p {
-        color: ${(props) => `rgba(${hexToRgb(props.color)}, 0.72)`};
+        color: ${(props) => tinycolor(props.color).setAlpha(0.72).toRgbString()};
         margin-bottom: 24px;
     }
 
@@ -61,11 +57,11 @@ const BrandedHeaderFooterRouteStyled = styled.div<BrandedHeaderFooterRouteProps>
         background: ${(props) => props.background};
     }
     &&&&& .signup-team__container fieldset {
-        color: ${(props) => `rgba(${hexToRgb(props.color)}, 0.16)`};
+        color: ${(props) => tinycolor(props.color).setAlpha(0.16).toRgbString()};
         background-color: ${(props) => props.background};
     }
     &&&&& .signup-team__container fieldset:hover {
-        color: ${(props) => `rgba(${hexToRgb(props.color)}, 0.24)`};
+        color: ${(props) => tinycolor(props.color).setAlpha(0.24).toRgbString()};
     }
     &&&&& .signup-team__container fieldset:focus-within {
         border-color: ${(props) => props.linkColor};
