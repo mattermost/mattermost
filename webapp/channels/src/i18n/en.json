@@ -2250,7 +2250,7 @@
   "admin.service.listenExample": "E.g.: \":8065\"",
   "admin.service.managedResourcePaths": "Managed Resource Paths:",
   "admin.service.managedResourcePathsDescription": "A comma-separated list of paths on the Mattermost server that are managed by another service. See <link>here</link> for more information.",
-  "admin.service.maximumPayloadSize": "Maximum Payload Size:",
+  "admin.service.maximumPayloadSize": "Maximum Payload Size (Bytes):",
   "admin.service.maximumPayloadSizeDescription": "The maximum number of bytes allowed in the payload of incoming HTTP calls",
   "admin.service.mfaDesc": "When true, users with AD/LDAP or email login can add multi-factor authentication to their account using Google Authenticator.",
   "admin.service.mfaTitle": "Enable Multi-factor Authentication:",
