@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
+import {isNil} from 'lodash';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -18,15 +19,18 @@ import Textbox from 'components/textbox';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
+import {execCommandInsertText} from 'utils/exec_commands';
 import * as Keyboard from 'utils/keyboard';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {
     formatGithubCodePaste,
+    formatMarkdownLinkMessage,
     formatMarkdownMessage,
     getHtmlTable,
     hasHtmlLink,
     isGitHubCodeBlock,
+    isTextUrl,
 } from 'utils/paste';
 import {postMessageOnKeyPress, splitMessageBasedOnCaretPosition} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
@@ -156,6 +160,35 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
     // just a helper so it's not always needed to update with setting both properties to the same value
     const setCaretPosition = (position: number) => setSelectionRange({start: position, end: position});
+
+    useEffect(() => {
+        function onPaste(event: ClipboardEvent) {
+            const {clipboardData, target} = event;
+
+            if (!clipboardData || !clipboardData.items || !target || (target as TextboxElement)?.id !== 'edit_textbox') {
+                return;
+            }
+
+            const {selectionStart, selectionEnd} = target as TextboxElement;
+
+            const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
+            const hasTextUrl = isTextUrl(clipboardData);
+
+            const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
+            event.preventDefault();
+
+            const message = editText;
+            if (shouldApplyLinkMarkdown) {
+                const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
+                execCommandInsertText(formattedLink);
+            }
+        }
+
+        document.addEventListener('paste', onPaste);
+        return () => {
+            document.removeEventListener('paste', onPaste);
+        };
+    });
 
     const handlePaste = useCallback((e: ClipboardEvent) => {
         const {clipboardData, target} = e;
