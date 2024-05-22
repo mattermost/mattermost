@@ -504,7 +504,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                         values={{
                                             link: (
                                                 <ExternalLink
-                                                    href={DocLinks.SESSION_LENGTHS}
+                                                    href={DocLinks.TRUSTED_CONNECTION}
                                                     location='abstract_outgoing_webhook'
                                                 >
                                                     <FormattedMessage

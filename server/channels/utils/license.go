@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -32,33 +33,32 @@ func init() {
 
 type LicenseValidatorIface interface {
 	LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError)
-	ValidateLicense(signed []byte) (bool, string)
+	ValidateLicense(signed []byte) (string, error)
 }
 
 type LicenseValidatorImpl struct {
 }
 
 func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
-	success, licenseStr := l.ValidateLicense(licenseBytes)
-	if !success {
-		return nil, model.NewAppError("LicenseFromBytes", model.InvalidLicenseError, nil, "", http.StatusBadRequest)
+	licenseStr, err := l.ValidateLicense(licenseBytes)
+	if err != nil {
+		return nil, model.NewAppError("LicenseFromBytes", model.InvalidLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	var license model.License
-	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
-		return nil, model.NewAppError("LicenseFromBytes", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	if err := json.Unmarshal([]byte(licenseStr), &license); err != nil {
+		return nil, model.NewAppError("LicenseFromBytes", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return &license, nil
 }
 
-func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
+func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (string, error) {
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(signed)))
 
 	_, err := base64.StdEncoding.Decode(decoded, signed)
 	if err != nil {
-		mlog.Error("Encountered error decoding license", mlog.Err(err))
-		return false, ""
+		return "", fmt.Errorf("encountered error decoding license: %w", err)
 	}
 
 	// remove null terminator
@@ -67,8 +67,7 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 	}
 
 	if len(decoded) <= 256 {
-		mlog.Error("Signed license not long enough")
-		return false, ""
+		return "", fmt.Errorf("Signed license not long enough")
 	}
 
 	plaintext := decoded[:len(decoded)-256]
@@ -85,8 +84,7 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 
 	public, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		mlog.Error("Encountered error signing license", mlog.Err(err))
-		return false, ""
+		return "", fmt.Errorf("Encountered error signing license: %w", err)
 	}
 
 	rsaPublic := public.(*rsa.PublicKey)
@@ -97,37 +95,34 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 
 	err = rsa.VerifyPKCS1v15(rsaPublic, crypto.SHA512, d, signature)
 	if err != nil {
-		mlog.Error("Invalid signature", mlog.Err(err))
-		return false, ""
+		return "", fmt.Errorf("Invalid signature: %w", err)
 	}
 
-	return true, string(plaintext)
+	return string(plaintext), nil
 }
 
-func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte) {
+func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte, error) {
 	fileName := GetLicenseFileLocation(location)
 
+	mlog.Info("License key has not been uploaded. Loading license key from disk.", mlog.String("filename", fileName))
+
 	if _, err := os.Stat(fileName); err != nil {
-		mlog.Debug("We could not find the license key in the database or on disk at", mlog.String("filename", fileName))
-		return nil, nil
+		return nil, nil, fmt.Errorf("We could not find the license key on disk at %s: %w", fileName, err)
 	}
 
-	mlog.Info("License key has not been uploaded.  Loading license key from disk at", mlog.String("filename", fileName))
 	licenseBytes := GetLicenseFileFromDisk(fileName)
 
-	success, licenseStr := LicenseValidator.ValidateLicense(licenseBytes)
-	if !success {
-		mlog.Error("Found license key at %v but it appears to be invalid.", mlog.String("filename", fileName))
-		return nil, nil
+	licenseStr, err := LicenseValidator.ValidateLicense(licenseBytes)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Found license key at %s but it appears to be invalid: %w", fileName, err)
 	}
 
 	var license model.License
 	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
-		mlog.Error("Failed to decode license from JSON", mlog.Err(jsonErr))
-		return nil, nil
+		return nil, nil, fmt.Errorf("Found license key at %s but it appears to be invalid: %w", fileName, err)
 	}
 
-	return &license, licenseBytes
+	return &license, licenseBytes, nil
 }
 
 func GetLicenseFileFromDisk(fileName string) []byte {
@@ -196,6 +191,7 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["Cloud"] = strconv.FormatBool(*l.Features.Cloud)
 		props["SharedChannels"] = strconv.FormatBool(*l.Features.SharedChannels)
 		props["RemoteClusterService"] = strconv.FormatBool(*l.Features.RemoteClusterService)
+		props["OutgoingOAuthConnections"] = strconv.FormatBool(*l.Features.OutgoingOAuthConnections)
 		props["IsTrial"] = strconv.FormatBool(l.IsTrial)
 		props["IsGovSku"] = strconv.FormatBool(l.IsGovSku)
 	}

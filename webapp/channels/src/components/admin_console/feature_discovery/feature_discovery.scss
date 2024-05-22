@@ -3,8 +3,8 @@
 .FeatureDiscovery {
     display: grid;
     padding: 20px;
-    background: $white;
     border-radius: 8px;
+    background: $white;
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
     font-family: Open Sans;
     font-style: normal;
@@ -45,9 +45,9 @@
     width: 160px;
     height: 48px;
     padding: 14px 0;
+    border-radius: 4px;
     margin-right: 8px;
     background: $primary-color;
-    border-radius: 4px;
     color: $white;
     font-size: 16px;
     font-weight: 400;
@@ -68,7 +68,7 @@
 
     &.btn-inactive {
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
     &.btn-secondary {

@@ -21,19 +21,19 @@ import Constants from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 type Props = {
-    focusOnMount: boolean;
     teammate?: UserProfile;
     threadId: string;
     latestPostId: Post['id'];
     isThreadView?: boolean;
+    placeholder?: string;
 };
 
 const CreateComment = forwardRef<HTMLDivElement, Props>(({
-    focusOnMount,
     teammate,
     threadId,
     latestPostId,
     isThreadView,
+    placeholder,
 }: Props, ref) => {
     const getChannel = useMemo(makeGetChannel, []);
     const rootPost = useSelector((state: GlobalState) => getPost(state, threadId));
@@ -77,7 +77,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
                 <div className='channel-archived-warning__content'>
                     <ArchiveOutlineIcon
                         size={20}
-                        color={'rgba(var(--center-channel-color-rgb), 0.56)'}
+                        color={'rgba(var(--center-channel-color-rgb), 0.75)'}
                     />
                     <FormattedMarkdownMessage
                         id='threadFromArchivedChannelMessage'
@@ -95,7 +95,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
             data-testid='comment-create'
         >
             <AdvancedCreateComment
-                focusOnMount={focusOnMount}
+                placeholder={placeholder}
                 channelId={channel.id}
                 latestPostId={latestPostId}
                 rootDeleted={rootDeleted}

@@ -5,13 +5,13 @@ import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import Header from './header';
 
 describe('channel_info_rhs/header', () => {
     test('should the current channel name', () => {
-        renderWithIntl(
+        renderWithContext(
             <Header
                 channel={{display_name: 'my channel title'} as Channel}
                 isMobile={false}
@@ -25,7 +25,7 @@ describe('channel_info_rhs/header', () => {
     test('should call onClose when clicking on the close icon', () => {
         const onClose = jest.fn();
 
-        renderWithIntl(
+        renderWithContext(
             <Header
                 channel={{display_name: 'my channel title'} as Channel}
                 isMobile={false}
@@ -34,14 +34,14 @@ describe('channel_info_rhs/header', () => {
             />,
         );
 
-        fireEvent.click(screen.getByLabelText('Close'));
+        fireEvent.click(screen.getByLabelText('Close Sidebar Icon'));
 
         expect(onClose).toHaveBeenCalled();
     });
     test('should call onClose when clicking on the back icon', () => {
         const onClose = jest.fn();
 
-        renderWithIntl(
+        renderWithContext(
             <Header
                 channel={{display_name: 'my channel title'} as Channel}
                 isMobile={true}
@@ -55,7 +55,7 @@ describe('channel_info_rhs/header', () => {
         expect(onClose).toHaveBeenCalled();
     });
     test('should have archived icon when channel is archived', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <Header
                 channel={{display_name: 'my channel title'} as Channel}
                 isMobile={false}
@@ -67,7 +67,7 @@ describe('channel_info_rhs/header', () => {
         expect(container.querySelector('i.icon-archive-outline')).toBeInTheDocument();
     });
     test('should not have archived icon when channel is archived', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <Header
                 channel={{display_name: 'my channel title'} as Channel}
                 isMobile={false}

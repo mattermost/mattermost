@@ -12,24 +12,25 @@ import {Preferences, NotificationLevels} from 'utils/constants';
 
 describe('components/user_settings/notifications/EmailNotificationSetting', () => {
     const requiredProps: ComponentProps<typeof EmailNotificationSetting> = {
-        currentUserId: 'current_user_id',
-        activeSection: 'email',
+        active: true,
         updateSection: jest.fn(),
-        enableEmail: false,
-        emailInterval: Preferences.INTERVAL_NEVER,
         onSubmit: jest.fn(),
         onCancel: jest.fn(),
-        onChange: jest.fn(),
-        serverError: '',
         saving: false,
+        error: '',
+        setParentState: jest.fn(),
+        areAllSectionsInactive: false,
+        isCollapsedThreadsEnabled: false,
+        enableEmail: false,
+        onChange: jest.fn(),
+        threads: NotificationLevels.ALL,
+        currentUserId: 'current_user_id',
+        emailInterval: Preferences.INTERVAL_NEVER,
         sendEmailNotifications: true,
         enableEmailBatching: false,
         actions: {
             savePreferences: jest.fn(),
         },
-        isCollapsedThreadsEnabled: false,
-        threads: NotificationLevels.ALL,
-        setParentState: jest.fn(),
     };
 
     test('should match snapshot', () => {
@@ -68,7 +69,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         const props = {
             ...requiredProps,
             sendEmailNotifications: false,
-            activeSection: '',
+            active: false,
         };
         const wrapper = shallow(<EmailNotificationSetting {...props}/>);
 
@@ -79,7 +80,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         const props = {
             ...requiredProps,
             sendEmailNotifications: true,
-            activeSection: '',
+            active: false,
         };
         const wrapper = shallow(<EmailNotificationSetting {...props}/>);
 
@@ -90,7 +91,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         const props = {
             ...requiredProps,
             sendEmailNotifications: true,
-            activeSection: '',
+            active: false,
             enableEmail: true,
         };
         const wrapper = shallow(<EmailNotificationSetting {...props}/>);
@@ -100,7 +101,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
 
     test('should match snapshot, on serverError', () => {
         const newServerError = 'serverError';
-        const props = {...requiredProps, serverError: newServerError};
+        const props = {...requiredProps, error: newServerError};
         const wrapper = shallow(<EmailNotificationSetting {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });

@@ -3,17 +3,15 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getSchemeTeams as loadSchemeTeams, getSchemes as loadSchemes} from 'mattermost-redux/actions/schemes';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getSchemes} from 'mattermost-redux/selectors/entities/schemes';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import type {GlobalState} from 'types/store';
 
 import PermissionSchemesSettings from './permission_schemes_settings';
-import type {Props} from './permission_schemes_settings';
 
 function mapStateToProps(state: GlobalState) {
     const schemes = getSchemes(state);
@@ -26,9 +24,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Props['actions']>({
+        actions: bindActionCreators({
             loadSchemes,
             loadSchemeTeams,
         }, dispatch),

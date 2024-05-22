@@ -13,17 +13,13 @@ import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/consta
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AutocompleteSelector from 'components/autocomplete_selector';
+import type {Option, Selected} from 'components/autocomplete_selector';
 import PostContext from 'components/post_view/post_context';
 import MenuActionProvider from 'components/suggestion/menu_action_provider';
 
 import {createCallContext} from 'utils/apps';
 
 import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
-
-type Option = {
-    text: string;
-    value: string;
-};
 
 type Props = {
     intl: IntlShape;
@@ -84,8 +80,9 @@ class SelectBinding extends React.PureComponent<Props, State> {
         this.state = {};
     }
 
-    handleSelected = async (selected: Option) => {
-        if (!selected) {
+    handleSelected = async (selected: Selected) => {
+        //this component expects selected to be of type Option
+        if (!selected || !('value' in selected)) {
             return;
         }
 

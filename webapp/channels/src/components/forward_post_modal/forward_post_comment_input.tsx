@@ -86,7 +86,7 @@ const ForwardPostCommentInput = ({channelId, canForwardPost, comment, permaLinkL
 
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
-            onChange(Utils.insertLineBreakFromKeyEvent(e));
+            onChange(Utils.insertLineBreakFromKeyEvent(e.nativeEvent));
         } else if (ctrlAltCombo && markdownLinkKey) {
             applyMarkdownMode({
                 markdownMode: 'link',

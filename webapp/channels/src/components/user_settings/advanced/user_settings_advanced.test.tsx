@@ -47,8 +47,6 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         enablePreviewFeatures: false,
         enableUserDeactivation: false,
         syncedDraftsAreAllowed: true,
-        disableWebappPrefetchAllowed: false,
-        dataPrefetchEnabled: 'true',
     };
 
     test('should have called handleSubmit', async () => {

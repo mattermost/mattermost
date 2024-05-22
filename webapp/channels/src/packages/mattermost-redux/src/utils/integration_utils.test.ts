@@ -23,6 +23,10 @@ describe('integration utils', () => {
             expect(checkDialogElementForError(TestHelper.getDialogElementMock({type: 'text', min_length: 5}), '123')!.id).toBe('interactive_dialog.error.too_short');
         });
 
+        it('should return null on 0', () => {
+            expect(checkDialogElementForError(TestHelper.getDialogElementMock({type: 'text', subtype: 'number'}), 0)).toBe(null);
+        });
+
         it('should return null on good number element', () => {
             expect(checkDialogElementForError(TestHelper.getDialogElementMock({type: 'text', subtype: 'number'}), '123')).toBe(null);
         });

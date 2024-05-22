@@ -96,6 +96,7 @@ func testUploadFilesPost(
 	blobs [][]byte,
 	clientIds []string,
 	useChunked bool,
+	isBookmark bool,
 ) (*model.FileUploadResponse, *model.Response, error) {
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
@@ -118,6 +119,10 @@ func testUploadFilesPost(
 			fmt.Sprintf("&filename=%v", url.QueryEscape(names[i]))
 		if len(clientIds) > i {
 			postURL += fmt.Sprintf("&client_id=%v", url.QueryEscape(clientIds[i]))
+		}
+
+		if isBookmark {
+			postURL += "&bookmark=true"
 		}
 
 		fur, resp, err := testDoUploadFileRequest(t, c, postURL, blob, ct, cl)
@@ -145,6 +150,7 @@ func testUploadFilesMultipart(
 	names []string,
 	blobs [][]byte,
 	clientIds []string,
+	isBookmark bool,
 ) (
 	*model.FileUploadResponse,
 	*model.Response,
@@ -185,7 +191,11 @@ func testUploadFilesMultipart(
 	}
 
 	require.NoError(t, mw.Close())
-	fur, resp, err := testDoUploadFileRequest(t, c, "", mwBody.Bytes(), mw.FormDataContentType(), -1)
+	url := ""
+	if isBookmark {
+		url += "?bookmark=true"
+	}
+	fur, resp, err := testDoUploadFileRequest(t, c, url, mwBody.Bytes(), mw.FormDataContentType(), -1)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -230,6 +240,7 @@ func TestUploadFiles(t *testing.T) {
 		expectedImageMiniPreview    []bool
 		setupConfig                 func(a *app.App) func(a *app.App)
 		checkResponse               func(t testing.TB, resp *model.Response)
+		uploadAsBookmark            bool
 	}{
 		// Upload a bunch of files, mixed images and non-images
 		{
@@ -578,6 +589,20 @@ func TestUploadFiles(t *testing.T) {
 				}
 			},
 		},
+		{
+			title:                       "Bookmark images",
+			names:                       []string{"orientation_test_5.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_5_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_5_expected_preview.jpeg"},
+			channelId:                   channel.Id,
+			expectImage:                 true,
+			expectedCreatorId:           model.BookmarkFileOwner,
+			expectedImageWidths:         []int{2860},
+			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
+			uploadAsBookmark:            true,
+		},
 	}
 
 	for _, useMultipart := range []bool{true, false} {
@@ -627,9 +652,9 @@ func TestUploadFiles(t *testing.T) {
 				var resp *model.Response
 				var err error
 				if useMultipart {
-					fileResp, resp, err = testUploadFilesMultipart(t, client, channelId, tc.names, blobs, tc.clientIds)
+					fileResp, resp, err = testUploadFilesMultipart(t, client, channelId, tc.names, blobs, tc.clientIds, tc.uploadAsBookmark)
 				} else {
-					fileResp, resp, err = testUploadFilesPost(t, client, channelId, tc.names, blobs, tc.clientIds, tc.useChunkedInSimplePost)
+					fileResp, resp, err = testUploadFilesPost(t, client, channelId, tc.names, blobs, tc.clientIds, tc.useChunkedInSimplePost, tc.uploadAsBookmark)
 				}
 
 				if tc.checkResponse != nil {
@@ -672,6 +697,9 @@ func TestUploadFiles(t *testing.T) {
 					ext := filepath.Ext(fname)
 					name := fname[:len(fname)-len(ext)]
 					expectedDir := fmt.Sprintf("%v/teams/%v/channels/%v/users/%s/%s", date, FileTeamId, channel.Id, ri.CreatorId, ri.Id)
+					if tc.uploadAsBookmark {
+						expectedDir = fmt.Sprintf("%v/teams/%v/channels/%v/%s", model.BookmarkFileOwner, FileTeamId, channel.Id, ri.Id)
+					}
 					expectedPath := fmt.Sprintf("%s/%s", expectedDir, fname)
 					assert.Equal(t, dbInfo.Path, expectedPath,
 						fmt.Sprintf("File %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.Path, expectedPath))
@@ -775,6 +803,7 @@ func TestGetFile(t *testing.T) {
 
 	_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileId)
 	require.NoError(t, err)
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestGetFileHeaders(t *testing.T) {
@@ -889,6 +918,7 @@ func TestGetFileThumbnail(t *testing.T) {
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), fileId)
 	require.NoError(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetFileLink(t *testing.T) {
@@ -917,7 +947,7 @@ func TestGetFileLink(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
@@ -1001,6 +1031,7 @@ func TestGetFilePreview(t *testing.T) {
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFilePreview(context.Background(), fileId)
 	require.NoError(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetFileInfo(t *testing.T) {
@@ -1024,7 +1055,6 @@ func TestGetFileInfo(t *testing.T) {
 	info, _, err := client.GetFileInfo(context.Background(), fileId)
 	require.NoError(t, err)
 
-	require.NoError(t, err)
 	require.Equal(t, fileId, info.Id, "got incorrect file")
 	require.Equal(t, user.Id, info.CreatorId, "file should be assigned to user")
 	require.Equal(t, "", info.PostId, "file shouldn't have a post")
@@ -1055,6 +1085,7 @@ func TestGetFileInfo(t *testing.T) {
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFileInfo(context.Background(), fileId)
 	require.NoError(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetPublicFile(t *testing.T) {
@@ -1075,7 +1106,7 @@ func TestGetPublicFile(t *testing.T) {
 	fileId := fileResp.FileInfos[0].Id
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	info, err := th.App.Srv().Store().FileInfo().Get(fileId)
@@ -1085,6 +1116,10 @@ func TestGetPublicFile(t *testing.T) {
 	resp, err := http.Get(link)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode, "failed to get image with public link")
+
+	resp, err = http.Head(link)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode, "failed to respond to HEAD request")
 
 	resp, err = http.Get(link[:strings.LastIndex(link, "?")])
 	require.NoError(t, err)
@@ -1140,25 +1175,25 @@ func TestSearchFiles(t *testing.T) {
 	filename := "search for fileInfo1"
 	fileInfo1, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo1.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileInfo1.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "search for fileInfo2"
 	fileInfo2, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo2.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileInfo2.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "tagged search for fileInfo3"
 	fileInfo3, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo3.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileInfo3.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "tagged for fileInfo4"
 	fileInfo4, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo4.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileInfo4.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	archivedChannel := th.CreatePublicChannel()
@@ -1167,7 +1202,7 @@ func TestSearchFiles(t *testing.T) {
 	post := &model.Post{ChannelId: archivedChannel.Id, Message: model.NewId() + "a"}
 	rpost, _, err := client.CreatePost(context.Background(), post)
 	require.NoError(t, err)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo5.Id, rpost.Id, rpost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileInfo5.Id, rpost.Id, rpost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 	th.Client.DeleteChannel(context.Background(), archivedChannel.Id)
 

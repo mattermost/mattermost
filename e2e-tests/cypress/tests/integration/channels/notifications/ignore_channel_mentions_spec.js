@@ -109,26 +109,15 @@ function addNumberOfUsersToChannel(num = 1) {
 }
 
 function setIgnoreMentions(toSet) {
-    let stringToSet = 'Off';
-    if (toSet) {
-        stringToSet = 'On';
-    }
-
     // # Open channel menu and click Notification Preferences
     cy.uiOpenChannelMenu('Notification Preferences');
 
-    // # Click on the edit button for ignore channel mentions
-    cy.get('#ignoreChannelMentionsEdit').should('exist').click();
+    // # find mute or ignore section
+    cy.findByText('Mute or ignore').should('be.visible');
 
-    // # Click on selected option
-    cy.get(`#ignoreChannelMentions${stringToSet}`).should('exist').click();
+    // # find Ignore mentions checkbox, set value accordingly
+    cy.findByRole('checkbox', {name: 'Ignore mentions for @channel, @here and @all'}).click().should(toSet ? 'be.checked' : 'not.be.checked');
 
     // # Click on save to save the configuration
-    cy.get('#saveSetting').should('exist').click();
-
-    // * Assert that the option selected is reflected
-    cy.get('#ignoreChannelMentionsDesc').should('contain', stringToSet);
-
-    // # Click on the X button to close the modal
-    cy.get('#channelNotificationModalLabel').siblings('.close').click();
+    cy.uiSave();
 }

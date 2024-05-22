@@ -3,18 +3,16 @@
 
 import React, {useCallback, useEffect, useState} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {CustomGroupPatch, Group} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import LocalizedIcon from 'components/localized_icon';
 import SaveButton from 'components/save_button';
 import Input from 'components/widgets/inputs/input/input';
 
 import Constants, {ItemStatus} from 'utils/constants';
-import {t} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 
@@ -44,6 +42,8 @@ const UpdateUserGroupModal = (props: Props) => {
     const [nameInputErrorText, setNameInputErrorText] = useState('');
     const [showUnknownError, setShowUnknownError] = useState(false);
     const [mentionUpdatedManually, setMentionUpdatedManually] = useState(false);
+
+    const {formatMessage} = useIntl();
 
     const doHide = useCallback(() => {
         setShow(false);
@@ -159,13 +159,10 @@ const UpdateUserGroupModal = (props: Props) => {
                 <button
                     type='button'
                     className='modal-header-back-button btn btn-icon'
-                    aria-label='Close'
+                    aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                     onClick={goBack}
                 >
-                    <LocalizedIcon
-                        className='icon icon-arrow-left'
-                        ariaLabel={{id: t('user_groups_modal.goBackLabel'), defaultMessage: 'Back'}}
-                    />
+                    <i className='icon icon-arrow-left'/>
                 </button>
                 <Modal.Title
                     componentClass='h1'

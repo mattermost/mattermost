@@ -6,6 +6,8 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {FileInfo} from '@mattermost/types/files';
+
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -70,8 +72,8 @@ function CloudInvoicePreview(props: Props) {
                             extension: 'pdf',
                             size: 0,
                             name: '',
-                        }}
-                        fileUrl={props.url}
+                        } as FileInfo}
+                        fileUrl={props.url ?? ''}
                         scale={1.4}
                         handleBgClose={() => {}}
                     />

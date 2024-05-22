@@ -16,6 +16,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamButton from 'components/team_sidebar/components/team_button';
 
+import WebSocketClient from 'client/web_websocket_client';
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -145,6 +146,13 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
             this.setState({showOrder: false});
         }
     };
+
+    componentDidUpdate(prevProps: Props) {
+        // TODO: debounce
+        if (prevProps.currentTeamId !== this.props.currentTeamId && this.props.enableWebSocketEventScope) {
+            WebSocketClient.updateActiveTeam(this.props.currentTeamId);
+        }
+    }
 
     componentDidMount() {
         this.props.actions.getTeams(0, 200);

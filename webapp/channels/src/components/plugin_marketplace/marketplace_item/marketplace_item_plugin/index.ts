@@ -3,11 +3,10 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getPluginStatus} from 'mattermost-redux/selectors/entities/admin';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {installPlugin} from 'actions/marketplace';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -19,7 +18,6 @@ import {ModalIdentifiers} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import MarketplaceItemPlugin from './marketplace_item_plugin';
-import type {MarketplaceItemPluginProps} from './marketplace_item_plugin';
 
 type Props = {
     id: string;
@@ -41,9 +39,9 @@ function mapStateToProps(state: GlobalState, props: Props) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject, MarketplaceItemPluginProps['actions']>({
+        actions: bindActionCreators({
             installPlugin,
             closeMarketplaceModal: () => closeModal(ModalIdentifiers.PLUGIN_MARKETPLACE),
         }, dispatch),

@@ -208,7 +208,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1010',
             '1005',
             '1000',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + (time + 999),
             'date-' + (today.getTime() + 1000),
         ]);
 
@@ -217,7 +217,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
         expect(now).toEqual([
             '1010',
             '1005',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + (time + 1003),
             '1000',
             'date-' + (today.getTime() + 1000),
         ]);
@@ -225,7 +225,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt: time + 1006, indicateNewMessages: true});
         expect(now).toEqual([
             '1010',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + (time + 1006),
             '1005',
             '1000',
             'date-' + (today.getTime() + 1000),
@@ -296,7 +296,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1004',
             'date-' + tomorrow.getTime(),
             '1003',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + lastViewedAt,
             '1001',
             'date-' + today.getTime(),
         ]);
@@ -304,13 +304,13 @@ describe('makeFilterPostsAndAddSeparators', () => {
         // No changes
         let prev = now;
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
+        expect(now).toBe(prev);
         expect(now).toEqual([
             '1006',
             '1004',
             'date-' + tomorrow.getTime(),
             '1003',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + lastViewedAt,
             '1001',
             'date-' + today.getTime(),
         ]);
@@ -320,13 +320,13 @@ describe('makeFilterPostsAndAddSeparators', () => {
 
         prev = now;
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
+        expect(now).not.toBe(prev);
         expect(now).toEqual([
             '1006',
             '1004',
             'date-' + tomorrow.getTime(),
             '1003',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + lastViewedAt,
             '1001',
             'date-' + today.getTime(),
         ]);
@@ -336,11 +336,11 @@ describe('makeFilterPostsAndAddSeparators', () => {
 
         prev = now;
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).not.toEqual(prev);
+        expect(now).not.toBe(prev);
         expect(now).toEqual([
             '1006',
             '1004',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + lastViewedAt,
             'date-' + tomorrow.getTime(),
             '1003',
             '1001',
@@ -349,11 +349,11 @@ describe('makeFilterPostsAndAddSeparators', () => {
 
         prev = now;
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
+        expect(now).toBe(prev);
         expect(now).toEqual([
             '1006',
             '1004',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + lastViewedAt,
             'date-' + tomorrow.getTime(),
             '1003',
             '1001',
@@ -365,11 +365,11 @@ describe('makeFilterPostsAndAddSeparators', () => {
 
         prev = now;
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
+        expect(now).toBe(prev);
         expect(now).toEqual([
             '1006',
             '1004',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + lastViewedAt,
             'date-' + tomorrow.getTime(),
             '1003',
             '1001',
@@ -393,11 +393,11 @@ describe('makeFilterPostsAndAddSeparators', () => {
 
         prev = now;
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
+        expect(now).toBe(prev);
         expect(now).toEqual([
             '1006',
             '1004',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + lastViewedAt,
             'date-' + tomorrow.getTime(),
             '1003',
             '1001',
@@ -421,11 +421,11 @@ describe('makeFilterPostsAndAddSeparators', () => {
 
         prev = now;
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
+        expect(now).toBe(prev);
         expect(now).toEqual([
             '1006',
             '1004',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + lastViewedAt,
             'date-' + tomorrow.getTime(),
             '1003',
             '1001',
@@ -453,10 +453,10 @@ describe('makeFilterPostsAndAddSeparators', () => {
 
         prev = now;
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).not.toEqual(prev);
+        expect(now).not.toBe(prev);
         expect(now).toEqual([
             '1004',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + lastViewedAt,
             'date-' + tomorrow.getTime(),
             '1003',
             '1001',
@@ -465,10 +465,10 @@ describe('makeFilterPostsAndAddSeparators', () => {
 
         prev = now;
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages: true});
-        expect(now).toEqual(prev);
+        expect(now).toBe(prev);
         expect(now).toEqual([
             '1004',
-            START_OF_NEW_MESSAGES,
+            START_OF_NEW_MESSAGES + lastViewedAt,
             'date-' + tomorrow.getTime(),
             '1003',
             '1001',
@@ -762,7 +762,13 @@ describe('makeCombineUserActivityPosts', () => {
                     ...state.entities,
                     posts: {
                         ...state.entities.posts,
-                        selectedPostId: 'post2',
+                        messagesHistory: {
+                            messages: [],
+                            index: {
+                                post: 4,
+                                comment: 3,
+                            },
+                        },
                     },
                 },
             };
@@ -902,7 +908,7 @@ describe('getFirstPostId', () => {
     });
 
     test('should skip the new message line', () => {
-        expect(getFirstPostId([START_OF_NEW_MESSAGES, 'post2', 'post3', 'post4'])).toBe('post2');
+        expect(getFirstPostId([START_OF_NEW_MESSAGES + '1234', 'post2', 'post3', 'post4'])).toBe('post2');
     });
 });
 
@@ -920,7 +926,7 @@ describe('getLastPostId', () => {
     });
 
     test('should skip the new message line', () => {
-        expect(getLastPostId(['post2', 'post3', 'post4', START_OF_NEW_MESSAGES])).toBe('post4');
+        expect(getLastPostId(['post2', 'post3', 'post4', START_OF_NEW_MESSAGES + '1234'])).toBe('post4');
     });
 });
 
@@ -938,7 +944,7 @@ describe('getLastPostIndex', () => {
     });
 
     test('should skip the new message line and return index of last post', () => {
-        expect(getLastPostIndex(['post2', 'post3', 'post4', START_OF_NEW_MESSAGES])).toBe(2);
+        expect(getLastPostIndex(['post2', 'post3', 'post4', START_OF_NEW_MESSAGES + '1234'])).toBe(2);
     });
 });
 

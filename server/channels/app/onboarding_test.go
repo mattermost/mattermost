@@ -9,14 +9,13 @@ import (
 	"github.com/stretchr/testify/require"
 
 	mm_model "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func TestOnboardingSavesOrganizationName(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	err := th.App.CompleteOnboarding(&request.Context{}, &mm_model.CompleteOnboardingRequest{
+	err := th.App.CompleteOnboarding(th.Context, &mm_model.CompleteOnboardingRequest{
 		Organization: "Mattermost In Tests",
 	})
 	require.Nil(t, err)

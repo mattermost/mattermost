@@ -9,14 +9,14 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func (ts *TeamService) CreateTeam(team *model.Team) (*model.Team, error) {
+func (ts *TeamService) CreateTeam(rctx request.CTX, team *model.Team) (*model.Team, error) {
 	team.InviteId = ""
 	rteam, err := ts.store.Save(team)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err := ts.createDefaultChannels(rteam.Id); err != nil {
+	if _, err := ts.createDefaultChannels(rctx, rteam.Id); err != nil {
 		return nil, err
 	}
 
@@ -42,7 +42,7 @@ func (ts *TeamService) GetTeams(teamIDs []string) ([]*model.Team, error) {
 }
 
 // CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
-func (ts *TeamService) createDefaultChannels(teamID string) ([]*model.Channel, error) {
+func (ts *TeamService) createDefaultChannels(rctx request.CTX, teamID string) ([]*model.Channel, error) {
 	displayNames := map[string]string{
 		"town-square": i18n.T("api.channel.create_default_channels.town_square"),
 		"off-topic":   i18n.T("api.channel.create_default_channels.off_topic"),
@@ -50,13 +50,20 @@ func (ts *TeamService) createDefaultChannels(teamID string) ([]*model.Channel, e
 	channels := []*model.Channel{}
 	defaultChannelNames := ts.DefaultChannelNames()
 	for _, name := range defaultChannelNames {
-		displayName := i18n.TDefault(displayNames[name], name)
+		var displayName string
+		if displayNameValue, ok := displayNames[name]; ok {
+			displayName = i18n.TDefault(displayNameValue, name)
+		} else {
+			// If the default channel is experimental (from config.json)
+			// we don't have to translate
+			displayName = name
+		}
 		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.ChannelTypeOpen, TeamId: teamID}
 		// We should use the channel service here (coming soon). Ideally, we should just emit an event
 		// and let the subscribers do the job, in this case it would be the channels service.
 		// Currently we are adding services to the server and because of that we are using
 		// the channel store here. This should be replaced in the future.
-		if _, err := ts.channelStore.Save(channel, *ts.config().TeamSettings.MaxChannelsPerTeam); err != nil {
+		if _, err := ts.channelStore.Save(rctx, channel, *ts.config().TeamSettings.MaxChannelsPerTeam); err != nil {
 			return nil, err
 		}
 		channels = append(channels, channel)
@@ -129,7 +136,7 @@ func (ts *TeamService) PatchTeam(teamID string, patch *model.TeamPatch) (*model.
 // 1. a pointer to the team member, if successful
 // 2. a boolean: true if the user has a non-deleted team member for that team already, otherwise false.
 // 3. a pointer to an AppError if something went wrong.
-func (ts *TeamService) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User) (*model.TeamMember, bool, error) {
+func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.User) (*model.TeamMember, bool, error) {
 	if !ts.IsTeamEmailAllowed(user, team) {
 		return nil, false, AcceptedDomainError
 	}
@@ -154,10 +161,10 @@ func (ts *TeamService) JoinUserToTeam(c request.CTX, team *model.Team, user *mod
 		tm.SchemeAdmin = true
 	}
 
-	rtm, err := ts.store.GetMember(c, team.Id, user.Id)
+	rtm, err := ts.store.GetMember(rctx, team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
-		tmr, nErr := ts.store.SaveMember(tm, *ts.config().TeamSettings.MaxUsersPerTeam)
+		tmr, nErr := ts.store.SaveMember(rctx, tm, *ts.config().TeamSettings.MaxUsersPerTeam)
 		if nErr != nil {
 			return nil, false, nErr
 		}
@@ -179,7 +186,7 @@ func (ts *TeamService) JoinUserToTeam(c request.CTX, team *model.Team, user *mod
 		return nil, false, MaxMemberCountError
 	}
 
-	member, nErr := ts.store.UpdateMember(tm)
+	member, nErr := ts.store.UpdateMember(rctx, tm)
 	if nErr != nil {
 		return nil, false, nErr
 	}
@@ -189,7 +196,7 @@ func (ts *TeamService) JoinUserToTeam(c request.CTX, team *model.Team, user *mod
 
 // RemoveTeamMember removes the team member from the team. This method sends
 // the websocket message before actually removing so the user being removed gets it.
-func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
+func (ts *TeamService) RemoveTeamMember(rctx request.CTX, teamMember *model.TeamMember) error {
 	/*
 		MM-43850: send leave_team event to user using `ReliableClusterSend` to improve safety
 	*/
@@ -212,7 +219,7 @@ func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
 	teamMember.Roles = ""
 	teamMember.DeleteAt = model.GetMillis()
 
-	if _, nErr := ts.store.UpdateMember(teamMember); nErr != nil {
+	if _, nErr := ts.store.UpdateMember(rctx, teamMember); nErr != nil {
 		return nErr
 	}
 

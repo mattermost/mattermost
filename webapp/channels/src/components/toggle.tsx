@@ -12,7 +12,7 @@ type Props = {
     offText?: React.ReactNode;
     id?: string;
     overrideTestId?: boolean;
-    size?: 'btn-lg' | 'btn-sm';
+    size?: 'btn-lg' | 'btn-md' |'btn-sm';
     toggleClassName?: string;
 }
 

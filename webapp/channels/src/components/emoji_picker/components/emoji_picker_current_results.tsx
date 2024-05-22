@@ -9,7 +9,8 @@ import type {ListItemKeySelector, ListOnScrollProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
 import type {Emoji, EmojiCategory, CustomEmoji, SystemEmoji} from '@mattermost/types/emojis';
-import type {ServerError} from '@mattermost/types/errors';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import EmojiPickerCategoryOrEmojiRow from 'components/emoji_picker/components/emoji_picker_category_or_emoji_row';
 import {ITEM_HEIGHT, EMOJI_ROWS_OVERSCAN_COUNT, EMOJI_CONTAINER_HEIGHT, CUSTOM_EMOJIS_PER_PAGE, EMOJI_SCROLL_THROTTLE_DELAY} from 'components/emoji_picker/constants';
@@ -28,7 +29,7 @@ interface Props {
     onEmojiClick: (emoji: Emoji) => void;
     onEmojiMouseOver: (cursor: EmojiCursor) => void;
     incrementEmojiPickerPage: () => void;
-    getCustomEmojis: (page?: number, perPage?: number, sort?: string, loadUsers?: boolean) => Promise<{ data: CustomEmoji[]; error: ServerError }>;
+    getCustomEmojis: (page?: number, perPage?: number, sort?: string, loadUsers?: boolean) => Promise<ActionResult<CustomEmoji[]>>;
 }
 
 const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOrEmojisRows, isFiltering, activeCategory, cursorRowIndex, cursorEmojiId, customEmojisEnabled, customEmojiPage, setActiveCategory, onEmojiClick, onEmojiMouseOver, getCustomEmojis, incrementEmojiPickerPage}: Props, ref) => {

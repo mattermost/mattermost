@@ -29,8 +29,6 @@ type FeatureFlags struct {
 
 	NormalizeLdapDNs bool
 
-	PostPriority bool
-
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
 
@@ -42,7 +40,25 @@ type FeatureFlags struct {
 
 	EnableExportDirectDownload bool
 
+	MoveThreadsEnabled bool
+
 	StreamlinedMarketplace bool
+
+	CloudIPFiltering bool
+	ConsumePostHook  bool
+
+	CloudAnnualRenewals    bool
+	CloudDedicatedExportUI bool
+
+	ChannelBookmarks bool
+
+	WebSocketEventScope bool
+
+	NotificationMonitoring bool
+
+	ExperimentalAuditSettingsSystemConsoleUI bool
+
+	ClientMetrics bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -57,7 +73,17 @@ func (f *FeatureFlags) SetDefaults() {
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
+	f.MoveThreadsEnabled = false
 	f.StreamlinedMarketplace = true
+	f.CloudIPFiltering = false
+	f.ConsumePostHook = false
+	f.CloudAnnualRenewals = false
+	f.CloudDedicatedExportUI = false
+	f.ChannelBookmarks = false
+	f.WebSocketEventScope = false
+	f.NotificationMonitoring = true
+	f.ExperimentalAuditSettingsSystemConsoleUI = false
+	f.ClientMetrics = false
 }
 
 // ToMap returns the feature flags as a map[string]string

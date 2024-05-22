@@ -336,7 +336,7 @@ export function makeGetPostsAroundPost(): (state: GlobalState, postId: Post['id'
             for (let i = 0; i < postIds.length; i++) {
                 const post = allPosts[postIds[i]];
 
-                if (shouldFilterJoinLeavePost(post, showJoinLeave, currentUser.username)) {
+                if (!post || shouldFilterJoinLeavePost(post, showJoinLeave, currentUser.username)) {
                     continue;
                 }
 
@@ -370,15 +370,19 @@ export function makeGetPostsForThread(): (state: GlobalState, rootId: string) =>
                 thread.push(rootPost);
             }
 
-            postsForThread?.forEach((id) => {
-                const post = posts[id];
+            if (postsForThread && Array.isArray(postsForThread) && postsForThread.length > 0) {
+                for (const postId of postsForThread) {
+                    const post = posts[postId];
+                    if (!post) {
+                        continue;
+                    }
 
-                const skip = shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '');
-
-                if (post && !skip) {
-                    thread.push(post);
+                    const skip = shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '');
+                    if (!skip) {
+                        thread.push(post);
+                    }
                 }
-            });
+            }
 
             thread.sort(comparePosts);
             return thread;

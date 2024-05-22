@@ -37,6 +37,13 @@ var (
 	LvlRemoteClusterServiceError = Level{ID: 131, Name: "RemoteClusterServiceError"}
 	LvlRemoteClusterServiceWarn  = Level{ID: 132, Name: "RemoteClusterServiceWarn"}
 
+	// used by LDAP sync job
+	LvlLDAPError = Level{ID: 140, Name: "LDAPError"}
+	LvlLDAPWarn  = Level{ID: 141, Name: "LDAPWarn"}
+	LvlLDAPInfo  = Level{ID: 142, Name: "LDAPInfo"}
+	LvlLDAPDebug = Level{ID: 143, Name: "LDAPDebug"}
+	LvlLDAPTrace = Level{ID: 144, Name: "LDAPTrace"}
+
 	// used by Shared Channel Sync Service
 	LvlSharedChannelServiceDebug            = Level{ID: 200, Name: "SharedChannelServiceDebug"}
 	LvlSharedChannelServiceError            = Level{ID: 201, Name: "SharedChannelServiceError"}
@@ -48,4 +55,9 @@ var (
 // Combinations for LogM (log multi).
 var (
 	MLvlAuditAll = []Level{LvlAuditAPI, LvlAuditContent, LvlAuditPerms, LvlAuditCLI}
+
+	MlvlLDAPError = []Level{LvlError, LvlLDAPError}
+	MlvlLDAPWarn  = []Level{LvlWarn, LvlLDAPWarn}
+	MlvlLDAPInfo  = []Level{LvlInfo, LvlLDAPInfo}
+	MlvlLDAPDebug = []Level{LvlDebug, LvlLDAPDebug}
 )

@@ -11,8 +11,8 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
       aria-hidden="true"
       id="searchIcon"
     >
-      <MagnifyIcon
-        size={18}
+      <i
+        className="icon icon-magnify"
       />
     </span>
     <QuickInput
@@ -20,20 +20,8 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
       className="form-control filter-textbox"
       clearable={true}
       id="searchChannelsTextbox"
-      inputComponent={
-        Object {
-          "$$typeof": Symbol(react.forward_ref),
-          "render": [Function],
-        }
-      }
       onClear={[Function]}
       onInput={[Function]}
-      placeholder={
-        Object {
-          "defaultMessage": "Search channels",
-          "id": "filtered_channels_list.search",
-        }
-      }
       value=""
     />
   </div>

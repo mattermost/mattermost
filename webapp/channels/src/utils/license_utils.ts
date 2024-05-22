@@ -3,9 +3,10 @@
 
 import moment from 'moment';
 
+import type {Product} from '@mattermost/types/cloud';
 import type {ClientLicense} from '@mattermost/types/config';
 
-import {LicenseSkus} from 'utils/constants';
+import {CloudProducts, LicenseSkus, SelfHostedProducts} from 'utils/constants';
 
 const LICENSE_EXPIRY_NOTIFICATION = 1000 * 60 * 60 * 24 * 60; // 60 days
 const LICENSE_GRACE_PERIOD = 1000 * 60 * 60 * 24 * 10; // 10 days
@@ -103,3 +104,14 @@ export const licenseSKUWithFirstLetterCapitalized = (license: ClientLicense) => 
     const sku = license.SkuShortName;
     return sku.charAt(0).toUpperCase() + sku.slice(1);
 };
+
+export function isEnterpriseOrCloudOrSKUStarterFree(license: ClientLicense, subscriptionProduct: Product | undefined, isEnterpriseReady: boolean) {
+    const isCloud = license?.Cloud === 'true';
+    const isCloudStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
+
+    const isSelfHostedStarter = isEnterpriseReady && (license.IsLicensed === 'false');
+
+    const isStarterSKULicense = license.IsLicensed === 'true' && license.SelfHostedProducts === SelfHostedProducts.STARTER;
+
+    return isCloudStarterFree || isSelfHostedStarter || isStarterSKULicense;
+}

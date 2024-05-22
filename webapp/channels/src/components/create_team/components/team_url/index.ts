@@ -3,24 +3,15 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-
-import type {ServerError} from '@mattermost/types/errors';
-import type {Team} from '@mattermost/types/teams';
+import type {Dispatch} from 'redux';
 
 import {checkIfTeamExists, createTeam} from 'mattermost-redux/actions/teams';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import TeamUrl from './team_url';
 
-type Actions = {
-    checkIfTeamExists: (teamName: string) => Promise<{data: boolean}>;
-    createTeam: (team: Team) => Promise<{data: Team; error: ServerError}>;
-};
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             checkIfTeamExists,
             createTeam,
         }, dispatch),

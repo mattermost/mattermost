@@ -19,7 +19,7 @@ import {setCustomStatus, unsetCustomStatus, removeRecentCustomStatus} from 'matt
 import {Preferences} from 'mattermost-redux/constants';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
+import {loadCustomEmojisForRecentCustomStatuses} from 'actions/emoji_actions';
 import {closeModal} from 'actions/views/modals';
 import {makeGetCustomStatus, getRecentCustomStatuses, showStatusDropdownPulsatingDot, isCustomStatusExpired} from 'selectors/views/custom_status';
 
@@ -153,9 +153,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
     };
 
     const loadCustomEmojisForRecentStatuses = () => {
-        const emojisToLoad = new Set<string>();
-        recentCustomStatuses.forEach((customStatus: UserCustomStatus) => emojisToLoad.add(customStatus.emoji));
-        dispatch(loadCustomEmojisIfNeeded(Array.from(emojisToLoad)));
+        dispatch(loadCustomEmojisForRecentCustomStatuses());
     };
 
     const handleStatusExpired = () => {
@@ -375,6 +373,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         <GenericModal
             enforceFocus={false}
             onExited={props.onExited}
+            compassDesign={true}
             modalHeaderText={
                 <FormattedMessage
                     id='custom_status.set_status'
@@ -427,6 +426,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                             type='button'
                             onClick={toggleEmojiPicker}
                             ref={emojiButtonRef}
+                            aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                             className={classNames('emoji-picker__container', 'StatusModal__emoji-button', {
                                 'StatusModal__emoji-button--active': showEmojiPicker,
                             })}

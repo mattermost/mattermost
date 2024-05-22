@@ -3,7 +3,8 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {injectIntl, FormattedMessage} from 'react-intl';
 
 import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
@@ -22,11 +23,12 @@ type Props = {
     searchTerm: string;
     onModalDismissed?: () => void;
     onChannelsSelected?: (channels: ChannelWithTeamData[]) => void;
+    intl: IntlShape;
     groupID: string;
     actions: {
-        loadChannels: (page?: number, perPage?: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, excludePolicyConstrained?: boolean) => Promise<{data: ChannelWithTeamData[]}>;
-        setModalSearchTerm: (term: string) => ActionResult;
-        searchAllChannels: (term: string, opts?: ChannelSearchOpts) => Promise<{data: ChannelWithTeamData[]}>;
+        loadChannels: (page?: number, perPage?: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, excludePolicyConstrained?: boolean) => Promise<ActionResult<ChannelWithTeamData[]>>;
+        setModalSearchTerm: (term: string) => void;
+        searchAllChannels: (term: string, opts?: ChannelSearchOpts) => Promise<ActionResult<ChannelWithTeamData[]>>;
     };
     alreadySelected?: string[];
     excludePolicyConstrained?: boolean;
@@ -43,7 +45,7 @@ type State = {
 
 const CHANNELS_PER_PAGE = 50;
 
-export default class ChannelSelectorModal extends React.PureComponent<Props, State> {
+export class ChannelSelectorModal extends React.PureComponent<Props, State> {
     searchTimeoutId = 0;
     selectedItemRef = React.createRef<HTMLDivElement>();
 
@@ -57,7 +59,7 @@ export default class ChannelSelectorModal extends React.PureComponent<Props, Sta
 
     componentDidMount() {
         this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained).then((response) => {
-            this.setState({channels: response.data.sort(compareChannels)});
+            this.setState({channels: response.data!.sort(compareChannels)});
             this.setChannelsLoadingState(false);
         });
     }
@@ -69,7 +71,7 @@ export default class ChannelSelectorModal extends React.PureComponent<Props, Sta
             const searchTerm = this.props.searchTerm;
             if (searchTerm === '') {
                 this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained).then((response) => {
-                    this.setState({channels: response.data.sort(compareChannels)});
+                    this.setState({channels: response.data!.sort(compareChannels)});
                     this.setChannelsLoadingState(false);
                 });
             } else {
@@ -77,7 +79,7 @@ export default class ChannelSelectorModal extends React.PureComponent<Props, Sta
                     async () => {
                         this.setChannelsLoadingState(true);
                         const response = await this.props.actions.searchAllChannels(searchTerm, {not_associated_to_group: this.props.groupID});
-                        this.setState({channels: response.data});
+                        this.setState({channels: response.data!});
                         this.setChannelsLoadingState(false);
                     },
                     Constants.SEARCH_TIMEOUT_MILLISECONDS,
@@ -133,7 +135,7 @@ export default class ChannelSelectorModal extends React.PureComponent<Props, Sta
             this.props.actions.loadChannels(page, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained).then((response) => {
                 const newState = [...this.state.channels];
                 const stateChannelIDs = this.state.channels.map((stateChannel) => stateChannel.id);
-                response.data.forEach((serverChannel) => {
+                response.data!.forEach((serverChannel) => {
                     if (!stateChannelIDs.includes(serverChannel.id)) {
                         newState.push(serverChannel);
                     }
@@ -187,7 +189,7 @@ export default class ChannelSelectorModal extends React.PureComponent<Props, Sta
                 </div>
                 <div className='more-modal__actions'>
                     <div className='more-modal__actions--round'>
-                        <i className='fa fa-plus'/>
+                        <i className='icon icon-plus'/>
                     </div>
                 </div>
             </div>
@@ -245,6 +247,7 @@ export default class ChannelSelectorModal extends React.PureComponent<Props, Sta
                         key='addChannelsToSchemeKey'
                         options={options}
                         optionRenderer={this.renderOption}
+                        intl={this.props.intl}
                         selectedItemRef={this.selectedItemRef}
                         values={values}
                         valueRenderer={this.renderValue}
@@ -278,3 +281,5 @@ function compareChannels(a: Channel, b: Channel) {
     const bName = b.name.toUpperCase();
     return aName.localeCompare(bName);
 }
+
+export default injectIntl(ChannelSelectorModal);

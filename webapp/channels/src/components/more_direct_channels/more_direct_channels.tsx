@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {debounce} from 'lodash';
+import debounce from 'lodash/debounce';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type MultiSelect from 'components/multiselect/multiselect';
 
@@ -26,8 +27,8 @@ import type {
 
 export type Props = {
     currentUserId: string;
-    currentTeamId: string;
-    currentTeamName: string;
+    currentTeamId?: string;
+    currentTeamName?: string;
     searchTerm: string;
     users: UserProfile[];
     totalCount: number;
@@ -49,19 +50,17 @@ export type Props = {
     onModalDismissed?: () => void;
     onExited?: () => void;
     actions: {
-        getProfiles: (page?: number | undefined, perPage?: number | undefined, options?: any) => Promise<any>;
-        getProfilesInTeam: (teamId: string, page: number, perPage?: number | undefined, sort?: string | undefined, options?: any) => Promise<any>;
+        getProfiles: (page?: number | undefined, perPage?: number | undefined, options?: any) => Promise<ActionResult>;
+        getProfilesInTeam: (teamId: string, page: number, perPage?: number | undefined, sort?: string | undefined, options?: any) => Promise<ActionResult>;
         loadProfilesMissingStatus: (users: UserProfile[]) => void;
         getTotalUsersStats: () => void;
-        loadStatusesForProfilesList: (users: any) => {
-            data: boolean;
-        };
-        loadProfilesForGroupChannels: (groupChannels: any) => void;
-        openDirectChannelToUserId: (userId: any) => Promise<any>;
-        openGroupChannelToUserIds: (userIds: any) => Promise<any>;
-        searchProfiles: (term: string, options?: any) => Promise<any>;
-        searchGroupChannels: (term: string) => Promise<any>;
-        setModalSearchTerm: (term: any) => GenericAction;
+        loadStatusesForProfilesList: (users: UserProfile[]) => void;
+        loadProfilesForGroupChannels: (groupChannels: Channel[]) => void;
+        openDirectChannelToUserId: (userId: string) => Promise<ActionResult>;
+        openGroupChannelToUserIds: (userIds: string[]) => Promise<ActionResult>;
+        searchProfiles: (term: string, options: any) => Promise<ActionResult<UserProfile[]>>;
+        searchGroupChannels: (term: string) => Promise<ActionResult<Channel[]>>;
+        setModalSearchTerm: (term: string) => void;
     };
 }
 
@@ -240,7 +239,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 this.setUsersLoadingState(false);
             });
         } else {
-            this.props.actions.getProfilesInTeam(this.props.currentTeamId, pageNum, USERS_PER_PAGE * 2).then(() => {
+            this.props.actions.getProfilesInTeam(this.props.currentTeamId || '', pageNum, USERS_PER_PAGE * 2).then(() => {
                 this.setUsersLoadingState(false);
             });
         }

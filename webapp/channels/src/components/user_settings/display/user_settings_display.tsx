@@ -19,9 +19,9 @@ import {trackEvent} from 'actions/telemetry_actions';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import ThemeSetting from 'components/user_settings/display/user_settings_theme';
-import BackIcon from 'components/widgets/icons/fa_back_icon';
 
-import * as I18n from 'i18n/i18n.jsx';
+import type {Language} from 'i18n/i18n';
+import {getLanguageInfo} from 'i18n/i18n';
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getBrowserTimezone} from 'utils/timezone';
@@ -29,6 +29,9 @@ import {a11yFocus} from 'utils/utils';
 
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
+
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
 
 const Preferences = Constants.Preferences;
 
@@ -94,19 +97,19 @@ type Props = {
     user: UserProfile;
     updateSection: (section: string) => void;
     activeSection?: string;
-    closeModal?: () => void;
-    collapseModal?: () => void;
+    closeModal: () => void;
+    collapseModal: () => void;
     setRequireConfirm?: () => void;
     setEnforceFocus?: () => void;
     timezones: Timezone[];
     userTimezone: UserTimezone;
     allowCustomThemes: boolean;
     enableLinkPreviews: boolean;
-    defaultClientLocale: string;
+    locales: Record<string, Language>;
+    userLocale: string;
     enableThemeSelection: boolean;
     configTeammateNameDisplay: string;
     currentUserTimezone: string;
-    enableTimezone: boolean;
     shouldAutoUpdateTimezone: boolean | string;
     lockTeammateNameDisplay: boolean;
     militaryTime: string;
@@ -181,9 +184,9 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     }
 
     componentDidMount() {
-        const {actions, enableTimezone, shouldAutoUpdateTimezone} = this.props;
+        const {actions, shouldAutoUpdateTimezone} = this.props;
 
-        if (enableTimezone && shouldAutoUpdateTimezone) {
+        if (shouldAutoUpdateTimezone) {
             actions.autoUpdateTimezone(getBrowserTimezone());
         }
     }
@@ -845,7 +848,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         });
 
         let timezoneSelection;
-        if (this.props.enableTimezone && !this.props.shouldAutoUpdateTimezone) {
+        if (!this.props.shouldAutoUpdateTimezone) {
             const userTimezone = this.props.userTimezone;
             const active = this.props.activeSection === 'timezone';
             let max = null;
@@ -1014,11 +1017,8 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         });
 
         let languagesSection;
-        let userLocale = this.props.user.locale;
-        if (!I18n.isLanguageAvailable(userLocale)) {
-            userLocale = this.props.defaultClientLocale;
-        }
-        const localeName = I18n.getLanguageInfo(userLocale).name;
+        const userLocale = this.props.userLocale;
+        const localeName = getLanguageInfo(userLocale).name;
 
         languagesSection = (
             <div>
@@ -1046,7 +1046,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             </div>
         );
 
-        if (Object.keys(I18n.getLanguages()).length === 1) {
+        if (Object.keys(this.props.locales).length === 1) {
             languagesSection = null;
         }
 
@@ -1101,39 +1101,26 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         return (
             <div id='displaySettings'>
-                <div className='modal-header'>
-                    <button
-                        id='closeButton'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label='Close'
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4 className='modal-title'>
-                        <div className='modal-back'>
-                            <span onClick={this.props.collapseModal}>
-                                <BackIcon/>
-                            </span>
-                        </div>
+                <SettingMobileHeader
+                    closeModal={this.props.closeModal}
+                    collapseModal={this.props.collapseModal}
+                    text={
                         <FormattedMessage
                             id='user.settings.display.title'
                             defaultMessage='Display Settings'
                         />
-                    </h4>
-                </div>
+                    }
+                />
                 <div className='user-settings'>
-                    <h3
+                    <SettingDesktopHeader
                         id='displaySettingsTitle'
-                        className='tab-header'
-                    >
-                        <FormattedMessage
-                            id='user.settings.display.title'
-                            defaultMessage='Display Settings'
-                        />
-                    </h3>
+                        text={
+                            <FormattedMessage
+                                id='user.settings.display.title'
+                                defaultMessage='Display Settings'
+                            />
+                        }
+                    />
                     <div className='divider-dark first'/>
                     {themeSection}
                     {collapsedReplyThreads}

@@ -367,44 +367,94 @@ func TestLinkGroupTeam(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
+	id = model.NewId()
+	gRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn_" + id,
+		Name:           model.NewString("name" + id),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id,
+		RemoteId:       model.NewString(model.NewId()),
+		AllowReference: true,
+	})
+	assert.Nil(t, appErr)
+
 	patch := &model.GroupSyncablePatch{
 		AutoAdd: model.NewBool(true),
 	}
 
-	_, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	t.Run("Error if no license is installed", func(t *testing.T) {
+		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, response)
+		assert.Nil(t, groupSyncable)
 
-	_, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+		groupSyncable, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, response)
+		assert.Nil(t, groupSyncable)
+	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	_, _, err = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
-	assert.Error(t, err)
+	t.Run("Normal users are not allowed to link", func(t *testing.T) {
+		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		assert.Nil(t, groupSyncable)
+	})
 
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.Client.Logout(context.Background())
-	th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+	response, err := th.Client.Logout(context.Background())
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+	_, response, err = th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
 
-	groupTeam, response, _ := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
-	assert.Equal(t, http.StatusCreated, response.StatusCode)
-	assert.NotNil(t, groupTeam)
-
-	gid := model.NewId()
-	g2, app2Err := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn_" + gid,
-		Name:        model.NewString("name" + gid),
-		Source:      model.GroupSourceCustom,
-		Description: "description_" + gid,
-		RemoteId:    model.NewString(model.NewId()),
+	var groupSyncable *model.GroupSyncable
+	t.Run("Team admins are not allowed to link", func(t *testing.T) {
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		assert.Nil(t, groupSyncable)
 	})
-	assert.Nil(t, app2Err)
 
-	_, response, err = th.Client.LinkGroupSyncable(context.Background(), g2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, response)
+	t.Run("Team admins are allowed to link if AllowReference is enabled", func(t *testing.T) {
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		assert.NotNil(t, groupSyncable)
+
+		t.Cleanup(func() {
+			response, err = th.Client.UnlinkGroupSyncable(context.Background(), gRef.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+			require.NoError(t, err)
+			CheckOKStatus(t, response)
+		})
+	})
+
+	t.Run("System admins are allowed to link", func(t *testing.T) {
+		groupSyncable, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		assert.NotNil(t, groupSyncable)
+	})
+
+	t.Run("Custom groups can't be linked", func(t *testing.T) {
+		gid := model.NewId()
+		gCustom, appErr := th.App.CreateGroup(&model.Group{
+			DisplayName: "dn_" + gid,
+			Name:        model.NewString("name" + gid),
+			Source:      model.GroupSourceCustom,
+			Description: "description_" + gid,
+			RemoteId:    model.NewString(model.NewId()),
+		})
+		assert.Nil(t, appErr)
+
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), gCustom.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+		assert.Nil(t, groupSyncable)
+	})
 }
 
 func TestLinkGroupChannel(t *testing.T) {
@@ -421,46 +471,106 @@ func TestLinkGroupChannel(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
+	id = model.NewId()
+	gRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn_" + id,
+		Name:           model.NewString("name" + id),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id,
+		RemoteId:       model.NewString(model.NewId()),
+		AllowReference: true,
+	})
+	assert.Nil(t, appErr)
+
 	patch := &model.GroupSyncablePatch{
 		AutoAdd: model.NewBool(true),
 	}
 
-	_, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	t.Run("Error if no license is installed", func(t *testing.T) {
+		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, response)
+		assert.Nil(t, groupSyncable)
 
-	_, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+		groupSyncable, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, response)
+		assert.Nil(t, groupSyncable)
+	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	groupTeam, response, _ := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
-	assert.Equal(t, http.StatusCreated, response.StatusCode)
-	assert.Equal(t, th.BasicChannel.TeamId, groupTeam.TeamID)
-	assert.NotNil(t, groupTeam)
-
-	_, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
-	require.NoError(t, err)
-	th.Client.Logout(context.Background())
-	th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
-
-	_, _, err = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
-	assert.Error(t, err)
-
-	gid := model.NewId()
-	g2, app2Err := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn_" + gid,
-		Name:        model.NewString("name" + gid),
-		Source:      model.GroupSourceCustom,
-		Description: "description_" + gid,
-		RemoteId:    model.NewString(model.NewId()),
+	t.Run("Normal users are not allowed to link", func(t *testing.T) {
+		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		assert.Nil(t, groupSyncable)
 	})
-	assert.Nil(t, app2Err)
 
-	_, response, err = th.Client.LinkGroupSyncable(context.Background(), g2.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, response)
+	th.MakeUserChannelAdmin(th.BasicUser, th.BasicChannel)
+	response, err := th.Client.Logout(context.Background())
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+	_, response, err = th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+
+	var groupSyncable *model.GroupSyncable
+	t.Run("Channel admins are not allowed to link", func(t *testing.T) {
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		assert.Nil(t, groupSyncable)
+	})
+
+	t.Run("Channel admins are not allowed to link if AllowReference is enabled, but not team syncable exists", func(t *testing.T) {
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		assert.Nil(t, groupSyncable)
+	})
+
+	groupSyncable, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+	assert.NotNil(t, groupSyncable)
+
+	t.Run("Channel admins are allowed to link if AllowReference is enabled and a team syncable exists", func(t *testing.T) {
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		assert.NotNil(t, groupSyncable)
+
+		t.Cleanup(func() {
+			response, err = th.Client.UnlinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+			require.NoError(t, err)
+			CheckOKStatus(t, response)
+		})
+	})
+
+	t.Run("System admins are allowed to link", func(t *testing.T) {
+		groupSyncable, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		assert.NotNil(t, groupSyncable)
+	})
+
+	t.Run("Custom groups can't be linked", func(t *testing.T) {
+		gid := model.NewId()
+		g2, appErr := th.App.CreateGroup(&model.Group{
+			DisplayName: "dn_" + gid,
+			Name:        model.NewString("name" + gid),
+			Source:      model.GroupSourceCustom,
+			Description: "description_" + gid,
+			RemoteId:    model.NewString(model.NewId()),
+		})
+		assert.Nil(t, appErr)
+
+		groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), g2.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+		assert.Nil(t, groupSyncable)
+	})
 }
 
 func TestUnlinkGroupTeam(t *testing.T) {
@@ -477,30 +587,53 @@ func TestUnlinkGroupTeam(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
+	id = model.NewId()
+	gRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn_" + id,
+		Name:           model.NewString("name" + id),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id,
+		RemoteId:       model.NewString(model.NewId()),
+		AllowReference: true,
+	})
+	assert.Nil(t, appErr)
+
 	patch := &model.GroupSyncablePatch{
 		AutoAdd: model.NewBool(true),
 	}
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	_, response, _ := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
-	assert.Equal(t, http.StatusCreated, response.StatusCode)
+	groupSyncable, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+	assert.NotNil(t, groupSyncable)
 
-	th.App.Srv().SetLicense(nil)
+	groupSyncable, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+	assert.NotNil(t, groupSyncable)
 
-	response, err := th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	t.Run("Error if no license is installed", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		t.Cleanup(func() { th.App.Srv().SetLicense(model.NewTestLicense("ldap")) })
 
-	response, err = th.SystemAdminClient.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+		response, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, response)
 
-	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+		response, err = th.SystemAdminClient.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, response)
+	})
 
-	_, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
-	assert.Error(t, err)
-	time.Sleep(2 * time.Second) // A hack to let "go c.App.SyncRolesAndMembership" finish before moving on.
+	t.Run("Normal users are not allowed to unlink", func(t *testing.T) {
+		response, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		assert.Error(t, err)
+		CheckForbiddenStatus(t, response)
+	})
+
+	time.Sleep(4 * time.Second) // A hack to let "go c.App.SyncRolesAndMembership" finish before moving on.
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	response, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
@@ -509,9 +642,46 @@ func TestUnlinkGroupTeam(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
-	response, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
-	require.NoError(t, err)
-	CheckOKStatus(t, response)
+	t.Run("Team admins are not allowed to link", func(t *testing.T) {
+		response, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+	})
+
+	t.Run("Team admins are allowed to unlink if AllowReference is enabled", func(t *testing.T) {
+		response, err = th.Client.UnlinkGroupSyncable(context.Background(), gRef.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		t.Cleanup(func() {
+			groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+			require.NoError(t, err)
+			CheckCreatedStatus(t, response)
+			assert.NotNil(t, groupSyncable)
+		})
+	})
+
+	t.Run("System admins are allowed to unlink", func(t *testing.T) {
+		response, err = th.SystemAdminClient.UnlinkGroupSyncable(context.Background(), gRef.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+	})
+
+	t.Run("Custom groups can't get unlinked", func(t *testing.T) {
+		gid := model.NewId()
+		g2, appErr := th.App.CreateGroup(&model.Group{
+			DisplayName: "dn_" + gid,
+			Name:        model.NewString("name" + gid),
+			Source:      model.GroupSourceCustom,
+			Description: "description_" + gid,
+			RemoteId:    model.NewString(model.NewId()),
+		})
+		assert.Nil(t, appErr)
+
+		response, err = th.Client.UnlinkGroupSyncable(context.Background(), g2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+	})
 }
 
 func TestUnlinkGroupChannel(t *testing.T) {
@@ -528,42 +698,101 @@ func TestUnlinkGroupChannel(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
+	id = model.NewId()
+	gRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn_" + id,
+		Name:           model.NewString("name" + id),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id,
+		RemoteId:       model.NewString(model.NewId()),
+		AllowReference: true,
+	})
+	assert.Nil(t, appErr)
+
 	patch := &model.GroupSyncablePatch{
 		AutoAdd: model.NewBool(true),
 	}
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	_, response, _ := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
-	assert.Equal(t, http.StatusCreated, response.StatusCode)
-
-	th.App.Srv().SetLicense(nil)
-
-	response, err := th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
-
-	response, err = th.SystemAdminClient.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
-
-	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
-
-	_, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
+	groupSyncable, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	require.NoError(t, err)
-	th.Client.Logout(context.Background())
-	th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+	CheckCreatedStatus(t, response)
+	assert.NotNil(t, groupSyncable)
 
-	_, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
-	assert.Error(t, err)
-
-	_, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "channel_admin channel_user")
+	groupSyncable, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	require.NoError(t, err)
-	th.Client.Logout(context.Background())
-	th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+	CheckCreatedStatus(t, response)
+	assert.NotNil(t, groupSyncable)
 
-	_, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
-	assert.NoError(t, err)
+	t.Run("Error if no license is installed", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		t.Cleanup(func() { th.App.Srv().SetLicense(model.NewTestLicense("ldap")) })
+
+		response, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, response)
+
+		response, err = th.SystemAdminClient.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, response)
+	})
+
+	t.Run("Normal users are not allowed to unlink", func(t *testing.T) {
+		response, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		assert.Error(t, err)
+		CheckForbiddenStatus(t, response)
+	})
+
+	th.MakeUserChannelAdmin(th.BasicUser, th.BasicChannel)
+
+	response, err = th.Client.Logout(context.Background())
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+	_, response, err = th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+
+	t.Run("Team admins are not allowed to link", func(t *testing.T) {
+		response, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+	})
+
+	t.Run("Team admins are allowed to unlink if AllowReference is enabled", func(t *testing.T) {
+		response, err = th.Client.UnlinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		t.Cleanup(func() {
+			groupSyncable, response, err = th.Client.LinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+			require.NoError(t, err)
+			CheckCreatedStatus(t, response)
+			assert.NotNil(t, groupSyncable)
+		})
+	})
+
+	t.Run("System admins are allowed to unlink", func(t *testing.T) {
+		response, err = th.SystemAdminClient.UnlinkGroupSyncable(context.Background(), gRef.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+	})
+
+	t.Run("Custom groups can't get unlinked", func(t *testing.T) {
+		gid := model.NewId()
+		g2, appErr := th.App.CreateGroup(&model.Group{
+			DisplayName: "dn_" + gid,
+			Name:        model.NewString("name" + gid),
+			Source:      model.GroupSourceCustom,
+			Description: "description_" + gid,
+			RemoteId:    model.NewString(model.NewId()),
+		})
+		assert.Nil(t, appErr)
+
+		response, err = th.Client.UnlinkGroupSyncable(context.Background(), g2.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+	})
 }
 
 func TestGetGroupTeam(t *testing.T) {
@@ -1111,6 +1340,23 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 	groups, _, err = th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam(context.Background(), model.NewId(), opts)
 	assert.NoError(t, err)
 	assert.Empty(t, groups)
+
+	t.Run("should get the groups ok when belonging to the team", func(t *testing.T) {
+		groups, resp, err := th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, groups)
+	})
+
+	t.Run("should return forbidden when the user doesn't have the right permissions", func(t *testing.T) {
+		require.Nil(t, th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id))
+		defer th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+
+		groups, resp, err := th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Empty(t, groups)
+	})
 }
 
 func TestGetGroupsByTeam(t *testing.T) {
@@ -1188,6 +1434,36 @@ func TestGetGroupsByTeam(t *testing.T) {
 		groups, _, _, err = client.GetGroupsByTeam(context.Background(), model.NewId(), opts)
 		assert.NoError(t, err)
 		assert.Empty(t, groups)
+	})
+
+	t.Run("groups should be fetched only by users with the right permissions", func(t *testing.T) {
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			groups, _, _, err := client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
+			require.NoError(t, err)
+			require.Len(t, groups, 1)
+			require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(true)}}, groups)
+			require.NotNil(t, groups[0].SchemeAdmin)
+			require.True(t, *groups[0].SchemeAdmin)
+		}, "groups can be fetched by system admins even if they're not part of a team")
+
+		t.Run("user can fetch groups if it's part of the team", func(t *testing.T) {
+			groups, _, _, err := th.Client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
+			require.NoError(t, err)
+			require.Len(t, groups, 1)
+			require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(true)}}, groups)
+			require.NotNil(t, groups[0].SchemeAdmin)
+			require.True(t, *groups[0].SchemeAdmin)
+		})
+
+		t.Run("user can't fetch groups if it's not part of the team", func(t *testing.T) {
+			require.Nil(t, th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id))
+			defer th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+
+			groups, _, response, err := th.Client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, response)
+			require.Empty(t, groups)
+		})
 	})
 }
 
@@ -1426,6 +1702,72 @@ func TestGetGroupsByUserId(t *testing.T) {
 	groups, _, err = th.Client.GetGroupsByUserId(context.Background(), user1.Id)
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
+}
+
+func TestGetGroupMembers(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
+	assert.Nil(t, appErr)
+
+	user2, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SystemUserRoleId})
+	assert.Nil(t, appErr)
+
+	_, appErr = th.App.UpsertGroupMembers(group.Id, []string{user1.Id, user2.Id})
+	require.Nil(t, appErr)
+
+	t.Run("Requires ldap license", func(t *testing.T) {
+		members, response, err := th.SystemAdminClient.GetGroupMembers(context.Background(), group.Id)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, response)
+		assert.Nil(t, members)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	t.Run("Non admins are not allowed to get members for LDAP groups", func(t *testing.T) {
+		members, response, err := th.Client.GetGroupMembers(context.Background(), group.Id)
+		assert.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		assert.Nil(t, members)
+	})
+
+	t.Run("Admins are allowed to get members for LDAP groups", func(t *testing.T) {
+		members, response, err := th.SystemAdminClient.GetGroupMembers(context.Background(), group.Id)
+		assert.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.NotNil(t, members)
+		assert.Equal(t, 2, members.Count)
+	})
+
+	t.Run("If AllowReference is enabled, non admins are allowed to get members for LDAP groups", func(t *testing.T) {
+		group.AllowReference = true
+		group, appErr = th.App.UpdateGroup(group)
+		assert.Nil(t, appErr)
+
+		t.Cleanup(func() {
+			group.AllowReference = false
+			group, appErr = th.App.UpdateGroup(group)
+			assert.Nil(t, appErr)
+		})
+
+		members, response, err := th.Client.GetGroupMembers(context.Background(), group.Id)
+		assert.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.NotNil(t, members)
+		assert.Equal(t, 2, members.Count)
+	})
 }
 
 func TestGetGroupStats(t *testing.T) {

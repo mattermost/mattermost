@@ -7,7 +7,7 @@ import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 
 import {
-    renderWithFullContext,
+    renderWithContext,
     screen,
     userEvent,
     waitForElementToBeRemoved,
@@ -19,7 +19,7 @@ import {SubMenu} from './sub_menu';
 
 describe('menu click handlers', () => {
     test('should be able to open a React Bootstrap modal with the mouse', async () => {
-        renderWithFullContext(
+        renderWithContext(
             <MenuWithModal/>,
         );
 
@@ -42,7 +42,7 @@ describe('menu click handlers', () => {
 
     for (const enterOrSpace of ['enter', 'space']) {
         test(`should be able to open a React Bootstrap modal with the keyboard using the ${enterOrSpace} key`, async () => {
-            renderWithFullContext(
+            renderWithContext(
                 <MenuWithModal/>,
             );
 
@@ -77,7 +77,7 @@ describe('menu click handlers', () => {
     }
 
     test('should be able to open a React Bootstrap modal from a submenu with the mouse', async () => {
-        renderWithFullContext(
+        renderWithContext(
             <MenuWithSubMenuModal/>,
         );
 
@@ -108,7 +108,7 @@ describe('menu click handlers', () => {
 
     for (const enterOrSpace of ['enter', 'space']) {
         test(`should be able to open a React Bootstrap modal with the keyboard using the ${enterOrSpace} key`, async () => {
-            renderWithFullContext(
+            renderWithContext(
                 <MenuWithSubMenuModal/>,
             );
 

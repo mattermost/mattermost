@@ -2,9 +2,9 @@
     width: 332px;
     padding: 28px 32px;
     border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+    border-radius: 4px;
     margin-left: 20px;
     background-color: var(--sys-center-channel-bg);
-    border-radius: 4px;
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
 }
 
@@ -87,11 +87,15 @@
             margin: 0 auto;
         }
     }
+
+    span {
+        margin-left: 4px;
+    }
 }
 
 .BillingSummary__lastInvoice-date {
     margin-top: 8px;
-    color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+    color: rgba(var(--sys-center-channel-color-rgb), 0.75);
 }
 
 .BillingSummary__lastInvoice-productName {
@@ -128,7 +132,7 @@
 }
 
 .BillingSummary__lastInvoice-partialCharges {
-    color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+    color: rgba(var(--sys-center-channel-color-rgb), 0.75);
     font-size: 12px;
     line-height: 16px;
 
@@ -148,8 +152,8 @@
     align-items: center;
     justify-content: center;
     padding: 11px 20px;
-    background: var(--sys-button-bg);
     border-radius: 4px;
+    background: var(--sys-button-bg);
     color: var(--sys-button-color);
 
     &:hover:not(.disabled) {

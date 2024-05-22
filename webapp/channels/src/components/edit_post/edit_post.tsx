@@ -6,10 +6,11 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import {EmoticonPlusOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import DeletePostModal from 'components/delete_post_modal';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
@@ -326,11 +327,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
             ctrlOrMetaKeyPressed;
         const markdownLinkKey = Keyboard.isKeyPressed(e, KeyCodes.K);
+        const ctrlShiftCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.shiftKey;
+        const lastMessageReactionKeyCombo = ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
 
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
             e.stopPropagation(); // perhaps this should happen in all of these cases? or perhaps Modal should not be listening?
-            setEditText(Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>));
+            setEditText(Utils.insertLineBreakFromKeyEvent(e.nativeEvent));
         } else if (ctrlEnterKeyCombo) {
             handleEdit();
         } else if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE) && !showEmojiPicker) {
@@ -356,6 +359,10 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 selectionEnd: e.currentTarget.selectionEnd,
                 message: e.currentTarget.value,
             });
+        } else if (lastMessageReactionKeyCombo) {
+            // Stop document from handling the hotkey and opening the reaction
+            e.stopPropagation();
+            e.preventDefault();
         }
     };
 
@@ -384,8 +391,11 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     };
 
     const handleEmojiClick = (emoji?: Emoji) => {
-        const emojiAlias = emoji && (((emoji as SystemEmoji).short_names && (emoji as SystemEmoji).short_names[0]) || emoji.name);
+        if (!emoji) {
+            return;
+        }
 
+        const emojiAlias = getEmojiName(emoji);
         if (!emojiAlias) {
             //Oops.. There went something wrong
             return;

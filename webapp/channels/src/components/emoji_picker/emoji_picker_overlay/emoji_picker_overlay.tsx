@@ -70,7 +70,7 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
 
     getPlacement = memoize((target, spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition, show) => {
         if (!show) {
-            return 'top';
+            return 'top' as const;
         }
 
         if (target) {
@@ -78,7 +78,7 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
             return popOverOverlayPosition(targetBounds, window.innerHeight, spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition);
         }
 
-        return 'top';
+        return 'top' as const;
     });
 
     render() {

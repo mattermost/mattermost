@@ -60,6 +60,10 @@ func (o *Team) Auditable() map[string]interface{} {
 	}
 }
 
+func (o *Team) LogClone() any {
+	return o.Auditable()
+}
+
 type TeamPatch struct {
 	DisplayName         *string `json:"display_name"`
 	Description         *string `json:"description"`

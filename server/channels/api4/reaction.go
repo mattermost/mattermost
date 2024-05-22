@@ -78,17 +78,7 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
-	if c.Err != nil {
-		return
-	}
-
-	c.RequirePostId()
-	if c.Err != nil {
-		return
-	}
-
-	c.RequireEmojiName()
+	c.RequireUserId().RequirePostId().RequireEmojiName()
 	if c.Err != nil {
 		return
 	}
@@ -119,7 +109,11 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
-	postIds := model.ArrayFromJSON(r.Body)
+	postIds, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("getBulkReactions", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
 	for _, postId := range postIds {
 		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), postId, model.PermissionReadChannelContent) {
 			c.SetPermissionError(model.PermissionReadChannelContent)

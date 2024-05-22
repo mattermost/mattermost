@@ -6,7 +6,9 @@ import React from 'react';
 
 import type {Team} from '@mattermost/types/teams';
 
-import SelectTeamItem from './select_team_item';
+import type {MockIntl} from 'tests/helpers/intl-test-helper';
+
+import {SelectTeamItem} from './select_team_item';
 
 describe('components/select_team/components/SelectTeamItem', () => {
     const baseProps = {
@@ -15,6 +17,9 @@ describe('components/select_team/components/SelectTeamItem', () => {
         loading: false,
         canJoinPublicTeams: true,
         canJoinPrivateTeams: false,
+        intl: {
+            formatMessage: jest.fn(),
+        } as MockIntl,
     };
 
     test('should match snapshot, on public joinable', () => {

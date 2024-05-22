@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 
@@ -23,9 +24,9 @@ type UserCreateOptions struct {
 }
 
 // CreateUser creates a user
-func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*model.User, error) {
+func (us *UserService) CreateUser(rctx request.CTX, user *model.User, opts UserCreateOptions) (*model.User, error) {
 	if opts.FromImport {
-		return us.createUser(user)
+		return us.createUser(rctx, user)
 	}
 
 	user.Roles = model.SystemUserRoleId
@@ -53,17 +54,17 @@ func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*mo
 		user.Locale = *us.config().LocalizationSettings.DefaultClientLocale
 	}
 
-	return us.createUser(user)
+	return us.createUser(rctx, user)
 }
 
-func (us *UserService) createUser(user *model.User) (*model.User, error) {
+func (us *UserService) createUser(rctx request.CTX, user *model.User) (*model.User, error) {
 	user.MakeNonNil()
 
 	if err := us.isPasswordValid(user.Password); user.AuthService == "" && err != nil {
 		return nil, err
 	}
 
-	ruser, err := us.store.Save(user)
+	ruser, err := us.store.Save(rctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -197,8 +198,8 @@ func (us *UserService) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*mo
 	return users, nil
 }
 
-func (us *UserService) UpdateUser(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
-	return us.store.Update(user, allowRoleUpdate)
+func (us *UserService) UpdateUser(rctx request.CTX, user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
+	return us.store.Update(rctx, user, allowRoleUpdate)
 }
 
 func (us *UserService) UpdateUserNotifyProps(userID string, props map[string]string) error {

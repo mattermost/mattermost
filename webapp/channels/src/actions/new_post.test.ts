@@ -96,7 +96,7 @@ describe('actions/new_post', () => {
     test('completePostReceive', async () => {
         const testStore = mockStore(initialState);
         const newPost = {id: 'new_post_id', channel_id: 'current_channel_id', message: 'new message', type: Constants.PostTypes.ADD_TO_CHANNEL, user_id: 'some_user_id', create_at: POST_CREATED_TIME, props: {addedUserId: 'other_user_id'}} as unknown as Post;
-        const websocketProps = {team_id: 'team_id', mentions: ['current_user_id']};
+        const websocketProps = {team_id: 'team_id', mentions: ['current_user_id'], should_ack: false};
 
         await testStore.dispatch(NewPostActions.completePostReceive(newPost, websocketProps));
         expect(testStore.getActions()).toEqual([

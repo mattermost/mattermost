@@ -190,9 +190,9 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 }
 
 func ValidateUserImportData(data *UserImportData) *model.AppError {
-	if data.ProfileImage != nil {
+	if data.ProfileImage != nil && data.ProfileImageData == nil {
 		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
-			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
@@ -436,7 +436,7 @@ func ValidateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 	} else if *data.CreateAt == 0 {
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
 	} else if *data.CreateAt < parentCreateAt {
-		mlog.Warn("Reply CreateAt is before parent post CreateAt", mlog.Int64("reply_create_at", *data.CreateAt), mlog.Int64("parent_create_at", parentCreateAt))
+		mlog.Warn("Reply CreateAt is before parent post CreateAt", mlog.Int("reply_create_at", *data.CreateAt), mlog.Int("parent_create_at", parentCreateAt))
 	}
 
 	return nil

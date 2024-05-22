@@ -4,7 +4,9 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import SearchableChannelList from 'components/searchable_channel_list';
+import {SearchableChannelList} from 'components/searchable_channel_list';
+
+import {type MockIntl} from 'tests/helpers/intl-test-helper';
 
 import {Filter} from './browse_channels/browse_channels';
 
@@ -26,6 +28,9 @@ describe('components/SearchableChannelList', () => {
         rememberHideJoinedChannelsChecked: false,
         noResultsText: <>{'no channel found'}</>,
         filter: Filter.All,
+        intl: {
+            formatMessage: jest.fn(),
+        } as MockIntl,
     };
 
     test('should match init snapshot', () => {

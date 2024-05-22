@@ -82,6 +82,10 @@ func (o *Channel) Auditable() map[string]interface{} {
 	}
 }
 
+func (o *Channel) LogClone() any {
+	return o.Auditable()
+}
+
 type ChannelWithTeamData struct {
 	Channel
 	TeamDisplayName string `json:"team_display_name"`
@@ -335,6 +339,9 @@ func (o *Channel) GetOtherUserIdForDM(userId string) string {
 	}
 
 	userIds := strings.Split(o.Name, "__")
+	if len(userIds) != 2 {
+		return ""
+	}
 
 	var otherUserId string
 

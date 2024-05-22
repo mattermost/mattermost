@@ -18,8 +18,6 @@ import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {getRandomId} from '../../../../utils';
 import {getAdminAccount} from '../../../../support/env';
 
-import {verifyGuest} from './helpers';
-
 describe('Guest Account - Verify Manage Guest Users', () => {
     const admin = getAdminAccount();
     let guestUser: Cypress.UserProfile;
@@ -60,18 +58,15 @@ describe('Guest Account - Verify Manage Guest Users', () => {
         cy.reload();
 
         // # Search for Guest User by username
-        cy.get('#searchUsers', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible').type(guestUser.username);
+        cy.findByPlaceholderText('Search users').should('be.visible').type(guestUser.username).wait(TIMEOUTS.TWO_SEC);
     });
 
     it('MM-T1391 Verify the manage options displayed for Guest User', () => {
-        // * Verify Guest user
-        verifyGuest();
-
-        // # Click on the Manage User option
-        cy.wait(TIMEOUTS.HALF_SEC).findByTestId('userListRow').find('.MenuWrapper a').should('be.visible').click();
+        // * Verify Guest user and Click on the Manage User option
+        cy.get('#systemUsersTable-cell-0_actionsColumn').should('have.text', 'Guest').click();
 
         // * Verify the manage options which should be displayed for Guest User
-        const includeOptions = ['Deactivate', 'Manage Roles', 'Manage Teams', 'Reset Password', 'Update Email', 'Promote to Member', 'Revoke Sessions'];
+        const includeOptions = ['Deactivate', 'Manage roles', 'Manage teams', 'Reset password', 'Update email', 'Promote to member', 'Remove sessions'];
         includeOptions.forEach((includeOption) => {
             cy.findByText(includeOption).should('be.visible');
         });
@@ -85,8 +80,8 @@ describe('Guest Account - Verify Manage Guest Users', () => {
 
     it('MM-18048 Change Email of a Guest User and Verify', () => {
         // # Click on the Update Email option
-        cy.wait(TIMEOUTS.HALF_SEC).findByTestId('userListRow').find('.MenuWrapper a').should('be.visible').click();
-        cy.wait(TIMEOUTS.HALF_SEC).findByText('Update Email').click();
+        cy.get('#systemUsersTable-cell-0_actionsColumn').should('have.text', 'Guest').click();
+        cy.findByText('Update email').click();
 
         // * Update email of Guest User
         const email = `temp-${getRandomId()}@mattermost.com`;
@@ -100,14 +95,14 @@ describe('Guest Account - Verify Manage Guest Users', () => {
 
         // # Reload and verify if behavior is same
         cy.reload();
-        cy.get('#searchUsers').should('be.visible').type(guestUser.username);
+        cy.findByPlaceholderText('Search users').should('be.visible').type(guestUser.username);
         cy.findByText(email).should('be.visible');
     });
 
     it('MM-18048 Revoke Session of a Guest User and Verify', () => {
         // # Click on the Revoke Session option
-        cy.wait(TIMEOUTS.HALF_SEC).findByTestId('userListRow').find('.MenuWrapper a').should('be.visible').click();
-        cy.wait(TIMEOUTS.HALF_SEC).findByText('Revoke Sessions').click();
+        cy.get('#systemUsersTable-cell-0_actionsColumn').should('have.text', 'Guest').click();
+        cy.findByText('Remove sessions').click();
 
         // * Verify the confirmation message displayed
         cy.get('#confirmModal').should('be.visible').within(() => {

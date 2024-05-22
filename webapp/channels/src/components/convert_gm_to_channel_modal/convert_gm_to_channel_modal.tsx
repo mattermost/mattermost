@@ -11,22 +11,22 @@ import './convert_gm_to_channel_modal.scss';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getGroupMessageMembersCommonTeams} from 'actions/team_actions';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
-import type {Actions} from 'components/convert_gm_to_channel_modal/index';
-import NoCommonTeamsError from 'components/convert_gm_to_channel_modal/no_common_teams/no_common_teams';
-import TeamSelector from 'components/convert_gm_to_channel_modal/team_selector/team_selector';
-import WarningTextSection from 'components/convert_gm_to_channel_modal/warning_text_section/warning_text_section';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+
+import NoCommonTeamsError from './no_common_teams/no_common_teams';
+import TeamSelector from './team_selector/team_selector';
+import WarningTextSection from './warning_text_section/warning_text_section';
+
+import type {Actions} from './index';
 
 const enum ServerErrorId {
     CHANNEL_NAME_EXISTS = 'store.sql_channel.save_channel.exists.app_error',
@@ -83,7 +83,7 @@ const ConvertGmToChannelModal = (props: Props) => {
 
     useEffect(() => {
         const work = async () => {
-            const response = await dispatch(getGroupMessageMembersCommonTeams(props.channel.id)) as ActionResult<Team[], ServerError>;
+            const response = await dispatch(getGroupMessageMembersCommonTeams(props.channel.id));
             if (!mounted.current) {
                 return;
             }

@@ -100,7 +100,7 @@ func (me SqlSessionStore) Get(c request.CTX, sessionIdOrToken string) (*model.Se
 	return session, nil
 }
 
-func (me SqlSessionStore) GetSessions(c *request.Context, userId string) ([]*model.Session, error) {
+func (me SqlSessionStore) GetSessions(c request.CTX, userId string) ([]*model.Session, error) {
 	sessions := []*model.Session{}
 
 	if err := me.GetReplicaX().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = ? ORDER BY LastActivityAt DESC", userId); err != nil {
@@ -119,6 +119,28 @@ func (me SqlSessionStore) GetSessions(c *request.Context, userId string) ([]*mod
 				session.TeamMembers = append(session.TeamMembers, tm)
 			}
 		}
+	}
+	return sessions, nil
+}
+
+// GetLRUSessions gets the Least Recently Used sessions from the store. Note: the use of limit and offset
+// are intentional; they are hardcoded from the app layer (i.e., will not result in a non-performant query).
+func (me SqlSessionStore) GetLRUSessions(c request.CTX, userId string, limit uint64, offset uint64) ([]*model.Session, error) {
+	builder := me.getQueryBuilder().
+		Select("*").
+		From("Sessions").
+		Where(sq.Eq{"UserId": userId}).
+		OrderBy("LastActivityAt DESC").
+		Limit(limit).
+		Offset(offset)
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_lru_sessions_tosql")
+	}
+
+	var sessions []*model.Session
+	if err := me.GetReplicaX().Select(&sessions, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
 	return sessions, nil
 }

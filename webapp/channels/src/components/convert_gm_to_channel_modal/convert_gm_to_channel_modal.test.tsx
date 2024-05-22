@@ -17,7 +17,7 @@ import {Preferences} from 'mattermost-redux/constants';
 import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -61,7 +61,7 @@ describe('component/ConvertGmToChannelModal', () => {
                 {id: 'team_id_2', display_name: 'Team 2', name: 'team_2'},
             ]);
 
-        renderWithFullContext(
+        renderWithContext(
             <ConvertGmToChannelModal {...baseProps}/>,
             baseState,
         );
@@ -87,7 +87,7 @@ describe('component/ConvertGmToChannelModal', () => {
                 {id: 'team_id_1', display_name: 'Team 1', name: 'team_1'},
             ]);
 
-        renderWithFullContext(
+        renderWithContext(
             <ConvertGmToChannelModal {...baseProps}/>,
             baseState,
         );
@@ -110,7 +110,7 @@ describe('component/ConvertGmToChannelModal', () => {
             get('/channels/channel_id_1/common_teams').
             reply(200, []);
 
-        renderWithFullContext(
+        renderWithContext(
             <ConvertGmToChannelModal {...baseProps}/>,
             baseState,
         );
@@ -138,7 +138,7 @@ describe('component/ConvertGmToChannelModal', () => {
 
         baseProps.actions.convertGroupMessageToPrivateChannel.mockResolvedValueOnce({});
 
-        renderWithFullContext(
+        renderWithContext(
             <ConvertGmToChannelModal {...baseProps}/>,
             baseState,
         );
@@ -191,7 +191,7 @@ describe('component/ConvertGmToChannelModal', () => {
             },
         });
 
-        renderWithFullContext(
+        renderWithContext(
             <ConvertGmToChannelModal {...baseProps}/>,
             baseState,
         );

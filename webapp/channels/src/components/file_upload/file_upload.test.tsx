@@ -8,8 +8,7 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {General} from 'mattermost-redux/constants';
 
-import FileUpload from 'components/file_upload/file_upload';
-import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import FileUpload, {type FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {clearFileInput} from 'utils/utils';
@@ -232,7 +231,11 @@ describe('components/FileUpload', () => {
         const event = new Event('paste');
         event.preventDefault = jest.fn();
         const getAsString = jest.fn();
-        (event as any).clipboardData = {items: [{getAsString, kind: 'string', type: 'text/plain'}], types: ['text/plain'], getData: () => {}};
+        (event as any).clipboardData = {items: [{getAsString, kind: 'string', type: 'text/plain'}],
+            types: ['text/plain'],
+            getData: () => {
+                return '';
+            }};
 
         const wrapper = shallowWithIntl(
             <FileUpload

@@ -23,7 +23,7 @@ const PluggableIntroButtons = React.memo((props: Props) => {
         return (
             <button
                 key={buttonProps.id}
-                className={'intro-links color--link channelIntroButton style--none'}
+                className={'action-button'}
                 onClick={() => buttonProps.action?.(props.channel, props.channelMember)}
             >
                 {buttonProps.icon}

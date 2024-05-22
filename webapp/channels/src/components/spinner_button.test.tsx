@@ -61,6 +61,7 @@ describe('components/SpinnerButton', () => {
                 id='my-button-id'
                 className='btn btn-success'
                 spinningText='Test'
+                spinning={false}
             />,
         );
 

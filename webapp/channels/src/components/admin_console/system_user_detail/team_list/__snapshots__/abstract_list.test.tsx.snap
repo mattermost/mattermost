@@ -256,9 +256,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -483,9 +481,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -598,9 +594,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>

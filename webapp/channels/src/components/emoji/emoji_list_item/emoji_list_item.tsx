@@ -7,21 +7,20 @@ import type {CustomEmoji} from '@mattermost/types/emojis';
 
 import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';
 
 import DeleteEmojiButton from './delete_emoji_button';
 
 export type Props = {
-    emoji: CustomEmoji;
+    emoji?: CustomEmoji;
     emojiId?: string;
-    currentUserId: string;
-    creatorDisplayName: string;
+    currentUserId?: string;
+    creatorDisplayName?: string;
     creatorUsername?: string;
     onDelete?: (emojiId: string) => void;
     actions: {
-        deleteCustomEmoji: (emojiId: string) => ActionFunc;
+        deleteCustomEmoji: (emojiId: string) => void;
     };
 }
 
@@ -33,6 +32,10 @@ export default class EmojiListItem extends React.PureComponent<Props> {
     };
 
     handleDelete = (): void => {
+        if (!this.props.emoji) {
+            return;
+        }
+
         if (this.props.onDelete) {
             this.props.onDelete(this.props.emoji.id);
         }
@@ -41,7 +44,7 @@ export default class EmojiListItem extends React.PureComponent<Props> {
     };
 
     render(): JSX.Element {
-        const emoji = this.props.emoji;
+        const emoji = this.props.emoji as CustomEmoji;
         const creatorUsername = this.props.creatorUsername;
         let creatorDisplayName = this.props.creatorDisplayName;
 

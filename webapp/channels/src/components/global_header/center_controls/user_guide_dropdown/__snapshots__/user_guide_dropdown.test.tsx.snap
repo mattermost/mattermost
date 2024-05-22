@@ -47,8 +47,23 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     openLeft={false}
     openUp={false}
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <MenuItemExternalLink
+        iconClassName="icon-file-text-outline"
+        id="mattermostUserGuideLink"
+        show={true}
+        text="Mattermost user guide"
+        url="https://docs.mattermost.com/guides/use-mattermost.html"
+      />
+      <MenuItemExternalLink
+        iconClassName="icon-lightbulb-outline"
+        id="trainingResourcesLink"
+        show={true}
+        text="Training resources"
+        url="https://academy.mattermost.com/"
+      />
+      <MenuItemExternalLink
+        iconClassName="icon-help"
         id="askTheCommunityLink"
         onClick={[Function]}
         show={true}
@@ -56,24 +71,20 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
         url="https://mattermost.com/pl/default-ask-mattermost-community/"
       />
       <MenuItemExternalLink
-        id="helpResourcesLink"
-        show={true}
-        text="Help resources"
-        url="helpLink"
-      />
-      <MenuItemExternalLink
+        iconClassName="icon-alert-outline"
         id="reportAProblemLink"
         show={true}
         text="Report a problem"
         url="reportAProblemLink"
       />
       <MenuItemAction
+        iconClassName="icon-keyboard-return"
         id="keyboardShortcuts"
         onClick={[Function]}
         show={true}
         text="Keyboard shortcuts"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </Menu>
 </MenuWrapper>
 `;
@@ -125,26 +136,36 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     openLeft={false}
     openUp={false}
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <MenuItemExternalLink
-        id="helpResourcesLink"
+        iconClassName="icon-file-text-outline"
+        id="mattermostUserGuideLink"
         show={true}
-        text="Help resources"
-        url="helpLink"
+        text="Mattermost user guide"
+        url="https://docs.mattermost.com/guides/use-mattermost.html"
       />
       <MenuItemExternalLink
+        iconClassName="icon-lightbulb-outline"
+        id="trainingResourcesLink"
+        show={true}
+        text="Training resources"
+        url="https://academy.mattermost.com/"
+      />
+      <MenuItemExternalLink
+        iconClassName="icon-alert-outline"
         id="reportAProblemLink"
         show={true}
         text="Report a problem"
         url="reportAProblemLink"
       />
       <MenuItemAction
+        iconClassName="icon-keyboard-return"
         id="keyboardShortcuts"
         onClick={[Function]}
         show={true}
         text="Keyboard shortcuts"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </Menu>
 </MenuWrapper>
 `;
@@ -196,8 +217,23 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     openLeft={false}
     openUp={false}
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <MenuItemExternalLink
+        iconClassName="icon-file-text-outline"
+        id="mattermostUserGuideLink"
+        show={true}
+        text="Mattermost user guide"
+        url="https://docs.mattermost.com/guides/use-mattermost.html"
+      />
+      <MenuItemExternalLink
+        iconClassName="icon-lightbulb-outline"
+        id="trainingResourcesLink"
+        show={true}
+        text="Training resources"
+        url="https://academy.mattermost.com/"
+      />
+      <MenuItemExternalLink
+        iconClassName="icon-help"
         id="askTheCommunityLink"
         onClick={[Function]}
         show={true}
@@ -205,31 +241,28 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
         url="https://mattermost.com/pl/default-ask-mattermost-community/"
       />
       <MenuItemExternalLink
-        id="helpResourcesLink"
-        show={true}
-        text="Help resources"
-        url="helpLink"
-      />
-      <MenuItemExternalLink
+        iconClassName="icon-alert-outline"
         id="reportAProblemLink"
         show={true}
         text="Report a problem"
         url="reportAProblemLink"
       />
       <MenuItemAction
+        iconClassName="icon-keyboard-return"
         id="keyboardShortcuts"
         onClick={[Function]}
         show={true}
         text="Keyboard shortcuts"
       />
       <MenuItemAction
+        iconClassName="icon-thumbs-up-down"
         id="testId_pluginmenuitem"
         key="testId_pluginmenuitem"
         onClick={[Function]}
         show={true}
         text="Test Item"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </Menu>
 </MenuWrapper>
 `;

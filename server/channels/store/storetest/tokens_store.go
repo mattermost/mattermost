@@ -10,14 +10,15 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestTokensStore(t *testing.T, ss store.Store) {
-	t.Run("TokensCleanup", func(t *testing.T) { testTokensCleanup(t, ss) })
+func TestTokensStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("TokensCleanup", func(t *testing.T) { testTokensCleanup(t, rctx, ss) })
 }
 
-func testTokensCleanup(t *testing.T, ss store.Store) {
+func testTokensCleanup(t *testing.T, rctx request.CTX, ss store.Store) {
 	now := model.GetMillis()
 
 	for i := 0; i < 10; i++ {

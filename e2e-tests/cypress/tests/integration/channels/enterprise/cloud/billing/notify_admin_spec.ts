@@ -188,6 +188,8 @@ function mapFeatureIdToId(id: string) {
         return 'All Professional features';
     case 'mattermost.feature.all_enterprise':
         return 'All Enterprise features';
+    case 'mattermost.feature.highlight_without_notification':
+        return 'Keywords Highlight Without Notification';
     default:
         return '';
     }

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {PureComponent} from 'react';
-import type {MouseEvent} from 'react';
+import type {KeyboardEvent, MouseEvent} from 'react';
 
 import type {Post, PostImage} from '@mattermost/types/posts';
 
@@ -36,6 +36,7 @@ export type Props = {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
     hideUtilities?: boolean;
+    isUnsafeLinksPost: boolean;
 };
 
 type State = {
@@ -86,7 +87,7 @@ export default class MarkdownImage extends PureComponent<Props, State> {
         return index > 0 ? url.substring(index + 1) : null;
     };
 
-    showModal = (e: MouseEvent<HTMLImageElement>, link: string) => {
+    showModal = (e: KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLElement>, link = '') => {
         const extension = this.getFileExtensionFromUrl(link);
 
         if (!this.props.imageIsLink && extension) {
@@ -155,6 +156,9 @@ export default class MarkdownImage extends PureComponent<Props, State> {
                     />
                 </div>
             );
+        }
+        if (this.props.isUnsafeLinksPost) {
+            return <>{alt}</>;
         }
         return (
             <ExternalImage

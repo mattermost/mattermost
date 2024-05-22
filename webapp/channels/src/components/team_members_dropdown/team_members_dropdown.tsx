@@ -8,7 +8,7 @@ import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isGuest, isAdmin, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import ConfirmModal from 'components/confirm_modal';
@@ -26,7 +26,7 @@ type Props = {
     currentUser: UserProfile;
     teamMember: TeamMembership;
     teamUrl: string;
-    currentTeam: Team;
+    currentTeam?: Team;
     index: number;
     totalUsers: number;
     collapsedThreads: ReturnType<typeof isCollapsedThreadsEnabled>;
@@ -35,11 +35,11 @@ type Props = {
         getMyTeamUnreads: (collapsedThreads: boolean) => void;
         getUser: (id: string) => void;
         getTeamMember: (teamId: string, userId: string) => void;
-        getTeamStats: (teamId: string) => ActionFunc;
+        getTeamStats: (teamId: string) => void;
         getChannelStats: (channelId: string) => void;
-        updateTeamMemberSchemeRoles: (teamId: string, userId: string, b1: boolean, b2: boolean) => ActionFunc & Partial<{error: Error}>;
-        updateUserActive: (userId: string, active: boolean) => ActionFunc;
-        removeUserFromTeamAndGetStats: (teamId: string, userId: string) => ActionFunc & Partial<{error: Error}>;
+        updateTeamMemberSchemeRoles: (teamId: string, userId: string, b1: boolean, b2: boolean) => Promise<ActionResult>;
+        updateUserActive: (userId: string, active: boolean) => Promise<ActionResult>;
+        removeUserFromTeamAndGetStats: (teamId: string, userId: string) => Promise<ActionResult>;
     };
 };
 
@@ -190,7 +190,7 @@ export default class TeamMembersDropdown extends React.PureComponent<Props, Stat
             showMakeAdmin = false;
         }
 
-        const canRemoveFromTeam = user.id !== me.id && (!currentTeam.group_constrained || user.is_bot);
+        const canRemoveFromTeam = user.id !== me.id && (!currentTeam?.group_constrained || user.is_bot);
 
         let makeDemoteModal = null;
         if (user.id === me.id) {

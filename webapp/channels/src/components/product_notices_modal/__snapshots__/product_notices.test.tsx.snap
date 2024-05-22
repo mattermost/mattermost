@@ -131,9 +131,7 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
         defaultMessage="Next"
         id="generic.next"
       />
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </React.Fragment>
   }
   enforceFocus={true}

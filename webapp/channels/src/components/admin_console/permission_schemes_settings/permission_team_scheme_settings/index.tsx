@@ -3,11 +3,8 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
-import type {ServerError} from '@mattermost/types/errors';
-import type {Role} from '@mattermost/types/roles';
-import type {Scheme, SchemePatch} from '@mattermost/types/schemes';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {loadRolesIfNeeded, editRole} from 'mattermost-redux/actions/roles';
@@ -16,12 +13,10 @@ import {updateTeamScheme} from 'mattermost-redux/actions/teams';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 import {getScheme, makeGetSchemeTeams} from 'mattermost-redux/selectors/entities/schemes';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import PermissionTeamSchemeSettings from './permission_team_scheme_settings';
-import type {Props} from './permission_team_scheme_settings';
 
 type OwnProps = {
     match: {
@@ -47,20 +42,9 @@ function makeMapStateToProps() {
     };
 }
 
-type Actions = {
-    loadRolesIfNeeded: (roles: Iterable<string>) => ActionFunc;
-    loadScheme: (schemeId: string) => Promise<ActionResult>;
-    loadSchemeTeams: (schemeId: string, page?: number, perPage?: number) => ActionFunc;
-    editRole: (role: Role) => Promise<{error: ServerError}>;
-    patchScheme: (schemeId: string, scheme: SchemePatch) => ActionFunc;
-    updateTeamScheme: (teamId: string, schemeId: string) => Promise<{error: ServerError; data: Scheme}>;
-    createScheme: (scheme: Scheme) => Promise<{error: ServerError; data: Scheme}>;
-    setNavigationBlocked: (blocked: boolean) => void;
-};
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>): Props {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             loadRolesIfNeeded,
             loadScheme,
             loadSchemeTeams,
@@ -70,7 +54,7 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>): Props {
             createScheme,
             setNavigationBlocked,
         }, dispatch),
-    } as Props;
+    };
 }
 
 export default connect(makeMapStateToProps, mapDispatchToProps)(PermissionTeamSchemeSettings);

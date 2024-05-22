@@ -2,7 +2,6 @@
 set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
-. .e2erc_setup
 
 MME2E_DASHBOARD_REF_DEFAULT="origin/main"
 MME2E_DASHBOARD_REF=${MME2E_DASHBOARD_REF:-$MME2E_DASHBOARD_REF_DEFAULT}
@@ -12,13 +11,17 @@ if [ ! -d dashboard ]; then
   git clone https://github.com/saturninoabril/automation-dashboard.git dashboard
   # Must reinitialize some variables that depend on the dashboard repo being checked out
   . .e2erc
-  . .e2erc_setup
 fi
 git -C dashboard fetch
 git -C dashboard checkout "$MME2E_DASHBOARD_REF"
 
 mme2e_log "Starting the dashboard"
 ${MME2E_DC_DASHBOARD} up -d db dashboard
+
+if ! DC_COMMAND="${MME2E_DC_DASHBOARD}" mme2e_wait_service_healthy dashboard 60 10; then
+  mme2e_log "Dashboard container not healthy, retry attempts exhausted. Giving up." >&2
+  exit 1
+fi
 
 mme2e_log "Generating the dashboard's local URL"
 case $MME2E_OSTYPE in
@@ -36,7 +39,7 @@ esac
 AUTOMATION_DASHBOARD_URL="http://${AUTOMATION_DASHBOARD_IP}:4000/api"
 
 mme2e_log "Generating a signed JWT token for accessing the dashboard"
-${MME2E_DC_DASHBOARD} exec -T dashboard bash -c "rm -rf node_modules && npm install --cache /tmp/empty-cache"
+# Not running 'npm install'. We assume it has been run by the dashboard container's entrypoint
 # shellcheck disable=SC2034
 AUTOMATION_DASHBOARD_TOKEN=$(${MME2E_DC_DASHBOARD} exec -T dashboard node script/sign.js | awk '{ print $2; }') # The token secret is specified in the dashboard.override.yml file
 

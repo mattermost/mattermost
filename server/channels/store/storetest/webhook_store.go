@@ -11,38 +11,39 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestWebhookStore(t *testing.T, ss store.Store) {
-	t.Run("SaveIncoming", func(t *testing.T) { testWebhookStoreSaveIncoming(t, ss) })
-	t.Run("UpdateIncoming", func(t *testing.T) { testWebhookStoreUpdateIncoming(t, ss) })
-	t.Run("GetIncoming", func(t *testing.T) { testWebhookStoreGetIncoming(t, ss) })
-	t.Run("GetIncomingList", func(t *testing.T) { testWebhookStoreGetIncomingList(t, ss) })
-	t.Run("GetIncomingListByUser", func(t *testing.T) { testWebhookStoreGetIncomingListByUser(t, ss) })
-	t.Run("GetIncomingByTeam", func(t *testing.T) { testWebhookStoreGetIncomingByTeam(t, ss) })
-	t.Run("GetIncomingByTeamByUser", func(t *testing.T) { TestWebhookStoreGetIncomingByTeamByUser(t, ss) })
-	t.Run("GetIncomingByTeamByChannel", func(t *testing.T) { testWebhookStoreGetIncomingByChannel(t, ss) })
-	t.Run("DeleteIncoming", func(t *testing.T) { testWebhookStoreDeleteIncoming(t, ss) })
-	t.Run("DeleteIncomingByChannel", func(t *testing.T) { testWebhookStoreDeleteIncomingByChannel(t, ss) })
-	t.Run("DeleteIncomingByUser", func(t *testing.T) { testWebhookStoreDeleteIncomingByUser(t, ss) })
-	t.Run("SaveOutgoing", func(t *testing.T) { testWebhookStoreSaveOutgoing(t, ss) })
-	t.Run("GetOutgoing", func(t *testing.T) { testWebhookStoreGetOutgoing(t, ss) })
-	t.Run("GetOutgoingList", func(t *testing.T) { testWebhookStoreGetOutgoingList(t, ss) })
-	t.Run("GetOutgoingListByUser", func(t *testing.T) { testWebhookStoreGetOutgoingListByUser(t, ss) })
-	t.Run("GetOutgoingByChannel", func(t *testing.T) { testWebhookStoreGetOutgoingByChannel(t, ss) })
-	t.Run("GetOutgoingByChannelByUser", func(t *testing.T) { testWebhookStoreGetOutgoingByChannelByUser(t, ss) })
-	t.Run("GetOutgoingByTeam", func(t *testing.T) { testWebhookStoreGetOutgoingByTeam(t, ss) })
-	t.Run("GetOutgoingByTeamByUser", func(t *testing.T) { testWebhookStoreGetOutgoingByTeamByUser(t, ss) })
-	t.Run("DeleteOutgoing", func(t *testing.T) { testWebhookStoreDeleteOutgoing(t, ss) })
-	t.Run("DeleteOutgoingByChannel", func(t *testing.T) { testWebhookStoreDeleteOutgoingByChannel(t, ss) })
-	t.Run("DeleteOutgoingByUser", func(t *testing.T) { testWebhookStoreDeleteOutgoingByUser(t, ss) })
-	t.Run("UpdateOutgoing", func(t *testing.T) { testWebhookStoreUpdateOutgoing(t, ss) })
-	t.Run("CountIncoming", func(t *testing.T) { testWebhookStoreCountIncoming(t, ss) })
-	t.Run("CountOutgoing", func(t *testing.T) { testWebhookStoreCountOutgoing(t, ss) })
+func TestWebhookStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("SaveIncoming", func(t *testing.T) { testWebhookStoreSaveIncoming(t, rctx, ss) })
+	t.Run("UpdateIncoming", func(t *testing.T) { testWebhookStoreUpdateIncoming(t, rctx, ss) })
+	t.Run("GetIncoming", func(t *testing.T) { testWebhookStoreGetIncoming(t, rctx, ss) })
+	t.Run("GetIncomingList", func(t *testing.T) { testWebhookStoreGetIncomingList(t, rctx, ss) })
+	t.Run("GetIncomingListByUser", func(t *testing.T) { testWebhookStoreGetIncomingListByUser(t, rctx, ss) })
+	t.Run("GetIncomingByTeam", func(t *testing.T) { testWebhookStoreGetIncomingByTeam(t, rctx, ss) })
+	t.Run("GetIncomingByTeamByUser", func(t *testing.T) { TestWebhookStoreGetIncomingByTeamByUser(t, rctx, ss) })
+	t.Run("GetIncomingByTeamByChannel", func(t *testing.T) { testWebhookStoreGetIncomingByChannel(t, rctx, ss) })
+	t.Run("DeleteIncoming", func(t *testing.T) { testWebhookStoreDeleteIncoming(t, rctx, ss) })
+	t.Run("DeleteIncomingByChannel", func(t *testing.T) { testWebhookStoreDeleteIncomingByChannel(t, rctx, ss) })
+	t.Run("DeleteIncomingByUser", func(t *testing.T) { testWebhookStoreDeleteIncomingByUser(t, rctx, ss) })
+	t.Run("SaveOutgoing", func(t *testing.T) { testWebhookStoreSaveOutgoing(t, rctx, ss) })
+	t.Run("GetOutgoing", func(t *testing.T) { testWebhookStoreGetOutgoing(t, rctx, ss) })
+	t.Run("GetOutgoingList", func(t *testing.T) { testWebhookStoreGetOutgoingList(t, rctx, ss) })
+	t.Run("GetOutgoingListByUser", func(t *testing.T) { testWebhookStoreGetOutgoingListByUser(t, rctx, ss) })
+	t.Run("GetOutgoingByChannel", func(t *testing.T) { testWebhookStoreGetOutgoingByChannel(t, rctx, ss) })
+	t.Run("GetOutgoingByChannelByUser", func(t *testing.T) { testWebhookStoreGetOutgoingByChannelByUser(t, rctx, ss) })
+	t.Run("GetOutgoingByTeam", func(t *testing.T) { testWebhookStoreGetOutgoingByTeam(t, rctx, ss) })
+	t.Run("GetOutgoingByTeamByUser", func(t *testing.T) { testWebhookStoreGetOutgoingByTeamByUser(t, rctx, ss) })
+	t.Run("DeleteOutgoing", func(t *testing.T) { testWebhookStoreDeleteOutgoing(t, rctx, ss) })
+	t.Run("DeleteOutgoingByChannel", func(t *testing.T) { testWebhookStoreDeleteOutgoingByChannel(t, rctx, ss) })
+	t.Run("DeleteOutgoingByUser", func(t *testing.T) { testWebhookStoreDeleteOutgoingByUser(t, rctx, ss) })
+	t.Run("UpdateOutgoing", func(t *testing.T) { testWebhookStoreUpdateOutgoing(t, rctx, ss) })
+	t.Run("CountIncoming", func(t *testing.T) { testWebhookStoreCountIncoming(t, rctx, ss) })
+	t.Run("CountOutgoing", func(t *testing.T) { testWebhookStoreCountOutgoing(t, rctx, ss) })
 }
 
-func testWebhookStoreSaveIncoming(t *testing.T, ss store.Store) {
+func testWebhookStoreSaveIncoming(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := buildIncomingWebhook()
 
 	_, err := ss.Webhook().SaveIncoming(o1)
@@ -52,7 +53,7 @@ func testWebhookStoreSaveIncoming(t *testing.T, ss store.Store) {
 	require.Error(t, err, "shouldn't be able to update from save")
 }
 
-func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
+func testWebhookStoreUpdateIncoming(t *testing.T, rctx request.CTX, ss store.Store) {
 	var err error
 
 	o1 := buildIncomingWebhook()
@@ -72,7 +73,7 @@ func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
 	require.Equal(t, "TestHook", webhook.DisplayName, "display name is not updated")
 }
 
-func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {
+func testWebhookStoreGetIncoming(t *testing.T, rctx request.CTX, ss store.Store) {
 	var err error
 
 	o1 := buildIncomingWebhook()
@@ -99,7 +100,7 @@ func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {
 	require.True(t, errors.As(err, &nfErr), "Should have set the status as not found for missing id")
 }
 
-func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
+func testWebhookStoreGetIncomingList(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.IncomingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
@@ -125,7 +126,7 @@ func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
 	require.Len(t, hooks, 1, "only 1 should be returned")
 }
 
-func testWebhookStoreGetIncomingListByUser(t *testing.T, ss store.Store) {
+func testWebhookStoreGetIncomingListByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.IncomingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
@@ -148,7 +149,7 @@ func testWebhookStoreGetIncomingListByUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
+func testWebhookStoreGetIncomingByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	var err error
 
 	o1 := buildIncomingWebhook()
@@ -164,7 +165,7 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 	require.Empty(t, hooks, "no webhooks should have returned")
 }
 
-func TestWebhookStoreGetIncomingByTeamByUser(t *testing.T, ss store.Store) {
+func TestWebhookStoreGetIncomingByTeamByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	var err error
 
 	o1 := buildIncomingWebhook()
@@ -196,7 +197,7 @@ func TestWebhookStoreGetIncomingByTeamByUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func testWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
+func testWebhookStoreGetIncomingByChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := buildIncomingWebhook()
 
 	o1, err := ss.Webhook().SaveIncoming(o1)
@@ -211,7 +212,7 @@ func testWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
 	require.Empty(t, webhooks, "no webhooks should have returned")
 }
 
-func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
+func testWebhookStoreDeleteIncoming(t *testing.T, rctx request.CTX, ss store.Store) {
 	var err error
 
 	o1 := buildIncomingWebhook()
@@ -229,7 +230,7 @@ func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
 	require.Error(t, err)
 }
 
-func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
+func testWebhookStoreDeleteIncomingByChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	var err error
 
 	o1 := buildIncomingWebhook()
@@ -247,7 +248,7 @@ func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
 	require.Error(t, err, "Missing id should have failed")
 }
 
-func testWebhookStoreDeleteIncomingByUser(t *testing.T, ss store.Store) {
+func testWebhookStoreDeleteIncomingByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	var err error
 
 	o1 := buildIncomingWebhook()
@@ -274,7 +275,7 @@ func buildIncomingWebhook() *model.IncomingWebhook {
 	return o1
 }
 
-func testWebhookStoreSaveOutgoing(t *testing.T, ss store.Store) {
+func testWebhookStoreSaveOutgoing(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
@@ -290,7 +291,7 @@ func testWebhookStoreSaveOutgoing(t *testing.T, ss store.Store) {
 	require.Error(t, err, "shouldn't be able to update from save")
 }
 
-func testWebhookStoreGetOutgoing(t *testing.T, ss store.Store) {
+func testWebhookStoreGetOutgoing(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
@@ -309,7 +310,7 @@ func testWebhookStoreGetOutgoing(t *testing.T, ss store.Store) {
 	require.Error(t, err, "Missing id should have failed")
 }
 
-func testWebhookStoreGetOutgoingListByUser(t *testing.T, ss store.Store) {
+func testWebhookStoreGetOutgoingListByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
@@ -333,7 +334,7 @@ func testWebhookStoreGetOutgoingListByUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
+func testWebhookStoreGetOutgoingList(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
@@ -374,7 +375,7 @@ func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
 	require.Len(t, result, 2, "wrong number of hooks returned")
 }
 
-func testWebhookStoreGetOutgoingByChannel(t *testing.T, ss store.Store) {
+func testWebhookStoreGetOutgoingByChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
@@ -392,7 +393,7 @@ func testWebhookStoreGetOutgoingByChannel(t *testing.T, ss store.Store) {
 	require.Empty(t, result, "no webhooks should have returned")
 }
 
-func testWebhookStoreGetOutgoingByChannelByUser(t *testing.T, ss store.Store) {
+func testWebhookStoreGetOutgoingByChannelByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
@@ -431,7 +432,7 @@ func testWebhookStoreGetOutgoingByChannelByUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func testWebhookStoreGetOutgoingByTeam(t *testing.T, ss store.Store) {
+func testWebhookStoreGetOutgoingByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
@@ -449,7 +450,7 @@ func testWebhookStoreGetOutgoingByTeam(t *testing.T, ss store.Store) {
 	require.Empty(t, result, "no webhooks should have returned")
 }
 
-func testWebhookStoreGetOutgoingByTeamByUser(t *testing.T, ss store.Store) {
+func testWebhookStoreGetOutgoingByTeamByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	var err error
 
 	o1 := &model.OutgoingWebhook{}
@@ -490,7 +491,7 @@ func testWebhookStoreGetOutgoingByTeamByUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func testWebhookStoreDeleteOutgoing(t *testing.T, ss store.Store) {
+func testWebhookStoreDeleteOutgoing(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
@@ -510,7 +511,7 @@ func testWebhookStoreDeleteOutgoing(t *testing.T, ss store.Store) {
 	require.Error(t, err, "Missing id should have failed")
 }
 
-func testWebhookStoreDeleteOutgoingByChannel(t *testing.T, ss store.Store) {
+func testWebhookStoreDeleteOutgoingByChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
@@ -530,7 +531,7 @@ func testWebhookStoreDeleteOutgoingByChannel(t *testing.T, ss store.Store) {
 	require.Error(t, err, "Missing id should have failed")
 }
 
-func testWebhookStoreDeleteOutgoingByUser(t *testing.T, ss store.Store) {
+func testWebhookStoreDeleteOutgoingByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
@@ -550,7 +551,7 @@ func testWebhookStoreDeleteOutgoingByUser(t *testing.T, ss store.Store) {
 	require.Error(t, err, "Missing id should have failed")
 }
 
-func testWebhookStoreUpdateOutgoing(t *testing.T, ss store.Store) {
+func testWebhookStoreUpdateOutgoing(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
@@ -568,7 +569,7 @@ func testWebhookStoreUpdateOutgoing(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testWebhookStoreCountIncoming(t *testing.T, ss store.Store) {
+func testWebhookStoreCountIncoming(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.IncomingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
@@ -582,7 +583,7 @@ func testWebhookStoreCountIncoming(t *testing.T, ss store.Store) {
 	require.NotEqual(t, 0, c, "should have at least 1 incoming hook")
 }
 
-func testWebhookStoreCountOutgoing(t *testing.T, ss store.Store) {
+func testWebhookStoreCountOutgoing(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()

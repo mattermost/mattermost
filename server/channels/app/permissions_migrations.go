@@ -1117,6 +1117,70 @@ func (a *App) getAddChannelReadContentPermissions() (permissionsMap, error) {
 	return t, nil
 }
 
+func (a *App) getAddIPFilterPermissionsMigration() (permissionsMap, error) {
+	t := []permissionTransformation{}
+
+	ipFilterPermissionsRead := []string{
+		model.PermissionSysconsoleReadIPFilters.Id,
+	}
+
+	ipFilterPermissionsWrite := []string{
+		model.PermissionSysconsoleWriteIPFilters.Id,
+	}
+
+	t = append(t, permissionTransformation{
+		On:  permissionOr(isExactRole(model.SystemAdminRoleId)),
+		Add: ipFilterPermissionsRead,
+	})
+
+	t = append(t, permissionTransformation{
+		On:  permissionOr(isExactRole(model.SystemAdminRoleId)),
+		Add: ipFilterPermissionsWrite,
+	})
+
+	return t, nil
+}
+
+func (a *App) getAddOutgoingOAuthConnectionsPermissions() (permissionsMap, error) {
+	t := []permissionTransformation{}
+
+	permissionManageOutgoingOAuthConnections := []string{
+		model.PermissionManageOutgoingOAuthConnections.Id,
+	}
+
+	t = append(t, permissionTransformation{
+		On:  permissionOr(isExactRole(model.SystemAdminRoleId)),
+		Add: permissionManageOutgoingOAuthConnections,
+	})
+
+	return t, nil
+}
+
+func (a *App) getAddChannelBookmarksPermissionsMigration() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	transformations = append(transformations, permissionTransformation{
+		On: permissionOr(
+			isRole(model.ChannelUserRoleId),
+			isRole(model.ChannelAdminRoleId),
+			isRole(model.TeamAdminRoleId),
+			isRole(model.SystemAdminRoleId),
+		),
+		Add: []string{
+			model.PermissionAddBookmarkPublicChannel.Id,
+			model.PermissionEditBookmarkPublicChannel.Id,
+			model.PermissionDeleteBookmarkPublicChannel.Id,
+			model.PermissionOrderBookmarkPublicChannel.Id,
+			model.PermissionAddBookmarkPrivateChannel.Id,
+			model.PermissionEditBookmarkPrivateChannel.Id,
+			model.PermissionDeleteBookmarkPrivateChannel.Id,
+			model.PermissionOrderBookmarkPrivateChannel.Id,
+		},
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1161,6 +1225,9 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddProductsBoardsPermissions, Migration: a.getProductsBoardsPermissions},
 		{Key: model.MigrationKeyAddCustomUserGroupsPermissionRestore, Migration: a.getAddCustomUserGroupsPermissionRestore},
 		{Key: model.MigrationKeyAddReadChannelContentPermissions, Migration: a.getAddChannelReadContentPermissions},
+		{Key: model.MigrationKeyAddIPFilteringPermissions, Migration: a.getAddIPFilterPermissionsMigration},
+		{Key: model.MigrationKeyAddOutgoingOAuthConnectionsPermissions, Migration: a.getAddOutgoingOAuthConnectionsPermissions},
+		{Key: model.MigrationKeyAddChannelBookmarksPermissions, Migration: a.getAddChannelBookmarksPermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

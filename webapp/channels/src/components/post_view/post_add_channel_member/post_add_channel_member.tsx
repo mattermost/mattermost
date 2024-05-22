@@ -111,8 +111,8 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                 );
             }
             const otherUsers = [...usernames];
-            const firstUserName = otherUsers.shift();
-            const lastUserName = otherUsers.pop();
+            const firstUserName = otherUsers.shift() as string; // will never be undefined
+            const lastUserName = otherUsers.pop() as string; // will never be undefined
             return (
                 <span>
                     <AtMention

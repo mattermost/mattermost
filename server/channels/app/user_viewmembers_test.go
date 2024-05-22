@@ -131,7 +131,7 @@ func TestRestrictedViewMembers(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				options := model.UserSearchOptions{Limit: 100, ViewRestrictions: tc.Restrictions}
-				results, err := th.App.SearchUsers(&tc.Search, &options)
+				results, err := th.App.SearchUsers(th.Context, &tc.Search, &options)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -207,7 +207,7 @@ func TestRestrictedViewMembers(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				options := model.UserSearchOptions{Limit: 100, ViewRestrictions: tc.Restrictions}
-				results, err := th.App.SearchUsersInTeam(tc.TeamId, "test", &options)
+				results, err := th.App.SearchUsersInTeam(th.Context, tc.TeamId, "test", &options)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -283,7 +283,7 @@ func TestRestrictedViewMembers(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				options := model.UserSearchOptions{Limit: 100, ViewRestrictions: tc.Restrictions}
-				results, err := th.App.AutocompleteUsersInTeam(tc.TeamId, "tes", &options)
+				results, err := th.App.AutocompleteUsersInTeam(th.Context, tc.TeamId, "tes", &options)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results.InTeam {
@@ -367,7 +367,7 @@ func TestRestrictedViewMembers(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				options := model.UserSearchOptions{Limit: 100, ViewRestrictions: tc.Restrictions}
-				results, err := th.App.AutocompleteUsersInChannel(tc.TeamId, tc.ChannelId, "tes", &options)
+				results, err := th.App.AutocompleteUsersInChannel(th.Context, tc.TeamId, tc.ChannelId, "tes", &options)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results.InChannel {
@@ -442,7 +442,7 @@ func TestRestrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				results, err := th.App.GetNewUsersForTeamPage(tc.TeamId, 0, 2, false, tc.Restrictions)
+				results, err := th.App.GetNewUsersForTeamPage(th.Context, tc.TeamId, 0, 2, false, tc.Restrictions)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -517,7 +517,7 @@ func TestRestrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				results, err := th.App.GetRecentlyActiveUsersForTeamPage(tc.TeamId, 0, 3, false, tc.Restrictions)
+				results, err := th.App.GetRecentlyActiveUsersForTeamPage(th.Context, tc.TeamId, 0, 3, false, tc.Restrictions)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -525,7 +525,7 @@ func TestRestrictedViewMembers(t *testing.T) {
 				}
 				assert.ElementsMatch(t, tc.ExpectedResults, ids)
 
-				results, err = th.App.GetRecentlyActiveUsersForTeamPage(tc.TeamId, 0, 1, false, tc.Restrictions)
+				results, err = th.App.GetRecentlyActiveUsersForTeamPage(th.Context, tc.TeamId, 0, 1, false, tc.Restrictions)
 				require.Nil(t, err)
 				if len(tc.ExpectedResults) > 1 {
 					assert.Len(t, results, 1)

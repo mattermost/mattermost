@@ -153,7 +153,6 @@ func TestDatabaseStoreNew(t *testing.T) {
 		defer ds.Close()
 
 		assert.Equal(t, *customConfigDefaults.ServiceSettings.SiteURL, *ds.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
 	})
 
 	t.Run("existing config, initialization required", func(t *testing.T) {
@@ -181,7 +180,6 @@ func TestDatabaseStoreNew(t *testing.T) {
 		assert.Equal(t, "http://TestStoreNew", *ds.Get().ServiceSettings.SiteURL)
 		// not existing value should be overwritten by the custom
 		// default value
-		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
 		assertDatabaseNotEqualsConfig(t, testConfig)
 	})
 
@@ -208,7 +206,6 @@ func TestDatabaseStoreNew(t *testing.T) {
 		// as the whole config has default values already, custom
 		// defaults should have no effect
 		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
-		assert.NotEqual(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
 		assertDatabaseEqualsConfig(t, minimalConfigNoFF)
 	})
 

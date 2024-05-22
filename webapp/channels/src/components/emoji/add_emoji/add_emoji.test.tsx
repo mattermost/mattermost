@@ -202,7 +202,7 @@ describe('components/emoji/components/AddEmoji', () => {
         const file = new Blob([image], {type: 'image/png'});
         wrapper.setState({image: file as File, imageUrl: image});
 
-        const saveButton = wrapper.find('SpinnerButton').first();
+        const saveButton = wrapper.find({'data-testid': 'save-button'}).first();
         const nameInput = wrapper.find('#name');
         nameInput.simulate('change', {target: {name: 'name', value: emojiName}});
 

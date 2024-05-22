@@ -87,7 +87,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
             onClick={[Function]}
             tabIndex={0}
           >
-            <LoadingWrapper
+            <Memo(LoadingWrapper)
               loading={false}
               text="Uploading..."
             >
@@ -95,7 +95,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
                 defaultMessage="Save"
                 id="setting_picture.save"
               />
-            </LoadingWrapper>
+            </Memo(LoadingWrapper)>
           </button>
         </span>
         <button
@@ -192,7 +192,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
             onClick={[Function]}
             tabIndex={0}
           >
-            <LoadingWrapper
+            <Memo(LoadingWrapper)
               loading={false}
               text="Uploading..."
             >
@@ -200,7 +200,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
                 defaultMessage="Save"
                 id="setting_picture.save"
               />
-            </LoadingWrapper>
+            </Memo(LoadingWrapper)>
           </button>
         </span>
         <button
@@ -307,7 +307,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
             onClick={[Function]}
             tabIndex={-1}
           >
-            <LoadingWrapper
+            <Memo(LoadingWrapper)
               loading={true}
               text="Uploading..."
             >
@@ -315,7 +315,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
                 defaultMessage="Save"
                 id="setting_picture.save"
               />
-            </LoadingWrapper>
+            </Memo(LoadingWrapper)>
           </button>
         </span>
         <button
@@ -434,7 +434,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
             onClick={[Function]}
             tabIndex={-1}
           >
-            <LoadingWrapper
+            <Memo(LoadingWrapper)
               loading={false}
               text="Uploading..."
             >
@@ -442,7 +442,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
                 defaultMessage="Save"
                 id="setting_picture.save"
               />
-            </LoadingWrapper>
+            </Memo(LoadingWrapper)>
           </button>
         </span>
         <button
@@ -549,7 +549,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
             onClick={[Function]}
             tabIndex={-1}
           >
-            <LoadingWrapper
+            <Memo(LoadingWrapper)
               loading={false}
               text="Uploading..."
             >
@@ -557,7 +557,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
                 defaultMessage="Save"
                 id="setting_picture.save"
               />
-            </LoadingWrapper>
+            </Memo(LoadingWrapper)>
           </button>
         </span>
         <button
@@ -676,7 +676,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
             onClick={[Function]}
             tabIndex={-1}
           >
-            <LoadingWrapper
+            <Memo(LoadingWrapper)
               loading={false}
               text="Uploading..."
             >
@@ -684,7 +684,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
                 defaultMessage="Save"
                 id="setting_picture.save"
               />
-            </LoadingWrapper>
+            </Memo(LoadingWrapper)>
           </button>
         </span>
         <button
@@ -845,7 +845,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
             onClick={[Function]}
             tabIndex={-1}
           >
-            <LoadingWrapper
+            <Memo(LoadingWrapper)
               loading={false}
               text="Uploading..."
             >
@@ -853,7 +853,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
                 defaultMessage="Save"
                 id="setting_picture.save"
               />
-            </LoadingWrapper>
+            </Memo(LoadingWrapper)>
           </button>
         </span>
         <button
@@ -1014,7 +1014,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
             onClick={[Function]}
             tabIndex={-1}
           >
-            <LoadingWrapper
+            <Memo(LoadingWrapper)
               loading={false}
               text="Uploading..."
             >
@@ -1022,7 +1022,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
                 defaultMessage="Save"
                 id="setting_picture.save"
               />
-            </LoadingWrapper>
+            </Memo(LoadingWrapper)>
           </button>
         </span>
         <button

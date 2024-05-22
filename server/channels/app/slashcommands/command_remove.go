@@ -8,7 +8,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
@@ -57,15 +56,15 @@ func (*KickProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 	}
 }
 
-func (*RemoveProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*RemoveProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	return doCommand(a, c, args, message)
 }
 
-func (*KickProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*KickProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	return doCommand(a, c, args, message)
 }
 
-func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func doCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(c, args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
@@ -110,7 +109,7 @@ func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message 
 
 	userProfile, nErr := a.Srv().Store().User().GetByUsername(targetUsername)
 	if nErr != nil {
-		mlog.Error(nErr.Error())
+		c.Logger().Error(nErr.Error())
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.missing.app_error"),
 			ResponseType: model.CommandResponseTypeEphemeral,

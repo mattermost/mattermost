@@ -3,8 +3,6 @@
 
 import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import marketplaceReducer from 'reducers/views/marketplace';
 
 import {ActionTypes, ModalIdentifiers} from 'utils/constants';
@@ -12,7 +10,7 @@ import {ActionTypes, ModalIdentifiers} from 'utils/constants';
 describe('marketplace', () => {
     test('initial state', () => {
         const currentState = {} as never;
-        const action: GenericAction = {} as GenericAction;
+        const action = {type: undefined};
         const expectedState = {
             plugins: [],
             apps: [],
@@ -32,7 +30,7 @@ describe('marketplace', () => {
             errors: {},
             filter: '',
         };
-        const action: GenericAction = {
+        const action = {
             type: ActionTypes.RECEIVED_MARKETPLACE_PLUGINS,
             plugins: [{id: 'plugin1'}, {id: 'plugin2'}],
         };
@@ -57,7 +55,7 @@ describe('marketplace', () => {
         };
 
         it('should set installing for not already installing plugin', () => {
-            const action: GenericAction = {
+            const action = {
                 type: ActionTypes.INSTALLING_MARKETPLACE_ITEM,
                 id: 'plugin2',
             };
@@ -73,7 +71,7 @@ describe('marketplace', () => {
         });
 
         it('should no-op for already installing plugin', () => {
-            const action: GenericAction = {
+            const action = {
                 type: ActionTypes.INSTALLING_MARKETPLACE_ITEM,
                 id: 'plugin1',
             };
@@ -83,7 +81,7 @@ describe('marketplace', () => {
         });
 
         it('should clear error for previously failed plugin', () => {
-            const action: GenericAction = {
+            const action = {
                 type: ActionTypes.INSTALLING_MARKETPLACE_ITEM,
                 id: 'plugin3',
             };
@@ -109,7 +107,7 @@ describe('marketplace', () => {
         };
 
         it('should clear installing', () => {
-            const action: GenericAction = {
+            const action = {
                 type: ActionTypes.INSTALLING_MARKETPLACE_ITEM_SUCCEEDED,
                 id: 'plugin1',
             };
@@ -125,7 +123,7 @@ describe('marketplace', () => {
         });
 
         it('should clear error', () => {
-            const action: GenericAction = {
+            const action = {
                 type: ActionTypes.INSTALLING_MARKETPLACE_ITEM_SUCCEEDED,
                 id: 'plugin3',
             };
@@ -151,7 +149,7 @@ describe('marketplace', () => {
         };
 
         it('should clear installing and set error', () => {
-            const action: GenericAction = {
+            const action = {
                 type: ActionTypes.INSTALLING_MARKETPLACE_ITEM_FAILED,
                 id: 'plugin1',
                 error: 'Failed to intall',
@@ -178,7 +176,7 @@ describe('marketplace', () => {
         };
 
         it('should set filter', () => {
-            const action: GenericAction = {
+            const action = {
                 type: ActionTypes.FILTER_MARKETPLACE_LISTING,
                 filter: 'new',
             };
@@ -204,7 +202,7 @@ describe('marketplace', () => {
         };
 
         it('should no-op for different modal', () => {
-            const action: GenericAction = {
+            const action = {
                 type: ActionTypes.MODAL_CLOSE,
                 modalId: ModalIdentifiers.DELETE_CHANNEL,
             };
@@ -214,7 +212,7 @@ describe('marketplace', () => {
         });
 
         it('should clear state for marketplace modal', () => {
-            const action: GenericAction = {
+            const action = {
                 type: ActionTypes.MODAL_CLOSE,
                 modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
             };

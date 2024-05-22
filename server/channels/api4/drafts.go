@@ -86,7 +86,7 @@ func getDrafts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	drafts, err := c.App.GetDraftsForUser(c.AppContext.Session().UserId, c.Params.TeamId)
+	drafts, err := c.App.GetDraftsForUser(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId)
 	if err != nil {
 		c.Err = err
 		return
@@ -135,7 +135,7 @@ func deleteDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := c.App.DeleteDraft(userID, channelID, rootID, connectionID); err != nil {
+	if err := c.App.DeleteDraft(c.AppContext, draft, connectionID); err != nil {
 		c.Err = err
 		return
 	}

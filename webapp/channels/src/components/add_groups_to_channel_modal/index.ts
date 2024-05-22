@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
@@ -12,14 +12,12 @@ import {getGroupsNotAssociatedToChannel, linkGroupSyncable, getAllGroupsAssociat
 import {getTeam} from 'mattermost-redux/actions/teams';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getGroupsNotAssociatedToChannel as selectGroupsNotAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setModalSearchTerm} from 'actions/views/search';
 
 import type {GlobalState} from 'types/store';
 
 import AddGroupsToChannelModal from './add_groups_to_channel_modal';
-import type {Props} from './add_groups_to_channel_modal';
 
 type OwnProps = {
     channel: Channel;
@@ -51,9 +49,9 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc| GenericAction>, Props['actions']>({
+        actions: bindActionCreators({
             getGroupsNotAssociatedToChannel,
             setModalSearchTerm,
             linkGroupSyncable,

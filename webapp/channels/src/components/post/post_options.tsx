@@ -66,8 +66,9 @@ const PostOptions = (props: Props): JSX.Element => {
     const [showActionsMenu, setShowActionsMenu] = useState(false);
 
     useEffect(() => {
+        const locationToUse = props.location === 'RHS_COMMENT' ? Locations.RHS_ROOT : props.location;
         if (props.isLastPost &&
-            (props.shortcutReactToLastPostEmittedFrom === props.location) &&
+            (props.shortcutReactToLastPostEmittedFrom === locationToUse) &&
                 props.isPostHeaderVisible) {
             toggleEmojiPicker();
             props.actions.emitShortcutReactToLastPostFrom(Locations.NO_WHERE);

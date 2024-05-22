@@ -252,7 +252,7 @@ function setNotificationSettings(desiredSettings = {first: true, username: true,
     cy.findAllByText('Notifications').should('be.visible');
 
     // Open up 'Words that trigger mentions' sub-section
-    cy.findByText('Keywords that trigger Notifications').
+    cy.findByText('Keywords that trigger notifications').
         scrollIntoView().
         click();
 

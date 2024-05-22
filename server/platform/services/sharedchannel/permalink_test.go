@@ -26,6 +26,7 @@ func TestProcessPermalinkToRemote(t *testing.T) {
 	mockStore := &mocks.Store{}
 	mockPostStore := mocks.PostStore{}
 	utils.TranslationsPreInit()
+	logger := mlog.CreateConsoleTestLogger(t)
 
 	pl := &model.PostList{}
 	mockPostStore.On("Get", context.Background(), "postID", model.GetPostsOptions{SkipFetchThreads: true}, "", map[string]bool{}).Return(pl, nil)
@@ -34,7 +35,7 @@ func TestProcessPermalinkToRemote(t *testing.T) {
 
 	mockServer := scs.server.(*MockServerIface)
 	mockServer.On("GetStore").Return(mockStore)
-	mockServer.On("Log").Return(mlog.NewLogger())
+	mockServer.On("Log").Return(logger)
 
 	mockApp := scs.app.(*MockAppIface)
 	mockApp.On("SendEphemeralPost", mock.Anything, "user", mock.AnythingOfType("*model.Post")).Return(&model.Post{}).Times(1)

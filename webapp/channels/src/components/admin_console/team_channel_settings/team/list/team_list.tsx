@@ -8,6 +8,7 @@ import {Link} from 'react-router-dom';
 import type {Team, TeamSearchOpts, TeamsWithCount} from '@mattermost/types/teams';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import type {Column} from 'components/admin_console/data_grid/data_grid';
@@ -26,7 +27,7 @@ type Props = {
     data: Team[];
     total: number;
     actions: {
-        searchTeams(term: string, opts: TeamSearchOpts): Promise<{data: TeamsWithCount}>;
+        searchTeams(term: string, opts: TeamSearchOpts): Promise<ActionResult<TeamsWithCount>>;
         getData(page: number, size: number): void;
     };
     isLicensedForLDAPGroups?: boolean;

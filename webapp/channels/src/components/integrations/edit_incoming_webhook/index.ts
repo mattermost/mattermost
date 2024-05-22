@@ -3,24 +3,17 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
-import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getIncomingHook, updateIncomingHook} from 'mattermost-redux/actions/integrations';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import EditIncomingWebhook from './edit_incoming_webhook';
 
 type Props = {
     location: Location;
-}
-
-type Actions = {
-    updateIncomingHook: (hook: IncomingWebhook) => Promise<ActionResult>;
-    getIncomingHook: (hookId: string) => Promise<ActionResult>;
 }
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
@@ -39,9 +32,9 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             updateIncomingHook,
             getIncomingHook,
         }, dispatch),

@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    image: "mysql/mysql-server:5.7.12"
+    image: "mysql/mysql-server:8.0.32"
     restart: always
     networks:
       - mm-test
@@ -19,12 +19,15 @@ services:
     volumes:
       - ./docker/mysql.conf.d/source.cnf:/etc/mysql/conf.d/mysql.cnf
   mysql-read-replica:
-    image: "mysql/mysql-server:5.7.12"
+    image: "mysql/mysql-server:8.0.32"
     restart: always
     networks:
       - mm-test
     ports:
-      - 3307:3306
+      - target: 3306
+        published: 3307
+        protocol: tcp
+        mode: host
     environment:
       MYSQL_ROOT_HOST: "%"
       MYSQL_ROOT_PASSWORD: mostest
@@ -101,28 +104,46 @@ services:
     networks:
       - mm-test
   keycloak:
-    image: "jboss/keycloak:10.0.2"
+    image: "quay.io/keycloak/keycloak:23.0.7"
     restart: always
-    environment:
-      KEYCLOAK_USER: mmuser
-      KEYCLOAK_PASSWORD: mostest
-      DB_VENDOR: h2
-      KEYCLOAK_IMPORT: /setup/realm.json
+    entrypoint: /opt/keycloak/bin/kc.sh start --import-realm
     networks:
       - mm-test
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HOSTNAME_STRICT_HTTPS: 'false'
+      KC_HTTP_ENABLED: 'true'
     volumes:
-     - "./docker/keycloak:/setup"
+     - "./docker/keycloak:/opt/keycloak/data/import"
   prometheus:
     image: "prom/prometheus:v2.46.0"
+    user: root
     volumes:
       - "./docker/prometheus${IS_LINUX}.yml:/etc/prometheus/prometheus.yml"
+      - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - mm-test
   grafana:
-    image: "grafana/grafana:10.0.3"
+    image: "grafana/grafana:10.4.2"
     volumes:
-     - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
-     - "./docker/grafana/provisioning:/etc/grafana/provisioning"
-     - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
+      - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
+      - "./docker/grafana/provisioning:/etc/grafana/provisioning"
+      - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
+    networks:
+      - mm-test
+  loki:
+    image: "grafana/loki:3.0.0"
+    networks:
+      - mm-test
+  promtail:
+    image: "grafana/promtail:3.0.0"
+    volumes:
+      - "./docker/promtail/promtail-local-config.yaml:/etc/promtail/docker-config.yaml"
+      - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "../logs:/logs"
+    command: -config.file=/etc/promtail/docker-config.yaml
     networks:
       - mm-test

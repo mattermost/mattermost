@@ -74,7 +74,6 @@
 
 @mixin clearfix {
     overflow: hidden;
-    *zoom: 1;
 }
 
 @mixin pie-clearfix {
@@ -83,16 +82,14 @@
         clear: both;
         content: "";
     }
-
-    *zoom: 1;
 }
 
 @mixin tertiary-button {
     display: inline-flex;
     align-items: center;
     border: 0;
-    background: rgba(var(--button-bg-rgb), 0.08);
     border-radius: 4px;
+    background: rgba(var(--button-bg-rgb), 0.08);
     color: var(--button-bg);
     font-weight: 600;
     transition: all 0.15s ease-out;
@@ -130,8 +127,8 @@
     align-items: center;
     justify-content: center;
     border: 0;
-    background: var(--button-bg);
     border-radius: 4px;
+    background: var(--button-bg);
     color: var(--button-color);
     font-weight: 600;
     transition: all 0.15s ease-out;
@@ -168,8 +165,8 @@
     align-items: center;
     justify-content: center;
     border: 1px solid var(--denim-button-bg);
-    background: var(--center-channel-bg);
     border-radius: 4px;
+    background: var(--center-channel-bg);
     color: var(--button-bg);
     font-weight: 600;
     transition: all 0.15s ease-out;
@@ -271,9 +268,9 @@
     align-items: center;
     justify-content: center;
     border: 0;
-    background: none;
     border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    background: none;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
 
     &:focus,
     &:focus-within {
@@ -286,7 +283,7 @@
     &:hover {
         border: 0;
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.8);
     }
 
     &:active {
@@ -416,4 +413,10 @@
     60% {
         transform: translate3d(4px, 0, 0);
     }
+}
+
+@mixin textEllipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

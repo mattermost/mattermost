@@ -1,9 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
+import {getChannelHeaderMenuPluginComponents, getPluginUserSettings} from 'selectors/plugins';
 
 describe('selectors/plugins', () => {
+    describe('getPluginUserSettings', () => {
+        it('has no settings', () => {
+            const state = {
+                plugins: {},
+            };
+            const settings = getPluginUserSettings(state);
+            expect(settings).toEqual({});
+        });
+        it('has settings', () => {
+            const stateSettings = {
+                pluginId: {
+                    id: 'pluginId',
+                },
+                pluginId2: {
+                    id: 'pluginId2',
+                },
+            };
+            const state = {
+                plugins: {
+                    userSettings: stateSettings,
+                },
+            };
+            const settings = getPluginUserSettings(state);
+            expect(settings).toEqual(stateSettings);
+        });
+    });
+
     describe('getChannelHeaderMenuPluginComponents', () => {
         test('no channel header components found', () => {
             const expectedComponents = [];

@@ -132,7 +132,7 @@ const notices: Notice[] = [
                 return false;
             }
 
-            if (analytics.TOTAL_USERS < USERS_THRESHOLD) {
+            if (analytics.TOTAL_USERS && analytics.TOTAL_USERS < USERS_THRESHOLD) {
                 return false;
             }
 

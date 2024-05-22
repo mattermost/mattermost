@@ -62,6 +62,7 @@ type FileBackendSettings struct {
 	SkipVerify                         bool
 	AmazonS3RequestTimeoutMilliseconds int64
 	AmazonS3PresignExpiresSeconds      int64
+	AmazonS3UploadPartSizeBytes        int64
 }
 
 func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
@@ -85,6 +86,7 @@ func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableCo
 		AmazonS3Trace:                      fileSettings.AmazonS3Trace != nil && *fileSettings.AmazonS3Trace,
 		AmazonS3RequestTimeoutMilliseconds: *fileSettings.AmazonS3RequestTimeoutMilliseconds,
 		SkipVerify:                         skipVerify,
+		AmazonS3UploadPartSizeBytes:        *fileSettings.AmazonS3UploadPartSizeBytes,
 	}
 }
 
@@ -109,6 +111,7 @@ func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, en
 		AmazonS3Trace:                      fileSettings.ExportAmazonS3Trace != nil && *fileSettings.ExportAmazonS3Trace,
 		AmazonS3RequestTimeoutMilliseconds: *fileSettings.ExportAmazonS3RequestTimeoutMilliseconds,
 		AmazonS3PresignExpiresSeconds:      *fileSettings.ExportAmazonS3PresignExpiresSeconds,
+		AmazonS3UploadPartSizeBytes:        *fileSettings.ExportAmazonS3UploadPartSizeBytes,
 		SkipVerify:                         skipVerify,
 	}
 }
@@ -159,7 +162,7 @@ func newFileBackend(settings FileBackendSettings, canBeCloud bool) (FileBackend,
 // TryWriteFileContext checks if the file backend supports context writes and passes the context in that case.
 // Should the file backend not support contexts, it just calls WriteFile instead. This can be used to disable
 // the timeouts for long writes (like exports).
-func TryWriteFileContext(fb FileBackend, ctx context.Context, fr io.Reader, path string) (int64, error) {
+func TryWriteFileContext(ctx context.Context, fb FileBackend, fr io.Reader, path string) (int64, error) {
 	type ContextWriter interface {
 		WriteFileContext(context.Context, io.Reader, string) (int64, error)
 	}

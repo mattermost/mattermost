@@ -62,6 +62,10 @@ func (group *Group) Auditable() map[string]interface{} {
 	}
 }
 
+func (group *Group) LogClone() any {
+	return group.Auditable()
+}
+
 type GroupWithUserIds struct {
 	Group
 	UserIds []string `json:"user_ids"`

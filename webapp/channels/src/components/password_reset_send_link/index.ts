@@ -3,21 +3,14 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
-
-import type {ServerError} from '@mattermost/types/errors';
+import type {Dispatch} from 'redux';
 
 import {sendPasswordResetEmail} from 'mattermost-redux/actions/users';
-import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import PasswordResetSendLink from './password_reset_send_link';
 
-type Actions = {
-    sendPasswordResetEmail: (emal: string) => Promise<{data: any; error: ServerError}>;
-}
-
-const mapDispatchToProps = (dispatch: Dispatch<GenericAction>) => ({
-    actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+    actions: bindActionCreators({
         sendPasswordResetEmail,
     }, dispatch),
 });

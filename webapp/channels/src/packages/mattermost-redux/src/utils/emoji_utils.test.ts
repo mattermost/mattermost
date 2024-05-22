@@ -6,75 +6,39 @@ import * as EmojiUtils from 'mattermost-redux/utils/emoji_utils';
 import TestHelper from '../../test/test_helper';
 
 describe('EmojiUtils', () => {
-    describe('parseNeededCustomEmojisFromText', () => {
-        it('no emojis', () => {
-            const actual = EmojiUtils.parseNeededCustomEmojisFromText(
+    describe('parseEmojiNamesFromText', () => {
+        test('should return empty array for text without emojis', () => {
+            const actual = EmojiUtils.parseEmojiNamesFromText(
                 'This has no emojis',
-                new Set(),
-                new Map(),
-                new Set(),
             );
-            const expected = new Set([]);
+            const expected: string[] = [];
 
             expect(actual).toEqual(expected);
         });
 
-        it('some emojis', () => {
-            const actual = EmojiUtils.parseNeededCustomEmojisFromText(
+        test('should return anything that looks like an emoji', () => {
+            const actual = EmojiUtils.parseEmojiNamesFromText(
                 ':this: :is_all: :emo-jis: :123:',
-                new Set(),
-                new Map(),
-                new Set(),
             );
-            const expected = new Set(['this', 'is_all', 'emo-jis', '123']);
+            const expected = ['this', 'is_all', 'emo-jis', '123'];
 
             expect(actual).toEqual(expected);
         });
 
-        it('text surrounding emojis', () => {
-            const actual = EmojiUtils.parseNeededCustomEmojisFromText(
+        test('should correctly handle text surrounding emojis', () => {
+            const actual = EmojiUtils.parseEmojiNamesFromText(
                 ':this:/:is_all: (:emo-jis:) surrounding:123:text:456:asdf',
-                new Set(),
-                new Map(),
-                new Set(),
             );
-            const expected = new Set(['this', 'is_all', 'emo-jis', '123', '456']);
+            const expected = ['this', 'is_all', 'emo-jis', '123', '456'];
 
             expect(actual).toEqual(expected);
         });
 
-        it('system emojis', () => {
-            const actual = EmojiUtils.parseNeededCustomEmojisFromText(
-                ':this: :is_all: :emo-jis: :123:',
-                new Set(['this', '123']),
-                new Map(),
-                new Set(),
+        test('should not return duplicates', () => {
+            const actual = EmojiUtils.parseEmojiNamesFromText(
+                ':emoji: :emoji: :emoji: :emoji:',
             );
-            const expected = new Set(['is_all', 'emo-jis']);
-
-            expect(actual).toEqual(expected);
-        });
-
-        it('custom emojis', () => {
-            const actual = EmojiUtils.parseNeededCustomEmojisFromText(
-                ':this: :is_all: :emo-jis: :123:',
-                new Set(),
-                new Map([['is_all', TestHelper.getCustomEmojiMock({name: 'is_all'})], ['emo-jis', TestHelper.getCustomEmojiMock({name: 'emo-jis'})]]),
-                new Set(),
-            );
-            const expected = new Set(['this', '123']);
-
-            expect(actual).toEqual(expected);
-        });
-
-        it('emojis that we\'ve already tried to load', () => {
-            const actual = EmojiUtils.parseNeededCustomEmojisFromText(
-                ':this: :is_all: :emo-jis: :123:',
-                new Set(),
-                new Map(),
-                new Set(['this', 'emo-jis']),
-            );
-            const expected = new Set(['is_all', '123']);
+            const expected = ['emoji'];
 
             expect(actual).toEqual(expected);
         });

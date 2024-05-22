@@ -3,19 +3,16 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
-import type {Action} from 'mattermost-redux/types/actions';
-
-import {addReaction} from 'actions/post_actions';
+import {toggleReaction} from 'actions/post_actions';
 
 import PostReaction from './post_reaction';
-import type {Props} from './post_reaction';
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Props['actions']>({
-            addReaction,
+        actions: bindActionCreators({
+            toggleReaction,
         }, dispatch),
     };
 }

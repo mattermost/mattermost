@@ -37,18 +37,12 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
     closeLabel="Close"
   >
     <button
-      aria-label="Close"
+      aria-label="Back"
       className="modal-header-back-button btn btn-icon"
       onClick={[Function]}
       type="button"
     >
-      <LocalizedIcon
-        ariaLabel={
-          Object {
-            "defaultMessage": "Back",
-            "id": "user_groups_modal.goBackLabel",
-          }
-        }
+      <i
         className="icon icon-arrow-left"
       />
     </button>

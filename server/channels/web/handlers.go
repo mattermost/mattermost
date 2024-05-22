@@ -31,7 +31,8 @@ import (
 )
 
 const (
-	frameAncestors = "'self' teams.microsoft.com"
+	frameAncestors   = "'self' teams.microsoft.com"
+	maxURLCharacters = 2048
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -86,6 +87,7 @@ type Handler struct {
 	IsStatic                  bool
 	IsLocal                   bool
 	DisableWhenBusy           bool
+	FileAPI                   bool
 
 	cspShaDirective string
 }
@@ -142,7 +144,20 @@ func generateDevCSP(c Context) string {
 	return " " + strings.Join(devCSP, " ")
 }
 
+func (h Handler) basicSecurityChecks(w http.ResponseWriter, r *http.Request) *model.AppError {
+	if len(r.RequestURI) > maxURLCharacters {
+		return model.NewAppError("basicSecurityChecks", "basic_security_check.url.too_long_error", nil, "", http.StatusRequestURITooLong)
+	}
+
+	return nil
+}
+
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if appErr := h.basicSecurityChecks(w, r); appErr != nil {
+		http.Error(w, appErr.Error(), appErr.StatusCode)
+		return
+	}
+
 	w = newWrappedWriter(w)
 	now := time.Now()
 
@@ -205,7 +220,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			span.Finish()
 		}()
-		c.AppContext.SetContext(ctx)
+		c.AppContext = c.AppContext.WithContext(ctx)
 
 		tmpSrv := *c.App.Srv()
 		tmpSrv.SetStore(opentracinglayer.New(c.App.Srv().Store(), ctx))
@@ -213,13 +228,16 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
 	}
 
-	// Set the max request body size to be equal to MaxFileSize.
-	// Ideally, non-file request bodies should be smaller than file request bodies,
-	// but we don't have a clean way to identify all file upload handlers.
-	// So to keep it simple, we clamp it to the max file size.
-	// We add a buffer of bytes.MinRead so that file sizes close to max file size
-	// do not get cut off.
-	r.Body = http.MaxBytesReader(w, r.Body, *c.App.Config().FileSettings.MaxFileSize+bytes.MinRead)
+	var maxBytes int64
+	if h.FileAPI {
+		// We add a buffer of bytes.MinRead so that file sizes close to max file size
+		// do not get cut off.
+		maxBytes = *c.App.Config().FileSettings.MaxFileSize + bytes.MinRead
+	} else {
+		maxBytes = *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes + bytes.MinRead
+	}
+
+	r.Body = http.MaxBytesReader(w, r.Body, maxBytes)
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
@@ -240,11 +258,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Referrer-Policy", "no-referrer")
 
-	cloudCSP := ""
-	if c.App.Channels().License().IsCloud() || *c.App.Config().ServiceSettings.SelfHostedPurchase {
-		cloudCSP = " js.stripe.com/v3"
-	}
-
 	if h.IsStatic {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
@@ -253,9 +266,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors %s; script-src 'self' cdn.rudderlabs.com%s%s%s",
+			"frame-ancestors %s; script-src 'self' cdn.rudderlabs.com%s%s",
 			frameAncestors,
-			cloudCSP,
 			h.cspShaDirective,
 			devCSP,
 		))
@@ -285,7 +297,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
 			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
-			c.AppContext.SetSession(session)
+			c.AppContext = c.AppContext.WithSession(session)
 		}
 
 		// Rate limit by UserID
@@ -301,7 +313,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Logger.Warn("Invalid CWS token", mlog.Err(err))
 			c.Err = err
 		} else {
-			c.AppContext.SetSession(session)
+			c.AppContext = c.AppContext.WithSession(session)
 		}
 	} else if token != "" && c.App.Channels().License() != nil && c.App.Channels().License().HasRemoteClusterService() && tokenLocation == app.TokenLocationRemoteClusterHeader {
 		// Get the remote cluster
@@ -315,7 +327,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				c.Logger.Warn("Invalid remote cluster token", mlog.Err(err))
 				c.Err = err
 			} else {
-				c.AppContext.SetSession(session)
+				c.AppContext = c.AppContext.WithSession(session)
 			}
 		}
 	}
@@ -327,7 +339,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.String("user_id", c.AppContext.Session().UserId),
 		mlog.String("method", r.Method),
 	)
-	c.AppContext.SetLogger(c.Logger)
+	c.AppContext = c.AppContext.WithLogger(c.Logger)
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()
@@ -354,7 +366,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// shape IP:PORT (it will be "@" in Linux, for example)
 		isLocalOrigin := !strings.Contains(r.RemoteAddr, ":")
 		if *c.App.Config().ServiceSettings.EnableLocalMode && isLocalOrigin {
-			c.AppContext.SetSession(&model.Session{Local: true})
+			c.AppContext = c.AppContext.WithSession(&model.Session{Local: true})
 		} else if !isLocalOrigin {
 			c.Err = model.NewAppError("", "api.context.local_origin_required.app_error", nil, "LocalOriginRequired", http.StatusUnauthorized)
 		}
@@ -376,17 +388,16 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Block out detailed error when not in developer mode
 		if !*c.App.Config().ServiceSettings.EnableDeveloper {
-			c.Err.DetailedError = ""
+			c.Err.WipeDetailed()
 		}
 
 		// Sanitize all 5xx error messages in hardened mode
 		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err.StatusCode >= 500 {
 			c.Err.Id = ""
 			c.Err.Message = "Internal Server Error"
-			c.Err.DetailedError = ""
+			c.Err.WipeDetailed()
 			c.Err.StatusCode = 500
 			c.Err.Where = ""
-			c.Err.IsOAuth = false
 		}
 
 		if IsAPICall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthAPICall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {
@@ -413,9 +424,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				pageLoadContext = ""
 			}
 
-			originClient := string(originClient(r))
-
-			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, originClient, pageLoadContext, elapsed)
+			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, string(GetOriginClient(r)), pageLoadContext, elapsed)
 		}
 	}
 }
@@ -429,12 +438,12 @@ const (
 	OriginClientDesktop OriginClient = "desktop"
 )
 
-// originClient returns the device from which the provided request was issued. The algorithm roughly looks like:
+// GetOriginClient returns the device from which the provided request was issued. The algorithm roughly looks like:
 // - If the URL contains the query mobilev2=true, then it's mobile
 // - If the first field of the user agent starts with either "rnbeta" or "Mattermost", then it's mobile
 // - If the last field of the user agent starts with "Mattermost", then it's desktop
 // - Otherwise, it's web
-func originClient(r *http.Request) OriginClient {
+func GetOriginClient(r *http.Request) OriginClient {
 	userAgent := r.Header.Get("User-Agent")
 	fields := strings.Fields(userAgent)
 	if len(fields) < 1 {
@@ -501,7 +510,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 		}
 
 		if !csrfCheckPassed {
-			c.AppContext.SetSession(&model.Session{})
+			c.AppContext = c.AppContext.WithSession(&model.Session{})
 			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
 		}
 	}

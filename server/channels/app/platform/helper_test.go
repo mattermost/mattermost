@@ -21,7 +21,7 @@ import (
 )
 
 type TestHelper struct {
-	Context *request.Context
+	Context request.CTX
 	Service *PlatformService
 	Suite   SuiteIFace
 
@@ -187,7 +187,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		th.Service.SetLicense(nil)
 	}
 
-	err = th.Service.Start()
+	err = th.Service.Start(nil)
 	if err != nil {
 		panic(err)
 	}
@@ -231,7 +231,7 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 	}
 
 	var err error
-	user, err = th.Service.Store.User().Save(user)
+	user, err = th.Service.Store.User().Save(th.Context, user)
 	if err != nil {
 		panic(err)
 	}
@@ -252,7 +252,7 @@ func (th *TestHelper) CreateAdmin() *model.User {
 	}
 
 	var err error
-	user, err = th.Service.Store.User().Save(user)
+	user, err = th.Service.Store.User().Save(th.Context, user)
 	if err != nil {
 		panic(err)
 	}
@@ -283,7 +283,7 @@ func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) 
 	}
 
 	var err error
-	channel, err = th.Service.Store.Channel().Save(channel, 999)
+	channel, err = th.Service.Store.Channel().Save(th.Context, channel, 999)
 	if err != nil {
 		panic(err)
 	}

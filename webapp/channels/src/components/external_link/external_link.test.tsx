@@ -4,9 +4,10 @@
 import {mount} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
-import type {DeepPartial} from 'redux';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import type {GlobalState} from 'types/store';
@@ -33,6 +34,7 @@ describe('components/external_link', () => {
         const wrapper = mount(
             <Provider store={store}>
                 <ExternalLink
+                    location='test'
                     href='https://mattermost.com'
 
                 >{'Click Me'}</ExternalLink>
@@ -55,8 +57,11 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
-            <ExternalLink href='https://mattermost.com'>
+        renderWithContext(
+            <ExternalLink
+                location='test'
+                href='https://mattermost.com'
+            >
                 {'Click Me'}
             </ExternalLink>,
             state,
@@ -64,7 +69,7 @@ describe('components/external_link', () => {
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
             'href',
-            expect.stringMatching('utm_source=mattermost&utm_medium=in-product-cloud&utm_content=&uid=currentUserId&sid='),
+            expect.stringMatching('utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid='),
         );
     });
 
@@ -81,8 +86,11 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
-            <ExternalLink href='https://mattermost.com?test=true'>
+        renderWithContext(
+            <ExternalLink
+                location='test'
+                href='https://mattermost.com?test=true'
+            >
                 {'Click Me'}
             </ExternalLink>,
             state,
@@ -90,7 +98,7 @@ describe('components/external_link', () => {
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
             'href',
-            'https://mattermost.com?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=&uid=currentUserId&sid=&test=true',
+            'https://mattermost.com?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=&test=true',
         );
     });
 
@@ -107,8 +115,11 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
-            <ExternalLink href='https://google.com'>
+        renderWithContext(
+            <ExternalLink
+                location='test'
+                href='https://google.com'
+            >
                 {'Click Me'}
             </ExternalLink>,
             state,
@@ -133,11 +144,12 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <ExternalLink
                 target='test'
                 rel='test'
                 href='https://google.com'
+                location='test'
             >{'Click Me'}</ExternalLink>,
             state,
         );
@@ -167,8 +179,9 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <ExternalLink
+                location='test'
                 href='https://mattermost.com#desktop'
             >
                 {'Click Me'}
@@ -178,7 +191,7 @@ describe('components/external_link', () => {
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
             'href',
-            'https://mattermost.com?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=&uid=currentUserId&sid=#desktop',
+            'https://mattermost.com?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=#desktop',
         );
     });
 });

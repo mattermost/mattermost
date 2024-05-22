@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, AnyAction, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -11,7 +11,6 @@ import {getChannelStats, updateChannelMemberSchemeRoles, removeChannelMember, ge
 import {Permissions} from 'mattermost-redux/constants';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {Action} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
@@ -42,9 +41,9 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, any>({
+        actions: bindActionCreators({
             getChannelMember,
             getChannelStats,
             updateChannelMemberSchemeRoles,

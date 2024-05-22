@@ -56,7 +56,7 @@ const StartTrialBtn = ({
     ) : (
         <a
             id={id}
-            className='StartTrialBtn start-trial-btn'
+            className='btn btn-secondary'
             onClick={startTrial}
         >
             {btnText}

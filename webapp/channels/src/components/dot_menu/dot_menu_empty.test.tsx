@@ -60,6 +60,7 @@ describe('components/dot_menu/DotMenu returning empty ("")', () => {
             threadId: 'post_id_1',
             userId: 'user_id_1',
             isMilitaryTime: false,
+            canMove: true,
         };
 
         const wrapper = shallow(

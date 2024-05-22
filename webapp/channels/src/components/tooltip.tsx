@@ -14,6 +14,9 @@ type Props = {
     placement?: string;
 };
 
+/**
+ * @deprecated Use (and expand when extrictly needed) WithTooltip instead
+ */
 export default function Tooltip(props: Props) {
     return (
         <RBTooltip

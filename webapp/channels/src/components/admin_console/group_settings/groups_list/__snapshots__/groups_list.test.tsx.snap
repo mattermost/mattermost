@@ -104,7 +104,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           className="filter-check checked"
           onClick={[Function]}
         >
-          <CheckboxCheckedIcon />
+          <Memo(CheckboxCheckedIcon) />
         </span>
         <span>
           <MemoizedFormattedMessage
@@ -120,7 +120,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           className="filter-check checked"
           onClick={[Function]}
         >
-          <CheckboxCheckedIcon />
+          <Memo(CheckboxCheckedIcon) />
         </span>
         <span>
           <MemoizedFormattedMessage
@@ -318,9 +318,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -445,9 +443,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -572,9 +568,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -734,9 +728,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -987,9 +979,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -1240,9 +1230,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -1402,9 +1390,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>
@@ -1591,9 +1577,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
       onClick={[Function]}
       type="button"
     >
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </button>
   </div>
 </div>

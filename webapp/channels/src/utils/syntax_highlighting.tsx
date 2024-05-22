@@ -145,6 +145,7 @@ async function registerLanguage(languageName: string) {
         vbscript: () => import('highlight.js/lib/languages/vbscript'),
         verilog: () => import('highlight.js/lib/languages/verilog'),
         vhdl: () => import('highlight.js/lib/languages/vhdl'),
+        vtt: () => import('highlight.js/lib/languages/plaintext'),
         xml: () => import('highlight.js/lib/languages/xml'),
         yaml: () => import('highlight.js/lib/languages/yaml'),
     };
