@@ -168,11 +168,9 @@
         }
 
         .user-profile-popover-pluggables {
-            padding: 0 16px;
-            @include textEllipsis;
-
             &:not(:empty) {
-                padding-bottom: 12px;
+                padding: 0 16px 12px 16px;
+                @include textEllipsis;
             }
         }
 
