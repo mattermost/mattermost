@@ -657,6 +657,7 @@ func (u *User) SanitizeInput(isAdmin bool) {
 		u.AuthService = ""
 		u.EmailVerified = false
 	}
+	u.RemoteId = NewString("")
 	u.DeleteAt = 0
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
