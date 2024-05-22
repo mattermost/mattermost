@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	maxUsersLimit     = 10_000
+	maxUsersLimit     = 5_000
 	maxUsersHardLimit = 11_000
 )
 
