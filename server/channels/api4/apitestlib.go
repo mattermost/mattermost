@@ -498,8 +498,8 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
 	th.Client.DeleteChannel(context.Background(), th.BasicDeletedChannel.Id)
 	th.LoginBasic()
-
 	th.Group = th.CreateGroup()
+
 	return th
 }
 
