@@ -1048,9 +1048,9 @@ export function addChannelMember(channelId: string, userId: string, postRootId =
     };
 }
 
-export function addChannelMembers(channelId: string, userIds: string[], postRootId = ''): ActionFunc {
+export function addChannelMembers(channelId: string, userIds: string[], postRootId = ''): ActionFuncAsync {
     const batchSize = 1000;
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const batches = [];
         for (let i = 0; i < userIds.length; i += batchSize) {
             batches.push(userIds.slice(i, i + batchSize));
