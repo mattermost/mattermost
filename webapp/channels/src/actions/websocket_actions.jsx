@@ -1632,9 +1632,9 @@ function handleThreadReadChanged(msg) {
                 ),
             );
         } else if (msg.broadcast.channel_id) {
-            handleAllThreadsInChannelMarkedRead(doDispatch, doGetState, msg.broadcast.channel_id, msg.data.timestamp);
+            doDispatch(handleAllThreadsInChannelMarkedRead(msg.broadcast.channel_id, msg.data.timestamp));
         } else {
-            handleAllMarkedRead(doDispatch, msg.broadcast.team_id);
+            doDispatch(handleAllMarkedRead(msg.broadcast.team_id));
         }
     };
 }
