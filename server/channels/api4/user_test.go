@@ -115,6 +115,33 @@ func TestCreateUser(t *testing.T) {
 		_, appErr = th.App.GetUserByUsername(user3.Username)
 		require.NotNil(t, appErr)
 	}, "Should not be able to create two users with the same email but spaces in it")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		email := th.GenerateTestEmail()
+		newUser := &model.User{
+			Id:            model.NewId(),
+			RemoteId:      model.NewString(model.NewId()),
+			Email:         email,
+			Password:      "Password1",
+			Username:      GenerateTestUsername(),
+			EmailVerified: true,
+		}
+
+		_, resp, err = client.CreateUser(context.Background(), newUser)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "Must call update for existing user")
+		CheckBadRequestStatus(t, resp)
+		_, appErr := th.App.GetUserByEmail(email)
+		require.NotNil(t, appErr)
+
+		newUser.Id = ""
+		_, resp, err = client.CreateUser(context.Background(), newUser)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		createdUser, appErr := th.App.GetUserByEmail(email)
+		require.Nil(t, appErr)
+		require.Zero(t, *createdUser.RemoteId)
+	}, "Should not be able to define the RemoteID of a user through the API")
 }
 
 func TestCreateUserAudit(t *testing.T) {
@@ -3845,7 +3872,8 @@ func TestLogin(t *testing.T) {
 	t.Run("remote user login rejected", func(t *testing.T) {
 		email := th.GenerateTestEmail()
 		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewString("remote-id")}
-		ruser, _, _ := th.Client.CreateUser(context.Background(), &user)
+		ruser, appErr := th.App.CreateUser(th.Context, &user)
+		require.Nil(t, appErr)
 
 		_, err := th.SystemAdminClient.UpdateUserPassword(context.Background(), ruser.Id, "", "password")
 		require.NoError(t, err)
