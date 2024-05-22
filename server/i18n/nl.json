@@ -4740,11 +4740,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Versie 16.2+"
+    "translation": "Versie 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -4752,11 +4752,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 118+"
+    "translation": "Versie 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 118+"
+    "translation": "Versie 122+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5545,10 +5545,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "Je Enterprise editie licentie is vervallen en sommige functies zijn mogelijk uitgeschakeld. Gelieve je licentie nu te vernieuwen."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Licentie nu vernieuwen"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -7355,22 +7351,6 @@
     "translation": "Aangepaste rechtenschema's worden niet ondersteund door je huidige licentie"
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Geen licentie aanwezig"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Dit type van licentie ondersteunt niet het aanmaken van een vernieuwingstoken"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Fout bij het aanmaken van een nieuw vernieuwingstoken."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Fout bij het ophalen van de link om de licentie te vernieuwen"
-  },
-  {
     "id": "ent.compliance.csv.write_file.appError",
     "translation": "Kan het csv-bestand niet schrijven."
   },
@@ -8402,10 +8382,6 @@
     "translation": "Jouw Mattermost abonnement is aan vernieuwing toe"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Log in op jouw klantenaccount om te verlengen"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, jouw abonnement is ingesteld om te verlopen in {{.Days}} dagen. We hopen dat je de flexibele, veilige teamsamenwerking ervaart die Mattermost mogelijk maakt. Verleng snel jouw Mattermost abonnement om er zeker van te zijn dat jouw team kan blijven profiteren van deze voordelen."
   },
@@ -8414,16 +8390,8 @@
     "translation": "Je licentie is aan vernieuwing toe"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Vernieuw nu"
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Het is niet gelukt om de e-mails over de te vernieuwen licenties te verzenden"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Het is niet gelukt om de link voor licentieverlenging te genereren"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
@@ -8568,10 +8536,6 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Het aantal ontvangen Post ID's heeft de maximumgrootte van {{.MaxLength}} overschreden"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Vernieuwen van deze licentie op het portaal is niet mogelijk"
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
@@ -9014,36 +8978,8 @@
     "translation": "Decodering van de CA voor Elasticsearch is mislukt"
   },
   {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "Review van het actueel aantal gebruikers is niet toegestaan voor cloud-instances"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "Review van het actueel aantal gebruikers vereist een licentie"
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Kon geen rapport met actueel aantal gebruikers verkrijgen"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Kon geen rapport met actueel aantal gebruikers aanmaken"
-  },
-  {
     "id": "api.server.cws.health_check.app_error",
     "translation": "CWS Server is niet beschikbaar."
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Fout bij het ophalen van het totaal aantal uitgaande webhooks"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Fout bij het ophalen van het totaal aantal inkomende webhooks"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Fout bij het ophalen van het totaal aantal actieve gebruikers"
   },
   {
     "id": "api.config.update_config.translations.app_error",
@@ -9148,10 +9084,6 @@
   {
     "id": "ent.elasticsearch.max_version.app_error",
     "translation": "Elasticsearch versie {{.Version}} is hoger dan de maximaal ondersteunde versie van {{.MaxVersion}}"
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Kon geen profiel met actueel aantal gebruikers versturen naar CWS."
   },
   {
     "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
@@ -9571,11 +9503,11 @@
   },
   {
     "id": "app.post.move_thread_command.channel.one_message",
-    "translation": "Een bericht is verplaatst: {{.Link}}\n"
+    "translation": "Een bericht werd verplaatst: {{.Link}}\n"
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
-    "translation": "Een draadje met {{.NumMessages}} berichten is verplaatst naar een Direct/Groepsbericht\n"
+    "translation": "Een draadje met {{.NumMessages}} berichten werd verplaatst naar een Direct/Groepsbericht\n"
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.one_message",
@@ -10098,7 +10030,11 @@
     "translation": "Fout bij het ophalen van het aantal gebruikers"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Fout bij het ophalen van het aantal berichten"
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "Kan het zip-bestand niet sluiten"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Fout bij het zoeken van het begin van exportbestand."
   }
 ]

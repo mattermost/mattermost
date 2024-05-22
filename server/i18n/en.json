@@ -5683,10 +5683,6 @@
     "translation": "Failed to get user count"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Failed to get post count"
-  },
-  {
     "id": "app.login.doLogin.updateLastLogin.error",
     "translation": "Could not update last login timestamp"
   },
@@ -9875,6 +9871,10 @@
     "translation": "A team member with that ID already exists."
   },
   {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "A team with this URL already exists."
+  },
+  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Unable to find an existing account matching your credentials. This team may require an invite from the team owner to join."
   },
@@ -9956,7 +9956,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 16.2+"
+    "translation": "Version 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",

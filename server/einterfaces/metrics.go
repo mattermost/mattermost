@@ -102,4 +102,15 @@ type MetricsInterface interface {
 	IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason)
 	IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason)
 	IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason)
+
+	ObserveClientTimeToFirstByte(platform, agent string, elapsed float64)
+	ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64)
+	ObserveClientLargestContentfulPaint(platform, agent string, elapsed float64)
+	ObserveClientInteractionToNextPaint(platform, agent string, elapsed float64)
+	ObserveClientCumulativeLayoutShift(platform, agent string, elapsed float64)
+	IncrementClientLongTasks(platform, agent string, inc float64)
+	ObserveClientChannelSwitchDuration(platform, agent string, elapsed float64)
+	ObserveClientTeamSwitchDuration(platform, agent string, elapsed float64)
+	ObserveClientRHSLoadDuration(platform, agent string, elapsed float64)
+	ObserveGlobalThreadsLoadDuration(platform, agent string, elapsed float64)
 }

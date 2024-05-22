@@ -5218,10 +5218,6 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请您以访客加入团队 {{ .TeamDisplayName }}"
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "立刻续订许可证"
-  },
-  {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "您的企业许可证已过期并且部分功能已停用。请立刻续订您的许可证。"
   },
@@ -7350,22 +7346,6 @@
     "translation": "无法使用户批量进行索引。"
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "许可证不存在"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "这种类型的许可证不支持续订令牌生成"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "无法生成新的续订令牌。"
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "获取许可证续订链接时出错"
-  },
-  {
     "id": "ent.compliance.global_relay.write_file.appError",
     "translation": "无法写入全局中继文件。"
   },
@@ -8114,10 +8094,6 @@
     "translation": "未能为续订电子邮件发送许可证"
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "无法生成许可证续订链接"
-  },
-  {
     "id": "api.remote_cluster.update_not_unique.app_error",
     "translation": "已存在具有相同网址的安全连接。"
   },
@@ -8282,10 +8258,6 @@
     "translation": "现有安全连接 ID。请参阅 `secure-connection`命令以添加安全连接。"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "立刻续订"
-  },
-  {
     "id": "sharedchannel.permalink.not_found",
     "translation": "这消息包含指向其他频道的永久链接，其他网站的用户可能无法看到。"
   },
@@ -8404,10 +8376,6 @@
   {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "您的 Mattermost 订阅即将需要续订"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "登录您的客户帐户进行续订"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
@@ -8556,10 +8524,6 @@
   {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "提醒"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "无法在门户上续订此许可证"
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
@@ -8802,18 +8766,6 @@
     "translation": "CWS 服务器不可用。"
   },
   {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "无法获得传出 Webhook 总数"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "无法获得传入 Webhook 总数"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "无法获得活跃用户总数"
-  },
-  {
     "id": "api.drafts.disabled.app_error",
     "translation": "草稿功能已被禁用。"
   },
@@ -9050,32 +9002,12 @@
     "translation": "联系销售"
   },
   {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "云实例不允许真实性评估"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "真实性评估需要许可证"
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "无法获取真实的状态记录"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "无法创建真实的状态记录"
-  },
-  {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "无效的用于试用的商务邮箱"
   },
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
     "translation": "未提供自助托管引导的组织名称。"
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "向 CWS 提交 true up 评审配置文件失败。"
   },
   {
     "id": "app.plugin.skip_installation.app_error",
@@ -10076,9 +10008,5 @@
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "获取用户计数失败"
-  },
-  {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "获取消息计数失败"
   }
 ]

@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"sync"
 	"testing"
@@ -2451,9 +2450,6 @@ func TestCountMentionsFromPost(t *testing.T) {
 	})
 
 	t.Run("should count urgent mentions", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 

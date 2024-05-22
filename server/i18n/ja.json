@@ -4711,11 +4711,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 16.2+"
+    "translation": "Version 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -4723,11 +4723,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 118+"
+    "translation": "Version 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 118+"
+    "translation": "Version 122+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5516,10 +5516,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "エンタープライズエディションのライセンスの有効期限が切れ、一部の機能が無効になることがあります。今すぐライセンスを更新してください。"
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "今すぐライセンスを更新する"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -7362,22 +7358,6 @@
     "translation": "エクスポートファイルを書き込めませんでした。"
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "ライセンスがありません"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "このタイプのライセンスは更新トークンの生成をサポートしていません"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "新しい更新トークンを生成できませんでした。"
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "ライセンス更新リンクを取得する際にエラーが発生しました"
-  },
-  {
     "id": "api.file.write_file.app_error",
     "translation": "ファイルを書き込めませんでした。"
   },
@@ -8390,10 +8370,6 @@
     "translation": "トライアルが開始可能か確認できませんでした"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "カスタマーアカウントでログインして更新"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}さん、あなたのサブスクリプションは{{.Days}}日で期限切れになるように設定されています。Mattermostが可能にする柔軟で安全なチームコラボレーションを体験していただければ幸いです。チームがこれらのメリットを引き続き享受できるように、今すぐ更新してください。"
   },
@@ -8402,16 +8378,8 @@
     "translation": "ライセンスは更新中です"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "更新する"
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "ライセンスの確認メールを送信できませんでした"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "ライセンスの更新リンク生成に失敗しました"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
@@ -8560,10 +8528,6 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "受信したPost IDの数が{{.MaxLength}}の最大サイズを超えています"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "ポータルでこのライセンスを更新することはできません"
   },
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
@@ -9010,36 +8974,8 @@
     "translation": "CWSサーバーは使用できません。"
   },
   {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "外向きのウェブフックの総数を取得できませんでした"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "内向きのウェブフックの総数を取得できませんでした"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "総アクティブユーザー数を取得できませんでした"
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "ユーザー名 \"{{.Username}}\" のユーザーは既に存在します。"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "棚卸しはクラウドインスタンスには許可されていません"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "棚卸しにはライセンスが必要です"
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "棚卸し状況のレコードを取得できませんでした"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "棚卸し状況のレコードを作成できませんでした"
   },
   {
     "id": "api.config.update_config.translations.app_error",
@@ -9092,10 +9028,6 @@
   {
     "id": "app.post_persistent_notification.delete_by_channel.app_error",
     "translation": "チャンネル別の永続的な通知を削除できませんでした。"
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "棚卸しプロファイルをCWSに送信できませんでした。"
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
@@ -10064,5 +9996,25 @@
   {
     "id": "model.user.is_valid.pwd_min_length.app_error",
     "translation": "パスワードは{{.Min}}文字以上でなければなりません。"
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "ファイル探索エラー: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "ファイルステータスの読み込みエラー： \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "ユーザー数を取得できませんでした"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "ZIPファイルをクローズできませんでした"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "エクスポートファイルの開始位置が見つかりませんでした。"
   }
 ]

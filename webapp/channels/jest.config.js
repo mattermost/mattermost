@@ -19,6 +19,9 @@ const config = {
         'utils/src/**/*.{js,jsx,ts,tsx}',
     ],
     coverageReporters: ['lcov', 'text-summary'],
+    fakeTimers: {
+        doNotFake: ['performance'],
+    },
     moduleNameMapper: {
         '^@mattermost/(components)$': '<rootDir>/../platform/$1/src',
         '^@mattermost/(client)$': '<rootDir>/../platform/$1/src',
