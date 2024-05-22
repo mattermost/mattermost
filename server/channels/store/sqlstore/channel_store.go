@@ -4233,3 +4233,57 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 	}
 	return &team, nil
 }
+
+func (s SqlChannelStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+	for {
+		var query string
+		if s.DriverName() == "postgres" {
+			query = "UPDATE channels SET CreatorId = ? WHERE Id = any (array (SELECT Id FROM channels WHERE CreatorId = ? LIMIT 1000))"
+		} else {
+			query = "UPDATE channels SET CreatorId = ? WHERE CreatorId = ? LIMIT 1000"
+		}
+
+		sqlResult, err := s.GetMasterX().Exec(query, toUserID, fromUserID)
+		if err != nil {
+			return errors.Wrap(err, "failed to update channels")
+		}
+
+		rowsAffected, err := sqlResult.RowsAffected()
+		if err != nil {
+			return errors.Wrap(err, "failed to update channels")
+		}
+
+		if rowsAffected < 1000 {
+			break
+		}
+	}
+
+	return nil
+}
+
+func (s SqlChannelStore) GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset int, limit int) ([]*model.Channel, error) {
+	query := s.getQueryBuilder().
+		Select("Channels.*").
+		From("Channels").
+		Join("ChannelMembers ON ChannelMembers.ChannelId = Channels.Id").
+		Where(sq.And{
+			sq.Eq{"ChannelMembers.UserId": userID},
+			sq.Eq{"Channels.Type": channelType},
+			sq.Eq{"Channels.DeleteAt": 0},
+		}).
+		Offset(uint64(offset)).
+		Limit(uint64(limit))
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_tosql")
+	}
+
+	channels := []*model.Channel{}
+	err = s.GetReplicaX().Select(&channels, queryString, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Channels")
+	}
+
+	return channels, nil
+}

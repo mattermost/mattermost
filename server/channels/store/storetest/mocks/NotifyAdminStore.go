@@ -92,6 +92,24 @@ func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature mod
 	return r0, r1
 }
 
+// MergeUserId provides a mock function with given fields: toUserID, fromUserID
+func (_m *NotifyAdminStore) MergeUserId(toUserID string, fromUserID string) error {
+	ret := _m.Called(toUserID, fromUserID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MergeUserId")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toUserID, fromUserID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: data
 func (_m *NotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error) {
 	ret := _m.Called(data)

@@ -155,3 +155,30 @@ func (es SqlEmojiStore) getBy(c request.CTX, what, key string) (*model.Emoji, er
 
 	return &emoji, nil
 }
+
+func (es SqlEmojiStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+	for {
+		var query string
+		if es.DriverName() == "postgres" {
+			query = "UPDATE Emoji SET CreatorId = ? WHERE Id = any (array (SELECT Id FROM Emoji WHERE CreatorId = ? LIMIT 1000))"
+		} else {
+			query = "UPDATE Emoji SET CreatorId = ? WHERE CreatorId = ? LIMIT 1000"
+		}
+
+		sqlResult, err := es.GetMasterX().Exec(query, toUserID, fromUserID)
+		if err != nil {
+			return errors.Wrap(err, "failed to update channels")
+		}
+
+		rowsAffected, err := sqlResult.RowsAffected()
+		if err != nil {
+			return errors.Wrap(err, "failed to update channels")
+		}
+
+		if rowsAffected < 1000 {
+			break
+		}
+	}
+
+	return nil
+}

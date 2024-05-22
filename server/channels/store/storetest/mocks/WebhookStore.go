@@ -506,6 +506,42 @@ func (_m *WebhookStore) InvalidateWebhookCache(webhook string) {
 	_m.Called(webhook)
 }
 
+// MergeIncomingWebhookUserId provides a mock function with given fields: toUserID, fromUserID
+func (_m *WebhookStore) MergeIncomingWebhookUserId(toUserID string, fromUserID string) error {
+	ret := _m.Called(toUserID, fromUserID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MergeIncomingWebhookUserId")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toUserID, fromUserID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MergeOutgoingWebhookUserId provides a mock function with given fields: toUserID, fromUserID
+func (_m *WebhookStore) MergeOutgoingWebhookUserId(toUserID string, fromUserID string) error {
+	ret := _m.Called(toUserID, fromUserID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MergeOutgoingWebhookUserId")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toUserID, fromUserID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PermanentDeleteIncomingByChannel provides a mock function with given fields: channelID
 func (_m *WebhookStore) PermanentDeleteIncomingByChannel(channelID string) error {
 	ret := _m.Called(channelID)

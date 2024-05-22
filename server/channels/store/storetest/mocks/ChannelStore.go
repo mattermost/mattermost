@@ -166,6 +166,24 @@ func (_m *ChannelStore) AutocompleteInTeamForSearch(teamID string, userID string
 	return r0, r1
 }
 
+// BatchMergeCreatorId provides a mock function with given fields: toUserID, fromUserID
+func (_m *ChannelStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+	ret := _m.Called(toUserID, fromUserID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchMergeCreatorId")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toUserID, fromUserID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ClearAllCustomRoleAssignments provides a mock function with given fields:
 func (_m *ChannelStore) ClearAllCustomRoleAssignments() error {
 	ret := _m.Called()
@@ -1065,6 +1083,36 @@ func (_m *ChannelStore) GetChannelsByScheme(schemeID string, offset int, limit i
 
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(schemeID, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetChannelsByTypeForUser provides a mock function with given fields: userID, channelType, offset, limit
+func (_m *ChannelStore) GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset int, limit int) ([]*model.Channel, error) {
+	ret := _m.Called(userID, channelType, offset, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetChannelsByTypeForUser")
+	}
+
+	var r0 []*model.Channel
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, model.ChannelType, int, int) ([]*model.Channel, error)); ok {
+		return rf(userID, channelType, offset, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, model.ChannelType, int, int) []*model.Channel); ok {
+		r0 = rf(userID, channelType, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Channel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, model.ChannelType, int, int) error); ok {
+		r1 = rf(userID, channelType, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -741,6 +741,24 @@ func (s *OpenTracingLayerChannelStore) AutocompleteInTeamForSearch(teamID string
 	return result, err
 }
 
+func (s *OpenTracingLayerChannelStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.BatchMergeCreatorId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ChannelStore.BatchMergeCreatorId(toUserID, fromUserID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerChannelStore) ClearAllCustomRoleAssignments() error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.ClearAllCustomRoleAssignments")
@@ -1335,6 +1353,24 @@ func (s *OpenTracingLayerChannelStore) GetChannelsByScheme(schemeID string, offs
 
 	defer span.Finish()
 	result, err := s.ChannelStore.GetChannelsByScheme(schemeID, offset, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerChannelStore) GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset int, limit int) ([]*model.Channel, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelsByTypeForUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetChannelsByTypeForUser(userID, channelType, offset, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -3674,6 +3710,24 @@ func (s *OpenTracingLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error
 	return result, err
 }
 
+func (s *OpenTracingLayerEmojiStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "EmojiStore.BatchMergeCreatorId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.EmojiStore.BatchMergeCreatorId(toUserID, fromUserID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "EmojiStore.Delete")
@@ -5588,6 +5642,24 @@ func (s *OpenTracingLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId stri
 	}
 
 	return result, err
+}
+
+func (s *OpenTracingLayerNotifyAdminStore) MergeUserId(toUserID string, fromUserID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.MergeUserId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.NotifyAdminStore.MergeUserId(toUserID, fromUserID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error) {
@@ -13274,6 +13346,42 @@ func (s *OpenTracingLayerWebhookStore) InvalidateWebhookCache(webhook string) {
 	defer span.Finish()
 	s.WebhookStore.InvalidateWebhookCache(webhook)
 
+}
+
+func (s *OpenTracingLayerWebhookStore) MergeIncomingWebhookUserId(toUserID string, fromUserID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "WebhookStore.MergeIncomingWebhookUserId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.WebhookStore.MergeIncomingWebhookUserId(toUserID, fromUserID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerWebhookStore) MergeOutgoingWebhookUserId(toUserID string, fromUserID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "WebhookStore.MergeOutgoingWebhookUserId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.WebhookStore.MergeOutgoingWebhookUserId(toUserID, fromUserID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerWebhookStore) PermanentDeleteIncomingByChannel(channelID string) error {

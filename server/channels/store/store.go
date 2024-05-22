@@ -308,6 +308,9 @@ type ChannelStore interface {
 	SetShared(channelId string, shared bool) error
 	// GetTeamForChannel returns the team for a given channelID.
 	GetTeamForChannel(channelID string) (*model.Team, error)
+	BatchMergeCreatorId(toUserID string, fromUserID string) error
+
+	GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset int, limit int) ([]*model.Channel, error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -622,6 +625,8 @@ type WebhookStore interface {
 	AnalyticsOutgoingCount(teamID string) (int64, error)
 	InvalidateWebhookCache(webhook string)
 	ClearCaches()
+	MergeIncomingWebhookUserId(toUserID string, fromUserID string) error
+	MergeOutgoingWebhookUserId(toUserID string, fromUserID string) error
 }
 
 type CommandStore interface {
@@ -688,6 +693,7 @@ type EmojiStore interface {
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, timestamp int64) error
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
+	BatchMergeCreatorId(toUserID string, fromUserID string) error
 }
 
 type StatusStore interface {
@@ -964,6 +970,7 @@ type NotifyAdminStore interface {
 	Get(trial bool) ([]*model.NotifyAdminData, error)
 	DeleteBefore(trial bool, now int64) error
 	Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error
+	MergeUserId(toUserID string, fromUserID string) error
 }
 
 type SharedChannelStore interface {

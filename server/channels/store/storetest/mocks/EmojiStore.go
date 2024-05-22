@@ -15,6 +15,24 @@ type EmojiStore struct {
 	mock.Mock
 }
 
+// BatchMergeCreatorId provides a mock function with given fields: toUserID, fromUserID
+func (_m *EmojiStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+	ret := _m.Called(toUserID, fromUserID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchMergeCreatorId")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toUserID, fromUserID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Delete provides a mock function with given fields: emoji, timestamp
 func (_m *EmojiStore) Delete(emoji *model.Emoji, timestamp int64) error {
 	ret := _m.Called(emoji, timestamp)

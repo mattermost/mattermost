@@ -94,3 +94,11 @@ func (s SqlNotifyAdminStore) Update(userId string, requiredPlan string, required
 	}
 	return nil
 }
+
+func (s SqlNotifyAdminStore) MergeUserId(toUserID string, fromUserID string) error {
+	query := "UPDATE NotifyAdmin SET UserId = ? WHERE UserId = ?"
+	if _, err := s.GetMasterX().Exec(query, toUserID, fromUserID); err != nil {
+		return errors.Wrap(err, "failed to update notifyadmin")
+	}
+	return nil
+}

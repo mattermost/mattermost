@@ -711,6 +711,22 @@ func (s *TimerLayerChannelStore) AutocompleteInTeamForSearch(teamID string, user
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+	start := time.Now()
+
+	err := s.ChannelStore.BatchMergeCreatorId(toUserID, fromUserID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.BatchMergeCreatorId", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerChannelStore) ClearAllCustomRoleAssignments() error {
 	start := time.Now()
 
@@ -1249,6 +1265,22 @@ func (s *TimerLayerChannelStore) GetChannelsByScheme(schemeID string, offset int
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelsByScheme", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset int, limit int) ([]*model.Channel, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetChannelsByTypeForUser(userID, channelType, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelsByTypeForUser", success, elapsed)
 	}
 	return result, err
 }
@@ -3357,6 +3389,22 @@ func (s *TimerLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 	return result, err
 }
 
+func (s *TimerLayerEmojiStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+	start := time.Now()
+
+	err := s.EmojiStore.BatchMergeCreatorId(toUserID, fromUserID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("EmojiStore.BatchMergeCreatorId", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) error {
 	start := time.Now()
 
@@ -5065,6 +5113,22 @@ func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, fe
 		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.GetDataByUserIdAndFeature", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerNotifyAdminStore) MergeUserId(toUserID string, fromUserID string) error {
+	start := time.Now()
+
+	err := s.NotifyAdminStore.MergeUserId(toUserID, fromUserID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.MergeUserId", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error) {
@@ -11950,6 +12014,38 @@ func (s *TimerLayerWebhookStore) InvalidateWebhookCache(webhook string) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.InvalidateWebhookCache", success, elapsed)
 	}
+}
+
+func (s *TimerLayerWebhookStore) MergeIncomingWebhookUserId(toUserID string, fromUserID string) error {
+	start := time.Now()
+
+	err := s.WebhookStore.MergeIncomingWebhookUserId(toUserID, fromUserID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.MergeIncomingWebhookUserId", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerWebhookStore) MergeOutgoingWebhookUserId(toUserID string, fromUserID string) error {
+	start := time.Now()
+
+	err := s.WebhookStore.MergeOutgoingWebhookUserId(toUserID, fromUserID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.MergeOutgoingWebhookUserId", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerWebhookStore) PermanentDeleteIncomingByChannel(channelID string) error {

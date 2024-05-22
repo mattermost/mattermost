@@ -806,6 +806,27 @@ func (s *RetryLayerChannelStore) AutocompleteInTeamForSearch(teamID string, user
 
 }
 
+func (s *RetryLayerChannelStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+
+	tries := 0
+	for {
+		err := s.ChannelStore.BatchMergeCreatorId(toUserID, fromUserID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) ClearAllCustomRoleAssignments() error {
 
 	tries := 0
@@ -1474,6 +1495,27 @@ func (s *RetryLayerChannelStore) GetChannelsByScheme(schemeID string, offset int
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetChannelsByScheme(schemeID, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset int, limit int) ([]*model.Channel, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetChannelsByTypeForUser(userID, channelType, offset, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -4127,6 +4169,27 @@ func (s *RetryLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 
 }
 
+func (s *RetryLayerEmojiStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+
+	tries := 0
+	for {
+		err := s.EmojiStore.BatchMergeCreatorId(toUserID, fromUserID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) error {
 
 	tries := 0
@@ -6338,6 +6401,27 @@ func (s *RetryLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, fe
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerNotifyAdminStore) MergeUserId(toUserID string, fromUserID string) error {
+
+	tries := 0
+	for {
+		err := s.NotifyAdminStore.MergeUserId(toUserID, fromUserID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -15152,6 +15236,48 @@ func (s *RetryLayerWebhookStore) GetOutgoingListByUser(userID string, offset int
 func (s *RetryLayerWebhookStore) InvalidateWebhookCache(webhook string) {
 
 	s.WebhookStore.InvalidateWebhookCache(webhook)
+
+}
+
+func (s *RetryLayerWebhookStore) MergeIncomingWebhookUserId(toUserID string, fromUserID string) error {
+
+	tries := 0
+	for {
+		err := s.WebhookStore.MergeIncomingWebhookUserId(toUserID, fromUserID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) MergeOutgoingWebhookUserId(toUserID string, fromUserID string) error {
+
+	tries := 0
+	for {
+		err := s.WebhookStore.MergeOutgoingWebhookUserId(toUserID, fromUserID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
 
 }
 

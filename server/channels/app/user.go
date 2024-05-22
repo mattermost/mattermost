@@ -2895,6 +2895,47 @@ func (a *App) getAllSystemAdmins() ([]*model.User, *model.AppError) {
 	return a.GetUsersFromProfiles(userOptions)
 }
 
+func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId string) error {
+	offset := 0
+
+	for {
+		channelNameMap := make(map[string]*model.Channel)
+		keys := make([]string, 0, 100)
+
+		fromUserDmChannels, err := a.Srv().Store().Channel().GetChannelsByTypeForUser(fromUserId, model.ChannelTypeDirect, offset, 100)
+		if err != nil {
+			return errors.Wrapf(err, "failed to get dm channels for user %s", fromUserId)
+		}
+		for _, fromUserDmChannel := range fromUserDmChannels {
+			channelName := strings.Replace(fromUserDmChannel.Name, fromUserId, toUserId, -1)
+			keys = append(keys, channelName)
+			channelNameMap[channelName] = fromUserDmChannel
+		}
+
+		toUserDmChannels, err := a.Srv().Store().Channel().GetByNames("", keys, true)
+		if err != nil {
+			return errors.Wrapf(err, "failed to get dm channels for user %s", toUserId)
+		}
+
+		for _, toUserDmChannel := range toUserDmChannels {
+			fromUserDmChannel := channelNameMap[toUserDmChannel.Name]
+			delete(channelNameMap, toUserDmChannel.Name)
+			// kick off channel merges for fromUserDmChannel and toUserDmChannel
+		}
+
+		for key, value := range channelNameMap {
+			// update channel information to use toUserId
+		}
+
+		if len(fromUserDmChannels) < 100 {
+			break
+		}
+
+		return nil
+	}
+	return nil
+}
+
 func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeOpts) *model.AppError {
 	toUser, appErr := a.GetUser(opts.ToUserId)
 	if appErr != nil {
@@ -2909,47 +2950,63 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 	// Disable and logout the user being merged
 	a.UpdateActive(rctx, fromUser, false)
 
-	// batch update posts and files fromUser to toUser
+	rctx.Logger().Info("MergeUsers: Batch merging posts and files")
 	err := a.Srv().Store().Post().BatchMergePostAndFileUserId(toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_posts_and_files.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	err = a.BatchMergeDmChannels(rctx, toUser.Id, fromUser.Id)
+
+	rctx.Logger().Info("MergeUsers: Batch merging audit records")
 	err = a.Srv().Store().Audit().BatchMergeUserId(toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_audits.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	rctx.Logger().Info("MergeUsers: Merging bot ownerIds")
 	err = a.Srv().Store().Bot().MergeOwnerId(toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_bots.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	rctx.Logger().Info("MergeUsers: Merging channel bookmarks ownerIds")
 	err = a.Srv().Store().ChannelBookmark().MergeOwnerId(toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_channel_bookmarks.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	rctx.Logger().Info("MergeUsers: Batch merging channel creatorIds")
 	err = a.Srv().Store().Channel().BatchMergeCreatorId(toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	rctx.Logger().Info("MergeUsers: Batch merging emoji creatorIds")
 	err = a.Srv().Store().Emoji().BatchMergeCreatorId(toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_emojis.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	err = a.Srv().Store().Webhook().BatchMergeUserId(toUser.Id, fromUser.Id)
+	rctx.Logger().Info("MergeUsers: Merging incoming webhooks")
+	err = a.Srv().Store().Webhook().MergeIncomingWebhookUserId(toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_incoming_webhooks.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	err = a.Srv().Store().NotifyAdmin().BatchMergeUserId(toUser.Id, fromUser.Id)
+	rctx.Logger().Info("MergeUsers: Merging outgoing webhooks")
+	err = a.Srv().Store().Webhook().MergeOutgoingWebhookUserId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_outgoing_webhooks.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	rctx.Logger().Info("MergeUsers: Merging notify admin records")
+	err = a.Srv().Store().NotifyAdmin().MergeUserId(toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_notify_admin.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// don't think this is needed, primary key is postid,userid
 	err = a.Srv().Store().PostAcknowledgement().BatchMergeUserId(toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_post_acknowledgements.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2967,6 +3024,7 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_product_notices.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	rctx.Logger().Info("MergeUsers: Batch merging reactions")
 	err = a.Srv().Store().Reaction().BatchMergeUserId(toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_reactions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2978,6 +3036,7 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_thread_memberships.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// don't think this is needed
 	err = a.Srv().Store().UserTermsOfService().BatchMergeUserId(toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_user_terms_of_service.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
