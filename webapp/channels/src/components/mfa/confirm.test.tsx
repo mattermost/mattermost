@@ -22,7 +22,6 @@ jest.mock('react-redux', () => ({
     useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
 }));
 
-
 describe('components/mfa/components/Confirm', () => {
     const originalAddEventListener = document.body.addEventListener;
 
@@ -41,7 +40,7 @@ describe('components/mfa/components/Confirm', () => {
                 },
             },
         },
-    }
+    };
 
     afterAll(() => {
         document.body.addEventListener = originalAddEventListener;

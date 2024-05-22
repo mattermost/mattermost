@@ -38,7 +38,6 @@ const PasswordResetSendLink = ({onCustomizeHeader}: Props) => {
         e.preventDefault();
 
         const emailClean = email.trim().toLowerCase();
-        console.log(emailClean)
         if (!email || !isEmail(emailClean)) {
             setErrorText((
                 <FormattedMessage

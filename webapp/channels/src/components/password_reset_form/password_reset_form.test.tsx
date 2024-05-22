@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {fireEvent, render, act, waitFor} from '@testing-library/react';
 import {shallow} from 'enzyme';
 import React from 'react';
-import { fireEvent, render, act, waitFor } from '@testing-library/react';
 
 import {resetUserPassword} from 'mattermost-redux/actions/users';
 
@@ -42,19 +42,19 @@ describe('components/PasswordResetForm', () => {
                 },
             },
         },
-    }
+    };
 
     it('should match snapshot', () => {
-        mockLocation.mockReturnValue({search: '?token='})
+        mockLocation.mockReturnValue({search: '?token='});
         const wrapper = shallow(<PasswordResetForm/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     it('should call the resetUserPassword() action on submit', async () => {
-        mockLocation.mockReturnValue({search: '?token=TOKEN'})
+        mockLocation.mockReturnValue({search: '?token=TOKEN'});
 
         const wrapper = render(withIntl(<PasswordResetForm/>));
-        const inputElement = wrapper.getByTestId('resetPasswordInput')
+        const inputElement = wrapper.getByTestId('resetPasswordInput');
 
         act(() => {
             fireEvent.change(inputElement, {target: {value: 'PASSWORD'}});

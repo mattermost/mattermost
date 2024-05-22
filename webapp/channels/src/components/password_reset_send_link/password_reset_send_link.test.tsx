@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {render, act, fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
-import {render, act, fireEvent, waitFor} from '@testing-library/react';
 
 import {sendPasswordResetEmail} from 'mattermost-redux/actions/users';
 
@@ -43,7 +43,7 @@ describe('components/PasswordResetSendLink', () => {
                 },
             },
         },
-    }
+    };
 
     it('should match snapshot', () => {
         const wrapper = render(withIntl(<PasswordResetSendLink/>));
@@ -58,7 +58,7 @@ describe('components/PasswordResetSendLink', () => {
         ));
 
         act(() => {
-            fireEvent.change(wrapper.getByTestId('email'), {target: {value: 'test@example.com'}})
+            fireEvent.change(wrapper.getByTestId('email'), {target: {value: 'test@example.com'}});
         });
 
         await act(async () => {

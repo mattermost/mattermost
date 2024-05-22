@@ -18,7 +18,7 @@ const KeyCodes = Constants.KeyCodes;
 const ButtonContainer = styled.div`
     display: flex;
     justify-content: center;
-`
+`;
 
 type MFAControllerState = {
     enforceMultifactorAuthentication: boolean;
