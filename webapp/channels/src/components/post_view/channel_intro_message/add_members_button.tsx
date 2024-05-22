@@ -130,7 +130,7 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
                     </ToggleModalButton>
                 </ChannelPermissionGate>
             </div>
-            {pluginButtons}
+            {/* {pluginButtons} */}
         </div>
     );
 };
