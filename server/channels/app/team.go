@@ -120,6 +120,8 @@ func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.A
 				return nil, model.NewAppError("CreateTeam", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			case invErr.Entity == "Channel" && invErr.Field == "Id":
 				return nil, model.NewAppError("CreateTeam", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest).Wrap(err)
+			case invErr.Entity == "Team" && invErr.Field == "id":
+				return nil, model.NewAppError("CreateTeam", "store.sql_team.save_team.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest).Wrap(err)
 			default:
 				return nil, model.NewAppError("CreateTeam", "app.team.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}

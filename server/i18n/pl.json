@@ -4721,11 +4721,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Wersja 16.2+"
+    "translation": "Wersja 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -4733,11 +4733,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 118+"
+    "translation": "Wersja 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 118+"
+    "translation": "Wersja 122+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10018,10 +10018,6 @@
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Nie udało się uzyskać liczby użytkowników"
-  },
-  {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Nie udało się uzyskać liczby postów"
   },
   {
     "id": "ent.compliance.csv.metadata.close.appError",

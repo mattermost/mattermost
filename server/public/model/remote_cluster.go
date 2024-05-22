@@ -251,7 +251,8 @@ type RemoteClusterFrame struct {
 func (f *RemoteClusterFrame) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"remote_id": f.RemoteId,
-		"msg":       f.Msg,
+		"msg_id":    f.Msg.Id,
+		"topic":     f.Msg.Topic,
 	}
 }
 

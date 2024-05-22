@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/pkg/errors"
 
 	"path/filepath"
@@ -16,13 +17,12 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-	"github.com/mattermost/mattermost/server/v8/tests"
 )
 
 func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	pluginPath := filepath.Join(tests.GetPackagePath(), "testplugin.tar.gz")
+	pluginPath := filepath.Join(server.GetPackagePath(), "tests", "testplugin.tar.gz")
 
 	s.RunForSystemAdminAndLocal("add an already installed plugin without force", func(c client.Client) {
 		printer.Clean()

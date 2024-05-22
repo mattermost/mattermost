@@ -166,4 +166,8 @@ export const LOG_LEVEL_OPTIONS = [
         value: 'ERROR',
         display_name: defineMessage({id: 'admin.log.levelOptions.ERROR', defaultMessage: 'ERROR'}),
     },
+    {
+        value: 'WARN',
+        display_name: defineMessage({id: 'admin.log.levelOptions.WARN', defaultMessage: 'WARN'}),
+    },
 ];

@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-	"github.com/mattermost/mattermost/server/v8/tests"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
@@ -20,7 +20,7 @@ import (
 func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 	s.SetupTestHelper().InitBasic()
 	importName := "import_test.zip"
-	importFilePath := filepath.Join(tests.GetPackagePath(), importName)
+	importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
 	info, err := os.Stat(importFilePath)
 	s.Require().NoError(err)
 
@@ -92,7 +92,7 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 func (s *MmctlE2ETestSuite) TestImportProcessCmdF() {
 	s.SetupTestHelper().InitBasic()
 	importName := "import_test.zip"
-	importFilePath := filepath.Join(tests.GetPackagePath(), "import_test.zip")
+	importFilePath := filepath.Join(server.GetPackagePath(), "tests", "import_test.zip")
 
 	s.Run("no permissions", func() {
 		printer.Clean()
@@ -131,7 +131,7 @@ func (s *MmctlE2ETestSuite) TestImportProcessCmdF() {
 func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
 	s.SetupTestHelper().InitBasic()
 	importName := "import_test.zip"
-	importFilePath := filepath.Join(tests.GetPackagePath(), importName)
+	importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
 
 	s.Run("no permissions", func() {
 		printer.Clean()
@@ -371,7 +371,7 @@ func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
 	s.SetupTestHelper().InitBasic()
 
 	importName := "import_test.zip"
-	importFilePath := filepath.Join(tests.GetPackagePath(), importName)
+	importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
 
 	s.RunForSystemAdminAndLocal("defaults", func(c client.Client) {
 		printer.Clean()
