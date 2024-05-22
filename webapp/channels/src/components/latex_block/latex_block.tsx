@@ -37,7 +37,7 @@ const LatexBlock = ({
 
     try {
         const katexOptions: KatexOptions = {
-            throwOnError: true,
+            throwOnError: false,
             displayMode: true,
             maxSize: 200,
             maxExpand: 100,
@@ -54,6 +54,7 @@ const LatexBlock = ({
             />
         );
     } catch (e) {
+        // This is never run because throwOnError is false
         return (
             <div
                 className='post-body--code tex'

@@ -3,10 +3,14 @@
 exports[`components/LatexBlock error in katex 1`] = `
 <div
   class="post-body--code tex"
-  data-testid="latex-error"
+  data-testid="latex-enabled"
 >
-  <span>
-    Couldn't compile your Latex code. Please review the syntax and try again.
+  <span
+    class="katex-error"
+    style="color:#cc0000"
+    title="ParseError: KaTeX parse error: Expected '}', got 'EOF' at end of input: …i\\\\pi + 1 = 0\`\`\`"
+  >
+    \`\`\`latex e^{i\\pi + 1 = 0\`\`\`
   </span>
 </div>
 `;

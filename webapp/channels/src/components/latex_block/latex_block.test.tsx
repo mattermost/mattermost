@@ -40,7 +40,7 @@ describe('components/LatexBlock', () => {
         };
 
         render(withIntl(<LatexBlock {...props}/>));
-        const wrapper = await screen.findAllByTestId('latex-error');
+        const wrapper = await screen.findAllByTestId('latex-enabled');
         expect(wrapper.length).toBe(1);
         expect(wrapper.at(0)).toMatchSnapshot();
     });
