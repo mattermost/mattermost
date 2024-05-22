@@ -166,9 +166,9 @@ func TestImportBulkImport(t *testing.T) {
 
 	teamName := model.NewRandomTeamName()
 	channelName := model.NewId()
-	username := "a" + model.NewId()
-	username2 := "a" + model.NewId()
-	username3 := "a" + model.NewId()
+	username := model.NewUsername()
+	username2 := model.NewUsername()
+	username3 := model.NewUsername()
 	emojiName := model.NewId()
 	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")

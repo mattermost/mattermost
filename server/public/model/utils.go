@@ -383,6 +383,11 @@ func NewId() string {
 	return encoding.EncodeToString(uuid.NewRandom())
 }
 
+// NewUsername is a NewId prefixed with a letter to make valid username
+func NewUsername() string {
+	return "a" + NewId()
+}
+
 // NewRandomTeamName is a NewId that will be a valid team name.
 func NewRandomTeamName() string {
 	teamName := NewId()

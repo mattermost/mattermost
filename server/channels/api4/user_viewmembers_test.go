@@ -161,13 +161,13 @@ func TestAPIRestrictedViewMembers(t *testing.T) {
 			{
 				"Get not existing user without restrictions",
 				"",
-				"a" + model.NewId(),
+				model.NewUsername(),
 				"app.user.get_by_username.app_error",
 			},
 			{
 				"Get not existing user with restrictions to teams",
 				"teams",
-				"a" + model.NewId(),
+				model.NewUsername(),
 				"api.context.permissions.app_error",
 			},
 			{
@@ -185,7 +185,7 @@ func TestAPIRestrictedViewMembers(t *testing.T) {
 			{
 				"Get not existing user with restrictions to channels",
 				"channels",
-				"a" + model.NewId(),
+				model.NewUsername(),
 				"api.context.permissions.app_error",
 			},
 			{

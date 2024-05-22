@@ -436,7 +436,7 @@ func (u *User) PreSave() {
 	}
 
 	if u.Username == "" {
-		u.Username = "a" + NewId()
+		u.Username = NewUsername()
 	}
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -994,7 +994,7 @@ func CleanUsername(logger mlog.LoggerIFace, username string) string {
 	s = strings.Trim(s, "-")
 
 	if !IsValidUsername(s) {
-		s = "a" + NewId()
+		s = NewUsername()
 		logger.Warn("Generating new username since provided username was invalid",
 			mlog.String("provided_username", username), mlog.String("new_username", s))
 	}

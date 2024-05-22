@@ -476,7 +476,7 @@ func TestCreatePostEphemeral(t *testing.T) {
 
 	ephemeralPost := &model.PostEphemeral{
 		UserID: th.BasicUser2.Id,
-		Post:   &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", Props: model.StringInterface{model.PropsAddChannelMember: "no good"}},
+		Post:   &model.Post{ChannelId: th.BasicChannel.Id, Message: model.NewUsername() + "a", Props: model.StringInterface{model.PropsAddChannelMember: "no good"}},
 	}
 
 	rpost, resp, err := client.CreatePostEphemeral(context.Background(), ephemeralPost)

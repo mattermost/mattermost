@@ -1022,7 +1022,7 @@ func testGetSharedChannelUsersForSync(t *testing.T, rctx request.CTX, ss store.S
 	var users []*model.User
 	for i := 0; i < 10; i++ { // need real users
 		u := &model.User{
-			Username:          "a" + model.NewId(),
+			Username:          model.NewUsername(),
 			Email:             model.NewId() + "@example.com",
 			LastPictureUpdate: model.GetMillis(),
 		}
@@ -1094,7 +1094,7 @@ func testGetSharedChannelUsersForSync(t *testing.T, rctx request.CTX, ss store.S
 
 func testUpdateSharedChannelUserLastSyncAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:          "a" + model.NewId(),
+		Username:          model.NewUsername(),
 		Email:             model.NewId() + "@example.com",
 		LastPictureUpdate: model.GetMillis() - 300000, // 5 mins
 	}
@@ -1102,7 +1102,7 @@ func testUpdateSharedChannelUserLastSyncAt(t *testing.T, rctx request.CTX, ss st
 	require.NoError(t, err)
 
 	u2 := &model.User{
-		Username:          "a" + model.NewId(),
+		Username:          model.NewUsername(),
 		Email:             model.NewId() + "@example.com",
 		LastPictureUpdate: model.GetMillis() + 300000,
 	}
