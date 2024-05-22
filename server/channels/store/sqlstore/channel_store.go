@@ -2151,7 +2151,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(ctx request.CTX, userId str
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
 
-	rows, err := s.SqlStore.DBXFromContext(ctx.Context()).Query(queryString, args...)
+	rows, err := s.SqlStore.GetMasterX().Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find ChannelMembers, TeamScheme and ChannelScheme data")
 	}
