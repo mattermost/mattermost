@@ -2329,13 +2329,15 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 	query := s.getQueryBuilder().
 		Select(selectStr).
 		From("ChannelMembers").
-		Join("GroupMembers ON GroupMembers.UserId = ChannelMembers.UserId AND GroupMembers.DeleteAt = 0")
+		Join("GroupMembers ON GroupMembers.UserId = ChannelMembers.UserId AND GroupMembers.DeleteAt = 0").
+		Join("Users ON Users.Id = GroupMembers.UserId")
 
-	if includeTimezones {
-		query = query.Join("Users ON Users.Id = GroupMembers.UserId")
-	}
+	// if includeTimezones {
+	// 	query = query.Join("Users ON Users.Id = GroupMembers.UserId")
+	// }
 
 	query = query.Where(sq.Eq{"ChannelMembers.ChannelId": channelID}).GroupBy("GroupMembers.GroupId")
+	query = query.Where(sq.NotEq{"Users.DeleteAt": 0})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

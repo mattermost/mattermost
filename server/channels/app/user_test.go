@@ -1702,28 +1702,32 @@ func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
 
 	t.Run("Cannot remove if only admin", func(t *testing.T) {
 		// Attempt to downgrade sysadmin.
-		user, err := th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
-		require.NotNil(t, err)
+		user, appErr := th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.NotNil(t, appErr)
 		require.Nil(t, user)
 	})
 
 	t.Run("Cannot remove if only non-Bot admin", func(t *testing.T) {
 		bot := th.CreateBot()
-		th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		user, appErr := th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
 
 		// Attempt to downgrade sysadmin.
-		user, err := th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
-		require.NotNil(t, err)
+		user, appErr = th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.NotNil(t, appErr)
 		require.Nil(t, user)
 	})
 
 	t.Run("Can remove if not only non-Bot admin", func(t *testing.T) {
 		systemAdminUser2 := th.CreateUser()
-		th.App.UpdateUserRoles(th.Context, systemAdminUser2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		user, appErr := th.App.UpdateUserRoles(th.Context, systemAdminUser2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
 
 		// Attempt to downgrade sysadmin.
-		user, err := th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
-		require.Nil(t, err)
+		user, appErr = th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.Nil(t, appErr)
 		require.NotNil(t, user)
 	})
 }
