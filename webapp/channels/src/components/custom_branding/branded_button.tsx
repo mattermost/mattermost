@@ -31,10 +31,10 @@ const BrandedButtonStyled = styled.div<BrandedButtonStyledProps>`
     }
     &&&&&&&&&& > button:disabled {
         background: ${(props) => tinycolor(props.background).setAlpha(0.16).toRgbString()};
-        color: ${(props) => tinycolor(props.textColor).setAlpha(0.32).toRgbString() + " !important"};
+        color: ${(props) => tinycolor(props.textColor).setAlpha(0.32).toRgbString() + ' !important'};
     }
     &&&&&&&&&& > button:disabled > span {
-        color: ${(props) => tinycolor(props.textColor).setAlpha(0.32).toRgbString() + " !important"};
+        color: ${(props) => tinycolor(props.textColor).setAlpha(0.32).toRgbString() + ' !important'};
     }
 `;
 
