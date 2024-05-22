@@ -10020,10 +10020,6 @@
     "translation": "Nie udało się uzyskać liczby użytkowników"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Nie udało się uzyskać liczby postów"
-  },
-  {
     "id": "ent.compliance.csv.metadata.close.appError",
     "translation": "Nie można zamknąć pliku zip"
   },
