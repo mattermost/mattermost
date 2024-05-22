@@ -10002,10 +10002,6 @@
     "translation": "Misslyckades att hämta antal användare"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Misslyckades med att hämta antal inlägg"
-  },
-  {
     "id": "api.post.check_for_out_of_team_mentions.message.one",
     "translation": "Omnämnandet av @{{.Username}} gav ingen notifiering eftersom hen inte är medlem i detta team."
   },

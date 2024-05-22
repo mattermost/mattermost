@@ -14,15 +14,16 @@ import (
 type MetricType string
 
 const (
-	ClientTimeToFirstByte        MetricType = "TTFB"
-	ClientFirstContentfulPaint   MetricType = "FCP"
-	ClientLargestContentfulPaint MetricType = "LCP"
-	ClientInteractionToNextPaint MetricType = "INP"
-	ClientCumulativeLayoutShift  MetricType = "CLS"
-	ClientLongTasks              MetricType = "long_tasks"
-	ClientChannelSwitchDuration  MetricType = "channel_switch"
-	ClientTeamSwitchDuration     MetricType = "team_switch"
-	ClientRHSLoadDuration        MetricType = "rhs_load"
+	ClientTimeToFirstByte           MetricType = "TTFB"
+	ClientFirstContentfulPaint      MetricType = "FCP"
+	ClientLargestContentfulPaint    MetricType = "LCP"
+	ClientInteractionToNextPaint    MetricType = "INP"
+	ClientCumulativeLayoutShift     MetricType = "CLS"
+	ClientLongTasks                 MetricType = "long_tasks"
+	ClientChannelSwitchDuration     MetricType = "channel_switch"
+	ClientTeamSwitchDuration        MetricType = "team_switch"
+	ClientRHSLoadDuration           MetricType = "rhs_load"
+	ClientGlobalThreadsLoadDuration MetricType = "global_threads_load"
 
 	MobileClientLoadDuration          MetricType = "mobile_load"
 	MobileClientChannelSwitchDuration MetricType = "mobile_channel_switch"
@@ -40,7 +41,7 @@ var (
 type MetricSample struct {
 	Metric    MetricType        `json:"metric"`
 	Value     float64           `json:"value"`
-	Timestamp int64             `json:"timestamp,omitempty"`
+	Timestamp float64           `json:"timestamp,omitempty"`
 	Labels    map[string]string `json:"labels,omitempty"`
 }
 
@@ -49,8 +50,8 @@ type PerformanceReport struct {
 	Version    string            `json:"version"`
 	ClientID   string            `json:"client_id"`
 	Labels     map[string]string `json:"labels"`
-	Start      int64             `json:"start"`
-	End        int64             `json:"end"`
+	Start      float64           `json:"start"`
+	End        float64           `json:"end"`
 	Counters   []*MetricSample   `json:"counters"`
 	Histograms []*MetricSample   `json:"histograms"`
 }
@@ -74,8 +75,8 @@ func (r *PerformanceReport) IsValid() error {
 	}
 
 	now := time.Now().UnixMilli()
-	if r.End < now-performanceReportTTLMilliseconds {
-		return fmt.Errorf("report is outdated: %d", r.End)
+	if r.End < float64(now-performanceReportTTLMilliseconds) {
+		return fmt.Errorf("report is outdated: %f", r.End)
 	}
 
 	return nil

@@ -353,6 +353,11 @@ func (_m *MetricsInterface) ObserveFilesSearchDuration(elapsed float64) {
 	_m.Called(elapsed)
 }
 
+// ObserveGlobalThreadsLoadDuration provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveGlobalThreadsLoadDuration(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
+}
+
 // ObserveMobileClientChannelSwitchDuration provides a mock function with given fields: platform, agent, elapsed
 func (_m *MetricsInterface) ObserveMobileClientChannelSwitchDuration(platform string, agent string, elapsed float64) {
 	_m.Called(platform, agent, elapsed)

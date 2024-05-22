@@ -212,15 +212,16 @@ type MetricsInterfaceImpl struct {
 	NotificationNotSentCounters     *prometheus.CounterVec
 	NotificationUnsupportedCounters *prometheus.CounterVec
 
-	ClientTimeToFirstByte        *prometheus.HistogramVec
-	ClientFirstContentfulPaint   *prometheus.HistogramVec
-	ClientLargestContentfulPaint *prometheus.HistogramVec
-	ClientInteractionToNextPaint *prometheus.HistogramVec
-	ClientCumulativeLayoutShift  *prometheus.HistogramVec
-	ClientLongTasks              *prometheus.CounterVec
-	ClientChannelSwitchDuration  *prometheus.HistogramVec
-	ClientTeamSwitchDuration     *prometheus.HistogramVec
-	ClientRHSLoadDuration        *prometheus.HistogramVec
+	ClientTimeToFirstByte           *prometheus.HistogramVec
+	ClientFirstContentfulPaint      *prometheus.HistogramVec
+	ClientLargestContentfulPaint    *prometheus.HistogramVec
+	ClientInteractionToNextPaint    *prometheus.HistogramVec
+	ClientCumulativeLayoutShift     *prometheus.HistogramVec
+	ClientLongTasks                 *prometheus.CounterVec
+	ClientChannelSwitchDuration     *prometheus.HistogramVec
+	ClientTeamSwitchDuration        *prometheus.HistogramVec
+	ClientRHSLoadDuration           *prometheus.HistogramVec
+	ClientGlobalThreadsLoadDuration *prometheus.HistogramVec
 
 	MobileClientLoadDuration          *prometheus.HistogramVec
 	MobileClientChannelSwitchDuration *prometheus.HistogramVec
@@ -1143,7 +1144,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "time_to_first_byte",
-			Help:      "Duration from when a browser starts to request a page from a server until when it starts to receive data in response (milliseconds)",
+			Help:      "Duration from when a browser starts to request a page from a server until when it starts to receive data in response (seconds)",
 		},
 		[]string{"platform", "agent"},
 	)
@@ -1154,7 +1155,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "first_contentful_paint",
-			Help:      "Duration of how long it takes for any content to be displayed on screen to a user (milliseconds)",
+			Help:      "Duration of how long it takes for any content to be displayed on screen to a user (seconds)",
 		},
 		[]string{"platform", "agent"},
 	)
@@ -1165,7 +1166,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "largest_contentful_paint",
-			Help:      "Duration of how long it takes for large content to be displayed on screen to a user (milliseconds)",
+			Help:      "Duration of how long it takes for large content to be displayed on screen to a user (seconds)",
 		},
 		[]string{"platform", "agent"},
 	)
@@ -1176,7 +1177,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "interaction_to_next_paint",
-			Help:      "Measure of how long it takes for a user to see the effects of clicking with a mouse, tapping with a touchscreen, or pressing a key on the keyboard (milliseconds)",
+			Help:      "Measure of how long it takes for a user to see the effects of clicking with a mouse, tapping with a touchscreen, or pressing a key on the keyboard (seconds)",
 		},
 		[]string{"platform", "agent"},
 	)
@@ -1209,7 +1210,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "channel_switch",
-			Help:      "Duration of the time taken from when a user clicks on a channel in the LHS to when posts in that channel become visible (milliseconds)",
+			Help:      "Duration of the time taken from when a user clicks on a channel in the LHS to when posts in that channel become visible (seconds)",
 		},
 		[]string{"platform", "agent"},
 	)
@@ -1220,7 +1221,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "team_switch",
-			Help:      "Duration of the time taken from when a user clicks on a team in the LHS to when posts in that team become visible (milliseconds)",
+			Help:      "Duration of the time taken from when a user clicks on a team in the LHS to when posts in that team become visible (seconds)",
 		},
 		[]string{"platform", "agent"},
 	)
@@ -1231,11 +1232,22 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "rhs_load",
-			Help:      "Duration of the time taken from when a user clicks to open a thread in the RHS until when posts in that thread become visible (milliseconds)",
+			Help:      "Duration of the time taken from when a user clicks to open a thread in the RHS until when posts in that thread become visible (seconds)",
 		},
 		[]string{"platform", "agent"},
 	)
 	m.Registry.MustRegister(m.ClientRHSLoadDuration)
+
+	m.ClientGlobalThreadsLoadDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "global_threads_load",
+			Help:      "Duration of the time taken from when a user clicks to open Threads in the LHS until when the global threads view becomes visible (milliseconds)",
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientGlobalThreadsLoadDuration)
 
 	m.MobileClientLoadDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -1765,6 +1777,10 @@ func (mi *MetricsInterfaceImpl) ObserveClientTeamSwitchDuration(platform, agent 
 
 func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent string, elapsed float64) {
 	mi.ClientRHSLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent string, elapsed float64) {
+	mi.ClientGlobalThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientLoadDuration(platform, agent string, elapsed float64) {
