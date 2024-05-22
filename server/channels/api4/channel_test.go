@@ -4814,6 +4814,13 @@ func TestGetChannelsMemberCount(t *testing.T) {
 		_, _, err := client.GetChannelsMemberCount(context.Background(), channelIDs)
 		require.NoError(t, err)
 	})
+
+	t.Run("Should fail for private channels that the user is not a member of", func(t *testing.T) {
+		th.LoginBasic2()
+		channelIDs := []string{channel2.Id}
+		_, _, err := client.GetChannelsMemberCount(context.Background(), channelIDs)
+		require.Error(t, err)
+	})
 }
 
 func TestMoveChannel(t *testing.T) {

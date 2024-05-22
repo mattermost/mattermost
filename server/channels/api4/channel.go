@@ -730,10 +730,6 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.SetInvalidParam("channel_ids")
 		return
 	}
-	if !c.App.SessionHasPermissionToChannels(c.AppContext, *c.AppContext.Session(), channelIDs, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
-		return
-	}
 
 	channels, err := c.App.GetChannels(c.AppContext, channelIDs)
 	if err != nil {
