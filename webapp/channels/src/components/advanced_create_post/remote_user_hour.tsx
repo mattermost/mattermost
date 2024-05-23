@@ -50,6 +50,11 @@ const RemoteUserHour = () => {
 
     const displayName = useSelector((state: GlobalState) => getDisplayName(state, teammateId, true));
     const teammate = useSelector((state: GlobalState) => getUser(state, teammateId));
+
+    if (teammateId === userId) {
+        return null;
+    }
+
     const teammateTimezone = getTimezoneForUserProfile(teammate);
     const teammateUserDate = DateTime.local().setZone(teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone);
 
