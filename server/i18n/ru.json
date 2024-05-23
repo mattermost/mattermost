@@ -10020,10 +10020,6 @@
     "translation": "Не удалось получить количество пользователей"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Не удалось получить количество сообщений"
-  },
-  {
     "id": "ent.compliance.csv.metadata.close.appError",
     "translation": "Невозможно закрыть zip-файл"
   },

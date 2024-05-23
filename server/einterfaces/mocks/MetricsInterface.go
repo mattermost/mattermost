@@ -353,6 +353,11 @@ func (_m *MetricsInterface) ObserveFilesSearchDuration(elapsed float64) {
 	_m.Called(elapsed)
 }
 
+// ObserveGlobalThreadsLoadDuration provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveGlobalThreadsLoadDuration(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
+}
+
 // ObservePluginAPIDuration provides a mock function with given fields: pluginID, apiName, success, elapsed
 func (_m *MetricsInterface) ObservePluginAPIDuration(pluginID string, apiName string, success bool, elapsed float64) {
 	_m.Called(pluginID, apiName, success, elapsed)
