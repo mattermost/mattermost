@@ -1998,6 +1998,22 @@ func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelID string, fro
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) MigrateChannelRecordsToNewUser(channel *model.Channel, toUserID string, fromUserID string) error {
+	start := time.Now()
+
+	err := s.ChannelStore.MigrateChannelRecordsToNewUser(channel, toUserID, fromUserID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.MigrateChannelRecordsToNewUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
 	start := time.Now()
 

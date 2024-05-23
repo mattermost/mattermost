@@ -2277,6 +2277,24 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID s
 	return r0, r1
 }
 
+// MigrateChannelRecordsToNewUser provides a mock function with given fields: channel, toUserID, fromUserID
+func (_m *ChannelStore) MigrateChannelRecordsToNewUser(channel *model.Channel, toUserID string, fromUserID string) error {
+	ret := _m.Called(channel, toUserID, fromUserID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MigrateChannelRecordsToNewUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Channel, string, string) error); ok {
+		r0 = rf(channel, toUserID, fromUserID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PatchMultipleMembersNotifyProps provides a mock function with given fields: members, notifyProps
 func (_m *ChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
 	ret := _m.Called(members, notifyProps)

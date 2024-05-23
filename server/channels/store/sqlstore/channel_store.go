@@ -4287,3 +4287,47 @@ func (s SqlChannelStore) GetChannelsByTypeForUser(userID string, channelType mod
 
 	return channels, nil
 }
+
+func (s SqlChannelStore) MigrateChannelRecordsToNewUser(channel *model.Channel, toUserID, fromUserID string) error {
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	_, err = s.updateChannelT(transaction, channel)
+	if err != nil {
+		return err
+	}
+
+	channelMemberParams := map[string]any{
+		"toUserId":   toUserID,
+		"channelId":  channel.Id,
+		"fromUserId": fromUserID,
+	}
+
+	_, err = transaction.NamedExec(`UPDATE ChannelMembers
+		SET UserId=:toUserId
+		WHERE ChannelId=:channelId AND UserId=:fromUserId`, channelMemberParams)
+	if err != nil {
+		if IsUniqueConstraintError(err, []string{"Name", "channelmembers_pkey"}) {
+			return store.NewErrUniqueConstraint("Name")
+		}
+		return errors.Wrapf(err, "failed to update channel member for channelId=%s", channel.Id)
+	}
+
+	_, err = transaction.NamedExec(`UPDATE ChannelMemberHistory
+		SET UserId=:toUserId
+		WHERE ChannelId=:channelId AND UserId=:fromUserId`, channelMemberParams)
+	if err != nil {
+		if IsUniqueConstraintError(err, []string{"Name", "channelmemberhistory_pkey"}) {
+			return store.NewErrUniqueConstraint("Name")
+		}
+		return errors.Wrapf(err, "failed to update channel member for channelId=%s", channel.Id)
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+	return nil
+}

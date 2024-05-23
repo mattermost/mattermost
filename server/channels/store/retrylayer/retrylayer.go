@@ -2357,6 +2357,27 @@ func (s *RetryLayerChannelStore) MigrateChannelMembers(fromChannelID string, fro
 
 }
 
+func (s *RetryLayerChannelStore) MigrateChannelRecordsToNewUser(channel *model.Channel, toUserID string, fromUserID string) error {
+
+	tries := 0
+	for {
+		err := s.ChannelStore.MigrateChannelRecordsToNewUser(channel, toUserID, fromUserID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
 
 	tries := 0

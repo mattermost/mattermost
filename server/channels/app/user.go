@@ -2906,9 +2906,12 @@ func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId
 		if err != nil {
 			return errors.Wrapf(err, "failed to get dm channels for user %s", fromUserId)
 		}
+
 		for _, fromUserDmChannel := range fromUserDmChannels {
+			// Replace the fromUserId with toUserId in the channel name
 			channelName := strings.Replace(fromUserDmChannel.Name, fromUserId, toUserId, -1)
 			keys = append(keys, channelName)
+			// Map the toUser DM channel name to the fromUser DM channel so we can match them up for merging later on
 			channelNameMap[channelName] = fromUserDmChannel
 		}
 
@@ -2923,15 +2926,22 @@ func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId
 			// kick off channel merges for fromUserDmChannel and toUserDmChannel
 		}
 
-		for key, value := range channelNameMap {
+		for newChannelName, channel := range channelNameMap {
 			// update channel information to use toUserId
+			channel.Name = newChannelName
+			if channel.CreatorId == fromUserId {
+				channel.CreatorId = toUserId
+			}
+			err = a.Srv().Store().Channel().MigrateChannelRecordsToNewUser(channel, toUserId, fromUserId)
+			if err != nil {
+				return errors.Wrapf(err, "failed to migrate channel records for channel %s", channel.Id)
+			}
 		}
 
 		if len(fromUserDmChannels) < 100 {
 			break
 		}
-
-		return nil
+		offset += 100
 	}
 	return nil
 }
@@ -2947,8 +2957,9 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 		return appErr
 	}
 
-	// Disable and logout the user being merged
+	// Disable and logout the users being merged
 	a.UpdateActive(rctx, fromUser, false)
+	a.UpdateActive(rctx, toUser, false)
 
 	rctx.Logger().Info("MergeUsers: Batch merging posts and files")
 	err := a.Srv().Store().Post().BatchMergePostAndFileUserId(toUser.Id, fromUser.Id)
@@ -3041,6 +3052,8 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_user_terms_of_service.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.UpdateActive(rctx, toUser, true)
 
 	return nil
 }

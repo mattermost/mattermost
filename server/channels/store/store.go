@@ -311,6 +311,7 @@ type ChannelStore interface {
 	BatchMergeCreatorId(toUserID string, fromUserID string) error
 
 	GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset int, limit int) ([]*model.Channel, error)
+	MigrateChannelRecordsToNewUser(channel *model.Channel, toUserID string, fromUserID string) error
 }
 
 type ChannelMemberHistoryStore interface {
