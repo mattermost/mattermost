@@ -163,11 +163,13 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 	)
 
 	// create channel if it doesn't exist; the channel may already exist, such as if it was shared then unshared at some point.
+	var channelAutoCreated bool
 	channel, err := scs.server.GetStore().Channel().Get(invite.ChannelId, true)
 	if err != nil {
 		if channel, err = scs.handleChannelCreation(invite, rc); err != nil {
 			return err
 		}
+		channelAutoCreated = true
 	}
 
 	if invite.ReadOnly {
@@ -191,7 +193,9 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 	}
 
 	if _, err := scs.server.GetStore().SharedChannel().Save(sharedChannel); err != nil {
-		scs.app.PermanentDeleteChannel(request.EmptyContext(scs.server.Log()), channel)
+		if channelAutoCreated {
+			scs.app.PermanentDeleteChannel(request.EmptyContext(scs.server.Log()), channel)
+		}
 		return fmt.Errorf("cannot create shared channel (channel_id=%s): %w", invite.ChannelId, err)
 	}
 
