@@ -223,12 +223,5 @@
                 row-gap: 4px;
             }
         }
-
-        button#startCallButton {
-            &.icon-btn-disabled {
-                cursor: not-allowed;
-                opacity: 0.65;
-            }
-        }
     }
 }
