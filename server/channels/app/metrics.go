@@ -42,6 +42,8 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 			a.Metrics().ObserveClientTeamSwitchDuration(commonLabels["platform"], commonLabels["agent"], h.Value/1000)
 		case model.ClientRHSLoadDuration:
 			a.Metrics().ObserveClientRHSLoadDuration(commonLabels["platform"], commonLabels["agent"], h.Value/1000)
+		case model.ClientGlobalThreadsLoadDuration:
+			a.Metrics().ObserveGlobalThreadsLoadDuration(commonLabels["platform"], commonLabels["agent"], h.Value/1000)
 		default:
 			// we intentionally skip unknown metrics
 		}

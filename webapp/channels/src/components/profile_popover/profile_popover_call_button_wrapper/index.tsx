@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -95,7 +94,6 @@ const CallButton = ({
         id: 'webapp.mattermost.feature.start_call',
         defaultMessage: 'Start Call',
     });
-    const iconButtonClassName = classNames('btn btn-icon btn-sm style--none', {'icon-btn-disabled': disabled});
     const callButton = (
         <WithTooltip
             id='startCallTooltip'
@@ -105,8 +103,8 @@ const CallButton = ({
             <button
                 id='startCallButton'
                 type='button'
-                aria-disabled={disabled}
-                className={iconButtonClassName}
+                disabled={disabled}
+                className='btn btn-icon btn-sm style--none'
                 aria-label={startCallMessage}
             >
                 <span
