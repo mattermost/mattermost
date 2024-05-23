@@ -144,7 +144,7 @@ func combineErrors(err error, serror string) string {
 	return sb.String()
 }
 
-func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model.RemoteCluster, _ *remotecluster.Response) error {
+func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	if len(msg.Payload) == 0 {
 		return nil
 	}
@@ -162,9 +162,17 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		mlog.String("team_id", invite.TeamId),
 	)
 
-	// create channel if it doesn't exist; the channel may already exist, such as if it was shared then unshared at some point.
+	// check if channel already exists
 	var channelAutoCreated bool
 	channel, err := scs.server.GetStore().Channel().Get(invite.ChannelId, true)
+	if err == nil {
+		// the channel already exists on this server; could be the remote is trying to re-share it (not allowed at this time).
+		// If the channel is already shared with the remote, it will remain so.
+		response.Err = model.ErrChannelAlreadyExists.Error()
+		response.Status = remotecluster.ResponseStatusFail
+
+	}
+
 	if err != nil {
 		if channel, err = scs.handleChannelCreation(invite, rc); err != nil {
 			return err
@@ -172,7 +180,8 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		channelAutoCreated = true
 	}
 
-	if invite.ReadOnly {
+	// only allow setting the channel read-only if it was just created
+	if invite.ReadOnly && channelAutoCreated {
 		if err := scs.makeChannelReadOnly(channel); err != nil {
 			return fmt.Errorf("cannot make channel readonly `%s`: %w", invite.ChannelId, err)
 		}
@@ -191,6 +200,8 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		RemoteId:         rc.RemoteId,
 		Type:             channel.Type,
 	}
+
+	xxxx
 
 	if _, err := scs.server.GetStore().SharedChannel().Save(sharedChannel); err != nil {
 		if channelAutoCreated {
