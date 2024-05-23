@@ -17,6 +17,7 @@ const JobDownloadLink = React.memo(({job}: {job: Job}): JSX.Element => {
         return (
             <ExternalLink
                 key={job.id}
+                location='job_download_link'
                 href={`${Client4.getJobsRoute()}/${job.id}/download`}
                 className='JobDownloadLink'
             >
