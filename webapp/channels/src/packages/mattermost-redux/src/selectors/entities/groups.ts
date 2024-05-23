@@ -117,17 +117,12 @@ export function searchAssociatedGroupsForReferenceLocal(state: GlobalState, term
     return filteredGroups;
 }
 
-const EMTPY_GROUP_LIST: Group[] = [];
 export function getAssociatedGroupsForReference(state: GlobalState, teamId: string, channelId?: string): Group[] {
-    if (!channelId) {
-        return EMTPY_GROUP_LIST;
-    }
-
     const team = getTeam(state, teamId);
-    const channel = getChannel(state, channelId);
+    const channel = channelId ? getChannel(state, channelId) : undefined;
 
     if (team && team.group_constrained && channel && channel.group_constrained) {
-        const groupsFromChannel = getGroupsAssociatedToChannelForReference(state, channelId);
+        const groupsFromChannel = getGroupsAssociatedToChannelForReference(state, channel.id);
         const groupsFromTeam = getGroupsAssociatedToTeamForReference(state, teamId);
         const customGroups = getAllCustomGroups(state);
         return groupsFromChannel.concat(groupsFromTeam.filter((item) => groupsFromChannel.indexOf(item) < 0), customGroups);
@@ -141,7 +136,7 @@ export function getAssociatedGroupsForReference(state: GlobalState, teamId: stri
 
     if (channel && channel.group_constrained) {
         const customGroups = getAllCustomGroups(state);
-        const groupsFromChannel = getGroupsAssociatedToChannelForReference(state, channelId);
+        const groupsFromChannel = getGroupsAssociatedToChannelForReference(state, channel.id);
         return [...customGroups, ...groupsFromChannel];
     }
 
