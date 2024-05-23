@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -18,8 +19,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
@@ -27,89 +26,6 @@ import (
 const (
 	UpdateMultipleMaximum = 200
 )
-
-// channelsWrapper provides an implementation of `product.ChannelService` to be used by products.
-type channelsWrapper struct {
-	app *App
-}
-
-func (s *channelsWrapper) GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError) {
-	return s.app.getDirectChannel(request.EmptyContext(s.app.Log()), userID1, userID2)
-}
-
-// GetChannelByID gets a Channel by its ID.
-func (s *channelsWrapper) GetChannelByID(channelID string) (*model.Channel, *model.AppError) {
-	return s.app.GetChannel(request.EmptyContext(s.app.Log()), channelID)
-}
-
-// GetChannelMember gets a channel member by userID.
-func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError) {
-	return s.app.GetChannelMember(request.EmptyContext(s.app.Log()), channelID, userID)
-}
-
-func (s *channelsWrapper) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	return s.app.GetChannelsForTeamForUser(request.EmptyContext(s.app.Log()), teamID, userID, opts)
-}
-
-func (s *channelsWrapper) GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
-	return s.app.GetSidebarCategoriesForTeamForUser(request.EmptyContext(s.app.Log()), userID, teamID)
-}
-
-func (s *channelsWrapper) GetChannelMembers(channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
-	return s.app.GetChannelMembersPage(request.EmptyContext(s.app.Log()), channelID, page, perPage)
-}
-
-func (s *channelsWrapper) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
-	return s.app.CreateSidebarCategory(request.EmptyContext(s.app.Log()), userID, teamID, newCategory)
-}
-
-func (s *channelsWrapper) UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
-	return s.app.UpdateSidebarCategories(request.EmptyContext(s.app.Log()), userID, teamID, categories)
-}
-
-func (s *channelsWrapper) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
-	return s.app.CreateChannel(request.EmptyContext(s.app.Log()), channel, false)
-}
-
-func (s *channelsWrapper) AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError) {
-	ctx := request.EmptyContext(s.app.Log())
-	channel, err := s.app.GetChannel(ctx, channelID)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.app.AddChannelMember(ctx, userID, channel, ChannelMemberOpts{
-		UserRequestorID: asUserID,
-	})
-}
-
-func (s *channelsWrapper) UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
-	return s.app.UpdateChannelMemberRoles(request.EmptyContext(s.app.Log()), channelID, userID, newRoles)
-}
-
-func (s *channelsWrapper) DeleteChannelMember(channelID, userID string) *model.AppError {
-	return s.app.LeaveChannel(request.EmptyContext(s.app.Log()), channelID, userID)
-}
-
-func (s *channelsWrapper) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	channel, err := s.GetChannelByID(channelID)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.app.AddChannelMember(request.EmptyContext(s.app.Log()), userID, channel, ChannelMemberOpts{
-		// For now, don't allow overriding these via the plugin API.
-		UserRequestorID: "",
-		PostRootID:      "",
-	})
-}
-
-func (s *channelsWrapper) GetDirectChannelOrCreate(userID1, userID2 string) (*model.Channel, *model.AppError) {
-	return s.app.GetOrCreateDirectChannel(request.EmptyContext(s.app.Log()), userID1, userID2)
-}
-
-// Ensure the wrapper implements the product service.
-var _ product.ChannelService = (*channelsWrapper)(nil)
 
 // DefaultChannelNames returns the list of system-wide default channel names.
 //
@@ -304,7 +220,7 @@ func (a *App) RenameChannel(c request.CTX, channel *model.Channel, newChannelNam
 
 func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
-	sc, nErr := a.Srv().Store().Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	sc, nErr := a.Srv().Store().Channel().Save(c, channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
 		var cErr *store.ErrConflict
@@ -565,7 +481,7 @@ func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.
 		}
 
 		if _, err := a.ShareChannel(c, sc); err != nil {
-			return nil, model.NewAppError("CreateDirectChannel", "app.sharedchannel.dm_channel_creation.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			c.Logger().Error("Failed to share newly created direct channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 		}
 	}
 
@@ -612,7 +528,7 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		Type:        model.ChannelTypeGroup,
 	}
 
-	channel, nErr := a.Srv().Store().Channel().Save(group, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	channel, nErr := a.Srv().Store().Channel().Save(c, group, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
 		var cErr *store.ErrConflict
@@ -668,6 +584,14 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		}
 	}
 
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.ChannelHasBeenCreated(pluginContext, channel)
+			return true
+		}, plugin.ChannelHasBeenCreatedID)
+	})
+
 	return channel, nil
 }
 
@@ -698,12 +622,12 @@ func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Chann
 	_, err := a.Srv().Store().Channel().Update(c, channel)
 	if err != nil {
 		var appErr *model.AppError
+		var uniqueConstraintErr *store.ErrUniqueConstraint
 		var invErr *store.ErrInvalidInput
 		switch {
+		case errors.As(err, &uniqueConstraintErr):
+			return nil, model.NewAppError("UpdateChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &invErr):
-			if invErr.Entity == "Channel" && invErr.Field == "Name" {
-				return nil, model.NewAppError("UpdateChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(err)
-			}
 			return nil, model.NewAppError("UpdateChannel", "app.channel.update.bad_id", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &appErr):
 			return nil, appErr
@@ -799,7 +723,7 @@ func (a *App) postChannelPrivacyMessage(c request.CTX, user *model.User, channel
 		authorId = user.Id
 		authorUsername = user.Username
 	} else {
-		systemBot, err := a.GetSystemBot()
+		systemBot, err := a.GetSystemBot(c)
 		if err != nil {
 			return model.NewAppError("postChannelPrivacyMessage", "api.channel.post_channel_privacy_message.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -840,7 +764,12 @@ func (a *App) RestoreChannel(c request.CTX, channel *model.Channel, userID strin
 	channel.DeleteAt = 0
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelRestored, channel.TeamId, "", "", nil, "")
+	var message *model.WebSocketEvent
+	if channel.Type == model.ChannelTypeOpen {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelRestored, channel.TeamId, "", "", nil, "")
+	} else {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelRestored, "", channel.Id, "", nil, "")
+	}
 	message.Add("channel_id", channel.Id)
 	a.Publish(message)
 
@@ -877,7 +806,7 @@ func (a *App) RestoreChannel(c request.CTX, channel *model.Channel, userID strin
 		}
 	} else {
 		a.Srv().Go(func() {
-			systemBot, err := a.GetSystemBot()
+			systemBot, err := a.GetSystemBot(c)
 			if err != nil {
 				c.Logger().Error("Failed to post unarchive message", mlog.Err(err))
 				return
@@ -1112,7 +1041,7 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 
 	for _, channelModerationPatch := range channelModerationsPatch {
 		permissionModified := *channelModerationPatch.Name
-		if channelModerationPatch.Roles.Guests != nil && pUtils.Contains(model.ChannelModeratedPermissionsChangedByPatch(guestRole, guestRolePatch), permissionModified) {
+		if channelModerationPatch.Roles.Guests != nil && slices.Contains(model.ChannelModeratedPermissionsChangedByPatch(guestRole, guestRolePatch), permissionModified) {
 			if *channelModerationPatch.Roles.Guests {
 				c.Logger().Info("Permission enabled for guests.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			} else {
@@ -1120,7 +1049,7 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 			}
 		}
 
-		if channelModerationPatch.Roles.Members != nil && pUtils.Contains(model.ChannelModeratedPermissionsChangedByPatch(memberRole, memberRolePatch), permissionModified) {
+		if channelModerationPatch.Roles.Members != nil && slices.Contains(model.ChannelModeratedPermissionsChangedByPatch(memberRole, memberRolePatch), permissionModified) {
 			if *channelModerationPatch.Roles.Members {
 				c.Logger().Info("Permission enabled for members.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			} else {
@@ -1198,7 +1127,7 @@ func buildChannelModerations(c request.CTX, channelType model.ChannelType, membe
 			Enabled: higherScopedMemberPermissions[permissionKey],
 		}
 
-		if permissionKey == "manage_members" {
+		if permissionKey == "manage_members" || permissionKey == "manage_bookmarks" {
 			roles.Guests = nil
 		} else {
 			roles.Guests = &model.ChannelModeratedRole{
@@ -1283,13 +1212,17 @@ func (a *App) UpdateChannelMemberSchemeRoles(c request.CTX, channelID string, us
 		return nil, err
 	}
 
+	if member.SchemeGuest {
+		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.guest.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if isSchemeGuest {
+		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.user_and_guest.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	member.SchemeAdmin = isSchemeAdmin
 	member.SchemeUser = isSchemeUser
 	member.SchemeGuest = isSchemeGuest
-
-	if member.SchemeUser && member.SchemeGuest {
-		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
-	}
 
 	// If the migration is not completed, we also need to check the default channel_admin/channel_user roles are not present in the roles field.
 	if err = a.IsPhase2MigrationCompleted(); err != nil {
@@ -1523,7 +1456,7 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 			c.Logger().Warn("Failed to post archive message", mlog.Err(err))
 		}
 	} else {
-		systemBot, err := a.GetSystemBot()
+		systemBot, err := a.GetSystemBot(c)
 		if err != nil {
 			c.Logger().Warn("Failed to post archive message", mlog.Err(err))
 		} else {
@@ -1569,7 +1502,12 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
+	var message *model.WebSocketEvent
+	if channel.Type == model.ChannelTypeOpen {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
+	} else {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, "", channel.Id, "", nil, "")
+	}
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
 	a.Publish(message)
@@ -1659,10 +1597,18 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 		return nil, err
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
+	// We are sending separate websocket events to the user added and to the channel
+	// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members
+	// There is likely some issue syncing these that needs to be looked at, but this is the current fix.
+	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", map[string]bool{user.Id: true}, "")
 	message.Add("user_id", user.Id)
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
+
+	userMessage := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, user.Id, nil, "")
+	userMessage.Add("user_id", user.Id)
+	userMessage.Add("team_id", channel.TeamId)
+	a.Publish(userMessage)
 
 	return newMember, nil
 }
@@ -2522,7 +2468,7 @@ func (a *App) postAddToTeamMessage(c request.CTX, user *model.User, addedUser *m
 func (a *App) postRemoveFromChannelMessage(c request.CTX, removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
 	messageUserId := removerUserId
 	if messageUserId == "" {
-		systemBot, err := a.GetSystemBot()
+		systemBot, err := a.GetSystemBot(c)
 		if err != nil {
 			return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -3150,8 +3096,13 @@ func (a *App) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *mod
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
 
+	var message *model.WebSocketEvent
+	if channel.Type == model.ChannelTypeOpen {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
+	} else {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, "", channel.Id, "", nil, "")
+	}
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
 	a.Publish(message)
@@ -3221,10 +3172,13 @@ func (a *App) MoveChannel(c request.CTX, team *model.Team, channel *model.Channe
 	channel.TeamId = team.Id
 	if _, err := a.Srv().Store().Channel().Update(c, channel); err != nil {
 		var appErr *model.AppError
+		var uniqueConstraintErr *store.ErrUniqueConstraint
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
 			return model.NewAppError("MoveChannel", "app.channel.update.bad_id", nil, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &uniqueConstraintErr):
+			return model.NewAppError("MoveChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &appErr):
 			return appErr
 		default:

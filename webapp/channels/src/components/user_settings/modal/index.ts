@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {lazy} from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
@@ -11,9 +12,11 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {getPluginUserSettings} from 'selectors/plugins';
 
+import {makeAsyncComponent} from 'components/async_load';
+
 import type {GlobalState} from 'types/store';
 
-import UserSettingsModal from './user_settings_modal';
+const UserSettingsModalAsync = makeAsyncComponent('UserSettingsModal', lazy(() => import('./user_settings_modal')));
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
@@ -37,4 +40,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(UserSettingsModal);
+export default connect(mapStateToProps, mapDispatchToProps)(UserSettingsModalAsync);

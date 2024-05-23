@@ -3,12 +3,11 @@
 
 import React, {useState, useEffect} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber} from 'react-intl';
-import {useSelector, useDispatch} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
 import type {Invoice} from '@mattermost/types/cloud';
 
 import {Client4} from 'mattermost-redux/client';
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 
 import {openModal} from 'actions/views/modals';
 
@@ -61,8 +60,6 @@ const getPaymentStatus = (status: string) => {
 
 export default function BillingHistoryTable({invoices}: BillingHistoryTableProps) {
     const dispatch = useDispatch();
-    const isCloud = useSelector(isCurrentLicenseCloud);
-
     const [billingHistory, setBillingHistory] = useState<Invoice[] | undefined>(
         undefined,
     );
@@ -161,7 +158,7 @@ export default function BillingHistoryTable({invoices}: BillingHistoryTableProps
                         <th>{''}</th>
                     </tr>
                     {billingHistory?.map((invoice: Invoice) => {
-                        const url = isCloud ? Client4.getInvoicePdfUrl(invoice.id) : Client4.getSelfHostedInvoicePdfUrl(invoice.id);
+                        const url = Client4.getInvoicePdfUrl(invoice.id);
                         return (
                             <tr
                                 className='BillingHistory__table-row'

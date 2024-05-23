@@ -41,7 +41,7 @@ func (a *App) CompleteOnboarding(c request.CTX, request *model.CompleteOnboardin
 			Value: request.Organization,
 		})
 		if err != nil {
-			a.Log().Error("failed to save organization name", mlog.Err(err))
+			c.Logger().Error("failed to save organization name", mlog.Err(err))
 		}
 	}
 
@@ -69,7 +69,7 @@ func (a *App) CompleteOnboarding(c request.CTX, request *model.CompleteOnboardin
 				return
 			}
 
-			hooks, err := a.ch.HooksForPluginOrProduct(id)
+			hooks, err := a.ch.HooksForPlugin(id)
 			if err != nil {
 				c.Logger().Warn("Getting hooks for plugin failed", mlog.String("plugin_id", id), mlog.Err(err))
 				return

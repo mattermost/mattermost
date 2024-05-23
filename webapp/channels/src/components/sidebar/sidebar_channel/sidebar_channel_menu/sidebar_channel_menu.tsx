@@ -39,7 +39,7 @@ const SidebarChannelMenu = ({
     isUnread,
     managePrivateChannelMembers,
     managePublicChannelMembers,
-    markChannelAsRead,
+    markMultipleChannelsAsRead,
     markMostRecentPostInChannelAsUnread,
     muteChannel,
     onMenuToggle,
@@ -55,7 +55,8 @@ const SidebarChannelMenu = ({
     let markAsReadUnreadMenuItem: JSX.Element | null = null;
     if (isUnread) {
         function handleMarkAsRead() {
-            markChannelAsRead(channel.id, true);
+            // We use mark multiple to not update the active channel in the server
+            markMultipleChannelsAsRead({[channel.id]: Date.now()});
             trackEvent('ui', 'ui_sidebar_channel_menu_markAsRead');
         }
 
@@ -289,7 +290,10 @@ const SidebarChannelMenu = ({
             menuButton={{
                 id: `SidebarChannelMenu-Button-${channel.id}`,
                 class: 'SidebarMenu_menuButton',
-                'aria-label': formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'}),
+                'aria-label': formatMessage({
+                    id: 'sidebar_left.sidebar_channel_menu.editChannel.ariaLabel',
+                    defaultMessage: 'Channel options for {channelName}',
+                }, {channelName: channel.name}),
                 children: <DotsVerticalIcon size={16}/>,
             }}
             menuButtonTooltip={{

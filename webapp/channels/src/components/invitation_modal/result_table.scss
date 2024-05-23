@@ -51,9 +51,9 @@
             width: 36px;
             height: 36px;
             padding: 3px;
+            border-radius: 18px;
             margin: 12px 0 12px 12px;
             background: var(--button-bg);
-            border-radius: 18px;
 
             svg {
                 width: 24px;
@@ -68,9 +68,9 @@
             width: 36px;
             height: 36px;
             padding: 3px;
+            border-radius: 18px;
             margin: 12px 0 12px 12px;
             background: var(--dnd-indicator);
-            border-radius: 18px;
 
             svg {
                 width: 28.8px;
@@ -99,7 +99,7 @@
 .invitation-modal-confirm {
     h2 {
         margin-bottom: 13px;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 14px;
         font-weight: 600;
     }

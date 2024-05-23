@@ -5,7 +5,7 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
-import type {AnalyticsRow} from '@mattermost/types/admin';
+import type {AnalyticsRow, AnalyticsState} from '@mattermost/types/admin';
 import type {ClientLicense} from '@mattermost/types/config';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -21,7 +21,6 @@ import {messages as activatedUsersCardsMessages} from 'components/analytics/acti
 import LineChart from 'components/analytics/line_chart';
 import StatisticCount from 'components/analytics/statistic_count';
 import TableChart from 'components/analytics/table_chart';
-import TrueUpReview from 'components/analytics/true_up_review';
 import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -52,7 +51,7 @@ type Props = {
 
     license: ClientLicense;
 
-    stats: RelationOneToOne<Team, Record<string, number | AnalyticsRow[]>>;
+    stats: RelationOneToOne<Team, AnalyticsState>;
 
     actions: {
 
@@ -129,7 +128,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
         }
     }
 
-    private getStatValue(stat: number | AnalyticsRow[]): number | undefined {
+    private getStatValue(stat: number | AnalyticsRow[] | undefined): number | undefined {
         if (typeof stat === 'number') {
             return stat;
         }
@@ -316,7 +315,6 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
 
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
-                        <TrueUpReview/>
                         {banner}
                         <div className='grid-statistics'>
                             <ActivatedUserCard

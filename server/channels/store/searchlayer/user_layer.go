@@ -81,11 +81,8 @@ func (s *SearchUserStore) Update(rctx request.CTX, user *model.User, trustedUpda
 	return userUpdate, err
 }
 
-func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
-	// TODO: Use the actuall request context from the App layer
-	// https://mattermost.atlassian.net/browse/MM-55737
-	rctx := request.EmptyContext(s.rootStore.Logger())
-	nuser, err := s.UserStore.Save(user)
+func (s *SearchUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
+	nuser, err := s.UserStore.Save(rctx, user)
 
 	if err == nil {
 		s.rootStore.indexUser(rctx, nuser)
@@ -93,15 +90,12 @@ func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
 	return nuser, err
 }
 
-func (s *SearchUserStore) PermanentDelete(userId string) error {
-	// TODO: Use the actuall request context from the App layer
-	// https://mattermost.atlassian.net/browse/MM-55738
-	rctx := request.EmptyContext(s.rootStore.Logger())
+func (s *SearchUserStore) PermanentDelete(rctx request.CTX, userId string) error {
 	user, userErr := s.UserStore.Get(context.Background(), userId)
 	if userErr != nil {
 		rctx.Logger().Warn("Encountered error deleting user", mlog.String("user_id", userId), mlog.Err(userErr))
 	}
-	err := s.UserStore.PermanentDelete(userId)
+	err := s.UserStore.PermanentDelete(rctx, userId)
 	if err == nil && userErr == nil {
 		s.deleteUserIndex(rctx, user)
 	}

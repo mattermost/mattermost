@@ -31,11 +31,12 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
     const settings = {
         notifications: [
-            {key: 'desktop', label: 'Desktop Notifications', type: 'radio'},
-            {key: 'email', label: 'Email Notifications', type: 'radio'},
-            {key: 'push', label: 'Mobile Push Notifications', type: 'radio'},
-            {key: 'keysWithNotification', label: 'Keywords That Trigger Notifications', type: 'checkbox'},
-            {key: 'comments', label: 'Reply Notifications', type: 'radio'},
+            {key: 'desktopAndMobile', label: 'Desktop and mobile notifications', type: 'radio'},
+            {key: 'desktopNotificationSound', label: 'Desktop notification sounds', type: 'radio'},
+            {key: 'email', label: 'Email notifications', type: 'radio'},
+            {key: 'keywordsAndMentions', label: 'Keywords that trigger notifications', type: 'checkbox'},
+            {key: 'keywordsAndHighlight', label: 'Keywords that get highlighted (without notifications)', type: 'checkbox'},
+            {key: 'replyNotifications', label: 'Reply notifications', type: 'radio'},
         ],
         display: [
             {key: 'theme', label: 'Theme', type: 'radio'},
@@ -130,6 +131,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
         // * Verify if the focus goes to the individual fields in Notifications section
         cy.findByRole('tab', {name: 'notifications'}).click().tab();
+        cy.focused().should('have.text', 'Learn more about notifications').tab();
         verifySettings(settings.notifications);
 
         // // * Verify if the focus goes to the individual fields in Display section
@@ -143,18 +145,6 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         // // * Verify if the focus goes to the individual fields in Advanced section
         cy.findByRole('tab', {name: 'advanced'}).click().tab();
         verifySettings(settings.advanced);
-    });
-
-    it('MM-T1481 Verify Correct Radio button behavior in Settings and Profile', () => {
-        cy.visit(url);
-        cy.postMessage('hello');
-        cy.uiOpenSettingsModal();
-
-        cy.get('#notificationsButton').click();
-        cy.get('#desktopEdit').click();
-        cy.get('#desktopNotificationAllActivity').check().should('be.checked').tab().check();
-        cy.get('#desktopNotificationMentions').should('be.checked').tab().check();
-        cy.get('#desktopNotificationNever').should('be.checked');
     });
 
     it('MM-T1482 Input fields in Settings and Profile should read labels', () => {

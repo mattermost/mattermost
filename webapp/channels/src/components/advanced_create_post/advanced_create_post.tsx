@@ -18,6 +18,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {Posts} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -875,11 +876,10 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     emitTypingEvent = () => {
-        if (!this.props.currentChannel) {
-            return;
+        const channelId = this.props.currentChannel?.id;
+        if (channelId) {
+            GlobalActions.emitLocalUserTypingEvent(channelId, '');
         }
-        const channelId = this.props.currentChannel.id;
-        GlobalActions.emitLocalUserTypingEvent(channelId, '');
     };
 
     handleChange = (e: React.ChangeEvent<TextboxElement>) => {
@@ -904,12 +904,12 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     handleDraftChange = (draft: PostDraft, channelId = this.props.currentChannel?.id, instant = false) => {
-        if (!channelId) {
-            return;
-        }
-
         if (this.saveDraftFrame) {
             clearTimeout(this.saveDraftFrame);
+        }
+
+        if (!channelId) {
+            return;
         }
 
         if (instant) {
@@ -1007,6 +1007,9 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     removePreview = (id: string) => {
+        if (!this.props.currentChannel) {
+            return;
+        }
         let modifiedDraft = {} as PostDraft;
         const draft = {...this.props.draft};
 
@@ -1039,7 +1042,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             };
         }
 
-        this.handleDraftChange(modifiedDraft, this.props.currentChannel?.id, true);
+        this.handleDraftChange(modifiedDraft, this.props.currentChannel.id, true);
         this.handleFileUploadChange();
 
         if (this.saveDraftFrame) {
@@ -1224,7 +1227,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     handleEmojiClick = (emoji: Emoji) => {
-        const emojiAlias = ('short_names' in emoji && emoji.short_names && emoji.short_names[0]) || emoji.name;
+        const emojiAlias = getEmojiName(emoji);
 
         if (!emojiAlias) {
             //Oops.. There went something wrong
@@ -1285,6 +1288,9 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     handlePostPriorityApply = (settings?: PostPriorityMetadata) => {
+        if (!this.props.currentChannel) {
+            return;
+        }
         const updatedDraft = {
             ...this.props.draft,
         };
@@ -1301,7 +1307,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             updatedDraft.metadata = {};
         }
 
-        this.handleDraftChange(updatedDraft, this.props.currentChannel?.id, true);
+        this.handleDraftChange(updatedDraft, this.props.currentChannel.id, true);
         this.focusTextbox();
     };
 

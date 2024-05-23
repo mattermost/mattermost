@@ -420,11 +420,11 @@ func clearPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func makeDraftsWithNonDeletedPosts(t *testing.T, ss store.Store, count int, message string) {
+func makeDraftsWithNonDeletedPosts(t *testing.T, rctx request.CTX, ss store.Store, count int, message string) {
 	t.Helper()
 
 	for i := 1; i <= count; i++ {
-		post, err := ss.Post().Save(&model.Post{
+		post, err := ss.Post().Save(rctx, &model.Post{
 			CreateAt:  model.GetMillis(),
 			UpdateAt:  model.GetMillis(),
 			UserId:    model.NewId(),
@@ -451,11 +451,11 @@ func makeDraftsWithNonDeletedPosts(t *testing.T, ss store.Store, count int, mess
 	time.Sleep(5 * time.Millisecond)
 }
 
-func makeDraftsWithDeletedPosts(t *testing.T, ss store.Store, count int, message string) {
+func makeDraftsWithDeletedPosts(t *testing.T, rctx request.CTX, ss store.Store, count int, message string) {
 	t.Helper()
 
 	for i := 1; i <= count; i++ {
-		post, err := ss.Post().Save(&model.Post{
+		post, err := ss.Post().Save(rctx, &model.Post{
 			CreateAt:  model.GetMillis(),
 			UpdateAt:  model.GetMillis(),
 			DeleteAt:  model.GetMillis(),
@@ -714,7 +714,7 @@ func testDeleteOrphanDraftsByCreateAtAndUserId(t *testing.T, rctx request.CTX, s
 		clearDrafts(t, rctx, ss)
 		clearPosts(t, rctx, ss)
 
-		makeDraftsWithDeletedPosts(t, ss, 100, "Okay")
+		makeDraftsWithDeletedPosts(t, rctx, ss, 100, "Okay")
 
 		createAt, userId := int64(0), ""
 		nextCreateAt, nextUserId, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
@@ -735,7 +735,7 @@ func testDeleteOrphanDraftsByCreateAtAndUserId(t *testing.T, rctx request.CTX, s
 		clearDrafts(t, rctx, ss)
 		clearPosts(t, rctx, ss)
 
-		makeDraftsWithDeletedPosts(t, ss, 300, "Okay")
+		makeDraftsWithDeletedPosts(t, rctx, ss, 300, "Okay")
 
 		createAt, userId := int64(0), ""
 		nextCreateAt, nextUserId, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
@@ -772,7 +772,7 @@ func testDeleteOrphanDraftsByCreateAtAndUserId(t *testing.T, rctx request.CTX, s
 		clearDrafts(t, rctx, ss)
 		clearPosts(t, rctx, ss)
 
-		makeDraftsWithNonDeletedPosts(t, ss, 100, "Okay")
+		makeDraftsWithNonDeletedPosts(t, rctx, ss, 100, "Okay")
 
 		createAt, userId := int64(0), ""
 		nextCreateAt, nextUserId, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
@@ -794,7 +794,7 @@ func testDeleteOrphanDraftsByCreateAtAndUserId(t *testing.T, rctx request.CTX, s
 		clearDrafts(t, rctx, ss)
 		clearPosts(t, rctx, ss)
 
-		makeDraftsWithNonDeletedPosts(t, ss, 300, "Okay")
+		makeDraftsWithNonDeletedPosts(t, rctx, ss, 300, "Okay")
 
 		createAt, userId := int64(0), ""
 		nextCreateAt, nextUserId, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
@@ -837,23 +837,23 @@ func testDeleteOrphanDraftsByCreateAtAndUserId(t *testing.T, rctx request.CTX, s
 
 		// 50 drafts will be deleted from this page
 		makeDrafts(t, ss, 50, "Yup")
-		makeDraftsWithNonDeletedPosts(t, ss, 50, "Okay")
+		makeDraftsWithNonDeletedPosts(t, rctx, ss, 50, "Okay")
 
 		// 100 drafts will be deleted from this page
 		makeDrafts(t, ss, 50, "Yup")
-		makeDraftsWithDeletedPosts(t, ss, 50, "Okay")
+		makeDraftsWithDeletedPosts(t, rctx, ss, 50, "Okay")
 
 		// 50 drafts will be deleted from this page
-		makeDraftsWithDeletedPosts(t, ss, 50, "Okay")
-		makeDraftsWithNonDeletedPosts(t, ss, 50, "Okay")
+		makeDraftsWithDeletedPosts(t, rctx, ss, 50, "Okay")
+		makeDraftsWithNonDeletedPosts(t, rctx, ss, 50, "Okay")
 
 		// 70 drafts will be deleted from this page
 		makeDrafts(t, ss, 40, "Yup")
-		makeDraftsWithDeletedPosts(t, ss, 30, "Okay")
-		makeDraftsWithNonDeletedPosts(t, ss, 30, "Okay")
+		makeDraftsWithDeletedPosts(t, rctx, ss, 30, "Okay")
+		makeDraftsWithNonDeletedPosts(t, rctx, ss, 30, "Okay")
 
 		// No drafts will be deleted from this page
-		makeDraftsWithNonDeletedPosts(t, ss, 100, "Okay")
+		makeDraftsWithNonDeletedPosts(t, rctx, ss, 100, "Okay")
 
 		// Verify initially 5 pages with 500 drafts
 		assert.Equal(t, 5, countDraftPages(t, rctx, ss), "incorrect number of pages")
@@ -949,14 +949,14 @@ func testDeleteDraftsAssociatedWithPost(t *testing.T, rctx request.CTX, ss store
 	})
 	require.NoError(t, err)
 
-	post1, err := ss.Post().Save(&model.Post{
+	post1, err := ss.Post().Save(rctx, &model.Post{
 		UserId:    user1.Id,
 		ChannelId: channel1.Id,
 		Message:   "post1",
 	})
 	require.NoError(t, err)
 
-	post2, err := ss.Post().Save(&model.Post{
+	post2, err := ss.Post().Save(rctx, &model.Post{
 		UserId:    user2.Id,
 		ChannelId: channel2.Id,
 		Message:   "post2",

@@ -3,7 +3,7 @@
 
 import type {Placement} from 'popper.js';
 import React, {useRef} from 'react';
-import type {RefObject} from 'react';
+import type {RefObject, CSSProperties} from 'react';
 import {usePopper} from 'react-popper';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
@@ -82,8 +82,11 @@ export const TaskListPopover = ({
         ],
     });
     const style = {
-        ...popper,
-        zIndex: isVisible ? 100 : -1,
+        container: {
+            ...popper,
+            zIndex: isVisible ? 100 : -1,
+            position: 'fixed',
+        } as CSSProperties,
     };
     return (
         <>
@@ -100,7 +103,7 @@ export const TaskListPopover = ({
             </CSSTransition>
             <div
                 ref={popperElement}
-                style={style}
+                style={style.container}
                 {...attributes.popper}
             >
                 {children}

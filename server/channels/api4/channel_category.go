@@ -118,7 +118,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 	auditRec := c.MakeAuditRecord("updateCategoryOrderForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	categoryOrder, err := model.NonSortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	categoryOrder, err := model.NonSortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("updateCategoryOrderForTeamForUser", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -236,7 +236,7 @@ func validateSidebarCategories(c *Context, teamId, userId string, categories []*
 		LastDeleteAt:   0,
 	})
 	if err != nil {
-		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	for _, category := range categories {

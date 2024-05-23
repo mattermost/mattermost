@@ -137,6 +137,15 @@ export function postRemoved(post: Post) {
     };
 }
 
+export function postPinnedChanged(postId: string, isPinned: boolean, updateAt = Date.now()) {
+    return {
+        type: PostTypes.POST_PINNED_CHANGED,
+        postId,
+        isPinned,
+        updateAt,
+    };
+}
+
 export function getPost(postId: string): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         let post;
@@ -525,11 +534,7 @@ export function pinPost(postId: string): ActionFuncAsync {
         const post = PostSelectors.getPost(state, postId);
         if (post) {
             actions.push(
-                receivedPost({
-                    ...post,
-                    is_pinned: true,
-                    update_at: Date.now(),
-                }, isCollapsedThreadsEnabled(state)),
+                postPinnedChanged(postId, true, Date.now()),
                 {
                     type: ChannelTypes.INCREMENT_PINNED_POST_COUNT,
                     id: post.channel_id,
@@ -577,11 +582,7 @@ export function unpinPost(postId: string): ActionFuncAsync {
         const post = PostSelectors.getPost(state, postId);
         if (post) {
             actions.push(
-                receivedPost({
-                    ...post,
-                    is_pinned: false,
-                    update_at: Date.now(),
-                }, isCollapsedThreadsEnabled(state)),
+                postPinnedChanged(postId, false, Date.now()),
                 decrementPinnedPostCount(post.channel_id),
             );
         }
@@ -954,34 +955,46 @@ export function getPostsAround(channelId: string, postId: string, perPage = Post
     };
 }
 
-// getThreadsForPosts is intended for an array of posts that have been batched
-// (see the actions/websocket_actions/handleNewPostEvents function in the webapp)
-export function getThreadsForPosts(posts: Post[], fetchThreads = true): ThunkActionFunc<unknown> {
-    const rootsSet = new Set<string>();
+/**
+ * getPostThreads is intended for an array of posts that have been batched
+ * (see the actions/websocket_actions/handleNewPostEvents function in the webapp)
+* */
+export function getPostThreads(posts: Post[], fetchThreads = true): ThunkActionFunc<unknown> {
     return (dispatch, getState) => {
         if (!Array.isArray(posts) || !posts.length) {
             return {data: true};
         }
 
         const state = getState();
-        const promises: Array<Promise<ActionResult>> = [];
+        const currentChannelId = getCurrentChannelId(state);
 
-        posts.forEach((post) => {
+        const getPostThreadPromises: Array<Promise<ActionResult<PostList>>> = [];
+
+        const rootPostIds = new Set<string>();
+
+        for (const post of posts) {
             if (!post.root_id) {
-                return;
+                continue;
             }
+
             const rootPost = PostSelectors.getPost(state, post.root_id);
-
-            if (!rootPost) {
-                rootsSet.add(post.root_id);
+            if (rootPost) {
+                continue;
             }
-        });
 
-        rootsSet.forEach((rootId) => {
-            promises.push(dispatch(getPostThread(rootId, fetchThreads)));
-        });
+            if (rootPostIds.has(post.root_id)) {
+                continue;
+            }
 
-        return Promise.all(promises);
+            // At this point, we know that this post is a thread/reply and its root post is not in the store
+            rootPostIds.add(post.root_id);
+
+            if (post.channel_id === currentChannelId) {
+                getPostThreadPromises.push(dispatch(getPostThread(post.root_id, fetchThreads)));
+            }
+        }
+
+        return Promise.all(getPostThreadPromises);
     };
 }
 

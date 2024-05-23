@@ -27,9 +27,11 @@ import {
 } from 'actions/views/create_comment';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import {openModal} from 'actions/views/modals';
+import {focusedRHS} from 'actions/views/rhs';
 import {setShowPreviewOnCreateComment} from 'actions/views/textbox';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getPostDraft, getIsRhsExpanded, getSelectedPostFocussedAt} from 'selectors/rhs';
+import {getShouldFocusRHS} from 'selectors/views/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import {showPreviewOnCreateComment} from 'selectors/views/textbox';
 
@@ -45,6 +47,7 @@ type OwnProps = {
     rootId: string;
     channelId: string;
     latestPostId: string;
+    isPlugin?: boolean;
 };
 
 function makeMapStateToProps() {
@@ -78,6 +81,7 @@ function makeMapStateToProps() {
         const isFormattingBarHidden = getBool(state, Constants.Preferences.ADVANCED_TEXT_EDITOR, AdvancedTextEditor.COMMENT);
         const currentTeamId = getCurrentTeamId(state);
         const postEditorActions = state.plugins.components.PostEditorAction;
+        const shouldFocusRHS = getShouldFocusRHS(state);
 
         return {
             currentTeamId,
@@ -107,6 +111,7 @@ function makeMapStateToProps() {
             useCustomGroupMentions,
             canUploadFiles: canUploadFiles(config),
             postEditorActions,
+            shouldFocusRHS,
         };
     };
 }
@@ -134,20 +139,22 @@ function makeMapDispatchToProps() {
     let latestPostId: string;
 
     return (dispatch: Dispatch, ownProps: OwnProps) => {
-        if (rootId !== ownProps.rootId) {
-            onUpdateCommentDraft = makeOnUpdateCommentDraft(ownProps.rootId, ownProps.channelId);
-        }
+        if (!ownProps.isPlugin) {
+            if (rootId !== ownProps.rootId) {
+                onUpdateCommentDraft = makeOnUpdateCommentDraft(ownProps.rootId, ownProps.channelId);
+            }
 
-        if (channelId !== ownProps.channelId) {
-            updateCommentDraftWithRootId = makeUpdateCommentDraftWithRootId(ownProps.channelId);
-        }
+            if (channelId !== ownProps.channelId) {
+                updateCommentDraftWithRootId = makeUpdateCommentDraftWithRootId(ownProps.channelId);
+            }
 
-        if (rootId !== ownProps.rootId) {
-            onEditLatestPost = makeOnEditLatestPost(ownProps.rootId);
-        }
+            if (rootId !== ownProps.rootId) {
+                onEditLatestPost = makeOnEditLatestPost(ownProps.rootId);
+            }
 
-        if (rootId !== ownProps.rootId || channelId !== ownProps.channelId || latestPostId !== ownProps.latestPostId) {
-            onSubmit = makeOnSubmit(ownProps.channelId, ownProps.rootId, ownProps.latestPostId);
+            if (rootId !== ownProps.rootId || channelId !== ownProps.channelId || latestPostId !== ownProps.latestPostId) {
+                onSubmit = makeOnSubmit(ownProps.channelId, ownProps.rootId, ownProps.latestPostId);
+            }
         }
 
         rootId = ownProps.rootId;
@@ -172,6 +179,7 @@ function makeMapDispatchToProps() {
                 openModal,
                 savePreferences,
                 searchAssociatedGroupsForReference,
+                focusedRHS,
             },
             dispatch,
         );

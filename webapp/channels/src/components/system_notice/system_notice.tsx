@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import type {AnalyticsRow} from '@mattermost/types/admin';
+import type {AnalyticsState} from '@mattermost/types/admin';
 import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -23,7 +23,7 @@ export interface Props extends WrappedComponentProps {
     serverVersion: string;
     config: Partial<ClientConfig>;
     license: ClientLicense;
-    analytics?: Record<string, number | AnalyticsRow[]>;
+    analytics?: AnalyticsState;
     currentChannel?: Channel;
     actions: {
         savePreferences(userId: string, preferences: PreferenceType[]): void;

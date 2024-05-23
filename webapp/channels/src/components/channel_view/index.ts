@@ -29,6 +29,7 @@ function mapStateToProps(state: GlobalState) {
 
     const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
     const enableOnboardingFlow = config.EnableOnboardingFlow === 'true';
+    const enableWebSocketEventScope = config.FeatureFlagWebSocketEventScope === 'true';
 
     return {
         channelId: channel ? channel.id : '',
@@ -39,6 +40,7 @@ function mapStateToProps(state: GlobalState) {
         isCloud: getLicense(state).Cloud === 'true',
         teamUrl: getCurrentRelativeTeamUrl(state),
         isFirstAdmin: isFirstAdmin(state),
+        enableWebSocketEventScope,
     };
 }
 

@@ -356,10 +356,11 @@ function verifyMentionedUserAndProfilePopover(postId: string) {
         cy.wrap($el).click();
 
         // * Profile popover should be visible
-        cy.get('#user-profile-popover').should('be.visible');
+        cy.get('div.user-profile-popover').should('be.visible');
 
         // * The username in the popover the same as the username link for each user
-        cy.get('#userPopoverUsername').should('contain', userName);
+        cy.get('div.user-profile-popover').should('contain', userName);
+        cy.get('button.closeButtonRelativePosition').click();
 
         // Click anywhere to close profile popover
         cy.get('#channelHeaderInfo').click();

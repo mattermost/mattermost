@@ -10,8 +10,8 @@
         align-items: center;
         padding: 12px 22px 12px 12px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        background: var(--center-channel-bg);
         border-radius: 4px;
+        background: var(--center-channel-bg);
         box-shadow: var(--elevation-1);
 
         &:not(:first-child) {
@@ -81,7 +81,7 @@
 
             .public-private-selector-button-description {
                 overflow: hidden;
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 12px;
                 line-height: 16px;
                 text-overflow: ellipsis;
@@ -92,7 +92,7 @@
         .public-private-selector-button-icon {
             display: flex;
             flex: none;
-            fill: rgba(var(--center-channel-color-rgb), 0.56);
+            fill: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         .public-private-selector-button-icon-check {

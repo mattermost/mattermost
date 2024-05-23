@@ -75,8 +75,6 @@ describe('components/select_results/SearchLimitsBanner', () => {
                     },
                 },
                 cloud: {
-                    subscription: null,
-                    products: null,
                     limits: {
                         limits: {},
                         limitsLoaded: false,
@@ -106,8 +104,6 @@ describe('components/select_results/SearchLimitsBanner', () => {
                     },
                 },
                 cloud: {
-                    subscription: null,
-                    products: null,
                     limits: {
                         limits: {},
                         limitsLoaded: false,

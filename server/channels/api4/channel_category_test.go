@@ -54,9 +54,10 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 
 		// Have another user create a channel that user isn't a part of
 		channel, _, err := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
-			TeamId: th.BasicTeam.Id,
-			Type:   model.ChannelTypeOpen,
-			Name:   "testchannel",
+			TeamId:      th.BasicTeam.Id,
+			Type:        model.ChannelTypeOpen,
+			Name:        "testchannel",
+			DisplayName: "testchannel",
 		})
 		require.NoError(t, err)
 
@@ -155,7 +156,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 						require.True(t, ok)
 						require.EqualValues(t, expected, updatedCategoriesData)
 					}
-				case <-time.After(1 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 			}
@@ -326,9 +327,10 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 
 		// Have another user create a channel that user isn't a part of
 		channel, _, err := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
-			TeamId: th.BasicTeam.Id,
-			Type:   model.ChannelTypeOpen,
-			Name:   "testchannel",
+			TeamId:      th.BasicTeam.Id,
+			Type:        model.ChannelTypeOpen,
+			Name:        "testchannel",
+			DisplayName: "testchannel",
 		})
 		require.NoError(t, err)
 
@@ -491,9 +493,10 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 
 		// Have another user create a channel that user isn't a part of
 		channel, _, err := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
-			TeamId: th.BasicTeam.Id,
-			Type:   model.ChannelTypeOpen,
-			Name:   "testchannel",
+			TeamId:      th.BasicTeam.Id,
+			Type:        model.ChannelTypeOpen,
+			Name:        "testchannel",
+			DisplayName: "testchannel",
 		})
 		require.NoError(t, err)
 

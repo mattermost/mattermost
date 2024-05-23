@@ -112,26 +112,35 @@ describe('Actions.Admin', () => {
         expect(config.TeamSettings.SiteName === 'Mattermost').toBeTruthy();
     });
 
-    it('updateConfig', async () => {
+    it('patchConfig', async () => {
         nock(Client4.getBaseRoute()).
             get('/config').
             reply(200, {
                 TeamSettings: {
                     SiteName: 'Mattermost',
+                    TeammateNameDisplay: 'username',
                 },
             });
 
         const {data} = await store.dispatch(Actions.getConfig());
         const updated = JSON.parse(JSON.stringify(data));
+
+        // Creating a copy.
+        const reply = JSON.parse(JSON.stringify(data));
         const oldSiteName = updated.TeamSettings.SiteName;
+        const oldNameDisplay = updated.TeamSettings.TeammateNameDisplay;
         const testSiteName = 'MattermostReduxTest';
         updated.TeamSettings.SiteName = testSiteName;
+        reply.TeamSettings.SiteName = testSiteName;
+
+        // Testing partial config patch.
+        updated.TeamSettings.TeammateNameDisplay = null;
 
         nock(Client4.getBaseRoute()).
-            put('/config').
-            reply(200, updated);
+            put('/config/patch').
+            reply(200, reply);
 
-        await store.dispatch(Actions.updateConfig(updated));
+        await store.dispatch(Actions.patchConfig(updated));
 
         let state = store.getState();
 
@@ -139,14 +148,15 @@ describe('Actions.Admin', () => {
         expect(config).toBeTruthy();
         expect(config.TeamSettings).toBeTruthy();
         expect(config.TeamSettings.SiteName === testSiteName).toBeTruthy();
+        expect(config.TeamSettings.TeammateNameDisplay === oldNameDisplay).toBeTruthy();
 
         updated.TeamSettings.SiteName = oldSiteName;
 
         nock(Client4.getBaseRoute()).
-            put('/config').
+            put('/config/patch').
             reply(200, updated);
 
-        await store.dispatch(Actions.updateConfig(updated));
+        await store.dispatch(Actions.patchConfig(updated));
 
         state = store.getState();
 
@@ -619,12 +629,12 @@ describe('Actions.Admin', () => {
 
         const analytics = state.entities.admin.analytics;
         expect(analytics).toBeTruthy();
-        expect(analytics[Stats.TOTAL_PUBLIC_CHANNELS] > 0).toBeTruthy();
+        expect(analytics[Stats.TOTAL_PUBLIC_CHANNELS]).toBeGreaterThan(0);
 
         const teamAnalytics = state.entities.admin.teamAnalytics;
         expect(teamAnalytics).toBeTruthy();
         expect(teamAnalytics[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(teamAnalytics[TestHelper.basicTeam!.id][Stats.TOTAL_PUBLIC_CHANNELS] > 0).toBeTruthy();
+        expect(teamAnalytics[TestHelper.basicTeam!.id][Stats.TOTAL_PUBLIC_CHANNELS]).toBeGreaterThan(0);
     });
 
     it('getAdvancedAnalytics', async () => {
@@ -641,12 +651,12 @@ describe('Actions.Admin', () => {
 
         const analytics = state.entities.admin.analytics;
         expect(analytics).toBeTruthy();
-        expect(analytics[Stats.TOTAL_SESSIONS] > 0).toBeTruthy();
+        expect(analytics[Stats.TOTAL_SESSIONS]).toBeGreaterThan(0);
 
         const teamAnalytics = state.entities.admin.teamAnalytics;
         expect(teamAnalytics).toBeTruthy();
         expect(teamAnalytics[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(teamAnalytics[TestHelper.basicTeam!.id][Stats.TOTAL_SESSIONS] > 0).toBeTruthy();
+        expect(teamAnalytics[TestHelper.basicTeam!.id][Stats.TOTAL_SESSIONS]).toBeGreaterThan(0);
     });
 
     it('getPostsPerDayAnalytics', async () => {
@@ -1018,9 +1028,9 @@ describe('Actions.Admin', () => {
         const state = store.getState();
         const metadataResponse = state.entities.admin.samlMetadataResponse;
         expect(metadataResponse).toBeTruthy();
-        expect(metadataResponse.idp_url === samlIdpURL).toBeTruthy();
-        expect(metadataResponse.idp_descriptor_url === samlIdpDescriptorURL).toBeTruthy();
-        expect(metadataResponse.idp_public_certificate === samlIdpPublicCertificateText).toBeTruthy();
+        expect(metadataResponse!.idp_url === samlIdpURL).toBeTruthy();
+        expect(metadataResponse!.idp_descriptor_url === samlIdpDescriptorURL).toBeTruthy();
+        expect(metadataResponse!.idp_public_certificate === samlIdpPublicCertificateText).toBeTruthy();
     });
 
     it('setSamlIdpCertificateFromMetadata', async () => {
@@ -1029,19 +1039,6 @@ describe('Actions.Admin', () => {
             reply(200, OK_RESPONSE);
 
         await store.dispatch(Actions.setSamlIdpCertificateFromMetadata(samlIdpPublicCertificateText));
-
-        expect(nock.isDone()).toBe(true);
-    });
-
-    it('sendWarnMetricAck', async () => {
-        const warnMetricAck = {
-            id: 'metric1',
-        };
-        nock(Client4.getBaseRoute()).
-            post('/warn_metrics/ack/metric1').
-            reply(200, OK_RESPONSE);
-
-        await store.dispatch(Actions.sendWarnMetricAck(warnMetricAck.id, false));
 
         expect(nock.isDone()).toBe(true);
     });

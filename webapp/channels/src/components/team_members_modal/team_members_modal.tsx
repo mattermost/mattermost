@@ -18,7 +18,7 @@ import {ModalIdentifiers} from 'utils/constants';
 import type {ModalData} from 'types/actions';
 
 type Props = {
-    currentTeam: Team;
+    currentTeam?: Team;
     onExited: () => void;
     onLoad?: () => void;
     actions: {
@@ -90,7 +90,7 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
                         />
                     </Modal.Title>
                     <TeamPermissionGate
-                        teamId={this.props.currentTeam.id}
+                        teamId={this.props.currentTeam?.id}
                         permissions={[Permissions.ADD_USER_TO_TEAM, Permissions.INVITE_GUEST]}
                     >
                         <button
@@ -108,7 +108,7 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
                 </Modal.Header>
                 <Modal.Body>
                     <MemberListTeam
-                        teamId={this.props.currentTeam.id}
+                        teamId={this.props.currentTeam?.id}
                     />
                 </Modal.Body>
             </Modal>
