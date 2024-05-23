@@ -199,6 +199,11 @@ func maxInt64(a, b int64) int64 {
 	return b
 }
 
+// Adds backtiks to the column name for MySQL, this is required if
+// the column name is a reserved keyword.
+//
+//	`ColumnName` -  MySQL
+//	ColumnName   -  Postgres
 func quoteColumnName(driver string, columnName string) string {
 	if driver == model.DatabaseDriverMysql {
 		return fmt.Sprintf("`%s`", columnName)
