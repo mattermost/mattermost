@@ -142,7 +142,6 @@ const emojiIndicesByCategory = new Map();
 const emojiIndicesByCategoryAndSkin = new Map();
 const emojiIndicesByCategoryNoSkin = new Map();
 const categoryNamesSet = new Set();
-const categoryDefaultTranslation = new Map();
 const emojiImagesByAlias = [];
 const emojiFilePositions = new Map();
 const skinCodes = {
@@ -237,7 +236,6 @@ fullEmoji.forEach((emoji, index) => {
     }
 
     const safeCat = normalizeCategoryName(emoji.category);
-    categoryDefaultTranslation.set(safeCat, emoji.category);
     emoji.category = safeCat;
     addIndexToMap(emojiIndicesByCategory, safeCat, index);
     if (emoji.skins || emoji.skin_variations) {
@@ -351,11 +349,7 @@ endResults.push(writeToFileAndPrint('emoji.json', webappUtilsEmojiDir, JSON.stri
 
 const categoryList = Object.keys(jsonCategories).filter((item) => item !== 'Component').map(normalizeCategoryName);
 const categoryNames = ['recent', ...categoryList, 'custom'];
-categoryDefaultTranslation.set('recent', 'Recently Used');
-categoryDefaultTranslation.set('searchResults', 'Search Results');
-categoryDefaultTranslation.set('custom', 'Custom');
 
-const categoryTranslations = ['recent', 'searchResults', ...categoryNames].map((c) => `['${c}', t('emoji_picker.${c}')]`);
 const writeableSkinCategories = [];
 const skinnedCats = [];
 for (const skin of emojiIndicesByCategoryAndSkin.keys()) {
@@ -371,8 +365,6 @@ const emojiJSX = `// Copyright (c) 2015-present Mattermost, Inc. All Rights Rese
 
 /* eslint-disable */
 
-import {t} from 'utils/i18n';
-
 import memoize from 'memoize-one';
 
 import emojis from 'utils/emoji.json';
@@ -386,10 +378,6 @@ export const EmojiIndicesByAlias = new Map(${JSON.stringify(emojiIndicesByAlias)
 export const EmojiIndicesByUnicode = new Map(${JSON.stringify(emojiIndicesByUnicode)});
 
 export const CategoryNames = ${JSON.stringify(categoryNames)};
-
-export const CategoryMessage = new Map(${JSON.stringify(Array.from(categoryDefaultTranslation))});
-
-export const CategoryTranslations = new Map([${categoryTranslations}]);
 
 const AllEmojiIndicesByCategory = new Map(${JSON.stringify(Array.from(emojiIndicesByCategory))});
 
