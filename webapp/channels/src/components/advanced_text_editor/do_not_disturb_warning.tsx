@@ -33,7 +33,7 @@ type Props = {
 
 const DoNotDisturbWarning = ({channelId}: Props) => {
     const userId = useSelector(getCurrentUserId);
-    const channel = useSelector((state: GlobalState) => getChannel(state, channelId))
+    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const channelMembersIds = channel?.name.split('__');
 
     let teammateId = '';
