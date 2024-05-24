@@ -19,6 +19,10 @@ const Container = styled.div`
     padding: 8px 24px;
     font-size: 12px;
     color: rgba(var(--center-channel-color-rgb), 0.75);
+
+    & + .AdvancedTextEditor {
+        padding-top: 0;
+    }
 `;
 
 const Icon = styled.i`

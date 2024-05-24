@@ -24,6 +24,10 @@ const Container = styled.div`
     font-size: 12px;
     color: rgba(var(--center-channel-color-rgb), 0.75);
 
+    & + .AdvancedTextEditor {
+        padding-top: 0;
+    }
+
     .DoNotDisturbWarning + &{
         display: none;
     }
