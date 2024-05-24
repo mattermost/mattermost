@@ -2033,12 +2033,8 @@ func TestCreateUserOrGuest(t *testing.T) {
 		mockUserStore := storemocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(12000), nil)
 
-		mockPostStore := storemocks.PostStore{}
-		mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(int64(1000), nil)
-
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockStore.On("User").Return(&mockUserStore)
-		mockStore.On("Post").Return(&mockPostStore)
 
 		user := &model.User{
 			Email:         "TestCreateUserOrGuest@example.com",
@@ -2151,12 +2147,8 @@ func userCreationMocks(t *testing.T, th *TestHelper, userID string, activeUserCo
 	mockProductNoticeStore := storemocks.ProductNoticesStore{}
 	mockProductNoticeStore.On("View", userID, mock.Anything).Return(nil)
 
-	mockPostStore := storemocks.PostStore{}
-	mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(int64(1000), nil)
-
 	mockStore := th.App.Srv().Store().(*storemocks.Store)
 	mockStore.On("User").Return(&mockUserStore)
-	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("Group").Return(&mockGroupStore)
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("Preference").Return(&mockPreferencesStore)
