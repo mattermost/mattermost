@@ -41,9 +41,9 @@ const RemoteUserHour = () => {
 
     let teammateId = '';
     if (channelMembersIds && channelMembersIds.length === 2) {
-        teammateId = channelMembersIds[0]
+        teammateId = channelMembersIds[0];
         if (teammateId === userId) {
-            teammateId = channelMembersIds[1]
+            teammateId = channelMembersIds[1];
         }
     }
 
