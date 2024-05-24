@@ -1162,6 +1162,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "largest_contentful_paint",
 			Help:      "Duration of how long it takes for large content to be displayed on screen to a user (seconds)",
+			Buckets:   append(prometheus.DefBuckets, 15, 20),
 		},
 		[]string{"platform", "agent"},
 	)
