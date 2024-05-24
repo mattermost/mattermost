@@ -11,8 +11,8 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTimezoneForUserProfile} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
-import Timestamp from 'components/timestamp';
 import Moon from 'components/common/svg_images_components/moon_svg';
+import Timestamp from 'components/timestamp';
 
 import Constants from 'utils/constants';
 
@@ -46,8 +46,7 @@ const Icon = styled(Moon)`
         height: 16px;
     }
     svg path {
-        stroke: rgba(var(--center-channel-color-rgb), 0.75);
-        fill: transparent;
+        fill: rgba(var(--center-channel-color-rgb), 0.75);
     }
     margin: 0 2px;
 `;
