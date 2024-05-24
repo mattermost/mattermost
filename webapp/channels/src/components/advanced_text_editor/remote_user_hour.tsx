@@ -65,12 +65,12 @@ const RemoteUserHour = ({channelId}: Props) => {
     useEffect(() => {
         const teammateUserDate = DateTime.local().setZone(teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone);
         setTimestamp(teammateUserDate.toMillis());
-        setShowIt(teammateUserDate.get('hour') >= Constants.REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY || teammateUserDate.get('hour') <= Constants.REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY);
+        setShowIt(teammateUserDate.get('hour') >= Constants.REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY || teammateUserDate.get('hour') < Constants.REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY);
 
         const interval = setInterval(() => {
             const teammateUserDate = DateTime.local().setZone(teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone);
             setTimestamp(teammateUserDate.toMillis());
-            setShowIt(teammateUserDate.get('hour') >= Constants.REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY || teammateUserDate.get('hour') <= Constants.REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY);
+            setShowIt(teammateUserDate.get('hour') >= Constants.REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY || teammateUserDate.get('hour') < Constants.REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY);
         }, 1000 * 60);
         return () => clearInterval(interval);
     }, [teammateTimezone.useAutomaticTimezone, teammateTimezone.automaticTimezone, teammateTimezone.manualTimezone]);
