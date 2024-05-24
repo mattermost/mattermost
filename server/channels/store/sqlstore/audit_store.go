@@ -67,7 +67,7 @@ func (s SqlAuditStore) PermanentDeleteByUser(userId string) error {
 	return nil
 }
 
-func (s *SqlPostStore) BatchMergeUserId(toUserId string, fromUserId string) error {
+func (s *SqlAuditStore) BatchMergeUserId(toUserId string, fromUserId string) error {
 	for {
 		var query string
 		if s.DriverName() == "postgres" {
