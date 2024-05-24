@@ -19,7 +19,6 @@ import LoadingImagePreview from 'components/loading_image_preview';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
-import {t} from 'utils/i18n';
 import {localizeMessage, copyToClipboard} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 48;
@@ -244,13 +243,13 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
             >
                 {this.state.linkCopiedRecently ? (
                     <FormattedMessage
-                        id={t('single_image_view.copied_link_tooltip')}
-                        defaultMessage={'Copied'}
+                        id='single_image_view.copied_link_tooltip'
+                        defaultMessage='Copied'
                     />
                 ) : (
                     <FormattedMessage
-                        id={t('single_image_view.copy_link_tooltip')}
-                        defaultMessage={'Copy link'}
+                        id='single_image_view.copy_link_tooltip'
+                        defaultMessage='Copy link'
                     />
                 )}
             </Tooltip>
