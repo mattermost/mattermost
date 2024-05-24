@@ -43,9 +43,11 @@ import * as Utils from 'utils/utils';
 
 import type {PostDraft} from 'types/store/draft';
 
+import DoNotDisturbWarning from './do_not_disturb_warning';
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
 import {IconContainer} from './formatting_bar/formatting_icon';
+import RemoteUserHour from './remote_user_hour';
 import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
@@ -651,6 +653,8 @@ const AdvanceTextEditor = ({
 
     return (
         <>
+            <DoNotDisturbWarning channelId={channelId}/>
+            <RemoteUserHour channelId={channelId}/>
             <div
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,

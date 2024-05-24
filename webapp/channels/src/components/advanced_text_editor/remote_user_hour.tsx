@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTimezoneForUserProfile} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
@@ -34,9 +34,13 @@ const Icon = styled.i`
     margin-right: 2px;
 `;
 
-const RemoteUserHour = () => {
+type Props = {
+    channelId: string;
+}
+
+const RemoteUserHour = ({channelId}: Props) => {
     const userId = useSelector(getCurrentUserId);
-    const channel = useSelector(getCurrentChannel);
+    const channel = useSelector((state: GlobalState) => getChannel(state, channelId))
     const channelMembersIds = channel?.name.split('__');
 
     let teammateId = '';

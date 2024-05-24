@@ -65,9 +65,7 @@ import type {ModalData} from 'types/actions';
 import type {PostDraft} from 'types/store/draft';
 import type {PluginComponent} from 'types/store/plugins';
 
-import DoNotDisturbWarning from './do_not_disturb_warning';
 import PriorityLabels from './priority_labels';
-import RemoteUserHour from './remote_user_hour';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -1422,8 +1420,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
                     <FileLimitStickyBanner/>
                 )}
-                <DoNotDisturbWarning/>
-                <RemoteUserHour/>
                 <AdvancedTextEditor
                     location={Locations.CENTER}
                     currentUserId={this.props.currentUserId}
