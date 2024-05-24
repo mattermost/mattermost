@@ -8927,6 +8927,14 @@
     "translation": "Invalid value for write timeout."
   },
   {
+    "id": "model.config.sanitize.marshal.app_error",
+    "translation": "Failed to encode field to JSON."
+  },
+  {
+    "id": "model.config.sanitize.unmarshal_to_map.app_error",
+    "translation": "Failed to unmarshal."
+  },
+  {
     "id": "model.draft.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },

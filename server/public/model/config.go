@@ -4322,49 +4322,110 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 	return options
 }
 
-func (o *Config) Sanitize() {
-	if o.LdapSettings.BindPassword != nil && *o.LdapSettings.BindPassword != "" {
-		*o.LdapSettings.BindPassword = FakeSetting
+type SanitizeConfigRules struct {
+	Contains   []string
+	StartsWith []string
+	EndsWith   []string
+}
+
+func sanitizeConfigMap(config map[string]interface{}, rules SanitizeConfigRules) *AppError {
+	for key, value := range config {
+		switch v := value.(type) {
+		case map[string]interface{}:
+			if err := sanitizeConfigMap(v, rules); err != nil {
+				return err
+			}
+		case []interface{}:
+			for i, item := range v {
+				if itemMap, ok := item.(map[string]interface{}); ok {
+					if err := sanitizeConfigMap(itemMap, rules); err != nil {
+						return err
+					}
+				} else if str, ok := item.(string); ok {
+					if shouldSanitize(key, rules) && str != "" {
+						v[i] = FakeSetting
+					}
+				}
+			}
+		case string:
+			if shouldSanitize(key, rules) && v != "" {
+				config[key] = FakeSetting
+			}
+		default:
+			continue
+		}
+	}
+	return nil
+}
+
+func shouldSanitize(key string, rules SanitizeConfigRules) bool {
+	lowerKey := strings.ToLower(key)
+	for _, substring := range rules.Contains {
+		if strings.Contains(lowerKey, strings.ToLower(substring)) {
+			return true
+		}
+	}
+	for _, prefix := range rules.StartsWith {
+		if strings.HasPrefix(lowerKey, strings.ToLower(prefix)) {
+			return true
+		}
+	}
+	for _, suffix := range rules.EndsWith {
+		if strings.HasSuffix(lowerKey, strings.ToLower(suffix)) {
+			return true
+		}
+	}
+	return false
+}
+
+func (o *Config) Sanitize() *AppError {
+	rules := SanitizeConfigRules{
+		Contains:   []string{"password", "secret", "key", "keyid", "email"},
+		StartsWith: []string{"key", "password", "email"},
+		EndsWith:   []string{"key", "keyid", "id", "email"},
 	}
 
+	// Marshal the config struct to JSON and back to map
+	var configMap map[string]interface{}
+	data, err := json.Marshal(o)
+	if err != nil {
+		return NewAppError("Config.Sanitize", "model.config.sanitize.marshal.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	if err := json.Unmarshal(data, &configMap); err != nil {
+		return NewAppError("Config.Sanitize", "model.config.sanitize.unmarshal_to_map.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	// Sanitize the map
+	if err := sanitizeConfigMap(configMap, rules); err != nil {
+		return err
+	}
+
+	// Marshal the map back to JSON and into struct
+	sanitizedData, err := json.Marshal(configMap)
+	if err != nil {
+		return NewAppError("Config.Sanitize", "model.config.sanitize.marshal.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	if err := json.Unmarshal(sanitizedData, o); err != nil {
+		return NewAppError("Config.Sanitize", "model.config.sanitize.unmarshal_to_map.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	// Sanitize other fields not matching the sanitization rules
 	if o.FileSettings.PublicLinkSalt != nil {
 		*o.FileSettings.PublicLinkSalt = FakeSetting
 	}
 
-	if o.FileSettings.AmazonS3SecretAccessKey != nil && *o.FileSettings.AmazonS3SecretAccessKey != "" {
-		*o.FileSettings.AmazonS3SecretAccessKey = FakeSetting
+	if o.FileSettings.AmazonS3Bucket != nil {
+		*o.FileSettings.AmazonS3Bucket = FakeSetting
 	}
 
-	if o.EmailSettings.SMTPPassword != nil && *o.EmailSettings.SMTPPassword != "" {
-		*o.EmailSettings.SMTPPassword = FakeSetting
-	}
-
-	if o.GitLabSettings.Secret != nil && *o.GitLabSettings.Secret != "" {
-		*o.GitLabSettings.Secret = FakeSetting
-	}
-
-	if o.GoogleSettings.Secret != nil && *o.GoogleSettings.Secret != "" {
-		*o.GoogleSettings.Secret = FakeSetting
-	}
-
-	if o.Office365Settings.Secret != nil && *o.Office365Settings.Secret != "" {
-		*o.Office365Settings.Secret = FakeSetting
-	}
-
-	if o.OpenIdSettings.Secret != nil && *o.OpenIdSettings.Secret != "" {
-		*o.OpenIdSettings.Secret = FakeSetting
+	if o.ElasticsearchSettings.ConnectionURL != nil {
+		*o.ElasticsearchSettings.ConnectionURL = FakeSetting
 	}
 
 	if o.SqlSettings.DataSource != nil {
 		*o.SqlSettings.DataSource = FakeSetting
-	}
-
-	if o.SqlSettings.AtRestEncryptKey != nil {
-		*o.SqlSettings.AtRestEncryptKey = FakeSetting
-	}
-
-	if o.ElasticsearchSettings.Password != nil {
-		*o.ElasticsearchSettings.Password = FakeSetting
 	}
 
 	for i := range o.SqlSettings.DataSourceReplicas {
@@ -4379,15 +4440,11 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.ReplicaLagSettings[i].DataSource = NewString(FakeSetting)
 	}
 
-	if o.MessageExportSettings.GlobalRelaySettings != nil &&
-		o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil &&
-		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
-		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword = FakeSetting
+	if o.ServiceSettings.AllowedUntrustedInternalConnections != nil {
+		*o.ServiceSettings.AllowedUntrustedInternalConnections = FakeSetting
 	}
 
-	if o.ServiceSettings.SplitKey != nil {
-		*o.ServiceSettings.SplitKey = FakeSetting
-	}
+	return nil
 }
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed
