@@ -1758,7 +1758,12 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+<<<<<<< MM-54025-add-multiple-members
 		rootPost, err := c.App.GetSinglePost(postRootId, false)
+=======
+	if ok && len(postRootId) == 26 {
+		rootPost, err := c.App.GetSinglePost(c.AppContext, postRootId, false)
+>>>>>>> master
 		if err != nil {
 			c.Err = err
 			return

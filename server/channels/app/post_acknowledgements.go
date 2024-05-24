@@ -15,7 +15,7 @@ import (
 )
 
 func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
-	post, err := a.GetSinglePost(postID, false)
+	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (
 }
 
 func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError {
-	post, err := a.GetSinglePost(postID, false)
+	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return err
 	}

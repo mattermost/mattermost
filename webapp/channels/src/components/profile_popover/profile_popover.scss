@@ -167,6 +167,13 @@
             }
         }
 
+        .user-profile-popover-pluggables {
+            &:not(:empty) {
+                padding: 0 16px 12px 16px;
+                @include textEllipsis;
+            }
+        }
+
         .user-popover__custom-status {
             display: flex;
             align-items: center;
@@ -221,13 +228,6 @@
                 gap: 4px;
                 justify-items: flex-end;
                 row-gap: 4px;
-            }
-        }
-
-        button#startCallButton {
-            &.icon-btn-disabled {
-                cursor: not-allowed;
-                opacity: 0.65;
             }
         }
     }
