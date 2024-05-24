@@ -12,6 +12,7 @@ import {getTimezoneForUserProfile} from 'mattermost-redux/selectors/entities/tim
 import {getCurrentUserId, getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import Timestamp from 'components/timestamp';
+import Moon from 'components/common/svg_images_components/moon_svg';
 
 import Constants from 'utils/constants';
 
@@ -20,6 +21,8 @@ import type {GlobalState} from 'types/store';
 const getDisplayName = makeGetDisplayName();
 
 const Container = styled.div`
+    display: flex;
+    aling-items: center;
     padding: 8px 24px;
     font-size: 12px;
     color: rgba(var(--center-channel-color-rgb), 0.75);
@@ -37,9 +40,16 @@ const Container = styled.div`
     }
 `;
 
-const Icon = styled.i`
-    font-size: 14px;
-    margin-right: 2px;
+const Icon = styled(Moon)`
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+    svg path {
+        stroke: rgba(var(--center-channel-color-rgb), 0.75);
+        fill: transparent;
+    }
+    margin: 0 2px;
 `;
 
 type Props = {
@@ -97,7 +107,7 @@ const RemoteUserHour = ({channelId}: Props) => {
 
     return (
         <Container>
-            <Icon className='icon-clock-outline'/>
+            <Icon/>
             <FormattedMessage
                 id='advanced_text_editor.remote_user_hour'
                 defaultMessage='The time for {user} is {time}'
