@@ -54,7 +54,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		ChannelId:   channel.Id,
 		TeamId:      rc.RemoteTeamId,
 		ReadOnly:    sc.ReadOnly,
-		Name:        sc.ShareName,
+		Name:        channel.Name,
 		DisplayName: sc.ShareDisplayName,
 		Header:      sc.ShareHeader,
 		Purpose:     sc.SharePurpose,
