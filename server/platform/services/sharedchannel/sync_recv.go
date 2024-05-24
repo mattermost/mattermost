@@ -329,8 +329,9 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 	var appErr *model.AppError
 
 	post.RemoteId = model.NewString(rc.RemoteId)
+	rctx := request.EmptyContext(scs.server.Log())
 
-	rpost, err := scs.server.GetStore().Post().GetSingle(post.Id, true)
+	rpost, err := scs.server.GetStore().Post().GetSingle(rctx, post.Id, true)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
 			return nil, fmt.Errorf("error checking sync post: %w", err)
@@ -339,7 +340,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 
 	if rpost == nil {
 		// post doesn't exist; create new one
-		rpost, appErr = scs.app.CreatePost(request.EmptyContext(scs.server.Log()), post, channel, true, true)
+		rpost, appErr = scs.app.CreatePost(rctx, post, channel, true, true)
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 				mlog.String("post_id", post.Id),
@@ -348,7 +349,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 		}
 	} else if post.DeleteAt > 0 {
 		// delete post
-		rpost, appErr = scs.app.DeletePost(request.EmptyContext(scs.server.Log()), post.Id, post.UserId)
+		rpost, appErr = scs.app.DeletePost(rctx, post.Id, post.UserId)
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Deleted sync post",
 				mlog.String("post_id", post.Id),
