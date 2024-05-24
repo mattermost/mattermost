@@ -180,8 +180,8 @@
               type: array
               items:
                 type: string
-              minItems: 1
-              maxItems: 1000
+              minItems: 3
+              maxItems: 8
         description: User ids to be in the group message channel.
         required: true
       responses:

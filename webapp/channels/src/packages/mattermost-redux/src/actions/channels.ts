@@ -1051,15 +1051,13 @@ export function addChannelMember(channelId: string, userId: string, postRootId =
 export function addChannelMembers(channelId: string, userIds: string[], postRootId = ''): ActionFuncAsync {
     const batchSize = 1000;
     return async (dispatch, getState) => {
-        const batches = [];
-        for (let i = 0; i < userIds.length; i += batchSize) {
-            batches.push(userIds.slice(i, i + batchSize));
-        }
-
         const channelMembers: ChannelMembership[] = [];
         try {
-            const cm = await Client4.addToChannels(userIds, channelId, postRootId);
-            channelMembers.push(...cm);
+            for (let i = 0; i < userIds.length; i += batchSize) {
+                // eslint-disable-next-line no-await-in-loop
+                const cm = await Client4.addToChannels(userIds.slice(i, i + batchSize), channelId, postRootId);
+                channelMembers.push(...cm);
+            }
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -1068,23 +1066,23 @@ export function addChannelMembers(channelId: string, userIds: string[], postRoot
 
         Client4.trackEvent('action', 'action_channels_add_member', {channel_id: channelId});
 
-        for (const member of channelMembers) {
-            dispatch(batchActions([
-                {
-                    type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
-                    data: {id: channelId, user_id: member.user_id},
-                },
-                {
-                    type: ChannelTypes.RECEIVED_CHANNEL_MEMBER,
-                    data: member,
-                },
-                {
-                    type: ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS,
-                    id: channelId,
-                },
-            ], 'ADD_CHANNEL_MEMBER.BATCH'));
-        }
-
+        const ids = channelMembers.map((member) => ({id: member.user_id}));
+        dispatch(batchActions([
+            {
+                type: UserTypes.RECEIVED_PROFILES_IN_CHANNEL,
+                id: channelId,
+                data: ids,
+            },
+            {
+                type: ChannelTypes.RECEIVED_CHANNEL_MEMBERS,
+                data: channelMembers,
+            },
+            {
+                type: ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS,
+                id: channelId,
+                count: channelMembers.length,
+            },
+        ], 'ADD_CHANNEL_MEMBERS.BATCH'));
         return {data: channelMembers};
     };
 }
