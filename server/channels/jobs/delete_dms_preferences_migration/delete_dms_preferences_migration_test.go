@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package delete_visible_dms_preferences_migration
+package delete_dms_preferences_migration
 
 import (
 	"errors"
@@ -21,7 +21,7 @@ func TestDoDeleteEmptyDraftsMigrationBatch(t *testing.T) {
 
 		mockStore.DraftStore.On("DeleteVisibleDmsGms").Return(errors.New("failure"))
 
-		data, done, err := doDeleteVisibleDmsPreferencesMigrationBatch(nil, mockStore)
+		data, done, err := doDeleteDmsPreferencesMigrationBatch(nil, mockStore)
 		require.EqualError(t, err, "failed to delete empty drafts (create_at=1695920000, user_id=user_id_1): failure")
 		assert.False(t, done)
 		assert.Nil(t, data)
