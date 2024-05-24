@@ -7,6 +7,8 @@ exports[`components/advanced_create_post Show tutorial 1`] = `
   id="create_post"
   onSubmit={[Function]}
 >
+  <DoNotDisturbWarning />
+  <RemoteUserHour />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
@@ -109,6 +111,8 @@ exports[`components/advanced_create_post should match snapshot for center textbo
   id="create_post"
   onSubmit={[Function]}
 >
+  <DoNotDisturbWarning />
+  <RemoteUserHour />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
@@ -211,6 +215,8 @@ exports[`components/advanced_create_post should match snapshot when cannot post 
   id="create_post"
   onSubmit={[Function]}
 >
+  <DoNotDisturbWarning />
+  <RemoteUserHour />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
@@ -313,6 +319,8 @@ exports[`components/advanced_create_post should match snapshot when file upload 
   id="create_post"
   onSubmit={[Function]}
 >
+  <DoNotDisturbWarning />
+  <RemoteUserHour />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
@@ -415,6 +423,8 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
   id="create_post"
   onSubmit={[Function]}
 >
+  <DoNotDisturbWarning />
+  <RemoteUserHour />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
@@ -517,6 +527,8 @@ exports[`components/advanced_create_post should match snapshot, can post; previe
   id="create_post"
   onSubmit={[Function]}
 >
+  <DoNotDisturbWarning />
+  <RemoteUserHour />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
@@ -619,6 +631,8 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
   id="create_post"
   onSubmit={[Function]}
 >
+  <DoNotDisturbWarning />
+  <RemoteUserHour />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
@@ -721,6 +735,8 @@ exports[`components/advanced_create_post should match snapshot, cannot post; pre
   id="create_post"
   onSubmit={[Function]}
 >
+  <DoNotDisturbWarning />
+  <RemoteUserHour />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
@@ -823,6 +839,8 @@ exports[`components/advanced_create_post should match snapshot, init 1`] = `
   id="create_post"
   onSubmit={[Function]}
 >
+  <DoNotDisturbWarning />
+  <RemoteUserHour />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
@@ -925,6 +943,8 @@ exports[`components/advanced_create_post should match snapshot, post priority di
   id="create_post"
   onSubmit={[Function]}
 >
+  <DoNotDisturbWarning />
+  <RemoteUserHour />
   <AdvanceTextEditor
     additionalControls={Array []}
     applyMarkdown={[Function]}
@@ -1032,6 +1052,8 @@ exports[`components/advanced_create_post should match snapshot, post priority en
   id="create_post"
   onSubmit={[Function]}
 >
+  <DoNotDisturbWarning />
+  <RemoteUserHour />
   <AdvanceTextEditor
     additionalControls={
       Array [
@@ -1142,6 +1164,8 @@ exports[`components/advanced_create_post should match snapshot, post priority en
   id="create_post"
   onSubmit={[Function]}
 >
+  <DoNotDisturbWarning />
+  <RemoteUserHour />
   <AdvanceTextEditor
     additionalControls={
       Array [
