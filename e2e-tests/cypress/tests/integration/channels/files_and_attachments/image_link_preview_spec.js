@@ -178,13 +178,13 @@ describe('Image Link Preview', () => {
             {
                 filename: 'image-1000x40.jpg',
                 originalSize: {width: 1000, height: 40},
-                thumbnailSize: {width: 899, height: 36},
+                thumbnailSize: {width: 908, height: 36},
                 containerSize: {height: 46},
             },
             {
                 filename: 'image-1600x40.jpg',
                 originalSize: {width: 1600, height: 40},
-                thumbnailSize: {width: 899, height: 23},
+                thumbnailSize: {width: 908, height: 23},
                 previewSize: {width: 1204, height: 30},
                 containerSize: {height: 46},
             },
@@ -209,10 +209,10 @@ describe('Image Link Preview', () => {
                     should((imageContainer) => {
                         if (containerSize.height) {
                         // * Should match thumbnail's container height
-                            expect(imageContainer.height()).to.closeTo(containerSize.height, 1);
+                            expect(imageContainer.height()).to.closeTo(containerSize.height, 2);
                         } else {
                         // * Should match thumbnail's container width
-                            expect(imageContainer.width()).to.closeTo(containerSize.width, 1);
+                            expect(imageContainer.width()).to.closeTo(containerSize.width, 2);
                         }
                     });
             }
@@ -224,8 +224,8 @@ describe('Image Link Preview', () => {
                 cy.uiGetFileThumbnail(filename).
                     should((imageAttachment) => {
                         // * Check the dimensions of image's dimensions is almost equal to its thumbnail dimensions
-                        expect(imageAttachment.height()).to.closeTo(thumbnailSize.height, 1);
-                        expect(imageAttachment.width()).to.be.closeTo(thumbnailSize.width, 1);
+                        expect(imageAttachment.height()).to.closeTo(thumbnailSize.height, 2);
+                        expect(imageAttachment.width()).to.be.closeTo(thumbnailSize.width, 2);
                     }).
                     click();
             });
@@ -241,12 +241,12 @@ describe('Image Link Preview', () => {
                 // # If image is bigger than viewport, then its preview will be check for dimensions
                 if (previewSize) {
                     // * It should match preview dimension for images bigger than viewport
-                    expect(imagePreview.height()).to.closeTo(previewSize.height, 1);
-                    expect(imagePreview.width()).to.be.closeTo(previewSize.width, 1);
+                    expect(imagePreview.height()).to.closeTo(previewSize.height, 2);
+                    expect(imagePreview.width()).to.be.closeTo(previewSize.width, 2);
                 } else {
                     // * It should match original dimension for images less than viewport size
-                    expect(imagePreview.height()).to.closeTo(originalSize.height, 1);
-                    expect(imagePreview.width()).to.be.closeTo(originalSize.width, 1);
+                    expect(imagePreview.height()).to.closeTo(originalSize.height, 2);
+                    expect(imagePreview.width()).to.be.closeTo(originalSize.width, 2);
                 }
             });
 

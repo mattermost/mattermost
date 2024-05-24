@@ -18,36 +18,24 @@ describe('Profile > Profile Settings > Email', () => {
     let testUser: Cypress.UserProfile;
     let otherUser;
     let offTopicUrl;
-    let origConfig: Cypress.AdminConfig;
 
     before(() => {
-        // Get config
-        cy.apiGetConfig().then(({config}) => {
-            origConfig = config;
-            const newConfig = {
-                ...origConfig,
-                EmailSettings: {
-                    ...origConfig.EmailSettings,
-                    RequireEmailVerification: true,
-                },
-            };
+        // Update config
+        cy.apiUpdateConfig({EmailSettings: {RequireEmailVerification: true}}).then(({config}) => {
+            siteName = config.TeamSettings.SiteName;
+        });
 
-            cy.apiUpdateConfig(newConfig).then(({config}) => {
-                siteName = config.TeamSettings.SiteName;
-            });
+        cy.apiInitSetup().then(({user, offTopicUrl: url}) => {
+            testUser = user;
+            offTopicUrl = url;
 
-            cy.apiInitSetup().then(({user, offTopicUrl: url}) => {
-                testUser = user;
-                offTopicUrl = url;
+            cy.apiVerifyUserEmailById(testUser.id);
 
-                cy.apiVerifyUserEmailById(testUser.id);
-
-                return cy.apiCreateUser({});
-            }).then(({user: user1}) => {
-                otherUser = user1;
-                cy.apiLogin(testUser);
-                cy.visit(offTopicUrl);
-            });
+            return cy.apiCreateUser({});
+        }).then(({user: user1}) => {
+            otherUser = user1;
+            cy.apiLogin(testUser);
+            cy.visit(offTopicUrl);
         });
     });
 
@@ -163,8 +151,11 @@ describe('Profile > Profile Settings > Email', () => {
             // # Click on the link
             cy.visit(permalink);
 
-            // * Verify announcement bar
-            cy.get('.announcement-bar').should('be.visible').should('contain.text', 'Email verified');
+            // * Verify email has changed and is verified
+            cy.apiGetMe().then(({user}) => {
+                expect(user.email).to.equal(email);
+                expect(user.email_verified).to.be.true;
+            });
 
             // # Wait for one second for the mail to be sent out.
             cy.wait(TIMEOUTS.FIVE_SEC);

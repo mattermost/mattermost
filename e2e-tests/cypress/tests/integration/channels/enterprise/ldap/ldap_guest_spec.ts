@@ -14,7 +14,6 @@ import ldapUsers from '../../../../fixtures/ldap_users.json';
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../../support/env';
 import {getRandomId} from '../../../../utils';
-import {UserProfile} from '@mattermost/types/users';
 
 // assumes that E20 license is uploaded
 // for setup with AWS: Follow the instructions mentioned in the mattermost/platform-private/config/ldap-test-setup.txt file
@@ -42,7 +41,7 @@ describe('LDAP guest', () => {
         });
 
         // # Get user1 data
-        cy.apiLogin(user1 as unknown as UserProfile).then((user) => {
+        cy.apiLogin(user1 as unknown as Cypress.UserProfile).then((user) => {
             user1Data = user;
 
             // # Remove user1 from all the teams
@@ -50,7 +49,7 @@ describe('LDAP guest', () => {
         });
 
         // # Get user2 data
-        cy.apiLogin(user2 as unknown as UserProfile).then((user) => {
+        cy.apiLogin(user2 as unknown as Cypress.UserProfile).then((user) => {
             user2Data = user;
 
             // # Remove user2 fromm all the teams

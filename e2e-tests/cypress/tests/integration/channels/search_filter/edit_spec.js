@@ -57,16 +57,15 @@ describe('Search Date Filter', () => {
         cy.reload();
 
         // # Type on: into search field
-        cy.uiGetSearchBox().click().clear().type('on:');
+        cy.uiGetSearchBox().should('be.visible').click().clear().type('on:');
 
         // * Day picker should appear
-        cy.get('.DayPicker').
+        cy.get('.rdp-table').
             as('dayPicker').
             should('be.visible');
 
         // # Click on today's date
-        cy.get('@dayPicker').
-            find('.DayPicker-Day--today').click();
+        cy.get('@dayPicker').find('.rdp-day_today').click();
 
         // * Search field should populate with the correct date, then send rest of query
         cy.uiGetSearchBox().
@@ -87,10 +86,9 @@ describe('Search Date Filter', () => {
 
         // # Visit test channel to reload a page
         cy.visit(channelUrl);
-        cy.postMessage(Date.now());
 
         // # Back space right after the date to bring up date picker again
-        cy.uiGetSearchBox().click().clear().
+        cy.uiGetSearchBox().should('be.visible').click().clear().
             type(`on:2019-01-15 ${targetMessage}`).
             type('{leftarrow}'.repeat(targetMessage.length + 1)).
             type('{backspace}');
@@ -100,8 +98,8 @@ describe('Search Date Filter', () => {
 
         // # Click on tomorrow's day
         cy.get('@dayPicker').
-            find('.DayPicker-Day--today').
-            next('.DayPicker-Day').click();
+            find('.rdp-day_today').parent().
+            next().find('.rdp-day').click();
 
         // # Add message to search for, and hit enter
         cy.uiGetSearchBox().
