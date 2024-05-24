@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PQueue from 'p-queue';
-
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
@@ -37,7 +35,6 @@ import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-export const queue = new PQueue({concurrency: 4});
 const dispatch = store.dispatch;
 const getState = store.getState;
 
@@ -315,7 +312,6 @@ export async function loadProfilesForGM() {
     const channelUsersToLoad: string[] = [];
     for (const channel of getGMsForLoading(state)) {
         const userIds = userIdsInChannels[channel.id] || new Set();
-        console.log(userIds);
         userIds.forEach((userId) => userIdsForLoadingCustomEmojis.add(userId));
 
         if (userIds.size >= Constants.MIN_USERS_IN_GM) {
@@ -344,16 +340,11 @@ export async function loadProfilesForGM() {
         if (userIds.size === 0) {
             channelUsersToLoad.push(channel.id);
         }
-
-        // const getProfilesAction = UserActions.getProfilesInChannel(channel.id, 0, Constants.MAX_USERS_IN_GM);
-        // queue.add(() => dispatch(getProfilesAction));
     }
 
     if (channelUsersToLoad.length > 0) {
         await dispatch(UserActions.getProfilesInGroupChannels(channelUsersToLoad));
     }
-
-    // await queue.onEmpty();
 
     if (userIdsForLoadingCustomEmojis.size > 0) {
         dispatch(loadCustomEmojisForCustomStatusesByUserIds(userIdsForLoadingCustomEmojis));
