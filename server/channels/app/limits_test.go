@@ -6,8 +6,6 @@ package app
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost/server/public/shared/request"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
 )
@@ -22,11 +20,7 @@ func TestGetServerLimits(t *testing.T) {
 
 		// InitBasic creates 3 users by default
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
-		require.Equal(t, int64(10000), serverLimits.MaxUsersLimit)
-
-		// 5 posts are created by default
-		require.Equal(t, int64(5), serverLimits.PostCount)
-		require.Equal(t, int64(5_000_000), serverLimits.MaxPostLimit)
+		require.Equal(t, int64(5000), serverLimits.MaxUsersLimit)
 	})
 
 	t.Run("user count should increase on creating new user and decrease on permanently deleting", func(t *testing.T) {
@@ -152,31 +146,5 @@ func TestGetServerLimits(t *testing.T) {
 
 		require.Equal(t, int64(0), serverLimits.ActiveUserCount)
 		require.Equal(t, int64(0), serverLimits.MaxUsersLimit)
-	})
-
-	t.Run("post count should increase on creating new post and should decrease on deleting post", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		serverLimits, appErr := th.App.GetServerLimits()
-		require.Nil(t, appErr)
-		require.Equal(t, int64(5), serverLimits.PostCount)
-
-		// now we create a new post
-		team := th.CreateTeam()
-		channel := th.CreateChannel(request.TestContext(t), team)
-		post := th.CreatePost(channel)
-
-		serverLimits, appErr = th.App.GetServerLimits()
-		require.Nil(t, appErr)
-		require.Equal(t, int64(6), serverLimits.PostCount)
-
-		// now we'll delete the post
-		_, appErr = th.App.DeletePost(request.TestContext(t), post.Id, "")
-		require.Nil(t, appErr)
-
-		serverLimits, appErr = th.App.GetServerLimits()
-		require.Nil(t, appErr)
-		require.Equal(t, int64(5), serverLimits.PostCount)
 	})
 }

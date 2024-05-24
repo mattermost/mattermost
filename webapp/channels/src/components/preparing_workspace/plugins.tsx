@@ -13,8 +13,6 @@ import ServiceNowSVG from 'components/common/svg_images_components/servicenow_sv
 import ZoomSVG from 'components/common/svg_images_components/zoom_svg';
 import ExternalLink from 'components/external_link';
 
-import {t} from 'utils/i18n';
-
 import Description from './description';
 import PageBody from './page_body';
 import PageLine from './page_line';
@@ -91,8 +89,11 @@ const Plugins = (props: Props) => {
                                 {
                                     onClick: () => props.setOption('github'),
                                     icon: <GithubSVG/>,
-                                    id: t('onboarding_wizard.plugins.github'),
-                                    defaultMessage: 'GitHub',
+                                    id: 'onboarding_wizard.plugins.github',
+                                    buttonText: formatMessage({
+                                        id: 'onboarding_wizard.plugins.github',
+                                        defaultMessage: 'GitHub',
+                                    }),
                                     checked: props.options.github,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.github.tooltip',
@@ -102,8 +103,11 @@ const Plugins = (props: Props) => {
                                 {
                                     onClick: () => props.setOption('gitlab'),
                                     icon: <GitlabSVG/>,
-                                    id: t('onboarding_wizard.plugins.gitlab'),
-                                    defaultMessage: 'GitLab',
+                                    id: 'onboarding_wizard.plugins.gitlab',
+                                    buttonText: formatMessage({
+                                        id: 'onboarding_wizard.plugins.gitlab',
+                                        defaultMessage: 'GitLab',
+                                    }),
                                     checked: props.options.gitlab,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.gitlab.tooltip',
@@ -113,8 +117,11 @@ const Plugins = (props: Props) => {
                                 {
                                     onClick: () => props.setOption('jira'),
                                     icon: <JiraSVG/>,
-                                    id: t('onboarding_wizard.plugins.jira'),
-                                    defaultMessage: 'Jira',
+                                    id: 'onboarding_wizard.plugins.jira',
+                                    buttonText: formatMessage({
+                                        id: 'onboarding_wizard.plugins.jira',
+                                        defaultMessage: 'Jira',
+                                    }),
                                     checked: props.options.jira,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.jira.tooltip',
@@ -124,8 +131,11 @@ const Plugins = (props: Props) => {
                                 {
                                     onClick: () => props.setOption('zoom'),
                                     icon: <ZoomSVG/>,
-                                    id: t('onboarding_wizard.plugins.zoom'),
-                                    defaultMessage: 'Zoom',
+                                    id: 'onboarding_wizard.plugins.zoom',
+                                    buttonText: formatMessage({
+                                        id: 'onboarding_wizard.plugins.zoom',
+                                        defaultMessage: 'Zoom',
+                                    }),
                                     checked: props.options.zoom,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.zoom.tooltip',
@@ -135,8 +145,11 @@ const Plugins = (props: Props) => {
                                 {
                                     onClick: () => props.setOption('servicenow'),
                                     icon: <ServiceNowSVG/>,
-                                    id: t('onboarding_wizard.plugins.servicenow'),
-                                    defaultMessage: 'ServiceNow',
+                                    id: 'onboarding_wizard.plugins.servicenow',
+                                    buttonText: formatMessage({
+                                        id: 'onboarding_wizard.plugins.servicenow',
+                                        defaultMessage: 'ServiceNow',
+                                    }),
                                     checked: props.options.servicenow,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.servicenow.tooltip',
