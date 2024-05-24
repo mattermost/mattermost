@@ -109,7 +109,6 @@ const OverageUsersBanner = () => {
             showCloseButton={isBetween5PercerntAnd10PercentPurchasedSeats}
             onButtonClick={handleClick}
             modalButtonText={cta}
-            modalButtonDefaultText={cta}
             message={message}
             showLinkAsButton={true}
             isTallBanner={true}
