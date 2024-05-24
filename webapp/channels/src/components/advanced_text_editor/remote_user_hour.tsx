@@ -96,7 +96,7 @@ const RemoteUserHour = ({channelId}: Props) => {
             <Icon className='icon-clock-outline'/>
             <FormattedMessage
                 id='advanced_text_editor.remote_user_hour'
-                defaultMessage='The time for {user} is: {time}'
+                defaultMessage='The time for {user} is {time}'
                 values={{
                     user: displayName,
                     time: (
