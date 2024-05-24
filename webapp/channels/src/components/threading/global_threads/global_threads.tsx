@@ -31,6 +31,7 @@ import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 
 import {PreviousViewedTypes} from 'utils/constants';
+import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 
 import type {GlobalState} from 'types/store/index';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
@@ -116,6 +117,13 @@ const GlobalThreads = () => {
             setLoading(false);
         });
     }, [filter, threadIds, unreadThreadIds]);
+
+    useEffect(() => {
+        if (!isLoading) {
+            measureAndReport(Measure.GlobalThreadsLoad, Mark.GlobalThreadsLinkClicked, undefined, true);
+            performance.clearMarks(Mark.GlobalThreadsLinkClicked);
+        }
+    }, [isLoading]);
 
     useEffect(() => {
         if (!selectedThread && !selectedPost && !isLoading) {

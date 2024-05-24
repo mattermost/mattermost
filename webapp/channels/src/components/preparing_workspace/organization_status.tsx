@@ -55,9 +55,8 @@ const OrganizationStatus = (props: {error: (UrlValidationCheck['error'] | typeof
                     values={{
                         a: (chunks: React.ReactNode | React.ReactNodeArray) => (
                             <ExternalLink
+                                location='organization_status'
                                 href={DocLinks.ABOUT_TEAMS}
-                                target='_blank'
-                                rel='noreferrer'
                             >
                                 {chunks}
                             </ExternalLink>

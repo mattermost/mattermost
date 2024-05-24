@@ -4740,11 +4740,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Versie 16.2+"
+    "translation": "Versie 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -4752,11 +4752,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 118+"
+    "translation": "Versie 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 118+"
+    "translation": "Versie 122+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9503,11 +9503,11 @@
   },
   {
     "id": "app.post.move_thread_command.channel.one_message",
-    "translation": "Een bericht is verplaatst: {{.Link}}\n"
+    "translation": "Een bericht werd verplaatst: {{.Link}}\n"
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
-    "translation": "Een draadje met {{.NumMessages}} berichten is verplaatst naar een Direct/Groepsbericht\n"
+    "translation": "Een draadje met {{.NumMessages}} berichten werd verplaatst naar een Direct/Groepsbericht\n"
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.one_message",
@@ -10028,10 +10028,6 @@
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Fout bij het ophalen van het aantal gebruikers"
-  },
-  {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Fout bij het ophalen van het aantal berichten"
   },
   {
     "id": "ent.compliance.csv.metadata.close.appError",
