@@ -357,11 +357,9 @@ categoryDefaultTranslation.set('custom', 'Custom');
 
 const categoryTranslations = ['recent', 'searchResults', ...categoryNames].map((c) => `['${c}', t('emoji_picker.${c}')]`);
 const writeableSkinCategories = [];
-const skinTranslations = [];
 const skinnedCats = [];
 for (const skin of emojiIndicesByCategoryAndSkin.keys()) {
     writeableSkinCategories.push(`['${skin}', new Map(${JSON.stringify(Array.from(emojiIndicesByCategoryAndSkin.get(skin)))})]`);
-    skinTranslations.push(`['${skin}', t('emoji_skin.${skinCodes[skin]}')]`);
     skinnedCats.push(`['${skin}', genSkinnedCategories('${skin}')]`);
 }
 
@@ -392,8 +390,6 @@ export const CategoryNames = ${JSON.stringify(categoryNames)};
 export const CategoryMessage = new Map(${JSON.stringify(Array.from(categoryDefaultTranslation))});
 
 export const CategoryTranslations = new Map([${categoryTranslations}]);
-
-export const SkinTranslations = new Map([${skinTranslations.join(', ')}]);
 
 const AllEmojiIndicesByCategory = new Map(${JSON.stringify(Array.from(emojiIndicesByCategory))});
 
