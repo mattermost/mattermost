@@ -28,6 +28,7 @@ const WithTooltip = ({
     placement,
     onShow,
     children,
+    className,
 }: WithTooltipProps) => {
     const ThisTooltip = useMemo(() => createTooltip({
         id,
@@ -36,7 +37,8 @@ const WithTooltip = ({
         emojiStyle,
         hint,
         shortcut,
-    }), [id, title, emoji, emojiStyle, hint, shortcut]);
+        className,
+    }), [id, title, emoji, emojiStyle, hint, shortcut, className]);
 
     return (
         <OverlayTrigger

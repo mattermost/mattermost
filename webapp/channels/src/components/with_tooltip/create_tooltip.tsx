@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import type {ComponentProps} from 'react';
 import {type MessageDescriptor} from 'react-intl';
@@ -20,6 +21,7 @@ export type CommonTooltipProps = {
     shortcut?: ShortcutDefinition;
     emoji?: string;
     emojiStyle?: EmojiStyle;
+    className?: string;
 }
 
 export function createTooltip(commonTooltipProps: CommonTooltipProps) {
@@ -91,6 +93,7 @@ export function createTooltip(commonTooltipProps: CommonTooltipProps) {
         return (
             <Tooltip
                 {...props}
+                className={classNames(props.className, commonTooltipProps.className)}
                 id={commonTooltipProps.id}
             >
                 {contents}

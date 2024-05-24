@@ -9,11 +9,9 @@ import {CSSTransition} from 'react-transition-group';
 
 import {CloseIcon} from '@mattermost/compass-icons/components';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import imgTrans from 'images/img_trans.gif';
-import {Constants} from 'utils/constants';
 import * as Emoji from 'utils/emoji';
 
 const skinsList = [
@@ -125,23 +123,12 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
             defaultMessage: 'Skin tone',
         });
 
-        const tooltip = (
-            <Tooltip
-                id='skinTooltip'
-                className='emoji-tooltip'
-            >
-                <span>
-                    {expandButtonLabel}
-                </span>
-            </Tooltip>
-        );
-
         return (
-            <OverlayTrigger
-                trigger={['hover', 'focus']}
-                delayShow={Constants.OVERLAY_TIME_DELAY}
+            <WithTooltip
+                id='emojiPickerSkinTooltip'
                 placement='top'
-                overlay={tooltip}
+                title={expandButtonLabel}
+                className='emoji-tooltip'
             >
                 <button
                     data-testid={`skin-picked-${this.props.userSkinTone}`}
@@ -155,7 +142,7 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                         className={spriteClassName}
                     />
                 </button>
-            </OverlayTrigger>
+            </WithTooltip>
         );
     }
 
