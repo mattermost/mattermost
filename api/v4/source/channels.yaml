@@ -410,8 +410,6 @@
               type: array
               items:
                 type: string
-              minItems: 1
-              maxItems: 1000
         description: List of channel ids.
         required: true
       responses:
@@ -1401,8 +1399,6 @@
               type: array
               items:
                 type: string
-              minItems: 1
-              maxItems: 1000
         description: List of user ids.
         required: true
       responses:

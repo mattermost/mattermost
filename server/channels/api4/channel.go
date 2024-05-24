@@ -935,7 +935,7 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 	if err != nil {
 		c.Err = model.NewAppError("getPublicChannelsByIdsForTeam", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
-	} else if len(channelIds) == 0 || len(channelIds) > maxListSize {
+	} else if len(channelIds) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return
 	}
@@ -1478,7 +1478,7 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		c.Err = model.NewAppError("getChannelMembersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
-	} else if len(userIds) == 0 || len(userIds) > maxListSize {
+	} else if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
