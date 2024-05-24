@@ -46,7 +46,11 @@ export type PluginsState = {
         CreateBoardFromTemplate: PluginComponent[];
         DesktopNotificationHooks: DesktopNotificationHook[];
         ChannelTabButton: PluginComponent[];
-        ChannelContentComponent: PluginComponent[];
+        ChannelTabContentComponent: PluginComponent[];
+    };
+
+    channelContent: {
+        [channelId: string]: ChannelContentPluginComponent;
     };
 
     postTypes: {
@@ -149,6 +153,16 @@ export type PostPluginComponent = {
     pluginId: string;
     type: string;
     component: React.ElementType;
+};
+
+export type ChannelContentPluginComponent = {
+    id: string;
+    pluginId: string;
+    channelId: string;
+    component: React.ElementType;
+    tabText: string | React.ReactElement;
+    lhsIcon: string | React.ReactElement;
+    props?: {[name: string]: any};
 };
 
 export type AdminConsolePluginComponent = {

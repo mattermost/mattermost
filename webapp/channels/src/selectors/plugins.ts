@@ -128,7 +128,7 @@ export const getChannelTabPluginComponentsForChannel = createSelector(
 
 export const getChannelContentPluginComponents = createSelector(
     'getChannelContentPluginComponents',
-    (state: GlobalState) => state.plugins.components.ChannelContentComponent,
+    (state: GlobalState) => state.plugins.components.ChannelTabContentComponent,
     (components = []) => {
         const byId: Record<string, PluginComponent> = {};
         components.forEach((c) => {

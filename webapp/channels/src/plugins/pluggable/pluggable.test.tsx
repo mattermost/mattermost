@@ -42,7 +42,7 @@ describe('plugins/Pluggable', () => {
             CreateBoardFromTemplate: [],
             DesktopNotificationHooks: [],
             ChannelTabButton: [],
-            ChannelContentComponent: [],
+            ChannelTabContentComponent: [],
         },
         theme: Preferences.THEMES.denim,
     };

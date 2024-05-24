@@ -43,6 +43,7 @@ function mapStateToProps(state: GlobalState) {
         teamUrl: getCurrentRelativeTeamUrl(state),
         isFirstAdmin: isFirstAdmin(state),
         enableWebSocketEventScope,
+        channelContentPlugin: channel ? state.plugins.channelContent[channel.id] : null,
     };
 }
 

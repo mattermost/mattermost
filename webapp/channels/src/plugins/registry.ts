@@ -300,7 +300,7 @@ export default class PluginRegistry {
     // Add a channel content component for use with channel tabs.
     // Accepts the following:
     // - component - a react component to display.
-    registerChannelContent = reArg([
+    registerChannelTabContent = reArg([
         'component',
     ], ({
         component,
@@ -313,7 +313,7 @@ export default class PluginRegistry {
 
         store.dispatch({
             type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
-            name: 'ChannelContentComponent',
+            name: 'ChannelTabContentComponent',
             data: {
                 id,
                 pluginId: this.id,
@@ -543,6 +543,27 @@ export default class PluginRegistry {
                 text: resolveReactElement(text),
                 action,
                 shouldRender,
+            },
+        });
+
+        return id;
+    });
+
+    // Register a component to render custom content for a specific channel.
+    // Accepts a string type and a component.
+    // Returns a unique identifier.
+    registerChannelContentComponent = reArg(['channelId', 'component', 'tabText', 'lhsIcon'], ({channelId, component, tabText, lhsIcon}) => {
+        const id = generateId();
+
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_CHANNEL_CONTENT_COMPONENT,
+            data: {
+                id,
+                pluginId: this.id,
+                channelId,
+                component,
+                tabText,
+                lhsIcon,
             },
         });
 
@@ -820,6 +841,16 @@ export default class PluginRegistry {
     unregisterPostTypeComponent = reArg(['componentId'], ({componentId}: {componentId: string}) => {
         store.dispatch({
             type: ActionTypes.REMOVED_PLUGIN_POST_COMPONENT,
+            id: componentId,
+        });
+    });
+
+    // Unregister a component that provided custom content for a specific channel.
+    // Accepts a string id.
+    // Returns undefined in all cases.
+    unregisterChannelContentComponent = reArg(['componentId'], ({componentId}: {componentId: string}) => {
+        store.dispatch({
+            type: ActionTypes.REMOVED_PLUGIN_CHANNEL_CONTENT_COMPONENT,
             id: componentId,
         });
     });

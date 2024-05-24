@@ -57,7 +57,7 @@ function sortComponents(a: PluginComponent, b: PluginComponent) {
     return 0;
 }
 
-function removePostPluginComponents(state: PluginsState['postTypes'], action: AnyAction) {
+function removePostPluginComponents(state: PluginsState['postTypes']|PluginsState['channelContent'], action: AnyAction) {
     if (!action.data) {
         return state;
     }
@@ -79,7 +79,7 @@ function removePostPluginComponents(state: PluginsState['postTypes'], action: An
     return state;
 }
 
-function removePostPluginComponent(state: PluginsState['postTypes'], action: AnyAction) {
+function removePostPluginComponent(state: PluginsState['postTypes']|PluginsState['channelContent'], action: AnyAction) {
     const nextState = {...state};
     const keys = Object.keys(nextState);
     for (let i = 0; i < keys.length; i++) {
@@ -195,7 +195,7 @@ const initialComponents: PluginsState['components'] = {
     CreateBoardFromTemplate: [],
     DesktopNotificationHooks: [],
     ChannelTabButton: [],
-    ChannelContentComponent: [],
+    ChannelTabContentComponent: [],
 };
 
 function components(state: PluginsState['components'] = initialComponents, action: AnyAction) {
@@ -253,6 +253,35 @@ function postTypes(state: PluginsState['postTypes'] = {}, action: AnyAction) {
         return state;
     }
     case ActionTypes.REMOVED_PLUGIN_POST_COMPONENT:
+        return removePostPluginComponent(state, action);
+    case ActionTypes.REMOVED_WEBAPP_PLUGIN:
+        return removePostPluginComponents(state, action);
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
+function channelContent(state: PluginsState['channelContent'] = {}, action: AnyAction) {
+    switch (action.type) {
+    case ActionTypes.RECEIVED_PLUGIN_CHANNEL_CONTENT_COMPONENT: {
+        if (action.data) {
+            // Skip saving the component if one already exists and the new plugin id
+            // is lower alphabetically
+            const current = state[action.data.channelId];
+            if (current) {
+                return state;
+            }
+
+            const nextState = {...state};
+            nextState[action.data.channelId] = action.data;
+            return nextState;
+        }
+        return state;
+    }
+    case ActionTypes.REMOVED_PLUGIN_CHANNEL_CONTENT_COMPONENT:
         return removePostPluginComponent(state, action);
     case ActionTypes.REMOVED_WEBAPP_PLUGIN:
         return removePostPluginComponents(state, action);
@@ -431,6 +460,7 @@ export default combineReducers({
     // object where every key is a post type and the values are components wrapped in an
     // an object that contains a plugin id
     postTypes,
+    channelContent,
 
     // object where every key is a post type and the values are components wrapped in an
     // an object that contains a plugin id

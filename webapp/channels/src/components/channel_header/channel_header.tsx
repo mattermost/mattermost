@@ -36,7 +36,7 @@ import {
 import {handleFormattedTextClick, isEmptyObject} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
-import type {ChannelTabButtonItem} from 'types/store/plugins';
+import type {ChannelContentPluginComponent, ChannelTabButtonItem} from 'types/store/plugins';
 import type {RhsState} from 'types/store/rhs';
 
 import ChannelHeaderTitle from './channel_header_title';
@@ -86,6 +86,7 @@ export type Props = {
     timestampUnits?: string[];
     lastActivityTimestamp?: number;
     hideGuestTags: boolean;
+    channelContentPlugin: ChannelContentPluginComponent | null;
 };
 
 type State = {
@@ -646,7 +647,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                 <div className='channel-header-tabs'>
                     <ChannelTab
                         id=''
-                        text='Messages'
+                        text={this.props.channelContentPlugin ? this.props.channelContentPlugin.tabText : 'Messages'}
                         active={selectedChannelTab === ''}
                     />
                     {

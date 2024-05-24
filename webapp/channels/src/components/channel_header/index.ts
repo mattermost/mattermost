@@ -111,6 +111,7 @@ function makeMapStateToProps() {
             isLastActiveEnabled,
             timestampUnits,
             hideGuestTags: config.HideGuestTags === 'true',
+            channelContentPlugin: channel ? state.plugins.channelContent[channel.id] : null,
         };
     };
 }

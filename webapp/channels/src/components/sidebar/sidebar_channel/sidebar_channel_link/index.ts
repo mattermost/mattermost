@@ -61,6 +61,7 @@ function makeMapStateToProps() {
             showChannelsTutorialStep,
             rhsState: getRhsState(state),
             rhsOpen: getIsRhsOpen(state),
+            channelContentPlugin: state.plugins.channelContent[ownProps.channel.id],
         };
     };
 }

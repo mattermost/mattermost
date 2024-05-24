@@ -21,6 +21,7 @@ import {cmdOrCtrlPressed} from 'utils/keyboard';
 import {Mark} from 'utils/performance_telemetry';
 import {localizeMessage} from 'utils/utils';
 
+import type {ChannelContentPluginComponent} from 'types/store/plugins';
 import type {RhsState} from 'types/store/rhs';
 
 import ChannelMentionBadge from '../channel_mention_badge';
@@ -62,6 +63,7 @@ type Props = {
     hasUrgent: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
+    channelContentPlugin?: ChannelContentPluginComponent;
 
     actions: {
         markMostRecentPostInChannelAsUnread: (channelId: string) => void;
@@ -184,6 +186,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
             firstChannelName,
             showChannelsTutorialStep,
             hasUrgent,
+            channelContentPlugin,
         } = this.props;
 
         let channelsTutorialTip: JSX.Element | null = null;
@@ -238,12 +241,20 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
             />
         ) : null;
 
+        let iconContent: React.JSX.Element | string = (
+            <SidebarChannelIcon
+                isDeleted={channel.delete_at !== 0}
+                icon={icon}
+            />
+        );
+
+        if (channelContentPlugin && channel.delete_at === 0) {
+            iconContent = channelContentPlugin.lhsIcon;
+        }
+
         const content = (
             <>
-                <SidebarChannelIcon
-                    isDeleted={channel.delete_at !== 0}
-                    icon={icon}
-                />
+                {iconContent}
                 <div
                     className='SidebarChannelLinkLabel_wrapper'
                     ref={this.labelRef}
