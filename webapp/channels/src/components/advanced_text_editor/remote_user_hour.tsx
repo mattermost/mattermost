@@ -88,7 +88,7 @@ const RemoteUserHour = ({channelId}: Props) => {
     }
 
     if (timestamp === 0) {
-        return null
+        return null;
     }
 
     return (
@@ -110,7 +110,7 @@ const RemoteUserHour = ({channelId}: Props) => {
                                 minute: 'numeric',
                             }}
                         />
-                    )
+                    ),
                 }}
             />
         </Container>
