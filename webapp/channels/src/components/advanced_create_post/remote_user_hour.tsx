@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {DateTime} from 'luxon';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {getCurrentChannel, getMembersInCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTimezoneForUserProfile} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
@@ -37,15 +37,13 @@ const Icon = styled.i`
 const RemoteUserHour = () => {
     const userId = useSelector(getCurrentUserId);
     const channel = useSelector(getCurrentChannel);
-    const channelMembers = Object.values(useSelector(getMembersInCurrentChannel) || []);
+    const channelMembersIds = channel?.name.split('__');
 
     let teammateId = '';
-    if (channelMembers.length === 1) {
-        teammateId = channelMembers[0].user_id;
-    } else if (channelMembers && channelMembers.length === 2) {
-        teammateId = channelMembers[0].user_id;
+    if (channelMembersIds && channelMembersIds.length === 2) {
+        teammateId = channelMembersIds[0]
         if (teammateId === userId) {
-            teammateId = channelMembers[1].user_id;
+            teammateId = channelMembersIds[1]
         }
     }
 
@@ -86,7 +84,6 @@ const RemoteUserHour = () => {
                             useTime={{
                                 hour: 'numeric',
                                 minute: 'numeric',
-                                second: 'numeric',
                             }}
                         />
                     ),
