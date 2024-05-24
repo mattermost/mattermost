@@ -624,13 +624,13 @@ func (s *Server) doDeleteOrphanDraftsMigration(c request.CTX) {
 	}
 }
 
-func (s *Server) doDeleteDmPreferencesMigration(c request.CTX) {
+func (s *Server) doDeleteVisibleDmsPreferencesMigration(c request.CTX) {
 	// If the migration is already marked as completed, don't do it again.
-	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteDmPreferences); err == nil {
+	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteVisibleDmsPreferences); err == nil {
 		return
 	}
 
-	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteDmPreferencesMigration, model.JobStatusPending)
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteVisibleDmsPreferencesMigration, model.JobStatusPending)
 	if err != nil {
 		mlog.Fatal("failed to get jobs by type and status", mlog.Err(err))
 		return
@@ -639,7 +639,7 @@ func (s *Server) doDeleteDmPreferencesMigration(c request.CTX) {
 		return
 	}
 
-	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteDmPreferencesMigration, nil); appErr != nil {
+	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteVisibleDmsPreferencesMigration, nil); appErr != nil {
 		mlog.Fatal("failed to start job for deleting dm preferences", mlog.Err(appErr))
 		return
 	}
@@ -671,5 +671,5 @@ func (s *Server) doAppMigrations() {
 	s.doCloudS3PathMigrations(c)
 	s.doDeleteEmptyDraftsMigration(c)
 	s.doDeleteOrphanDraftsMigration(c)
-	s.doDeleteDmPreferencesMigration(c)
+	s.doDeleteVisibleDmsPreferencesMigration(c)
 }
