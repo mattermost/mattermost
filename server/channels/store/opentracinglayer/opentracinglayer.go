@@ -7378,6 +7378,24 @@ func (s *OpenTracingLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, 
 	return result, err
 }
 
+func (s *OpenTracingLayerPreferenceStore) DeleteVisibleDmsGms() (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.DeleteVisibleDmsGms")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PreferenceStore.DeleteVisibleDmsGms()
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerPreferenceStore) Get(userID string, category string, name string) (*model.Preference, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.Get")

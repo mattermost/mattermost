@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -128,9 +129,12 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		if pref.Category == model.PreferenceLimitVisibleDmsGms && pref.Value > "40" {
-			c.SetInvalidParam("preference.value")
-			return
+		if pref.Category == model.PreferenceLimitVisibleDmsGms {
+			visibleDmsGmsValue, convErr := strconv.Atoi(pref.Value)
+			if convErr != nil || visibleDmsGmsValue < 0 || visibleDmsGmsValue > model.PreferenceMaxLimitVisibleDmsGmsValue {
+				c.SetInvalidParam("preference.value")
+				return
+			}
 		}
 
 		sanitizedPreferences = append(sanitizedPreferences, pref)

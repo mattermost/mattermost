@@ -315,7 +315,7 @@ export async function loadProfilesForGM() {
     const channelUsersToLoad: string[] = [];
     for (const channel of getGMsForLoading(state)) {
         const userIds = userIdsInChannels[channel.id] || new Set();
-
+        console.log(userIds);
         userIds.forEach((userId) => userIdsForLoadingCustomEmojis.add(userId));
 
         if (userIds.size >= Constants.MIN_USERS_IN_GM) {
@@ -341,11 +341,19 @@ export async function loadProfilesForGM() {
                 value: 'true',
             });
         }
+        if (userIds.size === 0) {
+            channelUsersToLoad.push(channel.id);
+        }
 
-        channelUsersToLoad.push(channel.id);
+        // const getProfilesAction = UserActions.getProfilesInChannel(channel.id, 0, Constants.MAX_USERS_IN_GM);
+        // queue.add(() => dispatch(getProfilesAction));
     }
 
-    await dispatch(UserActions.getProfilesInGroupChannels(channelUsersToLoad));
+    if (channelUsersToLoad.length > 0) {
+        await dispatch(UserActions.getProfilesInGroupChannels(channelUsersToLoad));
+    }
+
+    // await queue.onEmpty();
 
     if (userIdsForLoadingCustomEmojis.size > 0) {
         dispatch(loadCustomEmojisForCustomStatusesByUserIds(userIdsForLoadingCustomEmojis));

@@ -8384,6 +8384,27 @@ func (s *RetryLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error)
 
 }
 
+func (s *RetryLayerPreferenceStore) DeleteVisibleDmsGms() (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PreferenceStore.DeleteVisibleDmsGms()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPreferenceStore) Get(userID string, category string, name string) (*model.Preference, error) {
 
 	tries := 0

@@ -39,6 +39,7 @@ const (
 	JobTypeRefreshPostStats             = "refresh_post_stats"
 	JobTypeDeleteOrphanDraftsMigration  = "delete_orphan_drafts_migration"
 	JobTypeExportUsersToCSV             = "export_users_to_csv"
+	JobTypeDeleteDmPreferencesMigration = "delete_dm_preferences_migration"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"

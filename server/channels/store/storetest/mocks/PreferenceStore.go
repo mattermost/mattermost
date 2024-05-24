@@ -124,6 +124,34 @@ func (_m *PreferenceStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return r0, r1
 }
 
+// DeleteVisibleDmsGms provides a mock function with given fields:
+func (_m *PreferenceStore) DeleteVisibleDmsGms() (int64, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteVisibleDmsGms")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (int64, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Get provides a mock function with given fields: userID, category, name
 func (_m *PreferenceStore) Get(userID string, category string, name string) (*model.Preference, error) {
 	ret := _m.Called(userID, category, name)
