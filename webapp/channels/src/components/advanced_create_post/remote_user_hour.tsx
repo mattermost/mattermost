@@ -21,7 +21,8 @@ const getDisplayName = makeGetDisplayName();
 
 const Container = styled.div`
     padding: 8px 24px;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
 
     .DoNotDisturbWarning + &{
         display: none;
@@ -29,8 +30,8 @@ const Container = styled.div`
 `;
 
 const Icon = styled.i`
-    font-size: 12px;
-    margin-right: 4px;
+    font-size: 14px;
+    margin-right: 2px;
 `;
 
 const RemoteUserHour = () => {
@@ -70,7 +71,7 @@ const RemoteUserHour = () => {
 
     return (
         <Container>
-            <Icon className='icon-clock'/>
+            <Icon className='icon-clock-outline'/>
             <FormattedMessage
                 id='advanced_text_editor.remote_user_hour'
                 defaultMessage='The time for {user} is: {time}'

@@ -17,15 +17,14 @@ const getDisplayName = makeGetDisplayName();
 
 const Container = styled.div`
     padding: 8px 24px;
-    span {
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-    }
+    font-size: 12px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 const Icon = styled.i`
     color: #d24b4e;
-    font-size: 12px;
-    margin-right: 4px;
+    font-size: 14px;
+    margin-right: 2px;
 `;
 
 const DoNotDisturbWarning = () => {
