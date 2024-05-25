@@ -108,7 +108,10 @@ type Props = {
 type State = {
     showTopUnread: boolean;
     showBottomUnread: boolean;
+    autoHide: boolean;
 };
+
+let mouseMoveTimeout: NodeJS.Timeout;
 
 // scrollMargin is the margin at the edge of the channel list that we leave when scrolling to a channel.
 const scrollMargin = 10;
@@ -133,6 +136,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
         this.state = {
             showTopUnread: false,
             showBottomUnread: false,
+            autoHide: false,
         };
         this.scrollbar = React.createRef();
 
@@ -462,6 +466,16 @@ export default class SidebarList extends React.PureComponent<Props, State> {
         this.props.actions.stopDragging();
     };
 
+    showScrollbarOnMouseMove = () => {
+        clearTimeout(mouseMoveTimeout);
+
+        this.setState({autoHide: false});
+
+        mouseMoveTimeout = setTimeout(() => {
+            this.setState({autoHide: true});
+        }, 500);
+    };
+
     render() {
         const {categories} = this.props;
 
@@ -562,20 +576,22 @@ export default class SidebarList extends React.PureComponent<Props, State> {
                         extraClass='nav-pills__unread-indicator-bottom'
                         content={below}
                     />
-                    <Scrollbars
-                        ref={this.scrollbar}
-                        autoHide={true}
-                        autoHideTimeout={500}
-                        autoHideDuration={500}
-                        renderThumbHorizontal={renderThumbHorizontal}
-                        renderThumbVertical={renderThumbVertical}
-                        renderTrackVertical={renderTrackVertical}
-                        renderView={renderView}
-                        onScroll={this.onScroll}
-                        style={scrollbarStyles}
+                    <div
+                        onMouseMove={this.showScrollbarOnMouseMove}
                     >
-                        {channelList}
-                    </Scrollbars>
+                        <Scrollbars
+                            ref={this.scrollbar}
+                            autoHide={this.state.autoHide}
+                            renderThumbHorizontal={renderThumbHorizontal}
+                            renderThumbVertical={renderThumbVertical}
+                            renderTrackVertical={renderTrackVertical}
+                            renderView={renderView}
+                            onScroll={this.onScroll}
+                            style={scrollbarStyles}
+                        >
+                            {channelList}
+                        </Scrollbars>
+                    </div>
                 </div>
             </>
         );
