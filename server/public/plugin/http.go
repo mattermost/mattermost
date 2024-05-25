@@ -37,6 +37,13 @@ func (w *httpResponseWriterRPCServer) Write(args []byte, reply *struct{}) error 
 	return err
 }
 
+func (w *httpResponseWriterRPCServer) Flush(args struct{}, reply *struct{}) error {
+	if f, ok := w.w.(http.Flusher); ok {
+		f.Flush()
+	}
+	return nil
+}
+
 func (w *httpResponseWriterRPCServer) WriteHeader(args int, reply *struct{}) error {
 	// Check if args is a valid http status code. This prevents plugins from crashing the server with a panic.
 	// This is a copy of the checkWriteHeaderCode function in net/http/server.go in the go source.
@@ -100,4 +107,8 @@ func connectHTTPResponseWriter(conn io.ReadWriteCloser) *httpResponseWriterRPCCl
 	return &httpResponseWriterRPCClient{
 		client: rpc.NewClient(conn),
 	}
+}
+
+func (w *httpResponseWriterRPCClient) Flush() {
+	w.client.Call("Plugin.Flush", struct{}{}, nil)
 }
