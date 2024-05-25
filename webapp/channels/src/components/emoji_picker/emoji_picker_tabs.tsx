@@ -155,6 +155,32 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
                                 getRootPickerNode={this.getRootPickerNode}
                                 onGifClick={this.props.onGifClick}
                                 handleFilterChange={this.handleFilterChange}
+                                stickers={false}
+                            />
+                        </Tab>
+                        <Tab
+                            eventKey={3}
+                            title={
+                                <div className={'custom-emoji-tab__icon__text'}>
+                                    <GifIcon
+                                        className='custom-emoji-tab__icon'
+                                        aria-hidden={true}
+                                    />
+                                    <FormattedMessage
+                                        id='emoji_gif_picker.tabs.stickers'
+                                        defaultMessage='Stickers'
+                                    />
+                                </div>
+                            }
+                            unmountOnExit={true}
+                            tabClassName={'custom-emoji-tab'}
+                        >
+                            <GifPicker
+                                filter={this.state.filter}
+                                getRootPickerNode={this.getRootPickerNode}
+                                onGifClick={this.props.onGifClick}
+                                handleFilterChange={this.handleFilterChange}
+                                stickers={true}
                             />
                         </Tab>
                     </Tabs>

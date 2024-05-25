@@ -19,6 +19,7 @@ interface Props {
     width: number;
     filter: string;
     onClick: EmojiVariationsListProps['onGifClick'];
+    stickers: boolean;
 }
 
 function GifPickerItems(props: Props) {
@@ -31,11 +32,11 @@ function GifPickerItems(props: Props) {
 
         // We dont have to throttled the fetching as the library does it for us
         if (props.filter.length > 0) {
-            const filteredResult = await giphyFetch.search(props.filter, {offset, limit: 10});
+            const filteredResult = await giphyFetch.search(props.filter, {type: props.stickers ? 'stickers' : undefined, offset, limit: 10});
             return filteredResult;
         }
 
-        const trendingResult = await giphyFetch.trending({offset, limit: 10});
+        const trendingResult = await giphyFetch.trending({type: props.stickers ? 'stickers' : undefined, offset, limit: 10});
         return trendingResult;
     }, [props.filter, giphyFetch]);
 
