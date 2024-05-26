@@ -3470,7 +3470,7 @@
   "login.cardtitle": "Connexion",
   "login.cardtitle.external": "Connectez-vous avec l'un des moyens suivants :",
   "login.changed": " Méthode de connexion changée",
-  "login.contact_admin.detail": "Pour accéder à l'espace de travail de votre équipe, contactez l'administrateur de votre espace de travail. Si vous avez déjà été invité, vérifiez votre boîte de réception e-mail pour une invitation à l'espace de travail Mattermost.",
+  "login.contact_admin.detail": "Pour accéder à l’espace de travail de votre équipe, contactez l’administrateur de votre espace de travail. Si vous avez déjà été invité, vérifiez si votre boîte de réception e-mail contient une invitation à l’espace de travail Mattermost.",
   "login.contact_admin.title": "Contacter votre administrateur",
   "login.createTeam": "Créer une équipe",
   "login.email": "E-mail",
