@@ -2,13 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import ReplyIcon from 'components/widgets/icons/reply_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import type {Locations} from 'utils/constants';
+
+const messages = defineMessages({
+    replyTooltipTitle: {
+        id: 'post_info.comment_icon.tooltip.reply',
+        defaultMessage: 'Reply',
+    },
+});
 
 type Props = {
     location?: keyof typeof Locations;
@@ -42,23 +48,11 @@ const CommentIcon = ({
         iconStyle = `${iconStyle} ${searchStyle}`;
     }
 
-    const tooltip = (
-        <Tooltip
-            id='comment-icon-tooltip'
-            className='hidden-xs'
-        >
-            <FormattedMessage
-                id='post_info.comment_icon.tooltip.reply'
-                defaultMessage='Reply'
-            />
-        </Tooltip>
-    );
-
     return (
-        <OverlayTrigger
-            delayShow={500}
+        <WithTooltip
+            id='comment-icon-tooltip'
             placement='top'
-            overlay={tooltip}
+            title={messages.replyTooltipTitle}
         >
             <button
                 id={`${location}_commentIcon_${postId}`}
@@ -71,7 +65,7 @@ const CommentIcon = ({
                     {commentCountSpan}
                 </span>
             </button>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 
