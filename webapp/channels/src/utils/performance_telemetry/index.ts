@@ -10,6 +10,7 @@ export const enum Mark {
 
 export const enum Measure {
     ChannelSwitch = 'channel_switch',
+    PageLoad = 'page_load',
     RhsLoad = 'rhs_load',
     TeamSwitch = 'team_switch',
 }
