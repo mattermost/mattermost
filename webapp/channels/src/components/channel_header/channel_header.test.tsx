@@ -29,6 +29,7 @@ describe('components/ChannelHeader', () => {
         },
         selectedChannelTab: '',
         channelTabComponents: [],
+        channelContentPlugin: null,
         announcementBarCount: 1,
         teamId: 'team_id',
         channel: TestHelper.getChannelMock({}),

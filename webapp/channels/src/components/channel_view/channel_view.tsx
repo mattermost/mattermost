@@ -192,6 +192,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         } else if (pluginContent) {
             content = (
                 <RawPluggable
+                    theme={this.props.theme}
                     pluggableName='ChannelContentComponent'
                     components={{ChannelContentComponent: [pluginContent as PluginComponent]}}
                     pluggableId={pluginContent.id}

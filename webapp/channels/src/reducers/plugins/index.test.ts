@@ -20,6 +20,7 @@ function getBaseState(): PluginsState {
         postTypes: {},
         siteStatsHandlers: {},
         userSettings: {},
+        channelContent: {},
     };
 }
 

@@ -10,7 +10,7 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import webSocketClient from 'client/web_websocket_client';
 
 import type {GlobalState} from 'types/store';
-import type {ProductComponent} from 'types/store/plugins';
+import type {PluginComponent, ProductComponent} from 'types/store/plugins';
 
 import PluggableErrorBoundary from './error_boundary';
 
@@ -24,7 +24,7 @@ type Props = {
     /*
      * Components for overriding provided by plugins
      */
-    components: GlobalState['plugins']['components'];
+    components: GlobalState['plugins']['components'] | Record<string, PluginComponent[]>;
 
     /*
      * Logged in user's theme
