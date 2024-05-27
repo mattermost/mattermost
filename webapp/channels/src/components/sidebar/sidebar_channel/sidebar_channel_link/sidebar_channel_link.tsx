@@ -213,7 +213,6 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                     onEntering={this.removeTooltipLink}
                 >
                     <div
-                        className='truncated'
                         ref={this.gmItemRef}
                     >
                         {labelElement}
@@ -231,7 +230,6 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                 }}
                 emojiStyle={{
                     marginTop: -4,
-                    marginLeft: 6,
                     marginBottom: 0,
                     opacity: 0.8,
                 }}
