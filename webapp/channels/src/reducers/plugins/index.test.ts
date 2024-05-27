@@ -59,7 +59,7 @@ describe('user settings', () => {
         const setting = getDefaultSetting();
         setting.uiName = '';
 
-        const nextState = pluginReducers(state, {
+        const nextState = pluginReducers(state as any, {
             type: ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS,
             data: {
                 pluginId: 'pluginId',
@@ -74,7 +74,7 @@ describe('user settings', () => {
     it('add valid ids', () => {
         const setting = getDefaultSetting();
         const state = getBaseState();
-        const nextState = pluginReducers(state, {
+        const nextState = pluginReducers(state as any, {
             type: ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS,
             data: {
                 pluginId: 'pluginId',
@@ -87,7 +87,7 @@ describe('user settings', () => {
     it('removing a plugin removes the setting', () => {
         const state = getBaseState();
         state.userSettings.pluginId = getDefaultSetting();
-        const nextState = pluginReducers(state, {
+        const nextState = pluginReducers(state as any, {
             type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
             data: {
                 id: 'pluginId',
@@ -99,7 +99,7 @@ describe('user settings', () => {
     it('removing a different plugin does not remove the setting', () => {
         const state = getBaseState();
         state.userSettings.pluginId = getDefaultSetting();
-        const nextState = pluginReducers(state, {
+        const nextState = pluginReducers(state as any, {
             type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
             data: {
                 id: 'otherPluginId',
@@ -112,7 +112,7 @@ describe('user settings', () => {
         const state = getBaseState();
         state.userSettings.pluginId = getDefaultSetting();
         state.userSettings.otherPluginId = {...getDefaultSetting(), id: 'otherPluginId'};
-        const nextState = pluginReducers(state, {
+        const nextState = pluginReducers(state as any, {
             type: UserTypes.LOGOUT_SUCCESS,
         });
         expect(nextState.userSettings).toEqual({});
