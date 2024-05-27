@@ -3067,6 +3067,10 @@
     "translation": "No one to invite."
   },
   {
+    "id": "api.team.invite_members.deactivated_email.app_error",
+    "translation": "The following email addresses are deactivated: {{.Addresses}}."
+  },
+  {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
     "translation": "Error while sending the email"
   },
