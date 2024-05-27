@@ -969,8 +969,8 @@ func (a *App) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
-func (a *App) GetTeamMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
-	teamMember, err := a.Srv().Store().Team().GetMember(sqlstore.RequestContextWithMaster(c), teamID, userID)
+func (a *App) GetTeamMember(rctx request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
+	teamMember, err := a.Srv().Store().Team().GetMember(sqlstore.RequestContextWithMaster(rctx), teamID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
