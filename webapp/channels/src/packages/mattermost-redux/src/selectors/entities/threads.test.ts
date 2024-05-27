@@ -189,6 +189,10 @@ describe('Selectors.Threads.getThreadsInChannel', () => {
 
     it('should return threads in channel', () => {
         const user = TestHelper.fakeUserWithId();
+        const thread1 = TestHelper.fakeThread(user.id, channel1.id);
+        const thread2 = TestHelper.fakeThread(user.id, channel1.id);
+        const thread3 = TestHelper.fakeThread(user.id, channel2.id);
+        const thread4 = TestHelper.fakeThread(user.id, channel3.id);
 
         const profiles = {
             [user.id]: user,
@@ -205,36 +209,20 @@ describe('Selectors.Threads.getThreadsInChannel', () => {
                 },
                 threads: {
                     threads: {
-                        a: {
-                            post: {
-                                channel_id: channel1.id,
-                            },
-                        },
-                        b: {
-                            post: {
-                                channel_id: channel1.id,
-                            },
-                        },
-                        c: {
-                            post: {
-                                channel_id: channel2.id,
-                            },
-                        },
-                        d: {
-                            post: {
-                                channel_id: channel3.id,
-                            },
-                        },
+                        [thread1.id]: thread1,
+                        [thread2.id]: thread2,
+                        [thread3.id]: thread3,
+                        [thread4.id]: thread4,
                     },
                     threadsInTeam: {
-                        [team1.id]: ['a', 'b', 'c'],
-                        [team2.id]: ['d'],
+                        [team1.id]: [thread1.id, thread2.id, thread3.id],
+                        [team2.id]: [thread4.id],
                     },
                 },
             },
         });
 
-        expect(Selectors.getThreadsInChannel(testState, channel1.id)).toEqual(['a', 'b']);
+        expect(Selectors.getThreadsInChannel(testState, channel1.id)).toEqual([thread1, thread2]);
     });
 });
 

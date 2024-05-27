@@ -37,7 +37,8 @@ func (s *MmctlUnitTestSuite) TestArgumentsHaveWhitespaceTrimmed() {
 			mockCommand := &cobra.Command{Use: "test", Run: commandFunction}
 			commandString := strings.Join([]string{"test", " ", arguments[0], lineEnding, " ", arguments[1], lineEnding}, "")
 			RootCmd.AddCommand(mockCommand)
-			executeRawCommand(RootCmd, commandString)
+			_, _, err := executeRawCommand(RootCmd, commandString)
+			s.Require().NoError(err)
 			s.Require().True(commandCalled, "Expected mock command to be called")
 		})
 	}

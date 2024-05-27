@@ -10,29 +10,20 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {Client4} from 'mattermost-redux/client';
-import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal} from 'actions/views/modals';
 
-import useCanSelfHostedSignup from 'components/common/hooks/useCanSelfHostedSignup';
-import {
-    useControlAirGappedSelfHostedPurchaseModal,
-    useControlScreeningInProgressModal,
-} from 'components/common/hooks/useControlModal';
-import useControlSelfHostedPurchaseModal from 'components/common/hooks/useControlSelfHostedPurchaseModal';
 import useFetchAdminConfig from 'components/common/hooks/useFetchAdminConfig';
-import useGetSelfHostedProducts from 'components/common/hooks/useGetSelfHostedProducts';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import PlanLabel from 'components/common/plan_label';
 import ExternalLink from 'components/external_link';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
 
-import {CloudLinks, ModalIdentifiers, SelfHostedProducts, LicenseSkus, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
-import {findSelfHostedProductBySku} from 'utils/hosted_customer';
+import {CloudLinks, ModalIdentifiers, LicenseSkus, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
 
 import Card, {ButtonCustomiserClasses} from './card';
 import ContactSalesCTA from './contact_sales_cta';
@@ -51,13 +42,7 @@ function SelfHostedContent(props: ContentProps) {
     useFetchAdminConfig();
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const signupAvailable = useCanSelfHostedSignup();
-
-    const [products, productsLoaded] = useGetSelfHostedProducts();
-    const professionalProductId = findSelfHostedProductBySku(products, SelfHostedProducts.PROFESSIONAL)?.id || '';
-
-    const controlSelfHostedPurchaseModal = useControlSelfHostedPurchaseModal({productId: professionalProductId});
-    const isSelfHostedPurchaseEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedPurchase;
+    const [openSalesLink] = useOpenSalesLink();
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
@@ -91,8 +76,6 @@ function SelfHostedContent(props: ContentProps) {
     const isPostSelfHostedEnterpriseTrial = prevSelfHostedTrialLicense.IsLicensed === 'true';
 
     const [openContactSales] = useOpenSalesLink();
-    const controlScreeningInProgressModal = useControlScreeningInProgressModal();
-    const controlAirgappedModal = useControlAirGappedSelfHostedPurchaseModal();
 
     const closePricingModal = () => {
         dispatch(closeModal(ModalIdentifiers.PRICING_MODAL));
@@ -188,7 +171,6 @@ function SelfHostedContent(props: ContentProps) {
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.free', defaultMessage: 'Increased productivity for small teams'})}
                         price='$0'
                         isCloud={false}
-                        cloudFreeDeprecated={false}
                         planLabel={
                             isStarter ? (
                                 <PlanLabel
@@ -201,7 +183,7 @@ function SelfHostedContent(props: ContentProps) {
                             action: () => {},
                             text: formatMessage({id: 'pricing_modal.btn.downgrade', defaultMessage: 'Downgrade'}),
                             disabled: true,
-                            customClass: ButtonCustomiserClasses.secondary,
+                            customClass: ButtonCustomiserClasses.active,
                         }}
                         briefing={{
                             title: formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),
@@ -225,7 +207,6 @@ function SelfHostedContent(props: ContentProps) {
                             ),
                         })}
                         isCloud={false}
-                        cloudFreeDeprecated={false}
                         planLabel={
                             isProfessional ? (
                                 <PlanLabel
@@ -237,37 +218,7 @@ function SelfHostedContent(props: ContentProps) {
                         buttonDetails={{
                             action: () => {
                                 trackEvent('self_hosted_pricing', 'click_upgrade_button');
-
-                                if (!isSelfHostedPurchaseEnabled) {
-                                    window.open(CloudLinks.SELF_HOSTED_SIGNUP, '_blank');
-                                    return;
-                                }
-
-                                if (!signupAvailable.ok) {
-                                    if (signupAvailable.cwsContacted && !signupAvailable.cwsServiceOn) {
-                                        window.open(CloudLinks.SELF_HOSTED_SIGNUP, '_blank');
-                                        return;
-                                    }
-                                    if (signupAvailable.screeningInProgress) {
-                                        controlScreeningInProgressModal.open();
-                                    } else {
-                                        controlAirgappedModal.open();
-                                    }
-                                    closePricingModal();
-                                    return;
-                                }
-
-                                const professionalProduct = findSelfHostedProductBySku(products, SelfHostedProducts.PROFESSIONAL);
-                                if (productsLoaded && professionalProduct) {
-                                    // let the control modal close this modal
-                                    // we need to wait for its timing,
-                                    // it doesn't return a signal,
-                                    // and we can not do this in a useEffect hook
-                                    // at the top of this file easily because
-                                    // sometimes we want both modals to be open if user is in purchase
-                                    // modal and wants to compare plans
-                                    controlSelfHostedPurchaseModal.open();
-                                }
+                                openSalesLink();
                             },
                             text: formatMessage({id: 'pricing_modal.btn.upgrade', defaultMessage: 'Upgrade'}),
                             disabled: !isAdmin || isProfessional,
@@ -285,7 +236,6 @@ function SelfHostedContent(props: ContentProps) {
                         plan='Enterprise'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.enterprise', defaultMessage: 'Administration, security, and compliance for large teams'})}
                         isCloud={false}
-                        cloudFreeDeprecated={false}
                         planLabel={
                             isEnterprise ? (
                                 <PlanLabel
@@ -301,7 +251,7 @@ function SelfHostedContent(props: ContentProps) {
                                 openContactSales();
                             },
                             text: formatMessage({id: 'pricing_modal.btn.contactSales', defaultMessage: 'Contact Sales'}),
-                            customClass: ButtonCustomiserClasses.active,
+                            customClass: ButtonCustomiserClasses.special,
                         } : undefined}
                         customButtonDetails={(!isPostSelfHostedEnterpriseTrial && isAdmin) ? (
                             trialButton()

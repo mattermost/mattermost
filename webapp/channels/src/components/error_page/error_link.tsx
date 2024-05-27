@@ -2,34 +2,29 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 
 type Props = {
     url: string;
-    messageId: string;
-    defaultMessage: string;
+    message: MessageDescriptor;
 }
 
-const ErrorLink: React.FC<Props> = ({url, messageId, defaultMessage}: Props) => {
+const ErrorLink: React.FC<Props> = ({url, message}: Props) => {
     return (
         <ExternalLink
             href={url}
             location='error_link'
         >
-            <FormattedMessage
-                id={messageId}
-                defaultMessage={defaultMessage}
-            />
+            <FormattedMessage {...message}/>
         </ExternalLink>
     );
 };
 
 ErrorLink.defaultProps = {
     url: '',
-    messageId: '',
-    defaultMessage: '',
 };
 
 export default ErrorLink;

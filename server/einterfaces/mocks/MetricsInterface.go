@@ -73,6 +73,11 @@ func (_m *MetricsInterface) IncrementChannelIndexCounter() {
 	_m.Called()
 }
 
+// IncrementClientLongTasks provides a mock function with given fields: platform, agent, inc
+func (_m *MetricsInterface) IncrementClientLongTasks(platform string, agent string, inc float64) {
+	_m.Called(platform, agent, inc)
+}
+
 // IncrementClusterEventType provides a mock function with given fields: eventType
 func (_m *MetricsInterface) IncrementClusterEventType(eventType model.ClusterEvent) {
 	_m.Called(eventType)
@@ -161,6 +166,36 @@ func (_m *MetricsInterface) IncrementMemCacheMissCounter(cacheName string) {
 // IncrementMemCacheMissCounterSession provides a mock function with given fields:
 func (_m *MetricsInterface) IncrementMemCacheMissCounterSession() {
 	_m.Called()
+}
+
+// IncrementNotificationAckCounter provides a mock function with given fields: notificationType
+func (_m *MetricsInterface) IncrementNotificationAckCounter(notificationType model.NotificationType) {
+	_m.Called(notificationType)
+}
+
+// IncrementNotificationCounter provides a mock function with given fields: notificationType
+func (_m *MetricsInterface) IncrementNotificationCounter(notificationType model.NotificationType) {
+	_m.Called(notificationType)
+}
+
+// IncrementNotificationErrorCounter provides a mock function with given fields: notificationType, errorReason
+func (_m *MetricsInterface) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason) {
+	_m.Called(notificationType, errorReason)
+}
+
+// IncrementNotificationNotSentCounter provides a mock function with given fields: notificationType, notSentReason
+func (_m *MetricsInterface) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
+	_m.Called(notificationType, notSentReason)
+}
+
+// IncrementNotificationSuccessCounter provides a mock function with given fields: notificationType
+func (_m *MetricsInterface) IncrementNotificationSuccessCounter(notificationType model.NotificationType) {
+	_m.Called(notificationType)
+}
+
+// IncrementNotificationUnsupportedCounter provides a mock function with given fields: notificationType, notSentReason
+func (_m *MetricsInterface) IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
+	_m.Called(notificationType, notSentReason)
 }
 
 // IncrementPostBroadcast provides a mock function with given fields:
@@ -263,6 +298,46 @@ func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method s
 	_m.Called(endpoint, method, statusCode, originClient, pageLoadContext, elapsed)
 }
 
+// ObserveClientChannelSwitchDuration provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveClientChannelSwitchDuration(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
+}
+
+// ObserveClientCumulativeLayoutShift provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveClientCumulativeLayoutShift(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
+}
+
+// ObserveClientFirstContentfulPaint provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveClientFirstContentfulPaint(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
+}
+
+// ObserveClientInteractionToNextPaint provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveClientInteractionToNextPaint(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
+}
+
+// ObserveClientLargestContentfulPaint provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveClientLargestContentfulPaint(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
+}
+
+// ObserveClientRHSLoadDuration provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveClientRHSLoadDuration(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
+}
+
+// ObserveClientTeamSwitchDuration provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveClientTeamSwitchDuration(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
+}
+
+// ObserveClientTimeToFirstByte provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveClientTimeToFirstByte(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
+}
+
 // ObserveClusterRequestDuration provides a mock function with given fields: elapsed
 func (_m *MetricsInterface) ObserveClusterRequestDuration(elapsed float64) {
 	_m.Called(elapsed)
@@ -276,6 +351,11 @@ func (_m *MetricsInterface) ObserveEnabledUsers(users int64) {
 // ObserveFilesSearchDuration provides a mock function with given fields: elapsed
 func (_m *MetricsInterface) ObserveFilesSearchDuration(elapsed float64) {
 	_m.Called(elapsed)
+}
+
+// ObserveGlobalThreadsLoadDuration provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveGlobalThreadsLoadDuration(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
 }
 
 // ObservePluginAPIDuration provides a mock function with given fields: pluginID, apiName, success, elapsed
