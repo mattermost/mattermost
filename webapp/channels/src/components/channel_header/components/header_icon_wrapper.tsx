@@ -45,7 +45,7 @@ const HeaderIconWrapper = (props: Props) => {
     const ariaLabelText = ariaLabelOverride ?? tooltipText;
 
     return (
-        <div>
+        <>
             <WithTooltip
                 id={buttonId + '-tooltip'}
                 placement='bottom'
@@ -67,7 +67,7 @@ const HeaderIconWrapper = (props: Props) => {
                     pulsatingDotTranslate={{x: 0, y: -22}}
                 />
             }
-        </div>
+        </>
     );
 };
 
