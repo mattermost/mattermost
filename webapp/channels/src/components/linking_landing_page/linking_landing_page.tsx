@@ -19,6 +19,8 @@ import * as Utils from 'utils/utils';
 
 import DialogBody from './dialog_body';
 import Header from './header';
+import GetAppDesktopSvg from 'components/common/svg_images_components/get-app-desktop_svg';
+import GetAppMobileSvg from 'components/common/svg_images_components/get-app-mobile_svg';
 
 const LinkingLandingPage = () => {
     const [location, setLocation] = useState('');
@@ -120,7 +122,7 @@ const LinkingLandingPage = () => {
                 <div
                     className={`get-app__graphic ${isMobile ? 'mobile' : ''}`}
                 >
-                    {isMobile ? <img src={mobileImg}/> : <img src={desktopImg}/>}
+                    {isMobile ? <GetAppMobileSvg width={362} height={600} /> : <GetAppDesktopSvg /> }
                 </div>
                 <DialogBody
                     siteUrl={SiteURL}
