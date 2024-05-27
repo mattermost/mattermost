@@ -40,19 +40,19 @@ func TestMobileMetrics(t *testing.T) {
 			{
 				name:         "load duration",
 				histogramVec: miImpl.MobileClientLoadDuration,
-				elapsed:      5.1,
+				elapsed:      5001,
 				metricName:   model.MobileClientLoadDuration,
 			},
 			{
 				name:         "channel switch duration",
 				histogramVec: miImpl.MobileClientChannelSwitchDuration,
-				elapsed:      0.501,
+				elapsed:      501,
 				metricName:   model.MobileClientChannelSwitchDuration,
 			},
 			{
 				name:         "team switch duration",
 				histogramVec: miImpl.MobileClientTeamSwitchDuration,
-				elapsed:      0.301,
+				elapsed:      301,
 				metricName:   model.MobileClientTeamSwitchDuration,
 			},
 		}
@@ -93,7 +93,7 @@ func TestMobileMetrics(t *testing.T) {
 			require.NoError(t, err)
 			require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
 			require.Equal(t, uint64(1), m.Histogram.GetSampleCount())
-			require.InDelta(t, tc.elapsed, m.Histogram.GetSampleSum(), 0.001, "not equal value in %s", tc.name)
+			require.InDelta(t, tc.elapsed/1000, m.Histogram.GetSampleSum(), 0.001, "not equal value in %s", tc.name)
 		}
 	}
 }
