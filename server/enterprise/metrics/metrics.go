@@ -1254,10 +1254,10 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsMobileApp,
 			Name:      "mobile_load",
-			Help:      "Duration of the time taken from when a user opens the app and the app finally loads all relevant information (milliseconds)",
+			Help:      "Duration of the time taken from when a user opens the app and the app finally loads all relevant information (seconds)",
 			Buckets:   []float64{1, 1.5, 2, 3, 4, 4.5, 5, 5.5, 6, 7.5, 10, 20, 25, 30},
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform"},
 	)
 	m.Registry.MustRegister(m.MobileClientLoadDuration)
 
@@ -1266,10 +1266,10 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsMobileApp,
 			Name:      "mobile_channel_switch",
-			Help:      "Duration of the time taken from when a user opens the app and the app finally loads all relevant information (milliseconds)",
+			Help:      "Duration of the time taken from when a user clicks on a channel name, and the full channel sreen is loaded (seconds)",
 			Buckets:   []float64{0.150, 0.200, 0.300, 0.400, 0.450, 0.500, 0.550, 0.600, 0.750, 1, 2, 3},
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform"},
 	)
 	m.Registry.MustRegister(m.MobileClientChannelSwitchDuration)
 
@@ -1278,10 +1278,10 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsMobileApp,
 			Name:      "mobile_team_switch",
-			Help:      "Duration of the time taken from when a user opens the app and the app finally loads all relevant information (milliseconds)",
+			Help:      "Duration of the time taken from when a user clicks on a team, and the full categories screen is loaded (seconds)",
 			Buckets:   []float64{0.150, 0.200, 0.250, 0.300, 0.350, 0.400, 0.500, 0.750, 1, 2, 3},
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform"},
 	)
 	m.Registry.MustRegister(m.MobileClientTeamSwitchDuration)
 
@@ -1783,16 +1783,16 @@ func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent
 	mi.ClientGlobalThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientLoadDuration(platform, agent string, elapsed float64) {
-	mi.MobileClientLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveMobileClientLoadDuration(platform string, elapsed float64) {
+	mi.MobileClientLoadDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientChannelSwitchDuration(platform, agent string, elapsed float64) {
-	mi.MobileClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveMobileClientChannelSwitchDuration(platform string, elapsed float64) {
+	mi.MobileClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform, agent string, elapsed float64) {
-	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64) {
+	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
 
 func extractDBCluster(driver, connectionString string) (string, error) {

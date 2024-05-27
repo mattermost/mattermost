@@ -30,8 +30,6 @@ func TestMobileMetrics(t *testing.T) {
 	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", mi))
 	m := &prometheusModels.Metric{}
 
-	agent := "rnapp"
-
 	for _, platform := range []string{"ios", "android"} {
 		ttcc := []struct {
 			name         string
@@ -64,7 +62,7 @@ func TestMobileMetrics(t *testing.T) {
 		end := start + float64(len(ttcc))
 		// Precheck
 		for i, tc := range ttcc {
-			actualMetric, err := tc.histogramVec.GetMetricWith(prometheus.Labels{"platform": platform, "agent": agent})
+			actualMetric, err := tc.histogramVec.GetMetricWith(prometheus.Labels{"platform": platform})
 			require.NoError(t, err)
 			require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
 			require.Equal(t, uint64(0), m.Histogram.GetSampleCount())
@@ -80,7 +78,6 @@ func TestMobileMetrics(t *testing.T) {
 			Version:  "0.1.0",
 			ClientID: "",
 			Labels: map[string]string{
-				"agent":    agent,
 				"platform": platform,
 			},
 			Start:      start,
@@ -92,7 +89,7 @@ func TestMobileMetrics(t *testing.T) {
 
 		// After check
 		for _, tc := range ttcc {
-			actualMetric, err := tc.histogramVec.GetMetricWith(prometheus.Labels{"platform": platform, "agent": agent})
+			actualMetric, err := tc.histogramVec.GetMetricWith(prometheus.Labels{"platform": platform})
 			require.NoError(t, err)
 			require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
 			require.Equal(t, uint64(1), m.Histogram.GetSampleCount())

@@ -189,7 +189,7 @@ func TestMobileMetrics(t *testing.T) {
 	ttcc := []struct {
 		name         string
 		histogramVec *prometheus.HistogramVec
-		observeFunc  func(string, string, float64)
+		observeFunc  func(string, float64)
 	}{
 		{
 			name:         "load duration",
@@ -211,18 +211,17 @@ func TestMobileMetrics(t *testing.T) {
 	for _, tc := range ttcc {
 		t.Run(tc.name, func(t *testing.T) {
 			m := &prometheusModels.Metric{}
-			agent := "rnapp"
 			elapsed := 999.1
 
 			for _, platform := range []string{"ios", "android"} {
-				actualMetric, err := tc.histogramVec.GetMetricWith(prometheus.Labels{"platform": platform, "agent": agent})
+				actualMetric, err := tc.histogramVec.GetMetricWith(prometheus.Labels{"platform": platform})
 				require.NoError(t, err)
 				require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
 				require.Equal(t, uint64(0), m.Histogram.GetSampleCount())
 				require.Equal(t, 0.0, m.Histogram.GetSampleSum())
 
-				tc.observeFunc(platform, agent, elapsed)
-				actualMetric, err = tc.histogramVec.GetMetricWith(prometheus.Labels{"platform": platform, "agent": agent})
+				tc.observeFunc(platform, elapsed)
+				actualMetric, err = tc.histogramVec.GetMetricWith(prometheus.Labels{"platform": platform})
 				require.NoError(t, err)
 				require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
 				require.Equal(t, uint64(1), m.Histogram.GetSampleCount())
