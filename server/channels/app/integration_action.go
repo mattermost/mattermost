@@ -67,7 +67,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 	// Start all queries here for parallel execution
 	pchan := make(chan store.StoreResult[*model.Post], 1)
 	go func() {
-		post, err := a.Srv().Store().Post().GetSingle(postID, false)
+		post, err := a.Srv().Store().Post().GetSingle(c, postID, false)
 		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()

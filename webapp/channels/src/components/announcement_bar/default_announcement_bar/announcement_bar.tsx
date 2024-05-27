@@ -3,6 +3,7 @@
 
 import type {ReactNode} from 'react';
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
@@ -24,8 +25,7 @@ type Props = {
     showModal?: boolean;
     announcementBarCount?: number;
     onButtonClick?: (e?: any) => void;
-    modalButtonText?: string;
-    modalButtonDefaultText?: string;
+    modalButtonText?: MessageDescriptor;
     showLinkAsButton: boolean;
     icon?: ReactNode;
     actions: {
@@ -185,14 +185,13 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                             {message}
                         </span>
                         {
-                            this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText && this.props.modalButtonDefaultText &&
+                            this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText &&
                             <button
                                 onClick={this.props.onButtonClick}
                                 disabled={this.props.ctaDisabled}
                             >
                                 <FormattedMessage
-                                    id={this.props.modalButtonText}
-                                    defaultMessage={this.props.modalButtonDefaultText}
+                                    {...this.props.modalButtonText}
                                 />
                             </button>
                         }
