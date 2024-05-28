@@ -383,11 +383,6 @@ func (_m *MetricsInterface) ObserveRedisEndpointDuration(cacheName string, opera
 	_m.Called(cacheName, operation, elapsed)
 }
 
-// ObserveRedisPayload provides a mock function with given fields: cacheName, size
-func (_m *MetricsInterface) ObserveRedisPayload(cacheName string, size float64) {
-	_m.Called(cacheName, size)
-}
-
 // ObserveRemoteClusterClockSkew provides a mock function with given fields: remoteID, skew
 func (_m *MetricsInterface) ObserveRemoteClusterClockSkew(remoteID string, skew float64) {
 	_m.Called(remoteID, skew)
