@@ -6831,6 +6831,10 @@
     "translation": "Must call update for existing user."
   },
   {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Unable to determine if that username already exists"
+  },
+  {
     "id": "app.user.save.username_exists.app_error",
     "translation": "An account with that username already exists."
   },
