@@ -217,6 +217,7 @@ type MetricsInterfaceImpl struct {
 	ClientInteractionToNextPaint    *prometheus.HistogramVec
 	ClientCumulativeLayoutShift     *prometheus.HistogramVec
 	ClientLongTasks                 *prometheus.CounterVec
+	ClientPageLoadDuration          *prometheus.HistogramVec
 	ClientChannelSwitchDuration     *prometheus.HistogramVec
 	ClientTeamSwitchDuration        *prometheus.HistogramVec
 	ClientRHSLoadDuration           *prometheus.HistogramVec
@@ -1151,6 +1152,9 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "first_contentful_paint",
 			Help:      "Duration of how long it takes for any content to be displayed on screen to a user (seconds)",
+
+			// Extend the range of buckets for this while we get a better idea of the expected range of this metric is
+			Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20},
 		},
 		[]string{"platform", "agent"},
 	)
@@ -1162,6 +1166,9 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "largest_contentful_paint",
 			Help:      "Duration of how long it takes for large content to be displayed on screen to a user (seconds)",
+
+			// Extend the range of buckets for this while we get a better idea of the expected range of this metric is
+			Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20},
 		},
 		[]string{"platform", "agent"},
 	)
@@ -1199,6 +1206,17 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"platform", "agent"},
 	)
 	m.Registry.MustRegister(m.ClientLongTasks)
+
+	m.ClientPageLoadDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "page_load",
+			Help:      "The amount of time from when the browser starts loading the web app until when the web app's load event has finished (seconds)",
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientPageLoadDuration)
 
 	m.ClientChannelSwitchDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -1724,6 +1742,10 @@ func (mi *MetricsInterfaceImpl) ObserveClientCumulativeLayoutShift(platform, age
 
 func (mi *MetricsInterfaceImpl) IncrementClientLongTasks(platform, agent string, inc float64) {
 	mi.ClientLongTasks.With(prometheus.Labels{"platform": platform, "agent": agent}).Add(inc)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientPageLoadDuration(platform, agent string, elapsed float64) {
+	mi.ClientPageLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, agent string, elapsed float64) {
