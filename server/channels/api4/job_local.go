@@ -3,6 +3,8 @@
 
 package api4
 
+import "net/http"
+
 func (api *API) InitJobLocal() {
 	api.BaseRoutes.Jobs.Handle("", api.APILocal(getJobs)).Methods(http.MethodGet)
 	api.BaseRoutes.Jobs.Handle("", api.APILocal(createJob)).Methods(http.MethodPost)

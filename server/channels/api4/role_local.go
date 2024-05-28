@@ -3,6 +3,8 @@
 
 package api4
 
+import "net/http"
+
 func (api *API) InitRoleLocal() {
 	api.BaseRoutes.Roles.Handle("", api.APILocal(getAllRoles)).Methods(http.MethodGet)
 	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}", api.APILocal(getRole)).Methods(http.MethodGet)

@@ -3,6 +3,8 @@
 
 package api4
 
+import "net/http"
+
 func (api *API) InitPostLocal() {
 	api.BaseRoutes.Post.Handle("", api.APILocal(getPost)).Methods(http.MethodGet)
 

@@ -3,6 +3,8 @@
 
 package api4
 
+import "net/http"
+
 func (api *API) InitUploadLocal() {
 	api.BaseRoutes.Uploads.Handle("", api.APILocal(createUpload, handlerParamFileAPI)).Methods(http.MethodPost)
 	api.BaseRoutes.Upload.Handle("", api.APILocal(getUpload)).Methods(http.MethodGet)

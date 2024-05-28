@@ -3,6 +3,8 @@
 
 package api4
 
+import "net/http"
+
 func (api *API) InitLdapLocal() {
 	api.BaseRoutes.LDAP.Handle("/migrateid", api.APILocal(migrateIDLdap)).Methods(http.MethodPost)
 	api.BaseRoutes.LDAP.Handle("/sync", api.APILocal(syncLdap)).Methods(http.MethodPost)

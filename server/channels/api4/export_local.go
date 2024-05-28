@@ -3,6 +3,8 @@
 
 package api4
 
+import "net/http"
+
 func (api *API) InitExportLocal() {
 	api.BaseRoutes.Exports.Handle("", api.APILocal(listExports)).Methods(http.MethodGet)
 	api.BaseRoutes.Export.Handle("", api.APILocal(deleteExport)).Methods(http.MethodDelete)
