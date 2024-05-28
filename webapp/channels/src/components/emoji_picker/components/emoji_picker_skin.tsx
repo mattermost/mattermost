@@ -128,7 +128,6 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                 id='emojiPickerSkinTooltip'
                 placement='top'
                 title={expandButtonLabel}
-                className='emoji-tooltip'
             >
                 <button
                     data-testid={`skin-picked-${this.props.userSkinTone}`}

@@ -38,7 +38,6 @@ function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onCl
         <WithTooltip
             id={`emojiPickerCategoryTooltip-${category.name}`}
             placement='bottom'
-            className='emoji-tooltip'
             title={
                 <FormattedMessage
                     id={`emoji_picker.${category.name}`}
