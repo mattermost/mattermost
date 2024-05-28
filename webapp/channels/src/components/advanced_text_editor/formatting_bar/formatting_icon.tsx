@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import styled from 'styled-components';
 
@@ -28,7 +28,6 @@ import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
 export const IconContainer = styled.button`
@@ -93,17 +92,17 @@ const MAP_MARKDOWN_MODE_TO_ICON: Record<FormattingIconProps['mode'], React.FC<Ic
     ol: FormatListNumberedIcon,
 };
 
-const MAP_MARKDOWN_MODE_TO_ARIA_LABEL: Record<FormattingIconProps['mode'], MessageDescriptor> = {
-    bold: {id: t('accessibility.button.bold'), defaultMessage: 'bold'},
-    italic: {id: t('accessibility.button.italic'), defaultMessage: 'italic'},
-    link: {id: t('accessibility.button.link'), defaultMessage: 'link'},
-    strike: {id: t('accessibility.button.strike'), defaultMessage: 'strike through'},
-    code: {id: t('accessibility.button.code'), defaultMessage: 'code'},
-    heading: {id: t('accessibility.button.heading'), defaultMessage: 'heading'},
-    quote: {id: t('accessibility.button.quote'), defaultMessage: 'quote'},
-    ul: {id: t('accessibility.button.bulleted_list'), defaultMessage: 'bulleted list'},
-    ol: {id: t('accessibility.button.numbered_list'), defaultMessage: 'numbered list'},
-};
+const MAP_MARKDOWN_MODE_TO_ARIA_LABEL: Record<FormattingIconProps['mode'], MessageDescriptor> = defineMessages({
+    bold: {id: 'accessibility.button.bold', defaultMessage: 'bold'},
+    italic: {id: 'accessibility.button.italic', defaultMessage: 'italic'},
+    link: {id: 'accessibility.button.link', defaultMessage: 'link'},
+    strike: {id: 'accessibility.button.strike', defaultMessage: 'strike through'},
+    code: {id: 'accessibility.button.code', defaultMessage: 'code'},
+    heading: {id: 'accessibility.button.heading', defaultMessage: 'heading'},
+    quote: {id: 'accessibility.button.quote', defaultMessage: 'quote'},
+    ul: {id: 'accessibility.button.bulleted_list', defaultMessage: 'bulleted list'},
+    ol: {id: 'accessibility.button.numbered_list', defaultMessage: 'numbered list'},
+});
 
 const MAP_MARKDOWN_MODE_TO_KEYBOARD_SHORTCUTS: Record<FormattingIconProps['mode'], KeyboardShortcutDescriptor> = {
     bold: KEYBOARD_SHORTCUTS.msgMarkdownBold,
