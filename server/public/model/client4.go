@@ -5398,7 +5398,7 @@ func (c *Client4) GetComplianceReport(ctx context.Context, reportId string) (*Co
 
 // DownloadComplianceReport returns a full compliance report as a file.
 func (c *Client4) DownloadComplianceReport(ctx context.Context, reportId string) ([]byte, *Response, error) {
-	rq, err := http.NewRequestWithContext("GET", c.APIURL+c.complianceReportDownloadRoute(reportId), nil)
+	rq, err := http.NewRequestWithContext(ctx, "GET", c.APIURL+c.complianceReportDownloadRoute(reportId), nil)
 	if err != nil {
 		return nil, nil, err
 	}
