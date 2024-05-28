@@ -25,7 +25,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -245,7 +244,7 @@ func TestCreatePost(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.Zero(t, *respPost.RemoteId)
 
-		createdPost, appErr := th.App.GetSinglePost(request.TestContext(t), respPost.Id, false)
+		createdPost, appErr := th.App.GetSinglePost(th.Context, respPost.Id, false)
 		require.Nil(t, appErr)
 		require.Zero(t, *createdPost.RemoteId)
 	})

@@ -122,3 +122,16 @@ export const getGiphyFetchInstance: (state: GlobalState) => GiphyFetch | null = 
         return null;
     },
 );
+
+export const getUsersStatusAndProfileFetchingPollInterval: (state: GlobalState) => number | null = createSelector(
+    'getUsersStatusAndProfileFetchingPollInterval',
+    getConfig,
+    (config) => {
+        const usersStatusAndProfileFetchingPollInterval = config.UsersStatusAndProfileFetchingPollIntervalMilliseconds;
+        if (usersStatusAndProfileFetchingPollInterval) {
+            return parseInt(usersStatusAndProfileFetchingPollInterval, 10);
+        }
+
+        return null;
+    },
+);

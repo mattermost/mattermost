@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
@@ -58,7 +59,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			ChannelId: model.NewId(),
 			TeamId:    model.NewId(),
 			ReadOnly:  true,
-			Type:      "0",
+			Type:      model.ChannelTypeOpen,
 		}
 		payload, err := json.Marshal(invitation)
 		require.NoError(t, err)
@@ -68,9 +69,13 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		}
 		mockChannelStore := mocks.ChannelStore{}
 		mockSharedChannelStore := mocks.SharedChannelStore{}
-		channel := &model.Channel{}
+		channel := &model.Channel{
+			Id:     invitation.ChannelId,
+			TeamId: invitation.TeamId,
+			Type:   invitation.Type,
+		}
 
-		mockChannelStore.On("Get", invitation.ChannelId, true).Return(channel, nil)
+		mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, store.ErrNotFound{})
 		mockSharedChannelStore.On("Save", mock.Anything).Return(nil, nil)
 		mockSharedChannelStore.On("SaveRemote", mock.Anything).Return(nil, nil)
 		mockStore.On("Channel").Return(&mockChannelStore)
@@ -95,7 +100,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 				Roles: &updateMap,
 			},
 		}
-		mockApp.On("PatchChannelModerationsForChannel", mock.Anything, channel, readonlyChannelModerations).Return(nil, nil)
+		mockApp.On("PatchChannelModerationsForChannel", mock.Anything, channel, readonlyChannelModerations).Return(nil, nil).Maybe()
 		defer mockApp.AssertExpectations(t)
 
 		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)

@@ -8866,5 +8866,25 @@
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Adresse e-mail professionnelle invalide pour l'essai"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Un fil de discussion avec {{.NumMessages}} messages a été déplacé : {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Un message a été déplacé vers un message personnel ou un message de groupe\n"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Ce fil a été déplacé à partir d’un autre canal"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Un message a été déplace : {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Un fil de discussion avec {{.NumMessages}} messages a été déplace vers un message personnel ou un message de groupe.\n"
   }
 ]
