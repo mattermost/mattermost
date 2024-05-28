@@ -1,0 +1,3762 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/analytics/system_analytics/system_analytics.tsx should match snapshot, no data 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(SystemAnalytics)
+    license={
+      Object {
+        "Cloud": "true",
+        "IsLicensed": "true",
+      }
+    }
+    stats={null}
+  >
+    <SystemAnalytics
+      dispatch={[Function]}
+      isLicensed={true}
+      license={
+        Object {
+          "Cloud": "true",
+          "IsLicensed": "true",
+        }
+      }
+      pluginStatHandlers={Object {}}
+      stats={Object {}}
+    >
+      <div
+        className="wrapper--fixed team_statistics"
+      >
+        <AdminHeader>
+          <div
+            className="admin-console__header"
+          >
+            <FormattedMessage
+              defaultMessage="System Statistics"
+              id="analytics.system.title"
+            >
+              <span>
+                System Statistics
+              </span>
+            </FormattedMessage>
+          </div>
+        </AdminHeader>
+        <div
+          className="admin-console__wrapper"
+        >
+          <div
+            className="admin-console__content"
+          >
+            <div
+              className="grid-statistics"
+            >
+              <ActivatedUserCard
+                isCloud={true}
+                seatsPurchased={NaN}
+              >
+                <Memo(StatisticCount)
+                  icon="fa-users"
+                  id="totalActiveUsers"
+                  title={<Title />}
+                >
+                  <div
+                    className="grid-statistics__card"
+                  >
+                    <div
+                      className="total-count"
+                    >
+                      <div
+                        className="title"
+                        data-testid="totalActiveUsersTitle"
+                      >
+                        <Title>
+                          <WithTooltip
+                            hint={
+                              Object {
+                                "defaultMessage": "Also called Registered Users",
+                                "id": "analytics.team.totalUsers.title.tooltip.hint",
+                              }
+                            }
+                            id="activated_user_title_tooltip"
+                            placement="top"
+                            title={
+                              Object {
+                                "defaultMessage": "Activated users on this server",
+                                "id": "analytics.team.totalUsers.title.tooltip.title",
+                              }
+                            }
+                          >
+                            <OverlayTrigger
+                              defaultOverlayShown={false}
+                              delay={400}
+                              overlay={<Unknown />}
+                              placement="top"
+                              trigger={
+                                Array [
+                                  "hover",
+                                  "focus",
+                                ]
+                              }
+                            >
+                              <OverlayTrigger
+                                defaultOverlayShown={false}
+                                delay={400}
+                                overlay={
+                                  <OverlayWrapper
+                                    intl={
+                                      Object {
+                                        "$t": [Function],
+                                        "defaultFormats": Object {},
+                                        "defaultLocale": "en",
+                                        "defaultRichTextElements": undefined,
+                                        "fallbackOnEmptyString": true,
+                                        "formatDate": [Function],
+                                        "formatDateTimeRange": [Function],
+                                        "formatDateToParts": [Function],
+                                        "formatDisplayName": [Function],
+                                        "formatList": [Function],
+                                        "formatListToParts": [Function],
+                                        "formatMessage": [Function],
+                                        "formatNumber": [Function],
+                                        "formatNumberToParts": [Function],
+                                        "formatPlural": [Function],
+                                        "formatRelativeTime": [Function],
+                                        "formatTime": [Function],
+                                        "formatTimeToParts": [Function],
+                                        "formats": Object {},
+                                        "formatters": Object {
+                                          "getDateTimeFormat": [Function],
+                                          "getDisplayNames": [Function],
+                                          "getListFormat": [Function],
+                                          "getMessageFormat": [Function],
+                                          "getNumberFormat": [Function],
+                                          "getPluralRules": [Function],
+                                          "getRelativeTimeFormat": [Function],
+                                        },
+                                        "locale": "en",
+                                        "messages": Object {},
+                                        "onError": [Function],
+                                        "onWarn": [Function],
+                                        "textComponent": "span",
+                                        "timeZone": "Etc/UTC",
+                                        "wrapRichTextChunksInFragment": undefined,
+                                      }
+                                    }
+                                  />
+                                }
+                                placement="top"
+                                trigger={
+                                  Array [
+                                    "hover",
+                                    "focus",
+                                  ]
+                                }
+                              >
+                                <span
+                                  onBlur={[Function]}
+                                  onClick={null}
+                                  onFocus={[Function]}
+                                  onMouseOut={[Function]}
+                                  onMouseOver={[Function]}
+                                >
+                                  <ExternalLink
+                                    href="https://mattermost.com/pl/site-statistics-definitions"
+                                    location="activated_users_card.title"
+                                  >
+                                    <a
+                                      href="https://mattermost.com/pl/site-statistics-definitions?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=activated_users_card.title&uid=current_user_id&sid=test123"
+                                      location="activated_users_card.title"
+                                      onClick={[Function]}
+                                      rel="noopener noreferrer"
+                                      target="_blank"
+                                    >
+                                      Total Activated Users
+                                      <InformationOutlineIcon
+                                        size="16"
+                                      >
+                                        <svg
+                                          fill="currentColor"
+                                          height="16"
+                                          version="1.1"
+                                          viewBox="0 0 24 24"
+                                          width="16"
+                                          xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                          <path
+                                            d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                                          />
+                                        </svg>
+                                      </InformationOutlineIcon>
+                                    </a>
+                                  </ExternalLink>
+                                </span>
+                              </OverlayTrigger>
+                            </OverlayTrigger>
+                          </WithTooltip>
+                        </Title>
+                        <i
+                          className="fa fa-users"
+                        />
+                      </div>
+                      <div
+                        className="content"
+                        data-testid="totalActiveUsers"
+                      >
+                        <FormattedMessage
+                          defaultMessage="Loading..."
+                          id="analytics.chart.loading"
+                        >
+                          <span>
+                            Loading...
+                          </span>
+                        </FormattedMessage>
+                      </div>
+                    </div>
+                  </div>
+                </Memo(StatisticCount)>
+              </ActivatedUserCard>
+              <Memo(StatisticCount)
+                icon="fa-users"
+                id="totalTeams"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Teams"
+                    id="analytics.system.totalTeams"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalTeamsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Teams"
+                        id="analytics.system.totalTeams"
+                      >
+                        <span>
+                          Total Teams
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-users"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalTeams"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-globe"
+                id="totalChannels"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Channels"
+                    id="analytics.system.totalChannels"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalChannelsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Channels"
+                        id="analytics.system.totalChannels"
+                      >
+                        <span>
+                          Total Channels
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-globe"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalChannels"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-comment"
+                id="totalPosts"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Posts"
+                    id="analytics.system.totalPosts"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalPostsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Posts"
+                        id="analytics.system.totalPosts"
+                      >
+                        <span>
+                          Total Posts
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-comment"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalPosts"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-signal"
+                id="totalSessions"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Sessions"
+                    id="analytics.system.totalSessions"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalSessionsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Sessions"
+                        id="analytics.system.totalSessions"
+                      >
+                        <span>
+                          Total Sessions
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-signal"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalSessions"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-terminal"
+                id="totalCommands"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Commands"
+                    id="analytics.system.totalCommands"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalCommandsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Commands"
+                        id="analytics.system.totalCommands"
+                      >
+                        <span>
+                          Total Commands
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-terminal"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalCommands"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-arrow-down"
+                id="incomingWebhooks"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Incoming Webhooks"
+                    id="analytics.system.totalIncomingWebhooks"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="incomingWebhooksTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Incoming Webhooks"
+                        id="analytics.system.totalIncomingWebhooks"
+                      >
+                        <span>
+                          Incoming Webhooks
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-arrow-down"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="incomingWebhooks"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-arrow-up"
+                id="outgoingWebhooks"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Outgoing Webhooks"
+                    id="analytics.system.totalOutgoingWebhooks"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="outgoingWebhooksTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Outgoing Webhooks"
+                        id="analytics.system.totalOutgoingWebhooks"
+                      >
+                        <span>
+                          Outgoing Webhooks
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-arrow-up"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="outgoingWebhooks"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-users"
+                id="dailyActiveUsers"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Daily Active Users"
+                    id="analytics.system.dailyActiveUsers"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="dailyActiveUsersTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Daily Active Users"
+                        id="analytics.system.dailyActiveUsers"
+                      >
+                        <span>
+                          Daily Active Users
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-users"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="dailyActiveUsers"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-users"
+                id="monthlyActiveUsers"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Monthly Active Users"
+                    id="analytics.system.monthlyActiveUsers"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="monthlyActiveUsersTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Monthly Active Users"
+                        id="analytics.system.monthlyActiveUsers"
+                      >
+                        <span>
+                          Monthly Active Users
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-users"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="monthlyActiveUsers"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-user"
+                id="websocketConns"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="WebSocket Conns"
+                    id="analytics.system.totalWebsockets"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="websocketConnsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="WebSocket Conns"
+                        id="analytics.system.totalWebsockets"
+                      >
+                        <span>
+                          WebSocket Conns
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-user"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="websocketConns"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-terminal"
+                id="masterDbConns"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Master DB Conns"
+                    id="analytics.system.totalMasterDbConnections"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="masterDbConnsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Master DB Conns"
+                        id="analytics.system.totalMasterDbConnections"
+                      >
+                        <span>
+                          Master DB Conns
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-terminal"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="masterDbConns"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-terminal"
+                id="replicaDbConns"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Replica DB Conns"
+                    id="analytics.system.totalReadDbConnections"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="replicaDbConnsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Replica DB Conns"
+                        id="analytics.system.totalReadDbConnections"
+                      >
+                        <span>
+                          Replica DB Conns
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-terminal"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="replicaDbConns"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+            </div>
+            <div
+              className="row"
+            >
+              <DoughnutChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "backgroundColor": Array [
+                          "#46BFBD",
+                          "#FDB45C",
+                        ],
+                        "data": Array [
+                          undefined,
+                          undefined,
+                        ],
+                        "hoverBackgroundColor": Array [
+                          "#5AD3D1",
+                          "#FFC870",
+                        ],
+                      },
+                    ],
+                    "labels": Array [
+                      "Public Channels",
+                      "Private Channels",
+                    ],
+                  }
+                }
+                height={225}
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Channel Types"
+                    id="analytics.system.channelTypes"
+                  />
+                }
+                width={300}
+              >
+                <div
+                  className="col-sm-6"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Channel Types"
+                        id="analytics.system.channelTypes"
+                      >
+                        <span>
+                          Channel Types
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <canvas
+                        height={225}
+                        width={300}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </DoughnutChart>
+              <DoughnutChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "backgroundColor": Array [
+                          "#46BFBD",
+                          "#F7464A",
+                          "#FDB45C",
+                        ],
+                        "data": Array [
+                          undefined,
+                          undefined,
+                          NaN,
+                        ],
+                        "hoverBackgroundColor": Array [
+                          "#5AD3D1",
+                          "#FF5A5E",
+                          "#FFC870",
+                        ],
+                      },
+                    ],
+                    "labels": Array [
+                      "Posts with Files",
+                      "Posts with Hashtags",
+                      "Posts with Text-only",
+                    ],
+                  }
+                }
+                height={225}
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Posts, Files and Hashtags"
+                    id="analytics.system.postTypes"
+                  />
+                }
+                width={300}
+              >
+                <div
+                  className="col-sm-6"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Posts, Files and Hashtags"
+                        id="analytics.system.postTypes"
+                      >
+                        <span>
+                          Posts, Files and Hashtags
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <canvas
+                        height={225}
+                        width={300}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </DoughnutChart>
+            </div>
+            <div
+              className="row"
+            >
+              <LineChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "borderColor": "rgba(151,187,205,1)",
+                        "data": Array [],
+                        "fillColor": "rgba(151,187,205,0.2)",
+                        "pointBackgroundColor": "rgba(151,187,205,1)",
+                        "pointBorderColor": "#fff",
+                        "pointHoverBackgroundColor": "#fff",
+                        "pointHoverBorderColor": "rgba(151,187,205,1)",
+                      },
+                    ],
+                    "labels": Array [],
+                  }
+                }
+                height={225}
+                id="totalPostsLineChart"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Posts"
+                    id="analytics.system.totalPosts"
+                  />
+                }
+                width={740}
+              >
+                <div
+                  className="col-sm-12"
+                >
+                  <div
+                    className="total-count by-day"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Posts"
+                        id="analytics.system.totalPosts"
+                      >
+                        <span>
+                          Total Posts
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <h5>
+                        <FormattedMessage
+                          defaultMessage="Not enough data for a meaningful representation."
+                          id="analytics.chart.meaningful"
+                        >
+                          <span>
+                            Not enough data for a meaningful representation.
+                          </span>
+                        </FormattedMessage>
+                      </h5>
+                    </div>
+                  </div>
+                </div>
+              </LineChart>
+            </div>
+            <div
+              className="row"
+            >
+              <LineChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "borderColor": "rgba(151,187,205,1)",
+                        "data": Array [],
+                        "fillColor": "rgba(151,187,205,0.2)",
+                        "pointBackgroundColor": "rgba(151,187,205,1)",
+                        "pointBorderColor": "#fff",
+                        "pointHoverBackgroundColor": "#fff",
+                        "pointHoverBorderColor": "rgba(151,187,205,1)",
+                      },
+                    ],
+                    "labels": Array [],
+                  }
+                }
+                height={225}
+                id="totalPostsFromBotsLineChart"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Posts from Bots"
+                    id="analytics.system.totalBotPosts"
+                  />
+                }
+                width={740}
+              >
+                <div
+                  className="col-sm-12"
+                >
+                  <div
+                    className="total-count by-day"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Posts from Bots"
+                        id="analytics.system.totalBotPosts"
+                      >
+                        <span>
+                          Total Posts from Bots
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <h5>
+                        <FormattedMessage
+                          defaultMessage="Not enough data for a meaningful representation."
+                          id="analytics.chart.meaningful"
+                        >
+                          <span>
+                            Not enough data for a meaningful representation.
+                          </span>
+                        </FormattedMessage>
+                      </h5>
+                    </div>
+                  </div>
+                </div>
+              </LineChart>
+            </div>
+            <div
+              className="row"
+            >
+              <LineChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "borderColor": "rgba(151,187,205,1)",
+                        "data": Array [],
+                        "fillColor": "rgba(151,187,205,0.2)",
+                        "label": "",
+                        "pointBackgroundColor": "rgba(151,187,205,1)",
+                        "pointBorderColor": "#fff",
+                        "pointHoverBackgroundColor": "#fff",
+                        "pointHoverBorderColor": "rgba(151,187,205,1)",
+                      },
+                    ],
+                    "labels": Array [],
+                  }
+                }
+                height={225}
+                id="activeUsersWithPostsLineChart"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Active Users With Posts"
+                    id="analytics.system.activeUsers"
+                  />
+                }
+                width={740}
+              >
+                <div
+                  className="col-sm-12"
+                >
+                  <div
+                    className="total-count by-day"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Active Users With Posts"
+                        id="analytics.system.activeUsers"
+                      >
+                        <span>
+                          Active Users With Posts
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <h5>
+                        <FormattedMessage
+                          defaultMessage="Not enough data for a meaningful representation."
+                          id="analytics.chart.meaningful"
+                        >
+                          <span>
+                            Not enough data for a meaningful representation.
+                          </span>
+                        </FormattedMessage>
+                      </h5>
+                    </div>
+                  </div>
+                </div>
+              </LineChart>
+            </div>
+          </div>
+        </div>
+      </div>
+    </SystemAnalytics>
+  </Connect(SystemAnalytics)>
+</Provider>
+`;
+
+exports[`components/analytics/system_analytics/system_analytics.tsx should match snapshot, with plugins data 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(SystemAnalytics)
+    license={
+      Object {
+        "Cloud": "true",
+        "IsLicensed": "true",
+      }
+    }
+    stats={null}
+  >
+    <SystemAnalytics
+      dispatch={[Function]}
+      isLicensed={true}
+      license={
+        Object {
+          "Cloud": "true",
+          "IsLicensed": "true",
+        }
+      }
+      pluginStatHandlers={
+        Object {
+          "com.mattermost.calls": [Function],
+          "com.mattermost.playbooks": [Function],
+        }
+      }
+      stats={
+        Object {
+          "POST_PER_DAY": Array [
+            Object {
+              "name": "2024-05-20",
+              "value": 45,
+            },
+            Object {
+              "name": "2024-05-21",
+              "value": 45,
+            },
+            Object {
+              "name": "2024-05-22",
+              "value": 45,
+            },
+          ],
+          "TOTAL_POSTS": 45,
+          "TOTAL_PRIVATE_GROUPS": 45,
+          "TOTAL_PUBLIC_CHANNELS": 4545,
+        }
+      }
+    >
+      <div
+        className="wrapper--fixed team_statistics"
+      >
+        <AdminHeader>
+          <div
+            className="admin-console__header"
+          >
+            <FormattedMessage
+              defaultMessage="System Statistics"
+              id="analytics.system.title"
+            >
+              <span>
+                System Statistics
+              </span>
+            </FormattedMessage>
+          </div>
+        </AdminHeader>
+        <div
+          className="admin-console__wrapper"
+        >
+          <div
+            className="admin-console__content"
+          >
+            <div
+              className="grid-statistics"
+            >
+              <ActivatedUserCard
+                isCloud={true}
+                seatsPurchased={NaN}
+              >
+                <Memo(StatisticCount)
+                  icon="fa-users"
+                  id="totalActiveUsers"
+                  title={<Title />}
+                >
+                  <div
+                    className="grid-statistics__card"
+                  >
+                    <div
+                      className="total-count"
+                    >
+                      <div
+                        className="title"
+                        data-testid="totalActiveUsersTitle"
+                      >
+                        <Title>
+                          <WithTooltip
+                            hint={
+                              Object {
+                                "defaultMessage": "Also called Registered Users",
+                                "id": "analytics.team.totalUsers.title.tooltip.hint",
+                              }
+                            }
+                            id="activated_user_title_tooltip"
+                            placement="top"
+                            title={
+                              Object {
+                                "defaultMessage": "Activated users on this server",
+                                "id": "analytics.team.totalUsers.title.tooltip.title",
+                              }
+                            }
+                          >
+                            <OverlayTrigger
+                              defaultOverlayShown={false}
+                              delay={400}
+                              overlay={<Unknown />}
+                              placement="top"
+                              trigger={
+                                Array [
+                                  "hover",
+                                  "focus",
+                                ]
+                              }
+                            >
+                              <OverlayTrigger
+                                defaultOverlayShown={false}
+                                delay={400}
+                                overlay={
+                                  <OverlayWrapper
+                                    intl={
+                                      Object {
+                                        "$t": [Function],
+                                        "defaultFormats": Object {},
+                                        "defaultLocale": "en",
+                                        "defaultRichTextElements": undefined,
+                                        "fallbackOnEmptyString": true,
+                                        "formatDate": [Function],
+                                        "formatDateTimeRange": [Function],
+                                        "formatDateToParts": [Function],
+                                        "formatDisplayName": [Function],
+                                        "formatList": [Function],
+                                        "formatListToParts": [Function],
+                                        "formatMessage": [Function],
+                                        "formatNumber": [Function],
+                                        "formatNumberToParts": [Function],
+                                        "formatPlural": [Function],
+                                        "formatRelativeTime": [Function],
+                                        "formatTime": [Function],
+                                        "formatTimeToParts": [Function],
+                                        "formats": Object {},
+                                        "formatters": Object {
+                                          "getDateTimeFormat": [Function],
+                                          "getDisplayNames": [Function],
+                                          "getListFormat": [Function],
+                                          "getMessageFormat": [Function],
+                                          "getNumberFormat": [Function],
+                                          "getPluralRules": [Function],
+                                          "getRelativeTimeFormat": [Function],
+                                        },
+                                        "locale": "en",
+                                        "messages": Object {},
+                                        "onError": [Function],
+                                        "onWarn": [Function],
+                                        "textComponent": "span",
+                                        "timeZone": "Etc/UTC",
+                                        "wrapRichTextChunksInFragment": undefined,
+                                      }
+                                    }
+                                  />
+                                }
+                                placement="top"
+                                trigger={
+                                  Array [
+                                    "hover",
+                                    "focus",
+                                  ]
+                                }
+                              >
+                                <span
+                                  onBlur={[Function]}
+                                  onClick={null}
+                                  onFocus={[Function]}
+                                  onMouseOut={[Function]}
+                                  onMouseOver={[Function]}
+                                >
+                                  <ExternalLink
+                                    href="https://mattermost.com/pl/site-statistics-definitions"
+                                    location="activated_users_card.title"
+                                  >
+                                    <a
+                                      href="https://mattermost.com/pl/site-statistics-definitions?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=activated_users_card.title&uid=current_user_id&sid=test123"
+                                      location="activated_users_card.title"
+                                      onClick={[Function]}
+                                      rel="noopener noreferrer"
+                                      target="_blank"
+                                    >
+                                      Total Activated Users
+                                      <InformationOutlineIcon
+                                        size="16"
+                                      >
+                                        <svg
+                                          fill="currentColor"
+                                          height="16"
+                                          version="1.1"
+                                          viewBox="0 0 24 24"
+                                          width="16"
+                                          xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                          <path
+                                            d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                                          />
+                                        </svg>
+                                      </InformationOutlineIcon>
+                                    </a>
+                                  </ExternalLink>
+                                </span>
+                              </OverlayTrigger>
+                            </OverlayTrigger>
+                          </WithTooltip>
+                        </Title>
+                        <i
+                          className="fa fa-users"
+                        />
+                      </div>
+                      <div
+                        className="content"
+                        data-testid="totalActiveUsers"
+                      >
+                        <FormattedMessage
+                          defaultMessage="Loading..."
+                          id="analytics.chart.loading"
+                        >
+                          <span>
+                            Loading...
+                          </span>
+                        </FormattedMessage>
+                      </div>
+                    </div>
+                  </div>
+                </Memo(StatisticCount)>
+              </ActivatedUserCard>
+              <Memo(StatisticCount)
+                icon="fa-users"
+                id="totalTeams"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Teams"
+                    id="analytics.system.totalTeams"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalTeamsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Teams"
+                        id="analytics.system.totalTeams"
+                      >
+                        <span>
+                          Total Teams
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-users"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalTeams"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                count={4590}
+                icon="fa-globe"
+                id="totalChannels"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Channels"
+                    id="analytics.system.totalChannels"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalChannelsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Channels"
+                        id="analytics.system.totalChannels"
+                      >
+                        <span>
+                          Total Channels
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-globe"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalChannels"
+                    >
+                      4590
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                count={45}
+                icon="fa-comment"
+                id="totalPosts"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Posts"
+                    id="analytics.system.totalPosts"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalPostsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Posts"
+                        id="analytics.system.totalPosts"
+                      >
+                        <span>
+                          Total Posts
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-comment"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalPosts"
+                    >
+                      45
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-signal"
+                id="totalSessions"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Sessions"
+                    id="analytics.system.totalSessions"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalSessionsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Sessions"
+                        id="analytics.system.totalSessions"
+                      >
+                        <span>
+                          Total Sessions
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-signal"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalSessions"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-terminal"
+                id="totalCommands"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Commands"
+                    id="analytics.system.totalCommands"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalCommandsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Commands"
+                        id="analytics.system.totalCommands"
+                      >
+                        <span>
+                          Total Commands
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-terminal"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalCommands"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-arrow-down"
+                id="incomingWebhooks"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Incoming Webhooks"
+                    id="analytics.system.totalIncomingWebhooks"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="incomingWebhooksTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Incoming Webhooks"
+                        id="analytics.system.totalIncomingWebhooks"
+                      >
+                        <span>
+                          Incoming Webhooks
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-arrow-down"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="incomingWebhooks"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-arrow-up"
+                id="outgoingWebhooks"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Outgoing Webhooks"
+                    id="analytics.system.totalOutgoingWebhooks"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="outgoingWebhooksTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Outgoing Webhooks"
+                        id="analytics.system.totalOutgoingWebhooks"
+                      >
+                        <span>
+                          Outgoing Webhooks
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-arrow-up"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="outgoingWebhooks"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-users"
+                id="dailyActiveUsers"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Daily Active Users"
+                    id="analytics.system.dailyActiveUsers"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="dailyActiveUsersTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Daily Active Users"
+                        id="analytics.system.dailyActiveUsers"
+                      >
+                        <span>
+                          Daily Active Users
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-users"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="dailyActiveUsers"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-users"
+                id="monthlyActiveUsers"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Monthly Active Users"
+                    id="analytics.system.monthlyActiveUsers"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="monthlyActiveUsersTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Monthly Active Users"
+                        id="analytics.system.monthlyActiveUsers"
+                      >
+                        <span>
+                          Monthly Active Users
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-users"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="monthlyActiveUsers"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-user"
+                id="websocketConns"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="WebSocket Conns"
+                    id="analytics.system.totalWebsockets"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="websocketConnsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="WebSocket Conns"
+                        id="analytics.system.totalWebsockets"
+                      >
+                        <span>
+                          WebSocket Conns
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-user"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="websocketConns"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-terminal"
+                id="masterDbConns"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Master DB Conns"
+                    id="analytics.system.totalMasterDbConnections"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="masterDbConnsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Master DB Conns"
+                        id="analytics.system.totalMasterDbConnections"
+                      >
+                        <span>
+                          Master DB Conns
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-terminal"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="masterDbConns"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-terminal"
+                id="replicaDbConns"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Replica DB Conns"
+                    id="analytics.system.totalReadDbConnections"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="replicaDbConnsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Replica DB Conns"
+                        id="analytics.system.totalReadDbConnections"
+                      >
+                        <span>
+                          Replica DB Conns
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-terminal"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="replicaDbConns"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                count={1000}
+                icon="fa-phone"
+                id="com.mattermost.calls.calls_count"
+                key="pluginstat.com.mattermost.calls.calls_count"
+                title="Total Calls"
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="com.mattermost.calls.calls_countTitle"
+                    >
+                      Total Calls
+                      <i
+                        className="fa fa-phone"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="com.mattermost.calls.calls_count"
+                    >
+                      1000
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                count={10000}
+                icon="fa-phone"
+                id="com.mattermost.calls.calls_sessions_count"
+                key="pluginstat.com.mattermost.calls.calls_sessions_count"
+                title="Total Calls Sessions"
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="com.mattermost.calls.calls_sessions_countTitle"
+                    >
+                      Total Calls Sessions
+                      <i
+                        className="fa fa-phone"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="com.mattermost.calls.calls_sessions_count"
+                    >
+                      10000
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                count={45}
+                icon="fa-book"
+                id="com.mattermost.playbooks.playbook_count"
+                key="pluginstat.com.mattermost.playbooks.playbook_count"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Playbooks"
+                    id="total_playbooks"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="com.mattermost.playbooks.playbook_countTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Playbooks"
+                        id="total_playbooks"
+                      >
+                        <span>
+                          Total Playbooks
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-book"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="com.mattermost.playbooks.playbook_count"
+                    >
+                      45
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                count={45}
+                icon="total_playbook_runs"
+                id="com.mattermost.playbooks.playbook_run_count"
+                key="pluginstat.com.mattermost.playbooks.playbook_run_count"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Runs"
+                    id="total_playbooks_runs"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="com.mattermost.playbooks.playbook_run_countTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Runs"
+                        id="total_playbooks_runs"
+                      >
+                        <span>
+                          Total Runs
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa total_playbook_runs"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="com.mattermost.playbooks.playbook_run_count"
+                    >
+                      45
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+            </div>
+            <div
+              className="row"
+            >
+              <DoughnutChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "backgroundColor": Array [
+                          "#46BFBD",
+                          "#FDB45C",
+                        ],
+                        "data": Array [
+                          4545,
+                          45,
+                        ],
+                        "hoverBackgroundColor": Array [
+                          "#5AD3D1",
+                          "#FFC870",
+                        ],
+                      },
+                    ],
+                    "labels": Array [
+                      "Public Channels",
+                      "Private Channels",
+                    ],
+                  }
+                }
+                height={225}
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Channel Types"
+                    id="analytics.system.channelTypes"
+                  />
+                }
+                width={300}
+              >
+                <div
+                  className="col-sm-6"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Channel Types"
+                        id="analytics.system.channelTypes"
+                      >
+                        <span>
+                          Channel Types
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <canvas
+                        height={225}
+                        width={300}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </DoughnutChart>
+              <DoughnutChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "backgroundColor": Array [
+                          "#46BFBD",
+                          "#F7464A",
+                          "#FDB45C",
+                        ],
+                        "data": Array [
+                          undefined,
+                          undefined,
+                          NaN,
+                        ],
+                        "hoverBackgroundColor": Array [
+                          "#5AD3D1",
+                          "#FF5A5E",
+                          "#FFC870",
+                        ],
+                      },
+                    ],
+                    "labels": Array [
+                      "Posts with Files",
+                      "Posts with Hashtags",
+                      "Posts with Text-only",
+                    ],
+                  }
+                }
+                height={225}
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Posts, Files and Hashtags"
+                    id="analytics.system.postTypes"
+                  />
+                }
+                width={300}
+              >
+                <div
+                  className="col-sm-6"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Posts, Files and Hashtags"
+                        id="analytics.system.postTypes"
+                      >
+                        <span>
+                          Posts, Files and Hashtags
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <canvas
+                        height={225}
+                        width={300}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </DoughnutChart>
+            </div>
+            <DoughnutChart
+              data={
+                Object {
+                  "datasets": Array [
+                    Object {
+                      "backgroundColor": Array [
+                        "#46BFBD",
+                        "#FDB45C",
+                        "#3CB470",
+                        "#502D86",
+                      ],
+                      "data": Array [
+                        100,
+                        45,
+                        45,
+                        100,
+                      ],
+                      "hoverBackgroundColor": Array [
+                        "#5AD3D1",
+                        "#FFC870",
+                        "#3CB470",
+                        "#502D86",
+                      ],
+                    },
+                  ],
+                  "labels": Array [
+                    "Public",
+                    "Private",
+                    "Direct",
+                    "Group",
+                  ],
+                }
+              }
+              height={225}
+              key="pluginstat.com.mattermost.calls.calls_per_channel"
+              title="Calls per channel"
+              width={300}
+            >
+              <div
+                className="col-sm-6"
+              >
+                <div
+                  className="total-count"
+                >
+                  <div
+                    className="title"
+                  >
+                    Calls per channel
+                  </div>
+                  <div
+                    className="content"
+                  >
+                    <canvas
+                      height={225}
+                      width={300}
+                    />
+                  </div>
+                </div>
+              </div>
+            </DoughnutChart>
+            <div
+              className="row"
+            >
+              <LineChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "borderColor": "rgba(151,187,205,1)",
+                        "data": Array [
+                          45,
+                          45,
+                          45,
+                        ],
+                        "fillColor": "rgba(151,187,205,0.2)",
+                        "pointBackgroundColor": "rgba(151,187,205,1)",
+                        "pointBorderColor": "#fff",
+                        "pointHoverBackgroundColor": "#fff",
+                        "pointHoverBorderColor": "rgba(151,187,205,1)",
+                      },
+                    ],
+                    "labels": Array [
+                      "2024-05-20",
+                      "2024-05-21",
+                      "2024-05-22",
+                    ],
+                  }
+                }
+                height={225}
+                id="totalPostsLineChart"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Posts"
+                    id="analytics.system.totalPosts"
+                  />
+                }
+                width={740}
+              >
+                <div
+                  className="col-sm-12"
+                >
+                  <div
+                    className="total-count by-day"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Posts"
+                        id="analytics.system.totalPosts"
+                      >
+                        <span>
+                          Total Posts
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <canvas
+                        data-labels={
+                          Array [
+                            "2024-05-20",
+                            "2024-05-21",
+                            "2024-05-22",
+                          ]
+                        }
+                        data-testid="totalPostsLineChart"
+                        height={225}
+                        width={740}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </LineChart>
+            </div>
+            <div
+              className="row"
+            >
+              <LineChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "borderColor": "rgba(151,187,205,1)",
+                        "data": Array [],
+                        "fillColor": "rgba(151,187,205,0.2)",
+                        "pointBackgroundColor": "rgba(151,187,205,1)",
+                        "pointBorderColor": "#fff",
+                        "pointHoverBackgroundColor": "#fff",
+                        "pointHoverBorderColor": "rgba(151,187,205,1)",
+                      },
+                    ],
+                    "labels": Array [],
+                  }
+                }
+                height={225}
+                id="totalPostsFromBotsLineChart"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Posts from Bots"
+                    id="analytics.system.totalBotPosts"
+                  />
+                }
+                width={740}
+              >
+                <div
+                  className="col-sm-12"
+                >
+                  <div
+                    className="total-count by-day"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Posts from Bots"
+                        id="analytics.system.totalBotPosts"
+                      >
+                        <span>
+                          Total Posts from Bots
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <h5>
+                        <FormattedMessage
+                          defaultMessage="Not enough data for a meaningful representation."
+                          id="analytics.chart.meaningful"
+                        >
+                          <span>
+                            Not enough data for a meaningful representation.
+                          </span>
+                        </FormattedMessage>
+                      </h5>
+                    </div>
+                  </div>
+                </div>
+              </LineChart>
+            </div>
+            <div
+              className="row"
+            >
+              <LineChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "borderColor": "rgba(151,187,205,1)",
+                        "data": Array [],
+                        "fillColor": "rgba(151,187,205,0.2)",
+                        "label": "",
+                        "pointBackgroundColor": "rgba(151,187,205,1)",
+                        "pointBorderColor": "#fff",
+                        "pointHoverBackgroundColor": "#fff",
+                        "pointHoverBorderColor": "rgba(151,187,205,1)",
+                      },
+                    ],
+                    "labels": Array [],
+                  }
+                }
+                height={225}
+                id="activeUsersWithPostsLineChart"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Active Users With Posts"
+                    id="analytics.system.activeUsers"
+                  />
+                }
+                width={740}
+              >
+                <div
+                  className="col-sm-12"
+                >
+                  <div
+                    className="total-count by-day"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Active Users With Posts"
+                        id="analytics.system.activeUsers"
+                      >
+                        <span>
+                          Active Users With Posts
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <h5>
+                        <FormattedMessage
+                          defaultMessage="Not enough data for a meaningful representation."
+                          id="analytics.chart.meaningful"
+                        >
+                          <span>
+                            Not enough data for a meaningful representation.
+                          </span>
+                        </FormattedMessage>
+                      </h5>
+                    </div>
+                  </div>
+                </div>
+              </LineChart>
+            </div>
+            <LineChart
+              data={
+                Object {
+                  "datasets": Array [
+                    Object {
+                      "borderColor": "rgba(151,187,205,1)",
+                      "data": Array [
+                        10,
+                        45,
+                        60,
+                        45,
+                        25,
+                        20,
+                        40,
+                        45,
+                        100,
+                        150,
+                      ],
+                      "fillColor": "rgba(151,187,205,0.2)",
+                      "label": "",
+                      "pointBackgroundColor": "rgba(151,187,205,1)",
+                      "pointBorderColor": "#fff",
+                      "pointHoverBackgroundColor": "#fff",
+                      "pointHoverBorderColor": "rgba(151,187,205,1)",
+                    },
+                  ],
+                  "labels": Array [
+                    "2024-05-18",
+                    "2024-05-19",
+                    "2024-05-20",
+                    "2024-05-21",
+                    "2024-05-22",
+                    "2024-05-23",
+                    "2024-05-24",
+                    "2024-05-26",
+                    "2024-05-27",
+                    "2024-05-28",
+                  ],
+                }
+              }
+              height={225}
+              id="com.mattermost.calls.calls_per_day"
+              key="pluginstat.com.mattermost.calls.calls_per_day"
+              title="Calls per day"
+              width={740}
+            >
+              <div
+                className="col-sm-12"
+              >
+                <div
+                  className="total-count by-day"
+                >
+                  <div
+                    className="title"
+                  >
+                    Calls per day
+                  </div>
+                  <div
+                    className="content"
+                  >
+                    <canvas
+                      data-labels={
+                        Array [
+                          "2024-05-18",
+                          "2024-05-19",
+                          "2024-05-20",
+                          "2024-05-21",
+                          "2024-05-22",
+                          "2024-05-23",
+                          "2024-05-24",
+                          "2024-05-26",
+                          "2024-05-27",
+                          "2024-05-28",
+                        ]
+                      }
+                      data-testid="com.mattermost.calls.calls_per_day"
+                      height={225}
+                      width={740}
+                    />
+                  </div>
+                </div>
+              </div>
+            </LineChart>
+          </div>
+        </div>
+      </div>
+    </SystemAnalytics>
+  </Connect(SystemAnalytics)>
+</Provider>
+`;
+
+exports[`components/analytics/system_analytics/system_analytics.tsx should match snapshot, with system data 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(SystemAnalytics)
+    license={
+      Object {
+        "Cloud": "true",
+        "IsLicensed": "true",
+      }
+    }
+    stats={null}
+  >
+    <SystemAnalytics
+      dispatch={[Function]}
+      isLicensed={true}
+      license={
+        Object {
+          "Cloud": "true",
+          "IsLicensed": "true",
+        }
+      }
+      pluginStatHandlers={Object {}}
+      stats={
+        Object {
+          "POST_PER_DAY": Array [
+            Object {
+              "name": "2024-05-20",
+              "value": 45,
+            },
+            Object {
+              "name": "2024-05-21",
+              "value": 45,
+            },
+            Object {
+              "name": "2024-05-22",
+              "value": 45,
+            },
+          ],
+          "TOTAL_POSTS": 45,
+          "TOTAL_PRIVATE_GROUPS": 45,
+          "TOTAL_PUBLIC_CHANNELS": 4545,
+        }
+      }
+    >
+      <div
+        className="wrapper--fixed team_statistics"
+      >
+        <AdminHeader>
+          <div
+            className="admin-console__header"
+          >
+            <FormattedMessage
+              defaultMessage="System Statistics"
+              id="analytics.system.title"
+            >
+              <span>
+                System Statistics
+              </span>
+            </FormattedMessage>
+          </div>
+        </AdminHeader>
+        <div
+          className="admin-console__wrapper"
+        >
+          <div
+            className="admin-console__content"
+          >
+            <div
+              className="grid-statistics"
+            >
+              <ActivatedUserCard
+                isCloud={true}
+                seatsPurchased={NaN}
+              >
+                <Memo(StatisticCount)
+                  icon="fa-users"
+                  id="totalActiveUsers"
+                  title={<Title />}
+                >
+                  <div
+                    className="grid-statistics__card"
+                  >
+                    <div
+                      className="total-count"
+                    >
+                      <div
+                        className="title"
+                        data-testid="totalActiveUsersTitle"
+                      >
+                        <Title>
+                          <WithTooltip
+                            hint={
+                              Object {
+                                "defaultMessage": "Also called Registered Users",
+                                "id": "analytics.team.totalUsers.title.tooltip.hint",
+                              }
+                            }
+                            id="activated_user_title_tooltip"
+                            placement="top"
+                            title={
+                              Object {
+                                "defaultMessage": "Activated users on this server",
+                                "id": "analytics.team.totalUsers.title.tooltip.title",
+                              }
+                            }
+                          >
+                            <OverlayTrigger
+                              defaultOverlayShown={false}
+                              delay={400}
+                              overlay={<Unknown />}
+                              placement="top"
+                              trigger={
+                                Array [
+                                  "hover",
+                                  "focus",
+                                ]
+                              }
+                            >
+                              <OverlayTrigger
+                                defaultOverlayShown={false}
+                                delay={400}
+                                overlay={
+                                  <OverlayWrapper
+                                    intl={
+                                      Object {
+                                        "$t": [Function],
+                                        "defaultFormats": Object {},
+                                        "defaultLocale": "en",
+                                        "defaultRichTextElements": undefined,
+                                        "fallbackOnEmptyString": true,
+                                        "formatDate": [Function],
+                                        "formatDateTimeRange": [Function],
+                                        "formatDateToParts": [Function],
+                                        "formatDisplayName": [Function],
+                                        "formatList": [Function],
+                                        "formatListToParts": [Function],
+                                        "formatMessage": [Function],
+                                        "formatNumber": [Function],
+                                        "formatNumberToParts": [Function],
+                                        "formatPlural": [Function],
+                                        "formatRelativeTime": [Function],
+                                        "formatTime": [Function],
+                                        "formatTimeToParts": [Function],
+                                        "formats": Object {},
+                                        "formatters": Object {
+                                          "getDateTimeFormat": [Function],
+                                          "getDisplayNames": [Function],
+                                          "getListFormat": [Function],
+                                          "getMessageFormat": [Function],
+                                          "getNumberFormat": [Function],
+                                          "getPluralRules": [Function],
+                                          "getRelativeTimeFormat": [Function],
+                                        },
+                                        "locale": "en",
+                                        "messages": Object {},
+                                        "onError": [Function],
+                                        "onWarn": [Function],
+                                        "textComponent": "span",
+                                        "timeZone": "Etc/UTC",
+                                        "wrapRichTextChunksInFragment": undefined,
+                                      }
+                                    }
+                                  />
+                                }
+                                placement="top"
+                                trigger={
+                                  Array [
+                                    "hover",
+                                    "focus",
+                                  ]
+                                }
+                              >
+                                <span
+                                  onBlur={[Function]}
+                                  onClick={null}
+                                  onFocus={[Function]}
+                                  onMouseOut={[Function]}
+                                  onMouseOver={[Function]}
+                                >
+                                  <ExternalLink
+                                    href="https://mattermost.com/pl/site-statistics-definitions"
+                                    location="activated_users_card.title"
+                                  >
+                                    <a
+                                      href="https://mattermost.com/pl/site-statistics-definitions?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=activated_users_card.title&uid=current_user_id&sid=test123"
+                                      location="activated_users_card.title"
+                                      onClick={[Function]}
+                                      rel="noopener noreferrer"
+                                      target="_blank"
+                                    >
+                                      Total Activated Users
+                                      <InformationOutlineIcon
+                                        size="16"
+                                      >
+                                        <svg
+                                          fill="currentColor"
+                                          height="16"
+                                          version="1.1"
+                                          viewBox="0 0 24 24"
+                                          width="16"
+                                          xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                          <path
+                                            d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                                          />
+                                        </svg>
+                                      </InformationOutlineIcon>
+                                    </a>
+                                  </ExternalLink>
+                                </span>
+                              </OverlayTrigger>
+                            </OverlayTrigger>
+                          </WithTooltip>
+                        </Title>
+                        <i
+                          className="fa fa-users"
+                        />
+                      </div>
+                      <div
+                        className="content"
+                        data-testid="totalActiveUsers"
+                      >
+                        <FormattedMessage
+                          defaultMessage="Loading..."
+                          id="analytics.chart.loading"
+                        >
+                          <span>
+                            Loading...
+                          </span>
+                        </FormattedMessage>
+                      </div>
+                    </div>
+                  </div>
+                </Memo(StatisticCount)>
+              </ActivatedUserCard>
+              <Memo(StatisticCount)
+                icon="fa-users"
+                id="totalTeams"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Teams"
+                    id="analytics.system.totalTeams"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalTeamsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Teams"
+                        id="analytics.system.totalTeams"
+                      >
+                        <span>
+                          Total Teams
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-users"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalTeams"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                count={4590}
+                icon="fa-globe"
+                id="totalChannels"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Channels"
+                    id="analytics.system.totalChannels"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalChannelsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Channels"
+                        id="analytics.system.totalChannels"
+                      >
+                        <span>
+                          Total Channels
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-globe"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalChannels"
+                    >
+                      4590
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                count={45}
+                icon="fa-comment"
+                id="totalPosts"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Posts"
+                    id="analytics.system.totalPosts"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalPostsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Posts"
+                        id="analytics.system.totalPosts"
+                      >
+                        <span>
+                          Total Posts
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-comment"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalPosts"
+                    >
+                      45
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-signal"
+                id="totalSessions"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Sessions"
+                    id="analytics.system.totalSessions"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalSessionsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Sessions"
+                        id="analytics.system.totalSessions"
+                      >
+                        <span>
+                          Total Sessions
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-signal"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalSessions"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-terminal"
+                id="totalCommands"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Commands"
+                    id="analytics.system.totalCommands"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="totalCommandsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Commands"
+                        id="analytics.system.totalCommands"
+                      >
+                        <span>
+                          Total Commands
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-terminal"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="totalCommands"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-arrow-down"
+                id="incomingWebhooks"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Incoming Webhooks"
+                    id="analytics.system.totalIncomingWebhooks"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="incomingWebhooksTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Incoming Webhooks"
+                        id="analytics.system.totalIncomingWebhooks"
+                      >
+                        <span>
+                          Incoming Webhooks
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-arrow-down"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="incomingWebhooks"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-arrow-up"
+                id="outgoingWebhooks"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Outgoing Webhooks"
+                    id="analytics.system.totalOutgoingWebhooks"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="outgoingWebhooksTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Outgoing Webhooks"
+                        id="analytics.system.totalOutgoingWebhooks"
+                      >
+                        <span>
+                          Outgoing Webhooks
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-arrow-up"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="outgoingWebhooks"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-users"
+                id="dailyActiveUsers"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Daily Active Users"
+                    id="analytics.system.dailyActiveUsers"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="dailyActiveUsersTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Daily Active Users"
+                        id="analytics.system.dailyActiveUsers"
+                      >
+                        <span>
+                          Daily Active Users
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-users"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="dailyActiveUsers"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-users"
+                id="monthlyActiveUsers"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Monthly Active Users"
+                    id="analytics.system.monthlyActiveUsers"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="monthlyActiveUsersTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Monthly Active Users"
+                        id="analytics.system.monthlyActiveUsers"
+                      >
+                        <span>
+                          Monthly Active Users
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-users"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="monthlyActiveUsers"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-user"
+                id="websocketConns"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="WebSocket Conns"
+                    id="analytics.system.totalWebsockets"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="websocketConnsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="WebSocket Conns"
+                        id="analytics.system.totalWebsockets"
+                      >
+                        <span>
+                          WebSocket Conns
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-user"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="websocketConns"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-terminal"
+                id="masterDbConns"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Master DB Conns"
+                    id="analytics.system.totalMasterDbConnections"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="masterDbConnsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Master DB Conns"
+                        id="analytics.system.totalMasterDbConnections"
+                      >
+                        <span>
+                          Master DB Conns
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-terminal"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="masterDbConns"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+              <Memo(StatisticCount)
+                icon="fa-terminal"
+                id="replicaDbConns"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Replica DB Conns"
+                    id="analytics.system.totalReadDbConnections"
+                  />
+                }
+              >
+                <div
+                  className="grid-statistics__card"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                      data-testid="replicaDbConnsTitle"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Replica DB Conns"
+                        id="analytics.system.totalReadDbConnections"
+                      >
+                        <span>
+                          Replica DB Conns
+                        </span>
+                      </FormattedMessage>
+                      <i
+                        className="fa fa-terminal"
+                      />
+                    </div>
+                    <div
+                      className="content"
+                      data-testid="replicaDbConns"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Loading..."
+                        id="analytics.chart.loading"
+                      >
+                        <span>
+                          Loading...
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+              </Memo(StatisticCount)>
+            </div>
+            <div
+              className="row"
+            >
+              <DoughnutChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "backgroundColor": Array [
+                          "#46BFBD",
+                          "#FDB45C",
+                        ],
+                        "data": Array [
+                          4545,
+                          45,
+                        ],
+                        "hoverBackgroundColor": Array [
+                          "#5AD3D1",
+                          "#FFC870",
+                        ],
+                      },
+                    ],
+                    "labels": Array [
+                      "Public Channels",
+                      "Private Channels",
+                    ],
+                  }
+                }
+                height={225}
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Channel Types"
+                    id="analytics.system.channelTypes"
+                  />
+                }
+                width={300}
+              >
+                <div
+                  className="col-sm-6"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Channel Types"
+                        id="analytics.system.channelTypes"
+                      >
+                        <span>
+                          Channel Types
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <canvas
+                        height={225}
+                        width={300}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </DoughnutChart>
+              <DoughnutChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "backgroundColor": Array [
+                          "#46BFBD",
+                          "#F7464A",
+                          "#FDB45C",
+                        ],
+                        "data": Array [
+                          undefined,
+                          undefined,
+                          NaN,
+                        ],
+                        "hoverBackgroundColor": Array [
+                          "#5AD3D1",
+                          "#FF5A5E",
+                          "#FFC870",
+                        ],
+                      },
+                    ],
+                    "labels": Array [
+                      "Posts with Files",
+                      "Posts with Hashtags",
+                      "Posts with Text-only",
+                    ],
+                  }
+                }
+                height={225}
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Posts, Files and Hashtags"
+                    id="analytics.system.postTypes"
+                  />
+                }
+                width={300}
+              >
+                <div
+                  className="col-sm-6"
+                >
+                  <div
+                    className="total-count"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Posts, Files and Hashtags"
+                        id="analytics.system.postTypes"
+                      >
+                        <span>
+                          Posts, Files and Hashtags
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <canvas
+                        height={225}
+                        width={300}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </DoughnutChart>
+            </div>
+            <div
+              className="row"
+            >
+              <LineChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "borderColor": "rgba(151,187,205,1)",
+                        "data": Array [
+                          45,
+                          45,
+                          45,
+                        ],
+                        "fillColor": "rgba(151,187,205,0.2)",
+                        "pointBackgroundColor": "rgba(151,187,205,1)",
+                        "pointBorderColor": "#fff",
+                        "pointHoverBackgroundColor": "#fff",
+                        "pointHoverBorderColor": "rgba(151,187,205,1)",
+                      },
+                    ],
+                    "labels": Array [
+                      "2024-05-20",
+                      "2024-05-21",
+                      "2024-05-22",
+                    ],
+                  }
+                }
+                height={225}
+                id="totalPostsLineChart"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Posts"
+                    id="analytics.system.totalPosts"
+                  />
+                }
+                width={740}
+              >
+                <div
+                  className="col-sm-12"
+                >
+                  <div
+                    className="total-count by-day"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Posts"
+                        id="analytics.system.totalPosts"
+                      >
+                        <span>
+                          Total Posts
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <canvas
+                        data-labels={
+                          Array [
+                            "2024-05-20",
+                            "2024-05-21",
+                            "2024-05-22",
+                          ]
+                        }
+                        data-testid="totalPostsLineChart"
+                        height={225}
+                        width={740}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </LineChart>
+            </div>
+            <div
+              className="row"
+            >
+              <LineChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "borderColor": "rgba(151,187,205,1)",
+                        "data": Array [],
+                        "fillColor": "rgba(151,187,205,0.2)",
+                        "pointBackgroundColor": "rgba(151,187,205,1)",
+                        "pointBorderColor": "#fff",
+                        "pointHoverBackgroundColor": "#fff",
+                        "pointHoverBorderColor": "rgba(151,187,205,1)",
+                      },
+                    ],
+                    "labels": Array [],
+                  }
+                }
+                height={225}
+                id="totalPostsFromBotsLineChart"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Total Posts from Bots"
+                    id="analytics.system.totalBotPosts"
+                  />
+                }
+                width={740}
+              >
+                <div
+                  className="col-sm-12"
+                >
+                  <div
+                    className="total-count by-day"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Total Posts from Bots"
+                        id="analytics.system.totalBotPosts"
+                      >
+                        <span>
+                          Total Posts from Bots
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <h5>
+                        <FormattedMessage
+                          defaultMessage="Not enough data for a meaningful representation."
+                          id="analytics.chart.meaningful"
+                        >
+                          <span>
+                            Not enough data for a meaningful representation.
+                          </span>
+                        </FormattedMessage>
+                      </h5>
+                    </div>
+                  </div>
+                </div>
+              </LineChart>
+            </div>
+            <div
+              className="row"
+            >
+              <LineChart
+                data={
+                  Object {
+                    "datasets": Array [
+                      Object {
+                        "borderColor": "rgba(151,187,205,1)",
+                        "data": Array [],
+                        "fillColor": "rgba(151,187,205,0.2)",
+                        "label": "",
+                        "pointBackgroundColor": "rgba(151,187,205,1)",
+                        "pointBorderColor": "#fff",
+                        "pointHoverBackgroundColor": "#fff",
+                        "pointHoverBorderColor": "rgba(151,187,205,1)",
+                      },
+                    ],
+                    "labels": Array [],
+                  }
+                }
+                height={225}
+                id="activeUsersWithPostsLineChart"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Active Users With Posts"
+                    id="analytics.system.activeUsers"
+                  />
+                }
+                width={740}
+              >
+                <div
+                  className="col-sm-12"
+                >
+                  <div
+                    className="total-count by-day"
+                  >
+                    <div
+                      className="title"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Active Users With Posts"
+                        id="analytics.system.activeUsers"
+                      >
+                        <span>
+                          Active Users With Posts
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="content"
+                    >
+                      <h5>
+                        <FormattedMessage
+                          defaultMessage="Not enough data for a meaningful representation."
+                          id="analytics.chart.meaningful"
+                        >
+                          <span>
+                            Not enough data for a meaningful representation.
+                          </span>
+                        </FormattedMessage>
+                      </h5>
+                    </div>
+                  </div>
+                </div>
+              </LineChart>
+            </div>
+          </div>
+        </div>
+      </div>
+    </SystemAnalytics>
+  </Connect(SystemAnalytics)>
+</Provider>
+`;
