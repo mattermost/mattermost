@@ -22,7 +22,7 @@ const (
 
 func (api *API) InitWebSocket() {
 	// Optionally supports a trailing slash
-	api.BaseRoutes.APIRoot.Handle("/{websocket:websocket(?:\\/)?}", api.APIHandlerTrustRequester(connectWebSocket)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/{websocket:websocket(?:\\/)?}", api.APIHandlerTrustRequester(connectWebSocket)).Methods(http.MethodGet)
 }
 
 func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {

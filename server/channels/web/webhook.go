@@ -18,8 +18,8 @@ import (
 )
 
 func (w *Web) InitWebhooks() {
-	w.MainRouter.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(commandWebhook)).Methods("POST")
-	w.MainRouter.Handle("/hooks/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(incomingWebhook)).Methods("POST")
+	w.MainRouter.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(commandWebhook)).Methods(http.MethodPost)
+	w.MainRouter.Handle("/hooks/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(incomingWebhook)).Methods(http.MethodPost)
 }
 
 func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
