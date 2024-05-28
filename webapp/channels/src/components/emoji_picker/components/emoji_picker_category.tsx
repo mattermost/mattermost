@@ -10,7 +10,7 @@ import type {EmojiCategory} from '@mattermost/types/emojis';
 import type {Category, CategoryOrEmojiRow} from 'components/emoji_picker/types';
 import WithTooltip from 'components/with_tooltip';
 
-interface Props {
+export interface Props {
     category: Category;
     categoryRowIndex: CategoryOrEmojiRow['index'];
     selected: boolean;

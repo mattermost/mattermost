@@ -25,7 +25,7 @@ const skinsList = [
 
 const skinToneEmojis = new Map(skinsList.map((pair) => [pair[1], Emoji.Emojis[Emoji.EmojiIndicesByAlias.get(pair[0])!]]));
 
-type Props = {
+export type Props = {
     userSkinTone: string;
     onSkinSelected: (skin: string) => void;
     intl: IntlShape;
@@ -115,9 +115,10 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
             </>
         );
     }
+
     collapsed() {
         const emoji = skinToneEmojis.get(this.props.userSkinTone)!;
-        const spriteClassName = classNames('emojisprite', `emoji-category-${emoji.category}`, `emoji-${emoji.unified.toLowerCase()}`);
+        const spriteClassName = classNames('emojisprite', `emoji-category-${emoji?.category}`, `emoji-${emoji?.unified.toLowerCase()}`);
         const expandButtonLabel = this.props.intl.formatMessage({
             id: 'emoji_picker.skin_tone',
             defaultMessage: 'Skin tone',
