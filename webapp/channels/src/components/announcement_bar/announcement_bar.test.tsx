@@ -103,11 +103,14 @@ describe('components/AnnouncementBar', () => {
     });
 
     test('should match snapshot, admin configured bar', () => {
-        const props = { ...baseProps, enableBanner: true, bannerText: 'Banner text' };
+        const props = {...baseProps, enableBanner: true, bannerText: 'Banner text'};
         const wrapper = shallow(
             <div>
-                <AnnouncementBar {...props} />
-                <AnnouncementBar {...props} className="admin-announcement" />
+                <AnnouncementBar {...props}/>
+                <AnnouncementBar
+                    {...props}
+                    className='admin-announcement'
+                />
             </div>,
         );
 
