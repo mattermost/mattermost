@@ -95,23 +95,25 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
     });
 
     test('should match snapshot, with plugins data', async () => {
+        const totalPlaybooksID = 'total_playbooks';
+        const totalPlaybookRunsID = 'total_playbook_runs';
         const playbooksStats = {
             playbook_count: {
                 id: 'total_playbooks',
                 icon: 'fa-book',
                 name:
     <FormattedMessage
-        id='total_playbooks'
+        id={totalPlaybooksID}
         defaultMessage='Total Playbooks'
     />,
                 value: 45,
             },
             playbook_run_count: {
                 id: 'total_runs',
-                icon: 'total_playbook_runs',
+                icon: 'fa-list-alt',
                 name:
     <FormattedMessage
-        id='total_playbooks_runs'
+        id={totalPlaybookRunsID}
         defaultMessage='Total Runs'
     />,
                 value: 45,
