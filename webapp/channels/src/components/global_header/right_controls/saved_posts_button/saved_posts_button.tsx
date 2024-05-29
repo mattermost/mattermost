@@ -29,20 +29,6 @@ const SavedPostsButton = (): JSX.Element | null => {
         }
     };
 
-    const icon = (
-        <IconButton
-            size={'sm'}
-            icon={'bookmark-outline'}
-            toggled={rhsState === RHSStates.FLAG}
-            onClick={savedPostsButtonClick}
-            inverted={true}
-            compact={true}
-            aria-expanded={rhsState === RHSStates.FLAG}
-            aria-controls='searchContainer' // Must be changed if the ID of the container changes
-            aria-label={formatMessage({id: 'channel_header.flagged', defaultMessage: 'Saved messages'})}
-        />
-    );
-
     return (
         <WithTooltip
             id='recentMentions'
@@ -50,9 +36,19 @@ const SavedPostsButton = (): JSX.Element | null => {
                 id='channel_header.flagged'
                 defaultMessage='Saved messages'
             />}
-            children={icon}
             placement='bottom'
         >
+            <IconButton
+                size={'sm'}
+                icon={'bookmark-outline'}
+                toggled={rhsState === RHSStates.FLAG}
+                onClick={savedPostsButtonClick}
+                inverted={true}
+                compact={true}
+                aria-expanded={rhsState === RHSStates.FLAG}
+                aria-controls='searchContainer' // Must be changed if the ID of the container changes
+                aria-label={formatMessage({ id: 'channel_header.flagged', defaultMessage: 'Saved messages' })}
+            />
         </WithTooltip>
     );
 };
