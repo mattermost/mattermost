@@ -16,6 +16,7 @@ import {isStringContainingUrl} from 'utils/url';
 type Props = {
     id?: string;
     showCloseButton: boolean;
+    className?: string;
     color: string;
     textColor: string;
     type: string;
@@ -129,6 +130,10 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
             barClass = 'announcement-bar announcement-bar-advisor-ack';
         } else if (this.props.type === AnnouncementBarTypes.GENERAL) {
             barClass = 'announcement-bar announcement-bar-general';
+        }
+
+        if (this.props.className) {
+            barClass += ` ${this.props.className}`;
         }
 
         let closeButton;
