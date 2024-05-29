@@ -10036,5 +10036,9 @@
   {
     "id": "ent.compliance.csv.seek.appError",
     "translation": "Fout bij het zoeken van het begin van exportbestand."
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Er bestaat al een team met deze URL."
   }
 ]
