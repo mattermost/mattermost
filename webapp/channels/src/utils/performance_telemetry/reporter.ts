@@ -16,6 +16,8 @@ import type {PerformanceLongTaskTiming} from './long_task';
 import type {PlatformLabel, UserAgentLabel} from './platform_detection';
 import {getPlatformLabel, getUserAgentLabel} from './platform_detection';
 
+import {Measure} from '.';
+
 type PerformanceReportMeasure = {
 
     /**
@@ -93,6 +95,10 @@ export default class PerformanceReporter {
             entryTypes: observedEntryTypes,
         });
 
+        // Record the page load separately because it arrived before we were observing and because you can't use
+        // the buffered option for PerformanceObserver with multiple entry types.
+        this.measurePageLoad();
+
         // Register handlers for standard metrics and Web Vitals
         onCLS((metric) => this.handleWebVital(metric));
         onFCP((metric) => this.handleWebVital(metric));
@@ -107,6 +113,20 @@ export default class PerformanceReporter {
         // Send any remaining metrics when the page becomes hidden rather than when it's unloaded because that's
         // what's recommended by various sites due to unload handlers being unreliable, particularly on mobile.
         addEventListener('visibilitychange', this.handleVisibilityChange);
+    }
+
+    private measurePageLoad() {
+        const entries = performance.getEntriesByType('navigation');
+
+        if (entries.length === 0) {
+            return;
+        }
+
+        this.histogramMeasures.push({
+            metric: Measure.PageLoad,
+            value: entries[0].duration,
+            timestamp: performance.timeOrigin + entries[0].startTime,
+        });
     }
 
     /**
