@@ -3,7 +3,7 @@
 
 import React, {memo} from 'react';
 import type {CSSProperties} from 'react';
-import {FormattedMessage, defineMessages} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import {CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
@@ -94,21 +94,7 @@ function PriorityLabels({
     priority,
     requestedAck,
 }: Props) {
-    const messages = defineMessages({
-        removePriorityTooltipTitle: {
-            id: 'post_priority.remove',
-            defaultMessage: 'Remove {priority}',
-            values: {priority},
-        },
-        notificationsTooltipTitle: {
-            id: 'post_priority.persistent_notifications.tooltip',
-            defaultMessage: 'Persistent notifications will be sent',
-        },
-        ackTooltipTitle: {
-            id: 'post_priority.request_acknowledgement.tooltip',
-            defaultMessage: 'Acknowledgement will be requested',
-        },
-    });
+    const intl = useIntl();
     return (
         <Priority padding={padding}>
             {priority && (
@@ -121,7 +107,10 @@ function PriorityLabels({
                 <WithTooltip
                     id='post-priority-picker-persistent-notifications-tooltip'
                     placement='top'
-                    title={messages.notificationsTooltipTitle}
+                    title={intl.formatMessage({
+                        id: 'post_priority.persistent_notifications.tooltip',
+                        defaultMessage: 'Persistent notifications will be sent',
+                    })}
                 >
                     <Notifications>
                         <BellRingOutlineIcon size={14}/>
@@ -133,7 +122,10 @@ function PriorityLabels({
                     <WithTooltip
                         id='post-priority-picker-ack-tooltip'
                         placement='top'
-                        title={messages.ackTooltipTitle}
+                        title={intl.formatMessage({
+                            id: 'post_priority.request_acknowledgement.tooltip',
+                            defaultMessage: 'Acknowledgement will be requested'
+                        })}
                     >
                         <CheckCircleOutlineIcon size={14}/>
                     </WithTooltip>
@@ -154,7 +146,10 @@ function PriorityLabels({
                 <WithTooltip
                     id='post-priority-picker-tooltip'
                     placement='top'
-                    title={messages.removePriorityTooltipTitle}
+                    title={intl.formatMessage({
+                        id: 'post_priority.remove',
+                        defaultMessage: 'Remove {priority}',
+                    }, {priority})}
                 >
                     <Close
                         type='button'

@@ -2,19 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessages, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import ReplyIcon from 'components/widgets/icons/reply_icon';
 import WithTooltip from 'components/with_tooltip';
 
 import type {Locations} from 'utils/constants';
-
-const messages = defineMessages({
-    replyTooltipTitle: {
-        id: 'post_info.comment_icon.tooltip.reply',
-        defaultMessage: 'Reply',
-    },
-});
 
 type Props = {
     location?: keyof typeof Locations;
@@ -52,7 +45,10 @@ const CommentIcon = ({
         <WithTooltip
             id='comment-icon-tooltip'
             placement='top'
-            title={messages.replyTooltipTitle}
+            title={intl.formatMessage({
+                id: 'post_info.comment_icon.tooltip.reply',
+                defaultMessage: 'Reply',
+            })}
         >
             <button
                 id={`${location}_commentIcon_${postId}`}

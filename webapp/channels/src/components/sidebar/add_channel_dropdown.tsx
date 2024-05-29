@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessages, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -10,13 +10,6 @@ import {CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onbo
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import WithTooltip from 'components/with_tooltip';
-
-const messages = defineMessages({
-    addChannelTooltipTitle: {
-        id: 'sidebar_left.add_channel_dropdown.browseOrCreateChannels',
-        defaultMessage: 'Browse or create channels',
-    },
-});
 
 type Props = {
     canCreateChannel: boolean;
@@ -161,7 +154,10 @@ const AddChannelDropdown = ({
             <WithTooltip
                 id='new-group-tooltip'
                 placement='top'
-                title={messages.addChannelTooltipTitle}
+                title={intl.formatMessage({
+                    id: 'sidebar_left.add_channel_dropdown.browseOrCreateChannels',
+                    defaultMessage: 'Browse or create channels',
+                })}
             >
                 <button
                     className={'AddChannelDropdown_dropdownButton'}
