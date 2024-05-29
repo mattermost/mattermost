@@ -124,7 +124,7 @@ function PriorityLabels({
                         placement='top'
                         title={intl.formatMessage({
                             id: 'post_priority.request_acknowledgement.tooltip',
-                            defaultMessage: 'Acknowledgement will be requested'
+                            defaultMessage: 'Acknowledgement will be requested',
                         })}
                     >
                         <CheckCircleOutlineIcon size={14}/>
