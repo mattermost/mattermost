@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
@@ -19,13 +20,15 @@ const PAGE_SIZE = 10;
 
 type Props = {
     userId: string;
-    headerLabels: Array<Record<string, any>>;
+    headerLabels: Array<{
+        label?: MessageDescriptor;
+        style: React.CSSProperties;
+    }>;
     data: TeamWithMembership[];
     onPageChangedCallback?: (paging: Paging) => void;
     total: number;
     renderRow: (item: TeamWithMembership) => JSX.Element;
-    emptyListTextId: string;
-    emptyListTextDefaultMessage: string;
+    emptyList: MessageDescriptor;
     actions: {
         getTeamsData: (userId: string) => Promise<ActionResult<Team[]>>;
         removeGroup?: () => void;
@@ -106,7 +109,9 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                             key={id}
                             className='AbstractList__header-label'
                             style={headerLabel.style}
-                        >{headerLabel.default}</div>
+                        >
+                            <FormattedMessage {...headerLabel.label}/>
+                        </div>
                     ))}
                 </div>
             );
@@ -125,10 +130,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
         if (this.props.data.length === 0) {
             return (
                 <div className='AbstractList__empty'>
-                    <FormattedMessage
-                        id={this.props.emptyListTextId}
-                        defaultMessage={this.props.emptyListTextDefaultMessage}
-                    />
+                    <FormattedMessage {...this.props.emptyList}/>
                 </div>
             );
         }

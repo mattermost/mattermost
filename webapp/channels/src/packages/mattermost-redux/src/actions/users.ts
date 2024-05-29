@@ -595,9 +595,9 @@ export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncA
             return {data: []};
         }
 
-        let recievedStatuses: UserStatus[];
+        let receivedStatuses: UserStatus[];
         try {
-            recievedStatuses = await Client4.getStatusesByIds(userIds);
+            receivedStatuses = await Client4.getStatusesByIds(userIds);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -609,11 +609,11 @@ export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncA
         const isManualStatuses: Record<UserProfile['id'], UserStatus['manual']> = {};
         const lastActivity: Record<UserProfile['id'], UserStatus['last_activity_at']> = {};
 
-        for (const recievedStatus of recievedStatuses) {
-            statuses[recievedStatus.user_id] = recievedStatus?.status ?? '';
-            dndEndTimes[recievedStatus.user_id] = recievedStatus?.dnd_end_time ?? 0;
-            isManualStatuses[recievedStatus.user_id] = recievedStatus?.manual ?? false;
-            lastActivity[recievedStatus.user_id] = recievedStatus?.last_activity_at ?? 0;
+        for (const receivedStatus of receivedStatuses) {
+            statuses[receivedStatus.user_id] = receivedStatus?.status ?? '';
+            dndEndTimes[receivedStatus.user_id] = receivedStatus?.dnd_end_time ?? 0;
+            isManualStatuses[receivedStatus.user_id] = receivedStatus?.manual ?? false;
+            lastActivity[receivedStatus.user_id] = receivedStatus?.last_activity_at ?? 0;
         }
 
         dispatch(batchActions([
@@ -637,7 +637,7 @@ export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncA
         'BATCHING_STATUSES',
         ));
 
-        return {data: recievedStatuses};
+        return {data: receivedStatuses};
     };
 }
 
