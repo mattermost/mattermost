@@ -77,6 +77,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
   isCurrentUserSystemAdmin={false}
   isDisabled={false}
   license={Object {}}
+  patchConfig={[MockFunction]}
   roles={Object {}}
   schema={
     Object {
@@ -84,7 +85,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
     }
   }
   setNavigationBlocked={[MockFunction]}
-  updateConfig={[MockFunction]}
 />
 `;
 
@@ -106,7 +106,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
         onSubmit={[Function]}
         role="form"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
         >
           <AdminTextSetting
@@ -130,7 +130,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -146,11 +146,11 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
-            value={true}
+            value={false}
           />
           <Memo(DropdownSetting)
             disabled={false}
@@ -583,7 +583,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -599,7 +599,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             setByEnv={true}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -675,7 +675,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -691,13 +691,13 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
             value={true}
           />
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </form>
     </div>
   </div>

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 type Props = {
     username: string;
@@ -12,23 +12,24 @@ const ProfilePopoverOverrideDisclaimer = ({
     username,
     haveOverrideProp,
 }: Props) => {
+    const {formatMessage} = useIntl();
+
     if (!haveOverrideProp) {
         return null;
     }
 
     return (
-        <div
-            data-toggle='tooltip'
-            className='popover__row first'
+        <p
+            className='user-popover__bottom-row-container'
         >
-            <FormattedMessage
-                id='user_profile.account.post_was_created'
-                defaultMessage='This post was created by an integration from @{username}'
-                values={{
-                    username,
-                }}
-            />
-        </div>
+            {formatMessage({
+                id: 'user_profile.account.post_was_created',
+                defaultMessage: 'This post was created by an integration from @{username}',
+            },
+            {
+                username,
+            })}
+        </p>
     );
 };
 

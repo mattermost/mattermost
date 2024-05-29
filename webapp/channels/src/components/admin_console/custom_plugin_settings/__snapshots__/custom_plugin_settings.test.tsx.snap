@@ -18,7 +18,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         onSubmit={[Function]}
         role="form"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
         >
           <div
@@ -51,7 +51,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -67,7 +67,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
@@ -178,7 +178,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 *This* is the **footer**"
             />
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </form>
     </div>
   </div>
@@ -318,7 +318,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         onSubmit={[Function]}
         role="form"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
         >
           <div
@@ -351,7 +351,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
@@ -367,11 +367,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
-            value={true}
+            value={false}
           />
           <Memo(DropdownSetting)
             disabled={false}
@@ -478,7 +478,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 *This* is the **footer**"
             />
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </form>
     </div>
   </div>

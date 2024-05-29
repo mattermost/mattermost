@@ -3324,16 +3324,8 @@
     "translation": "Сталася помилка при ініціюванні запиту постачальнику послуг ідентифікації. Будь ласка, зв'яжіться зі своїм системним адміністратором."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Під час кодування запиту до провайдера ідентифікації сталася помилка. Будь ласка, зверніться до системного адміністратора."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Спроба входу з використанням SAML не вдалася через відключеного шифрування. Будь ласка, зверніться до системного адміністратора."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Публічний сертифікат провайдера ідентифікації не найдений. Будь ласка, зверніться до системного адміністратора."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3344,20 +3336,12 @@
     "translation": "Спроба входу з використанням SAML не вдалася, так як відповідь постачальника облікових записів не зашифровані. Будь ласка, зверніться до системного адміністратора."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Спроба входу з використанням SAML не вдалася через виникнення помилки при розшифровці відповіді від постачальника облікових записів. Будь ласка, зверніться до системного адміністратора."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Отримано порожню відповідь від постачальника облікових записів"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Виникла помилка по час розбору відповіді від постачальника облікових записів. Будь ласка, зверніться до системного адміністратора."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Виникла помилка під час перевірки відповіді від постачальника облікових записів. Будь ласка, зверніться до системного адміністратора."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -4468,10 +4452,6 @@
     "translation": "Будь ласка, введіть дійсну адресу електронної пошти."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі."
   },
@@ -4962,10 +4942,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5542,10 +5518,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "Your Enterprise Edition license has expired and some features may be disabled. Please renew your license now."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License Now"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -6300,10 +6272,6 @@
     "translation": "Досягнута тайм-аут завдання синхронізації AD / LDAP."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Не знайдена кінцева точка API кластера."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": "додається файл."
   },
@@ -6930,9 +6898,5 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Адміністратору вже повідомлено"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Відсутні обов’язкові поля для надсилання електронного листа про прострочення."
   }
 ]

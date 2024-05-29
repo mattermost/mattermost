@@ -49,24 +49,24 @@ func (s LocalCachePostStore) ClearCaches() {
 	s.PostStore.ClearCaches()
 
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Purge")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Purge")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Posts Usage Cache - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.lastPostTimeCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.postLastPostsCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.postsUsageCache.Name())
 	}
 }
 
 func (s LocalCachePostStore) InvalidateLastPostTimeCache(channelId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.lastPostTimeCache, channelId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.lastPostTimeCache, channelId, nil)
 
 	// Keys are "{channelid}{limit}" and caching only occurs on limits of 30 and 60
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.postLastPostsCache, channelId+"30")
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.postLastPostsCache, channelId+"60")
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.postLastPostsCache, channelId+"30", nil)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.postLastPostsCache, channelId+"60", nil)
 
 	s.PostStore.InvalidateLastPostTimeCache(channelId)
 
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Remove by Channel Id")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Remove by Channel Id")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.lastPostTimeCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.postLastPostsCache.Name())
 	}
 }
 

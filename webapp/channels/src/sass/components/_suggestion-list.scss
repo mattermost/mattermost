@@ -63,8 +63,8 @@
     max-height: 292px;
     padding-bottom: 12px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    background-color: v(center-channel-bg);
     border-radius: 4px;
+    background-color: v(center-channel-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
@@ -77,8 +77,8 @@
 
     &::-webkit-scrollbar-thumb {
         border: 1px solid v(center-channel-bg);
-        background-color: rgba(var(--center-channel-color-rgb), 0.24) !important;
         border-radius: 4px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.24) !important;
     }
 
     .modal & {
@@ -104,8 +104,8 @@
     flex: 0 0 3.7rem;
     align-items: center;
     justify-content: center;
-    background: rgba(var(--center-channel-color-rgb), 0.08);
     border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
     font-size: 20px;
     font-weight: 600;
 

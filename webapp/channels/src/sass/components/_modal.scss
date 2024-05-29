@@ -1,5 +1,7 @@
 @charset "utf-8";
 
+@use 'sass:color';
+
 .browser--ie {
     .modal {
         .modal-dialog {
@@ -44,9 +46,9 @@
         color: rgb(var(--center-channel-color-rgb));
 
         .modal-content {
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border: var(--border-default);
+            border-radius: var(--radius-l);
             background: var(--center-channel-bg);
-            border-radius: 12px;
         }
     }
 
@@ -148,7 +150,7 @@
         grid-row-gap: 8px;
 
         &.divider {
-            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            border-top: var(--border-light);
         }
 
         &.modal-footer--invisible {
@@ -258,12 +260,16 @@
         background: transparent;
 
         &.divider {
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            border-bottom: var(--border-light);
         }
 
         &::before,
         &::after {
             content: none;
+        }
+
+        .modal-header-back-button {
+            margin-left: -12px;
         }
 
         .btn {
@@ -277,7 +283,7 @@
             right: 18px;
             width: 40px;
             height: 40px;
-            border-radius: 4px;
+            border-radius: var(--radius-s);
             color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 30px;
             font-weight: 400;
@@ -326,9 +332,9 @@
     }
 
     .modal-content {
-        border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+        border: var(--border-default);
+        border-radius: var(--radius-l);
         background: var(--sys-center-channel-bg);
-        border-radius: 12px;
     }
 
     .modal-chevron-icon {
@@ -461,8 +467,8 @@
                 width: auto;
                 height: auto;
                 max-height: 85vh;
-                margin: 0 auto;
                 border-radius: 8px;
+                margin: 0 auto;
             }
 
             video {
@@ -643,8 +649,8 @@
         flex: 32px 0 0;
         align-items: center;
         justify-content: center;
-        background: rgba(var(--center-channel-color-rgb), 0.2);
         border-radius: 50%;
+        background: rgba(var(--center-channel-color-rgb), 0.2);
     }
 
     .user-list {
@@ -754,8 +760,8 @@
         max-width: none;
         flex-grow: 0;
         flex-shrink: 0;
-        margin-top: 2px;
         border-radius: 60px;
+        margin-top: 2px;
     }
 
     .more-modal__details {
@@ -990,7 +996,7 @@
 
     .filter-controls {
         padding: 24px 32px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-top: var(--border-default);
 
         .filter-control__next {
             float: right;
@@ -1026,7 +1032,7 @@
         }
 
         .more-modal__row--selected {
-            background-color: lighten($primary-color, 40%);
+            background-color: color.adjust($primary-color, $lightness: 40%);
 
             .more-modal__actions--round {
                 display: block;

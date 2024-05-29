@@ -10,6 +10,7 @@ import {Link} from 'react-router-dom';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -53,7 +54,7 @@ type Props = {
     roles: Record<string, Role>;
     license: ClientLicense;
     editRole: (role: Role) => void;
-    updateConfig: (config: AdminConfig) => Promise<ActionResult>;
+    patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     isDisabled: boolean;
     consoleAccess: ConsoleAccess;
     cloud: CloudState;
@@ -445,7 +446,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         }
 
         const handleRequestAction = (success: () => void, error: (error: {message: string}) => void) => {
-            if (this.state.saveNeeded !== false) {
+            if (!setting.skipSaveNeeded && this.state.saveNeeded !== false) {
                 error({
                     message: this.props.intl.formatMessage({id: 'admin_settings.save_unsaved_changes', defaultMessage: 'Please save unsaved changes first'}),
                 });
@@ -516,7 +517,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         } else if (setting.multiple) {
             value = this.state[setting.key] ? this.state[setting.key].join(',') : '';
         } else {
-            value = this.state[setting.key] || setting.default || '';
+            value = this.state[setting.key] ?? (setting.default || '');
         }
 
         let footer = null;
@@ -577,7 +578,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 id={setting.key}
                 label={this.renderLabel(setting)}
                 helpText={this.renderSettingHelpText(setting)}
-                value={this.state[setting.key] || setting.default || false}
+                value={this.state[setting.key] ?? (setting.default || false)}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleChange}
@@ -617,7 +618,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         });
 
         const values = options.map((o) => ({value: o.value, text: descriptorOrStringToString(o.display_name, this.props.intl)!}));
-        const selectedValue = this.state[setting.key] || values[0].value;
+        const selectedValue = this.state[setting.key] ?? values[0].value;
 
         let selectedOptionForHelpText = null;
         for (const option of options) {
@@ -695,7 +696,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 label={this.renderLabel(setting)}
                 values={values}
                 helpText={this.renderSettingHelpText(setting)}
-                value={this.state[setting.key] || values[0].value}
+                value={this.state[setting.key] ?? values[0].value}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleChange}
@@ -737,7 +738,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 label={this.renderLabel(setting)}
                 values={values}
                 helpText={this.renderSettingHelpText(setting)}
-                value={this.state[setting.key] || values[0].value}
+                value={this.state[setting.key] ?? values[0].value}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleChange}
@@ -761,7 +762,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 values={values}
                 label={this.renderLabel(setting)}
                 helpText={this.renderSettingHelpText(setting)}
-                value={this.state[setting.key] || defaultOption}
+                value={this.state[setting.key] ?? defaultOption}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleChange}
@@ -802,7 +803,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 helpText={this.renderSettingHelpText(setting)}
                 regenerateHelpText={setting.regenerate_help_text}
                 placeholder={descriptorOrStringToString(setting.placeholder, this.props.intl)}
-                value={this.state[setting.key] || setting.default || ''}
+                value={this.state[setting.key] ?? (setting.default || '')}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleGeneratedChange}
@@ -869,7 +870,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 label={this.renderLabel(setting)}
                 helpText={this.renderSettingHelpText(setting)}
                 placeholder={setting.placeholder}
-                value={this.state[setting.key] || setting.default || ''}
+                value={this.state[setting.key] ?? (setting.default || '')}
                 disabled={this.isDisabled(setting)}
                 onChange={this.handleChange}
             />
@@ -1145,7 +1146,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         let config = JSON.parse(JSON.stringify(this.props.config));
         config = this.getConfigFromState(config);
 
-        const {error} = await this.props.updateConfig(config);
+        const {error} = await this.props.patchConfig(config);
         if (error) {
             this.setState({
                 serverError: error.message,

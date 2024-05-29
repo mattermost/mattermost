@@ -2260,7 +2260,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Fehler beim Hochstufen der Websocket-Verbindung."
+    "translation": "URL aufgrund von CORS blockiert. Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -3323,16 +3323,8 @@
     "translation": "Bei der Verbindung zum Identity Provider trat ein Fehler auf. Bitte kontaktiere deinen Systemadministrator."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Beim Kodieren der Anfrage für den Identity Provider trat ein Fehler auf. Bitte kontaktiere deinen Systemadministrator."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML-Anmeldung war nicht erfolgreich, da Verschlüsselung nicht aktiviert ist. Bitte kontaktiere deinen Systemadministrator."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Datei des öffentlichen Zertifikats des Identity Providers nicht gefunden. Bitte kontaktiere deinen Systemadministrator."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3343,20 +3335,12 @@
     "translation": "SAML-Anmeldung war nicht erfolgreich, da die Antwort des Identity Providers nicht verschlüsselt war. Bitte kontaktiere deinen Systemadministrator."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML-Anmeldung war nicht erfolgreich, da ein Fehler beim Entschlüsseln der Antwort des Identity Providers auftrat. Bitte kontaktiere deinen Systemadministrator."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Leere Antwort vom Identitätsprovider erhalten."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Es trat ein Fehler beim Verarbeiten der Antwort des Identity Providers auf. Bitte kontaktiere deinen Systemadministrator."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Es trat ein Fehler beim Validieren der Antwort des Identity Providers auf. Bitte kontaktiere deinen Systemadministrator."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -4467,10 +4451,6 @@
     "translation": "Bitte gib eine gültige E-Mail-Adresse ein."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Dein Passwort muss mindestens {{.Min}} Zeichen lang sein."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Dein Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Kleinbuchstaben enthalten."
   },
@@ -4780,11 +4760,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 16.2+"
+    "translation": "Version 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -4792,11 +4772,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 118+"
+    "translation": "Version 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 118+"
+    "translation": "Version 122+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5004,11 +4984,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Größenbegrenzung überschritten. Überprüfe die [maximale Seitengröße](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "Fehler beim Löschen von Team- oder Kanalmitgliedschaften"
+    "translation": "Das Größenlimit wurde überschritten. Versuche, deine Einstellung für die maximale Seitengröße zu erhöhen. Weitere Informationen findest du unter https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5585,10 +5561,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "Die Lizenz deiner Enterprise Edition ist abgelaufen und einige Funktionen sind möglicherweise deaktiviert. Bitte erneuere die Lizenz."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Lizenz jetzt erneuern"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -6313,10 +6285,6 @@
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "AD/LDAP-Synchronisierungs-Job-Timeout erreicht."
-  },
-  {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Cluster-API-Endpunkt nicht gefunden."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -7179,10 +7147,6 @@
     "translation": "Konnte keine Test-Lizenz holen. Bitte nochmal versuchen oder support@mattermost.com kontaktieren."
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Fehler beim Holen des Lizenz-Erneuerungslinks"
-  },
-  {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
     "translation": "Neue Testlizenz konnte nicht angewendet werden. Du hast bereits eine Testlizenz auf diese Mattermost-Instanz angewendet... Wenn du deine Testphase verlängern willst, kontaktiere bitte [unser Vertriebsteam](https://mattermost.com/contact-us/)."
   },
@@ -7454,10 +7418,6 @@
     "translation": "EMails für die Lizenzverlängerung konnte nicht gesendet werden"
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Der Link zur Lizenzverlängerung konnte nicht generiert werden"
-  },
-  {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "Prüfung der Bildbeschränkungen ist fehlgeschlagen. Auflösung ist zu hoch."
   },
@@ -7498,20 +7458,12 @@
     "translation": "Dein Mattermost Abonnement steht zur Erneuerung an"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Anmelden an deinem Kundenkonto zum Erneuern"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, dein Abonnement wird in {{.Days}} Tagen ablaufen. Wir hoffen, dass du die flexible und sichere Teamzusammenarbeit erlebst, die Mattermost ermöglicht. Erneuere bald, um sicherzustellen, dass dein Team diese Vorteile weiter genießen kann."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "Deine Lizenz ist zur Erneuerung fällig"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Jetzt erneuern"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -7540,10 +7492,6 @@
   {
     "id": "api.templates.email_footer_v2",
     "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -7676,46 +7624,6 @@
   {
     "id": "api.templates.questions_footer.info",
     "translation": "Brauchst du Hilfe oder hast du eine Frage? Sende eine E-Mail an "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Deine Mattermost Cloud Rechnung ist fällig"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Eine Zahlung ist für dein Mattermost Cloud Abonnement ist fällig"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Um deine Rechnung zu prüfen und eine Zahlungsmethode hinzuzufügen, wähle Jetzt bezahlen."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Deine Mattermost Cloud Rechnung für die letzte Abrechnungsperiode wurde verarbeitet. Allerdings haben wir deine Zahlungsdetails nicht in den Akten."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Jetzt bezahlen"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Die Zahlung war nicht erfolgreich"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Aktion notwendig: Zahlung für Mattermost {{.Plan}} fehlgeschlagen"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Um einen unterbrechungsfreien Zugriff auf Mattermost {{.Plan}} zu gewährleisten, kontaktiere bitte dein Finanzinstitut um das Problem zu lösen oder aktualisiere deine Zahlungsinformationen. Sobald die Zahlungsinformationen aktualisiert wurden, wird Mattermost versuchen den Außenstand auszugleichen."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Es wurde folgender Grund angegeben:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Dein Finanzinstitut hat ein Zahlung mit deiner {{.CardBrand}} Kreditkarte mit der Nummer ****{{.LastFour}}, die für deinen Mattermost Cloud Arbeitsbereich hinterlegt ist, abgelehnt."
   },
   {
     "id": "api.upload.upload_data.multipart_error",
@@ -7906,10 +7814,6 @@
     "translation": "Fehler beim Generieren des Passworts."
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Fehlschlag beim Lesen des Dateianhangs während des Imports."
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "Gruppenmitglied existiert bereits"
   },
@@ -8006,10 +7910,6 @@
     "translation": "System"
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Beim Erstellen eines geteilten Direktnachrichtenkanals ist ein Fehler aufgetreten."
-  },
-  {
     "id": "app.select_error",
     "translation": "Auswahlfehler"
   },
@@ -8060,18 +7960,6 @@
   {
     "id": "app.notification.body.dm.subTitle",
     "translation": "Während du weg warst, hat dir {{.SenderName}} eine neue Direktnachricht gesendet."
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Keine Lizenz vorhanden"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Dieser Lizenztyp unterstützt keine Generierung von Erneuerungstoken"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Fehlschlag beim Generieren eines neuen Erneuerungstoken."
   },
   {
     "id": "app.user.get_by_username.app_error",
@@ -8164,10 +8052,6 @@
   {
     "id": "app.user.get_thread_membership_for_user.app_error",
     "translation": "Konnte Benutzermitgliedschaft an der Unterhaltung nicht abrufen"
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Keine E-Mails erfolgreich gesendet"
   },
   {
     "id": "app.user.send_auto_response.app_error",
@@ -8654,10 +8538,6 @@
     "translation": "Die Anzahl der erhaltenen Post IDs hat die maximale Größe von {{.MaxLength}} überschritten"
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Das Erneuern dieser Lizenz im Portal ist nicht möglich"
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML Antwort ist zu lang"
   },
@@ -8806,14 +8686,6 @@
     "translation": "Ungültiger Request Body."
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Du bist jetzt upgegraded worden!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Mattermost Upgrade Bestätigung"
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Die Elasticsearch-Einstellungen haben nicht definierte Werte."
   },
@@ -8894,194 +8766,6 @@
     "translation": "Mattermost ist eine Open Source Plattform für sicher Kommunikation, Zusammenarbeit und Koordination von Aufgaben über Werkzeuge und Teams hinweg.\nMattermost besteht aus zwei Hauptwerkzeugen:\n\n**Channels** - Bleibe mit deinem Team in Verbindung mit 1:1- und Gruppen-Nachrichten.\n**[Playbooks](/playbooks)** - Erstelle und konfiguriere wiederholbare Prozesse um spezifische und vorhersagbare Ergebnisse zu bekommen.\n\n[Zeige Dokumentation und Anleitungen]({{.HelpLink}})"
   },
   {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Bezahlart aktualisieren"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Dein Arbeitsbereich wird in 15 Tagen herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele zu Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Dein Arbeitsbereich wird auf Cloud Free herabgestuft. Deine {{.Plan}}-Funktionen werden gesperrt und einige deiner Arbeitsbereichsdaten können archiviert werden, bis dein ausstehender Betrag vollständig beglichen ist."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Dies ist eine letzte Erinnerung, dass wir seit {{.DelinquencyDate}} keine Zahlung für deinen Mattermost Cloud-Arbeitsbereich erhalten haben."
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Dein Mattermost {{.Plan}} wird in 15 Tagen herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Herunterstufen zu Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Bezahlart aktualisieren"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Deine Zahlung wurde nicht abgeschlossen"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "Um deinen {{.Plan}} aktiv zu halten, wende dich bitte so bald wie möglich an dein Finanzinstitut. Aktualisiere dann, falls notwendig, deine Zahlungsdaten."
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Wir konnten deine letzte Zahlung nicht bearbeiten."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Bezahlart aktualisieren"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Dein Mattermost-Arbeitsbereich wird in 30 Tagen herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele unten zu Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Wir werden deinen Arbeitsbereich innerhalb von 30 Tagen automatisch herabstufen, wenn wir deine Zahlung nicht bearbeiten können."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Bitte aktualisiere deine Zahlungsinformationen bald, um deine ausstehenden Rechnungen zu verarbeiten."
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "Aktion notwendig: Arbeitsbereich wird in 30 Tagen herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Herabstufen zu Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Bezahlinformation aktualisieren"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Dein Arbeitsbereich wird in Kürze herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Aktualisiere jetzt deine Kreditkarteninformationen."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Wir waren nicht in der Lage, ausstehende Rechnungen seit {{.DelinquencyDate}} zu begleichen. Dein Arbeitsbereich ist in Gefahr heruntergestuft zu werden."
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "Hinweis: Dein Mattermost {{.Plan}} wird in Kürze heruntergestuft"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Zahlungsinformationen aktualisieren"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Dein Arbeitsbereich wird in Kürze archiviert"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "Wenn du nicht aktiv wirst, wird dein Arbeitsbereich heruntergestuft und die folgenden Daten werden archiviert:"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "Zu hast Zeit deinen Mattermost {{.Plan}} aktiv zu halten, aber du solltest die Probleme mit deiner Zahlungsart lösen."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Reagiere um deine Mattermost {{.Plan}} Funktionen zu behalten"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "Sieh alle Dokumentation zu Einschränkungen an."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Bezahlart aktualisieren"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "Nachrichtenverlauf"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Dateien"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Bezahlung nicht erhalten"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Bitte kontaktiere dein Finanzinstitut um Unklarheiten zu beseitigen. Dann aktualisiere deine Bezahlinformation, falls notwendig."
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Wir konnten die hinterlegte Kreditkarte nicht belasten. Das bedeutet, dass ein Risiko besteht auf Cloud Free zurückgestuft zu werden."
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Bezahlung ist überfällig für deinen Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Bezahlart aktualisieren"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Erforderliche Felder für den Versand einer E-Mail über Zahlungsrückstände fehlen."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Dein Mattermost Cloud-Arbeitsbereich wurde herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Zeige Pläne & Kosten"
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "Das Abonnement ist nicht im Verzug"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "Cloud-Abonnement konnten nicht abgerufen werden"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "Cloud-Produkte konnten nicht abgerufen werden"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Dein Mattermost-Arbeitsbereich wurde herabgestuft"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "Um die Archivierung deiner Daten aufzuheben und bezahlte Funktionen zu erhalten, aktualisiere deine Zahlungsinformationen."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Außerdem kann es sein, dass deine Daten aufgrund der Beschränkungen von Cloud Free archiviert wurden."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "Wenn du die Funktionen von Cloud Professional oder Enterprise für wichtige Geschäftsvorgänge nutzt, stehen diese nicht mehr zur Verfügung und die Leistung wird beeinträchtigt."
-  },
-  {
     "id": "app.notify_admin.send_notification_post.app_error",
     "translation": "Kann Benachrichtigung nicht senden."
   },
@@ -9104,10 +8788,6 @@
   {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "{{.UsersNum}} Mitglieder des {{.WorkspaceName}} Arbeitsbereichs haben den Start des Enterprise-Tests angefragt für Zugriff auf: "
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Abrufen des aktuellen Plan Namens nicht möglich"
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
@@ -9270,18 +8950,6 @@
     "translation": "Ungültige Priorität"
   },
   {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "Deine Rechnung einsehen"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt hochgestuft."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "Dein {{.WorkspaceName}} Arbeitsbereich wurde jetzt hochgestuft. Du wirst ab dem {{.Date}} abgerechnet"
-  },
-  {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Fehler beim Abrufen von Rollen während der Validierung."
   },
@@ -9314,38 +8982,6 @@
     "translation": "CWS Server ist nicht verfügbar."
   },
   {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Die Gesamtzahl der ausgehenden Webhooks konnte nicht ermittelt werden"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Die Gesamtzahl der eingehenden Webhooks konnte nicht ermittelt werden"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Die Gesamtzahl der aktiven Benutzer konnte nicht ermittelt werden"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "True Up Review ist für Cloud-Instanzen nicht erlaubt"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "True up review erfordert eine Lizenz"
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Konnte keine True-Up-Status-Datensätze abrufen"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Konnte keinen True-Up-Status-Datensatz erstellen"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Ein herabgestufter Arbeitsbereich kann sich negativ auf kritische Arbeitsabläufe und andere geschäftskritische Aktivitäten auswirken, die in deinem Arbeitsbereich durchgeführt werden."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "Benutzer mit dem Benutzernamen \"{{.Username}}\" existiert bereits."
   },
@@ -9364,10 +9000,6 @@
   {
     "id": "api.system.logs.invalidFilter",
     "translation": "Ungültiger Protokollfilter"
-  },
-  {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "CWS Server kann Arbeitsbereich nicht löschen."
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
@@ -9436,10 +9068,6 @@
   {
     "id": "model.channel_member.is_valid.notify_props.app_error",
     "translation": "Überschreitung der Benachrichtigungseigenschaftsgröße melden."
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Fehler bei der Übermittlung eines True Up Überprüfungsprofils an CWS."
   },
   {
     "id": "api.command_exportlink.desc",
@@ -9755,7 +9383,7 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.audience.error",
-    "translation": "Einige Audience URLs sind nicht korrekt."
+    "translation": "Audience URL ist ungültig: {{ .Url }}"
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
@@ -9890,10 +9518,6 @@
     "translation": "Es ist nicht möglich, so viele Rollen nach Namen zu erhalten. Es können nur {{.MaxNames}} Rollen auf einmal angefordert werden."
   },
   {
-    "id": "app.limits.get_user_limits.user_count.store_error",
-    "translation": "Benutzeranzahl konnte nicht ermittelt werden"
-  },
-  {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
     "translation": "Beim Löschen der ausgehenden oauth-Verbindung ist ein Fehler aufgetreten."
   },
@@ -9911,11 +9535,11 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": "Es ist ein Fehler beim Speichern der ausgehenden Oauth-Verbindung aufgetreten."
+    "translation": "Es ist ein Fehler beim Speichern der ausgehenden Oauth-Verbindung aufgetreten: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": "Es ist ein Fehler bei der Aktualisierung der ausgehenden Oauth-Verbindung aufgetreten."
+    "translation": "Es ist ein Fehler bei der Aktualisierung der ausgehenden Oauth-Verbindung aufgetreten: {{ .Error }}"
   },
   {
     "id": "api.command_share.channel_not_shared.error",
@@ -9932,38 +9556,6 @@
   {
     "id": "api.payload.parse.error",
     "translation": "Beim Parsen der Nutzdaten ist ein Fehler aufgetreten."
-  },
-  {
-    "id": "api.templates.cloud_renewal.button",
-    "translation": "Jetzt erneuern"
-  },
-  {
-    "id": "api.templates.cloud_renewal.subtitle",
-    "translation": "Bitte verlängere, um Unterbrechungen zu vermeiden"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.subject",
-    "translation": "Jahresrechnung fällig in 30 Tagen"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.title",
-    "translation": "Deine Jahresrechnung ist in 30 Tagen fällig"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.subject",
-    "translation": "Erneuerung des Jahresabonnements in 60 Tagen"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.title",
-    "translation": "Erneuerung des Jahresabonnements in 60 Tagen"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.subject",
-    "translation": "Aktion erforderlich: Erneuerung des Jahresabonnements in 7 Tagen"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.title",
-    "translation": "Du wirst in 7 Tagen den Zugang zu deinem Arbeitsbereich verlieren"
   },
   {
     "id": "app.channel.patch_channel_members_notify_props.too_many",
@@ -10070,15 +9662,371 @@
     "translation": "Keine Benutzerkennung zum Senden des Berichts"
   },
   {
-    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": "Ungültige Aktualisierung eines Teammitglieds: Ein Benutzer kann nicht gleichzeitig als Gast und als Administrator festgelegt werden."
-  },
-  {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Ungültige Teammitglied Aktualisierung: Ein Gast kann nicht zum Teammitglied oder -administrator ernannt werden. Bitte ernenne ihn zuerst zu einem Benutzer."
   },
   {
     "id": "app.channel.add_member.deleted_user.app_error",
     "translation": "Der Benutzer konnte nicht als Mitglied des Kanals hinzugefügt werden."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Beim Erstellen der ausgehenden OAuth-Verbindung ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Ungültige Eingabeparameter."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Beim Löschen der ausgehenden OAuth-Verbindung ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Ausgehende OAuth-Verbindungen sind auf diesem Server nicht verfügbar."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Beim Aktualisieren der ausgehenden OAuth-Verbindung ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Ungültige Eingabeparameter."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Es ist ein Fehler bei der Validierung der ausgehenden OAuth-Verbindungsdaten aufgetreten."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Die Anmeldedaten konnten mit der angegebenen Verbindungskonfiguration nicht abgerufen werden."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Ausgehende OAuth-Verbindungen sind auf diesem Server nicht verfügbar."
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Ungültiges email_token"
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL ist zu lang"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "Bei der Authentifizierung der ausgehenden OAuth-Verbindung ist ein Fehler aufgetreten: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "Es gibt bereits eine ausgehende OAuth-Verbindung für die angegebene Zielgruppe."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "Es gibt keine ausgehende OAuth-Verbindung für die angegebene Zielgruppe."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "Es gab einen Fehler beim Abrufen der ausgehenden OAuth-Verbindung für die Zielgruppe."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "Die ausgehende OAuth-Verbindung für die angegebene Zielgruppe wurde nicht gefunden."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Deine Lizenz unterstützt keine ausgehenden OAuth-Verbindungen."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "Es gibt bereits eine ausgehende OAuth-Verbindung für die angegebene Zielgruppe: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "Die angegebene Zielgruppe ist ungültig: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "Es gibt bereits eine ausgehende OAuth-Verbindung für die angegebene Zielgruppe: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "Die angegebene Zielgruppe ist ungültig: {{ .Error }}"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Ungültige Aktualisierung eines Teammitglieds: Ein Gast kann nicht für ein einzelnes Team festgelegt werden. Ein Systemadministrator muss Benutzer zu/von Gästen befördern oder degradieren."
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Ungültige Eigenschaften (benutzerdefinierter Status)"
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Kann Remote nicht zum Kanal einladen: {{.Error}}"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Die Interaktionen mit dem Mattermost-Kundenportal wurden vom Systemadministrator deaktiviert."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Deine Lizenz unterstützt keine Kanal-Lesezeichen."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Du darfst keine Lesezeichen für einen Kanal erstellen."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Lesezeichen für den Channel konnte nicht erstellt werden."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Lesezeichen für den Channel konnte nicht erstellt werden."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Lesezeichen für den Kanal konnte nicht gelöscht werden."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Lesezeichen für den Kanal konnte nicht gelöscht werden."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Lesezeichen für den Kanal konnte nicht gelöscht werden."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Aktualisierung des Kanal-Lesezeichens ist fehlgeschlagen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Aktualisierung des Kanal-Lesezeichens ist fehlgeschlagen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Aktualisierung des Kanal-Lesezeichens ist fehlgeschlagen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Sortierreihenfolge des Kanal-Lesezeichens konnte nicht aktualisiert werden."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Sortierreihenfolge des Kanal-Lesezeichens konnte nicht aktualisiert werden."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Sortierreihenfolge des Kanal-Lesezeichens konnte nicht aktualisiert werden."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Ungültige Aktualisierung eines Channel-Mitglieds: Ein Gast kann nicht für einen einzelnen Kanal festgelegt werden, ein Systemadministrator muss Benutzer zu/von Gästen befördern oder zurückstufen."
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "Lesezeichen konnte nicht gelöscht werden."
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "Lesezeichen konnte nicht geholt werden."
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "Das vorhandene Lesezeichen konnte nicht aktualisiert werden."
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "Lesezeichen konnte nicht gespeichert werden."
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "Lesezeichen konnte nicht aktualisiert werden."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "Das Lesezeichen konnte nicht sortiert werden."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "Das Lesezeichen konnte nicht sortiert werden. Ungültige Eingabe."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "Konnte das Lesezeichen nicht sortieren. Nicht gefunden."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "Ungültige Kanal-ID."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "Erstellt am muss eine gültige Zeit sein."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "Anzeigename fehlt."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "Die Datei-ID fehlt oder ist ungültig."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "Ungültige Bild-URL."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Ein Link und eine Datei können nicht im selben Lesezeichen gesetzt werden."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "Link-URL fehlt oder ist ungültig."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "Ungültige Original-ID."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "Ungültige Eigentümer-ID."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "Ungültige Vorgänger-ID."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Ungültige Id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "Ungültiger Typ."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "Aktualisier am muss eine gültige Zeit sein."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Ungültige Aktualisierung des Kanal-Mitglieds: Ein Gast kann nicht zum Teammitglied oder Admin gemacht werden, bitte befördere ihn zuerst zum Benutzer."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Die automatische Vervollständigung von Kanälen kann nicht aktiviert werden, da das Schema des Kanal-Index veraltet ist. Es wird empfohlen, den Kanal-Index neu zu erstellen. Weitere Informationen findest du im Mattermost Changelog"
+  },
+  {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "Dein Elasticsearch-Kanal-Indexschema ist veraltet. Es wird empfohlen, deinen Kanal-Index neu zu erstellen.\nKlicke auf die Schaltfläche \"Kanal Index neu erstellen\" im [Elasticsearch-Abschnitt in der Systemkonsole] ({{.ElasticsearchSection}}), um das Problem zu beheben.\nWeitere Informationen findest du im Mattermost Changelog."
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "Die Funktion Bereinigungsliste ist für Bleve nicht verfügbar."
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "Fehler beim Löschen eines Elasticsearch-Index"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "Der angegebene unbekannte Index konnte nicht gelöscht werden"
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Die Seite mit den Schemata kann nicht aufgerufen werden."
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Die zuletzt verwendeten Sitzungen können nicht abgerufen werden."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Benutzer kann nicht aktiviert werden. Der Server überschreitet das Limit für sichere Benutzer. Kontaktiere deinen Administrator mit: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Ungültiges Schema."
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Benutzer kann nicht erstellt werden. Der Server überschreitet das Limit für sichere Benutzer. Kontaktiere deinen Administrator mit: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Die Importdatenzeile hat den Typ \"role\", aber das role-Objekt ist null."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} und @{{.LastUsername}} wurden von dieser Erwähnung nicht benachrichtigt, weil sie nicht zu diesem Team gehören."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} wurde durch diese Erwähnung nicht benachrichtigt, weil sie kein Mitglied dieses Teams sind."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Fehlender display_name im Anfragebody"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Fehlende team_id im Anfragebody"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "Die Authentifizierungsübertragung ist nicht verfügbar, da die E-Mail-Anmeldung deaktiviert ist."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "Die Authentifizierungsübertragung ist nicht verfügbar, da weder die Anmeldung per E-Mail noch die Anmeldung per Benutzername aktiviert ist."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Anfrage konnte nicht geparst werden"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Plugin kann nicht wieder angehängt werden"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Fehlendes Manifest"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Fehlende Plugin reattach Konfiguration"
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Dein Passwort darf nicht mehr als 72 Zeichen enthalten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Dein Passwort muss mindestens {{.Min}} Zeichen lang sein."
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Fehler beim Lesen des Dateistatus: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Fehler beim Suchen der Datei: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Benutzeranzahl konnte nicht ermittelt werden"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "Konnte die ZIP-Datei nicht schließen"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Kann nicht zum Anfang der Exportdatei suchen."
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Es gibt bereits ein Team mit dieser URL."
   }
 ]

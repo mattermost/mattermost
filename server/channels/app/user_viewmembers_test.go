@@ -442,7 +442,7 @@ func TestRestrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				results, err := th.App.GetNewUsersForTeamPage(tc.TeamId, 0, 2, false, tc.Restrictions)
+				results, err := th.App.GetNewUsersForTeamPage(th.Context, tc.TeamId, 0, 2, false, tc.Restrictions)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -517,7 +517,7 @@ func TestRestrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				results, err := th.App.GetRecentlyActiveUsersForTeamPage(tc.TeamId, 0, 3, false, tc.Restrictions)
+				results, err := th.App.GetRecentlyActiveUsersForTeamPage(th.Context, tc.TeamId, 0, 3, false, tc.Restrictions)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -525,7 +525,7 @@ func TestRestrictedViewMembers(t *testing.T) {
 				}
 				assert.ElementsMatch(t, tc.ExpectedResults, ids)
 
-				results, err = th.App.GetRecentlyActiveUsersForTeamPage(tc.TeamId, 0, 1, false, tc.Restrictions)
+				results, err = th.App.GetRecentlyActiveUsersForTeamPage(th.Context, tc.TeamId, 0, 1, false, tc.Restrictions)
 				require.Nil(t, err)
 				if len(tc.ExpectedResults) > 1 {
 					assert.Len(t, results, 1)

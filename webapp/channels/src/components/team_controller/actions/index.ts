@@ -10,12 +10,13 @@ import {logError} from 'mattermost-redux/actions/errors';
 import {getGroups, getAllGroupsAssociatedToChannelsInTeam, getAllGroupsAssociatedToTeam, getGroupsByUserIdPaginated} from 'mattermost-redux/actions/groups';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {getTeamByName, selectTeam} from 'mattermost-redux/actions/teams';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
+import {addVisibleUsersInCurrentChannelToStatusPoll} from 'actions/status_actions';
 import {addUserToTeam} from 'actions/team_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -38,7 +39,10 @@ export function initializeTeam(team: Team): ActionFuncAsync<Team, GlobalState> {
             return {error: error as ServerError};
         }
 
-        dispatch(loadStatusesForChannelAndSidebar());
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+        if (enabledUserStatuses) {
+            dispatch(addVisibleUsersInCurrentChannelToStatusPoll());
+        }
 
         const license = getLicense(state);
         const customGroupEnabled = isCustomGroupsEnabled(state);

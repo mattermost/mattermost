@@ -43,7 +43,7 @@ const (
 	MinioSecretKey = "miniosecretkey"
 	MinioBucket    = "mattermost-test"
 
-	PasswordMaximumLength = 64
+	PasswordMaximumLength = 72
 	PasswordMinimumLength = 5
 
 	ServiceGitlab    = "gitlab"
@@ -122,7 +122,9 @@ const (
 
 	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
-	FileSettingsDefaultDirectory = "./data/"
+	FileSettingsDefaultDirectory                   = "./data/"
+	FileSettingsDefaultS3UploadPartSizeBytes       = 5 * 1024 * 1024   // 5MB
+	FileSettingsDefaultS3ExportUploadPartSizeBytes = 100 * 1024 * 1024 // 100MB
 
 	ImportSettingsDefaultDirectory     = "./import"
 	ImportSettingsDefaultRetentionDays = 30
@@ -176,7 +178,8 @@ const (
 	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/pl/android-app/"
 	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/pl/ios-app/"
 
-	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds = 5000
+	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds                       = 5000
+	ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPollIntervalMilliseconds = 3000
 
 	AnalyticsSettingsDefaultMaxUsersForStatistics = 2500
 
@@ -401,7 +404,6 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
-	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 	UniqueEmojiReactionLimitPerPost                   *int    `access:"site_posts"`
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
@@ -901,10 +903,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.AllowSyncedDrafts = NewBool(true)
 	}
 
-	if s.SelfHostedPurchase == nil {
-		s.SelfHostedPurchase = NewBool(true)
-	}
-
 	if s.UniqueEmojiReactionLimitPerPost == nil {
 		s.UniqueEmojiReactionLimitPerPost = NewInt(ServiceSettingsDefaultUniqueReactionsPerPost)
 	}
@@ -918,7 +916,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaximumPayloadSizeBytes == nil {
-		s.MaximumPayloadSizeBytes = NewInt64(100000)
+		s.MaximumPayloadSizeBytes = NewInt64(300000)
 	}
 }
 
@@ -934,10 +932,6 @@ type ClusterSettings struct {
 	EnableExperimentalGossipEncryption *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
 	ReadOnlyConfig                     *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
 	GossipPort                         *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	StreamingPort                      *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	MaxIdleConns                       *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	MaxIdleConnsPerHost                *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	IdleConnTimeoutMilliseconds        *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -984,28 +978,14 @@ func (s *ClusterSettings) SetDefaults() {
 	if s.GossipPort == nil {
 		s.GossipPort = NewInt(8074)
 	}
-
-	if s.StreamingPort == nil {
-		s.StreamingPort = NewInt(8075)
-	}
-
-	if s.MaxIdleConns == nil {
-		s.MaxIdleConns = NewInt(100)
-	}
-
-	if s.MaxIdleConnsPerHost == nil {
-		s.MaxIdleConnsPerHost = NewInt(128)
-	}
-
-	if s.IdleConnTimeoutMilliseconds == nil {
-		s.IdleConnTimeoutMilliseconds = NewInt(90000)
-	}
 }
 
 type MetricsSettings struct {
-	Enable           *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
-	BlockProfileRate *int    `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
-	ListenAddress    *string `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"` // telemetry: none
+	Enable                    *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
+	BlockProfileRate          *int    `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
+	ListenAddress             *string `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableClientMetrics       *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
+	EnableNotificationMetrics *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
 }
 
 func (s *MetricsSettings) SetDefaults() {
@@ -1020,19 +1000,28 @@ func (s *MetricsSettings) SetDefaults() {
 	if s.BlockProfileRate == nil {
 		s.BlockProfileRate = NewInt(0)
 	}
+
+	if s.EnableClientMetrics == nil {
+		s.EnableClientMetrics = NewBool(true)
+	}
+
+	if s.EnableNotificationMetrics == nil {
+		s.EnableNotificationMetrics = NewBool(true)
+	}
 }
 
 type ExperimentalSettings struct {
-	ClientSideCertEnable            *bool   `access:"experimental_features,cloud_restrictable"`
-	ClientSideCertCheck             *string `access:"experimental_features,cloud_restrictable"`
-	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
-	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
-	EnableSharedChannels            *bool   `access:"experimental_features"`
-	EnableRemoteClusterService      *bool   `access:"experimental_features"`
-	DisableAppBar                   *bool   `access:"experimental_features"`
-	DisableRefetchingOnBrowserFocus *bool   `access:"experimental_features"`
-	DelayChannelAutocomplete        *bool   `access:"experimental_features"`
+	ClientSideCertEnable                                  *bool   `access:"experimental_features,cloud_restrictable"`
+	ClientSideCertCheck                                   *string `access:"experimental_features,cloud_restrictable"`
+	LinkMetadataTimeoutMilliseconds                       *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	RestrictSystemAdmin                                   *bool   `access:"experimental_features,write_restrictable"`
+	EnableSharedChannels                                  *bool   `access:"experimental_features"`
+	EnableRemoteClusterService                            *bool   `access:"experimental_features"`
+	DisableAppBar                                         *bool   `access:"experimental_features"`
+	DisableRefetchingOnBrowserFocus                       *bool   `access:"experimental_features"`
+	DelayChannelAutocomplete                              *bool   `access:"experimental_features"`
+	DisableWakeUpReconnectHandler                         *bool   `access:"experimental_features"`
+	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1050,10 +1039,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.RestrictSystemAdmin == nil {
 		s.RestrictSystemAdmin = NewBool(false)
-	}
-
-	if s.UseNewSAMLLibrary == nil {
-		s.UseNewSAMLLibrary = NewBool(false)
 	}
 
 	if s.EnableSharedChannels == nil {
@@ -1074,6 +1059,14 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.DelayChannelAutocomplete == nil {
 		s.DelayChannelAutocomplete = NewBool(false)
+	}
+
+	if s.DisableWakeUpReconnectHandler == nil {
+		s.DisableWakeUpReconnectHandler = NewBool(false)
+	}
+
+	if s.UsersStatusAndProfileFetchingPollIntervalMilliseconds == nil {
+		s.UsersStatusAndProfileFetchingPollIntervalMilliseconds = NewInt64(ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPollIntervalMilliseconds)
 	}
 }
 
@@ -1418,7 +1411,7 @@ type ExperimentalAuditSettings struct {
 	FileMaxBackups        *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileCompress          *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileMaxQueueSize      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	AdvancedLoggingJSON   json.RawMessage `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingJSON   json.RawMessage `access:"experimental_features,write_restrictable"`
 	AdvancedLoggingConfig *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 
@@ -1599,6 +1592,7 @@ type FileSettings struct {
 	AmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	// Export store settings
 	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable"`
@@ -1615,6 +1609,7 @@ type FileSettings struct {
 	ExportAmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportAmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1723,6 +1718,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AmazonS3RequestTimeoutMilliseconds = NewInt64(30000)
 	}
 
+	if s.AmazonS3UploadPartSizeBytes == nil {
+		s.AmazonS3UploadPartSizeBytes = NewInt64(FileSettingsDefaultS3UploadPartSizeBytes)
+	}
+
 	if s.DedicatedExportStore == nil {
 		s.DedicatedExportStore = NewBool(false)
 	}
@@ -1783,6 +1782,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExportAmazonS3PresignExpiresSeconds == nil {
 		s.ExportAmazonS3PresignExpiresSeconds = NewInt64(21600) // 6h
+	}
+
+	if s.ExportAmazonS3UploadPartSizeBytes == nil {
+		s.ExportAmazonS3UploadPartSizeBytes = NewInt64(FileSettingsDefaultS3ExportUploadPartSizeBytes)
 	}
 }
 
@@ -3035,16 +3038,18 @@ type CloudSettings struct {
 }
 
 func (s *CloudSettings) SetDefaults() {
-	if s.CWSURL == nil {
-		switch GetServiceEnvironment() {
+	serviceEnvironment := GetServiceEnvironment()
+	if s.CWSURL == nil || serviceEnvironment == ServiceEnvironmentProduction {
+		switch serviceEnvironment {
 		case ServiceEnvironmentProduction:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
 		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
 		}
 	}
+
 	if s.CWSAPIURL == nil {
-		switch GetServiceEnvironment() {
+		switch serviceEnvironment {
 		case ServiceEnvironmentProduction:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
 		case ServiceEnvironmentTest, ServiceEnvironmentDev:
@@ -4376,6 +4381,10 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FakeSetting
 	}
 
+	for i := range o.SqlSettings.ReplicaLagSettings {
+		o.SqlSettings.ReplicaLagSettings[i].DataSource = NewString(FakeSetting)
+	}
+
 	if o.MessageExportSettings.GlobalRelaySettings != nil &&
 		o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil &&
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
@@ -4507,9 +4516,8 @@ func isSafeLink(link *string) bool {
 			return true
 		} else if strings.HasPrefix(*link, "/") {
 			return true
-		} else {
-			return false
 		}
+		return false
 	}
 
 	return true

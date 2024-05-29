@@ -19,11 +19,16 @@ describe('Main menu', () => {
     });
 
     const verifyLink = (text, link) => {
+        cy.get('li.MenuItem').
+            contains(text).
+            scrollIntoView().
+
         // * Verify link opens in new tab
-        cy.get('a[href="' + link + '"]').scrollIntoView().should('have.attr', 'target', '_blank');
+            should('have.attr', 'target', '_blank').
 
         // * Verify link text matches correct href value
-        cy.get('a[href="' + link + '"]').contains(text);
+            should('have.attr', 'href').
+            and('contain', link);
     };
 
     it('MM-T909 Can switch to team', () => {

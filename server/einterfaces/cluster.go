@@ -29,4 +29,7 @@ type ClusterInterface interface {
 	QueryLogs(page, perPage int) (map[string][]string, *model.AppError)
 	GetPluginStatuses() (model.PluginStatuses, *model.AppError)
 	ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError
+	// WebConnCountForUser returns the number of active webconn connections
+	// for a given userID.
+	WebConnCountForUser(userID string) (int, *model.AppError)
 }

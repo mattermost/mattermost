@@ -3,30 +3,23 @@
 
 import classNames from 'classnames';
 import deepEqual from 'fast-deep-equal';
+import type {History} from 'history';
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import type {ClientConfig} from '@mattermost/types/config';
 import {ServiceEnvironment} from '@mattermost/types/config';
-import type {UserProfile} from '@mattermost/types/users';
 
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
-import {General} from 'mattermost-redux/constants';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUser, isCurrentUserSystemAdmin, checkIsFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {loadRecentlyUsedCustomEmojis} from 'actions/emoji_actions';
-import * as GlobalActions from 'actions/global_actions';
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
-import store from 'stores/redux_store';
 
 import AccessProblem from 'components/access_problem';
 import AnnouncementBarController from 'components/announcement_bar';
@@ -35,7 +28,6 @@ import {makeAsyncComponent} from 'components/async_load';
 import CloudEffects from 'components/cloud_effects';
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_renderer';
-import OpenPricingModalPost from 'components/custom_open_pricing_modal_post_renderer';
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
@@ -53,7 +45,7 @@ import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import Pluggable from 'plugins/pluggable';
 import A11yController from 'utils/a11y_controller';
-import {PageLoadContext, StoragePrefixes} from 'utils/constants';
+import {PageLoadContext} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
@@ -62,7 +54,8 @@ import * as Utils from 'utils/utils';
 
 import type {ProductComponent, PluginComponent} from 'types/store/plugins';
 
-import {applyLuxonDefaults} from './effects';
+import LuxonController from './luxon_controller';
+import PerformanceReporterController from './performance_reporter_controller';
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
 
@@ -134,12 +127,14 @@ function LoggedInRoute(props: LoggedInRouteProps) {
 const noop = () => {};
 
 export type Actions = {
-    getFirstAdminSetupComplete: () => Promise<ActionResult>;
     getProfiles: (page?: number, pageSize?: number, options?: Record<string, any>) => Promise<ActionResult>;
+    loadRecentlyUsedCustomEmojis: () => Promise<unknown>;
     migrateRecentEmojis: () => void;
-    loadConfigAndMe: () => Promise<ActionResult>;
+    loadConfigAndMe: () => Promise<{config?: Partial<ClientConfig>; isMeLoaded: boolean}>;
     registerCustomPostRenderer: (type: string, component: any, id: string) => Promise<ActionResult>;
     initializeProducts: () => Promise<unknown>;
+    handleLoginLogoutSignal: (e: StorageEvent) => unknown;
+    redirectToOnboardingOrDefaultTeam: (history: History) => unknown;
 }
 
 type Props = {
@@ -208,12 +203,9 @@ export default class Root extends React.PureComponent<Props, State> {
         };
 
         this.a11yController = new A11yController();
-
-        store.subscribe(() => applyLuxonDefaults(store.getState()));
     }
 
-    onConfigLoaded = () => {
-        const config = getConfig(store.getState());
+    onConfigLoaded = (config: Partial<ClientConfig>) => {
         const telemetryId = this.props.telemetryId;
 
         const rudderUrl = 'https://pdat.matterlytics.com';
@@ -231,7 +223,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (rudderKey !== '' && this.props.telemetryEnabled) {
             const rudderCfg: {setCookieDomain?: string} = {};
-            const siteURL = getConfig(store.getState()).SiteURL;
+            const siteURL = config.SiteURL;
             if (siteURL !== '') {
                 try {
                     rudderCfg.setCookieDomain = new URL(siteURL || '').hostname;
@@ -293,7 +285,7 @@ export default class Root extends React.PureComponent<Props, State> {
         });
 
         this.props.actions.migrateRecentEmojis();
-        store.dispatch(loadRecentlyUsedCustomEmojis());
+        this.props.actions.loadRecentlyUsedCustomEmojis();
 
         this.showLandingPageIfNecessary();
 
@@ -376,50 +368,6 @@ export default class Root extends React.PureComponent<Props, State> {
         }
     }
 
-    async redirectToOnboardingOrDefaultTeam() {
-        const storeState = store.getState();
-        const isUserAdmin = isCurrentUserSystemAdmin(storeState);
-        if (!isUserAdmin) {
-            GlobalActions.redirectUserToDefaultTeam();
-            return;
-        }
-
-        const teams = getActiveTeamsList(storeState);
-
-        const onboardingFlowEnabled = getIsOnboardingFlowEnabled(storeState);
-
-        if (teams.length > 0 || !onboardingFlowEnabled) {
-            GlobalActions.redirectUserToDefaultTeam();
-            return;
-        }
-
-        const firstAdminSetupComplete = await this.props.actions.getFirstAdminSetupComplete();
-        if (firstAdminSetupComplete?.data) {
-            GlobalActions.redirectUserToDefaultTeam();
-            return;
-        }
-
-        const profilesResult = await this.props.actions.getProfiles(0, General.PROFILE_CHUNK_SIZE, {roles: General.SYSTEM_ADMIN_ROLE});
-        if (profilesResult.error) {
-            GlobalActions.redirectUserToDefaultTeam();
-            return;
-        }
-        const currentUser = getCurrentUser(store.getState());
-        const adminProfiles = profilesResult.data.reduce(
-            (acc: Record<string, UserProfile>, curr: UserProfile) => {
-                acc[curr.id] = curr;
-                return acc;
-            },
-            {},
-        );
-        if (checkIsFirstAdmin(currentUser, adminProfiles)) {
-            this.props.history.push('/preparing-workspace');
-            return;
-        }
-
-        GlobalActions.redirectUserToDefaultTeam();
-    }
-
     captureUTMParams() {
         const qs = new URLSearchParams(window.location.search);
 
@@ -445,13 +393,15 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     initiateMeRequests = async () => {
-        const {data: isMeLoaded} = await this.props.actions.loadConfigAndMe();
+        const {config, isMeLoaded} = await this.props.actions.loadConfigAndMe();
 
         if (isMeLoaded && this.props.location.pathname === '/') {
-            this.redirectToOnboardingOrDefaultTeam();
+            this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history);
         }
 
-        this.onConfigLoaded();
+        if (config) {
+            this.onConfigLoaded(config);
+        }
     };
 
     componentDidMount() {
@@ -462,7 +412,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.initiateMeRequests();
 
         // See figma design on issue https://mattermost.atlassian.net/browse/MM-43649
-        this.props.actions.registerCustomPostRenderer('custom_up_notification', OpenPricingModalPost, 'upgrade_post_message_renderer');
         this.props.actions.registerCustomPostRenderer('custom_pl_notification', OpenPluginInstallPost, 'plugin_install_post_message_renderer');
 
         measurePageLoadTelemetry();
@@ -475,28 +424,7 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     handleLogoutLoginSignal = (e: StorageEvent) => {
-        // when one tab on a browser logs out, it sets __logout__ in localStorage to trigger other tabs to log out
-        const isNewLocalStorageEvent = (event: StorageEvent) => event.storageArea === localStorage && event.newValue;
-
-        if (e.key === StoragePrefixes.LOGOUT && isNewLocalStorageEvent(e)) {
-            console.log('detected logout from a different tab'); //eslint-disable-line no-console
-            GlobalActions.emitUserLoggedOutEvent('/', false, false);
-        }
-        if (e.key === StoragePrefixes.LOGIN && isNewLocalStorageEvent(e)) {
-            const isLoggedIn = getCurrentUser(store.getState());
-
-            // make sure this is not the same tab which sent login signal
-            // because another tabs will also send login signal after reloading
-            if (isLoggedIn) {
-                return;
-            }
-
-            // detected login from a different tab
-            function reloadOnFocus() {
-                location.reload();
-            }
-            window.addEventListener('focus', reloadOnFocus);
-        }
+        this.props.actions.handleLoginLogoutSignal(e);
     };
 
     setRootMeta = () => {
@@ -519,6 +447,8 @@ export default class Root extends React.PureComponent<Props, State> {
         return (
             <RootProvider>
                 <MobileViewWatcher/>
+                <LuxonController/>
+                <PerformanceReporterController/>
                 <Switch>
                     <Route
                         path={'/error'}
@@ -621,75 +551,77 @@ export default class Root extends React.PureComponent<Props, State> {
                         <GlobalHeader/>
                         <CloudEffects/>
                         <TeamSidebar/>
-                        <Switch>
-                            {this.props.products?.filter((product) => Boolean(product.publicComponent)).map((product) => (
-                                <Route
-                                    key={`${product.id}-public`}
-                                    path={`${product.baseURL}/public`}
-                                    render={(props) => {
-                                        return (
-                                            <Pluggable
-                                                pluggableName={'Product'}
-                                                subComponentName={'publicComponent'}
-                                                pluggableId={product.id}
-                                                css={{gridArea: 'center'}}
-                                                {...props}
-                                            />
-                                        );
-                                    }}
-                                />
-                            ))}
-                            {this.props.products?.map((product) => (
-                                <Route
-                                    key={product.id}
-                                    path={product.baseURL}
-                                    render={(props) => {
-                                        let pluggable = (
-                                            <Pluggable
-                                                pluggableName={'Product'}
-                                                subComponentName={'mainComponent'}
-                                                pluggableId={product.id}
-                                                webSocketClient={webSocketClient}
-                                                css={product.wrapped ? undefined : {gridArea: 'center'}}
-                                            />
-                                        );
-                                        if (product.wrapped) {
-                                            pluggable = (
-                                                <div className={classNames(['product-wrapper', {wide: !product.showTeamSidebar}])}>
-                                                    {pluggable}
-                                                </div>
+                        <div className='main-wrapper'>
+                            <Switch>
+                                {this.props.products?.filter((product) => Boolean(product.publicComponent)).map((product) => (
+                                    <Route
+                                        key={`${product.id}-public`}
+                                        path={`${product.baseURL}/public`}
+                                        render={(props) => {
+                                            return (
+                                                <Pluggable
+                                                    pluggableName={'Product'}
+                                                    subComponentName={'publicComponent'}
+                                                    pluggableId={product.id}
+                                                    css={{gridArea: 'center'}}
+                                                    {...props}
+                                                />
                                             );
-                                        }
-                                        return (
-                                            <LoggedIn {...props}>
-                                                {pluggable}
-                                            </LoggedIn>
-                                        );
-                                    }}
+                                        }}
+                                    />
+                                ))}
+                                {this.props.products?.map((product) => (
+                                    <Route
+                                        key={product.id}
+                                        path={product.baseURL}
+                                        render={(props) => {
+                                            let pluggable = (
+                                                <Pluggable
+                                                    pluggableName={'Product'}
+                                                    subComponentName={'mainComponent'}
+                                                    pluggableId={product.id}
+                                                    webSocketClient={webSocketClient}
+                                                    css={product.wrapped ? undefined : {gridArea: 'center'}}
+                                                />
+                                            );
+                                            if (product.wrapped) {
+                                                pluggable = (
+                                                    <div className={classNames(['product-wrapper', {wide: !product.showTeamSidebar}])}>
+                                                        {pluggable}
+                                                    </div>
+                                                );
+                                            }
+                                            return (
+                                                <LoggedIn {...props}>
+                                                    {pluggable}
+                                                </LoggedIn>
+                                            );
+                                        }}
+                                    />
+                                ))}
+                                {this.props.plugins?.map((plugin) => (
+                                    <Route
+                                        key={plugin.id}
+                                        path={'/plug/' + (plugin as any).route}
+                                        render={() => (
+                                            <Pluggable
+                                                pluggableName={'CustomRouteComponent'}
+                                                pluggableId={plugin.id}
+                                                css={{gridArea: 'center'}}
+                                            />
+                                        )}
+                                    />
+                                ))}
+                                <LoggedInRoute
+                                    theme={this.props.theme}
+                                    path={`/:team(${TEAM_NAME_PATH_PATTERN})`}
+                                    component={TeamController}
                                 />
-                            ))}
-                            {this.props.plugins?.map((plugin) => (
-                                <Route
-                                    key={plugin.id}
-                                    path={'/plug/' + (plugin as any).route}
-                                    render={() => (
-                                        <Pluggable
-                                            pluggableName={'CustomRouteComponent'}
-                                            pluggableId={plugin.id}
-                                            css={{gridArea: 'center'}}
-                                        />
-                                    )}
-                                />
-                            ))}
-                            <LoggedInRoute
-                                theme={this.props.theme}
-                                path={`/:team(${TEAM_NAME_PATH_PATTERN})`}
-                                component={TeamController}
-                            />
-                            <RootRedirect/>
-                        </Switch>
+                                <RootRedirect/>
+                            </Switch>
+                            <SidebarRight/>
+                        </div>
                         <Pluggable pluggableName='Global'/>
-                        <SidebarRight/>
                         <AppBar/>
                         <SidebarRightMenu/>
                     </CompassThemeProvider>

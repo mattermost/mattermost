@@ -3316,16 +3316,8 @@
     "translation": "建立與身分識別提供者連接的要求時發生錯誤。請聯繫系統管理員。"
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "對與身分識別提供者連接的要求編碼時發生錯誤。請聯繫系統管理員。"
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "由於沒有啟用加密，SAML 登入失敗。請聯繫系統管理員。"
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "找不到身份識別提供者公開憑證檔案。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3336,20 +3328,12 @@
     "translation": "由於身份識別提供者的回應未加密，SAML 登入失敗。請聯繫系統管理員。"
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "由於解碼身份識別提供者的回應時發生錯誤，SAML 登入失敗。請聯繫系統管理員。"
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "身份識別提供者的回應為空值"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "解析身份識別提供者的回應時發生錯誤。請聯繫系統管理員。"
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "驗證身份識別提供者的回應時發生錯誤。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -4460,10 +4444,6 @@
     "translation": "請輸入有效的電子郵件位址。"
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "密碼最短必須有{{.Min}}個字元。"
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母。"
   },
@@ -4954,10 +4934,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "超過大小限制。請檢查[最大分頁大小](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)。"
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "刪除團隊或頻道成員資格時錯誤"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5538,10 +5514,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "企業授權已過期，部份功能已被停用。請更新授權。"
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "更新授權"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -6420,10 +6392,6 @@
     "translation": "AD/LDAP 同步工作逾時。"
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "找不到叢集 API 端點。"
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " 檔案已附加。"
   },
@@ -7158,10 +7126,6 @@
   {
     "id": "api.command_channel_header.update_channel.max_length",
     "translation": "輸入的文本超出字數限制。頻道標題不得超過 {{.MaxLength}} 個字數。"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "缺少發送拖欠電子郵件的必要欄位。"
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",

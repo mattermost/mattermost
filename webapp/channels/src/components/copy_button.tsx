@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
 import {Tooltip} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import OverlayTrigger from 'components/overlay_trigger';
 
@@ -21,6 +21,8 @@ type Props = {
 };
 
 const CopyButton: React.FC<Props> = (props: Props) => {
+    const intl = useIntl();
+
     const [isCopied, setIsCopied] = useState(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -74,16 +76,16 @@ const CopyButton: React.FC<Props> = (props: Props) => {
             <span
                 className={spanClassName}
                 onClick={copyText}
+                aria-label={intl.formatMessage({id: getId(), defaultMessage: getDefaultMessage()})}
+                role='button'
             >
                 {!isCopied &&
                     <i
-                        role='button'
                         className='icon icon-content-copy'
                     />
                 }
                 {isCopied &&
                     <i
-                        role='button'
                         className='icon icon-check'
                     />
                 }

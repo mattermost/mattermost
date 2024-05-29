@@ -89,8 +89,8 @@ type Store interface {
 	PostPriority() PostPriorityStore
 	PostAcknowledgement() PostAcknowledgementStore
 	PostPersistentNotification() PostPersistentNotificationStore
-	TrueUpReview() TrueUpReviewStore
 	DesktopTokens() DesktopTokensStore
+	ChannelBookmark() ChannelBookmarkStore
 }
 
 type RetentionPolicyStore interface {
@@ -353,7 +353,7 @@ type PostStore interface {
 	Save(rctx request.CTX, post *model.Post) (*model.Post, error)
 	Update(rctx request.CTX, newPost *model.Post, oldPost *model.Post) (*model.Post, error)
 	Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error)
-	GetSingle(id string, inclDeleted bool) (*model.Post, error)
+	GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error)
 	Delete(rctx request.CTX, postID string, timestamp int64, deleteByID string) error
 	PermanentDeleteByUser(rctx request.CTX, userID string) error
 	PermanentDeleteByChannel(rctx request.CTX, channelID string) error
@@ -443,7 +443,7 @@ type UserStore interface {
 	GetEtagForProfiles(teamID string) string
 	UpdateFailedPasswordAttempts(userID string, attempts int) error
 	GetSystemAdminProfiles() (map[string]*model.User, error)
-	PermanentDelete(userID string) error
+	PermanentDelete(rctx request.CTX, userID string) error
 	AnalyticsActiveCount(timestamp int64, options model.UserCountOptions) (int64, error)
 	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error)
 	GetUnreadCount(userID string, isCRTEnabled bool) (int64, error)
@@ -496,6 +496,7 @@ type SessionStore interface {
 	Get(c request.CTX, sessionIDOrToken string) (*model.Session, error)
 	Save(c request.CTX, session *model.Session) (*model.Session, error)
 	GetSessions(c request.CTX, userID string) ([]*model.Session, error)
+	GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
@@ -1026,11 +1027,14 @@ type PostPersistentNotificationStore interface {
 	DeleteByChannel(channelIds []string) error
 	DeleteByTeam(teamIds []string) error
 }
-
-type TrueUpReviewStore interface {
-	GetTrueUpReviewStatus(dueDate int64) (*model.TrueUpReviewStatus, error)
-	CreateTrueUpReviewStatusRecord(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
-	Update(reviewStatus *model.TrueUpReviewStatus) (*model.TrueUpReviewStatus, error)
+type ChannelBookmarkStore interface {
+	ErrorIfBookmarkFileInfoAlreadyAttached(fileId string) error
+	Get(Id string, includeDeleted bool) (b *model.ChannelBookmarkWithFileInfo, err error)
+	Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (b *model.ChannelBookmarkWithFileInfo, err error)
+	Update(bookmark *model.ChannelBookmark) error
+	UpdateSortOrder(bookmarkId, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error)
+	Delete(bookmarkId string, deleteFile bool) error
+	GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

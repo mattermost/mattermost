@@ -18,10 +18,22 @@
 
     .sidebar--right & {
         padding-top: 12px;
+
+        .AutoHeight {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
     }
 
     .ThreadViewer & {
         padding-top: 12px;
+
+        .AutoHeight {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
     }
 
     .custom-textarea {
@@ -90,8 +102,8 @@
         justify-content: center;
         padding: 0;
         border: none;
-        background: transparent;
         border-radius: 4px;
+        background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         cursor: pointer;
         fill: currentColor;
@@ -157,8 +169,7 @@
         display: flex;
         flex-direction: column;
         padding: 0 24px;
-        font-size: 13px;
-        gap: 8px;
+        font-size: 12px;
 
         .help__text {
             text-align: right;
@@ -169,20 +180,18 @@
             }
         }
 
-        &--has-error {
-            padding: 6px 0 0;
-            color: var(--error-text);
-        }
-
+        .has-error,
         .post-error {
-            position: absolute;
-            top: 4px;
-            display: inline-block;
-            margin-bottom: 0;
-            font-size: 0.85em;
-            font-weight: normal;
+            margin: 4px 0 0 0;
+            color: var(--error-text);
+
+            label {
+                margin: 0;
+                color: var(--error-text);
+            }
         }
     }
+
 }
 
 @media screen and (max-width: 768px) {
@@ -190,9 +199,9 @@
         padding: 0;
 
         &__body {
+            border-radius: 0;
             border-right: none;
             border-left: none;
-            border-radius: 0;
 
             &:focus-visible,
             &:focus-within,
@@ -223,8 +232,8 @@
     overflow: hidden;
     height: 20px;
     margin-bottom: 5px;
-    font-size: 11px;
-    opacity: 0.7;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }

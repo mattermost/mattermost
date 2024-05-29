@@ -45,9 +45,6 @@ ifeq ($(BUILD_NUMBER),)
 	BUILD_NUMBER := dev
 endif
 
-# Ensure developer invocation and tests are anchored.
-MM_SERVER_PATH ?= $(ROOT)
-
 # Go test sum configuration
 GOTESTSUM_FORMAT ?= testname
 GOTESTSUM_JUNITFILE ?= report.xml
@@ -147,14 +144,15 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.24.0
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.7
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.8.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.27.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.2.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.1
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.3
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
+PLUGIN_PACKAGES += mattermost-plugin-ai-v0.6.3
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
@@ -284,7 +282,7 @@ else
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57.1
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
@@ -310,11 +308,11 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 
 store-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir channels/store --name ".*Store" --output channels/store/storetest/mocks --note 'Regenerate this file using `make store-mocks`.'
 
 telemetry-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir platform/services/telemetry --all --output platform/services/telemetry/mocks --note 'Regenerate this file using `make telemetry-mocks`.'
 
 store-layers: ## Generate layers for the store
@@ -329,42 +327,42 @@ new-migration: ## Creates a new migration. Run with make new-migration name=<>
 	$(GOBIN)/morph new script $(name) --driver postgres --dir channels/db/migrations --sequence
 
 filestore-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir platform/shared/filestore --all --output platform/shared/filestore/mocks --note 'Regenerate this file using `make filestore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
-	$(GOBIN)/mockery --dir $(BUILD_ENTERPRISE_DIR)/ldap --all --output $(BUILD_ENTERPRISE_DIR)/ldap/mocks --note 'Regenerate this file using `make ldap-mocks`.'
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+	$(GOBIN)/mockery --dir $(BUILD_ENTERPRISE_DIR)/ldap --all --inpackage --note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir ./public/plugin --name API --output ./public/plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOBIN)/mockery --dir ./public/plugin --name Hooks --output ./public/plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOBIN)/mockery --dir ./public/plugin --name Driver --output ./public/plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir einterfaces --all --output einterfaces/mocks --note 'Regenerate this file using `make einterfaces-mocks`.'
 
 searchengine-mocks: ## Creates mock files for searchengines.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir platform/services/searchengine --all --output platform/services/searchengine/mocks --note 'Regenerate this file using `make searchengine-mocks`.'
 
 sharedchannel-mocks: ## Creates mock files for shared channels.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir=./platform/services/sharedchannel --name=ServerIface --output=./platform/services/sharedchannel --inpackage --outpkg=sharedchannel --testonly --note 'Regenerate this file using `make sharedchannel-mocks`.'
 	$(GOBIN)/mockery --dir=./platform/services/sharedchannel --name=AppIface --output=./platform/services/sharedchannel --inpackage --outpkg=sharedchannel --testonly --note 'Regenerate this file using `make sharedchannel-mocks`.'
 
 misc-mocks: ## Creates mocks for misc interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir channels/utils --name LicenseValidatorIface --output channels/utils/mocks --note 'Regenerate this file using `make misc-mocks`.'
 
 email-mocks: ## Creates mocks for misc interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir channels/app/email --name ServiceInterface --output channels/app/email/mocks --note 'Regenerate this file using `make email-mocks`.'
 
 platform-mocks: ## Creates mocks for platform interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.32.2
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir channels/app/platform --name SuiteIFace --output channels/app/platform/mocks --note 'Regenerate this file using `make platform-mocks`.'
 
 mmctl-mocks: ## Creates mocks for mmctl
@@ -390,11 +388,11 @@ setup-go-work: ## Sets up your go.work file
 ifneq ($(IGNORE_GO_WORK_IF_EXISTS),true)
 	@echo "Creating a go.work file"
 	rm -f go.work
-	go work init
-	go work use .
-	go work use ./public
+	$(GO) work init
+	$(GO) work use .
+	$(GO) work use ./public
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	go work use ../../enterprise
+	$(GO) work use ../../enterprise
 endif
 endif
 
@@ -424,7 +422,6 @@ else
 	@echo Running only TE tests
 endif
 
-test-server-race: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-server-race: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server-race: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server-race: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
@@ -443,7 +440,6 @@ ifneq ($(IS_CI),true)
   endif
 endif
 
-test-server: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
@@ -458,7 +454,6 @@ ifneq ($(IS_CI),true)
   endif
 endif
 
-test-server-ee: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-server-ee: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server-ee: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server-ee: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
@@ -466,7 +461,6 @@ test-server-ee: check-prereqs-enterprise start-docker gotestsum ## Runs EE tests
 	@echo Running only EE tests
 	$(GOBIN)/gotestsum --packages="$(EE_PACKAGES)" -- $(GOFLAGS) -timeout=20m
 
-test-server-quick: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-server-quick: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server-quick: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server-quick: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
@@ -515,7 +509,6 @@ inject-test-data: # add test data to the local instance.
 	@echo Login with a regular account username=user-1 password=SampleUs@r-1
 	@echo ========================================================================
 
-test-mmctl-unit: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl-unit: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl-unit: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-unit: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
@@ -523,7 +516,6 @@ test-mmctl-unit: gotestsum
 	@echo Running mmctl unit tests
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
-test-mmctl-e2e: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl-e2e: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl-e2e: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-e2e: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
@@ -531,7 +523,6 @@ test-mmctl-e2e: gotestsum start-docker
 	@echo Running mmctl e2e tests
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
-test-mmctl: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
@@ -539,7 +530,6 @@ test-mmctl: gotestsum start-docker
 	@echo Running all mmctl tests
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
-test-mmctl-coverage: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl-coverage: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl-coverage: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-coverage: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
@@ -675,6 +665,21 @@ config-ldap: ## Configures LDAP.
 	@sed -i'' -e 's|"GroupDisplayNameAttribute": ".*"|"GroupDisplayNameAttribute": "cn"|g' ../config/config.json
 	@sed -i'' -e 's|"GroupIdAttribute": ".*"|"GroupIdAttribute": "entryUUID"|g' ../config/config.json
 
+config-saml: ## Configures SAML.
+	@echo Setting up configuration for local SAML with keycloak, please ensure your keycloak is running on http://localhost:8484
+
+	@cp build/docker/keycloak/keycloak.crt ../config/saml-idp.crt
+
+	@sed -i'' -e 's|"Verify": true|"Verify": false|g' ../config/config.json
+	@sed -i'' -e 's|"Encrypt": true|"Encrypt": false|g' ../config/config.json
+	@sed -i'' -e 's|"SignRequest": true|"SignRequest": false|g' ../config/config.json
+	@sed -i'' -e 's|"IdpURL": ".*"|"IdpURL": "http://localhost:8484/realms/mattermost/protocol/saml"|g' ../config/config.json
+	@sed -i'' -e 's|"IdpDescriptorURL": ".*"|"IdpDescriptorURL": "http://localhost:8484/realms/mattermost"|g' ../config/config.json
+	@sed -i'' -e 's|"IdpMetadataURL": ".*"|"IdpMetadataURL": "http://localhost:8484/realms/mattermost/protocol/saml/descriptor"|g' ../config/config.json
+	@sed -i'' -e 's|"ServiceProviderIdentifier": ".*"|"ServiceProviderIdentifier": "mattermost"|g' ../config/config.json
+	@sed -i'' -e 's|"AssertionConsumerServiceURL": ".*"|"AssertionConsumerServiceURL": "http://localhost:8065/login/sso/saml"|g' ../config/config.json
+	@sed -i'' -e 's|"IdpCertificateFile": ".*"|"IdpCertificateFile": "saml-idp.crt"|g' ../config/config.json
+
 config-reset: ## Resets the config/config.json file to the default production values.
 	@echo Resetting configuration to production default
 	rm -f config/config.json
@@ -734,10 +739,10 @@ endif
 
 vet: ## Run mattermost go vet specific checks
 	$(GO) install github.com/mattermost/mattermost-govet/v2@new
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry -errorAssertions ./...
-ifeq ($(BUILD_ENTERPRISE_READY),true)
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go ./...
+ ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal $(BUILD_ENTERPRISE_DIR)/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
 

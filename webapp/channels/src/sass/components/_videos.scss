@@ -6,8 +6,8 @@
         overflow: hidden;
         max-width: 480px;
         height: 360px;
-        margin-bottom: 8px;
         border-radius: 4px;
+        margin-bottom: 8px;
 
         iframe,
         video {
@@ -27,9 +27,9 @@
             left: 50%;
             width: 200px;
             height: 150px;
+            border-radius: 10px;
             margin: -75px 0 0 -100px;
             background-color: alpha-color($black, 0.5);
-            border-radius: 10px;
         }
     }
 
@@ -71,8 +71,8 @@
         position: relative;
         max-width: 480px;
         max-height: 350px;
-        margin-bottom: 8px;
         border-radius: 4px;
+        margin-bottom: 8px;
         -moz-force-broken-image-icon: 1;
         transition: all 0.1s linear;
 
