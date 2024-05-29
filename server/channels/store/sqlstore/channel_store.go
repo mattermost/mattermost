@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -2329,18 +2330,17 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 	query := s.getQueryBuilder().
 		Select(selectStr).
 		From("ChannelMembers").
-		Join("GroupMembers ON GroupMembers.UserId = ChannelMembers.UserId AND GroupMembers.DeleteAt = 0")
+		Join("GroupMembers ON GroupMembers.UserId = ChannelMembers.UserId AND GroupMembers.DeleteAt = 0").
+		Join("Users ON Users.Id = GroupMembers.UserId")
 
-	if includeTimezones {
-		query = query.Join("Users ON Users.Id = GroupMembers.UserId")
-	}
-
-	query = query.Where(sq.Eq{"ChannelMembers.ChannelId": channelID}).GroupBy("GroupMembers.GroupId")
+	query = query.Where(sq.Eq{"ChannelMembers.ChannelId": channelID}).Where("Users.DeleteAt = 0").GroupBy("GroupMembers.GroupId")
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
+	mlog.Debug("Hello")
+	mlog.Debug(queryString)
 
 	data := []*model.ChannelMemberCountByGroup{}
 	if err := s.DBXFromContext(ctx).Select(&data, queryString, args...); err != nil {
