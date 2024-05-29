@@ -30,6 +30,12 @@ on:
         type: boolean
         required: false
         default: false
+      SERVER:
+        type: choice
+        options:
+        - onprem
+        - cloud
+        default: onprem
       ENABLED_DOCKER_SERVICES:
         type: string
         required: false
@@ -150,16 +156,19 @@ jobs:
     runs-on: ubuntu-22.04
     needs:
       - update-initial-status
+    defaults:
+      run:
+        shell: bash
     outputs:
-      workers: "${{ steps.workers.outputs.workers }}"
+      workers: "${{ steps.generate.outputs.workers }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
-      - name: ci/generate-workers
-        id: workers
+      - name: ci/generate-build-variables
+        id: generate
         env:
           WORKERS: ${{ inputs.workers_number }}
         run: |
@@ -237,6 +246,7 @@ jobs:
     env:
       AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
+      SERVER: "${{ inputs.SERVER }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ inputs.TEST_FILTER }}"
@@ -322,12 +332,15 @@ jobs:
         if: "${{ inputs.enable_reporting }}"
         env:
           TYPE: "${{ inputs.REPORT_TYPE }}"
+          SERVER: "${{ inputs.SERVER }}"
           WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
           BRANCH: "${{ inputs.BRANCH }}"
           BUILD_ID: "${{ inputs.BUILD_ID }}"
           MM_ENV: "${{ inputs.MM_ENV }}"
           TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
           TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
+          CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
+          CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
         run: |
           make publish-report
 
