@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - server/build/Dockerfile.buildenv
+      - .github/workflows/build-server-image.yml
 
 jobs:
   build-image:
@@ -15,6 +16,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: buildenv/calculate-golang-version
+        working-directory: server/
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
 
