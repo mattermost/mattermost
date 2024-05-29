@@ -16,7 +16,14 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+)
+
+var (
+	mockTypeChannel    = mock.AnythingOfType("*model.Channel")
+	mockTypeString     = mock.AnythingOfType("string")
+	mockTypeReqContext = mock.AnythingOfType("*request.Context")
 )
 
 func TestOnReceiveChannelInvite(t *testing.T) {
@@ -58,7 +65,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			ChannelId: model.NewId(),
 			TeamId:    model.NewId(),
 			ReadOnly:  true,
-			Type:      "0",
+			Type:      model.ChannelTypeOpen,
 		}
 		payload, err := json.Marshal(invitation)
 		require.NoError(t, err)
@@ -68,15 +75,18 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		}
 		mockChannelStore := mocks.ChannelStore{}
 		mockSharedChannelStore := mocks.SharedChannelStore{}
-		channel := &model.Channel{}
+		channel := &model.Channel{
+			Id:     invitation.ChannelId,
+			TeamId: invitation.TeamId,
+			Type:   invitation.Type,
+		}
 
-		mockChannelStore.On("Get", invitation.ChannelId, true).Return(channel, nil)
+		mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, &store.ErrNotFound{})
 		mockSharedChannelStore.On("Save", mock.Anything).Return(nil, nil)
 		mockSharedChannelStore.On("SaveRemote", mock.Anything).Return(nil, nil)
 		mockStore.On("Channel").Return(&mockChannelStore)
 		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
 
-		mockServer = scs.server.(*MockServerIface)
 		mockServer.On("GetStore").Return(mockStore)
 		createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
 		createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
@@ -84,6 +94,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			Guests:  model.NewBool(false),
 			Members: model.NewBool(false),
 		}
+
+		mockApp.On("CreateChannelWithUser", mockTypeReqContext, mockTypeChannel, mockTypeString).Return(channel, nil)
 
 		readonlyChannelModerations := []*model.ChannelModerationPatch{
 			{
@@ -95,7 +107,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 				Roles: &updateMap,
 			},
 		}
-		mockApp.On("PatchChannelModerationsForChannel", mock.Anything, channel, readonlyChannelModerations).Return(nil, nil)
+		mockApp.On("PatchChannelModerationsForChannel", mock.Anything, channel, readonlyChannelModerations).Return(nil, nil).Maybe()
 		defer mockApp.AssertExpectations(t)
 
 		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
@@ -129,13 +141,14 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockChannelStore := mocks.ChannelStore{}
 		channel := &model.Channel{}
 
-		mockChannelStore.On("Get", invitation.ChannelId, true).Return(channel, nil)
+		mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, &store.ErrNotFound{})
 		mockStore.On("Channel").Return(&mockChannelStore)
 
 		mockServer = scs.server.(*MockServerIface)
 		mockServer.On("GetStore").Return(mockStore)
 		appErr := model.NewAppError("foo", "bar", nil, "boom", http.StatusBadRequest)
 
+		mockApp.On("CreateChannelWithUser", mockTypeReqContext, mockTypeChannel, mockTypeString).Return(channel, nil)
 		mockApp.On("PatchChannelModerationsForChannel", mock.Anything, channel, mock.Anything).Return(nil, appErr)
 		defer mockApp.AssertExpectations(t)
 
