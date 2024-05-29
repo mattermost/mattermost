@@ -858,7 +858,7 @@ export function channelMemberCountsByGroup(state: any = {}, action: AnyAction) {
         action.data.forEach((group: Group) => {
             memberCountsByGroup[group.id] = {
                 group_id: group.id,
-                channel_member_count: group.channel_member_count || 0,
+                channel_member_count: group.member_count || 0,
                 channel_member_timezones_count: group.channel_member_timezones_count || 0,
             };
         });
