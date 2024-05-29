@@ -161,11 +161,11 @@ const ProductMenu = (): JSX.Element => {
                         onClick={handleClick}
                         handleVisitConsoleClick={handleVisitConsoleClick}
                     />
-                    <Menu.Group>
+                    {/* <Menu.Group>
                         <Menu.StartTrial
                             id='startTrial'
                         />
-                    </Menu.Group>
+                    </Menu.Group> */}
                 </Menu>
             </MenuWrapper>
         </div>
