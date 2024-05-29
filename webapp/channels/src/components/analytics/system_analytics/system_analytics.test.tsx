@@ -3,14 +3,19 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import * as reactRedux from 'react-redux';
 
 import SystemAnalytics from 'components/analytics/system_analytics';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
+
 const StatTypes = Constants.StatTypes;
+
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+}));
 
 describe('components/analytics/system_analytics/system_analytics.tsx', () => {
     const baseProps = {
@@ -47,17 +52,14 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
         },
     };
 
-    test('should match snapshot, no data', () => {
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <SystemAnalytics {...baseProps}/>
-            </reactRedux.Provider>,
-        );
-        expect(wrapper).toMatchSnapshot();
+    test('no data', () => {
+        renderWithContext(<SystemAnalytics {...baseProps}/>, initialState, {useMockedStore: true});
+
+        expect(screen.getByTestId('totalPosts')).toHaveTextContent('Loading...');
+        expect(screen.queryByTestId('totalPostsLineChart')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot, with system data', () => {
+    test('system data', () => {
         const state = {
             ...initialState,
             entities: {
@@ -85,16 +87,14 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
                 },
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <SystemAnalytics {...baseProps}/>
-            </reactRedux.Provider>,
-        );
-        expect(wrapper).toMatchSnapshot();
+
+        renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
+
+        expect(screen.getByTestId('totalPosts')).toHaveTextContent('45');
+        expect(screen.getByTestId('totalPostsLineChart')).toBeInTheDocument();
     });
 
-    test('should match snapshot, with plugins data', async () => {
+    test('plugins data', async () => {
         const totalPlaybooksID = 'total_playbooks';
         const totalPlaybookRunsID = 'total_playbook_runs';
         const playbooksStats = {
@@ -228,15 +228,20 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
                 },
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <SystemAnalytics {...baseProps}/>
-            </reactRedux.Provider>,
-        );
+
+        renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
         await new Promise(process.nextTick);
-        wrapper.update();
-        expect(wrapper).toMatchSnapshot();
+
+        expect(screen.getByTestId('totalPosts')).toHaveTextContent('45');
+        expect(screen.getByTestId('totalPostsLineChart')).toBeInTheDocument();
+        expect(screen.getByTestId('com.mattermost.playbooks.playbook_count')).toHaveTextContent('45');
+        expect(screen.getByTestId('com.mattermost.playbooks.playbook_run_count')).toHaveTextContent('45');
+
+        expect(screen.getByTestId('com.mattermost.calls.calls_count')).toHaveTextContent('1000');
+        expect(screen.getByTestId('com.mattermost.calls.calls_sessions_count')).toHaveTextContent('10000');
+
+        expect(screen.getByText('Calls per channel')).toBeInTheDocument();
+        expect(screen.getByText('Calls per day')).toBeInTheDocument();
     });
 });

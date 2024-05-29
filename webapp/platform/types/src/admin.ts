@@ -125,7 +125,7 @@ export type PluginAnalyticsRow = {
     name: React.ReactNode;
     icon?: string;
     value: any;
-    visualizationType: AnalyticsVisualizationType;
+    visualizationType?: AnalyticsVisualizationType;
 };
 
 export type SchemaMigration = {
