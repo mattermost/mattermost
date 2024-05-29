@@ -48,6 +48,7 @@ function preRenderSetup(callwhendone: () => void) {
         );
     };
     setCSRFFromCookie();
+
     callwhendone();
 }
 
@@ -59,22 +60,18 @@ function renderRootComponent() {
 }
 
 /**
- * Adds a function to be invoked onload appended to any existing onload
- * event handlers.
+ * Adds a function to be invoked when the DOM content is loaded.
  */
-function appendOnLoadEvent(fn: (evt: Event) => void) {
-    if (window.onload) {
-        const curronload = window.onload;
-        window.onload = (evt) => {
-            (curronload as any)(evt);
-            fn(evt);
-        };
+function appendOnDOMContentLoadedEvent(fn: (evt: Event) => void) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn);
     } else {
-        window.onload = fn;
+        // If the DOM is already loaded, call the function immediately
+        fn(new Event('DOMContentLoaded'));
     }
 }
 
-appendOnLoadEvent(() => {
+appendOnDOMContentLoadedEvent(() => {
     // Do the pre-render setup and call renderRootComponent when done
     preRenderSetup(renderRootComponent);
 });
