@@ -20,6 +20,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
+var (
+	mockTypeChannel    = mock.AnythingOfType("*model.Channel")
+	mockTypeString     = mock.AnythingOfType("string")
+	mockTypeReqContext = mock.AnythingOfType("*request.Context")
+)
+
 func TestOnReceiveChannelInvite(t *testing.T) {
 	t.Run("when msg payload is empty, it does nothing", func(t *testing.T) {
 		mockServer := &MockServerIface{}
@@ -75,13 +81,12 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			Type:   invitation.Type,
 		}
 
-		mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, store.ErrNotFound{})
+		mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, &store.ErrNotFound{})
 		mockSharedChannelStore.On("Save", mock.Anything).Return(nil, nil)
 		mockSharedChannelStore.On("SaveRemote", mock.Anything).Return(nil, nil)
 		mockStore.On("Channel").Return(&mockChannelStore)
 		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
 
-		mockServer = scs.server.(*MockServerIface)
 		mockServer.On("GetStore").Return(mockStore)
 		createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
 		createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
@@ -89,6 +94,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			Guests:  model.NewBool(false),
 			Members: model.NewBool(false),
 		}
+
+		mockApp.On("CreateChannelWithUser", mockTypeReqContext, mockTypeChannel, mockTypeString).Return(channel, nil)
 
 		readonlyChannelModerations := []*model.ChannelModerationPatch{
 			{
@@ -134,13 +141,14 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockChannelStore := mocks.ChannelStore{}
 		channel := &model.Channel{}
 
-		mockChannelStore.On("Get", invitation.ChannelId, true).Return(channel, nil)
+		mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, &store.ErrNotFound{})
 		mockStore.On("Channel").Return(&mockChannelStore)
 
 		mockServer = scs.server.(*MockServerIface)
 		mockServer.On("GetStore").Return(mockStore)
 		appErr := model.NewAppError("foo", "bar", nil, "boom", http.StatusBadRequest)
 
+		mockApp.On("CreateChannelWithUser", mockTypeReqContext, mockTypeChannel, mockTypeString).Return(channel, nil)
 		mockApp.On("PatchChannelModerationsForChannel", mock.Anything, channel, mock.Anything).Return(nil, appErr)
 		defer mockApp.AssertExpectations(t)
 
