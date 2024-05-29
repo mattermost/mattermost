@@ -4,16 +4,12 @@
 import cn from 'classnames';
 import React from 'react';
 import type {ComponentProps} from 'react';
-import {FormattedMessage} from 'react-intl';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
 
-import OverlayTrigger from 'components/overlay_trigger';
 import Timestamp from 'components/timestamp';
-import Tooltip from 'components/tooltip';
 import Tag from 'components/widgets/tag/tag';
-
-import Constants from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 import './panel_header.scss';
 
@@ -47,15 +43,6 @@ function PanelHeader({
     remote,
     title,
 }: Props) {
-    const syncTooltip = (
-        <Tooltip id='drafts-sync-tooltip'>
-            <FormattedMessage
-                id='drafts.info.sync'
-                defaultMessage='Updated from another device'
-            />
-        </Tooltip>
-    );
-
     return (
         <header className='PanelHeader'>
             <div className='PanelHeader__left'>
@@ -67,16 +54,18 @@ function PanelHeader({
                 </div>
                 <div className={cn('PanelHeader__info', {hide: hover})}>
                     {remote && <div className='PanelHeader__sync-icon'>
-                        <OverlayTrigger
-                            trigger={Constants.OVERLAY_DEFAULT_TRIGGER}
-                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                        <WithTooltip
+                            id='drafts-sync-tooltip'
                             placement='top'
-                            overlay={syncTooltip}
+                            title={{
+                                defaultMessage: 'Updated from another device',
+                                id: 'drafts.info.sync',
+                            }}
                         >
                             <SyncIcon
                                 size={18}
                             />
-                        </OverlayTrigger>
+                        </WithTooltip>
                     </div>}
                     <div className='PanelHeader__timestamp'>
                         {Boolean(timestamp) && (
