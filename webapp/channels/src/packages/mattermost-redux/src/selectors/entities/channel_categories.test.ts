@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
 import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Preferences} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {MarkUnread} from 'mattermost-redux/constants/channels';
-
-import mergeObjects from '../../../test/merge_objects';
-
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-import TestHelper from '../../../test/test_helper';
 
 import * as Selectors from './channel_categories';
+
+import mergeObjects from '../../../test/merge_objects';
+import TestHelper from '../../../test/test_helper';
 
 const ch = TestHelper.getChannelMock;
 

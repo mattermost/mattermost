@@ -4,15 +4,16 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {DeepPartial} from '@mattermost/types/utilities';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Preferences} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
-import type {GlobalState} from 'types/store';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import Sidebar from './sidebar';
 
@@ -140,7 +141,7 @@ describe('components/sidebar', () => {
                         channel2,
                     },
                     channelsInTeam: {
-                        [currentTeamId]: [channel1.id, channel2.id],
+                        [currentTeamId]: new Set([channel1.id, channel2.id]),
                     },
                     messageCounts: {
                         channel1: {total: 10},
@@ -164,7 +165,7 @@ describe('components/sidebar', () => {
         };
 
         test('should not render unreads category when disabled by user preference', () => {
-            const testState = mergeObjects(baseState, {
+            const testState = {
                 entities: {
                     channels: {
                         messageCounts: {
@@ -177,9 +178,9 @@ describe('components/sidebar', () => {
                         ]),
                     },
                 },
-            });
+            };
 
-            renderWithFullContext(
+            renderWithContext(
                 <Sidebar {...baseProps}/>,
                 mergeObjects(baseState, testState),
             );
@@ -203,7 +204,7 @@ describe('components/sidebar', () => {
                 },
             };
 
-            renderWithFullContext(
+            renderWithContext(
                 <Sidebar {...baseProps}/>,
                 mergeObjects(baseState, testState),
             );
@@ -222,7 +223,7 @@ describe('components/sidebar', () => {
                 },
             };
 
-            renderWithFullContext(
+            renderWithContext(
                 <Sidebar {...baseProps}/>,
                 mergeObjects(baseState, testState),
             );
@@ -241,12 +242,12 @@ describe('components/sidebar', () => {
                 },
                 views: {
                     channel: {
-                        lastUnreadChannel: {id: channel1.id},
+                        lastUnreadChannel: {id: channel1.id} as any,
                     },
                 },
             };
 
-            renderWithFullContext(
+            renderWithContext(
                 <Sidebar {...baseProps}/>,
                 mergeObjects(baseState, testState),
             );

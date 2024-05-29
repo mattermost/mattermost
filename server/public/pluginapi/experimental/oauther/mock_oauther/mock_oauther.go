@@ -5,9 +5,10 @@
 package mock_oauther
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	oauth2 "golang.org/x/oauth2"
-	reflect "reflect"
 )
 
 // MockOAuther is a mock of OAuther interface

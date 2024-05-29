@@ -22,10 +22,10 @@ func TestAvailablePlugins(t *testing.T) {
 		os.RemoveAll(dir)
 	})
 
-	testLogger, _ := mlog.NewLogger()
+	logger := mlog.CreateConsoleTestLogger(t)
 	env := Environment{
 		pluginDir: dir,
-		logger:    testLogger,
+		logger:    logger,
 	}
 
 	t.Run("Should be able to load available plugins", func(t *testing.T) {

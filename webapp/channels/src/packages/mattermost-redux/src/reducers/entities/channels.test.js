@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {ChannelTypes, UserTypes, PostTypes, AdminTypes} from 'mattermost-redux/action_types';
+import {General, Permissions} from 'mattermost-redux/constants';
 import TestHelper from 'mattermost-redux/test/test_helper';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
-
-import {General, Permissions} from 'mattermost-redux/constants';
 
 import channelsReducer, * as Reducers from './channels';
 
@@ -133,116 +132,6 @@ describe('channels', () => {
 
             expect(nextState).not.toBe(state);
             expect(nextState.stats.channel1.files_count).toEqual(4);
-        });
-    });
-
-    describe('UPDATE_CHANNEL_HEADER', () => {
-        test('should update channel header', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        header: 'old',
-                    },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
-
-            const nextState = channelsReducer(state, {
-                type: ChannelTypes.UPDATE_CHANNEL_HEADER,
-                data: {
-                    channelId: 'channel1',
-                    header: 'new',
-                },
-            });
-
-            expect(nextState).not.toBe(state);
-            expect(nextState.channels.channel1).toEqual({
-                id: 'channel1',
-                header: 'new',
-            });
-            expect(nextState.channels.channel2).toBe(state.channels.channel2);
-        });
-
-        test('should do nothing for a channel that is not loaded', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        header: 'old',
-                    },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
-
-            const nextState = channelsReducer(state, {
-                type: ChannelTypes.UPDATE_CHANNEL_HEADER,
-                data: {
-                    channelId: 'channel3',
-                    header: 'new',
-                },
-            });
-
-            expect(nextState).toBe(state);
-        });
-    });
-
-    describe('UPDATE_CHANNEL_PURPOSE', () => {
-        test('should update channel purpose', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        purpose: 'old',
-                    },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
-
-            const nextState = channelsReducer(state, {
-                type: ChannelTypes.UPDATE_CHANNEL_PURPOSE,
-                data: {
-                    channelId: 'channel1',
-                    purpose: 'new',
-                },
-            });
-
-            expect(nextState).not.toBe(state);
-            expect(nextState.channels.channel1).toEqual({
-                id: 'channel1',
-                purpose: 'new',
-            });
-            expect(nextState.channels.channel2).toBe(state.channels.channel2);
-        });
-
-        test('should do nothing for a channel that is not loaded', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        header: 'old',
-                    },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
-
-            const nextState = channelsReducer(state, {
-                type: ChannelTypes.UPDATE_CHANNEL_PURPOSE,
-                data: {
-                    channelId: 'channel3',
-                    purpose: 'new',
-                },
-            });
-
-            expect(nextState).toBe(state);
         });
     });
 

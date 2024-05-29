@@ -71,7 +71,7 @@
             default: 0
         - name: per_page
           in: query
-          description: The number of users per page. There is a maximum limit of 200 users
+          description: The number of users per page.
             per page.
           schema:
             type: integer

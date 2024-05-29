@@ -1,0 +1,75 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/SettingItemMin should match snapshot 1`] = `
+<div
+  className="section-min"
+  onClick={[Function]}
+>
+  <div
+    className="secion-min__header"
+  >
+    <h4
+      className="section-min__title"
+      id="sectionTitle"
+    >
+      title
+    </h4>
+    <button
+      aria-expanded={false}
+      aria-labelledby="sectionTitle sectionEdit"
+      className="color--link style--none section-min__edit"
+      id="sectionEdit"
+      onClick={[Function]}
+    >
+      <EditIcon />
+      <MemoizedFormattedMessage
+        defaultMessage="Edit"
+        id="setting_item_min.edit"
+      />
+    </button>
+  </div>
+  <div
+    className="section-min__describe"
+    id="sectionDesc"
+  >
+    describe
+  </div>
+</div>
+`;
+
+exports[`components/SettingItemMin should match snapshot, on disableOpen to true 1`] = `
+<div
+  className="section-min"
+  onClick={[Function]}
+>
+  <div
+    className="secion-min__header"
+  >
+    <h4
+      className="section-min__title"
+      id="sectionTitle"
+    >
+      title
+    </h4>
+    <button
+      aria-expanded={false}
+      aria-labelledby="sectionTitle sectionEdit"
+      className="color--link style--none section-min__edit"
+      id="sectionEdit"
+      onClick={[Function]}
+    >
+      <EditIcon />
+      <MemoizedFormattedMessage
+        defaultMessage="Edit"
+        id="setting_item_min.edit"
+      />
+    </button>
+  </div>
+  <div
+    className="section-min__describe"
+    id="sectionDesc"
+  >
+    describe
+  </div>
+</div>
+`;

@@ -4,27 +4,27 @@
 import React, {memo, useCallback, useMemo, useEffect} from 'react';
 import {useDispatch} from 'react-redux';
 
-import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import type {Post} from '@mattermost/types/posts';
-
-import type {PostDraft} from 'types/store/draft';
+import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getPost} from 'mattermost-redux/actions/posts';
 
-import {selectPost} from 'actions/views/rhs';
-import {removeDraft} from 'actions/views/drafts';
 import {makeOnSubmit} from 'actions/views/create_comment';
+import {removeDraft} from 'actions/views/drafts';
+import {selectPost} from 'actions/views/rhs';
 
-import DraftTitle from '../draft_title';
+import type {PostDraft} from 'types/store/draft';
+
 import DraftActions from '../draft_actions';
+import DraftTitle from '../draft_title';
 import Panel from '../panel/panel';
-import Header from '../panel/panel_header';
 import PanelBody from '../panel/panel_body';
+import Header from '../panel/panel_header';
 
 type Props = {
-    channel: Channel;
+    channel?: Channel;
     displayName: string;
     draftId: string;
     rootId: UserThread['id'] | UserThreadSynthetic['id'];
@@ -57,29 +57,29 @@ function ThreadDraft({
     }, [thread?.id]);
 
     const onSubmit = useMemo(() => {
-        if (thread) {
-            return makeOnSubmit(channel.id, thread.id, '');
+        if (thread?.id) {
+            return makeOnSubmit(value.channelId, thread.id, '');
         }
 
         return () => Promise.resolve({data: true});
-    }, [channel.id, thread?.id]);
+    }, [value.channelId, thread?.id]);
 
     const handleOnDelete = useCallback((id: string) => {
-        dispatch(removeDraft(id, channel.id, rootId));
-    }, [channel.id, rootId]);
+        dispatch(removeDraft(id, value.channelId, rootId));
+    }, [value.channelId, rootId, dispatch]);
 
     const handleOnEdit = useCallback(() => {
-        dispatch(selectPost({id: rootId, channel_id: channel.id} as Post));
-    }, [channel]);
+        dispatch(selectPost({id: rootId, channel_id: value.channelId} as Post));
+    }, [value.channelId, dispatch, rootId]);
 
     const handleOnSend = useCallback(async (id: string) => {
         await dispatch(onSubmit(value));
 
         handleOnDelete(id);
         handleOnEdit();
-    }, [value, onSubmit]);
+    }, [value, onSubmit, dispatch, handleOnDelete, handleOnEdit]);
 
-    if (!thread) {
+    if (!thread || !channel) {
         return null;
     }
 

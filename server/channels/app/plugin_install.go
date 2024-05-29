@@ -140,7 +140,7 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 		defer signature.Close()
 
 		if err := ch.verifyPlugin(bundle, signature); err != nil {
-			mlog.Error("Failed to validate plugin signature.", mlog.Err(appErr))
+			logger.Error("Failed to validate plugin signature.", mlog.Err(appErr))
 			return
 		}
 	}
@@ -289,7 +289,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
 	}
 
-	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace && !ch.cfgSvc.Config().FeatureFlags.StreamlinedMarketplace {
+	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace {
 		var plugin *model.BaseMarketplacePlugin
 		plugin, appErr = ch.getRemoteMarketplacePlugin(request.Id, request.Version)
 		// The plugin might only be prepackaged and not on the Marketplace.

@@ -4,14 +4,15 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
-import ExternalLink from '../external_link';
 
-import webMarketplaceBannerBackground from 'images/marketplace-notice-background.jpg';
+import {ArrowRightIcon} from '@mattermost/compass-icons/components';
+
 import pluginIconConfluence from 'images/icons/confluence.svg';
 import pluginIconGiphy from 'images/icons/giphy.svg';
 import pluginIconPagerDuty from 'images/icons/pager-duty.svg';
+import webMarketplaceBannerBackground from 'images/marketplace-notice-background.jpg';
 
-import {ArrowRightIcon} from '@mattermost/compass-icons/components';
+import ExternalLink from '../external_link';
 
 const WEB_MARKETPLACE_LINK = 'https://mattermost.com/marketplace';
 
@@ -25,11 +26,11 @@ const WebMarketplaceBanner = () => {
                 location='marketplace_modal'
             >
                 <Title>
-                    {formatMessage({id: 'marketplace_modal.web_marketplace_link.title', defaultMessage: 'Explore Community Integrations'})}
+                    {formatMessage({id: 'marketplace_modal.web_marketplace_link.title', defaultMessage: 'Discover community integrations'})}
                     <ArrowRightIcon size={24}/>
                 </Title>
                 <Description>
-                    {formatMessage({id: 'marketplace_modal.web_marketplace_link.desc', defaultMessage: 'We have dozens of community integrations available. So definitely do check them out!'})}
+                    {formatMessage({id: 'marketplace_modal.web_marketplace_link.desc', defaultMessage: 'Connect the tools you use most to Mattermost'})}
                 </Description>
                 <IconsContainer>
                     <PluginIcon src={pluginIconConfluence}/>

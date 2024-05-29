@@ -15,6 +15,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	sqlUtils "github.com/mattermost/mattermost/server/public/utils/sql"
+
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/go-sql-driver/mysql"
@@ -44,7 +46,6 @@ const (
 	PGDuplicateObjectErrorCode        = "42710"
 	MySQLDuplicateObjectErrorCode     = 1022
 	DBPingAttempts                    = 5
-	DBPingTimeoutSecs                 = 10
 	// This is a numerical version string by postgres. The format is
 	// 2 characters for major, minor, and patch version prior to 10.
 	// After 10, it's major and minor only.
@@ -52,7 +53,7 @@ const (
 	// 9.6.3 would be 90603.
 	minimumRequiredPostgresVersion = 110000
 	// major*1000 + minor*100 + patch
-	minimumRequiredMySQLVersion = 5712
+	minimumRequiredMySQLVersion = 8000
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
@@ -78,6 +79,7 @@ type SqlStoreStores struct {
 	compliance                 store.ComplianceStore
 	session                    store.SessionStore
 	oauth                      store.OAuthStore
+	outgoingOAuthConnection    store.OutgoingOAuthConnectionStore
 	system                     store.SystemStore
 	webhook                    store.WebhookStore
 	command                    store.CommandStore
@@ -107,7 +109,8 @@ type SqlStoreStores struct {
 	postPriority               store.PostPriorityStore
 	postAcknowledgement        store.PostAcknowledgementStore
 	postPersistentNotification store.PostPersistentNotificationStore
-	trueUpReview               store.TrueUpReviewStore
+	desktopTokens              store.DesktopTokensStore
+	channelBookmarks           store.ChannelBookmarkStore
 }
 
 type SqlStore struct {
@@ -129,6 +132,7 @@ type SqlStore struct {
 	context           context.Context
 	license           *model.License
 	licenseMutex      sync.RWMutex
+	logger            mlog.LoggerIFace
 	metrics           einterfaces.MetricsInterface
 
 	isBinaryParam             bool
@@ -138,12 +142,13 @@ type SqlStore struct {
 	wgMonitor   *sync.WaitGroup
 }
 
-func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) (*SqlStore, error) {
+func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface) (*SqlStore, error) {
 	store := &SqlStore{
 		rrCounter:   0,
 		srCounter:   0,
 		settings:    &settings,
 		metrics:     metrics,
+		logger:      logger,
 		quitMonitor: make(chan struct{}),
 		wgMonitor:   &sync.WaitGroup{},
 	}
@@ -198,6 +203,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) (*Sql
 	store.stores.compliance = newSqlComplianceStore(store)
 	store.stores.session = newSqlSessionStore(store)
 	store.stores.oauth = newSqlOAuthStore(store)
+	store.stores.outgoingOAuthConnection = newSqlOutgoingOAuthConnectionStore(store)
 	store.stores.system = newSqlSystemStore(store)
 	store.stores.webhook = newSqlWebhookStore(store, metrics)
 	store.stores.command = newSqlCommandStore(store)
@@ -228,57 +234,12 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) (*Sql
 	store.stores.postPriority = newSqlPostPriorityStore(store)
 	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
-	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
+	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
+	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store, nil
-}
-
-// SetupConnection sets up the connection to the database and pings it to make sure it's alive.
-// It also applies any database configuration settings that are required.
-func SetupConnection(connType string, dataSource string, settings *model.SqlSettings, attempts int) (*dbsql.DB, error) {
-	db, err := dbsql.Open(*settings.DriverName, dataSource)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to open SQL connection")
-	}
-
-	for i := 0; i < attempts; i++ {
-		// At this point, we have passed sql.Open, so we deliberately ignore any errors.
-		sanitized, _ := SanitizeDataSource(*settings.DriverName, dataSource)
-		mlog.Info("Pinging SQL", mlog.String("database", connType), mlog.String("dataSource", sanitized))
-		ctx, cancel := context.WithTimeout(context.Background(), DBPingTimeoutSecs*time.Second)
-		defer cancel()
-		err = db.PingContext(ctx)
-		if err != nil {
-			if i == attempts-1 {
-				return nil, err
-			}
-			mlog.Error("Failed to ping DB", mlog.Err(err), mlog.Int("retrying in seconds", DBPingTimeoutSecs))
-			time.Sleep(DBPingTimeoutSecs * time.Second)
-			continue
-		}
-		break
-	}
-
-	if strings.HasPrefix(connType, replicaLagPrefix) {
-		// If this is a replica lag connection, we just open one connection.
-		//
-		// Arguably, if the query doesn't require a special credential, it does take up
-		// one extra connection from the replica DB. But falling back to the replica
-		// data source when the replica lag data source is null implies an ordering constraint
-		// which makes things brittle and is not a good design.
-		// If connections are an overhead, it is advised to use a connection pool.
-		db.SetMaxOpenConns(1)
-		db.SetMaxIdleConns(1)
-	} else {
-		db.SetMaxIdleConns(*settings.MaxIdleConns)
-		db.SetMaxOpenConns(*settings.MaxOpenConns)
-	}
-	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
-	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
-
-	return db, nil
 }
 
 func (ss *SqlStore) SetContext(context context.Context) {
@@ -287,6 +248,10 @@ func (ss *SqlStore) SetContext(context context.Context) {
 
 func (ss *SqlStore) Context() context.Context {
 	return ss.context
+}
+
+func (ss *SqlStore) Logger() mlog.LoggerIFace {
+	return ss.logger
 }
 
 func noOpMapper(s string) string { return s }
@@ -298,13 +263,13 @@ func (ss *SqlStore) initConnection() error {
 		// covers that already. Ideally we'd like to do this only for the upgrade
 		// step. To be reviewed in MM-35789.
 		var err error
-		dataSource, err = ResetReadTimeout(dataSource)
+		dataSource, err = sqlUtils.ResetReadTimeout(dataSource)
 		if err != nil {
 			return errors.Wrap(err, "failed to reset read timeout from datasource")
 		}
 	}
 
-	handle, err := SetupConnection("master", dataSource, ss.settings, DBPingAttempts)
+	handle, err := sqlUtils.SetupConnection(ss.Logger(), "master", dataSource, ss.settings, DBPingAttempts)
 	if err != nil {
 		return err
 	}
@@ -322,7 +287,7 @@ func (ss *SqlStore) initConnection() error {
 		ss.ReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
 			ss.ReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err = SetupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings, DBPingAttempts)
+			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("replica-%v", i), replica, ss.settings, DBPingAttempts)
 			if err != nil {
 				// Initializing to be offline
 				ss.ReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
@@ -337,7 +302,7 @@ func (ss *SqlStore) initConnection() error {
 		ss.searchReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			ss.searchReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err = SetupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBPingAttempts)
+			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBPingAttempts)
 			if err != nil {
 				// Initializing to be offline
 				ss.searchReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
@@ -354,7 +319,7 @@ func (ss *SqlStore) initConnection() error {
 			if src.DataSource == nil {
 				continue
 			}
-			ss.replicaLagHandles[i], err = SetupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBPingAttempts)
+			ss.replicaLagHandles[i], err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBPingAttempts)
 			if err != nil {
 				mlog.Warn("Failed to setup replica lag handle. Skipping..", mlog.String("db", fmt.Sprintf(replicaLagPrefix+"-%d", i)), mlog.Err(err))
 				continue
@@ -438,7 +403,6 @@ func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 	}
 
 	return version, nil
-
 }
 
 func (ss *SqlStore) GetMasterX() *sqlxDBWrapper {
@@ -510,7 +474,7 @@ func (ss *SqlStore) monitorReplicas() {
 					return
 				}
 
-				handle, err := SetupConnection(name, dsn, ss.settings, 1)
+				handle, err := sqlUtils.SetupConnection(ss.Logger(), name, dsn, ss.settings, 1)
 				if err != nil {
 					mlog.Warn("Failed to setup connection. Skipping..", mlog.String("db", name), mlog.Err(err))
 					return
@@ -652,7 +616,6 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 		}
 
 		return count > 0
-
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		var count int64
 		err := ss.GetMasterX().Get(&count,
@@ -672,11 +635,9 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 		}
 
 		return count > 0
-
-	} else {
-		mlog.Fatal("Failed to check if column exists because of missing driver")
-		return false
 	}
+	mlog.Fatal("Failed to check if column exists because of missing driver")
+	return false
 }
 
 func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
@@ -701,7 +662,6 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		}
 
 		return count > 0
-
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		var count int64
 		err := ss.GetMasterX().Get(&count,
@@ -722,11 +682,9 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		}
 
 		return count > 0
-
-	} else {
-		mlog.Fatal("Failed to check if column exists because of missing driver")
-		return false
 	}
+	mlog.Fatal("Failed to check if column exists because of missing driver")
+	return false
 }
 
 func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
@@ -746,7 +704,6 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 		}
 
 		return count > 0
-
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		var count int64
 		err := ss.GetMasterX().Get(&count, `
@@ -764,15 +721,12 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 		}
 
 		return count > 0
-
-	} else {
-		mlog.Fatal("Failed to check if column exists because of missing driver")
-		return false
 	}
+	mlog.Fatal("Failed to check if column exists because of missing driver")
+	return false
 }
 
 func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string) bool {
-
 	if ss.DoesColumnExist(tableName, columnName) {
 		return false
 	}
@@ -784,7 +738,6 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 		}
 
 		return true
-
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		_, err := ss.GetMasterX().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
@@ -792,11 +745,9 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 		}
 
 		return true
-
-	} else {
-		mlog.Fatal("Failed to create column because of missing driver")
-		return false
 	}
+	mlog.Fatal("Failed to create column because of missing driver")
+	return false
 }
 
 func (ss *SqlStore) RemoveTableIfExists(tableName string) bool {
@@ -956,6 +907,10 @@ func (ss *SqlStore) OAuth() store.OAuthStore {
 	return ss.stores.oauth
 }
 
+func (ss *SqlStore) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
+	return ss.stores.outgoingOAuthConnection
+}
+
 func (ss *SqlStore) System() store.SystemStore {
 	return ss.stores.system
 }
@@ -1076,8 +1031,12 @@ func (ss *SqlStore) PostPersistentNotification() store.PostPersistentNotificatio
 	return ss.stores.postPersistentNotification
 }
 
-func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
-	return ss.stores.trueUpReview
+func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
+	return ss.stores.desktopTokens
+}
+
+func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
+	return ss.stores.channelBookmarks
 }
 
 func (ss *SqlStore) DropAllTables() {
@@ -1100,7 +1059,6 @@ func (ss *SqlStore) DropAllTables() {
 		for _, t := range tables {
 			if t != "db_migrations" {
 				ss.masterX.Exec(`TRUNCATE TABLE ` + t)
-
 			}
 		}
 	}
@@ -1219,7 +1177,7 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 		}
 		intVer := majorVer*1000 + minorVer*100 + patchVer
 		if intVer < minimumRequiredMySQLVersion {
-			return false, fmt.Errorf("minimum MySQL version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredMySQLVersion, *ss.settings.DriverName))
+			return false, fmt.Errorf("Minimum MySQL version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredMySQLVersion, *ss.settings.DriverName))
 		}
 	}
 	return true, nil

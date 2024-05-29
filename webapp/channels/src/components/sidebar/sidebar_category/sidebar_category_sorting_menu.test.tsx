@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 import * as redux from 'react-redux';
-import {shallow} from 'enzyme';
 
 import {TestHelper} from 'utils/test_helper';
 
@@ -25,7 +25,7 @@ const initialState = {
 };
 
 jest.spyOn(redux, 'useSelector').mockImplementation((cb) => cb(initialState));
-jest.spyOn(redux, 'useDispatch').mockReturnValue((t) => t);
+jest.spyOn(redux, 'useDispatch').mockReturnValue((t: unknown) => t);
 
 describe('components/sidebar/sidebar_category/sidebar_category_sorting_menu', () => {
     const baseProps = {

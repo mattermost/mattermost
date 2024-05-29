@@ -3,21 +3,20 @@
 
 import nock from 'nock';
 
-import * as Actions from 'mattermost-redux/actions/channels';
-import {addUserToTeam} from 'mattermost-redux/actions/teams';
-import {getProfilesByIds, loadMeREST} from 'mattermost-redux/actions/users';
-import {createIncomingHook, createOutgoingHook} from 'mattermost-redux/actions/integrations';
-import {Client4} from 'mattermost-redux/client';
+import type {IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
+
 import {UserTypes} from 'mattermost-redux/action_types';
-import TestHelper from '../../test/test_helper';
-import configureStore from '../../test/test_store';
+import * as Actions from 'mattermost-redux/actions/channels';
+import {createIncomingHook, createOutgoingHook} from 'mattermost-redux/actions/integrations';
+import {getProfilesByIds, loadMe} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
+import TestHelper from '../../test/test_helper';
+import configureStore from '../../test/test_store';
 import {General, RequestStatus, Preferences, Permissions} from '../constants';
 import {CategoryTypes} from '../constants/channel_categories';
 import {MarkUnread} from '../constants/channels';
-import {IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 const OK_RESPONSE = {status: 'OK'};
 
@@ -184,7 +183,7 @@ describe('Actions.Channels', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await store.dispatch(loadMeREST());
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             post('/users/ids').
@@ -249,31 +248,6 @@ describe('Actions.Channels', () => {
         expect(profilesInChannel[created.id].has(user2.id)).toBeTruthy();
     });
 
-    it('updateChannel', async () => {
-        const channel = {
-            ...TestHelper.basicChannel!,
-            purpose: 'This is to test redux',
-            header: 'MM with Redux',
-        };
-
-        nock(Client4.getBaseRoute()).
-            put(`/channels/${channel.id}`).
-            reply(200, channel);
-
-        await store.dispatch(Actions.updateChannel(channel));
-
-        const updateRequest = store.getState().requests.channels.updateChannel;
-        if (updateRequest.status === RequestStatus.FAILURE) {
-            throw new Error(JSON.stringify(updateRequest.error));
-        }
-
-        const {channels} = store.getState().entities.channels;
-        const channelId = Object.keys(channels)[0];
-        expect(channelId).toBeTruthy();
-        expect(channels[channelId]).toBeTruthy();
-        expect(channels[channelId].header).toEqual('MM with Redux');
-    });
-
     it('patchChannel', async () => {
         const channel = {
             header: 'MM with Redux2',
@@ -284,11 +258,6 @@ describe('Actions.Channels', () => {
             reply(200, {...TestHelper.basicChannel, ...channel});
 
         await store.dispatch(Actions.patchChannel(TestHelper.basicChannel!.id, channel));
-
-        const updateRequest = store.getState().requests.channels.updateChannel;
-        if (updateRequest.status === RequestStatus.FAILURE) {
-            throw new Error(JSON.stringify(updateRequest.error));
-        }
 
         const {channels} = store.getState().entities.channels;
         const channelId = Object.keys(channels)[0];
@@ -306,11 +275,6 @@ describe('Actions.Channels', () => {
         expect(publicChannel.type).toEqual(General.OPEN_CHANNEL);
 
         await store.dispatch(Actions.updateChannelPrivacy(publicChannel.id, General.PRIVATE_CHANNEL));
-
-        const updateRequest = store.getState().requests.channels.updateChannel;
-        if (updateRequest.status === RequestStatus.FAILURE) {
-            throw new Error(JSON.stringify(updateRequest.error));
-        }
 
         const {channels} = store.getState().entities.channels;
         const channelId = Object.keys(channels)[0];
@@ -357,7 +321,7 @@ describe('Actions.Channels', () => {
         expect(myMembers[TestHelper.basicChannel!.id]).toBeTruthy();
     });
 
-    it('fetchMyChannelsAndMembersREST', async () => {
+    it('fetchChannelsAndMembers', async () => {
         nock(Client4.getBaseRoute()).
             post('/users').
             query(true).
@@ -385,7 +349,7 @@ describe('Actions.Channels', () => {
             get(`/users/me/teams/${TestHelper.basicTeam!.id}/channels/members`).
             reply(200, [{user_id: TestHelper.basicUser!.id, roles: 'channel_user', channel_id: directChannel.id}, TestHelper.basicChannelMember]);
 
-        await store.dispatch(Actions.fetchMyChannelsAndMembersREST(TestHelper.basicTeam!.id));
+        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id));
 
         const {channels, channelsInTeam, myMembers} = store.getState().entities.channels;
         expect(channels).toBeTruthy();
@@ -411,7 +375,7 @@ describe('Actions.Channels', () => {
             get(`/users/me/teams/${TestHelper.basicTeam!.id}/channels/members`).
             reply(200, [TestHelper.basicChannelMember]);
 
-        await store.dispatch(Actions.fetchMyChannelsAndMembersREST(TestHelper.basicTeam!.id));
+        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id));
 
         nock(Client4.getBaseRoute()).
             put(`/channels/${TestHelper.basicChannel!.id}/members/${TestHelper.basicUser!.id}/notify_props`).
@@ -474,7 +438,7 @@ describe('Actions.Channels', () => {
             get(`/users/me/teams/${TestHelper.basicTeam!.id}/channels/members`).
             reply(200, [{user_id: TestHelper.basicUser!.id, roles: 'channel_user', channel_id: secondChannel.id}, TestHelper.basicChannelMember]);
 
-        await store.dispatch(Actions.fetchMyChannelsAndMembersREST(TestHelper.basicTeam!.id));
+        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id));
 
         nock(Client4.getBaseRoute()).
             post('/hooks/incoming').
@@ -578,7 +542,7 @@ describe('Actions.Channels', () => {
             get(`/users/me/teams/${TestHelper.basicTeam!.id}/channels/members`).
             reply(200, [{user_id: TestHelper.basicUser!.id, roles: 'channel_user', channel_id: secondChannel.id}, TestHelper.basicChannelMember]);
 
-        await store.dispatch(Actions.fetchMyChannelsAndMembersREST(TestHelper.basicTeam!.id));
+        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id));
 
         nock(Client4.getBaseRoute()).
             post('/hooks/incoming').
@@ -1460,70 +1424,6 @@ describe('Actions.Channels', () => {
         expect(stats[channelId].member_count >= 1).toBeTruthy();
     });
 
-    it('updateChannelMemberRoles', async () => {
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            reply(201, TestHelper.fakeUserWithId());
-
-        const user = await TestHelper.basicClient4!.createUser(TestHelper.fakeUser(), '', '');
-
-        nock(Client4.getTeamsRoute()).
-            post(`/${TestHelper.basicChannel!.id}/members`).
-            reply(201, {team_id: TestHelper.basicTeam!.id, roles: 'channel_user', user_id: user.id});
-
-        await store.dispatch(addUserToTeam(TestHelper.basicTeam!.id, user.id));
-        nock(Client4.getBaseRoute()).
-            post(`/channels/${TestHelper.basicChannel!.id}/members`).
-            reply(201, {channel_id: TestHelper.basicChannel!.id, roles: 'channel_user', user_id: user.id});
-
-        await store.dispatch(Actions.addChannelMember(TestHelper.basicChannel!.id, user.id));
-
-        const roles = General.CHANNEL_USER_ROLE + ' ' + General.CHANNEL_ADMIN_ROLE;
-
-        nock(Client4.getBaseRoute()).
-            put(`/channels/${TestHelper.basicChannel!.id}/members/${user.id}/roles`).
-            reply(200, {roles});
-        await store.dispatch(Actions.updateChannelMemberRoles(TestHelper.basicChannel!.id, user.id, roles));
-
-        const members = store.getState().entities.channels.membersInChannel;
-
-        expect(members[TestHelper.basicChannel!.id]).toBeTruthy();
-        expect(members[TestHelper.basicChannel!.id][user.id]).toBeTruthy();
-        expect(members[TestHelper.basicChannel!.id][user.id].roles === roles).toBeTruthy();
-    });
-
-    it('updateChannelHeader', async () => {
-        nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}`).
-            reply(200, TestHelper.basicChannel!);
-
-        await store.dispatch(Actions.getChannel(TestHelper.basicChannel!.id));
-
-        const header = 'this is an updated test header';
-
-        await store.dispatch(Actions.updateChannelHeader(TestHelper.basicChannel!.id, header));
-
-        const {channels} = store.getState().entities.channels;
-        const channel = channels[TestHelper.basicChannel!.id];
-        expect(channel).toBeTruthy();
-        expect(channel.header).toEqual(header);
-    });
-
-    it('updateChannelPurpose', async () => {
-        nock(Client4.getBaseRoute()).
-            get(`/channels/${TestHelper.basicChannel!.id}`).
-            reply(200, TestHelper.basicChannel!);
-
-        await store.dispatch(Actions.getChannel(TestHelper.basicChannel!.id));
-
-        const purpose = 'this is an updated test purpose';
-        await store.dispatch(Actions.updateChannelPurpose(TestHelper.basicChannel!.id, purpose));
-        const {channels} = store.getState().entities.channels;
-        const channel = channels[TestHelper.basicChannel!.id];
-        expect(channel).toBeTruthy();
-        expect(channel.purpose).toEqual(purpose);
-    });
-
     describe('leaveChannel', () => {
         const team = TestHelper.fakeTeam();
         const user = TestHelper.fakeUserWithId();
@@ -1899,7 +1799,7 @@ describe('Actions.Channels', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await store.dispatch(loadMeREST());
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             post('/channels').
@@ -1932,7 +1832,7 @@ describe('Actions.Channels', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await store.dispatch(loadMeREST());
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             post('/channels').
@@ -1984,7 +1884,7 @@ describe('Actions.Channels', () => {
             put(`/users/${currentUserId}/preferences`).
             reply(200, OK_RESPONSE);
 
-        await Actions.markGroupChannelOpen(channelId)(store.dispatch, store.getState);
+        await store.dispatch(Actions.markGroupChannelOpen(channelId));
 
         const state = store.getState();
         let prefKey = getPreferenceKey(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId);
@@ -1999,7 +1899,6 @@ describe('Actions.Channels', () => {
     });
 
     it('getChannelTimezones', async () => {
-        const {dispatch, getState} = store;
         const channelId = TestHelper.basicChannel!.id;
         const response = {
             useAutomaticTimezone: 'true',
@@ -2012,7 +1911,7 @@ describe('Actions.Channels', () => {
             query(true).
             reply(200, response);
 
-        const {data} = await Actions.getChannelTimezones(channelId)(dispatch, getState) as ActionResult;
+        const {data} = await store.dispatch(Actions.getChannelTimezones(channelId));
 
         expect(response).toEqual(data);
     });
@@ -2027,7 +1926,7 @@ describe('Actions.Channels', () => {
             `/channels/${channelID}/members_minus_group_members?group_ids=${groupIDs.join(',')}&page=${page}&per_page=${perPage}`).
             reply(200, {users: [], total_count: 0});
 
-        const {error} = await Actions.membersMinusGroupMembers(channelID, groupIDs, page, perPage)(store.dispatch, store.getState) as ActionResult;
+        const {error} = await store.dispatch(Actions.membersMinusGroupMembers(channelID, groupIDs, page, perPage));
 
         expect(error).toEqual(undefined);
     });
@@ -2094,7 +1993,7 @@ describe('Actions.Channels', () => {
                 },
             ]);
 
-        await store.dispatch(Actions.getChannelMemberCountsByGroup(channelID, true));
+        await store.dispatch(Actions.getChannelMemberCountsByGroup(channelID));
 
         const channelMemberCounts = store.getState().entities.channels.channelMemberCountsByGroup[channelID];
         expect(channelMemberCounts['group-1'].group_id).toEqual('group-1');

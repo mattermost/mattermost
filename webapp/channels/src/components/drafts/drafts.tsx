@@ -2,19 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useEffect} from 'react';
-import {useDispatch} from 'react-redux';
 import {useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
-import {Draft} from 'selectors/drafts';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
+import {selectLhsItem} from 'actions/views/lhs';
+import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
+import type {Draft} from 'selectors/drafts';
 
 import NoResultsIndicator from 'components/no_results_indicator';
 import Header from 'components/widgets/header';
 
-import {selectLhsItem} from 'actions/views/lhs';
-import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
-
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import DraftRow from './draft_row';
 import DraftsIllustration from './drafts_illustration';

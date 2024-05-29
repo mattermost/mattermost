@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode, ComponentProps, useState, CSSProperties, useMemo} from 'react';
+import React, {useState, useMemo} from 'react';
+import type {ReactNode, ComponentProps, CSSProperties} from 'react';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
@@ -21,7 +22,7 @@ const SimpleTooltip = ({
     children,
     placement = 'top',
     className = 'hidden-xs',
-    delayShow = 500,
+    delayShow = 100,
     style,
     ...props
 }: Props & Omit<ComponentProps<typeof OverlayTrigger>, 'overlay'>) => {

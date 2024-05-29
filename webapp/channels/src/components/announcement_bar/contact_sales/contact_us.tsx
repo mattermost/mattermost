@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
+
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 import './contact_us.scss';

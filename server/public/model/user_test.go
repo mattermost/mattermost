@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -257,11 +258,12 @@ func TestNormalizeEmail(t *testing.T) {
 }
 
 func TestCleanUsername(t *testing.T) {
-	assert.Equal(t, CleanUsername("Spin-punch"), "spin-punch", "didn't clean name properly")
-	assert.Equal(t, CleanUsername("PUNCH"), "punch", "didn't clean name properly")
-	assert.Equal(t, CleanUsername("spin'punch"), "spin-punch", "didn't clean name properly")
-	assert.Equal(t, CleanUsername("spin"), "spin", "didn't clean name properly")
-	assert.Len(t, CleanUsername("all"), 27, "didn't clean name properly")
+	logger := mlog.CreateConsoleTestLogger(t)
+	assert.Equal(t, CleanUsername(logger, "Spin-punch"), "spin-punch", "didn't clean name properly")
+	assert.Equal(t, CleanUsername(logger, "PUNCH"), "punch", "didn't clean name properly")
+	assert.Equal(t, CleanUsername(logger, "spin'punch"), "spin-punch", "didn't clean name properly")
+	assert.Equal(t, CleanUsername(logger, "spin"), "spin", "didn't clean name properly")
+	assert.Len(t, CleanUsername(logger, "all"), 27, "didn't clean name properly")
 }
 
 func TestRoles(t *testing.T) {
@@ -351,5 +353,26 @@ func TestUserSlice(t *testing.T) {
 
 		nonBotUsers := slice.FilterWithoutBots()
 		assert.Len(t, nonBotUsers, 1)
+	})
+}
+
+func TestValidateCustomStatus(t *testing.T) {
+	t.Run("ValidateCustomStatus", func(t *testing.T) {
+		user0 := &User{Id: "user0", DeleteAt: 0, IsBot: true}
+
+		user0.Props = map[string]string{UserPropsKeyCustomStatus: ""}
+		assert.True(t, user0.ValidateCustomStatus())
+
+		user0.Props[UserPropsKeyCustomStatus] = "hello"
+		assert.False(t, user0.ValidateCustomStatus())
+
+		user0.Props[UserPropsKeyCustomStatus] = "{\"emoji\":{\"foo\":\"bar\"}}"
+		assert.True(t, user0.ValidateCustomStatus())
+
+		user0.Props[UserPropsKeyCustomStatus] = "{\"text\": \"hello\"}"
+		assert.True(t, user0.ValidateCustomStatus())
+
+		user0.Props[UserPropsKeyCustomStatus] = "{\"wrong\": \"hello\"}"
+		assert.True(t, user0.ValidateCustomStatus())
 	})
 }

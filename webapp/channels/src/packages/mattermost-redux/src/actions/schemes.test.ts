@@ -32,7 +32,7 @@ describe('Actions.Schemes', () => {
             query(true).
             reply(200, [mockScheme]);
 
-        await Actions.getSchemes('team')(store.dispatch, store.getState);
+        await store.dispatch(Actions.getSchemes('team'));
         const {schemes} = store.getState().entities.schemes;
 
         expect(Object.keys(schemes).length > 0).toBeTruthy();
@@ -44,7 +44,7 @@ describe('Actions.Schemes', () => {
         nock(Client4.getBaseRoute()).
             post('/schemes').
             reply(201, mockScheme!);
-        await Actions.createScheme(TestHelper.mockScheme())(store.dispatch, store.getState);
+        await store.dispatch(Actions.createScheme(TestHelper.mockScheme()));
 
         const {schemes} = store.getState().entities.schemes;
 
@@ -58,7 +58,7 @@ describe('Actions.Schemes', () => {
             get('/schemes/' + TestHelper.basicScheme!.id).
             reply(200, TestHelper.basicScheme!);
 
-        await Actions.getScheme(TestHelper.basicScheme!.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getScheme(TestHelper.basicScheme!.id));
 
         const state = store.getState();
         const {schemes} = state.entities.schemes;
@@ -77,7 +77,7 @@ describe('Actions.Schemes', () => {
             put('/schemes/' + TestHelper.basicScheme!.id + '/patch').
             reply(200, scheme);
 
-        await Actions.patchScheme(TestHelper.basicScheme!.id, scheme)(store.dispatch, store.getState);
+        await store.dispatch(Actions.patchScheme(TestHelper.basicScheme!.id, scheme));
 
         const state = store.getState();
         const {schemes} = state.entities.schemes;
@@ -93,7 +93,7 @@ describe('Actions.Schemes', () => {
             delete('/schemes/' + TestHelper.basicScheme!.id).
             reply(200, {status: 'OK'});
 
-        await Actions.deleteScheme(TestHelper.basicScheme!.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.deleteScheme(TestHelper.basicScheme!.id));
 
         const state = store.getState();
         const {schemes} = state.entities.schemes;

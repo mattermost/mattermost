@@ -8,12 +8,12 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import QuickSwitchModal from 'components/quick_switch_modal';
 
-import {ModalData} from 'types/actions';
-
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 import ChannelFilter from '../channel_filter';
 
@@ -93,6 +93,8 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
                     className={'SidebarChannelNavigator_jumpToButton'}
                     onClick={this.openQuickSwitcher}
                     aria-label={Utils.localizeMessage('sidebar_left.channel_navigator.channelSwitcherLabel', 'Channel Switcher')}
+                    aria-haspopup='dialog'
+                    data-testid='SidebarChannelNavigatorButton'
                 >
                     <i className='icon icon-magnify'/>
                     <FormattedMessage

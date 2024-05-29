@@ -17,19 +17,19 @@ jobs:
         working-directory: ./api
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
-    - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-      with:
-        node-version-file: .nvmrc
-        cache: 'npm'
-        cache-dependency-path: api/package-lock.json
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+          cache-dependency-path: api/package-lock.json
 
-    - name: Run build
-      run: make build
+      - name: Run build
+        run: make build
 
-    - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
-      with:
-        name: mattermost-api-reference
-        path: api/v4/html
+      - uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        with:
+          name: mattermost-api-reference
+          path: api/v4/html

@@ -243,6 +243,12 @@ export const enableDisableAllChannelModeratedPermissionsViaAPI = (channel, enabl
                             guests: enable,
                         },
                     },
+                    {
+                        name: 'manage_bookmarks',
+                        roles: {
+                            members: enable,
+                        },
+                    },
                 ],
         },
     );

@@ -34,19 +34,6 @@ func (s *Status) ToJSON() ([]byte, error) {
 	return json.Marshal(sCopy)
 }
 
-// The following are some GraphQL methods necessary to return the
-// data in float64 type. The spec doesn't support 64 bit integers,
-// so we have to pass the data in float64. The _ at the end is
-// a hack to keep the attribute name same in GraphQL schema.
-
-func (s *Status) LastActivityAt_() float64 {
-	return float64(s.LastActivityAt)
-}
-
-func (s *Status) DNDEndTime_() float64 {
-	return float64(s.DNDEndTime)
-}
-
 func StatusListToJSON(u []*Status) ([]byte, error) {
 	list := make([]Status, len(u))
 	for i, s := range u {

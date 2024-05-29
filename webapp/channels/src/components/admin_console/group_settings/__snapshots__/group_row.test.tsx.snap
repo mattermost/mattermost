@@ -15,7 +15,7 @@ exports[`components/admin_console/group_settings/GroupRow should match snapshot,
       <div
         className="group-check checked"
       >
-        <CheckboxCheckedIcon />
+        <Memo(CheckboxCheckedIcon) />
       </div>
       <span>
         name

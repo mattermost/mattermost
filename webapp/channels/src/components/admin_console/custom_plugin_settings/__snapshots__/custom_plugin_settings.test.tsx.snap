@@ -18,7 +18,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         onSubmit={[Function]}
         role="form"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
         >
           <div
@@ -26,7 +26,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
           >
             <SchemaText
               isMarkdown={true}
-              isTranslated={false}
               text="# Header
 *This* is the **header**"
             />
@@ -36,7 +35,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             footer={null}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the text field."
               />
             }
@@ -46,20 +44,19 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             onChange={[Function]}
             placeholder="e.g. some setting"
             setByEnv={false}
-            type="input"
+            type="text"
             value="setting_default"
           />
           <BooleanSetting
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the bool field."
               />
             }
@@ -70,22 +67,20 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
             value={true}
           />
-          <DropdownSetting
+          <Memo(DropdownSetting)
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the dropdown field."
               />
             }
             id="settingc"
-            isDisabled={false}
             key="testplugin_dropdown_settingc"
             label="Setting Three"
             onChange={[Function]}
@@ -108,11 +103,10 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               ]
             }
           />
-          <RadioSetting
+          <Memo(RadioSetting)
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the radio field."
               />
             }
@@ -143,7 +137,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the generated field."
               />
             }
@@ -166,7 +159,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the user autocomplete field."
               />
             }
@@ -182,12 +174,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
           >
             <SchemaText
               isMarkdown={true}
-              isTranslated={false}
               text="# Footer
 *This* is the **footer**"
             />
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </form>
     </div>
   </div>
@@ -195,7 +186,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -227,7 +218,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     </div>
     <Overlay
       animation={[Function]}
-      delayShow={400}
       placement="top"
       rootClose={false}
       show={false}
@@ -265,7 +255,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -297,7 +287,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     </div>
     <Overlay
       animation={[Function]}
-      delayShow={400}
       placement="top"
       rootClose={false}
       show={false}
@@ -329,7 +318,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         onSubmit={[Function]}
         role="form"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
         >
           <div
@@ -337,7 +326,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
           >
             <SchemaText
               isMarkdown={true}
-              isTranslated={false}
               text="# Header
 *This* is the **header**"
             />
@@ -347,7 +335,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             footer={null}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the text field."
               />
             }
@@ -357,20 +344,19 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             onChange={[Function]}
             placeholder="e.g. some setting"
             setByEnv={false}
-            type="input"
+            type="text"
             value="fsdsdg"
           />
           <BooleanSetting
             disabled={false}
             falseText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="false"
+                defaultMessage="False"
                 id="admin.false"
               />
             }
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the bool field."
               />
             }
@@ -381,22 +367,20 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             setByEnv={false}
             trueText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="true"
+                defaultMessage="True"
                 id="admin.true"
               />
             }
             value={false}
           />
-          <DropdownSetting
+          <Memo(DropdownSetting)
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the dropdown field."
               />
             }
             id="PluginSettings.Plugins.testplugin.settingc"
-            isDisabled={false}
             key="testplugin_dropdown_PluginSettings.Plugins.testplugin.settingc"
             label="Setting Three"
             onChange={[Function]}
@@ -419,11 +403,10 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               ]
             }
           />
-          <RadioSetting
+          <Memo(RadioSetting)
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the radio field."
               />
             }
@@ -454,7 +437,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the generated field."
               />
             }
@@ -477,7 +459,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="This is some help text for the user autocomplete field."
               />
             }
@@ -493,12 +474,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
           >
             <SchemaText
               isMarkdown={true}
-              isTranslated={false}
               text="# Footer
 *This* is the **footer**"
             />
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </form>
     </div>
   </div>
@@ -506,7 +486,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -538,7 +518,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
     </div>
     <Overlay
       animation={[Function]}
-      delayShow={400}
       placement="top"
       rootClose={false}
       show={false}

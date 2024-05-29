@@ -1,54 +1,57 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {GlobalState} from 'types/store';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
-import {Constants} from 'utils/constants';
 
-export function loadStatusesForChannelAndSidebar(): ActionFunc {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+import type {GlobalState} from 'types/store';
+
+export function loadStatusesForChannelAndSidebar(): ActionFunc<boolean, GlobalState> {
+    return (dispatch, getState) => {
         const state = getState();
-        const statusesToLoad: Record<string, true> = {};
 
         const channelId = getCurrentChannelId(state);
         const postsInChannel = getPostsInCurrentChannel(state);
 
+        const userIds = new Set<string>();
+
         if (postsInChannel) {
-            const posts = postsInChannel.slice(0, (state as GlobalState).views.channel.postVisibility[channelId] || 0);
+            const posts = postsInChannel.slice(0, state.views.channel.postVisibility[channelId] || 0);
             for (const post of posts) {
                 if (post.user_id) {
-                    statusesToLoad[post.user_id] = true;
+                    userIds.add(post.user_id);
                 }
             }
         }
 
-        const dmPrefs = getDirectShowPreferences(state);
-
-        for (const pref of dmPrefs) {
-            if (pref.value === 'true') {
-                statusesToLoad[pref.name] = true;
+        const directShowPreferences = getDirectShowPreferences(state);
+        for (const directShowPreference of directShowPreferences) {
+            if (directShowPreference.value === 'true') {
+                // This is the other user's id in the DM
+                userIds.add(directShowPreference.name);
             }
         }
 
         const currentUserId = getCurrentUserId(state);
-        statusesToLoad[currentUserId] = true;
+        userIds.add(currentUserId);
 
-        dispatch(loadStatusesByIds(Object.keys(statusesToLoad)));
+        dispatch(loadStatusesByIds(Array.from(userIds)));
+
         return {data: true};
     };
 }
 
-export function loadStatusesForProfilesList(users: UserProfile[] | null) {
-    return (dispatch: DispatchFunc) => {
+export function loadStatusesForProfilesList(users: UserProfile[] | null): ActionFunc<boolean> {
+    return (dispatch) => {
         if (users == null) {
             return {data: false};
         }
@@ -64,8 +67,8 @@ export function loadStatusesForProfilesList(users: UserProfile[] | null) {
     };
 }
 
-export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | null) {
-    return (dispatch: DispatchFunc) => {
+export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | UserProfile[] | null): ActionFunc {
+    return (dispatch) => {
         if (users == null) {
             return {data: false};
         }
@@ -83,9 +86,12 @@ export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | 
     };
 }
 
-export function loadStatusesByIds(userIds: string[]) {
-    return (dispatch: DispatchFunc) => {
-        if (userIds.length === 0) {
+export function loadStatusesByIds(userIds: string[]): ActionFunc {
+    return (dispatch, getState) => {
+        const state = getState();
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+
+        if (userIds.length === 0 || !enabledUserStatuses) {
             return {data: false};
         }
 
@@ -95,16 +101,18 @@ export function loadStatusesByIds(userIds: string[]) {
     };
 }
 
-export function loadProfilesMissingStatus(users: UserProfile[]) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadProfilesMissingStatus(users: UserProfile[]): ActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+
         const statuses = state.entities.users.statuses;
 
         const missingStatusByIds = users.
             filter((user) => !statuses[user.id]).
             map((user) => user.id);
 
-        if (missingStatusByIds.length === 0) {
+        if (missingStatusByIds.length === 0 || !enabledUserStatuses) {
             return {data: false};
         }
 
@@ -112,23 +120,4 @@ export function loadProfilesMissingStatus(users: UserProfile[]) {
         dispatch(loadCustomEmojisForCustomStatusesByUserIds(missingStatusByIds));
         return {data: true};
     };
-}
-
-let intervalId: NodeJS.Timeout;
-
-export function startPeriodicStatusUpdates() {
-    return (dispatch: DispatchFunc) => {
-        clearInterval(intervalId);
-
-        intervalId = setInterval(
-            () => {
-                dispatch(loadStatusesForChannelAndSidebar());
-            },
-            Constants.STATUS_INTERVAL,
-        );
-    };
-}
-
-export function stopPeriodicStatusUpdates() {
-    clearInterval(intervalId);
 }

@@ -1,11 +1,6 @@
 @charset 'UTF-8';
 
 #browseChannelsModal {
-    .modal-content {
-        min-height: 600px;
-        max-height: calc(50vh - 240px);
-    }
-
     .modal-dialog {
         margin-top: calc(45vh - 240px) !important;
     }
@@ -21,6 +16,7 @@
 
         #searchIcon {
             position: absolute;
+            z-index: 2;
             top: 16px;
             left: 46px;
             color: rgba(var(--center-channel-color-rgb), 0.64);
@@ -53,26 +49,9 @@
         margin: 0;
 
         span {
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 12px;
             line-height: 16px;
-        }
-
-        .MenuItem__primary-text {
-            width: 100%;
-            color: var(--center-channel-color);
-            font-size: 14px;
-            font-weight: 400;
-            line-height: 20px;
-
-            svg {
-                margin-left: auto;
-            }
-        }
-
-        .Menu__content {
-            border-color: rgba(var(--center-channel-color-rgb), 0.16);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
 
         #channelCountLabel {
@@ -87,11 +66,28 @@
             justify-content: center;
 
             .get-app__checkbox {
+                position: relative;
                 display: flex;
                 width: 16px;
                 height: 16px;
                 align-items: center;
                 border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+                border-radius: var(--radius-xs);
+                margin-right: 6px;
+                background-color: var(--center-channel-bg);
+
+                &.checked {
+                    border: none;
+                }
+
+                svg {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 16px;
+                    height: 16px;
+                    fill: var(--button-bg);
+                }
             }
 
             #hideJoinedPreferenceCheckbox {
@@ -100,37 +96,30 @@
                 cursor: pointer;
             }
 
-            #channelsMoreDropdown {
-                margin: 0 8px;
-            }
-
             #menuWrapper {
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 4px 6px 4px 8px;
                 border: none;
+                margin-right: 10px;
                 background-color: unset;
-            }
 
-            .MenuWrapper:hover {
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                border-radius: 4px;
-            }
-
-            .MenuWrapper--open {
-                background-color: rgba(var(--button-bg-rgb), 0.12);
-                border-radius: 4px;
-
-                &:hover {
+                &[aria-expanded='true'] {
+                    border-radius: 4px;
                     background-color: rgba(var(--button-bg-rgb), 0.12);
                 }
+            }
+
+            #menuWrapper:hover {
+                border-radius: 4px;
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
             }
         }
     }
 
     .modal-body {
-        padding: 15px 0 0;
+        padding: 0;
 
         .filtered-user-list {
             height: 500px;
@@ -142,7 +131,7 @@
 
             .more-modal__details {
                 padding-left: 0;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
 
                 svg {
                     flex-shrink: 0;
@@ -167,8 +156,8 @@
                         width: 3px;
                         height: 3px;
                         flex-shrink: 0;
-                        background-color: rgba(var(--center-channel-color-rgb), 0.56);
                         border-radius: 50%;
+                        background-color: rgba(var(--center-channel-color-rgb), 0.75);
                     }
 
                     .more-modal__description {
@@ -193,6 +182,15 @@
                         line-height: 12px;
                         opacity: 1;
                     }
+                }
+
+                .shared-channel-icon {
+                    width: 18px;
+                    height: 18px;
+                    margin-right: 6px;
+                    color: rgba(61, 60, 64, 0.75);
+                    font-size: 18px;
+                    line-height: 18px;
                 }
             }
 
@@ -237,38 +235,15 @@
     .modal-header {
         .GenericModal__header {
             display: flex;
-            width: 95%;
+            width: 100%;
             align-items: center;
             justify-content: space-between;
             padding-right: 4px;
         }
-
-        .close {
-            top: 22px;
-        }
-    }
-
-    .outlineButton {
-        border: 1px solid var(--button-bg);
-        background: none;
-        border-radius: 4px;
-        color: var(--button-bg);
-        font-size: 12px;
-        font-weight: 600;
-        line-height: 16px;
-    }
-
-    .outlineButton:hover {
-        background-color: rgba(var(--button-bg-rgb), 0.08);
     }
 
     .filter-controls {
-        padding: 0;
-
-        button {
-            min-width: 72px;
-            margin: 8px 32px;
-        }
+        padding-top: 24px;
     }
 }
 
@@ -283,15 +258,15 @@
         margin-bottom: 30px;
     }
 
-    .primaryButton {
-        background-color: var(--button-bg);
-        border-radius: 4px;
-        color: var(--button-color);
-        font-size: 14px;
-        font-weight: 600;
-    }
-
     #createNewChannelButton {
         padding: 10px 20px;
+    }
+}
+
+#browseChannelsDropdown {
+    .label-elements {
+        padding: 2px 4px;
+        font-size: 14px;
+        line-height: 20px;
     }
 }

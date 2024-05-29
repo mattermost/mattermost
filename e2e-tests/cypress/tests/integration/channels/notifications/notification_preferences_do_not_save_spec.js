@@ -31,17 +31,17 @@ describe('Notifications', () => {
     });
 
     it('MM-T555 Notification Preferences do not save when modal is closed without saving', () => {
-        // # Call function that clicks on Settings -> Notifications -> Email Notifications -> Send Email Notifications -> Never without saving
+        // # Call function that clicks on Settings -> Notifications -> Email notifications -> Send Email notifications -> Never without saving
         openSettingsAndClickEmailEdit(true);
 
-        // # Call function that checks Settings -> Notifications -> Email Notifications -> Send Email Notifications -> Never is not saved
+        // # Call function that checks Settings -> Notifications -> Email notifications -> Send Email notifications -> Never is not saved
         openSettingsAndClickEmailEdit(false);
     });
 
     function openSettingsAndClickEmailEdit(shouldBeClicked = false) {
         // # Open 'Settings' modal
         cy.uiOpenSettingsModal().within(() => {
-            // # Click on the 'Edit' button next to Email Notifications
+            // # Click on the 'Edit' button next to Email notifications
             cy.get('#emailEdit').click();
 
             if (shouldBeClicked) {

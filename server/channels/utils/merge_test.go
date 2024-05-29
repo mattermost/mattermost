@@ -258,7 +258,6 @@ func TestMergeWithMaps(t *testing.T) {
 		// test replacing a referenced map
 		m1["base"] = map[string]*int{"third": newInt(777)}
 		assert.Equal(t, 10, *merged["base"]["level"])
-
 	})
 
 	t.Run("merge map[string]map[string]*int, pointers are not copied - change in patch do not affect merged", func(t *testing.T) {
@@ -661,7 +660,6 @@ func TestMergeWithEvenSimpler(t *testing.T) {
 		*t1.ES2.S = "new base"
 		assert.Equal(t, "base", *merged.ES2.S)
 	})
-
 }
 
 type sliceStruct struct {

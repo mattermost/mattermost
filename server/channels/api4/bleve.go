@@ -28,7 +28,7 @@ func purgeBleveIndexes(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.PurgeBleveIndexes(); err != nil {
+	if err := c.App.PurgeBleveIndexes(c.AppContext); err != nil {
 		c.Err = err
 		return
 	}

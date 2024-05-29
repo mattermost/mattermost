@@ -136,7 +136,10 @@ export default class Client extends Client4 {
 // Variable to hold cache
 const clients: Record<string, ClientCache> = {};
 
-async function makeClient(userRequest?: UserRequest, useCache = true): Promise<ClientCache> {
+async function makeClient(
+    userRequest?: UserRequest,
+    opts: {useCache?: boolean; skipLog?: boolean} = {useCache: true, skipLog: false},
+): Promise<ClientCache> {
     const client = new Client();
     client.setUrl(testConfig.baseURL);
 
@@ -146,22 +149,24 @@ async function makeClient(userRequest?: UserRequest, useCache = true): Promise<C
         }
 
         const cacheKey = userRequest.username + userRequest.password;
-        if (useCache && clients[cacheKey] != null) {
+        if (opts?.useCache && clients[cacheKey] != null) {
             return clients[cacheKey];
         }
 
         const userProfile = await client.login(userRequest.username, userRequest.password);
         const user = {...userProfile, password: userRequest.password};
 
-        if (useCache) {
+        if (opts?.useCache) {
             clients[cacheKey] = {client, user};
         }
 
         return {client, user};
     } catch (err) {
-        // log an error for debugging
-        // eslint-disable-next-line no-console
-        console.log('makeClient', err);
+        if (!opts?.skipLog) {
+            // log an error for debugging
+            // eslint-disable-next-line no-console
+            console.log('makeClient', err);
+        }
         return {client, user: null};
     }
 }

@@ -1,0 +1,30 @@
+# Base CI template which is called from i18n-ci-pr.yml
+
+name: i18n CI Template
+on:
+  workflow_call:
+
+jobs:
+  check-files:
+    name: Check only English translation files changed
+    runs-on: ubuntu-22.04
+    if: github.event.pull_request.user.login != 'weblate' # Allow weblate to modify non-English
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@95690f9ece77c1740f4a55b7f1de9023ed6b1f87 # v39.2.3
+        with:
+          files: |
+            server/i18n/*.json
+            webapp/channels/src/i18n/*.json
+            !server/i18n/en.json
+            !webapp/channels/src/i18n/en.json
+
+      - name: Check changed files
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "::error title=Non-English i18n files changed::Only PRs from weblate should modify non-English translation files."
+          exit 1

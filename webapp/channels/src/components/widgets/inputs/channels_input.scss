@@ -15,7 +15,7 @@
         border-color: rgba(var(--center-channel-color-rgb), 0.2);
         background: var(--center-channel-bg);
         box-shadow: none;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         transition: none;
 
         &:hover {
@@ -57,7 +57,7 @@
 
     .channels-input__placeholder {
         margin-left: 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
     .channels-input__input {
@@ -102,7 +102,7 @@
         font-size: 16px;
 
         &--no-matches {
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             text-align: center;
 
             span {
@@ -142,7 +142,7 @@
             svg {
                 width: 18px;
                 height: 18px;
-                fill: rgba(var(--center-channel-color-rgb), 0.56);
+                fill: rgba(var(--center-channel-color-rgb), 0.75);
             }
         }
 
@@ -169,9 +169,9 @@
     .channels-input__multi-value {
         align-items: center;
         padding: 4px;
+        border-radius: 16px;
         margin: 4px;
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        border-radius: 16px;
         color: var(--center-channel-color);
 
         &:nth-last-child(2) {
@@ -192,9 +192,9 @@
             width: 24px;
             height: 24px;
             padding: 4px;
-            margin-right: 4px;
-            background: rgba(var(--center-channel-color-rgb), 0.56);
             border-radius: 16px;
+            margin-right: 4px;
+            background: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         .public-channel-icon {
@@ -236,8 +236,8 @@
         svg {
             width: 16px;
             height: 16px;
-            fill: rgba(var(--center-channel-color-rgb), 0.64);
-            opacity: 0.6;
+            fill: rgba(var(--center-channel-color-rgb), 0.75);
+            opacity: 0.73;
 
             &:hover {
                 fill: rgba(var(--center-channel-color-rgb), 0.8);

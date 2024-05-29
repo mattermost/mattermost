@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import EmojiMap from 'utils/emoji_map';
 import * as Markdown from 'utils/markdown';
 import * as TextFormatting from 'utils/text_formatting';
 
-import EmojiMap from 'utils/emoji_map';
 const emojiMap = new EmojiMap(new Map());
 
 describe('Markdown.Links', () => {

@@ -4,117 +4,109 @@
 import React from 'react';
 import {act} from 'react-dom/test-utils';
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {createChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {
-    render,
-    renderWithIntl,
+    renderWithContext,
     screen,
     userEvent,
     waitFor,
 } from 'tests/react_testing_utils';
-
-import {GlobalState} from 'types/store';
-
 import {suitePluginIds} from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
+
+import type {GlobalState} from 'types/store';
 
 import NewChannelModal from './new_channel_modal';
 
 jest.mock('mattermost-redux/actions/channels');
 
-const mockDispatch = jest.fn();
-let mockState: GlobalState;
-
-jest.mock('react-redux', () => ({
-    ...jest.requireActual('react-redux') as typeof import('react-redux'),
-    useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
-    useDispatch: () => mockDispatch,
-}));
-
 describe('components/new_channel_modal', () => {
-    beforeEach(() => {
-        mockState = {
-            entities: {
-                general: {
-                    config: {},
-                },
+    const initialState: DeepPartial<GlobalState> = {
+        entities: {
+            general: {
+                config: {},
+            },
+            channels: {
+                currentChannelId: 'current_channel_id',
                 channels: {
-                    currentChannelId: 'current_channel_id',
-                    channels: {
-                        current_channel_id: {
-                            id: 'current_channel_id',
-                            display_name: 'Current channel',
-                            name: 'current_channel',
-                        },
-                    },
-                    roles: {
-                        current_channel_id: [
-                            'channel_user',
-                            'channel_admin',
-                        ],
-                    },
-                },
-                teams: {
-                    currentTeamId: 'current_team_id',
-                    myMembers: {
-                        current_team_id: {
-                            roles: 'team_user team_admin',
-                        },
-                    },
-                    teams: {
-                        current_team_id: {
-                            id: 'current_team_id',
-                            description: 'Curent team description',
-                            name: 'current-team',
-                        },
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                users: {
-                    currentUserId: 'current_user_id',
-                    profiles: {
-                        current_user_id: {roles: 'system_admin system_user'},
+                    current_channel_id: {
+                        id: 'current_channel_id',
+                        display_name: 'Current channel',
+                        name: 'current_channel',
                     },
                 },
                 roles: {
-                    roles: {
-                        channel_admin: {
-                            permissions: [],
-                        },
-                        channel_user: {
-                            permissions: [],
-                        },
-                        team_admin: {
-                            permissions: [],
-                        },
-                        team_user: {
-                            permissions: [
-                                Permissions.CREATE_PRIVATE_CHANNEL,
-                            ],
-                        },
-                        system_admin: {
-                            permissions: [
-                                Permissions.CREATE_PUBLIC_CHANNEL,
-                            ],
-                        },
-                        system_user: {
-                            permissions: [],
-                        },
+                    current_channel_id: new Set([
+                        'channel_user',
+                        'channel_admin',
+                    ]),
+                },
+            },
+            teams: {
+                currentTeamId: 'current_team_id',
+                myMembers: {
+                    current_team_id: {
+                        roles: 'team_user team_admin',
+                    },
+                },
+                teams: {
+                    current_team_id: {
+                        id: 'current_team_id',
+                        description: 'Curent team description',
+                        name: 'current-team',
                     },
                 },
             },
-            plugins: {
-                plugins: {focalboard: {id: suitePluginIds.focalboard}},
+            preferences: {
+                myPreferences: {},
             },
-        } as unknown as GlobalState;
-    });
+            users: {
+                currentUserId: 'current_user_id',
+                profiles: {
+                    current_user_id: {roles: 'system_admin system_user'},
+                },
+            },
+            roles: {
+                roles: {
+                    channel_admin: {
+                        permissions: [],
+                    },
+                    channel_user: {
+                        permissions: [],
+                    },
+                    team_admin: {
+                        permissions: [],
+                    },
+                    team_user: {
+                        permissions: [
+                            Permissions.CREATE_PRIVATE_CHANNEL,
+                        ],
+                    },
+                    system_admin: {
+                        permissions: [
+                            Permissions.CREATE_PUBLIC_CHANNEL,
+                        ],
+                    },
+                    system_user: {
+                        permissions: [],
+                    },
+                },
+            },
+        },
+        plugins: {
+            plugins: {focalboard: {id: suitePluginIds.focalboard}},
+        },
+    };
 
     test('should match component state with given props', () => {
-        render(<NewChannelModal/>);
+        renderWithContext(
+            <NewChannelModal/>,
+            initialState,
+        );
 
         const heading = screen.getByRole('heading');
         expect(heading).toBeInTheDocument();
@@ -162,19 +154,20 @@ describe('components/new_channel_modal', () => {
 
         const cancelButton = screen.getByText('Cancel');
         expect(cancelButton).toBeInTheDocument();
-        expect(cancelButton).toHaveClass('GenericModal__button cancel');
+        expect(cancelButton).toHaveClass('btn-tertiary');
 
         const createChannelButton = screen.getByText('Create channel');
         expect(createChannelButton).toBeInTheDocument();
-        expect(createChannelButton).toHaveClass('GenericModal__button confirm');
+        expect(createChannelButton).toHaveClass('btn-primary');
         expect(createChannelButton).toBeDisabled();
     });
 
     test('should handle display name change', () => {
         const value = 'Channel name';
 
-        render(
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Change display name
@@ -197,8 +190,9 @@ describe('components/new_channel_modal', () => {
 
         const url = 'channel-name-new';
 
-        render(
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Change display name
@@ -236,8 +230,9 @@ describe('components/new_channel_modal', () => {
     });
 
     test('should handle type changes', () => {
-        render(
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Change type to private
@@ -262,8 +257,9 @@ describe('components/new_channel_modal', () => {
     test('should handle purpose changes', () => {
         const value = 'Purpose';
 
-        render(
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Change purpose
@@ -278,8 +274,9 @@ describe('components/new_channel_modal', () => {
     });
 
     test('should enable confirm button when having valid display name, url and type', () => {
-        render(
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Confirm button should be disabled
@@ -305,8 +302,9 @@ describe('components/new_channel_modal', () => {
     });
 
     test('should disable confirm button when display name in error', () => {
-        render(
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Change display name
@@ -328,15 +326,15 @@ describe('components/new_channel_modal', () => {
 
         // Change display name to invalid
         userEvent.clear(channelNameInput);
-        userEvent.type(channelNameInput, '');
 
         // Confirm button should be disabled
         expect(createChannelButton).toBeDisabled();
     });
 
     test('should disable confirm button when url in error', () => {
-        render(
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Change display name
@@ -371,8 +369,9 @@ describe('components/new_channel_modal', () => {
     });
 
     test('should disable confirm button when server error', async () => {
-        render(
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Confirm button should be disabled
@@ -406,8 +405,9 @@ describe('components/new_channel_modal', () => {
     test('should request team creation on submit', async () => {
         const name = 'Channel name';
 
-        renderWithIntl(
+        renderWithContext(
             <NewChannelModal/>,
+            initialState,
         );
 
         // Confirm button should be disabled

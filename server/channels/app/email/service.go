@@ -134,7 +134,6 @@ type ServiceInterface interface {
 	SendVerifyEmail(userEmail, locale, siteURL, token, redirect string) error
 	SendSignInChangeEmail(email, method, locale, siteURL string) error
 	SendWelcomeEmail(userID string, email string, verified bool, disableWelcomeEmail bool, locale, siteURL, redirect string) error
-	SendCloudUpgradeConfirmationEmail(userEmail, name, trialEndDate, locale, siteURL, workspaceName string, isYearly bool, embeddedFiles map[string]io.Reader) error
 	SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns, siteURL string) error
 	SendPasswordChangeEmail(email, method, locale, siteURL string) error
 	SendUserAccessTokenAddedEmail(email, locale, siteURL string) error
@@ -147,23 +146,24 @@ type ServiceInterface interface {
 	SendNotificationMail(to, subject, htmlBody string) error
 	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string, category string) error
 	SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error
-	SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, planName, siteURL string) (bool, error)
-	// Cloud delinquency email sequence
-	SendDelinquencyEmail7(email, locale, siteURL, planName string) error
-	SendDelinquencyEmail14(email, locale, siteURL, planName string) error
-	SendDelinquencyEmail30(email, locale, siteURL, planName string) error
-	SendDelinquencyEmail45(email, locale, siteURL, planName, delinquencyDate string) error
-	SendDelinquencyEmail60(email, locale, siteURL string) error
-	SendDelinquencyEmail75(email, locale, siteURL, planName, delinquencyDate string) error
-	SendDelinquencyEmail90(email, locale, siteURL string) error
-	SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) error
 	SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
-	GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string
+	GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string
+	GenerateHyperlinkForChannels(postMessage, teamName, teamURL string) (string, error)
 	InitEmailBatching()
 	SendChangeUsernameEmail(newUsername, email, locale, siteURL string) error
 	CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, error)
+	SendIPFiltersChangedEmail(email string, userWhoChangedFilter *model.User, siteURL, portalURL, locale string, isWorkspaceOwner bool) error
+	SetStore(st store.Store)
 	Stop()
+}
+
+func (es *Service) Store() store.Store {
+	return es.store
+}
+
+func (es *Service) SetStore(st store.Store) {
+	es.store = st
 }
 
 func (es *Service) GetPerDayEmailRateLimiter() *throttled.GCRARateLimiter {

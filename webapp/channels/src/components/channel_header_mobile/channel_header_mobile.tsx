@@ -3,18 +3,18 @@
 
 import classNames from 'classnames';
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {MobileChannelHeaderDropdown} from 'components/channel_header_dropdown';
+
 import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
 
+import ChannelInfoButton from './channel_info_button';
 import CollapseLhsButton from './collapse_lhs_button';
 import CollapseRhsButton from './collapse_rhs_button';
-import ChannelInfoButton from './channel_info_button';
 import ShowSearchButton from './show_search_button';
 import UnmuteChannelButton from './unmute_channel_button';
 

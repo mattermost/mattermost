@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 
-import {shallow} from 'enzyme';
+import FilePreviewModal from 'components/file_preview_modal';
+import SizeAwareImage from 'components/size_aware_image';
 
 import Constants from 'utils/constants';
-
-import SizeAwareImage from 'components/size_aware_image';
-import FilePreviewModal from 'components/file_preview_modal';
 
 import MarkdownImage from './markdown_image';
 
@@ -332,5 +331,13 @@ describe('components/MarkdownImage', () => {
         const childrenWrapper = shallow(<div>{childrenNode}</div>);
 
         expect(childrenWrapper).toMatchSnapshot();
+    });
+
+    test('should render a alt text if the link is unsafe', () => {
+        const props = {...baseProps, isUnsafeLinksPost: true};
+        const wrapper = shallow(
+            <MarkdownImage {...props}/>,
+        );
+        expect(wrapper.text()).toBe(props.alt);
     });
 });

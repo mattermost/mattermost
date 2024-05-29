@@ -1,0 +1,79 @@
+@charset "utf-8";
+
+.app__body {
+    .settings-modal {
+        h3 {
+            font-size: 18px;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        // Tabs
+        .nav-pills {
+            > li {
+                margin-bottom: 8px;
+
+                &.header {
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
+                    font-weight: 600;
+                }
+
+                button {
+                    height: 32px;
+                    padding: 0 12px;
+                    border-radius: 4px;
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
+                    font-weight: 600;
+
+                    i {
+                        color: rgba(var(--center-channel-color-rgb), 0.64);
+                    }
+
+                    &:hover {
+                        border-radius: 4px;
+                        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+                        color: rgba(var(--center-channel-color-rgb), 0.8);
+                    }
+                }
+
+                &.active {
+                    button {
+                        background: rgba(var(--button-bg-rgb), 0.08);
+                        color: v(button-bg);
+
+                        i {
+                            color: v(button-bg);
+                        }
+                    }
+                }
+            }
+        }
+
+        .settings-table {
+            min-height: 475px;
+
+            .settings-links {
+                width: 232px;
+                padding: 16px;
+                border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+                background: rgba(var(--center-channel-color-rgb), 0.04);
+            }
+
+            .nav {
+                width: 200px;
+            }
+
+            .settings-content {
+                .divider-dark {
+                    border-color: rgba(var(--center-channel-color-rgb), 0.12);
+                }
+
+                .divider-light {
+                    border-color: rgba(var(--center-channel-color-rgb), 0.08);
+                }
+            }
+        }
+    }
+}

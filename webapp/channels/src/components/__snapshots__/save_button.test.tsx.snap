@@ -2,13 +2,13 @@
 
 exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
 <button
-  className="save-button btn btn-primary some-class"
+  className="btn btn-primary  some-class"
   data-testid="saveSetting"
   disabled={false}
   id="saveSetting"
   type="submit"
 >
-  <LoadingWrapper
+  <Memo(LoadingWrapper)
     loading={false}
     text={
       <Memo(MemoizedFormattedMessage)
@@ -23,19 +23,19 @@ exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
         id="save_button.save"
       />
     </span>
-  </LoadingWrapper>
+  </Memo(LoadingWrapper)>
 </button>
 `;
 
 exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
 <button
-  className="save-button btn btn-primary"
+  className="btn btn-primary "
   data-testid="saveSetting"
   disabled={false}
   id="saveSetting"
   type="submit"
 >
-  <LoadingWrapper
+  <Memo(LoadingWrapper)
     loading={false}
     text={
       <Memo(MemoizedFormattedMessage)
@@ -50,19 +50,19 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
         id="save_button.save"
       />
     </span>
-  </LoadingWrapper>
+  </Memo(LoadingWrapper)>
 </button>
 `;
 
 exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
 <button
-  className="save-button btn btn-primary"
+  className="btn btn-primary "
   data-testid="saveSetting"
   disabled={false}
   id="saveSetting"
   type="submit"
 >
-  <LoadingWrapper
+  <Memo(LoadingWrapper)
     loading={false}
     text={
       <Memo(MemoizedFormattedMessage)
@@ -74,19 +74,19 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
     <span>
       Go
     </span>
-  </LoadingWrapper>
+  </Memo(LoadingWrapper)>
 </button>
 `;
 
 exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
 <button
-  className="save-button btn btn-primary"
+  className="btn btn-primary "
   data-testid="saveSetting"
   disabled={true}
   id="saveSetting"
   type="submit"
 >
-  <LoadingWrapper
+  <Memo(LoadingWrapper)
     loading={true}
     text={
       <Memo(MemoizedFormattedMessage)
@@ -101,19 +101,19 @@ exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
         id="save_button.save"
       />
     </span>
-  </LoadingWrapper>
+  </Memo(LoadingWrapper)>
 </button>
 `;
 
 exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
 <button
-  className="save-button btn btn-primary"
+  className="btn btn-primary "
   data-testid="saveSetting"
   disabled={true}
   id="saveSetting"
   type="submit"
 >
-  <LoadingWrapper
+  <Memo(LoadingWrapper)
     loading={true}
     text="Saving Config..."
   >
@@ -123,6 +123,6 @@ exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
         id="save_button.save"
       />
     </span>
-  </LoadingWrapper>
+  </Memo(LoadingWrapper)>
 </button>
 `;

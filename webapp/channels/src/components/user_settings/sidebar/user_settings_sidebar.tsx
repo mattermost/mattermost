@@ -4,12 +4,11 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import LocalizedIcon from 'components/localized_icon';
-
-import {t} from 'utils/i18n';
-
-import ShowUnreadsCategory from './show_unreads_category';
 import LimitVisibleGMsDMs from './limit_visible_gms_dms';
+import ShowUnreadsCategory from './show_unreads_category';
+
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
 
 export interface Props {
     updateSection: (section: string) => void;
@@ -21,43 +20,29 @@ export interface Props {
 export default function UserSettingsSidebar(props: Props): JSX.Element {
     return (
         <div>
-            <div className='modal-header'>
-                <button
-                    id='closeButton'
-                    type='button'
-                    className='close'
-                    data-dismiss='modal'
-                    aria-label='Close'
-                    onClick={props.closeModal}
-                >
-                    <span aria-hidden='true'>{'×'}</span>
-                </button>
-                <h4 className='modal-title'>
-                    <div
-                        className='modal-back'
-                        onClick={props.collapseModal}
-                    >
-                        <LocalizedIcon
-                            className='fa fa-angle-left'
-                            title={{id: t('generic_icons.collapse'), defaultMessage: 'Collapse Icon'}}
-                        />
-                    </div>
+            <SettingMobileHeader
+                closeModal={props.closeModal}
+                collapseModal={props.collapseModal}
+                text={
                     <FormattedMessage
                         id='user.settings.sidebar.title'
                         defaultMessage='Sidebar Settings'
                     />
-                </h4>
-            </div>
+                }
+            />
             <div
                 id='sidebarTitle'
                 className='user-settings'
             >
-                <h3 className='tab-header'>
-                    <FormattedMessage
-                        id='user.settings.sidebar.title'
-                        defaultMessage='Sidebar Settings'
-                    />
-                </h3>
+                <SettingDesktopHeader
+                    text={
+                        <FormattedMessage
+                            id='user.settings.sidebar.title'
+                            defaultMessage='Sidebar Settings'
+                        />
+                    }
+                />
+
                 <div className='divider-dark first'/>
                 <ShowUnreadsCategory
                     active={props.activeSection === 'showUnreadsCategory'}

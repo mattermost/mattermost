@@ -15,9 +15,9 @@ import (
 
 type AdvancedPermissionsPhase2Progress struct {
 	CurrentTable  string `json:"current_table"`
-	LastTeamId    string `json:"last_team_id"`
-	LastChannelId string `json:"last_channel_id"`
-	LastUserId    string `json:"last_user"`
+	LastTeamID    string `json:"last_team_id"`
+	LastChannelID string `json:"last_channel_id"`
+	LastUserID    string `json:"last_user"`
 }
 
 func (p *AdvancedPermissionsPhase2Progress) ToJSON() string {
@@ -35,15 +35,15 @@ func AdvancedPermissionsPhase2ProgressFromJSON(data io.Reader) *AdvancedPermissi
 }
 
 func (p *AdvancedPermissionsPhase2Progress) IsValid() bool {
-	if !model.IsValidId(p.LastChannelId) {
+	if !model.IsValidId(p.LastChannelID) {
 		return false
 	}
 
-	if !model.IsValidId(p.LastTeamId) {
+	if !model.IsValidId(p.LastTeamID) {
 		return false
 	}
 
-	if !model.IsValidId(p.LastUserId) {
+	if !model.IsValidId(p.LastUserID) {
 		return false
 	}
 
@@ -63,9 +63,9 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 		// Haven't started the migration yet.
 		progress = &AdvancedPermissionsPhase2Progress{
 			CurrentTable:  "TeamMembers",
-			LastChannelId: strings.Repeat("0", 26),
-			LastTeamId:    strings.Repeat("0", 26),
-			LastUserId:    strings.Repeat("0", 26),
+			LastChannelID: strings.Repeat("0", 26),
+			LastTeamID:    strings.Repeat("0", 26),
+			LastUserID:    strings.Repeat("0", 26),
 		}
 	} else {
 		err := json.NewDecoder(strings.NewReader(lastDone)).Decode(&progress)
@@ -79,22 +79,22 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 
 	if progress.CurrentTable == "TeamMembers" {
 		// Run a TeamMembers migration batch.
-		result, err := worker.store.Team().MigrateTeamMembers(progress.LastTeamId, progress.LastUserId)
+		result, err := worker.store.Team().MigrateTeamMembers(progress.LastTeamID, progress.LastUserID)
 		if err != nil {
 			return false, progress.ToJSON(), model.NewAppError("MigrationsWorker.runAdvancedPermissionsPhase2Migration", "app.team.migrate_team_members.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		if result == nil {
 			// We haven't progressed. That means that we've reached the end of this stage of the migration, and should now advance to the next stage.
-			progress.LastUserId = strings.Repeat("0", 26)
+			progress.LastUserID = strings.Repeat("0", 26)
 			progress.CurrentTable = "ChannelMembers"
 			return false, progress.ToJSON(), nil
 		}
 
-		progress.LastTeamId = result["TeamId"]
-		progress.LastUserId = result["UserId"]
+		progress.LastTeamID = result["TeamId"]
+		progress.LastUserID = result["UserId"]
 	} else if progress.CurrentTable == "ChannelMembers" {
 		// Run a ChannelMembers migration batch.
-		data, err := worker.store.Channel().MigrateChannelMembers(progress.LastChannelId, progress.LastUserId)
+		data, err := worker.store.Channel().MigrateChannelMembers(progress.LastChannelID, progress.LastUserID)
 		if err != nil {
 			return false, progress.ToJSON(), model.NewAppError("MigrationsWorker.runAdvancedPermissionsPhase2Migration", "app.channel.migrate_channel_members.select.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -104,8 +104,8 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 			return true, progress.ToJSON(), nil
 		}
 
-		progress.LastChannelId = data["ChannelId"]
-		progress.LastUserId = data["UserId"]
+		progress.LastChannelID = data["ChannelId"]
+		progress.LastUserID = data["UserId"]
 	}
 
 	return false, progress.ToJSON(), nil

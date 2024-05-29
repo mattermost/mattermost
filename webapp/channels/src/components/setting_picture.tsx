@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, Component, createRef, CSSProperties, MouseEvent, ReactNode, RefObject} from 'react';
+import React, {Component, createRef} from 'react';
+import type {ChangeEvent, CSSProperties, MouseEvent, ReactNode, RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import * as FileUtils from 'utils/file_utils';
-
-import {Constants} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 import FormError from 'components/form_error';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+
+import {Constants} from 'utils/constants';
+import * as FileUtils from 'utils/file_utils';
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
     clientError?: ReactNode;
@@ -260,7 +260,7 @@ export default class SettingPicture extends Component<Props, State> {
     render() {
         const img = this.renderImg();
 
-        let confirmButtonClass = 'btn btn-sm';
+        let confirmButtonClass = 'btn';
         let disableSaveButtonFocus = false;
         if (this.props.submitActive || this.state.removeSrc || this.state.setDefaultSrc) {
             confirmButtonClass += ' btn-primary';
@@ -298,7 +298,7 @@ export default class SettingPicture extends Component<Props, State> {
                     />
                     <button
                         data-testid='inputSettingPictureButton'
-                        className='btn btn-sm btn-primary btn-file sel-btn'
+                        className='btn btn-primary btn-file'
                         disabled={this.props.loadingPicture}
                         onClick={this.handleInputFile}
                         aria-label={localizeMessage('setting_picture.select', 'Select')}
@@ -361,7 +361,7 @@ export default class SettingPicture extends Component<Props, State> {
                             {buttonRender}
                             <button
                                 data-testid='cancelSettingPicture'
-                                className='btn btn-link btn-sm theme'
+                                className='btn btn-tertiary theme ml-2'
                                 onClick={this.handleCancel}
                                 aria-label={localizeMessage('setting_picture.cancel', 'Cancel')}
                             >

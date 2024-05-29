@@ -4,39 +4,37 @@ exports[`components/sidebar/channel_filter should match snapshot 1`] = `
 <div
   className="SidebarFilters"
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={500}
-    overlay={
-      <Tooltip
-        className="hidden-xs"
-        id="new-group-tooltip"
-      >
-        Filter by unread
-        <Memo(KeyboardShortcutSequence)
-          hideDescription={true}
-          isInsideTooltip={true}
-          shortcut={
-            Object {
-              "default": Object {
-                "defaultMessage": "Toggle unread/all channels:	Ctrl|Shift|U",
-                "id": "shortcuts.nav.toggle_unreads",
-              },
-              "mac": Object {
-                "defaultMessage": "Toggle unread/all channels:	⌘|Shift|U",
-                "id": "shortcuts.nav.toggle_unreads.mac",
-              },
-            }
-          }
-        />
-      </Tooltip>
-    }
+  <WithTooltip
+    id="channel-filter-tooltip"
     placement="right"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+    shortcut={
+      Object {
+        "default": Array [
+          Object {
+            "defaultMessage": "Ctrl",
+            "id": "shortcuts.generic.ctrl",
+          },
+          Object {
+            "defaultMessage": "Shift",
+            "id": "shortcuts.generic.shift",
+          },
+          "U",
+        ],
+        "mac": Array [
+          "⌘",
+          Object {
+            "defaultMessage": "Shift",
+            "id": "shortcuts.generic.shift",
+          },
+          "U",
+        ],
+      }
+    }
+    title={
+      Object {
+        "defaultMessage": "Filter by unread",
+        "id": "sidebar_left.channel_filter.filterByUnread",
+      }
     }
   >
     <a
@@ -49,7 +47,7 @@ exports[`components/sidebar/channel_filter should match snapshot 1`] = `
         className="icon icon-filter-variant"
       />
     </a>
-  </OverlayTrigger>
+  </WithTooltip>
 </div>
 `;
 
@@ -57,39 +55,37 @@ exports[`components/sidebar/channel_filter should match snapshot if the unread f
 <div
   className="SidebarFilters"
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={500}
-    overlay={
-      <Tooltip
-        className="hidden-xs"
-        id="new-group-tooltip"
-      >
-        Show all channels
-        <Memo(KeyboardShortcutSequence)
-          hideDescription={true}
-          isInsideTooltip={true}
-          shortcut={
-            Object {
-              "default": Object {
-                "defaultMessage": "Toggle unread/all channels:	Ctrl|Shift|U",
-                "id": "shortcuts.nav.toggle_unreads",
-              },
-              "mac": Object {
-                "defaultMessage": "Toggle unread/all channels:	⌘|Shift|U",
-                "id": "shortcuts.nav.toggle_unreads.mac",
-              },
-            }
-          }
-        />
-      </Tooltip>
-    }
+  <WithTooltip
+    id="channel-filter-tooltip"
     placement="right"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+    shortcut={
+      Object {
+        "default": Array [
+          Object {
+            "defaultMessage": "Ctrl",
+            "id": "shortcuts.generic.ctrl",
+          },
+          Object {
+            "defaultMessage": "Shift",
+            "id": "shortcuts.generic.shift",
+          },
+          "U",
+        ],
+        "mac": Array [
+          "⌘",
+          Object {
+            "defaultMessage": "Shift",
+            "id": "shortcuts.generic.shift",
+          },
+          "U",
+        ],
+      }
+    }
+    title={
+      Object {
+        "defaultMessage": "Show all channels",
+        "id": "sidebar_left.channel_filter.showAllChannels",
+      }
     }
   >
     <a
@@ -102,6 +98,6 @@ exports[`components/sidebar/channel_filter should match snapshot if the unread f
         className="icon icon-filter-variant"
       />
     </a>
-  </OverlayTrigger>
+  </WithTooltip>
 </div>
 `;

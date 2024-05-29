@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import RemovedFromChannelModal from './removed_from_channel_modal';
 

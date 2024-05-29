@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import TestHelper from '../../../test/test_helper';
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
 import * as Selectors from './threads';
+
+import TestHelper from '../../../test/test_helper';
 
 describe('Selectors.Threads.getThreadOrderInCurrentTeam', () => {
     const team1 = TestHelper.fakeTeamWithId();
@@ -48,7 +49,7 @@ describe('Selectors.Threads.getThreadOrderInCurrentTeam', () => {
                 },
                 channels: {
                     channelsInTeam: {
-                        [team1.id]: [post1.channel_id, post2.channel_id],
+                        [team1.id]: new Set([post1.channel_id, post2.channel_id]),
                     },
                     channels: {
                         [post1.channel_id]: {
@@ -115,7 +116,7 @@ describe('Selectors.Threads.getUnreadThreadOrderInCurrentTeam', () => {
                 },
                 channels: {
                     channelsInTeam: {
-                        [team1.id]: [post1.channel_id, post2.channel_id],
+                        [team1.id]: new Set([post1.channel_id, post2.channel_id]),
                     },
                     channels: {
                         [post1.channel_id]: {

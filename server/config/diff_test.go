@@ -465,27 +465,6 @@ func TestDiffSanitized(t *testing.T) {
 			"",
 		},
 		{
-			"sensitive ServiceSettings.GfycatAPISecret",
-			func() *model.Config {
-				cfg := defaultConfigGen()
-				cfg.ServiceSettings.GfycatAPISecret = model.NewString("base")
-				return cfg
-			}(),
-			func() *model.Config {
-				cfg := defaultConfigGen()
-				cfg.ServiceSettings.GfycatAPISecret = model.NewString("actual")
-				return cfg
-			}(),
-			ConfigDiffs{
-				{
-					Path:      "ServiceSettings.GfycatAPISecret",
-					BaseVal:   model.FakeSetting,
-					ActualVal: model.FakeSetting,
-				},
-			},
-			"",
-		},
-		{
 			"sensitive ServiceSettings.SplitKey",
 			func() *model.Config {
 				cfg := defaultConfigGen()

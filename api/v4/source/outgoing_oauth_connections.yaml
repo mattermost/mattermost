@@ -1,0 +1,217 @@
+  /api/v4/oauth/outgoing_connections:
+    get:
+      tags:
+        - oauth
+        - outgoing_connections
+        - outgoing_oauth_connections
+      summary: List all connections
+      description: >
+        List all outgoing OAuth connections.
+
+        __Minimum server version__: 9.6
+      operationId: ListOutgoingOAuthConnections
+      parameters:
+        - name: team_id
+          in: query
+          description: Current Team ID in integrations backstage
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully fetched outgoing OAuth connections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OutgoingOAuthConnectionGetItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    post:
+      tags:
+        - oauth
+        - outgoing_connections
+        - outgoing_oauth_connections
+      summary: Create a connection
+      description: >
+        Create an outgoing OAuth connection.
+
+        __Minimum server version__: 9.6
+      operationId: CreateOutgoingOAuthConnection
+      parameters:
+        - name: team_id
+          in: query
+          description: Current Team ID in integrations backstage
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Outgoing OAuth connection to create
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OutgoingOAuthConnectionPostItem"
+      responses:
+        "201":
+          description: Successfully created outgoing OAuth connection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OutgoingOAuthConnectionGetItem"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/oauth/outgoing_connections/{connection_id}:
+    get:
+      tags:
+        - oauth
+        - outgoing_connections
+        - outgoing_oauth_connections
+      summary: Get a connection
+      description: >
+        Retrieve an outgoing OAuth connection.
+
+        __Minimum server version__: 9.6
+      operationId: GetOutgoingOAuthConnection
+      parameters:
+        - name: team_id
+          in: query
+          description: Current Team ID in integrations backstage
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully fetched outgoing OAuth connection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OutgoingOAuthConnectionGetItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    put:
+      tags:
+        - oauth
+        - outgoing_connections
+        - outgoing_oauth_connections
+      summary: Update a connection
+      description: >
+        Update an outgoing OAuth connection.
+
+        __Minimum server version__: 9.6
+      operationId: UpdateOutgoingOAuthConnection
+      parameters:
+        - name: team_id
+          in: query
+          description: Current Team ID in integrations backstage
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Outgoing OAuth connection to update
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OutgoingOAuthConnectionPostItem"
+      responses:
+        "200":
+          description: Successfully updated outgoing OAuth connection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OutgoingOAuthConnectionGetItem"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - oauth
+        - outgoing_connections
+        - outgoing_oauth_connections
+      summary: Delete a connection
+      description: >
+        Delete an outgoing OAuth connection.
+
+        __Minimum server version__: 9.6
+      operationId: DeleteOutgoingOAuthConnection
+      parameters:
+        - name: team_id
+          in: query
+          description: Current Team ID in integrations backstage
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully deleted outgoing OAuth connection
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/oauth/outgoing_connections/validate:
+    post:
+      tags:
+        - oauth
+        - outgoing_connections
+        - outgoing_oauth_connections
+      summary: Validate a connection configuration
+      description: >
+        Validate an outgoing OAuth connection. If an id is provided in the payload, and no client secret is provided, then the stored client secret is implicitly used for the validation.
+
+        __Minimum server version__: 9.6
+      operationId: ValidateOutgoingOAuthConnection
+      parameters:
+        - name: team_id
+          in: query
+          description: Current Team ID in integrations backstage
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Outgoing OAuth connection to validate
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OutgoingOAuthConnectionPostItem"
+      responses:
+        "200":
+          description: The connection configuration is valid.
+        "400":
+          description: The connection configuration is invalid.
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+        "502":
+          description: The connection configuration may be valid, but the server is unable to validate it upstream.
+          $ref: "#/components/responses/BadGateway"

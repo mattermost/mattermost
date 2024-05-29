@@ -1,15 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {OAuthApp} from '@mattermost/types/integrations';
+import type {OAuthApp} from '@mattermost/types/integrations';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import FormError from 'components/form_error';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import icon50 from 'images/icon50x50.png';
-import FormError from 'components/form_error';
 import {getHistory} from 'utils/browser_history';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 export type Params = {
     responseType: string | null;
@@ -24,8 +28,8 @@ type Props = {
         search: string;
     };
     actions: {
-        getOAuthAppInfo: (clientId: string | null) => Promise<{data: OAuthApp; error?: Error}>;
-        allowOAuth2: (params: Params) => Promise<{data?: any; error?: Error}>;
+        getOAuthAppInfo: (clientId: string | null) => Promise<ActionResult<OAuthApp>>;
+        allowOAuth2: (params: Params) => Promise<ActionResult<{redirect: string}>>;
     };
 }
 
@@ -156,7 +160,7 @@ export default class Authorize extends React.PureComponent<Props, State> {
                     <div className='prompt__buttons'>
                         <button
                             type='submit'
-                            className='btn btn-link authorize-btn'
+                            className='btn btn-tertiary authorize-btn'
                             onClick={this.handleDeny}
                         >
                             <FormattedMessage

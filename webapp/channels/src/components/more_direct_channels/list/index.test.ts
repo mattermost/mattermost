@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {General} from 'mattermost-redux/constants';
+import type {UserProfile} from '@mattermost/types/users';
 
+import {General} from 'mattermost-redux/constants';
 import * as ChannelUtils from 'mattermost-redux/utils/channel_utils';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
-import {OptionValue} from '../types';
-
-import {UserProfile} from '@mattermost/types/users';
+import type {OptionValue} from '../types';
 
 import {makeGetOptions} from './index';
 
@@ -217,7 +216,7 @@ describe('makeGetOptions', () => {
                         [gmChannel3.id]: gmChannel3,
                     },
                     channelsInTeam: {
-                        '': [gmChannel1.id, gmChannel2.id, gmChannel3.id],
+                        '': new Set([gmChannel1.id, gmChannel2.id, gmChannel3.id]),
                     },
                 },
                 users: {
@@ -292,7 +291,7 @@ describe('makeGetOptions', () => {
                         [gmChannel2.id]: gmChannel2,
                     },
                     channelsInTeam: {
-                        '': [gmChannel1.id, gmChannel2.id],
+                        '': new Set([gmChannel1.id, gmChannel2.id]),
                     },
                 },
                 users: {
@@ -379,7 +378,7 @@ describe('makeGetOptions', () => {
                         [gmChannel3.id]: gmChannel3,
                     },
                     channelsInTeam: {
-                        '': [gmChannel1.id, gmChannel2.id, gmChannel3.id],
+                        '': new Set([gmChannel1.id, gmChannel2.id, gmChannel3.id]),
                     },
                 },
                 users: {
@@ -481,7 +480,7 @@ describe('makeGetOptions', () => {
                         [gmChannel2.id]: gmChannel2,
                     },
                     channelsInTeam: {
-                        '': [gmChannel1.id, gmChannel2.id],
+                        '': new Set([gmChannel1.id, gmChannel2.id]),
                     },
                 },
                 users: {
@@ -592,7 +591,7 @@ describe('makeGetOptions', () => {
                         [dm1.id]: dm1,
                     },
                     channelsInTeam: {
-                        '': [dm1.id],
+                        '': new Set([dm1.id]),
                     },
                 },
                 users: {

@@ -48,9 +48,7 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
   bodyPadding={true}
   cancelButtonText={
     <React.Fragment>
-      <PreviousIcon
-        additionalClassName={null}
-      />
+      <Memo(PreviousIcon) />
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Previous"
         id="generic.previous"
@@ -133,9 +131,7 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
         defaultMessage="Next"
         id="generic.next"
       />
-      <NextIcon
-        additionalClassName={null}
-      />
+      <Memo(NextIcon) />
     </React.Fragment>
   }
   enforceFocus={true}

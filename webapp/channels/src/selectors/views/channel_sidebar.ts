@@ -1,7 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {Channel} from '@mattermost/types/channels';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
+
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {
+    makeGetCategoriesForTeam,
+    makeGetChannelsByCategory,
+    makeGetChannelIdsForCategory,
+} from 'mattermost-redux/selectors/entities/channel_categories';
 import {
     getAllChannels,
     getCurrentChannelId,
@@ -9,19 +19,11 @@ import {
     getUnreadChannelIds,
     sortUnreadChannels,
 } from 'mattermost-redux/selectors/entities/channels';
-import {
-    makeGetCategoriesForTeam,
-    makeGetChannelsByCategory,
-    makeGetChannelIdsForCategory,
-} from 'mattermost-redux/selectors/entities/channel_categories';
 import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {Channel} from '@mattermost/types/channels';
-import {CategorySorting, ChannelCategory} from '@mattermost/types/channel_categories';
-import {RelationOneToOne} from '@mattermost/types/utilities';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
-import {DraggingState, GlobalState} from 'types/store';
+import type {DraggingState, GlobalState} from 'types/store';
 
 export function isUnreadFilterEnabled(state: GlobalState): boolean {
     return state.views.channelSidebar.unreadFilterEnabled && !shouldShowUnreadsCategory(state);

@@ -14,6 +14,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
@@ -28,6 +30,7 @@ type MainHelper struct {
 	SearchEngine     *searchengine.Broker
 	SQLStore         *sqlstore.SqlStore
 	ClusterInterface *FakeClusterInterface
+	Logger           *mlog.Logger
 
 	status           int
 	testResourcePath string
@@ -61,9 +64,16 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	// Unset environment variables commonly set for development that interfere with tests.
 	os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 	os.Unsetenv("MM_SERVICESETTINGS_LISTENADDRESS")
+	os.Unsetenv("MM_SERVICESETTINGS_CONNECTIONSECURITY")
 	os.Unsetenv("MM_SERVICESETTINGS_ENABLEDEVELOPER")
 
-	var mainHelper MainHelper
+	logger := mlog.CreateConsoleLogger()
+
+	mainHelper := MainHelper{
+		Logger: logger,
+	}
+
+	mlog.NewLogger()
 	flag.Parse()
 
 	utils.TranslationsPreInit()
@@ -82,6 +92,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 }
 
 func (h *MainHelper) Main(m *testing.M) {
+	defer h.Logger.Shutdown()
 	if h.testResourcePath != "" {
 		prevDir, err := os.Getwd()
 		if err != nil {
@@ -120,7 +131,7 @@ func (h *MainHelper) setupStore(withReadReplica bool) {
 	h.ClusterInterface = &FakeClusterInterface{}
 
 	var err error
-	h.SQLStore, err = sqlstore.New(*h.Settings, nil)
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -137,7 +148,7 @@ func (h *MainHelper) ToggleReplicasOff() {
 	lic := h.SQLStore.GetLicense()
 
 	var err error
-	h.SQLStore, err = sqlstore.New(*h.Settings, nil)
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -152,7 +163,7 @@ func (h *MainHelper) ToggleReplicasOn() {
 	lic := h.SQLStore.GetLicense()
 
 	var err error
-	h.SQLStore, err = sqlstore.New(*h.Settings, nil)
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -185,25 +196,15 @@ func (h *MainHelper) PreloadMigrations() {
 	var buf []byte
 	var err error
 
-	basePath := os.Getenv("MM_SERVER_PATH")
-	if basePath == "" {
-		_, errFile := os.Stat("mattermost-server/server")
-		if os.IsNotExist(errFile) {
-			basePath = "mattermost/server"
-		} else {
-			basePath = "mattermost-server/server"
-		}
-	}
-	relPath := "channels/testlib/testdata"
 	switch *h.Settings.DriverName {
 	case model.DatabaseDriverPostgres:
-		finalPath := filepath.Join(basePath, relPath, "postgres_migration_warmup.sql")
+		finalPath := filepath.Join(server.GetPackagePath(), "channels", "testlib", "testdata", "postgres_migration_warmup.sql")
 		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
 	case model.DatabaseDriverMysql:
-		finalPath := filepath.Join(basePath, relPath, "mysql_migration_warmup.sql")
+		finalPath := filepath.Join(server.GetPackagePath(), "channels", "testlib", "testdata", "mysql_migration_warmup.sql")
 		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))

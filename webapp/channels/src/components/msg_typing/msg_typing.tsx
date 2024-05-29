@@ -4,7 +4,7 @@
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {WebSocketMessage} from '@mattermost/client';
+import type {WebSocketMessage} from '@mattermost/client';
 
 import {SocketEvents} from 'utils/constants';
 import {useWebSocket} from 'utils/use_websocket';

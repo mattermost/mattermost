@@ -6,35 +6,22 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {matchPath, useHistory, useLocation} from 'react-router-dom';
 
-import {trackEvent as trackEventAction} from 'actions/telemetry_actions';
-import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
-import {setStatusDropdown} from 'actions/views/status_dropdown';
-import {openModal} from 'actions/views/modals';
-import {
-    AutoTourStatus,
-    FINISHED,
-    OnboardingTourSteps,
-    OnboardingTourStepsForGuestUsers,
-    TTNameMapToATStatusKey,
-    TutorialTourName,
-} from 'components/tours';
-import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-
-import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserGuestUser, isCurrentUserSystemAdmin, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
+import {trackEvent as trackEventAction} from 'actions/telemetry_actions';
+import {openModal} from 'actions/views/modals';
 import {
     openInvitationsModal,
     setShowOnboardingCompleteProfileTour,
     setShowOnboardingVisitConsoleTour,
     switchToChannels,
 } from 'actions/views/onboarding_tasks';
-
-import {ModalIdentifiers, TELEMETRY_CATEGORIES, ExploreOtherToolsTourSteps} from 'utils/constants';
+import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
+import {setStatusDropdown} from 'actions/views/status_dropdown';
 
 import Channels from 'components/common/svg_images_components/channels_svg';
 import Clipboard from 'components/common/svg_images_components/clipboard_svg';
@@ -44,6 +31,19 @@ import Phone from 'components/common/svg_images_components/phone_svg';
 import Security from 'components/common/svg_images_components/security_svg';
 import Sunglasses from 'components/common/svg_images_components/sunglasses_svg';
 import Wrench from 'components/common/svg_images_components/wrench_svg';
+import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
+import {
+    AutoTourStatus,
+    FINISHED,
+    OnboardingTourSteps,
+    OnboardingTourStepsForGuestUsers,
+    TTNameMapToATStatusKey,
+    TutorialTourName,
+} from 'components/tours';
+
+import {ModalIdentifiers, TELEMETRY_CATEGORIES, ExploreOtherToolsTourSteps} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName, TaskNameMapToSteps} from './constants';
 import {generateTelemetryTag} from './utils';

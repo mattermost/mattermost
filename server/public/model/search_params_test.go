@@ -113,7 +113,6 @@ func TestSplitWords(t *testing.T) {
 			assert.Equal(t, testCase.Output, splitWords(testCase.Input))
 		})
 	}
-
 }
 
 func TestParseSearchFlags2(t *testing.T) {

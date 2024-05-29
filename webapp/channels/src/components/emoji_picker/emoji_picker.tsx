@@ -1,17 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import throttle from 'lodash/throttle';
 import React, {useRef, useState, useEffect, useCallback, memo, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {FixedSizeList} from 'react-window';
 import type InfiniteLoader from 'react-window-infinite-loader';
-import throttle from 'lodash/throttle';
 
-import {Emoji, EmojiCategory} from '@mattermost/types/emojis';
-import {isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
+import type {Emoji, EmojiCategory} from '@mattermost/types/emojis';
 
-import {NoResultsVariant} from 'components/no_results_indicator/types';
-import {CategoryOrEmojiRow, Categories, EmojiCursor, NavigationDirection, EmojiPosition, EmojiRow} from 'components/emoji_picker/types';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
+
+import EmojiPickerCategories from 'components/emoji_picker/components/emoji_picker_categories';
+import EmojiPickerCurrentResults from 'components/emoji_picker/components/emoji_picker_current_results';
+import EmojiPickerCustomEmojiButton from 'components/emoji_picker/components/emoji_picker_custom_emoji_button';
+import EmojiPickerPreview from 'components/emoji_picker/components/emoji_picker_preview';
+import EmojiPickerSearch from 'components/emoji_picker/components/emoji_picker_search';
+import EmojiPickerSkin from 'components/emoji_picker/components/emoji_picker_skin';
 import {
     CATEGORIES,
     RECENT_EMOJI_CATEGORY,
@@ -21,18 +26,15 @@ import {
     EMOJI_PER_ROW,
     CUSTOM_EMOJI_SEARCH_THROTTLE_TIME_MS,
 } from 'components/emoji_picker/constants';
+import {NavigationDirection} from 'components/emoji_picker/types';
+import type {CategoryOrEmojiRow, Categories, EmojiCursor, EmojiPosition, EmojiRow} from 'components/emoji_picker/types';
 import {createCategoryAndEmojiRows, getCursorProperties, getUpdatedCategoriesAndAllEmojis} from 'components/emoji_picker/utils';
 import NoResultsIndicator from 'components/no_results_indicator';
-import EmojiPickerPreview from 'components/emoji_picker/components/emoji_picker_preview';
-import EmojiPickerSearch from 'components/emoji_picker/components/emoji_picker_search';
-import EmojiPickerSkin from 'components/emoji_picker/components/emoji_picker_skin';
-import EmojiPickerCategories from 'components/emoji_picker/components/emoji_picker_categories';
-import EmojiPickerCustomEmojiButton from 'components/emoji_picker/components/emoji_picker_custom_emoji_button';
-import EmojiPickerCurrentResults from 'components/emoji_picker/components/emoji_picker_current_results';
+import {NoResultsVariant} from 'components/no_results_indicator/types';
 
 import type {PropsFromRedux} from './index';
 
-interface Props extends PropsFromRedux {
+export interface Props extends PropsFromRedux {
     filter: string;
     onEmojiClick: (emoji: Emoji) => void;
     handleFilterChange: (filter: string) => void;
@@ -118,6 +120,7 @@ const EmojiPicker = ({
 
         const [updatedCategoryOrEmojisRows, updatedEmojiPositions] = createCategoryAndEmojiRows(allEmojis, categories, filter, userSkinTone);
 
+        selectFirstEmoji(updatedEmojiPositions);
         setCategoryOrEmojisRows(updatedCategoryOrEmojisRows);
         setEmojiPositionsArray(updatedEmojiPositions);
         throttledSearchCustomEmoji.current(filter, customEmojisEnabled);
@@ -155,6 +158,22 @@ const EmojiPicker = ({
         }
         const emoji = allEmojis[emojiId] || allEmojis[emojiId.toUpperCase()] || allEmojis[emojiId.toLowerCase()];
         return emoji;
+    };
+
+    const selectFirstEmoji = (emojiPositions: EmojiPosition[]) => {
+        if (!emojiPositions[0]) {
+            return;
+        }
+
+        const {rowIndex, emojiId} = emojiPositions[0];
+        const cursorEmoji = getEmojiById(emojiId);
+        if (cursorEmoji) {
+            setCursor({
+                rowIndex,
+                emojiId,
+                emoji: cursorEmoji,
+            });
+        }
     };
 
     const handleCategoryClick = useCallback((categoryRowIndex: CategoryOrEmojiRow['index'], categoryName: EmojiCategory, emojiId: string) => {
@@ -339,7 +358,7 @@ const EmojiPicker = ({
             return '';
         }
 
-        const name = isSystemEmoji(emoji) ? emoji.short_name : emoji.name;
+        const name = getEmojiName(emoji);
         return name.replace(/_/g, ' ');
     }, [cursor.emojiId]);
 
@@ -389,8 +408,8 @@ const EmojiPicker = ({
             />
             {areSearchResultsEmpty ? (
                 <NoResultsIndicator
-                    variant={NoResultsVariant.ChannelSearch}
-                    titleValues={{channelName: `"${filter}"`}}
+                    variant={NoResultsVariant.Search}
+                    titleValues={{channelName: `${filter}`}}
                 />
             ) : (
                 <EmojiPickerCurrentResults
@@ -410,9 +429,9 @@ const EmojiPicker = ({
                 />
             )}
             <div className='emoji-picker__footer'>
-                <EmojiPickerPreview
-                    emoji={cursor.emoji}
-                />
+                {areSearchResultsEmpty ? (<div/>) :
+                    (<EmojiPickerPreview emoji={cursor.emoji}/>)
+                }
                 <EmojiPickerCustomEmojiButton
                     currentTeamName={currentTeamName}
                     customEmojisEnabled={customEmojisEnabled}

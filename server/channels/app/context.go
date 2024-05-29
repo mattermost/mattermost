@@ -4,16 +4,14 @@
 package app
 
 import (
-	"context"
-
 	"github.com/mattermost/mattermost/server/public/plugin"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
-// WithMaster adds the context value that master DB should be selected for this request.
-func WithMaster(ctx context.Context) context.Context {
-	return sqlstore.WithMaster(ctx)
+// RequestContextWithMaster adds the context value that master DB should be selected for this request.
+func RequestContextWithMaster(c request.CTX) request.CTX {
+	return sqlstore.RequestContextWithMaster(c)
 }
 
 func pluginContext(c request.CTX) *plugin.Context {

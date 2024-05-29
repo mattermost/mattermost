@@ -10,20 +10,21 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const PluginIdJenkins = "jenkins"
 
-func TestNotifyAdminStore(t *testing.T, ss store.Store) {
-	t.Run("Save", func(t *testing.T) { testNotifyAdminStoreSave(t, ss) })
-	t.Run("testGetDataByUserIdAndFeature", func(t *testing.T) { testGetDataByUserIdAndFeature(t, ss) })
-	t.Run("testGet", func(t *testing.T) { testGet(t, ss) })
-	t.Run("testDeleteBefore", func(t *testing.T) { testDeleteBefore(t, ss) })
-	t.Run("testUpdate", func(t *testing.T) { testUpdate(t, ss) })
+func TestNotifyAdminStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("Save", func(t *testing.T) { testNotifyAdminStoreSave(t, rctx, ss) })
+	t.Run("testGetDataByUserIdAndFeature", func(t *testing.T) { testGetDataByUserIdAndFeature(t, rctx, ss) })
+	t.Run("testGet", func(t *testing.T) { testGet(t, rctx, ss) })
+	t.Run("testDeleteBefore", func(t *testing.T) { testDeleteBefore(t, rctx, ss) })
+	t.Run("testUpdate", func(t *testing.T) { testUpdate(t, rctx, ss) })
 }
 
-func tearDown(t *testing.T, ss store.Store) {
+func tearDown(t *testing.T, rctx request.CTX, ss store.Store) {
 	err := ss.NotifyAdmin().DeleteBefore(true, model.GetMillis()+model.GetMillis())
 	require.NoError(t, err)
 
@@ -31,7 +32,7 @@ func tearDown(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testNotifyAdminStoreSave(t *testing.T, ss store.Store) {
+func testNotifyAdminStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	d1 := &model.NotifyAdminData{
 		UserId:          model.NewId(),
 		RequiredPlan:    model.LicenseShortSkuProfessional,
@@ -78,10 +79,10 @@ func testNotifyAdminStoreSave(t *testing.T, ss store.Store) {
 	_, err = ss.NotifyAdmin().Save(d6)
 	require.Error(t, err)
 
-	tearDown(t, ss)
+	tearDown(t, rctx, ss)
 }
 
-func testGet(t *testing.T, ss store.Store) {
+func testGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId1 := model.NewId()
 	d1 := &model.NotifyAdminData{
 		UserId:          userId1,
@@ -118,10 +119,10 @@ func testGet(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.Equal(t, len(trialRequests), 2)
 
-	tearDown(t, ss)
+	tearDown(t, rctx, ss)
 }
 
-func testGetDataByUserIdAndFeature(t *testing.T, ss store.Store) {
+func testGetDataByUserIdAndFeature(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId1 := model.NewId()
 	d1 := &model.NotifyAdminData{
 		UserId:          userId1,
@@ -147,10 +148,10 @@ func testGetDataByUserIdAndFeature(t *testing.T, ss store.Store) {
 	require.Equal(t, len(user1Request), 1)
 	require.Equal(t, user1Request[0].RequiredFeature, model.PaidFeatureAllProfessionalfeatures)
 
-	tearDown(t, ss)
+	tearDown(t, rctx, ss)
 }
 
-func testUpdate(t *testing.T, ss store.Store) {
+func testUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId1 := model.NewId()
 	d1 := &model.NotifyAdminData{
 		UserId:          userId1,
@@ -169,10 +170,10 @@ func testUpdate(t *testing.T, ss store.Store) {
 	require.Equal(t, len(userRequest), 1)
 	require.Equal(t, userRequest[0].SentAt, sql.NullInt64{Int64: 100, Valid: true})
 
-	tearDown(t, ss)
+	tearDown(t, rctx, ss)
 }
 
-func testDeleteBefore(t *testing.T, ss store.Store) {
+func testDeleteBefore(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId1 := model.NewId()
 	d1 := &model.NotifyAdminData{
 		UserId:          userId1,

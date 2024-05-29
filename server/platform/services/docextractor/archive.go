@@ -18,6 +18,10 @@ type archiveExtractor struct {
 	SubExtractor Extractor
 }
 
+func (ae *archiveExtractor) Name() string {
+	return "archiveExtractor"
+}
+
 func (ae *archiveExtractor) Match(filename string) bool {
 	_, err := archiver.ByExtension(filename)
 	return err == nil

@@ -14,7 +14,7 @@ test('Base channel accessibility', async ({pw, pages, axe}) => {
     const channelsPage = new pages.ChannelsPage(page);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.postMessage('hello');
+    await channelsPage.centerView.postCreate.postMessage('hello');
 
     // # Analyze the page
     // Disable 'color-contrast' to be addressed by MM-53814
@@ -26,7 +26,9 @@ test('Base channel accessibility', async ({pw, pages, axe}) => {
 
 test('Post actions tab support', async ({pw, pages, axe}) => {
     // # Create and sign in a new user
-    const {user} = await pw.initSetup();
+    const {user, adminClient} = await pw.initSetup();
+    const config = await adminClient.getConfig();
+    const license = await adminClient.getClientLicenseOld();
 
     // # Log in a user in new browser context
     const {page} = await pw.testBrowser.login(user);
@@ -35,9 +37,9 @@ test('Post actions tab support', async ({pw, pages, axe}) => {
     const channelsPage = new pages.ChannelsPage(page);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.postMessage('hello');
+    await channelsPage.centerView.postCreate.postMessage('hello');
 
-    const post = await channelsPage.getLastPost();
+    const post = await channelsPage.centerView.getLastPost();
     await post.hover();
     await post.postMenu.toBeVisible();
 
@@ -85,9 +87,19 @@ test('Post actions tab support', async ({pw, pages, axe}) => {
     await channelsPage.postDotMenu.saveMenuItem.press('ArrowDown');
     await expect(channelsPage.postDotMenu.pinToChannelMenuItem).toBeFocused();
 
-    // * Should move focus to Copy Link after arrow down
-    await channelsPage.postDotMenu.pinToChannelMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.copyLinkMenuItem).toBeFocused();
+    if (config.FeatureFlags['MoveThreadsEnabled'] && license.IsLicensed === 'true') {
+        // * Should move focus to Move Thread after arrow down
+        await channelsPage.postDotMenu.pinToChannelMenuItem.press('ArrowDown');
+        await expect(channelsPage.postDotMenu.moveThreadMenuItem).toBeFocused();
+
+        // * Should move focus to Copy Link after arrow down
+        await channelsPage.postDotMenu.moveThreadMenuItem.press('ArrowDown');
+        await expect(channelsPage.postDotMenu.copyLinkMenuItem).toBeFocused();
+    } else {
+        // * Should move focus to Copy Link after arrow down
+        await channelsPage.postDotMenu.pinToChannelMenuItem.press('ArrowDown');
+        await expect(channelsPage.postDotMenu.copyLinkMenuItem).toBeFocused();
+    }
 
     // * Should move focus to Edit after arrow down
     await channelsPage.postDotMenu.copyLinkMenuItem.press('ArrowDown');

@@ -3,29 +3,31 @@
 
 /* eslint-disable max-lines */
 
-import React, {ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
+
+import ConfirmModal from 'components/confirm_modal';
+import SettingItem from 'components/setting_item';
+import SettingItemMax from 'components/setting_item_max';
 
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isMac} from 'utils/user_agent';
 import {a11yFocus, localizeMessage} from 'utils/utils';
 
-import SettingItemMax from 'components/setting_item_max';
-import ConfirmModal from 'components/confirm_modal';
-import BackIcon from 'components/widgets/icons/fa_back_icon';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import {UserProfile} from '@mattermost/types/users';
-import {PreferenceType} from '@mattermost/types/preferences';
-
-import SettingItem from 'components/setting_item';
-
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
+
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
 
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
@@ -819,6 +821,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                             </div>,
                         ]}
                         saveButtonText={'Deactivate'}
+                        saveButtonClassName={'btn-danger'}
                         setting={'deactivateAccount'}
                         submit={this.handleShowDeactivateAccountModal}
                         saving={this.state.isSaving}
@@ -897,38 +900,25 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
         return (
             <div>
-                <div className='modal-header'>
-                    <button
-                        id='closeButton'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label='Close'
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4
-                        className='modal-title'
-                    >
-                        <div className='modal-back'>
-                            <span onClick={this.props.collapseModal}>
-                                <BackIcon/>
-                            </span>
-                        </div>
+                <SettingMobileHeader
+                    closeModal={this.props.closeModal}
+                    collapseModal={this.props.collapseModal}
+                    text={
                         <FormattedMessage
                             id='user.settings.advance.title'
                             defaultMessage='Advanced Settings'
                         />
-                    </h4>
-                </div>
+                    }
+                />
                 <div className='user-settings'>
-                    <h3 className='tab-header'>
-                        <FormattedMessage
-                            id='user.settings.advance.title'
-                            defaultMessage='Advanced Settings'
-                        />
-                    </h3>
+                    <SettingDesktopHeader
+                        text={
+                            <FormattedMessage
+                                id='user.settings.advance.title'
+                                defaultMessage='Advanced Settings'
+                            />
+                        }
+                    />
                     <div className='divider-dark first'/>
                     {ctrlSendSection}
                     {formattingSectionDivider}
@@ -942,17 +932,17 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     />
                     {previewFeaturesSectionDivider}
                     {previewFeaturesSection}
-                    {formattingSectionDivider}
                     <PerformanceDebuggingSection
                         active={this.props.activeSection === AdvancedSections.PERFORMANCE_DEBUGGING}
                         onUpdateSection={this.handleUpdateSection}
                         areAllSectionsInactive={this.props.activeSection === ''}
                     />
-                    {deactivateAccountSection}
                     {unreadScrollPositionSectionDivider}
                     {unreadScrollPositionSection}
                     {syncDraftsSectionDivider}
                     {syncDraftsSection}
+                    {formattingSectionDivider}
+                    {deactivateAccountSection}
                     <div className='divider-dark'/>
                     {makeConfirmationModal}
                 </div>

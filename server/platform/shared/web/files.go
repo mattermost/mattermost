@@ -27,6 +27,7 @@ var MediaContentTypes = [...]string{
 	"image/bmp",
 	"image/gif",
 	"image/tiff",
+	"image/webp",
 	"video/avi",
 	"video/mpeg",
 	"video/mp4",
@@ -35,7 +36,7 @@ var MediaContentTypes = [...]string{
 }
 
 func WriteFileResponse(filename string, contentType string, contentSize int64, lastModification time.Time, webserverMode string, fileReader io.ReadSeeker, forceDownload bool, w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Cache-Control", "private, no-cache")
+	w.Header().Set("Cache-Control", "private, max-age=86400")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 
 	if contentSize > 0 {

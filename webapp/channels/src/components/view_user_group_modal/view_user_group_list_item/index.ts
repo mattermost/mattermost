@@ -2,21 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-import {GlobalState} from 'types/store';
-
-import {getGroup as getGroupById} from 'mattermost-redux/selectors/entities/groups';
 import {removeUsersFromGroup} from 'mattermost-redux/actions/groups';
-import {haveIGroupPermission} from 'mattermost-redux/selectors/entities/roles';
 import {Permissions} from 'mattermost-redux/constants';
+import {getGroup as getGroupById} from 'mattermost-redux/selectors/entities/groups';
+import {haveIGroupPermission} from 'mattermost-redux/selectors/entities/roles';
+
+import type {GlobalState} from 'types/store';
 
 import ViewUserGroupListItem from './view_user_group_list_item';
-
-type Actions = {
-    removeUsersFromGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
-};
 
 type OwnProps = {
     groupId: string;
@@ -34,7 +30,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             removeUsersFromGroup,
         }, dispatch),
     };

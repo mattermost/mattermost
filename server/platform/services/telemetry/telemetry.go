@@ -17,7 +17,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
@@ -77,8 +76,8 @@ const (
 	TrackConfigImageProxy        = "config_image_proxy"
 	TrackConfigBleve             = "config_bleve"
 	TrackConfigExport            = "config_export"
+	TrackConfigWrangler          = "config_wrangler"
 	TrackFeatureFlags            = "config_feature_flags"
-	TrackConfigProducts          = "products"
 	TrackPermissionsGeneral      = "permissions_general"
 	TrackPermissionsSystemScheme = "permissions_system_scheme"
 	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
@@ -86,7 +85,6 @@ const (
 	TrackElasticsearch           = "elasticsearch"
 	TrackGroups                  = "groups"
 	TrackChannelModeration       = "channel_moderation"
-	TrackWarnMetrics             = "warn_metrics"
 
 	TrackActivity = "activity"
 	TrackLicense  = "license"
@@ -102,7 +100,6 @@ type ServerIface interface {
 	License() *model.License
 	GetRoleByName(context.Context, string) (*model.Role, *model.AppError)
 	GetSchemes(string, int, int) ([]*model.Scheme, *model.AppError)
-	HooksManager() *product.HooksManager
 }
 
 type TelemetryService struct {
@@ -198,8 +195,6 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 		ts.trackElasticsearch()
 		ts.trackGroups()
 		ts.trackChannelModeration()
-		ts.trackWarnMetrics()
-		ts.trackProducts()
 	}
 }
 
@@ -283,17 +278,17 @@ func (ts *TelemetryService) trackActivity() {
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
 
-	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
+	activeUsersDailyCountChan := make(chan store.StoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersDailyCountChan <- store.StoreResult{Data: count, NErr: err}
+		activeUsersDailyCountChan <- store.StoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersDailyCountChan)
 	}()
 
-	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
+	activeUsersMonthlyCountChan := make(chan store.StoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, NErr: err}
+		activeUsersMonthlyCountChan <- store.StoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersMonthlyCountChan)
 	}()
 
@@ -364,12 +359,12 @@ func (ts *TelemetryService) trackActivity() {
 
 	var activeUsersDailyCount int64
 	if r := <-activeUsersDailyCountChan; r.NErr == nil {
-		activeUsersDailyCount = r.Data.(int64)
+		activeUsersDailyCount = r.Data
 	}
 
 	var activeUsersMonthlyCount int64
 	if r := <-activeUsersMonthlyCountChan; r.NErr == nil {
-		activeUsersMonthlyCount = r.Data.(int64)
+		activeUsersMonthlyCount = r.Data
 	}
 
 	activity := map[string]any{
@@ -412,15 +407,15 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_insecure_outgoing_connections":                    *cfg.ServiceSettings.EnableInsecureOutgoingConnections,
 		"enable_incoming_webhooks":                                cfg.ServiceSettings.EnableIncomingWebhooks,
 		"enable_outgoing_webhooks":                                cfg.ServiceSettings.EnableOutgoingWebhooks,
+		"enable_outgoing_oauth_connections":                       cfg.ServiceSettings.EnableOutgoingOAuthConnections,
 		"enable_commands":                                         *cfg.ServiceSettings.EnableCommands,
+		"outgoing_integrations_requests_timeout":                  cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout,
 		"enable_post_username_override":                           cfg.ServiceSettings.EnablePostUsernameOverride,
 		"enable_post_icon_override":                               cfg.ServiceSettings.EnablePostIconOverride,
 		"enable_user_access_tokens":                               *cfg.ServiceSettings.EnableUserAccessTokens,
 		"enable_custom_emoji":                                     *cfg.ServiceSettings.EnableCustomEmoji,
 		"enable_emoji_picker":                                     *cfg.ServiceSettings.EnableEmojiPicker,
 		"enable_gif_picker":                                       *cfg.ServiceSettings.EnableGifPicker,
-		"gfycat_api_key":                                          isDefault(*cfg.ServiceSettings.GfycatAPIKey, model.ServiceSettingsDefaultGfycatAPIKey),
-		"gfycat_api_secret":                                       isDefault(*cfg.ServiceSettings.GfycatAPISecret, model.ServiceSettingsDefaultGfycatAPISecret),
 		"experimental_enable_authentication_transfer":             *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer,
 		"enable_testing":                                          cfg.ServiceSettings.EnableTesting,
 		"enable_developer":                                        *cfg.ServiceSettings.EnableDeveloper,
@@ -495,8 +490,9 @@ func (ts *TelemetryService) trackConfig() {
 		"persistent_notification_interval_minutes":                *cfg.ServiceSettings.PersistentNotificationIntervalMinutes,
 		"persistent_notification_max_count":                       *cfg.ServiceSettings.PersistentNotificationMaxCount,
 		"persistent_notification_max_recipients":                  *cfg.ServiceSettings.PersistentNotificationMaxRecipients,
-		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
+		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
+		"maximum_payload_size":                                    *cfg.ServiceSettings.MaximumPayloadSizeBytes,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -762,8 +758,9 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigMetrics, map[string]any{
-		"enable":             *cfg.MetricsSettings.Enable,
-		"block_profile_rate": *cfg.MetricsSettings.BlockProfileRate,
+		"enable":                *cfg.MetricsSettings.Enable,
+		"block_profile_rate":    *cfg.MetricsSettings.BlockProfileRate,
+		"enable_client_metrics": *cfg.MetricsSettings.EnableClientMetrics,
 	})
 
 	ts.SendTelemetry(TrackConfigNativeApp, map[string]any{
@@ -778,7 +775,6 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_client_side_cert_check":    isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
 		"link_metadata_timeout_milliseconds":  *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"restrict_system_admin":               *cfg.ExperimentalSettings.RestrictSystemAdmin,
-		"use_new_saml_library":                *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"enable_shared_channels":              *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":       *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"enable_app_bar":                      !*cfg.ExperimentalSettings.DisableAppBar,
@@ -830,10 +826,13 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_message_deletion":       *cfg.DataRetentionSettings.EnableMessageDeletion,
 		"enable_file_deletion":          *cfg.DataRetentionSettings.EnableFileDeletion,
 		"message_retention_days":        *cfg.DataRetentionSettings.MessageRetentionDays,
+		"message_retention_hours":       *cfg.DataRetentionSettings.MessageRetentionHours,
 		"file_retention_days":           *cfg.DataRetentionSettings.FileRetentionDays,
+		"file_retention_hours":          *cfg.DataRetentionSettings.FileRetentionHours,
 		"deletion_job_start_time":       *cfg.DataRetentionSettings.DeletionJobStartTime,
 		"batch_size":                    *cfg.DataRetentionSettings.BatchSize,
 		"time_between_batches":          *cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds,
+		"retention_ids_batch_size":      *cfg.DataRetentionSettings.RetentionIdsBatchSize,
 		"cleanup_jobs_threshold_days":   *cfg.JobSettings.CleanupJobsThresholdDays,
 		"cleanup_config_threshold_days": *cfg.JobSettings.CleanupConfigThresholdDays,
 	})
@@ -853,8 +852,8 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigDisplay, map[string]any{
-		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
 		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomURLSchemes) != 0,
+		"isdefault_max_markdown_nodes": isDefault(*cfg.DisplaySettings.MaxMarkdownNodes, 0),
 	})
 
 	ts.SendTelemetry(TrackConfigGuestAccounts, map[string]any{
@@ -881,6 +880,16 @@ func (ts *TelemetryService) trackConfig() {
 
 	ts.SendTelemetry(TrackConfigExport, map[string]any{
 		"retention_days": *cfg.ExportSettings.RetentionDays,
+	})
+
+	ts.SendTelemetry(TrackConfigWrangler, map[string]any{
+		"permitted_wrangler_users":                       cfg.WranglerSettings.PermittedWranglerRoles,
+		"allowed_email_domain":                           cfg.WranglerSettings.AllowedEmailDomain,
+		"move_thread_max_count":                          cfg.WranglerSettings.MoveThreadMaxCount,
+		"move_thread_to_another_team_enable":             cfg.WranglerSettings.MoveThreadToAnotherTeamEnable,
+		"move_thread_from_private_channel_enable":        cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable,
+		"move_thread_from_direct_message_channel_enable": cfg.WranglerSettings.MoveThreadFromDirectMessageChannelEnable,
+		"move_thread_from_group_message_channel_enable":  cfg.WranglerSettings.MoveThreadFromGroupMessageChannelEnable,
 	})
 
 	// Convert feature flags to map[string]any for sending
@@ -982,18 +991,6 @@ func (ts *TelemetryService) trackPlugins() {
 	})
 
 	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-		hooks.OnSendDailyTelemetry()
-		return true
-	}, plugin.OnSendDailyTelemetryID)
-}
-
-func (ts *TelemetryService) trackProducts() {
-	hm := ts.srv.HooksManager()
-	if hm == nil {
-		return
-	}
-
-	hm.RunMultiHook(func(hooks plugin.Hooks) bool {
 		hooks.OnSendDailyTelemetry()
 		return true
 	}, plugin.OnSendDailyTelemetryID)
@@ -1396,22 +1393,6 @@ func (ts *TelemetryService) Shutdown() error {
 		return ts.rudderClient.Close()
 	}
 	return nil
-}
-
-func (ts *TelemetryService) trackWarnMetrics() {
-	systemDataList, nErr := ts.dbStore.System().Get()
-	if nErr != nil {
-		return
-	}
-	for key, value := range systemDataList {
-		if strings.HasPrefix(key, model.WarnMetricStatusStorePrefix) {
-			if _, ok := model.WarnMetricsTable[key]; ok {
-				ts.SendTelemetry(TrackWarnMetrics, map[string]any{
-					key: value != "false",
-				})
-			}
-		}
-	}
 }
 
 func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL string) {

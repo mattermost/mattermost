@@ -43,7 +43,7 @@ describe('Desktop notifications', () => {
 
     it('MM-T885 Channel notifications: Desktop notifications mentions only', () => {
         // # Ensure notifications are set up to fire a desktop notification
-        changeDesktopNotificationAs('#desktopNotificationAllActivity');
+        changeDesktopNotificationAs('all');
 
         const messageWithNotification = `random message with mention @${testUser.username}`;
         const expected = `@${otherUser.username}: ${messageWithNotification}`;
@@ -53,9 +53,9 @@ describe('Desktop notifications', () => {
 
         // # Set channel notifications to show on mention only
         cy.uiOpenChannelMenu('Notification Preferences');
-        cy.findByText('Desktop notifications').click();
-        cy.findByRole('radio', {name: 'Only for mentions'}).click();
-        cy.uiSaveAndClose();
+        cy.findByText('Desktop Notifications').should('be.visible');
+        cy.findByRole('radio', {name: 'Mentions, direct messages, and keywords only'}).click().should('be.checked');
+        cy.uiSave();
 
         // # Visit off-topic
         cy.uiClickSidebarItem('off-topic');

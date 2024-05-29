@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-import {Post} from '@mattermost/types/posts';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {TestHelper} from 'utils/test_helper';
 
@@ -60,6 +60,7 @@ describe('components/RhsThread', () => {
         actions,
         directTeammate,
         currentTeam,
+        fromSuppressed: false,
     };
 
     test('should match snapshot', () => {

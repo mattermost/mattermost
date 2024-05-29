@@ -2,22 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
-
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getAppliedSchemaMigrations} from 'mattermost-redux/actions/admin';
 
 import MigrationsTable from './migrations_table';
 
-type Actions = {
-    getAppliedSchemaMigrations: () => Promise<ActionResult>;
-}
-
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             getAppliedSchemaMigrations,
         }, dispatch),
     };

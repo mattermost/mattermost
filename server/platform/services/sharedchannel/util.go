@@ -4,10 +4,12 @@
 package sharedchannel
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // fixMention replaces any mentions in a post for the user with the user's real username.
@@ -45,12 +47,14 @@ func sanitizeUserForSync(user *model.User) *model.User {
 	return user
 }
 
+const MungUsernameSeparator = "-"
+
 // mungUsername creates a new username by combining username and remote cluster name, plus
 // a suffix to create uniqueness. If the resulting username exceeds the max length then
 // it is truncated and ellipses added.
 func mungUsername(username string, remotename string, suffix string, maxLen int) string {
 	if suffix != "" {
-		suffix = "~" + suffix
+		suffix = MungUsernameSeparator + suffix
 	}
 
 	// If the username already contains a colon then another server already munged it.
@@ -98,4 +102,49 @@ func mungEmail(remotename string, maxLen int) string {
 		s = s[:maxLen]
 	}
 	return s
+}
+
+func isConflictError(err error) (string, bool) {
+	if err == nil {
+		return "", false
+	}
+
+	var errConflict *store.ErrConflict
+	if errors.As(err, &errConflict) {
+		return strings.ToLower(errConflict.Resource), true
+	}
+
+	var errInput *store.ErrInvalidInput
+	if errors.As(err, &errInput) {
+		_, field, _ := errInput.InvalidInputInfo()
+		return strings.ToLower(field), true
+	}
+	return "", false
+}
+
+func isNotFoundError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	var errNotFound *store.ErrNotFound
+	return errors.As(err, &errNotFound)
+}
+
+func postsSliceToMap(posts []*model.Post) map[string]*model.Post {
+	m := make(map[string]*model.Post, len(posts))
+	for _, p := range posts {
+		m[p.Id] = p
+	}
+	return m
+}
+
+func reducePostsSliceInCache(posts []*model.Post, cache map[string]*model.Post) []*model.Post {
+	reduced := make([]*model.Post, 0, len(posts))
+	for _, p := range posts {
+		if _, ok := cache[p.Id]; !ok {
+			reduced = append(reduced, p)
+		}
+	}
+	return reduced
 }

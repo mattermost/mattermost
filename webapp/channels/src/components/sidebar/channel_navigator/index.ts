@@ -2,17 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {Action} from 'mattermost-redux/types/actions';
 import {shouldShowUnreadsCategory} from 'mattermost-redux/selectors/entities/preferences';
 
 import {openModal, closeModal} from 'actions/views/modals';
-import {ModalIdentifiers} from 'utils/constants';
 import {isModalOpen} from 'selectors/views/modals';
 
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
+import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelNavigator from './channel_navigator';
 
@@ -23,14 +23,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    openModal: <P>(modalData: ModalData<P>) => void;
-    closeModal: (modalId: string) => void;
-}
-
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             openModal,
             closeModal,
         }, dispatch),

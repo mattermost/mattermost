@@ -98,7 +98,9 @@ type PlatformService struct {
 	goroutineBuffered   chan struct{}
 
 	additionalClusterHandlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
-	sharedChannelService      SharedChannelServiceIFace
+
+	shareChannelServiceMux sync.RWMutex
+	sharedChannelService   SharedChannelServiceIFace
 
 	pluginEnv HookRunner
 }
@@ -205,7 +207,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// |
 			// Cache layer
 			var err error
-			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
+			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace)
 			if err != nil {
 				return nil, err
 			}
@@ -273,6 +275,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	// Needed before loading license
 	ps.statusCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
+		Name:           "Status",
 		Size:           model.StatusCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
@@ -292,7 +295,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	// Step 7: Init License
 	if model.BuildEnterpriseReady == "true" {
-		ps.TriggerLoadLicense()
+		ps.LoadLicense()
 	}
 
 	// Step 8: Init Metrics Server depends on step 6 (store) and 7 (license)
@@ -323,11 +326,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	}
 
 	ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		if (oldLicense == nil && newLicense == nil) || !ps.startMetrics {
-			return
-		}
+		wasLicensed := (oldLicense != nil && *oldLicense.Features.Metrics) || (model.BuildNumber == "dev")
+		isLicensed := (newLicense != nil && *newLicense.Features.Metrics) || (model.BuildNumber == "dev")
 
-		if oldLicense != nil && newLicense != nil && *oldLicense.Features.Metrics == *newLicense.Features.Metrics {
+		if wasLicensed == isLicensed || !ps.startMetrics {
 			return
 		}
 
@@ -344,8 +346,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	return ps, nil
 }
 
-func (ps *PlatformService) Start() error {
-	ps.hubStart()
+func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error {
+	ps.hubStart(broadcastHooks)
 
 	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
 		ps.regenerateClientConfig()
@@ -353,7 +355,9 @@ func (ps *PlatformService) Start() error {
 		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
 
 		message.Add("config", ps.ClientConfigWithComputed())
-		ps.Publish(message)
+		ps.Go(func() {
+			ps.Publish(message)
+		})
 
 		if err := ps.ReconfigureLogger(); err != nil {
 			mlog.Error("Error re-configuring logging after config change", mlog.Err(err))
@@ -367,7 +371,6 @@ func (ps *PlatformService) Start() error {
 		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
 		message.Add("license", ps.GetSanitizedClientLicense())
 		ps.Publish(message)
-
 	})
 	return nil
 }
@@ -471,7 +474,15 @@ func (ps *PlatformService) SetSqlStore(s *sqlstore.SqlStore) {
 }
 
 func (ps *PlatformService) SetSharedChannelService(s SharedChannelServiceIFace) {
+	ps.shareChannelServiceMux.Lock()
+	defer ps.shareChannelServiceMux.Unlock()
 	ps.sharedChannelService = s
+}
+
+func (ps *PlatformService) GetSharedChannelService() SharedChannelServiceIFace {
+	ps.shareChannelServiceMux.RLock()
+	defer ps.shareChannelServiceMux.RUnlock()
+	return ps.sharedChannelService
 }
 
 func (ps *PlatformService) SetPluginsEnvironment(runner HookRunner) {

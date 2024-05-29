@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import {AuthorType, MarketplacePlugin, ReleaseStage} from '@mattermost/types/marketplace';
+import type {MarketplacePlugin} from '@mattermost/types/marketplace';
+import {AuthorType, ReleaseStage} from '@mattermost/types/marketplace';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from 'types/store';
 import {ModalIdentifiers} from 'utils/constants';
 
-import MarketplaceModal, {OpenedFromType} from './marketplace_modal';
+import type {GlobalState} from 'types/store';
+
+import MarketplaceModal from './marketplace_modal';
+import type {OpenedFromType} from './marketplace_modal';
 import WebMarketplaceBanner from './web_marketplace_banner';
 
 let mockState: GlobalState;
@@ -19,7 +20,7 @@ let mockState: GlobalState;
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux') as typeof import('react-redux'),
     useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
-    useDispatch: jest.fn(() => (action: ActionFunc) => action),
+    useDispatch: jest.fn(() => (action: unknown) => action),
 }));
 
 describe('components/marketplace/', () => {

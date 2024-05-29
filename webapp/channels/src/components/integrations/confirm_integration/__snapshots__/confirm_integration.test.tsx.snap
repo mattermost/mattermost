@@ -347,3 +347,114 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
   </div>
 </div>
 `;
+
+exports[`components/integrations/ConfirmIntegration should match snapshot, outgoingOAuthConnections case 1`] = `
+<div
+  className="backstage-content row"
+>
+  <BackstageHeader>
+    <Link
+      to="/team_test/integrations/outgoing-oauth2-connections"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Outgoing OAuth 2.0 Connections"
+        id="installed_outgoing_oauth_connections.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Add"
+      id="integrations.add"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form backstage-form__confirmation"
+  >
+    <h4
+      className="backstage-form__title"
+      id="formTitle"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Setup Successful"
+        id="integrations.successful"
+      />
+    </h4>
+    <p
+      key="add_outgoing_oauth_connection.doneHelp"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Your Outgoing OAuth 2.0 Connection is set up. When a request is sent to one of the following Audience URLs, the Client ID and Client Secret will now be used to retrieve a token from the Token URL, before sending the integration request (details at <link>Outgoing OAuth 2.0 Connections</link>)."
+        id="add_outgoing_oauth_connection.doneHelp"
+        values={
+          Object {
+            "link": [Function],
+          }
+        }
+      />
+    </p>
+    <p
+      key="add_outgoing_oauth_connection.clientId"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="**Client ID**: {id}"
+        id="add_outgoing_oauth_connection.clientId"
+        values={
+          Object {
+            "id": "someid",
+          }
+        }
+      />
+      <br />
+      <FormattedMarkdownMessage
+        defaultMessage="**Client Secret**: \\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*"
+        id="add_outgoing_oauth_connection.clientSecret"
+        values={
+          Object {
+            "secret": "",
+          }
+        }
+      />
+    </p>
+    <p
+      className="word-break--all"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="**Token URL**: \`{url}\`"
+        id="add_outgoing_oauth_connection.token_url"
+        values={
+          Object {
+            "url": "https://tokenurl.com",
+          }
+        }
+      />
+    </p>
+    <p
+      className="word-break--all"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="**Audience URL(s)**: \`{url}\`"
+        id="add_outgoing_oauth_connection.audience_urls"
+        values={
+          Object {
+            "url": "https://myaudience.com",
+          }
+        }
+      />
+    </p>
+    <div
+      className="backstage-form__footer"
+    >
+      <Link
+        className="btn btn-primary"
+        id="doneButton"
+        to="/team_test/integrations/outgoing-oauth2-connections"
+        type="submit"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Done"
+          id="integrations.done"
+        />
+      </Link>
+    </div>
+  </div>
+</div>
+`;

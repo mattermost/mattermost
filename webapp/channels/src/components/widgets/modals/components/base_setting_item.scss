@@ -1,0 +1,174 @@
+.mm-modal-generic-section-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    &__title {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        margin: 0 0 8px;
+        color: var(--center-channel-color);
+        font-family: "Open Sans", sans-serif;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    &__description {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 16px;
+    }
+
+    &__error {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        margin: 12px 0 0 0;
+        color: var(--error-text);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 16px;
+
+        svg {
+            flex-shrink: 0;
+            margin-right: 6px;
+        }
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__fieldset-checkbox-ctr {
+        display: flex;
+        flex-direction: row;
+    }
+
+    &__fieldset-checkbox {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        cursor: pointer;
+        font-size: 14px;
+        gap: 8px;
+        line-height: 20px;
+
+        span {
+            font-weight: 400;
+        }
+    }
+
+    &__fieldset-radio {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    &__label-radio {
+        display: flex;
+        width: fit-content;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 0;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 400;
+        gap: 8px;
+        line-height: 20px;
+    }
+
+    // Todo: add styling for react select
+    //&__fieldset-react-select{
+    //}
+
+    &__input-checkbox {
+        width: 1.6rem;
+        height: 1.6rem;
+    }
+
+    input[type=checkbox] {
+        display: grid;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 3px;
+        margin: 0;
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.24);
+        cursor: pointer;
+        font: inherit;
+        place-content: center;
+        -webkit-transition: background-color 200ms ease-out;
+        -moz-transition: background-color 200ms ease-out;
+        -o-transition: background-color 200ms ease-out;
+        transition: background-color 200ms ease-out;
+    }
+
+    input[type="checkbox"]::before {
+        width: 10px;
+        height: 10px;
+        background: var(--button-color);
+        clip-path: polygon(0% 57%, 32% 88%, 100%  20%, 88% 8%, 32% 64%, 12% 45%);
+        content: '';
+        transform: scale(0);
+        transform-origin: center center;
+        transition: 200ms transform ease-in-out;
+    }
+
+    input[type="checkbox"]:checked::before {
+        transform: scale(1);
+    }
+
+    input[type="checkbox"]:checked {
+        border-color: var(--denim-button-bg);
+        background: var(--denim-button-bg);
+    }
+
+    input[type=radio] {
+        display: grid;
+        width: 1.6rem;
+        height: 1.6rem;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 50%;
+        margin: 0;
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.24);
+        cursor: pointer;
+        font: inherit;
+        place-content: center;
+    }
+
+    input[type="radio"]::before {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--denim-button-bg);
+        content: '';
+        transform: scale(0);
+        transform-origin: center center;
+        transition: 200ms transform ease-in-out;
+    }
+
+    input[type="radio"]:checked::before {
+        transform: scale(1);
+    }
+
+    input[type="radio"]:checked {
+        border-color: var(--denim-button-bg);
+    }
+}

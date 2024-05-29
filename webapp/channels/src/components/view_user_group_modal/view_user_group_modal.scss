@@ -1,73 +1,47 @@
 .view-user-groups-modal {
     .modal-content .modal-header {
         overflow: visible;
+        padding-top: 0;
         padding-bottom: 0;
 
         .modal-title {
-            margin-left: 46px;
-        }
+            margin-left: 16px;
 
-        button.user-groups-create {
-            margin-right: 24px;
+            i {
+                margin-left: 5px;
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+            }
         }
 
         .details-action {
-            margin-right: 42px;
-
             .MenuWrapper {
                 margin-left: auto;
-            }
-
-            button.action-wrapper {
-                width: 4rem;
-                height: 4rem;
-                border: none;
-                margin-left: auto;
-                border-radius: 4px;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
-                text-decoration: none;
-
-                &:hover {
-                    background: rgba(var(--center-channel-color-rgb), 0.08);
-                    border-radius: 4px;
-                    color: rgba(var(--center-channel-color-rgb), 0.72);
-                    fill: rgba(var(--center-channel-color-rgb), 0.72);
-                }
-
-                &:active {
-                    background-color: rgba(var(--button-bg-rgb), 0.08);
-                    color: var(--button-bg);
-                }
-
-                i.icon {
-                    display: inline;
-                    font-size: 24px;
-                    line-height: 24px;
-                }
             }
         }
     }
 
     .modal-body {
+        overflow: visible;
+
         .no-results__wrapper {
             padding-bottom: 60px;
         }
 
         .group-mention-name {
-            margin-bottom: 25px;
+            margin: -24px 0 24px 6px;
 
             span.group-name {
                 margin-left: 70px;
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-size: 12px;
                 line-height: 12px;
             }
 
             span.group-source span {
                 padding: 0 4px;
+                border-radius: 4px;
                 margin-left: 8px;
                 background: rgba(var(--center-channel-color-rgb), 0.08);
-                border-radius: 4px;
                 font-size: 10px;
                 line-height: 16px;
             }
@@ -95,9 +69,9 @@
 
                 &::-webkit-scrollbar-thumb {
                     border: 8px rgba(0, 0, 0, 0) solid;
+                    border-radius: 9999px;
                     background: rgba(var(--center-channel-color-rgb), 0.24);
                     background-clip: padding-box;
-                    border-radius: 9999px;
                 }
 
                 h2.group-member-count {
@@ -117,37 +91,16 @@
                     }
 
                     .group-member-username {
-                        padding-left: 8px;
-                        color: rgba(var(--center-channel-color-rgb), 0.64);
+                        padding-left: 6px;
+                        color: rgba(var(--center-channel-color-rgb), 0.75);
                         font-size: 12px;
                         line-height: 18px;
                     }
 
                     button.remove-group-member {
                         display: none;
-                        width: 2.4rem;
-                        height: 2.4rem;
                         margin-right: 0;
                         margin-left: auto;
-                        color: rgba(var(--center-channel-color-rgb), 0.56);
-                        font-size: inherit;
-
-                        &:hover {
-                            background: rgba(var(--center-channel-color-rgb), 0.08);
-                            border-radius: 4px;
-                            color: rgba(var(--center-channel-color-rgb), 0.72);
-                            fill: rgba(var(--center-channel-color-rgb), 0.72);
-                        }
-
-                        &:active {
-                            background-color: rgba(var(--button-bg-rgb), 0.08);
-                            color: var(--button-bg);
-                        }
-
-                        i {
-                            font-size: 14px;
-                            line-height: 14px;
-                        }
                     }
 
                     &:hover {

@@ -12,6 +12,14 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+func TestLoadLicense(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.Service.LoadLicense()
+	require.Nil(t, th.Service.License(), "shouldn't have a valid license")
+}
+
 func TestSaveLicense(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -63,24 +71,6 @@ func TestGetSanitizedClientLicense(t *testing.T) {
 	assert.False(t, ok)
 	_, ok = m["SkuName"]
 	assert.False(t, ok)
-}
-
-func TestGenerateRenewalToken(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	t.Run("renewal token generated correctly", func(t *testing.T) {
-		setLicense(th, nil)
-		token, appErr := th.Service.GenerateRenewalToken(JWTDefaultTokenExpiration)
-		require.Nil(t, appErr)
-		require.NotEmpty(t, token)
-	})
-
-	t.Run("return error if there is no active license", func(t *testing.T) {
-		th.Service.SetLicense(nil)
-		_, appErr := th.Service.GenerateRenewalToken(JWTDefaultTokenExpiration)
-		require.NotNil(t, appErr)
-	})
 }
 
 func setLicense(th *TestHelper, customer *model.Customer) {

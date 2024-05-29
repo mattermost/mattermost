@@ -119,7 +119,6 @@ func merge(base, patch reflect.Value, mergeConfig *MergeConfig) (reflect.Value, 
 		// use base
 		merged := reflect.MakeSlice(commonType, 0, base.Len())
 		for i := 0; i < base.Len(); i++ {
-
 			// recursively merge base with itself. This will clone reference values.
 			val, _ := merge(base.Index(i), base.Index(i), mergeConfig)
 			merged = reflect.Append(merged, val)

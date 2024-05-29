@@ -162,6 +162,10 @@ func RenderInlineHTML(inline Inline) (result string) {
 			result += RenderInlineHTML(inline)
 		}
 		result += "</a>"
+	case *Emoji:
+		escapedName := htmlEscaper.Replace(v.Name)
+		result += fmt.Sprintf(`<span data-emoji-name="%s" data-literal=":%s:" />`, escapedName, escapedName)
+
 	default:
 		panic(fmt.Sprintf("missing case for type %T", v))
 	}

@@ -15,47 +15,49 @@ interface Props {
     helpText?: React.ReactNode;
     onChange(id: string, value: any): void;
 }
-export default class RadioSetting extends React.PureComponent<Props> {
-    public static defaultProps: Partial<Props> = {
-        disabled: false,
+const RadioSetting = ({
+    id,
+    label,
+    values,
+    value,
+    setByEnv,
+    disabled = false,
+    helpText,
+    onChange,
+}: Props) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange(id, e.target.value);
     };
 
-    private handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.props.onChange(this.props.id, e.target.value);
-    };
+    const options = values.map(({value: optionValue, text}) => (
+        <div
+            className='radio'
+            key={optionValue}
+        >
+            <label>
+                <input
+                    type='radio'
+                    value={optionValue}
+                    name={id}
+                    checked={optionValue === value}
+                    onChange={handleChange}
+                    disabled={disabled || setByEnv}
+                />
+                {text}
+            </label>
+        </div>
+    ));
 
-    render(): JSX.Element {
-        const options = [];
-        for (const {value, text} of this.props.values) {
-            options.push(
-                <div
-                    className='radio'
-                    key={value}
-                >
-                    <label>
-                        <input
-                            type='radio'
-                            value={value}
-                            name={this.props.id}
-                            checked={value === this.props.value}
-                            onChange={this.handleChange}
-                            disabled={this.props.disabled || this.props.setByEnv}
-                        />
-                        {text}
-                    </label>
-                </div>,
-            );
-        }
+    return (
+        <Setting
+            label={label}
+            inputId={id}
+            helpText={helpText}
+            setByEnv={setByEnv}
+        >
+            {options}
+        </Setting>
+    );
+};
 
-        return (
-            <Setting
-                label={this.props.label}
-                inputId={this.props.id}
-                helpText={this.props.helpText}
-                setByEnv={this.props.setByEnv}
-            >
-                {options}
-            </Setting>
-        );
-    }
-}
+export default React.memo(RadioSetting);

@@ -2,32 +2,26 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {ServerError} from '@mattermost/types/errors';
-import {UserProfile} from '@mattermost/types/users';
-import {Group} from '@mattermost/types/groups';
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {GlobalState} from 'types/store';
-
-import {getProfilesInGroupWithoutSorting, searchProfilesInGroupWithoutSorting} from 'mattermost-redux/selectors/entities/users';
 import {getProfilesInGroup as getUsersInGroup} from 'mattermost-redux/actions/users';
-import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getProfilesInGroupWithoutSorting, searchProfilesInGroupWithoutSorting} from 'mattermost-redux/selectors/entities/users';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
+
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {closeRightHandSide} from 'actions/views/rhs';
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {displayUsername} from 'mattermost-redux/utils/user_utils';
+import type {GlobalState} from 'types/store';
 
-import GroupMemberList, {GroupMember} from './group_member_list';
-
-type Actions = {
-    getUsersInGroup: (groupId: string, page: number, perPage: number) => Promise<{data: UserProfile[]}>;
-    openDirectChannelToUserId: (userId?: string) => Promise<{error: ServerError}>;
-    closeRightHandSide: () => void;
-};
+import GroupMemberList from './group_member_list';
+import type {GroupMember} from './group_member_list';
 
 type OwnProps = {
     group: Group;
@@ -85,7 +79,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             getUsersInGroup,
             openDirectChannelToUserId,
             closeRightHandSide,

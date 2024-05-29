@@ -5,11 +5,13 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import Constants from 'utils/constants';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 type Props = {
     onExited: () => void;
@@ -80,7 +82,7 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
                 <Modal.Footer>
                     <button
                         type='button'
-                        className='btn btn-link'
+                        className='btn btn-tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage

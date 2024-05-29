@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {Client4} from 'mattermost-redux/client';
-
 import * as FileUtils from 'mattermost-redux/utils/file_utils';
+
 import TestHelper from '../../test/test_helper';
 
 describe('FileUtils', () => {

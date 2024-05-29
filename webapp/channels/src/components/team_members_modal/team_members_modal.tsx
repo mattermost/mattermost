@@ -5,20 +5,20 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {Team} from '@mattermost/types/teams';
+
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {Team} from '@mattermost/types/teams';
-
-import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
-import MemberListTeam from 'components/member_list_team';
 import InvitationModal from 'components/invitation_modal';
-
-import {ModalData} from 'types/actions';
+import MemberListTeam from 'components/member_list_team';
+import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 
 import {ModalIdentifiers} from 'utils/constants';
 
+import type {ModalData} from 'types/actions';
+
 type Props = {
-    currentTeam: Team;
+    currentTeam?: Team;
     onExited: () => void;
     onLoad?: () => void;
     actions: {
@@ -90,13 +90,13 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
                         />
                     </Modal.Title>
                     <TeamPermissionGate
-                        teamId={this.props.currentTeam.id}
+                        teamId={this.props.currentTeam?.id}
                         permissions={[Permissions.ADD_USER_TO_TEAM, Permissions.INVITE_GUEST]}
                     >
                         <button
                             id='invitePeople'
                             type='button'
-                            className='btn btn-primary invite-people-btn'
+                            className='btn btn-primary btn-sm invite-people-btn'
                             onClick={this.handleInvitePeople}
                         >
                             <FormattedMessage
@@ -108,7 +108,7 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
                 </Modal.Header>
                 <Modal.Body>
                     <MemberListTeam
-                        teamId={this.props.currentTeam.id}
+                        teamId={this.props.currentTeam?.id}
                     />
                 </Modal.Body>
             </Modal>

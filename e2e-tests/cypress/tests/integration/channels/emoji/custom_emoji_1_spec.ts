@@ -95,7 +95,7 @@ describe('Custom emojis', () => {
         cy.findByPlaceholderText('Search emojis').should('be.visible').type(customEmoji, {delay: TIMEOUTS.QUARTER_SEC});
 
         // * Validate that we cannot find the emoji name in the search result list
-        cy.get('.no-results__title').should('be.visible').and('have.text', 'No results for "' + customEmoji + '"');
+        cy.get('.no-results__title').should('be.visible').and('have.text', 'No results for “' + customEmoji + '”');
     });
 
     it('MM-T2182 Custom emoji - animated gif', () => {

@@ -5,18 +5,15 @@ import nock from 'nock';
 
 import {
     getThread as fetchThread,
-    getThreads as fetchThreads,
+    getThreadsForCurrentTeam,
     getThreadCounts as fetchThreadCounts,
 } from 'mattermost-redux/actions/threads';
-
+import {Client4} from 'mattermost-redux/client';
 import {
     getThread,
     getThreadsInCurrentTeam,
     getThreadCountsInCurrentTeam,
 } from 'mattermost-redux/selectors/entities/threads';
-
-import {Client4} from 'mattermost-redux/client';
-
 import TestHelper from 'mattermost-redux/test/test_helper';
 import configureStore from 'mattermost-redux/test/test_store';
 
@@ -94,7 +91,7 @@ describe('Actions.Threads', () => {
                 },
                 channels: {
                     channelsInTeam: {
-                        [currentTeamId]: [channel.id],
+                        [currentTeamId]: new Set([channel.id]),
                     },
                     channels: {
                         [channel.id]: channel,
@@ -126,7 +123,7 @@ describe('Actions.Threads', () => {
         expect(thread).toEqual({...mockThread, is_following: true});
     });
 
-    test('getThreads', async () => {
+    test('getThreadsForCurrentTeam', async () => {
         const [mockThread0, {threadId: threadId0}] = mockUserThread({uniq: 0});
         const [mockThread1, {threadId: threadId1}] = mockUserThread({uniq: 1});
         const [mockThread2, {threadId: threadId2}] = mockUserThread({uniq: 2});
@@ -142,7 +139,7 @@ describe('Actions.Threads', () => {
             get((uri) => uri.includes(`/users/${currentUserId}/teams/${currentTeamId}/threads`)).
             reply(200, mockResponse);
 
-        const {error, data} = await store.dispatch(fetchThreads(currentUserId, currentTeamId));
+        const {error, data} = await store.dispatch(getThreadsForCurrentTeam());
         const state = store.getState();
         const threads = getThreadsInCurrentTeam(state);
         expect(error).toBeUndefined();

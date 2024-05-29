@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {RangeDescriptor} from './timestamp';
+import type {RangeDescriptor} from './timestamp';
 
 export const TODAY_YESTERDAY: RangeDescriptor = {
     within: ['day', -1],

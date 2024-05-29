@@ -46,6 +46,14 @@ func (f *FileService) GetInfo(id string) (*model.FileInfo, error) {
 	return info, normalizeAppErr(appErr)
 }
 
+// SetSearchableContent update the File Info searchable text for full text search
+//
+// Minimum server version: 9.1
+func (f *FileService) SetSearchableContent(id string, content string) error {
+	appErr := f.api.SetFileSearchableContent(id, content)
+	return normalizeAppErr(appErr)
+}
+
 // GetLink gets the public link of a file by id.
 //
 // Minimum server version: 5.6

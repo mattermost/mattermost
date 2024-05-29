@@ -28,7 +28,9 @@ exports[`components/search_bar/SearchBar should match snapshot with search 1`] =
           class="sr-only"
           role="alert"
         />
-        <div>
+        <div
+          class="input-wrapper"
+        >
           <input
             aria-describedby="searchbar-help-popup"
             aria-label="Search"
@@ -43,6 +45,8 @@ exports[`components/search_bar/SearchBar should match snapshot with search 1`] =
           />
           <div
             class="input-clear visible"
+            data-testid="input-clear"
+            role="button"
           >
             <span
               aria-hidden="true"
@@ -96,7 +100,9 @@ exports[`components/search_bar/SearchBar should match snapshot with search, with
           class="sr-only"
           role="alert"
         />
-        <div>
+        <div
+          class="input-wrapper"
+        >
           <input
             aria-describedby="searchbar-help-popup"
             aria-label="Search"
@@ -111,6 +117,8 @@ exports[`components/search_bar/SearchBar should match snapshot with search, with
           />
           <div
             class="input-clear visible"
+            data-testid="input-clear"
+            role="button"
           >
             <span
               aria-hidden="true"
@@ -156,7 +164,9 @@ exports[`components/search_bar/SearchBar should match snapshot without search 1`
           class="sr-only"
           role="alert"
         />
-        <div>
+        <div
+          class="input-wrapper"
+        >
           <input
             aria-describedby="searchbar-help-popup"
             aria-label="Search"
@@ -213,7 +223,9 @@ exports[`components/search_bar/SearchBar should match snapshot without search, w
           class="sr-only"
           role="alert"
         />
-        <div>
+        <div
+          class="input-wrapper"
+        >
           <input
             aria-describedby="searchbar-help-popup"
             aria-label="Search"
@@ -262,7 +274,9 @@ exports[`components/search_bar/SearchBar should match snapshot without search, w
           class="sr-only"
           role="alert"
         />
-        <div>
+        <div
+          class="input-wrapper"
+        >
           <input
             aria-describedby="searchbar-help-popup"
             aria-label="Search"

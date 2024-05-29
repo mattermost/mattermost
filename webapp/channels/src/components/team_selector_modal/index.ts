@@ -2,16 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, AnyAction, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getTeams as loadTeams, searchTeams} from 'mattermost-redux/actions/teams';
 import {getTeams} from 'mattermost-redux/selectors/entities/teams';
 
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-
 import {setModalSearchTerm} from 'actions/views/search';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import TeamSelectorModal from './team_selector_modal';
 
@@ -29,15 +28,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    loadTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => Promise<ActionResult>;
-    searchTeams: (searchTerm: string) => void;
-    setModalSearchTerm: (searchTerm: string) => GenericAction;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             loadTeams,
             setModalSearchTerm,
             searchTeams,

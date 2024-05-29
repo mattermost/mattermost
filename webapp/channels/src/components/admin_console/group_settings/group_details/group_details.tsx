@@ -2,24 +2,25 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
-import {ChannelWithTeamData} from '@mattermost/types/channels';
+import type {ChannelWithTeamData} from '@mattermost/types/channels';
 import {
+    SyncableType,
+} from '@mattermost/types/groups';
+import type {
     Group,
     GroupChannel,
     GroupPatch,
     GroupTeam,
-    SyncablePatch,
-    SyncableType,
-} from '@mattermost/types/groups';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+    SyncablePatch} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import BlockableLink from 'components/admin_console/blockable_link';
-
-import {t} from 'utils/i18n';
-import {localizeMessage} from 'utils/utils';
-
 import {GroupProfileAndSettings} from 'components/admin_console/group_settings/group_details/group_profile_and_settings';
 import GroupTeamsAndChannels from 'components/admin_console/group_settings/group_details/group_teams_and_channels';
 import GroupUsers from 'components/admin_console/group_settings/group_details/group_users';
@@ -27,11 +28,10 @@ import SaveChangesPanel from 'components/admin_console/team_channel_settings/sav
 import ChannelSelectorModal from 'components/channel_selector_modal';
 import FormError from 'components/form_error';
 import TeamSelectorModal from 'components/team_selector_modal';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 export type Props = {
     groupID: string;
@@ -76,7 +76,7 @@ export type Props = {
             blocked: boolean;
         };
     };
-};
+} & WrappedComponentProps;
 
 export type State = {
     loadingTeamsAndChannels: boolean;
@@ -97,7 +97,7 @@ export type State = {
     groupChannels: GroupChannel[];
 };
 
-export default class GroupDetails extends React.PureComponent<Props, State> {
+class GroupDetails extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {
         groupID: '',
         members: [],
@@ -509,12 +509,8 @@ export default class GroupDetails extends React.PureComponent<Props, State> {
                 allowReference,
                 groupMentionName: lcGroupMentionName,
                 serverError,
-                hasAllowReferenceChanged: result.error ?
-                    hasAllowReferenceChanged :
-                    false,
-                hasGroupMentionNameChanged: result.error ?
-                    hasGroupMentionNameChanged :
-                    false,
+                hasAllowReferenceChanged: result.error ? hasAllowReferenceChanged : false,
+                hasGroupMentionNameChanged: result.error ? hasGroupMentionNameChanged : false,
             });
         }
 
@@ -682,14 +678,8 @@ export default class GroupDetails extends React.PureComponent<Props, State> {
 
                         <AdminPanel
                             id='group_teams_and_channels'
-                            titleId={t(
-                                'admin.group_settings.group_detail.groupTeamsAndChannelsTitle',
-                            )}
-                            titleDefault='Team and Channel Membership'
-                            subtitleId={t(
-                                'admin.group_settings.group_detail.groupTeamsAndChannelsDescription',
-                            )}
-                            subtitleDefault='Set default teams and channels for group members. Teams added will include default channels, town-square, and off-topic. Adding a channel without setting the team will add the implied team to the listing below.'
+                            title={defineMessage({id: 'admin.group_settings.group_detail.groupTeamsAndChannelsTitle', defaultMessage: 'Team and Channel Membership'})}
+                            subtitle={defineMessage({id: 'admin.group_settings.group_detail.groupTeamsAndChannelsDescription', defaultMessage: 'Set default teams and channels for group members. Teams added will include default channels, town-square, and off-topic. Adding a channel without setting the team will add the implied team to the listing below.'})}
                             button={
                                 <div className='group-profile-add-menu'>
                                     <MenuWrapper isDisabled={isDisabled}>
@@ -705,26 +695,26 @@ export default class GroupDetails extends React.PureComponent<Props, State> {
                                             <i className={'fa fa-caret-down'}/>
                                         </button>
                                         <Menu
-                                            ariaLabel={localizeMessage(
-                                                'admin.group_settings.group_details.menuAriaLabel',
-                                                'Add Team or Channel Menu',
-                                            )}
+                                            ariaLabel={this.props.intl.formatMessage({
+                                                id: 'admin.group_settings.group_details.menuAriaLabel',
+                                                defaultMessage: 'Add Team or Channel Menu',
+                                            })}
                                         >
                                             <Menu.ItemAction
                                                 id='add_team'
                                                 onClick={this.openAddTeam}
-                                                text={localizeMessage(
-                                                    'admin.group_settings.group_details.add_team',
-                                                    'Add Team',
-                                                )}
+                                                text={this.props.intl.formatMessage({
+                                                    id: 'admin.group_settings.group_details.add_team',
+                                                    defaultMessage: 'Add Team',
+                                                })}
                                             />
                                             <Menu.ItemAction
                                                 id='add_channel'
                                                 onClick={this.openAddChannel}
-                                                text={localizeMessage(
-                                                    'admin.group_settings.group_details.add_channel',
-                                                    'Add Channel',
-                                                )}
+                                                text={this.props.intl.formatMessage({
+                                                    id: 'admin.group_settings.group_details.add_channel',
+                                                    defaultMessage: 'Add Channel',
+                                                })}
                                             />
                                         </Menu>
                                     </MenuWrapper>
@@ -763,14 +753,8 @@ export default class GroupDetails extends React.PureComponent<Props, State> {
 
                         <AdminPanel
                             id='group_users'
-                            titleId={t(
-                                'admin.group_settings.group_detail.groupUsersTitle',
-                            )}
-                            titleDefault='Users'
-                            subtitleId={t(
-                                'admin.group_settings.group_detail.groupUsersDescription',
-                            )}
-                            subtitleDefault='Listing of users in Mattermost associated with this group.'
+                            title={defineMessage({id: 'admin.group_settings.group_detail.groupUsersTitle', defaultMessage: 'Users'})}
+                            subtitle={defineMessage({id: 'admin.group_settings.group_detail.groupUsersDescription', defaultMessage: 'Listing of users in Mattermost associated with this group.'})}
                         >
                             <GroupUsers
                                 members={members}
@@ -801,3 +785,5 @@ export default class GroupDetails extends React.PureComponent<Props, State> {
         );
     };
 }
+
+export default injectIntl(GroupDetails);
