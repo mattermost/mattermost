@@ -496,7 +496,7 @@
   "admin.channel_list.private": "Private",
   "admin.channel_list.public": "Public",
   "admin.channel_settings.channel_detail.archive_confirm.button": "Save and Archive Channel",
-  "admin.channel_settings.channel_detail.archive_confirm.message": "Archiving will remove the team from the user interface but it's contents remain in the database and may still be accessible with the API. Are you sure you wish to save and archive this channel?",
+  "admin.channel_settings.channel_detail.archive_confirm.message": "Saving will archive the channel from the team and make it's contents inaccessible for all users. Are you sure you wish to save and archive this channel?",
   "admin.channel_settings.channel_detail.archive_confirm.title": "Save and Archive Channel",
   "admin.channel_settings.channel_detail.channel_configuration": "Channel Configuration",
   "admin.channel_settings.channel_detail.channelName": "**Name**",
