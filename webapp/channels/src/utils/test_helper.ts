@@ -65,6 +65,7 @@ export class TestHelper {
                 desktop: 'default',
                 desktop_sound: 'false',
                 calls_desktop_sound: 'true',
+                calls_mobile_sound: 'true',
                 email: 'false',
                 first_name: 'false',
                 mark_unread: 'mention',

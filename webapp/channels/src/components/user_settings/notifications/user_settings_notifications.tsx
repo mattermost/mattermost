@@ -60,8 +60,10 @@ type State = {
     pushStatus: UserNotifyProps['push_status'];
     desktopSound: UserNotifyProps['desktop_sound'];
     callsDesktopSound: UserNotifyProps['calls_desktop_sound'];
+    callsMobileSound: UserNotifyProps['calls_mobile_sound'];
     desktopNotificationSound: UserNotifyProps['desktop_notification_sound'];
     callsNotificationSound: UserNotifyProps['calls_notification_sound'];
+    callsMobileNotificationSound: UserNotifyProps['calls_mobile_notification_sound'];
     usernameKey: boolean;
     isCustomKeysWithNotificationInputChecked: boolean;
     customKeysWithNotification: MultiInputValue[];
@@ -85,8 +87,10 @@ function getDefaultStateFromProps(props: Props): State {
     let emailThreads: UserNotifyProps['email_threads'] = NotificationLevels.ALL;
     let sound: UserNotifyProps['desktop_sound'] = 'true';
     let callsSound: UserNotifyProps['calls_desktop_sound'] = 'true';
+    let callsMobileSound: UserNotifyProps['calls_mobile_sound'] = 'true';
     let desktopNotificationSound: UserNotifyProps['desktop_notification_sound'] = 'Bing';
     let callsNotificationSound: UserNotifyProps['calls_notification_sound'] = 'Calm';
+    let callsMobileNotificationSound: UserNotifyProps['calls_mobile_notification_sound'] = 'Calm';
     let comments: UserNotifyProps['comments'] = 'never';
     let enableEmail: UserNotifyProps['email'] = 'true';
     let pushActivity: UserNotifyProps['push'] = NotificationLevels.MENTION;
@@ -117,11 +121,17 @@ function getDefaultStateFromProps(props: Props): State {
         if (props.user.notify_props.calls_desktop_sound) {
             callsSound = props.user.notify_props.calls_desktop_sound;
         }
+        if (props.user.notify_props.calls_mobile_sound) {
+            callsMobileSound = props.user.notify_props.calls_mobile_sound;
+        }
         if (props.user.notify_props.desktop_notification_sound) {
             desktopNotificationSound = props.user.notify_props.desktop_notification_sound;
         }
         if (props.user.notify_props.calls_notification_sound) {
             callsNotificationSound = props.user.notify_props.calls_notification_sound;
+        }
+        if (props.user.notify_props.calls_mobile_notification_sound) {
+            callsMobileNotificationSound = props.user.notify_props.calls_mobile_notification_sound;
         }
         if (props.user.notify_props.comments) {
             comments = props.user.notify_props.comments;
@@ -200,8 +210,10 @@ function getDefaultStateFromProps(props: Props): State {
         pushStatus,
         desktopSound: sound,
         callsDesktopSound: callsSound,
+        callsMobileSound,
         desktopNotificationSound,
         callsNotificationSound,
+        callsMobileNotificationSound,
         usernameKey,
         customKeysWithNotification,
         isCustomKeysWithNotificationInputChecked,
@@ -235,8 +247,10 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         data.email = this.state.enableEmail;
         data.desktop_sound = this.state.desktopSound;
         data.calls_desktop_sound = this.state.callsDesktopSound;
+        data.calls_mobile_sound = this.state.callsMobileSound;
         data.desktop_notification_sound = this.state.desktopNotificationSound;
         data.calls_notification_sound = this.state.callsNotificationSound;
+        data.calls_mobile_notification_sound = this.state.callsMobileNotificationSound;
         data.desktop = this.state.desktopActivity;
         data.desktop_threads = this.state.desktopThreads;
         data.email_threads = this.state.emailThreads;
