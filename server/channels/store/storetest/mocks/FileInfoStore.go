@@ -33,6 +33,24 @@ func (_m *FileInfoStore) AttachToPost(c request.CTX, fileID string, postID strin
 	return r0
 }
 
+// BatchMoveFilesToChannel provides a mock function with given fields: toChannelID, fromChannelID
+func (_m *FileInfoStore) BatchMoveFilesToChannel(toChannelID string, fromChannelID string) error {
+	ret := _m.Called(toChannelID, fromChannelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchMoveFilesToChannel")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toChannelID, fromChannelID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ClearCaches provides a mock function with given fields:
 func (_m *FileInfoStore) ClearCaches() {
 	_m.Called()

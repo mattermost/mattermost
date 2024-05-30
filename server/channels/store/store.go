@@ -350,6 +350,8 @@ type ThreadStore interface {
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error)
 	DeleteMembershipsForChannel(userID, channelID string) error
+	BatchMergeThreadMembershipUserId(toUserID string, fromUserID string) error
+	BatchMoveThreadsToChannel(toChannelID string, fromChannelID string) error
 }
 
 type PostStore interface {
@@ -403,6 +405,7 @@ type PostStore interface {
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
 	BatchMergePostAndFileUserId(toUserId string, fromUserId string) error
+	BatchMovePostsToChannel(toChannelID string, fromChannelID string) error
 }
 
 type UserStore interface {
@@ -731,6 +734,7 @@ type FileInfoStore interface {
 	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
 	// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
 	GetUptoNSizeFileTime(n int64) (int64, error)
+	BatchMoveFilesToChannel(toChannelID string, fromChannelID string) error
 }
 
 type UploadSessionStore interface {
@@ -754,6 +758,7 @@ type ReactionStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteByUser(userID string) error
 	BatchMergeUserId(toUserId string, fromUserId string) error
+	BatchMoveReactionsToChannel(toChannelID string, fromChannelID string) error
 }
 
 type JobStore interface {

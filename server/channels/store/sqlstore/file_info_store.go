@@ -782,3 +782,30 @@ func (fs *SqlFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
 
 	return createAt, nil
 }
+
+func (s *SqlFileInfoStore) BatchMoveFilesToChannel(toChannelID string, fromChannelID string) error {
+	for {
+		var query string
+		if s.DriverName() == "postgres" {
+			query = "UPDATE FileInfo SET ChannelId = ? WHERE Id = any (array (SELECT Id FROM FileInfo WHERE ChannelId = ? LIMIT 1000))"
+		} else {
+			query = "UPDATE FileInfo SET ChannelId = ? WHERE ChannelId = ? LIMIT 1000"
+		}
+
+		sqlResult, err := s.GetMasterX().Exec(query, toChannelID, fromChannelID)
+		if err != nil {
+			return errors.Wrap(err, "failed to update fileinfo")
+		}
+
+		rowsAffected, err := sqlResult.RowsAffected()
+		if err != nil {
+			return errors.Wrap(err, "failed to update fileinfo")
+		}
+
+		if rowsAffected < 1000 {
+			break
+		}
+	}
+
+	return nil
+}

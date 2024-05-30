@@ -409,7 +409,7 @@ func (s SqlWebhookStore) MergeIncomingWebhookUserId(toUserID string, fromUserID 
 }
 
 func (s SqlWebhookStore) MergeOutgoingWebhookUserId(toUserID string, fromUserID string) error {
-	query := "UPDATE OutgoingWebhooks SET UserId = ? WHERE UserId = ?"
+	query := "UPDATE OutgoingWebhooks SET CreatorId = ? WHERE CreatorId = ?"
 	_, err := s.GetMasterX().Exec(query, toUserID, fromUserID)
 	if err != nil {
 		return errors.Wrap(err, "failed to update OutgoingWebhooks")

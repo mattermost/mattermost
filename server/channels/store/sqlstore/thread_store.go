@@ -987,3 +987,70 @@ func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.Threa
 
 	return unreadReplies, nil
 }
+
+func (s *SqlThreadStore) BatchMergeThreadMembershipUserId(toUserID string, fromUserID string) error {
+	userParams := map[string]any{
+		"toUserId":   toUserID,
+		"fromUserId": fromUserID,
+	}
+	var query string
+
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = `UPDATE ThreadMemberships tm SET UserId=:toUserId 
+		WHERE (tm.PostId, tm.UserId) = any (array (SELECT (PostId, UserId) FROM ThreadMemberships WHERE UserId=:fromUserId LIMIT 1000)) 
+		AND NOT EXISTS (
+			SELECT 1 FROM ThreadMemberships WHERE UserId=:toUserId AND PostId = tm.PostId
+		)`
+	} else {
+		query = "UPDATE IGNORE ThreadMemberships SET UserId=:toUserId WHERE UserId=:fromUserId LIMIT 1000"
+	}
+
+	for {
+		sqlResult, err := s.GetMasterX().NamedExec(query, userParams)
+		if err != nil {
+			return errors.Wrap(err, "failed to update threadmemberships")
+		}
+
+		rowsAffected, err := sqlResult.RowsAffected()
+		if err != nil {
+			return errors.Wrap(err, "failed to update threadmemberships")
+		}
+
+		if rowsAffected < 1000 {
+			break
+		}
+	}
+
+	return nil
+}
+
+func (s *SqlThreadStore) BatchMoveThreadsToChannel(toChannelID string, fromChannelID string) error {
+	channelParams := map[string]any{
+		"toChannelId":   toChannelID,
+		"fromChannelId": fromChannelID,
+	}
+	var query string
+
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = `UPDATE Threads SET ChannelId=:toChannelId WHERE PostId = any (array (SELECT PostId FROM Threads WHERE ChannelId=:fromChannelId LIMIT 1000))`
+	} else {
+		query = "UPDATE Threads SET ChannelId=:toChannelId WHERE ChannelId=:fromChannelId LIMIT 1000"
+	}
+
+	for {
+		sqlResult, err := s.GetMasterX().NamedExec(query, channelParams)
+		if err != nil {
+			return errors.Wrap(err, "failed to update threads")
+		}
+
+		rowsAffected, err := sqlResult.RowsAffected()
+		if err != nil {
+			return errors.Wrap(err, "failed to update threads")
+		}
+
+		if rowsAffected < 1000 {
+			break
+		}
+	}
+	return nil
+}

@@ -4379,6 +4379,27 @@ func (s *RetryLayerFileInfoStore) AttachToPost(c request.CTX, fileID string, pos
 
 }
 
+func (s *RetryLayerFileInfoStore) BatchMoveFilesToChannel(toChannelID string, fromChannelID string) error {
+
+	tries := 0
+	for {
+		err := s.FileInfoStore.BatchMoveFilesToChannel(toChannelID, fromChannelID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) ClearCaches() {
 
 	s.FileInfoStore.ClearCaches()
@@ -7310,6 +7331,27 @@ func (s *RetryLayerPostStore) BatchMergePostAndFileUserId(toUserId string, fromU
 
 }
 
+func (s *RetryLayerPostStore) BatchMovePostsToChannel(toChannelID string, fromChannelID string) error {
+
+	tries := 0
+	for {
+		err := s.PostStore.BatchMovePostsToChannel(toChannelID, fromChannelID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) ClearCaches() {
 
 	s.PostStore.ClearCaches()
@@ -8788,6 +8830,27 @@ func (s *RetryLayerReactionStore) BatchMergeUserId(toUserId string, fromUserId s
 	tries := 0
 	for {
 		err := s.ReactionStore.BatchMergeUserId(toUserId, fromUserId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerReactionStore) BatchMoveReactionsToChannel(toChannelID string, fromChannelID string) error {
+
+	tries := 0
+	for {
+		err := s.ReactionStore.BatchMoveReactionsToChannel(toChannelID, fromChannelID)
 		if err == nil {
 			return nil
 		}
@@ -12317,6 +12380,48 @@ func (s *RetryLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerThreadStore) BatchMergeThreadMembershipUserId(toUserID string, fromUserID string) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.BatchMergeThreadMembershipUserId(toUserID, fromUserID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerThreadStore) BatchMoveThreadsToChannel(toChannelID string, fromChannelID string) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.BatchMoveThreadsToChannel(toChannelID, fromChannelID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

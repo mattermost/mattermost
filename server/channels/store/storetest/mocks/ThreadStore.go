@@ -15,6 +15,42 @@ type ThreadStore struct {
 	mock.Mock
 }
 
+// BatchMergeThreadMembershipUserId provides a mock function with given fields: toUserID, fromUserID
+func (_m *ThreadStore) BatchMergeThreadMembershipUserId(toUserID string, fromUserID string) error {
+	ret := _m.Called(toUserID, fromUserID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchMergeThreadMembershipUserId")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toUserID, fromUserID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// BatchMoveThreadsToChannel provides a mock function with given fields: toChannelID, fromChannelID
+func (_m *ThreadStore) BatchMoveThreadsToChannel(toChannelID string, fromChannelID string) error {
+	ret := _m.Called(toChannelID, fromChannelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchMoveThreadsToChannel")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toChannelID, fromChannelID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteMembershipForUser provides a mock function with given fields: userId, postID
 func (_m *ThreadStore) DeleteMembershipForUser(userId string, postID string) error {
 	ret := _m.Called(userId, postID)

@@ -3258,7 +3258,7 @@ func (s *SqlPostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId s
 	// Attempt to move all posts and files
 	for {
 		var postIds []string
-		err := s.GetReplicaX().Select(&postIds, "SELECT Id FROM Posts WHERE UserId = ? LIMIT 1000", fromUserId)
+		err := s.GetReplicaX().Select(&postIds, "SELECT Id FROM Posts WHERE UserId = ? AND Type = '' LIMIT 1000", fromUserId)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find Posts with userId=%s", fromUserId)
 		}
@@ -3299,6 +3299,33 @@ func (s *SqlPostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId s
 
 		if err = transaction.Commit(); err != nil {
 			return errors.Wrap(err, "commit_transaction")
+		}
+	}
+
+	return nil
+}
+
+func (s *SqlPostStore) BatchMovePostsToChannel(toChannelID string, fromChannelID string) error {
+	for {
+		var query string
+		if s.DriverName() == "postgres" {
+			query = "UPDATE Posts SET ChannelId = ? WHERE Id = any (array (SELECT Id FROM Posts WHERE ChannelId = ? LIMIT 1000))"
+		} else {
+			query = "UPDATE Posts SET ChannelId = ? WHERE ChannelId = ? LIMIT 1000"
+		}
+
+		sqlResult, err := s.GetMasterX().Exec(query, toChannelID, fromChannelID)
+		if err != nil {
+			return errors.Wrap(err, "failed to update posts")
+		}
+
+		rowsAffected, err := sqlResult.RowsAffected()
+		if err != nil {
+			return errors.Wrap(err, "failed to update posts")
+		}
+
+		if rowsAffected < 1000 {
+			break
 		}
 	}
 

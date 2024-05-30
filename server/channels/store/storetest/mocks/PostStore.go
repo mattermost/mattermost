@@ -126,6 +126,24 @@ func (_m *PostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId str
 	return r0
 }
 
+// BatchMovePostsToChannel provides a mock function with given fields: toChannelID, fromChannelID
+func (_m *PostStore) BatchMovePostsToChannel(toChannelID string, fromChannelID string) error {
+	ret := _m.Called(toChannelID, fromChannelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchMovePostsToChannel")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toChannelID, fromChannelID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ClearCaches provides a mock function with given fields:
 func (_m *PostStore) ClearCaches() {
 	_m.Called()

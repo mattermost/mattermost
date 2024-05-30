@@ -3549,6 +3549,22 @@ func (s *TimerLayerFileInfoStore) AttachToPost(c request.CTX, fileID string, pos
 	return err
 }
 
+func (s *TimerLayerFileInfoStore) BatchMoveFilesToChannel(toChannelID string, fromChannelID string) error {
+	start := time.Now()
+
+	err := s.FileInfoStore.BatchMoveFilesToChannel(toChannelID, fromChannelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.BatchMoveFilesToChannel", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerFileInfoStore) ClearCaches() {
 	start := time.Now()
 
@@ -5803,6 +5819,22 @@ func (s *TimerLayerPostStore) BatchMergePostAndFileUserId(toUserId string, fromU
 	return err
 }
 
+func (s *TimerLayerPostStore) BatchMovePostsToChannel(toChannelID string, fromChannelID string) error {
+	start := time.Now()
+
+	err := s.PostStore.BatchMovePostsToChannel(toChannelID, fromChannelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.BatchMovePostsToChannel", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostStore) ClearCaches() {
 	start := time.Now()
 
@@ -6981,6 +7013,22 @@ func (s *TimerLayerReactionStore) BatchMergeUserId(toUserId string, fromUserId s
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.BatchMergeUserId", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerReactionStore) BatchMoveReactionsToChannel(toChannelID string, fromChannelID string) error {
+	start := time.Now()
+
+	err := s.ReactionStore.BatchMoveReactionsToChannel(toChannelID, fromChannelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.BatchMoveReactionsToChannel", success, elapsed)
 	}
 	return err
 }
@@ -9685,6 +9733,38 @@ func (s *TimerLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 		s.Root.Metrics.ObserveStoreMethodDuration("TermsOfServiceStore.Save", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerThreadStore) BatchMergeThreadMembershipUserId(toUserID string, fromUserID string) error {
+	start := time.Now()
+
+	err := s.ThreadStore.BatchMergeThreadMembershipUserId(toUserID, fromUserID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.BatchMergeThreadMembershipUserId", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerThreadStore) BatchMoveThreadsToChannel(toChannelID string, fromChannelID string) error {
+	start := time.Now()
+
+	err := s.ThreadStore.BatchMoveThreadsToChannel(toChannelID, fromChannelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.BatchMoveThreadsToChannel", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerThreadStore) DeleteMembershipForUser(userId string, postID string) error {

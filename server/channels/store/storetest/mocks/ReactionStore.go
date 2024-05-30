@@ -32,6 +32,24 @@ func (_m *ReactionStore) BatchMergeUserId(toUserId string, fromUserId string) er
 	return r0
 }
 
+// BatchMoveReactionsToChannel provides a mock function with given fields: toChannelID, fromChannelID
+func (_m *ReactionStore) BatchMoveReactionsToChannel(toChannelID string, fromChannelID string) error {
+	ret := _m.Called(toChannelID, fromChannelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchMoveReactionsToChannel")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toChannelID, fromChannelID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // BulkGetForPosts provides a mock function with given fields: postIds
 func (_m *ReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
 	ret := _m.Called(postIds)

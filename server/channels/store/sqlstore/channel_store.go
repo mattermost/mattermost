@@ -4238,9 +4238,9 @@ func (s SqlChannelStore) BatchMergeCreatorId(toUserID string, fromUserID string)
 	for {
 		var query string
 		if s.DriverName() == "postgres" {
-			query = "UPDATE channels SET CreatorId = ? WHERE Id = any (array (SELECT Id FROM channels WHERE CreatorId = ? LIMIT 1000))"
+			query = "UPDATE Channels SET CreatorId = ? WHERE Id = any (array (SELECT Id FROM channels WHERE CreatorId = ? LIMIT 1000))"
 		} else {
-			query = "UPDATE channels SET CreatorId = ? WHERE CreatorId = ? LIMIT 1000"
+			query = "UPDATE Channels SET CreatorId = ? WHERE CreatorId = ? LIMIT 1000"
 		}
 
 		sqlResult, err := s.GetMasterX().Exec(query, toUserID, fromUserID)

@@ -390,6 +390,8 @@ Global Flags:
 {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}
 `)
 
+	MergeUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to merge the users")
+
 	PreferenceListCmd.Flags().StringP("category", "c", "", "The optional category by which to filter")
 	PreferenceGetCmd.Flags().StringP("category", "c", "", "The category of the preference")
 	PreferenceGetCmd.Flags().StringP("name", "n", "", "The name of the preference")
@@ -1293,7 +1295,7 @@ func preferencesDeleteCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 	return errs.ErrorOrNil()
 }
 
-func mergeUsersCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
+func mergeUsersCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
 	if len(userArgs) != 2 {
 		return errors.New("expected at least two arguments. See help text for details")
 	}
@@ -1306,6 +1308,13 @@ func mergeUsersCmdF(c client.Client, _ *cobra.Command, userArgs []string) error 
 	fromUser, err := getUserFromArg(c, userArgs[1])
 	if err != nil {
 		return err
+	}
+
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		if err := getConfirmation("Are you sure you want to merge "+fromUser.Email+" ("+fromUser.Id+") into "+toUser.Email+" ("+toUser.Id+")?", true); err != nil {
+			return err
+		}
 	}
 
 	data := make(map[string]string)

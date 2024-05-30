@@ -429,20 +429,22 @@ func updatePostForReactionsOnInsert(transaction *sqlxTxWrapper, postId string) e
 func (s *SqlReactionStore) BatchMergeUserId(toUserId string, fromUserId string) error {
 	for {
 		var query string
+
+		// TODO: Possibility of duplicate error here,
 		if s.DriverName() == "postgres" {
-			query = "UPDATE reactions SET UserId = ? WHERE CreateAt = any (array (SELECT CreateAt FROM reactions WHERE UserId = ? LIMIT 1000))"
+			query = "UPDATE Reactions SET UserId = ? WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE UserId = ? LIMIT 1000))"
 		} else {
-			query = "UPDATE reactions SET UserId = ? WHERE UserId = ? LIMIT 1000"
+			query = "UPDATE Reactions SET UserId = ? WHERE UserId = ? LIMIT 1000"
 		}
 
 		sqlResult, err := s.GetMasterX().Exec(query, toUserId, fromUserId)
 		if err != nil {
-			return errors.Wrap(err, "failed to update audits")
+			return errors.Wrap(err, "failed to update reactions")
 		}
 
 		rowsAffected, err := sqlResult.RowsAffected()
 		if err != nil {
-			return errors.Wrap(err, "failed to update audits")
+			return errors.Wrap(err, "failed to update reactions")
 		}
 
 		if rowsAffected < 1000 {
@@ -450,5 +452,36 @@ func (s *SqlReactionStore) BatchMergeUserId(toUserId string, fromUserId string) 
 		}
 	}
 
+	return nil
+}
+
+func (s *SqlReactionStore) BatchMoveReactionsToChannel(toChannelID string, fromChannelID string) error {
+	channelParams := map[string]any{
+		"toChannelId":   toChannelID,
+		"fromChannelId": fromChannelID,
+	}
+	var query string
+
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = `UPDATE Reactions SET ChannelId=:toChannelId WHERE (PostId,UserId,EmojiName) = any (array (SELECT (PostId,UserId,EmojiName) FROM Reactions WHERE ChannelId=:fromChannelId LIMIT 1000))`
+	} else {
+		query = "UPDATE Reactions SET ChannelId=:toChannelId WHERE ChannelId=:fromChannelId LIMIT 1000"
+	}
+
+	for {
+		sqlResult, err := s.GetMasterX().NamedExec(query, channelParams)
+		if err != nil {
+			return errors.Wrap(err, "failed to update reactions")
+		}
+
+		rowsAffected, err := sqlResult.RowsAffected()
+		if err != nil {
+			return errors.Wrap(err, "failed to update reactions")
+		}
+
+		if rowsAffected < 1000 {
+			break
+		}
+	}
 	return nil
 }

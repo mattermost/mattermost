@@ -3890,6 +3890,24 @@ func (s *OpenTracingLayerFileInfoStore) AttachToPost(c request.CTX, fileID strin
 	return err
 }
 
+func (s *OpenTracingLayerFileInfoStore) BatchMoveFilesToChannel(toChannelID string, fromChannelID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.BatchMoveFilesToChannel")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.FileInfoStore.BatchMoveFilesToChannel(toChannelID, fromChannelID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerFileInfoStore) ClearCaches() {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.ClearCaches")
@@ -6418,6 +6436,24 @@ func (s *OpenTracingLayerPostStore) BatchMergePostAndFileUserId(toUserId string,
 	return err
 }
 
+func (s *OpenTracingLayerPostStore) BatchMovePostsToChannel(toChannelID string, fromChannelID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.BatchMovePostsToChannel")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostStore.BatchMovePostsToChannel(toChannelID, fromChannelID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerPostStore) ClearCaches() {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.ClearCaches")
@@ -7730,6 +7766,24 @@ func (s *OpenTracingLayerReactionStore) BatchMergeUserId(toUserId string, fromUs
 
 	defer span.Finish()
 	err := s.ReactionStore.BatchMergeUserId(toUserId, fromUserId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerReactionStore) BatchMoveReactionsToChannel(toChannelID string, fromChannelID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.BatchMoveReactionsToChannel")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ReactionStore.BatchMoveReactionsToChannel(toChannelID, fromChannelID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -10768,6 +10822,42 @@ func (s *OpenTracingLayerTermsOfServiceStore) Save(termsOfService *model.TermsOf
 	}
 
 	return result, err
+}
+
+func (s *OpenTracingLayerThreadStore) BatchMergeThreadMembershipUserId(toUserID string, fromUserID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.BatchMergeThreadMembershipUserId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ThreadStore.BatchMergeThreadMembershipUserId(toUserID, fromUserID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerThreadStore) BatchMoveThreadsToChannel(toChannelID string, fromChannelID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.BatchMoveThreadsToChannel")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ThreadStore.BatchMoveThreadsToChannel(toChannelID, fromChannelID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerThreadStore) DeleteMembershipForUser(userId string, postID string) error {

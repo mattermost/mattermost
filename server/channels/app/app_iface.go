@@ -955,6 +955,7 @@ type AppIface interface {
 	LoginByOAuth(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
 	MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError)
 	MaxPostSize() int
+	MergeChannels(rctx request.CTX, toChannel *model.Channel, fromChannel *model.Channel) error
 	MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeOpts) *model.AppError
 	MessageExport() einterfaces.MessageExportInterface
 	Metrics() einterfaces.MetricsInterface

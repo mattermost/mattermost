@@ -3725,3 +3725,31 @@ func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*m
 
 	return channel, nil
 }
+
+func (a *App) MergeChannels(rctx request.CTX, toChannel *model.Channel, fromChannel *model.Channel) error {
+	err := a.Srv().Store().Post().BatchMovePostsToChannel(toChannel.Id, fromChannel.Id)
+	if err != nil {
+		return err
+	}
+
+	err = a.Srv().Store().FileInfo().BatchMoveFilesToChannel(toChannel.Id, fromChannel.Id)
+	if err != nil {
+		return err
+	}
+
+	err = a.Srv().Store().Thread().BatchMoveThreadsToChannel(toChannel.Id, fromChannel.Id)
+	if err != nil {
+		return err
+	}
+
+	err = a.Srv().Store().Reaction().BatchMoveReactionsToChannel(toChannel.Id, fromChannel.Id)
+	if err != nil {
+		return err
+	}
+
+	if nErr := a.Srv().Store().Channel().PermanentDelete(rctx, fromChannel.Id); nErr != nil {
+		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	return nil
+}

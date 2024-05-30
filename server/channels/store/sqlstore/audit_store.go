@@ -71,9 +71,9 @@ func (s *SqlAuditStore) BatchMergeUserId(toUserId string, fromUserId string) err
 	for {
 		var query string
 		if s.DriverName() == "postgres" {
-			query = "UPDATE audits SET UserId = ? WHERE Id = any (array (SELECT Id FROM audits WHERE UserId = ? LIMIT 1000))"
+			query = "UPDATE Audits SET UserId = ? WHERE Id = any (array (SELECT Id FROM audits WHERE UserId = ? LIMIT 1000))"
 		} else {
-			query = "UPDATE audits SET UserId = ? WHERE UserId = ? LIMIT 1000"
+			query = "UPDATE Audits SET UserId = ? WHERE UserId = ? LIMIT 1000"
 		}
 
 		sqlResult, err := s.GetMasterX().Exec(query, toUserId, fromUserId)
