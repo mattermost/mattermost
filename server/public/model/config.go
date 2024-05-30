@@ -205,6 +205,8 @@ const (
 	ElasticsearchSettingsDefaultLiveIndexingBatchSize       = 1
 	ElasticsearchSettingsDefaultRequestTimeoutSeconds       = 30
 	ElasticsearchSettingsDefaultBatchSize                   = 10000
+	ElasticsearchSettingsESBackend                          = "elasticsearch"
+	ElasticsearchSettingsOSBackend                          = "opensearch"
 
 	BleveSettingsDefaultIndexDir  = ""
 	BleveSettingsDefaultBatchSize = 10000
@@ -2757,12 +2759,13 @@ func (s *NativeAppSettings) SetDefaults() {
 
 type ElasticsearchSettings struct {
 	ConnectionURL                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Backend                       *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Username                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Password                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableIndexing                *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableSearching               *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	EnableAutocomplete            *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Sniff                         *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // Deprecated: sniffing is now enabled by default.
+	Sniff                         *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	PostIndexReplicas             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	PostIndexShards               *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	ChannelIndexReplicas          *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
@@ -2787,6 +2790,10 @@ type ElasticsearchSettings struct {
 func (s *ElasticsearchSettings) SetDefaults() {
 	if s.ConnectionURL == nil {
 		s.ConnectionURL = NewString(ElasticsearchSettingsDefaultConnectionURL)
+	}
+
+	if s.Backend == nil {
+		s.Backend = NewString(ElasticsearchSettingsESBackend)
 	}
 
 	if s.Username == nil {
