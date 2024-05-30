@@ -5212,10 +5212,6 @@
     "translation": "Недопустимое обновление участника команды: пользователь должен быть гостем или пользователем, но не обоими."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Продлить лицензию прямо сейчас"
-  },
-  {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "Срок действия корпоративной лицензии истёк, и некоторые функции могут быть отключены. Пожалуйста, обновите лицензию."
   },
@@ -7016,10 +7012,6 @@
     "translation": "Авторизация завершена"
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Ошибка получения ссылки обновления лицензии"
-  },
-  {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Параметры Before и After запроса getThreadsForUser являются взаимоисключающими"
   },
@@ -7502,18 +7494,6 @@
   {
     "id": "app.post.get_files_batch_for_indexing.get.app_error",
     "translation": "Не удалось получить пакет файлов для индексации."
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Лицензия отсутствует"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Этот тип лицензии не поддерживает генерацию токенов обновления"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Не удалось сгенерировать новый токен обновления."
   },
   {
     "id": "app.insert_error",
@@ -8472,20 +8452,12 @@
     "translation": "Ваша подписка Mattermost подлежит продлению"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Войдите в свою учетную запись клиента, чтобы продлить"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, срок действия Вашей подписки истекает через {{.Days}} дней. Мы надеемся, что Вам нравится гибкое и безопасное командное сотрудничество, которое обеспечивает Mattermost. Продлите подписку в ближайшее время, чтобы Ваша команда могла продолжать пользоваться этими преимуществами."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "Ваша лицензия подлежит продлению"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Обнови сейчас"
   },
   {
     "id": "api.templates.invite_body.title.reminder",
@@ -8500,10 +8472,6 @@
     "translation": "Не удалось отправить лицензию для обновлений по электронной почте"
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Не удалось сгенерировать ссылку для продления лицензии"
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads_dm",
     "translation": "Ответить в личном сообщении"
   },
@@ -8514,10 +8482,6 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
     "translation": " ответил в обсуждении."
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Продление этой лицензии на портале невозможно"
   },
   {
     "id": "model.user.is_valid.roles_limit.app_error",
@@ -9020,34 +8984,6 @@
     "translation": "Сервер CWS не доступен."
   },
   {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Не удалось получить общее количество исходящих вебхуков"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Не удалось получить общее количество входящих вебхуков"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Не удалось получить общее количество активных пользователей"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "Для облачных экземпляров не допускается пересмотр в сторону увеличения"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "Для проверки достоверности требуется лицензия"
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Не удалось получить запись истинного состояния"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Не удалось создать запись истинного состояния"
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "пользователь с таким именем \"{{.Username}}\" уже существует."
   },
@@ -9118,10 +9054,6 @@
   {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
     "translation": "Проверка постоянного уведомления не прошла."
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Не удалось отправить точный профиль проверки в CWS."
   },
   {
     "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
@@ -10088,7 +10020,11 @@
     "translation": "Не удалось получить количество пользователей"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Не удалось получить количество сообщений"
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "Невозможно закрыть zip-файл"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Невозможно перейти к началу файла экспорта."
   }
 ]

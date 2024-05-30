@@ -880,10 +880,6 @@
     "translation": "आपका एंटरप्राइज़ संस्करण लाइसेंस समाप्त हो गया है और कुछ सुविधाएं अक्षम हो सकती हैं। कृपया अपना लाइसेंस अभी रीन्यू करें।"
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "लाइसेंस अभी रीन्यू करें"
-  },
-  {
     "id": "api.templates.post_body.button",
     "translation": "मैसेज देखें"
   },
@@ -908,16 +904,8 @@
     "translation": "आपकी मैटरमोस्ट सदस्यता रीन्यूअल के लिए तैयार है"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "रीन्यू करने के लिए अपने ग्राहक खाते में लॉग इन करें"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, आपकी सदस्यता {{.Days}} दिनों में समाप्त होने वाली है। हम आशा करते हैं कि आप मैटरमोस्ट द्वारा सक्षम लचीले, सुरक्षित टीम सहयोग का अनुभव कर रहे हैं। यह सुनिश्चित करने के लिए जल्द ही रीन्यू करें कि आपकी टीम इन लाभों का आनंद लेती रहे।"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "अब रीन्यू करें"
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
@@ -4561,10 +4549,6 @@
     "translation": "यदि आप स्वचालित रूप से पुनर्निर्देशित नहीं होते हैं, तो कृपया क्लिक करें<a href='{{.Link}}'>link</a>"
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "पोर्टल पर इस लाइसेंस का नवीनीकरण संभव नहीं है"
-  },
-  {
     "id": "api.license.add_license.no_file.app_error",
     "translation": "अनुरोध में 'लाइसेंस' के तहत कोई फ़ाइल नहीं।"
   },
@@ -4927,10 +4911,6 @@
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "नवीनीकरण ईमेल के लिए लाइसेंस भेजने में विफल"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "लाइसेंस नवीनीकरण लिंक उत्पन्न करने में विफल"
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
@@ -8014,10 +7994,6 @@
   {
     "id": "api.no_license",
     "translation": "इस समापन बिंदु का उपयोग करने के लिए E10 या E20 लाइसेंस की आवश्यकता है।"
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "लाइसेंस नवीनीकरण लिंक प्राप्त करने में त्रुटि"
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",

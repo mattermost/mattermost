@@ -7685,11 +7685,11 @@ func (s *RetryLayerPostStore) GetRepliesForExport(parentID string) ([]*model.Rep
 
 }
 
-func (s *RetryLayerPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error) {
+func (s *RetryLayerPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetSingle(id, inclDeleted)
+		result, err := s.PostStore.GetSingle(rctx, id, inclDeleted)
 		if err == nil {
 			return result, nil
 		}

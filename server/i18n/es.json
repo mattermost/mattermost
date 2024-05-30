@@ -5484,10 +5484,6 @@
     "translation": "Su licencia de la Enterprise Edition ha expirado y algunas características pueden estar desactivadas. Por favor, renueve su licencia ahora."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renovar Licencia ahora"
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }} como huésped"
   },
@@ -7132,10 +7128,6 @@
     "translation": "Uno o más de los siguientes permisos que está intentando añadir o eliminar no está permitido"
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Error al obtener el enlace de renovación de la licencia"
-  },
-  {
     "id": "api.file.write_file.app_error",
     "translation": "No se puede escribir el archivo."
   },
@@ -7218,18 +7210,6 @@
   {
     "id": "app.select_error",
     "translation": "error al seleccionar"
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "No hay licencia presente"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Este tipo de licencia no soporta la generación de tokens de renovación"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Falla al generar un nuevo token de renovación."
   },
   {
     "id": "app.insert_error",
@@ -7588,20 +7568,12 @@
     "translation": "Su suscripción a Mattermost está pendiente de renovación"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Acceda a su cuenta de cliente para renovar"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, tu suscripción caduca en {{.Days}} días. Esperamos que esté experimentando la colaboración en equipo flexible y segura que permite Mattermost. Renueva pronto para asegurarte de que tu equipo pueda seguir disfrutando de estos beneficios."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "Su licencia está pendiente de renovación"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Renovar ahora"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -7726,10 +7698,6 @@
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Fallo en el envío de correos electrónicos de renovación de licencias"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "No se ha podido generar el enlace de renovación de la licencia"
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
@@ -8564,10 +8532,6 @@
     "translation": "El número de IDs de mensajes recibidos ha superado el tamaño máximo de {{.MaxLength}}"
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "No es posible renovar esta licencia en el portal"
-  },
-  {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "No se ha podido actualizar el estado personalizado. Por favor, añade un emoji o un estado de texto personalizado o ambos."
   },
@@ -9010,18 +8974,6 @@
   {
     "id": "api.getUsersForReporting.invalid_page_size",
     "translation": "El tamaño de la página es inválido o demasiado grande."
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "No se pudo obtener el conteo total de usuarios activos"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "No se pudo obtener el conteo total de webhooks entrantes"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "No se pudo obtener el conteo total de webhooks salientes"
   },
   {
     "id": "api.payload.parse.error",
