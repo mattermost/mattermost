@@ -87,10 +87,10 @@ function getDefaultStateFromProps(props: Props): State {
     let emailThreads: UserNotifyProps['email_threads'] = NotificationLevels.ALL;
     let sound: UserNotifyProps['desktop_sound'] = 'true';
     let callsSound: UserNotifyProps['calls_desktop_sound'] = 'true';
-    let callsMobileSound: UserNotifyProps['calls_mobile_sound'] = 'true';
+    let callsMobileSound: UserNotifyProps['calls_mobile_sound'] = '';
     let desktopNotificationSound: UserNotifyProps['desktop_notification_sound'] = 'Bing';
     let callsNotificationSound: UserNotifyProps['calls_notification_sound'] = 'Calm';
-    let callsMobileNotificationSound: UserNotifyProps['calls_mobile_notification_sound'] = 'Calm';
+    let callsMobileNotificationSound: UserNotifyProps['calls_mobile_notification_sound'] = '';
     let comments: UserNotifyProps['comments'] = 'never';
     let enableEmail: UserNotifyProps['email'] = 'true';
     let pushActivity: UserNotifyProps['push'] = NotificationLevels.MENTION;
