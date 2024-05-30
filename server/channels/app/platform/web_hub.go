@@ -435,6 +435,7 @@ func (h *Hub) Start() {
 				// If already removed (via queue full), then removing again becomes a noop.
 				// But if not removed, mark inactive.
 				webConn.active.Store(false)
+				webConn.PostedAck = false
 
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
