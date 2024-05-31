@@ -107,6 +107,11 @@
     }
 }
 
+.modal__buttons {
+    flex-wrap: nowrap;
+    display: flex;
+}
+
 .modal__hint {
     display: block;
     margin: 0 0 10px;

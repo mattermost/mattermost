@@ -321,28 +321,30 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
                         </div>
                     </Modal.Body>
                     <Modal.Footer>
-                        <button
-                            type='button'
-                            className='btn btn-tertiary'
-                            onClick={this.onHide}
-                        >
-                            <FormattedMessage
-                                id='add_user_to_channel_modal.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </button>
-                        <button
-                            type='button'
-                            id='add-user-to-channel-modal__add-button'
-                            className='btn btn-primary'
-                            onClick={this.handleSubmit}
-                            disabled={shouldDisableAddButton}
-                        >
-                            <FormattedMessage
-                                id='add_user_to_channel_modal.add'
-                                defaultMessage='Add'
-                            />
-                        </button>
+                        <div className='modal__buttons'>
+                            <button
+                                type='button'
+                                className='btn btn-tertiary'
+                                onClick={this.onHide}
+                            >
+                                <FormattedMessage
+                                    id='add_user_to_channel_modal.cancel'
+                                    defaultMessage='Cancel'
+                                />
+                            </button>
+                            <button
+                                type='button'
+                                id='add-user-to-channel-modal__add-button'
+                                className='btn btn-primary'
+                                onClick={this.handleSubmit}
+                                disabled={shouldDisableAddButton}
+                            >
+                                <FormattedMessage
+                                    id='add_user_to_channel_modal.add'
+                                    defaultMessage='Add'
+                                />
+                            </button>
+                        </div>
                     </Modal.Footer>
                 </form>
             </Modal>
