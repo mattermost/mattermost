@@ -56,20 +56,6 @@ export function getUserPreferences(userID: string) {
     });
 }
 
-export function setActionsMenuInitialisationState(initializationState: Record<string, boolean>): ThunkActionFunc<void> {
-    return async (dispatch, getState) => {
-        const state = getState();
-        const currentUserId = getCurrentUserId(state);
-        const preference: PreferenceType = {
-            user_id: currentUserId,
-            category: Preferences.CATEGORY_ACTIONS_MENU,
-            name: Preferences.NAME_ACTIONS_MENU_TUTORIAL_STATE,
-            value: JSON.stringify(initializationState),
-        };
-        await dispatch(savePreferences(currentUserId, [preference]));
-    };
-}
-
 export function setCustomStatusInitialisationState(initializationState: Record<string, boolean>): ThunkActionFunc<void> {
     return async (dispatch, getState) => {
         const state = getState();
