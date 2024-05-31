@@ -1037,16 +1037,6 @@ type ChannelBookmarkStore interface {
 	GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error)
 }
 
-type ChannelBookmarkStore interface {
-	ErrorIfBookmarkFileInfoAlreadyAttached(fileId string) error
-	Get(Id string, includeDeleted bool) (b *model.ChannelBookmarkWithFileInfo, err error)
-	Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (b *model.ChannelBookmarkWithFileInfo, err error)
-	Update(bookmark *model.ChannelBookmark) error
-	UpdateSortOrder(bookmarkId, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error)
-	Delete(bookmarkId string, deleteFile bool) error
-	GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error)
-}
-
 // ChannelSearchOpts contains options for searching channels.
 //
 // NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.

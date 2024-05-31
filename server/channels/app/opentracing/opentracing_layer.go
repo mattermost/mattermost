@@ -7961,7 +7961,7 @@ func (a *OpenTracingAppLayer) GetOnboarding() (*model.System, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
+func (a *OpenTracingAppLayer) GetOpenGraphMetadata(rctx request.CTX, requestURL string) ([]byte, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOpenGraphMetadata")
 
@@ -7973,7 +7973,7 @@ func (a *OpenTracingAppLayer) GetOpenGraphMetadata(requestURL string) ([]byte, e
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetOpenGraphMetadata(requestURL)
+	resultVar0, resultVar1 := a.app.GetOpenGraphMetadata(rctx, requestURL)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

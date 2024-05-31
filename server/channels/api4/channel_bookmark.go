@@ -424,7 +424,7 @@ func fetchOpenGraph(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	og, err := c.App.GetOpenGraphMetadata(c.Params.Url)
+	og, err := c.App.GetOpenGraphMetadata(c.AppContext, c.Params.Url)
 	if err != nil {
 		c.Logger.Warn("Error while getting opengraph data", mlog.Err(err))
 		return

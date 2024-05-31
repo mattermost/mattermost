@@ -18,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 const (
@@ -25,12 +26,12 @@ const (
 	openGraphMetadataCacheSize = 10000
 )
 
-func (a *App) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
+func (a *App) GetOpenGraphMetadata(rctx request.CTX, requestURL string) ([]byte, error) {
 	if !*a.Config().ServiceSettings.EnableLinkPreviews {
 		return nil, model.NewAppError("GetOpenGraphMetadata", "app.channel.opengraph.link_previews_disabled.error", nil, "", http.StatusForbidden)
 	}
 
-	if !a.isLinkAllowedForPreview(requestURL) {
+	if !a.isLinkAllowedForPreview(rctx, requestURL) {
 		return nil, model.NewAppError("GetOpenGraphMetadata", "app.channel.opengraph.link_not_allowed.error", nil, "", http.StatusBadRequest)
 	}
 
