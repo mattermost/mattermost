@@ -4203,7 +4203,7 @@
   "multiselect.maxGroupMembers": "No more than 256 members can be added to a group at once.",
   "multiselect.numGroupsRemaining": "Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {group} other {groups}}. ",
   "multiselect.numMembers": "{memberOptions, number} of {totalCount, number} members",
-  "multiselect.numPeopleRemaining": "You can't add more than 7 people. Please {createChannel} to include more people.",
+  "multiselect.numPeopleRemaining": "Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. ",
   "multiselect.numRemaining": "Up to {max, number} can be added at a time. You have {num, number} remaining.",
   "multiselect.placeholder": "Search for people",
   "multiselect.placeholder.peopleOrGroups": "Search for people or groups",

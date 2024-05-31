@@ -122,21 +122,21 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
             noteText={note}
             maxValues={MAX_SELECTABLE_VALUES}
             numRemainingText={
-                <div className='inline'>
-                    <FormattedMessage
-                        id='multiselect.numPeopleRemaining'
-                        defaultMessage='Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. '
-                        values={{
-                            num: MAX_SELECTABLE_VALUES - props.values.length,
-                        }}
-                    />
-                    {'Please '}
-                    <span
-                        onClick={handleCreateChannel}
-                        className='link'
-                    >{'create a channel'}</span>
-                    {' to include more people.'}
-                </div>
+                <FormattedMessage
+                    id='multiselect.numPeopleRemaining'
+                    defaultMessage={'Use ↑↓ to browse, ↵ to select. You can\'t add more than 7 people. Please <a>create a channel</a> to include more people. '}
+                    values={{
+                        num: MAX_SELECTABLE_VALUES - props.values.length,
+                        a: (chunks: React.ReactNode) => {
+                            return (
+                                <a onClick={handleCreateChannel}>
+                                    {chunks}
+                                </a>
+                            );
+                        },
+                    }}
+                />
+
             }
             buttonSubmitText={
                 <FormattedMessage
