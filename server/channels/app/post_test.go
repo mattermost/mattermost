@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"sync"
 	"testing"
@@ -258,7 +257,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
 
-		updated, appErr := th.App.GetSinglePost(post.Id, false)
+		updated, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
 		require.Nil(t, appErr)
 		assert.Len(t, updated.FileIds, 1)
 		assert.Contains(t, updated.FileIds, info2.Id)
@@ -791,7 +790,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
@@ -2451,9 +2450,6 @@ func TestCountMentionsFromPost(t *testing.T) {
 	})
 
 	t.Run("should count urgent mentions", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 

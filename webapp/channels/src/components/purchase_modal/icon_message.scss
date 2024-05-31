@@ -59,30 +59,30 @@
         .IconMessage-progress {
             width: 387px;
             height: 4px;
+            border-radius: 4px;
             margin: 0 auto;
             margin-top: 90px;
             background: rgba(34, 64, 109, 0.12);
-            border-radius: 4px;
         }
 
         .IconMessage-progress-fill {
             height: 100%;
-            background: #0058cc;
             border-radius: 4px;
+            background: #0058cc;
         }
 
         .IconMessage-button {
             button {
-                background: var(--button-bg);
                 border-radius: 4px;
+                background: var(--button-bg);
                 color: var(--button-color);
             }
         }
 
         .IconMessage-tertiary-button {
             button {
-                background: rgba(var(--denim-button-bg-rgb), 0.08);
                 border-radius: 4px;
+                background: rgba(var(--denim-button-bg-rgb), 0.08);
                 color: var(--button-bg);
             }
         }

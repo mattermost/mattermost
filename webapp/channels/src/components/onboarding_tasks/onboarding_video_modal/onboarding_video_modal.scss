@@ -23,9 +23,10 @@
         border: none;
 
         .close {
+            z-index: 1;
             top: -12px;
             right: -12px;
-            border-radius: 16px;
+            border-radius: var(--radius-full);
             opacity: 0.8;
 
             :hover {
@@ -43,16 +44,18 @@
         height: 100vh;
         max-height: 506px;
         padding: 0;
-        border: none;
-        border-radius: 8px;
+
+        .app__body .modal & {
+            border: none;
+        }
     }
 
     .modal-body {
         overflow: hidden;
         height: 100%;
         padding: 0;
+        border-radius: var(--radius-l);
         margin: 0;
-        border-radius: 8px;
     }
 
     .modal-footer {

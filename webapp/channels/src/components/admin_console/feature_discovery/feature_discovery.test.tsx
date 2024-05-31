@@ -26,10 +26,14 @@ describe('components/feature_discovery', () => {
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
-                    titleID='translation.test.title'
-                    titleDefault='Foo'
-                    copyID='translation.test.copy'
-                    copyDefault={'Bar'}
+                    title={{
+                        id: 'translation.test.title',
+                        defaultMessage: 'Foo',
+                    }}
+                    copy={{
+                        id: 'translation.test.copy',
+                        defaultMessage: 'Bar',
+                    }}
                     learnMoreURL='https://test.mattermost.com/secondary/'
                     featureDiscoveryImage={<SamlSVG/>}
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -82,10 +86,14 @@ describe('components/feature_discovery', () => {
                     <FeatureDiscovery
                         featureName='test'
                         minimumSKURequiredForFeature={LicenseSkus.Professional}
-                        titleID='translation.test.title'
-                        titleDefault='Foo'
-                        copyID='translation.test.copy'
-                        copyDefault={'Bar'}
+                        title={{
+                            id: 'translation.test.title',
+                            defaultMessage: 'Foo',
+                        }}
+                        copy={{
+                            id: 'translation.test.copy',
+                            defaultMessage: 'Bar',
+                        }}
                         learnMoreURL='https://test.mattermost.com/secondary/'
                         featureDiscoveryImage={<SamlSVG/>}
                         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -113,12 +121,9 @@ describe('components/feature_discovery', () => {
             expect(screen.queryByText('Foo')).toBeInTheDocument();
 
             //this option is visible only when it is cloud environment
-            expect(screen.getByRole('button', {name: 'Try free for 30 days'})).toBeInTheDocument();
-            expect(screen.getAllByText('Try free for 30 days')).toHaveLength(2);
+            expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
 
             expect(screen.getByTestId('featureDiscovery_secondaryCallToAction')).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
-
-            expect(screen.getByText('Privacy Policy')).toHaveAttribute('href', 'https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
 
             const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
 
@@ -142,10 +147,14 @@ describe('components/feature_discovery', () => {
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
-                    titleID='translation.test.title'
-                    titleDefault='Foo'
-                    copyID='translation.test.copy'
-                    copyDefault={'Bar'}
+                    title={{
+                        id: 'translation.test.title',
+                        defaultMessage: 'Foo',
+                    }}
+                    copy={{
+                        id: 'translation.test.copy',
+                        defaultMessage: 'Bar',
+                    }}
                     learnMoreURL='https://test.mattermost.com/secondary/'
                     featureDiscoveryImage={<SamlSVG/>}
                     // eslint-disable-next-line @typescript-eslint/naming-convention

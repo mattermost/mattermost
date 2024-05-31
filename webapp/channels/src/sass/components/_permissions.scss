@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 @keyframes rowhighlight {
     0% {
         background-color: $transparent;
@@ -147,8 +149,8 @@
         align-items: center;
         justify-content: space-around;
         border: 2px solid $dark-gray;
-        margin-right: 5px;
         border-radius: 3px;
+        margin-right: 5px;
 
         &.checked,
         &.intermediate {
@@ -172,7 +174,7 @@
         width: 100%;
         height: 100%;
         align-items: center;
-        opacity: 0.65;
+        opacity: 0.75;
 
         span {
             display: inline-block;
@@ -254,7 +256,7 @@
 
         &:hover {
             border-left: 2px solid $primary-color;
-            background-color: lighten($primary-color, 40%);
+            background-color: color.adjust($primary-color, $lightness: 40%);
 
             .permission-description {
                 opacity: 1;
@@ -303,7 +305,7 @@
 
     &:hover {
         border-left: 2px solid $primary-color;
-        background-color: lighten($primary-color, 40%);
+        background-color: color.adjust($primary-color, $lightness: 40%);
     }
 
     .permissions-scheme-summary--header {
@@ -336,11 +338,11 @@
             align-items: center;
             justify-content: center;
             padding: 0 8px;
+            border-radius: 13px;
             margin-right: 10px;
             margin-bottom: 10px;
             background: rgba(0, 0, 0, 0.05);
-            border-radius: 13px;
-            color: alpha-color($black, 0.6);
+            color: alpha-color($black, 0.75);
             font-size: 11px;
         }
     }

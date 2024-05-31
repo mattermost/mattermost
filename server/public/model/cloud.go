@@ -30,6 +30,13 @@ const (
 	BillingSchemeSalesServe = BillingScheme("sales_serve")
 )
 
+type BillingType string
+
+const (
+	BillingTypeLicensed = BillingType("licensed")
+	BillingTypeInternal = BillingType("internal")
+)
+
 type RecurringInterval string
 
 const (

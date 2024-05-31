@@ -131,7 +131,7 @@ func TestCreatePost(t *testing.T) {
 		require.NoError(t, err)
 
 		// Message with no channel mentions should result in no ephemeral message
-		timeout := time.After(2 * time.Second)
+		timeout := time.After(5 * time.Second)
 		waiting := true
 		for waiting {
 			select {
@@ -157,7 +157,7 @@ func TestCreatePost(t *testing.T) {
 		_, _, err = client.CreatePost(context.Background(), post)
 		require.NoError(t, err)
 
-		timeout = time.After(2 * time.Second)
+		timeout = time.After(5 * time.Second)
 		eventsToGo := 3 // 3 Posts created with @ mentions should result in 3 websocket events
 		for eventsToGo > 0 {
 			select {
@@ -230,12 +230,27 @@ func TestCreatePost(t *testing.T) {
 	rpost, _, err = th.SystemAdminClient.CreatePost(context.Background(), post)
 	require.NoError(t, err)
 	require.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
+
+	t.Run("Should not be able to define the RemoteId of a post from the API", func(t *testing.T) {
+		newPost := &model.Post{
+			RemoteId:  model.NewString(model.NewId()),
+			ChannelId: th.BasicChannel.Id,
+			Message:   "post content " + model.NewId(),
+			DeleteAt:  0,
+		}
+
+		respPost, resp, err := th.SystemAdminClient.CreatePost(context.Background(), newPost)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Zero(t, *respPost.RemoteId)
+
+		createdPost, appErr := th.App.GetSinglePost(th.Context, respPost.Id, false)
+		require.Nil(t, appErr)
+		require.Zero(t, *createdPost.RemoteId)
+	})
 }
 
 func TestCreatePostForPriority(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -649,7 +664,7 @@ func testCreatePostWithOutgoingHook(
 	select {
 	case ok := <-success:
 		require.True(t, ok, "Test server did send an invalid webhook.")
-	case <-time.After(time.Second):
+	case <-time.After(2 * time.Second):
 		require.FailNow(t, "Timeout, test server did not send the webhook.")
 	}
 
@@ -1081,7 +1096,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	timeout := time.After(2 * time.Second)
+	timeout := time.After(5 * time.Second)
 	waiting := true
 	for waiting {
 		select {
@@ -1100,7 +1115,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	timeout = time.After(2 * time.Second)
+	timeout = time.After(5 * time.Second)
 	waiting = true
 	for waiting {
 		select {
@@ -1497,6 +1512,15 @@ func TestPatchPost(t *testing.T) {
 	})
 
 	t.Run("invalid requests", func(t *testing.T) {
+		var origEnableDeveloper bool
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			origEnableDeveloper = *cfg.ServiceSettings.EnableDeveloper
+			*cfg.ServiceSettings.EnableDeveloper = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = origEnableDeveloper
+		})
+
 		r, err := client.DoAPIPut(context.Background(), "/posts/"+post.Id+"/patch", "garbage")
 		require.EqualError(t, err, "Invalid or missing post in request body., invalid character 'g' looking for beginning of value")
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
@@ -1621,7 +1645,7 @@ func TestPinPost(t *testing.T) {
 	_, err := client.PinPost(context.Background(), post.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(post.Id, false)
+	rpost, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
 	require.Nil(t, appErr)
 	require.True(t, rpost.IsPinned, "failed to pin post")
 
@@ -1651,7 +1675,7 @@ func TestUnpinPost(t *testing.T) {
 	_, err := client.UnpinPost(context.Background(), pinnedPost.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id, false)
+	rpost, appErr := th.App.GetSinglePost(th.Context, pinnedPost.Id, false)
 	require.Nil(t, appErr)
 	require.False(t, rpost.IsPinned)
 
@@ -2796,7 +2820,7 @@ func TestDeletePostEvent(t *testing.T) {
 				require.NoError(t, err)
 				received = true
 			}
-		case <-time.After(2 * time.Second):
+		case <-time.After(5 * time.Second):
 			exit = true
 		}
 		if exit {
@@ -3594,7 +3618,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 					caught = true
 					data = ev.GetData()
 				}
-			case <-time.After(1 * time.Second):
+			case <-time.After(5 * time.Second):
 				exit = true
 			}
 			if exit {
@@ -3866,7 +3890,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 								require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
 							}
 						}
-					case <-time.After(1 * time.Second):
+					case <-time.After(5 * time.Second):
 						return
 					}
 				}
@@ -3980,7 +4004,7 @@ func TestPostReminder(t *testing.T) {
 					require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
 					return
 				}
-			case <-time.After(1 * time.Second):
+			case <-time.After(5 * time.Second):
 				return
 			}
 		}

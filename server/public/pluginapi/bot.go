@@ -112,14 +112,29 @@ func (b *BotService) DeletePermanently(botUserID string) error {
 }
 
 type ensureBotOptions struct {
-	ProfileImagePath string
+	ProfileImagePath  string
+	ProfileImageBytes []byte
 }
 
 type EnsureBotOption func(*ensureBotOptions)
 
+// ProfileImagePath configures EnsureBot to set a profile image from the given path.
+//
+// Using this option overrides any previously set ProfileImageBytes option.
 func ProfileImagePath(path string) EnsureBotOption {
 	return func(args *ensureBotOptions) {
 		args.ProfileImagePath = path
+		args.ProfileImageBytes = nil
+	}
+}
+
+// ProfileImageBytes configures EnsureBot to set a profile image from the given bytes.
+//
+// Using this option overrides any previously set ProfileImagePath option.
+func ProfileImageBytes(bytes []byte) EnsureBotOption {
+	return func(args *ensureBotOptions) {
+		args.ProfileImageBytes = bytes
+		args.ProfileImagePath = ""
 	}
 }
 
@@ -169,6 +184,11 @@ func (b *BotService) ensureBot(m mutex, bot *model.Bot, options ...EnsureBotOpti
 			return "", errors.Wrap(err, "failed to read profile image")
 		}
 		appErr := b.api.SetProfileImage(botID, imageBytes)
+		if appErr != nil {
+			return "", errors.Wrap(appErr, "failed to set profile image")
+		}
+	} else if len(o.ProfileImageBytes) > 0 {
+		appErr := b.api.SetProfileImage(botID, o.ProfileImageBytes)
 		if appErr != nil {
 			return "", errors.Wrap(appErr, "failed to set profile image")
 		}

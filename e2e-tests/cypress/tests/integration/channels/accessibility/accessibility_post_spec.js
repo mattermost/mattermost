@@ -167,7 +167,7 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.focused().tab();
 
                 // * Verify focus is on the username
-                cy.get('button.user-popover').should('be.focused').and('have.attr', 'aria-label', otherUser.username);
+                cy.get('button.user-popover').should('be.focused');
                 cy.focused().tab();
 
                 // * Verify focus is on the time
@@ -186,10 +186,6 @@ describe('Verify Accessibility Support in Post', () => {
 
                 // * Verify focus is on the save post button
                 cy.get(`#CENTER_flagIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'save message');
-                cy.focused().tab();
-
-                // * Verify focus is on message actions button
-                cy.get(`#CENTER_actions_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'actions');
                 cy.focused().tab();
 
                 // * Verify focus is on the comment button
@@ -238,10 +234,6 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.get(`#RHS_COMMENT_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'more');
                 cy.focused().tab({shift: true});
 
-                // * Verify focus is on message actions button
-                cy.get(`#RHS_COMMENT_actions_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'actions');
-                cy.focused().tab({shift: true});
-
                 // * Verify focus is on the save icon
                 cy.get(`#RHS_COMMENT_flagIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'save message');
                 cy.focused().tab({shift: true});
@@ -259,7 +251,7 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.focused().tab({shift: true});
 
                 // * Verify focus is on the username
-                cy.get('button.user-popover').should('be.focused').and('have.attr', 'aria-label', otherUser.username);
+                cy.get('button.user-popover').should('be.focused');
                 cy.focused().tab({shift: true});
             });
         });

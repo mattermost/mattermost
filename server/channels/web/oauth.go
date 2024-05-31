@@ -76,7 +76,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	c.LogAudit("")
+	c.LogAudit("success")
 
 	w.Write([]byte(model.MapToJSON(map[string]string{"redirect": redirectURL})))
 }
@@ -91,6 +91,7 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("deauthorizeOAuthApp", audit.Fail)
+	auditRec.AddMeta("client_id", clientId)
 	defer c.LogAuditRec(auditRec)
 
 	err := c.App.DeauthorizeOAuthAppForUser(c.AppContext, c.AppContext.Session().UserId, clientId)
@@ -131,6 +132,11 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("authorizeOAuthPage", audit.Fail)
+	auditRec.AddMeta("client_id", authRequest.ClientId)
+	auditRec.AddMeta("scope", authRequest.Scope)
+	defer c.LogAuditRec(auditRec)
+
 	oauthApp, err := c.App.GetOAuthApp(authRequest.ClientId)
 	if err != nil {
 		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
@@ -139,6 +145,9 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// here we should check if the user is logged in
 	if c.AppContext.Session().UserId == "" {
+		auditRec.Success()
+		c.LogAudit("success")
+
 		if loginHint == model.UserAuthServiceSaml {
 			http.Redirect(w, r, c.GetSiteURLHeader()+"/login/sso/saml?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
 		} else {
@@ -167,15 +176,20 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Automatically allow if the app is trusted
 	if oauthApp.IsTrusted || isAuthorized {
 		redirectURL, err := c.App.AllowOAuthAppAccessToUser(c.AppContext, c.AppContext.Session().UserId, authRequest)
-
 		if err != nil {
 			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
 			return
 		}
 
+		auditRec.Success()
+		c.LogAudit("success")
+
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}
+
+	auditRec.Success()
+	c.LogAudit("success")
 
 	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 	w.Header().Set("Content-Security-Policy", fmt.Sprintf("frame-ancestors %s", frameAncestors))
@@ -255,6 +269,10 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	service := c.Params.Service
 
+	auditRec := c.MakeAuditRecord("completeOAuth", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameter(auditRec, "service", service)
+
 	oauthError := r.URL.Query().Get("error")
 	if oauthError == "access_denied" {
 		utils.RenderWebError(c.App.Config(), w, r, http.StatusTemporaryRedirect, url.Values{
@@ -324,7 +342,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, false)
 		if err != nil {
 			err.Translate(c.AppContext.T)
-			mlog.Error(err.Error())
+			c.Logger.Error(err.Error())
 			renderError(err)
 			return
 		}
@@ -333,6 +351,10 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Old mobile version
 		if isMobile && !hasRedirectURL {
 			c.App.AttachSessionCookies(c.AppContext, w, r)
+
+			auditRec.Success()
+			c.LogAudit("success")
+
 			return
 		} else
 		// New mobile version
@@ -342,10 +364,14 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 				model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
 			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
+
+			auditRec.Success()
+			c.LogAudit("success")
+
 			return
-		} else { // For web
-			c.App.AttachSessionCookies(c.AppContext, w, r)
 		}
+		// For web
+		c.App.AttachSessionCookies(c.AppContext, w, r)
 
 		desktopToken := ""
 		if val, ok := props["desktop_token"]; ok {
@@ -376,6 +402,9 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	auditRec.Success()
+	c.LogAudit("success")
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 }
@@ -395,7 +424,11 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
+	auditRec := c.MakeAuditRecord("loginWithOAuth", audit.Fail)
+	auditRec.AddMeta("service", c.Params.Service)
+	defer c.LogAuditRec(auditRec)
+
+	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
@@ -406,6 +439,9 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	c.LogAudit("success")
 
 	http.Redirect(w, r, authURL, http.StatusFound)
 }
@@ -424,7 +460,11 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
+	auditRec := c.MakeAuditRecord("mobileLoginWithOAuth", audit.Fail)
+	auditRec.AddMeta("service", c.Params.Service)
+	defer c.LogAuditRec(auditRec)
+
+	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
@@ -435,6 +475,9 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	c.LogAudit("success")
 
 	http.Redirect(w, r, authURL, http.StatusFound)
 }
@@ -452,7 +495,11 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
+	auditRec := c.MakeAuditRecord("signupWithOAuth", audit.Fail)
+	auditRec.AddMeta("service", c.Params.Service)
+	defer c.LogAuditRec(auditRec)
+
+	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
@@ -465,6 +512,9 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	c.LogAudit("success")
 
 	http.Redirect(w, r, authURL, http.StatusFound)
 }

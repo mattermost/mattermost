@@ -31,10 +31,6 @@ export const isCloudLicense: (state: GlobalState) => boolean = createSelector(
     (license: ClientLicense) => license?.Cloud === 'true',
 );
 
-export function warnMetricsStatus(state: GlobalState): any {
-    return state.entities.general.warnMetricsStatus;
-}
-
 export function isCompatibleWithJoinViewTeamPermissions(state: GlobalState): boolean {
     const version = state.entities.general.serverVersion;
     return isMinimumServerVersion(version, 5, 10, 0) ||
@@ -121,6 +117,19 @@ export const getGiphyFetchInstance: (state: GlobalState) => GiphyFetch | null = 
         if (giphySdkKey) {
             const giphyFetch = new GiphyFetch(giphySdkKey);
             return giphyFetch;
+        }
+
+        return null;
+    },
+);
+
+export const getUsersStatusAndProfileFetchingPollInterval: (state: GlobalState) => number | null = createSelector(
+    'getUsersStatusAndProfileFetchingPollInterval',
+    getConfig,
+    (config) => {
+        const usersStatusAndProfileFetchingPollInterval = config.UsersStatusAndProfileFetchingPollIntervalMilliseconds;
+        if (usersStatusAndProfileFetchingPollInterval) {
+            return parseInt(usersStatusAndProfileFetchingPollInterval, 10);
         }
 
         return null;

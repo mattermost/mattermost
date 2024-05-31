@@ -11,6 +11,7 @@ import PostComponent from 'components/post';
 import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
 import DateSeparator from 'components/post_view/date_separator';
 import NewMessageSeparator from 'components/post_view/new_message_separator/new_message_separator';
+import RootPostDivider from 'components/root_post_divider/root_post_divider';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 import {Locations} from 'utils/constants';
@@ -28,7 +29,6 @@ type Props = {
     onCardClick: (post: Post) => void;
     previousPostId: string;
     timestampProps?: Partial<TimestampProps>;
-    lastViewedAt: number;
     threadId: string;
     newMessagesSeparatorActions: PluginComponent[];
 };
@@ -43,7 +43,6 @@ function ThreadViewerRow({
     onCardClick,
     previousPostId,
     timestampProps,
-    lastViewedAt,
     threadId,
     newMessagesSeparatorActions,
 }: Props) {
@@ -62,7 +61,6 @@ function ThreadViewerRow({
         return (
             <NewMessageSeparator
                 separatorId={listId}
-                lastViewedAt={lastViewedAt}
                 threadId={threadId}
                 newMessagesSeparatorActions={newMessagesSeparatorActions}
             />
@@ -70,13 +68,16 @@ function ThreadViewerRow({
 
     case isRootPost:
         return (
-            <PostComponent
-                postId={listId}
-                isLastPost={isLastPost}
-                handleCardClick={onCardClick}
-                timestampProps={timestampProps}
-                location={Locations.RHS_ROOT}
-            />
+            <>
+                <PostComponent
+                    postId={listId}
+                    isLastPost={isLastPost}
+                    handleCardClick={onCardClick}
+                    timestampProps={timestampProps}
+                    location={Locations.RHS_ROOT}
+                />
+                <RootPostDivider postId={listId}/>
+            </>
         );
     case PostListUtils.isCombinedUserActivityPost(listId): {
         return (

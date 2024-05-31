@@ -95,7 +95,7 @@ export function getImageSrc(src: string, hasImageProxy = false): string {
     return src;
 }
 
-export function canDeletePost(state: GlobalState, post: Post, channel: Channel): boolean {
+export function canDeletePost(state: GlobalState, post: Post, channel?: Channel): boolean {
     if (post.type === Constants.PostTypes.FAKE_PARENT_DELETED) {
         return false;
     }
@@ -626,12 +626,6 @@ export function splitMessageBasedOnTextSelection(selectionStart: number, selecti
     return {firstPiece, lastPiece};
 }
 
-export function getNewMessageIndex(postListIds: string[]): number {
-    return postListIds.findIndex(
-        (item) => item.indexOf(PostListRowListIds.START_OF_NEW_MESSAGES) === 0,
-    );
-}
-
 export function areConsecutivePostsBySameUser(post: Post, previousPost: Post): boolean {
     if (!(post && previousPost)) {
         return false;
@@ -651,8 +645,14 @@ export function areConsecutivePostsBySameUser(post: Post, previousPost: Post): b
 // Note: In the case of DM_CHANNEL, users must be fetched beforehand.
 export function getPostURL(state: GlobalState, post: Post): string {
     const channel = getChannel(state, post.channel_id);
+    if (!channel) {
+        return '';
+    }
     const currentUserId = getCurrentUserId(state);
     const team = getTeam(state, channel.team_id || getCurrentTeamId(state));
+    if (!team) {
+        return '';
+    }
 
     const postURI = isCollapsedThreadsEnabled(state) && isComment(post) ? '' : `/${post.id}`;
 

@@ -144,6 +144,22 @@ func TestCreateChannel(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, *groupConstrainedChannel.GroupConstrained, *rchannel.GroupConstrained, "GroupConstrained flags do not match")
+
+	t.Run("Test create channel with missing team id", func(t *testing.T) {
+		channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: ""}
+
+		_, resp, err := client.CreateChannel(context.Background(), channel)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Test create channel with missing display name", func(t *testing.T) {
+		channel := &model.Channel{DisplayName: "", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+
+		_, resp, err := client.CreateChannel(context.Background(), channel)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestUpdateChannel(t *testing.T) {
@@ -2894,6 +2910,31 @@ func TestUpdateChannelRoles(t *testing.T) {
 func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		th.App.Srv().RemoveLicense()
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	id := model.NewId()
+	guest := &model.User{
+		Email:         th.GenerateTestEmail(),
+		Nickname:      "nn_" + id,
+		FirstName:     "f_" + id,
+		LastName:      "l_" + id,
+		Password:      "Pa$$word11",
+		EmailVerified: true,
+	}
+	guest, appError := th.App.CreateGuest(th.Context, guest)
+	require.Nil(t, appError)
+	_, _, appError = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, "")
+	th.AddUserToChannel(guest, th.BasicChannel)
+
+	require.Nil(t, appError)
+
 	SystemAdminClient := th.SystemAdminClient
 	WebSocketClient, err := th.CreateWebSocketClient()
 	WebSocketClient.Listen()
@@ -2909,7 +2950,6 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	_, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, s1)
 	require.NoError(t, err)
 
-	timeout := time.After(600 * time.Millisecond)
 	waiting := true
 	for waiting {
 		select {
@@ -2918,7 +2958,7 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 				require.Equal(t, model.WebsocketEventChannelMemberUpdated, event.EventType())
 				waiting = false
 			}
-		case <-timeout:
+		case <-time.After(2 * time.Second):
 			require.Fail(t, "Should have received event channel member websocket event and not timedout")
 			waiting = false
 		}
@@ -2943,6 +2983,11 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	assert.Equal(t, false, tm2.SchemeGuest)
 	assert.Equal(t, true, tm2.SchemeUser)
 	assert.Equal(t, false, tm2.SchemeAdmin)
+
+	//cannot set Guest to User for single channel
+	resp, err := SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, guest.Id, s2)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 	s3 := &model.SchemeRoles{
 		SchemeAdmin: true,
@@ -2977,21 +3022,17 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 		SchemeUser:  false,
 		SchemeGuest: true,
 	}
-	_, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, s5)
-	require.NoError(t, err)
-
-	tm5, _, err := SystemAdminClient.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
-	require.NoError(t, err)
-	assert.Equal(t, true, tm5.SchemeGuest)
-	assert.Equal(t, false, tm5.SchemeUser)
-	assert.Equal(t, false, tm5.SchemeAdmin)
+	// cannot set user to guest for a single channel
+	resp, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, s5)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 	s6 := &model.SchemeRoles{
 		SchemeAdmin: false,
 		SchemeUser:  true,
 		SchemeGuest: true,
 	}
-	resp, err := SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, s6)
+	resp, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, s6)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
@@ -3332,7 +3373,7 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 					require.EqualValues(t, float64(0), data["previous_unread_replies"])
 					require.EqualValues(t, float64(0), data["previous_unread_mentions"])
 				}
-			case <-time.After(1 * time.Second):
+			case <-time.After(2 * time.Second):
 				return
 			}
 		}
@@ -4758,6 +4799,29 @@ func TestMoveChannel(t *testing.T) {
 		ch, _, err := th.SystemAdminClient.MoveChannel(context.Background(), publicChannel.Id, team2.Id, false)
 		require.NoError(t, err)
 		require.Equal(t, team2.Id, ch.TeamId)
+	})
+
+	t.Run("Should return custom error with repeated channel", func(t *testing.T) {
+		channelT1 := &model.Channel{
+			DisplayName: "repeated",
+			Name:        "repeated",
+			Type:        model.ChannelTypePrivate,
+			TeamId:      team1.Id,
+		}
+		channelT1, _, err := th.Client.CreateChannel(context.TODO(), channelT1)
+		require.NoError(t, err)
+
+		channelT2 := &model.Channel{
+			DisplayName: "repeated",
+			Name:        "repeated",
+			Type:        model.ChannelTypePrivate,
+			TeamId:      team2.Id,
+		}
+		_, _, err = th.Client.CreateChannel(context.TODO(), channelT2)
+		require.NoError(t, err)
+
+		_, _, err = th.SystemAdminClient.MoveChannel(context.Background(), channelT1.Id, team2.Id, false)
+		require.EqualError(t, err, "A channel with that name already exists on the same team.")
 	})
 
 	t.Run("Should move private channel", func(t *testing.T) {

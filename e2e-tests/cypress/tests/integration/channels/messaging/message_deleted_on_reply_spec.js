@@ -27,6 +27,7 @@ describe('Messaging', () => {
         });
     });
 
+    // if the root post is deleted Drafts under that post from all users are deleted.
     it('MM-T113 Delete a Message during reply, other user sees "(message deleted)"', () => {
         const message = 'aaa';
         const draftMessage = 'draft';
@@ -54,39 +55,10 @@ describe('Messaging', () => {
                     and('not.contain', message);
             });
 
-            // # Send message
-            cy.uiGetReplyTextBox().type('{enter}');
-
-            // * Post Deleted Modal should be visible
-            cy.findAllByTestId('postDeletedModal').should('be.visible');
-
-            // # Close the modal
-            cy.findAllByTestId('postDeletedModalOkButton').click();
-
-            // // * The message should not have been sent
+            // * The message should not have been sent
             cy.uiGetRHS().find('.post__content').each((content) => {
                 cy.wrap(content).findByText(draftMessage).should('not.exist');
             });
-
-            // * Textbox should still have the draft message
-            cy.uiGetReplyTextBox().should('contain', draftMessage);
-
-            // # Try to post the message one more time pressing enter
-            cy.uiGetReplyTextBox().type('{enter}');
-
-            // * The modal should have appeared again
-            cy.findAllByTestId('postDeletedModal').should('be.visible');
-
-            // # Close the modal by hitting the OK button
-            cy.findAllByTestId('postDeletedModalOkButton').click();
-
-            // // * The message should not have been sent
-            cy.uiGetRHS().find('.post__content').each((content) => {
-                cy.wrap(content).findByText(draftMessage).should('not.exist');
-            });
-
-            // * Textbox should still have the draft message
-            cy.uiGetReplyTextBox().should('contain', draftMessage);
 
             // # Change to the other user and go to test channel
             cy.apiAdminLogin();

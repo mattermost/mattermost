@@ -85,7 +85,6 @@ const (
 	TrackElasticsearch           = "elasticsearch"
 	TrackGroups                  = "groups"
 	TrackChannelModeration       = "channel_moderation"
-	TrackWarnMetrics             = "warn_metrics"
 
 	TrackActivity = "activity"
 	TrackLicense  = "license"
@@ -196,7 +195,6 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 		ts.trackElasticsearch()
 		ts.trackGroups()
 		ts.trackChannelModeration()
-		ts.trackWarnMetrics()
 	}
 }
 
@@ -492,7 +490,6 @@ func (ts *TelemetryService) trackConfig() {
 		"persistent_notification_interval_minutes":                *cfg.ServiceSettings.PersistentNotificationIntervalMinutes,
 		"persistent_notification_max_count":                       *cfg.ServiceSettings.PersistentNotificationMaxCount,
 		"persistent_notification_max_recipients":                  *cfg.ServiceSettings.PersistentNotificationMaxRecipients,
-		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
 		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
 		"maximum_payload_size":                                    *cfg.ServiceSettings.MaximumPayloadSizeBytes,
@@ -761,8 +758,9 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigMetrics, map[string]any{
-		"enable":             *cfg.MetricsSettings.Enable,
-		"block_profile_rate": *cfg.MetricsSettings.BlockProfileRate,
+		"enable":                *cfg.MetricsSettings.Enable,
+		"block_profile_rate":    *cfg.MetricsSettings.BlockProfileRate,
+		"enable_client_metrics": *cfg.MetricsSettings.EnableClientMetrics,
 	})
 
 	ts.SendTelemetry(TrackConfigNativeApp, map[string]any{
@@ -777,7 +775,6 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_client_side_cert_check":    isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
 		"link_metadata_timeout_milliseconds":  *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"restrict_system_admin":               *cfg.ExperimentalSettings.RestrictSystemAdmin,
-		"use_new_saml_library":                *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"enable_shared_channels":              *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":       *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"enable_app_bar":                      !*cfg.ExperimentalSettings.DisableAppBar,
@@ -1396,22 +1393,6 @@ func (ts *TelemetryService) Shutdown() error {
 		return ts.rudderClient.Close()
 	}
 	return nil
-}
-
-func (ts *TelemetryService) trackWarnMetrics() {
-	systemDataList, nErr := ts.dbStore.System().Get()
-	if nErr != nil {
-		return
-	}
-	for key, value := range systemDataList {
-		if strings.HasPrefix(key, model.WarnMetricStatusStorePrefix) {
-			if _, ok := model.WarnMetricsTable[key]; ok {
-				ts.SendTelemetry(TrackWarnMetrics, map[string]any{
-					key: value != "false",
-				})
-			}
-		}
-	}
 }
 
 func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL string) {

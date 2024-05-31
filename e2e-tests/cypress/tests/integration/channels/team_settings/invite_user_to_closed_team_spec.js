@@ -38,12 +38,16 @@ describe('Team Settings', () => {
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
-            // # Click on the 'Allow only users with a specific email domain to join this team' edit button
-            cy.get('#allowed_domainsEdit').should('be.visible').click();
+            // # Go to Access section
+            cy.get('#accessButton').click();
+
+            cy.get('.access-allowed-domains-section').should('exist').within(() => {
+                // # Click on the 'Allow only users with a specific email domain to join this team' checkbox
+                cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
+            });
 
             // # Set 'sample.mattermost.com' as the only allowed email domain and save
-            cy.wait(TIMEOUTS.HALF_SEC);
-            cy.focused().type(emailDomain);
+            cy.get('#allowedDomains').click().type(emailDomain).type(' ');
             cy.findByText('Save').should('be.visible').click();
 
             // # Close the modal

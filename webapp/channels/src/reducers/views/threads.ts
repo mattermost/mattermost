@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {findKey} from 'lodash';
+import findKey from 'lodash/findKey';
 import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 

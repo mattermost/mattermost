@@ -34,7 +34,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 		withSystemPost       bool
 		wasMentioned         bool
 		isMuted              bool
-		expected             bool
+		expected             model.NotificationReason
 		isGM                 bool
 	}{
 		{
@@ -44,7 +44,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       true,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonSystemMessage,
 			isGM:                 false,
 		},
 		{
@@ -54,7 +54,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       true,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonSystemMessage,
 			isGM:                 false,
 		},
 		{
@@ -64,7 +64,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -74,7 +74,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -84,7 +84,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonNotMentioned,
 			isGM:                 false,
 		},
 		{
@@ -94,7 +94,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -104,7 +104,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonLevelSetToNone,
 			isGM:                 false,
 		},
 		{
@@ -114,7 +114,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonLevelSetToNone,
 			isGM:                 false,
 		},
 		{
@@ -124,7 +124,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -134,7 +134,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -144,7 +144,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonNotMentioned,
 			isGM:                 false,
 		},
 		{
@@ -154,7 +154,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -164,7 +164,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonLevelSetToNone,
 			isGM:                 false,
 		},
 		{
@@ -174,7 +174,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonLevelSetToNone,
 			isGM:                 false,
 		},
 		{
@@ -184,7 +184,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -194,7 +194,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -204,7 +204,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -214,7 +214,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -224,7 +224,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -234,7 +234,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -244,7 +244,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonNotMentioned,
 			isGM:                 false,
 		},
 		{
@@ -254,7 +254,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -264,7 +264,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonNotMentioned,
 			isGM:                 false,
 		},
 		{
@@ -274,7 +274,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -284,7 +284,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonNotMentioned,
 			isGM:                 false,
 		},
 		{
@@ -294,7 +294,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 false,
 		},
 		{
@@ -304,7 +304,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonLevelSetToNone,
 			isGM:                 false,
 		},
 		{
@@ -314,7 +314,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonLevelSetToNone,
 			isGM:                 false,
 		},
 		{
@@ -324,7 +324,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonLevelSetToNone,
 			isGM:                 false,
 		},
 		{
@@ -334,7 +334,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonLevelSetToNone,
 			isGM:                 false,
 		},
 		{
@@ -344,7 +344,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonLevelSetToNone,
 			isGM:                 false,
 		},
 		{
@@ -354,7 +354,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonLevelSetToNone,
 			isGM:                 false,
 		},
 		{
@@ -364,7 +364,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              true,
-			expected:             false,
+			expected:             model.NotificationReasonChannelMuted,
 			isGM:                 false,
 		},
 		{
@@ -374,7 +374,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonLevelSetToNone,
 			isGM:                 true,
 		},
 		{
@@ -384,7 +384,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         true,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 true,
 		},
 		{
@@ -394,7 +394,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             true,
+			expected:             "",
 			isGM:                 true,
 		},
 		{
@@ -404,7 +404,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			withSystemPost:       false,
 			wasMentioned:         false,
 			isMuted:              false,
-			expected:             false,
+			expected:             model.NotificationReasonNotMentioned,
 			isGM:                 true,
 		},
 	}
@@ -431,6 +431,9 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 }
 
 func TestDoesStatusAllowPushNotification(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
 	userID := model.NewId()
 	channelID := model.NewId()
 
@@ -438,181 +441,198 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 	away := &model.Status{UserId: userID, Status: model.StatusAway, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	online := &model.Status{UserId: userID, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	dnd := &model.Status{UserId: userID, Status: model.StatusDnd, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	activeOnChannel := &model.Status{UserId: userID, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: channelID}
 
 	tt := []struct {
 		name              string
 		userNotifySetting string
 		status            *model.Status
 		channelID         string
-		expected          bool
+		isCRT             bool
+		expected          model.NotificationReason
 	}{
 		{
 			name:              "WHEN props is ONLINE and user is offline with channel",
 			userNotifySetting: model.StatusOnline,
 			status:            offline,
 			channelID:         channelID,
-			expected:          true,
+			expected:          "",
 		},
 		{
 			name:              "WHEN props is ONLINE and user is offline without channel",
 			userNotifySetting: model.StatusOnline,
 			status:            offline,
 			channelID:         "",
-			expected:          true,
+			expected:          "",
 		},
 		{
 			name:              "WHEN props is ONLINE and user is away with channel",
 			userNotifySetting: model.StatusOnline,
 			status:            away,
 			channelID:         channelID,
-			expected:          true,
+			expected:          "",
 		},
 		{
 			name:              "WHEN props is ONLINE and user is away without channel",
 			userNotifySetting: model.StatusOnline,
 			status:            away,
 			channelID:         "",
-			expected:          true,
+			expected:          "",
 		},
 		{
 			name:              "WHEN props is ONLINE and user is online with channel",
 			userNotifySetting: model.StatusOnline,
 			status:            online,
 			channelID:         channelID,
-			expected:          true,
+			expected:          "",
 		},
 		{
 			name:              "WHEN props is ONLINE and user is online without channel",
 			userNotifySetting: model.StatusOnline,
 			status:            online,
 			channelID:         "",
-			expected:          false,
+			expected:          model.NotificationReasonUserIsActive,
+		},
+		{
+			name:              "WHEN props is ONLINE and user is online and active within the channel",
+			userNotifySetting: model.StatusOnline,
+			status:            activeOnChannel,
+			channelID:         channelID,
+			expected:          model.NotificationReasonUserIsActive,
+		},
+		{
+			name:              "WHEN props is ONLINE and user is online and active within a thread in the channel",
+			userNotifySetting: model.StatusOnline,
+			status:            activeOnChannel,
+			channelID:         channelID,
+			expected:          "",
+			isCRT:             true,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is dnd with channel",
 			userNotifySetting: model.StatusOnline,
 			status:            dnd,
 			channelID:         channelID,
-			expected:          false,
+			expected:          model.NotificationReasonUserStatus,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is dnd without channel",
 			userNotifySetting: model.StatusOnline,
 			status:            dnd,
 			channelID:         "",
-			expected:          false,
+			expected:          model.NotificationReasonUserStatus,
 		},
 		{
 			name:              "WHEN props is AWAY and user is offline with channel",
 			userNotifySetting: model.StatusAway,
 			status:            offline,
 			channelID:         channelID,
-			expected:          true,
+			expected:          "",
 		},
 		{
 			name:              "WHEN props is AWAY and user is offline without channel",
 			userNotifySetting: model.StatusAway,
 			status:            offline,
 			channelID:         "",
-			expected:          true,
+			expected:          "",
 		},
 		{
 			name:              "WHEN props is AWAY and user is away with channel",
 			userNotifySetting: model.StatusAway,
 			status:            away,
 			channelID:         channelID,
-			expected:          true,
+			expected:          "",
 		},
 		{
 			name:              "WHEN props is AWAY and user is away without channel",
 			userNotifySetting: model.StatusAway,
 			status:            away,
 			channelID:         "",
-			expected:          true,
+			expected:          "",
 		},
 		{
 			name:              "WHEN props is AWAY and user is online with channel",
 			userNotifySetting: model.StatusAway,
 			status:            online,
 			channelID:         channelID,
-			expected:          false,
+			expected:          model.NotificationReasonUserIsActive,
 		},
 		{
 			name:              "WHEN props is AWAY and user is online without channel",
 			userNotifySetting: model.StatusAway,
 			status:            online,
 			channelID:         "",
-			expected:          false,
+			expected:          model.NotificationReasonUserIsActive,
 		},
 		{
 			name:              "WHEN props is AWAY and user is dnd with channel",
 			userNotifySetting: model.StatusAway,
 			status:            dnd,
 			channelID:         channelID,
-			expected:          false,
+			expected:          model.NotificationReasonUserStatus,
 		},
 		{
 			name:              "WHEN props is AWAY and user is dnd without channel",
 			userNotifySetting: model.StatusAway,
 			status:            dnd,
 			channelID:         "",
-			expected:          false,
+			expected:          model.NotificationReasonUserStatus,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is offline with channel",
 			userNotifySetting: model.StatusOffline,
 			status:            offline,
 			channelID:         channelID,
-			expected:          true,
+			expected:          "",
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is offline without channel",
 			userNotifySetting: model.StatusOffline,
 			status:            offline,
 			channelID:         "",
-			expected:          true,
+			expected:          "",
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is away with channel",
 			userNotifySetting: model.StatusOffline,
 			status:            away,
 			channelID:         channelID,
-			expected:          false,
+			expected:          model.NotificationReasonUserIsActive,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is away without channel",
 			userNotifySetting: model.StatusOffline,
 			status:            away,
 			channelID:         "",
-			expected:          false,
+			expected:          model.NotificationReasonUserIsActive,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is online with channel",
 			userNotifySetting: model.StatusOffline,
 			status:            online,
 			channelID:         channelID,
-			expected:          false,
+			expected:          model.NotificationReasonUserIsActive,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is online without channel",
 			userNotifySetting: model.StatusOffline,
 			status:            online,
 			channelID:         "",
-			expected:          false,
+			expected:          model.NotificationReasonUserIsActive,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is dnd with channel",
 			userNotifySetting: model.StatusOffline,
 			status:            dnd,
 			channelID:         channelID,
-			expected:          false,
+			expected:          model.NotificationReasonUserStatus,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is dnd without channel",
 			userNotifySetting: model.StatusOffline,
 			status:            dnd,
 			channelID:         "",
-			expected:          false,
+			expected:          model.NotificationReasonUserStatus,
 		},
 	}
 
@@ -620,7 +640,7 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			userNotifyProps := make(map[string]string)
 			userNotifyProps["push_status"] = tc.userNotifySetting
-			assert.Equal(t, tc.expected, DoesStatusAllowPushNotification(userNotifyProps, tc.status, tc.channelID))
+			assert.Equal(t, tc.expected, DoesStatusAllowPushNotification(userNotifyProps, tc.status, tc.channelID, tc.isCRT))
 		})
 	}
 }
@@ -1074,11 +1094,11 @@ func TestSendPushNotifications(t *testing.T) {
 	require.Nil(t, err)
 
 	t.Run("should return error if data is not valid or nil", func(t *testing.T) {
-		err := th.App.sendPushNotificationToAllSessions(nil, th.BasicUser.Id, "")
+		err := th.App.sendPushNotificationToAllSessions(th.Context, nil, th.BasicUser.Id, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.push_notifications.message.parse.app_error", err.Id)
 		// Errors derived of using an empty object are handled internally through the notifications log
-		err = th.App.sendPushNotificationToAllSessions(&model.PushNotification{}, th.BasicUser.Id, "")
+		err = th.App.sendPushNotificationToAllSessions(th.Context, &model.PushNotification{}, th.BasicUser.Id, "")
 		require.Nil(t, err)
 	})
 }

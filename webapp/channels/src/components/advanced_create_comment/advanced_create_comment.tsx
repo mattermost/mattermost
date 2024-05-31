@@ -15,6 +15,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {Posts} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -173,7 +174,6 @@ export type Props = {
     getChannelMemberCountsByGroup: (channelID: string) => void;
     groupsWithAllowReference: Map<string, Group> | null;
     channelMemberCountsByGroup: ChannelMemberCountsByGroup;
-    focusOnMount?: boolean;
     isThreadView?: boolean;
     openModal: <P>(modalData: ModalData<P>) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
@@ -183,6 +183,8 @@ export type Props = {
     postEditorActions: PluginComponent[];
     placeholder?: string;
     isPlugin?: boolean;
+    shouldFocusRHS: boolean;
+    focusedRHS: () => void;
 }
 
 type State = {
@@ -275,8 +277,9 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         onResetHistoryIndex();
         setShowPreview(false);
 
-        if (this.props.focusOnMount) {
+        if (this.props.shouldFocusRHS) {
             this.focusTextbox();
+            this.props.focusedRHS();
         }
 
         document.addEventListener('keydown', this.focusTextboxIfNecessary);
@@ -471,7 +474,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     };
 
     handleEmojiClick = (emoji: Emoji) => {
-        const emojiAlias = ('short_name' in emoji && emoji.short_name) || emoji.name;
+        const emojiAlias = getEmojiName(emoji);
 
         if (!emojiAlias) {
             //Oops... There went something wrong

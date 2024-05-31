@@ -803,6 +803,7 @@ func TestGetFile(t *testing.T) {
 
 	_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileId)
 	require.NoError(t, err)
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestGetFileHeaders(t *testing.T) {
@@ -917,6 +918,7 @@ func TestGetFileThumbnail(t *testing.T) {
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), fileId)
 	require.NoError(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetFileLink(t *testing.T) {
@@ -1029,6 +1031,7 @@ func TestGetFilePreview(t *testing.T) {
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFilePreview(context.Background(), fileId)
 	require.NoError(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetFileInfo(t *testing.T) {
@@ -1052,7 +1055,6 @@ func TestGetFileInfo(t *testing.T) {
 	info, _, err := client.GetFileInfo(context.Background(), fileId)
 	require.NoError(t, err)
 
-	require.NoError(t, err)
 	require.Equal(t, fileId, info.Id, "got incorrect file")
 	require.Equal(t, user.Id, info.CreatorId, "file should be assigned to user")
 	require.Equal(t, "", info.PostId, "file shouldn't have a post")
@@ -1083,6 +1085,7 @@ func TestGetFileInfo(t *testing.T) {
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFileInfo(context.Background(), fileId)
 	require.NoError(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetPublicFile(t *testing.T) {

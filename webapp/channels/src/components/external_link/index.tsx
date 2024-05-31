@@ -25,7 +25,7 @@ type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
     rel?: string;
     onClick?: (event: React.MouseEvent<HTMLElement>) => void;
     queryParams?: ExternalLinkQueryParams;
-    location?: string;
+    location: string;
     children: React.ReactNode;
 };
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {debounce} from 'lodash';
+import debounce from 'lodash/debounce';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -27,8 +27,8 @@ import type {
 
 export type Props = {
     currentUserId: string;
-    currentTeamId: string;
-    currentTeamName: string;
+    currentTeamId?: string;
+    currentTeamName?: string;
     searchTerm: string;
     users: UserProfile[];
     totalCount: number;
@@ -239,7 +239,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 this.setUsersLoadingState(false);
             });
         } else {
-            this.props.actions.getProfilesInTeam(this.props.currentTeamId, pageNum, USERS_PER_PAGE * 2).then(() => {
+            this.props.actions.getProfilesInTeam(this.props.currentTeamId || '', pageNum, USERS_PER_PAGE * 2).then(() => {
                 this.setUsersLoadingState(false);
             });
         }
