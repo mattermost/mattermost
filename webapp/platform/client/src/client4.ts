@@ -491,6 +491,10 @@ export default class Client4 {
         return `${this.getLimitsRoute()}/server`;
     }
 
+    getClientMetricsRoute() {
+        return `${this.getBaseRoute()}/client_perf`;
+    }
+
     getCSRFFromCookie() {
         if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
             const cookies = document.cookie.split(';');

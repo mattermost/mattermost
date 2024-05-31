@@ -55,8 +55,10 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
                 total={0}
                 header={header}
                 renderRow={renderRow}
-                emptyListTextId={'test'}
-                emptyListTextDefaultMessage={'test'}
+                emptyListText={{
+                    id: 'test',
+                    defaultMessage: 'test',
+                }}
                 actions={actions}
             />);
 
@@ -83,8 +85,10 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
                 total={testTeams.length}
                 header={header}
                 renderRow={renderRow}
-                emptyListTextId={'test'}
-                emptyListTextDefaultMessage={'test'}
+                emptyListText={{
+                    id: 'test',
+                    defaultMessage: 'test',
+                }}
                 actions={actions}
             />);
 

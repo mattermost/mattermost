@@ -48,7 +48,7 @@ func TestCreateTeam(t *testing.T) {
 
 		rteam.Id = ""
 		_, resp, err = client.CreateTeam(context.Background(), rteam)
-		CheckErrorID(t, err, "app.team.save.existing.app_error")
+		CheckErrorID(t, err, "store.sql_team.save_team.existing.app_error")
 		CheckBadRequestStatus(t, resp)
 
 		rteam.Name = ""

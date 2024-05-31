@@ -2260,7 +2260,7 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 
 func (us SqlUserStore) RefreshPostStatsForUsers() error {
 	if us.DriverName() == model.DatabaseDriverPostgres {
-		if _, err := us.GetReplicaX().Exec("REFRESH MATERIALIZED VIEW poststats"); err != nil {
+		if _, err := us.GetMasterX().Exec("REFRESH MATERIALIZED VIEW poststats"); err != nil {
 			return errors.Wrap(err, "users_refresh_post_stats_exec")
 		}
 	} else {
