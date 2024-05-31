@@ -113,7 +113,9 @@ func TestDiffSanitized(t *testing.T) {
 					Path: "",
 					BaseVal: func() model.Config {
 						cfg := defaultConfigGen()
-						cfg.Sanitize()
+						if err := cfg.Sanitize(); err != nil {
+							t.Errorf("Failed to sanitize config: %v", err)
+						}
 						return *cfg
 					}(),
 					ActualVal: model.Config{},
@@ -131,7 +133,9 @@ func TestDiffSanitized(t *testing.T) {
 					BaseVal: model.Config{},
 					ActualVal: func() model.Config {
 						cfg := defaultConfigGen()
-						cfg.Sanitize()
+						if err := cfg.Sanitize(); err != nil {
+							t.Errorf("Failed to sanitize config: %v", err)
+						}
 						return *cfg
 					}(),
 				},

@@ -4387,27 +4387,27 @@ func (o *Config) Sanitize() *AppError {
 
 	// Marshal the config struct to JSON and back to map
 	var configMap map[string]interface{}
-	data, err := json.Marshal(o)
-	if err != nil {
+	data, marshalErr := json.Marshal(o)
+	if marshalErr != nil {
 		return NewAppError("Config.Sanitize", "model.config.sanitize.marshal.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	if err := json.Unmarshal(data, &configMap); err != nil {
+	if unmarshalErr := json.Unmarshal(data, &configMap); unmarshalErr != nil {
 		return NewAppError("Config.Sanitize", "model.config.sanitize.unmarshal_to_map.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	// Sanitize the map
-	if err := sanitizeConfigMap(configMap, rules); err != nil {
-		return err
+	if sanitizeErr := sanitizeConfigMap(configMap, rules); sanitizeErr != nil {
+		return sanitizeErr
 	}
 
 	// Marshal the map back to JSON and into struct
-	sanitizedData, err := json.Marshal(configMap)
-	if err != nil {
+	data, marshalErr = json.Marshal(configMap)
+	if marshalErr != nil {
 		return NewAppError("Config.Sanitize", "model.config.sanitize.marshal.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	if err := json.Unmarshal(sanitizedData, o); err != nil {
+	if unmarshalErr := json.Unmarshal(data, o); unmarshalErr != nil {
 		return NewAppError("Config.Sanitize", "model.config.sanitize.unmarshal_to_map.app_error", nil, "", http.StatusInternalServerError)
 	}
 
