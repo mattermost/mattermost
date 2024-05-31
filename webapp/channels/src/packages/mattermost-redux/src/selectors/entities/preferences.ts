@@ -20,7 +20,7 @@ export function getUserPreferences(state: GlobalState, userID: string): Preferen
     return state.entities.preferences.userPreferences[userID];
 }
 
-export function get(state: GlobalState, category: string, name: string, defaultValue: any = '', preferences?: PreferencesType) {
+export function get(state: GlobalState, category: string, name: string, defaultValue = '', preferences?: PreferencesType): string {
     if (preferences) {
         return getFromPreferences(preferences, category, name, defaultValue);
     }
@@ -51,7 +51,7 @@ export function getBool(state: GlobalState, category: string, name: string, defa
 }
 
 export function getInt(state: GlobalState, category: string, name: string, defaultValue = 0, userPreferences?: PreferencesType): number {
-    const value = get(state, category, name, defaultValue, userPreferences);
+    const value = get(state, category, name, String(defaultValue), userPreferences);
     return parseInt(value, 10);
 }
 
