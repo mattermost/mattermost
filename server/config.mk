@@ -13,7 +13,7 @@
 ENABLED_DOCKER_SERVICES ?= mysql postgres inbucket
 
 # Disable entirely the use of docker
-MM_NO_DOCKER ?= false
+MM_NO_DOCKER ?= true
 
 # Run the server in the background
 RUN_SERVER_IN_BACKGROUND ?= true

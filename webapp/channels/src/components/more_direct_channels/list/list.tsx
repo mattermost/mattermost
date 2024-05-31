@@ -7,8 +7,13 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import type {UserProfile} from '@mattermost/types/users';
 
 import MultiSelect from 'components/multiselect/multiselect';
+import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 
-import Constants from 'utils/constants';
+import Constants, {ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
+
+import './list.scss';
 
 import ListItem from '../list_item';
 import {optionValue} from '../types';
@@ -17,12 +22,18 @@ import type {Option, OptionValue} from '../types';
 const MAX_SELECTABLE_VALUES = Constants.MAX_USERS_IN_GM - 1;
 export const USERS_PER_PAGE = 50;
 
+type Actions = {
+    openModal: <P>(modalData: ModalData<P>) => void;
+}
+
 type Props = {
+    actions: Actions;
     addValue: (value: OptionValue) => void;
     currentUserId: string;
     handleDelete: (values: OptionValue[]) => void;
     handlePageChange: (page: number, prevPage: number) => void;
     handleSubmit: (values?: OptionValue[]) => void;
+    handleHide: () => void;
     isExistingChannel: boolean;
     loading: boolean;
     options: Option[];
@@ -60,6 +71,14 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
     const handleSubmitImmediatelyOn = useCallback((value: OptionValue) => {
         return value.id === props.currentUserId || Boolean(value.delete_at);
     }, [props.currentUserId]);
+
+    const handleCreateChannel = () => {
+        props.handleHide();
+        props.actions.openModal({
+            modalId: ModalIdentifiers.NEW_CHANNEL_MODAL,
+            dialogType: NewChannelModal,
+        });
+    };
 
     const intl = useIntl();
 
@@ -105,13 +124,21 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
             noteText={note}
             maxValues={MAX_SELECTABLE_VALUES}
             numRemainingText={
-                <FormattedMessage
-                    id='multiselect.numPeopleRemaining'
-                    defaultMessage='Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. '
-                    values={{
-                        num: MAX_SELECTABLE_VALUES - props.values.length,
-                    }}
-                />
+                <div className='inline'>
+                    <FormattedMessage
+                        id='multiselect.numPeopleRemaining'
+                        defaultMessage='Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. '
+                        values={{
+                            num: MAX_SELECTABLE_VALUES - props.values.length,
+                        }}
+                    />
+                    {'Please '}
+                    <span
+                        onClick={handleCreateChannel}
+                        className='link'
+                    >{'create a channel'}</span>
+                    {' to include more people.'}
+                </div>
             }
             buttonSubmitText={
                 <FormattedMessage
