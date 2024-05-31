@@ -143,6 +143,7 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
+              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -459,6 +460,7 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
+              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -639,6 +641,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
+              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -680,6 +683,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
+              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -860,6 +864,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 2`
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
+              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -901,6 +906,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 2`
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
+              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -1081,6 +1087,7 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
+              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",

@@ -42,6 +42,7 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
         "nickname": "",
         "notify_props": Object {
           "calls_desktop_sound": "true",
+          "calls_mobile_sound": "true",
           "channel": "false",
           "comments": "never",
           "desktop": "default",
@@ -150,6 +151,7 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
         "nickname": "",
         "notify_props": Object {
           "calls_desktop_sound": "true",
+          "calls_mobile_sound": "true",
           "channel": "false",
           "comments": "never",
           "desktop": "default",

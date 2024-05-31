@@ -85,6 +85,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -127,6 +128,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -169,6 +171,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -211,6 +214,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -253,6 +257,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",

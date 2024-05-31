@@ -26,6 +26,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
               "nickname": "",
               "notify_props": Object {
                 "calls_desktop_sound": "true",
+                "calls_mobile_sound": "true",
                 "channel": "false",
                 "comments": "never",
                 "desktop": "default",
@@ -67,6 +68,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
               "nickname": "",
               "notify_props": Object {
                 "calls_desktop_sound": "true",
+                "calls_mobile_sound": "true",
                 "channel": "false",
                 "comments": "never",
                 "desktop": "default",
@@ -194,6 +196,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -240,6 +243,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -288,6 +292,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -334,6 +339,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -395,6 +401,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
               "nickname": "",
               "notify_props": Object {
                 "calls_desktop_sound": "true",
+                "calls_mobile_sound": "true",
                 "channel": "false",
                 "comments": "never",
                 "desktop": "default",
@@ -436,6 +443,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
               "nickname": "",
               "notify_props": Object {
                 "calls_desktop_sound": "true",
+                "calls_mobile_sound": "true",
                 "channel": "false",
                 "comments": "never",
                 "desktop": "default",
@@ -563,6 +571,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -609,6 +618,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -657,6 +667,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -703,6 +714,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",

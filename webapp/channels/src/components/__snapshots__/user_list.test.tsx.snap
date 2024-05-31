@@ -56,6 +56,7 @@ exports[`components/UserList should match default snapshot when there are users 
         "nickname": "",
         "notify_props": Object {
           "calls_desktop_sound": "true",
+          "calls_mobile_sound": "true",
           "channel": "false",
           "comments": "never",
           "desktop": "default",
@@ -117,6 +118,7 @@ exports[`components/UserList should match default snapshot when there are users 
         "nickname": "",
         "notify_props": Object {
           "calls_desktop_sound": "true",
+          "calls_mobile_sound": "true",
           "channel": "false",
           "comments": "never",
           "desktop": "default",

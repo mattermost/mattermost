@@ -53,6 +53,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -101,6 +102,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -149,6 +151,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -197,6 +200,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -245,6 +249,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -293,6 +298,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -341,6 +347,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -389,6 +396,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -437,6 +445,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
@@ -485,6 +494,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
                   "nickname": "",
                   "notify_props": Object {
                     "calls_desktop_sound": "true",
+                    "calls_mobile_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",

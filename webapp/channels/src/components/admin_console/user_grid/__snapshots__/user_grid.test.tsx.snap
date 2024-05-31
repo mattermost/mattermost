@@ -78,6 +78,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -123,6 +124,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -183,6 +185,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -231,6 +234,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -276,6 +280,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -336,6 +341,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -453,6 +459,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -506,6 +513,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -558,6 +566,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -606,6 +615,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -651,6 +661,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -711,6 +722,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -759,6 +771,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -804,6 +817,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -864,6 +878,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -981,6 +996,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -1026,6 +1042,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -1086,6 +1103,7 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",

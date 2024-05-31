@@ -43,6 +43,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -336,6 +337,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -2316,6 +2318,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
@@ -2607,6 +2610,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                 "nickname": "",
                 "notify_props": Object {
                   "calls_desktop_sound": "true",
+                  "calls_mobile_sound": "true",
                   "channel": "false",
                   "comments": "never",
                   "desktop": "default",
