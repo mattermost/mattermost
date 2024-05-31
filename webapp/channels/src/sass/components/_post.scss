@@ -424,10 +424,9 @@
         overflow: hidden;
         height: 20px;
         margin: 2px 0;
-        color: var(--center-channel-color);
-        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
         line-height: 16px;
-        opacity: 0.7;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
