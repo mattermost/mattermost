@@ -2302,22 +2302,6 @@ func (s *TimerLayerChannelStore) Update(ctx request.CTX, channel *model.Channel)
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateLastViewedAt(channelIds []string, userID string) (map[string]int64, error) {
-	start := time.Now()
-
-	result, err := s.ChannelStore.UpdateLastViewedAt(channelIds, userID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateLastViewedAt", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, urgentMentionCount int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
 	start := time.Now()
 
@@ -2330,6 +2314,22 @@ func (s *TimerLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateLastViewedAtPost", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) UpdateLastViewedAtToNow(channelIds []string, userID string, now int64) (map[string]int64, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.UpdateLastViewedAtToNow(channelIds, userID, now)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateLastViewedAtToNow", success, elapsed)
 	}
 	return result, err
 }

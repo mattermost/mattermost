@@ -5,7 +5,6 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {updateApproximateViewTime} from 'mattermost-redux/actions/channels';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {getChannel, getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -63,7 +62,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             autoUpdateTimezone,
             getChannelURLAction,
-            updateApproximateViewTime,
         }, dispatch),
     };
 }

@@ -257,7 +257,6 @@ describe('components/PermalinkView', () => {
                         type: 'RECEIVED_PREFERENCES',
                         data: [
                             {user_id: 'current_user_id', category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: 'dmchannel', value: 'true'},
-                            {user_id: 'current_user_id', category: Preferences.CATEGORY_CHANNEL_OPEN_TIME, name: 'dmchannelid', value: '0'},
                         ],
                     },
                     {type: 'MOCK_SELECT_CHANNEL', args: ['dmchannelid']},

@@ -1869,7 +1869,6 @@ describe('Actions.Channels', () => {
 
     it('markGroupChannelOpen', async () => {
         const channelId = TestHelper.generateId();
-        const now = new Date().getTime();
         const currentUserId = TestHelper.generateId();
 
         store = await configureStore({
@@ -1887,15 +1886,10 @@ describe('Actions.Channels', () => {
         await store.dispatch(Actions.markGroupChannelOpen(channelId));
 
         const state = store.getState();
-        let prefKey = getPreferenceKey(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId);
-        let preference = state.entities.preferences.myPreferences[prefKey];
+        const prefKey = getPreferenceKey(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId);
+        const preference = state.entities.preferences.myPreferences[prefKey];
         expect(preference).toBeTruthy();
         expect(preference.value === 'true').toBeTruthy();
-
-        prefKey = getPreferenceKey(Preferences.CATEGORY_CHANNEL_OPEN_TIME, channelId);
-        preference = state.entities.preferences.myPreferences[prefKey];
-        expect(preference).toBeTruthy();
-        expect(parseInt(preference.value, 10) >= now).toBeTruthy();
     });
 
     it('getChannelTimezones', async () => {

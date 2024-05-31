@@ -2996,24 +2996,25 @@ func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID st
 	}
 
 	// We use channelsToView to later only update those, or early return if no channel is to be read
-	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetChannelsWithUnreadsAndWithMentions(c.Context(), channelIDs, userID, user.NotifyProps)
+	channelsToView, channelsToClearPushNotifications, _, err := a.Srv().Store().Channel().GetChannelsWithUnreadsAndWithMentions(c.Context(), channelIDs, userID, user.NotifyProps)
 	if err != nil {
 		return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.get_channels_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if len(channelsToView) == 0 {
-		return times, nil
+		return nil, nil
 	}
 
 	updateThreads := *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !isCRTEnabled)
 	if updateThreads {
-		err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, channelsToView)
+		err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, channelIDs)
 		if err != nil {
 			return nil, model.NewAppError("MarkChannelsAsViewed", "app.thread.mark_all_as_read_by_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	_, err = a.Srv().Store().Channel().UpdateLastViewedAt(channelsToView, userID)
+	now := model.GetMillis()
+	times, err := a.Srv().Store().Channel().UpdateLastViewedAtToNow(channelIDs, userID, now)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -3022,6 +3023,9 @@ func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID st
 		default:
 			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+	}
+	if len(channelIDs) > 0 {
+		mlog.Debug(fmt.Sprint("HARRISON", now, times[channelIDs[0]]))
 	}
 
 	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
@@ -3036,7 +3040,7 @@ func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID st
 
 	if updateThreads && isCRTEnabled {
 		timestamp := model.GetMillis()
-		for _, channelID := range channelsToView {
+		for _, channelID := range channelIDs {
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
 			message.Add("timestamp", timestamp)
 			a.Publish(message)
