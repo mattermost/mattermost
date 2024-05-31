@@ -5,14 +5,12 @@ import {useCallback, useEffect, useState} from 'react';
 import type React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {GlobalState} from '@mattermost/types/store';
-
 import {savePreferences as storeSavePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 
 import {trackEvent as trackEventAction} from 'actions/telemetry_actions';
 
+import {useIntPreference} from 'components/common/hooks/usePreference';
 import {
     generateTelemetryTag,
 } from 'components/onboarding_tasks';
@@ -43,8 +41,8 @@ export const useTourTipManager = (tourCategory: string): ChannelsTourTipManager 
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
     const currentChannelId = useSelector(getCurrentChannelId);
-    const currentStep = useSelector((state: GlobalState) => getInt(state, tourCategory, currentUserId, 0));
-    const autoTourStatus = useSelector((state: GlobalState) => getInt(state, tourCategory, TTNameMapToATStatusKey[tourCategory], 0));
+    const currentStep = useIntPreference(tourCategory, currentUserId, 0);
+    const autoTourStatus = useIntPreference(tourCategory, TTNameMapToATStatusKey[tourCategory], 0);
     const isAutoTourEnabled = autoTourStatus === AutoTourStatus.ENABLED;
     const handleActions = useHandleNavigationAndExtraActions(tourCategory);
 

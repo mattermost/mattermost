@@ -17,12 +17,12 @@ import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/actions/threads';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {Posts} from 'mattermost-redux/constants';
-import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import {getIsMobileView} from 'selectors/views/browser';
 
+import {useIntPreference} from 'components/common/hooks/usePreference';
 import Markdown from 'components/markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
 import Button from 'components/threading/common/button';
@@ -34,8 +34,6 @@ import Avatars from 'components/widgets/users/avatars';
 
 import {CrtTutorialSteps, Preferences} from 'utils/constants';
 import * as Utils from 'utils/utils';
-
-import type {GlobalState} from 'types/store';
 
 import Attachment from './attachments';
 
@@ -86,7 +84,7 @@ function ThreadItem({
     const {formatMessage} = useIntl();
     const isMobileView = useSelector(getIsMobileView);
     const currentUserId = useSelector(getCurrentUserId);
-    const tipStep = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_STEP, currentUserId));
+    const tipStep = useIntPreference(Preferences.CRT_TUTORIAL_STEP, currentUserId);
     const showListTutorialTip = tipStep === CrtTutorialSteps.LIST_POPOVER;
     const msgDeleted = formatMessage({id: 'post_body.deleted', defaultMessage: '(message deleted)'});
     const postAuthor = post.props?.override_username || displayName;

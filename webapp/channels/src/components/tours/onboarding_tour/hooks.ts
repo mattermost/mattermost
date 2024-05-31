@@ -3,16 +3,14 @@
 
 import {useSelector} from 'react-redux';
 
-import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import type {GlobalState} from 'types/store';
+import {useIntPreference} from 'components/common/hooks/usePreference';
 
 import {TutorialTourName} from '../constant';
 
 export const useShowOnboardingTutorialStep = (stepToShow: number): boolean => {
     const currentUserId = useSelector(getCurrentUserId);
-    const boundGetInt = (state: GlobalState) => getInt(state, TutorialTourName.ONBOARDING_TUTORIAL_STEP, currentUserId, 0);
-    const step = useSelector<GlobalState, number>(boundGetInt);
+    const step = useIntPreference(TutorialTourName.ONBOARDING_TUTORIAL_STEP, currentUserId, 0);
     return step === stepToShow;
 };

@@ -16,7 +16,7 @@ import {ModalIdentifiers, Preferences} from 'utils/constants';
 
 import useGetLimits from './useGetLimits';
 import useGetUsage from './useGetUsage';
-import usePreference from './usePreference';
+import {usePreference} from './usePreference';
 
 // intended to only be run for admins of cloud instances.
 export default function useShowAdminLimitReached() {

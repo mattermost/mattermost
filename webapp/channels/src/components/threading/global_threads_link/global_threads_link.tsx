@@ -10,7 +10,7 @@ import {Link, useRouteMatch, useLocation, matchPath} from 'react-router-dom';
 import {PulsatingDot} from '@mattermost/components';
 
 import {getThreadCounts} from 'mattermost-redux/actions/threads';
-import {getInt, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getThreadCountsInCurrentTeam, getThreadsInCurrentTeam,
 } from 'mattermost-redux/selectors/entities/threads';
@@ -21,6 +21,7 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {isAnyModalOpen} from 'selectors/views/modals';
 
+import {useIntPreference} from 'components/common/hooks/usePreference';
 import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
 import CollapsedReplyThreadsModal
     from 'components/tours/crt_tour/collapsed_reply_threads_modal';
@@ -35,8 +36,6 @@ import Constants, {
     RHSStates,
 } from 'utils/constants';
 import {Mark} from 'utils/performance_telemetry';
-
-import type {GlobalState} from 'types/store';
 
 import ThreadsIcon from './threads_icon';
 
@@ -57,8 +56,8 @@ const GlobalThreadsLink = () => {
     const counts = useSelector(getThreadCountsInCurrentTeam);
     const someUnreadThreads = counts?.total_unread_threads;
     const appHaveOpenModal = useSelector(isAnyModalOpen);
-    const tipStep = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_STEP, currentUserId, CrtTutorialSteps.WELCOME_POPOVER));
-    const crtTutorialTrigger = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_TRIGGERED, currentUserId, Constants.CrtTutorialTriggerSteps.START));
+    const tipStep = useIntPreference(Preferences.CRT_TUTORIAL_STEP, currentUserId, CrtTutorialSteps.WELCOME_POPOVER);
+    const crtTutorialTrigger = useIntPreference(Preferences.CRT_TUTORIAL_TRIGGERED, currentUserId, Constants.CrtTutorialTriggerSteps.START);
     const threads = useSelector(getThreadsInCurrentTeam);
     const showTutorialTip = crtTutorialTrigger === CrtTutorialTriggerSteps.STARTED && tipStep === CrtTutorialSteps.WELCOME_POPOVER && threads.length >= 1;
     const rhsOpen = useSelector(getIsRhsOpen);

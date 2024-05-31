@@ -20,7 +20,7 @@ import Constants, {RHSStates} from 'utils/constants';
 
 import type {RhsState} from 'types/store/rhs';
 
-interface Props extends WrappedComponentProps {
+export interface Props extends WrappedComponentProps {
     isExpanded: boolean;
     isMobileView: boolean;
     rootPostId: string;
