@@ -197,7 +197,7 @@ func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
 
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
 	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
-	ps.invalidateWebConnSessionCacheForUser(userID)
+	ps.ClearUserSessionCache(userID)
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
