@@ -3,15 +3,16 @@
 
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
+
+import {openModal} from 'actions/views/modals';
 
 import MultiSelect from 'components/multiselect/multiselect';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
-
-import type {ModalData} from 'types/actions';
 
 import './list.scss';
 
@@ -22,12 +23,7 @@ import type {Option, OptionValue} from '../types';
 const MAX_SELECTABLE_VALUES = Constants.MAX_USERS_IN_GM - 1;
 export const USERS_PER_PAGE = 50;
 
-type Actions = {
-    openModal: <P>(modalData: ModalData<P>) => void;
-}
-
 type Props = {
-    actions: Actions;
     addValue: (value: OptionValue) => void;
     currentUserId: string;
     handleDelete: (values: OptionValue[]) => void;
@@ -68,16 +64,18 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
         );
     }, [props.selectedItemRef]);
 
+    const dispatch = useDispatch();
+
     const handleSubmitImmediatelyOn = useCallback((value: OptionValue) => {
         return value.id === props.currentUserId || Boolean(value.delete_at);
     }, [props.currentUserId]);
 
     const handleCreateChannel = () => {
         props.handleHide();
-        props.actions.openModal({
+        dispatch(openModal({
             modalId: ModalIdentifiers.NEW_CHANNEL_MODAL,
             dialogType: NewChannelModal,
-        });
+        }));
     };
 
     const intl = useIntl();

@@ -2,8 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch} from 'redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -12,8 +10,6 @@ import {getAllChannels, getChannelsWithUserProfiles} from 'mattermost-redux/sele
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 import {filterProfilesStartingWithTerm} from 'mattermost-redux/utils/user_utils';
-
-import {openModal} from 'actions/views/modals';
 
 import Constants from 'utils/constants';
 
@@ -131,14 +127,6 @@ export function makeGetOptions(): (state: GlobalState, users: UserProfile[], val
     );
 }
 
-function mapDispatchToProps(dispatch: Dispatch) {
-    return {
-        actions: bindActionCreators({
-            openModal,
-        }, dispatch),
-    };
-}
-
 function makeMapStateToProps() {
     const getOptions = makeGetOptions();
 
@@ -149,4 +137,4 @@ function makeMapStateToProps() {
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(List);
+export default connect(makeMapStateToProps)(List);
