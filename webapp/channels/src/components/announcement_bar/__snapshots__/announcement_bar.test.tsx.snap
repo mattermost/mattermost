@@ -1,5 +1,81 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`components/AnnouncementBar should match snapshot, admin configured bar 1`] = `
+<div>
+  <AnnouncementBar
+    actions={
+      Object {
+        "decrementAnnouncementBarCount": [MockFunction],
+        "incrementAnnouncementBarCount": [MockFunction],
+        "sendVerificationEmail": [MockFunction],
+      }
+    }
+    allowBannerDismissal={true}
+    announcementBarCount={0}
+    bannerColor="green"
+    bannerText="Banner text"
+    bannerTextColor="black"
+    canViewAPIv3Banner={false}
+    canViewSystemErrors={false}
+    color=""
+    enableBanner={true}
+    enablePreviewMode={false}
+    enableSignUpWithGitLab={false}
+    isLoggedIn={true}
+    isTallBanner={false}
+    license={
+      Object {
+        "id": "",
+      }
+    }
+    message="text"
+    sendEmailNotifications={true}
+    showCTA={true}
+    showCloseButton={false}
+    showLinkAsButton={false}
+    siteURL=""
+    textColor=""
+    type="critical"
+  />
+  <AnnouncementBar
+    actions={
+      Object {
+        "decrementAnnouncementBarCount": [MockFunction],
+        "incrementAnnouncementBarCount": [MockFunction],
+        "sendVerificationEmail": [MockFunction],
+      }
+    }
+    allowBannerDismissal={true}
+    announcementBarCount={0}
+    bannerColor="green"
+    bannerText="Banner text"
+    bannerTextColor="black"
+    canViewAPIv3Banner={false}
+    canViewSystemErrors={false}
+    className="admin-announcement"
+    color=""
+    enableBanner={true}
+    enablePreviewMode={false}
+    enableSignUpWithGitLab={false}
+    isLoggedIn={true}
+    isTallBanner={false}
+    license={
+      Object {
+        "id": "",
+      }
+    }
+    message="text"
+    sendEmailNotifications={true}
+    showCTA={true}
+    showCloseButton={false}
+    showLinkAsButton={false}
+    siteURL=""
+    textColor=""
+    type="critical"
+  />
+</div>
+`;
+
 exports[`components/AnnouncementBar should match snapshot, bar not showing 1`] = `
 <_StyledDiv
   className="announcement-bar announcement-bar-critical"
