@@ -3,6 +3,7 @@
 
 export const enum Mark {
     ChannelLinkClicked = 'SidebarChannelLink#click',
+    GlobalThreadsLinkClicked = 'GlobalThreadsLink#click',
     PostListLoaded = 'PostList#component',
     PostSelected = 'PostList#postSelected',
     TeamLinkClicked = 'TeamLink#click',
@@ -10,6 +11,8 @@ export const enum Mark {
 
 export const enum Measure {
     ChannelSwitch = 'channel_switch',
+    GlobalThreadsLoad = 'global_threads_load',
+    PageLoad = 'page_load',
     RhsLoad = 'rhs_load',
     TeamSwitch = 'team_switch',
 }

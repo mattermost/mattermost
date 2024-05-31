@@ -97,11 +97,12 @@ const OverageUsersBannerNotice = () => {
 
                         return (
                             <ExternalLink
+                                location='overage_users_banner'
                                 className='overage_users_banner__button'
                                 href={LicenseLinks.CONTACT_SALES}
                                 onClick={handleClick}
                             >
-                                {cta}
+                                <FormattedMessage {...cta}/>
                             </ExternalLink>
                         );
                     },

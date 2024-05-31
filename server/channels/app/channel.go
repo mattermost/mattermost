@@ -1597,10 +1597,18 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 		return nil, err
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
+	// We are sending separate websocket events to the user added and to the channel
+	// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members
+	// There is likely some issue syncing these that needs to be looked at, but this is the current fix.
+	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", map[string]bool{user.Id: true}, "")
 	message.Add("user_id", user.Id)
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
+
+	userMessage := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, user.Id, nil, "")
+	userMessage.Add("user_id", user.Id)
+	userMessage.Add("team_id", channel.TeamId)
+	a.Publish(userMessage)
 
 	return newMember, nil
 }
@@ -2692,7 +2700,7 @@ func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID s
 	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(c, userID) {
 		return a.markChannelAsUnreadFromPostCRTUnsupported(c, postID, userID)
 	}
-	post, err := a.GetSinglePost(postID, false)
+	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2719,7 +2727,7 @@ func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID s
 }
 
 func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
-	post, appErr := a.GetSinglePost(postID, false)
+	post, appErr := a.GetSinglePost(c, postID, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2758,7 +2766,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 	//                          If there are replies with mentions below the marked reply in the thread, then sum the mentions for the threads mention badge.
 	// In CRT Unsupported Client: Channel is marked as unread and new messages line inserted above the marked post.
 	//                            Badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
-	rootPost, appErr := a.GetSinglePost(post.RootId, false)
+	rootPost, appErr := a.GetSinglePost(c, post.RootId, false)
 	if appErr != nil {
 		return nil, appErr
 	}

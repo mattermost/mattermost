@@ -14,15 +14,17 @@ import (
 type MetricType string
 
 const (
-	ClientTimeToFirstByte        MetricType = "TTFB"
-	ClientFirstContentfulPaint   MetricType = "FCP"
-	ClientLargestContentfulPaint MetricType = "LCP"
-	ClientInteractionToNextPaint MetricType = "INP"
-	ClientCumulativeLayoutShift  MetricType = "CLS"
-	ClientLongTasks              MetricType = "long_tasks"
-	ClientChannelSwitchDuration  MetricType = "channel_switch"
-	ClientTeamSwitchDuration     MetricType = "team_switch"
-	ClientRHSLoadDuration        MetricType = "rhs_load"
+	ClientTimeToFirstByte           MetricType = "TTFB"
+	ClientFirstContentfulPaint      MetricType = "FCP"
+	ClientLargestContentfulPaint    MetricType = "LCP"
+	ClientInteractionToNextPaint    MetricType = "INP"
+	ClientCumulativeLayoutShift     MetricType = "CLS"
+	ClientLongTasks                 MetricType = "long_tasks"
+	ClientPageLoadDuration          MetricType = "page_load"
+	ClientChannelSwitchDuration     MetricType = "channel_switch"
+	ClientTeamSwitchDuration        MetricType = "team_switch"
+	ClientRHSLoadDuration           MetricType = "rhs_load"
+	ClientGlobalThreadsLoadDuration MetricType = "global_threads_load"
 
 	performanceReportTTLMilliseconds = 300 * 1000 // 300 seconds/5 minutes
 )
