@@ -24,7 +24,7 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentChannelId, getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
+import {getBool, getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getUsers, getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
@@ -51,6 +51,10 @@ export type UserActivityPost = Post & {
 
 export function getPost(state: GlobalState, postId: Post['id']): Post {
     return getAllPosts(state)[postId];
+}
+
+export function isPostFlagged(state: GlobalState, postId: Post['id']): boolean {
+    return getBool(state, Preferences.CATEGORY_FLAGGED_POST, postId);
 }
 
 export function getPostRepliesCount(state: GlobalState, postId: Post['id']): number {
