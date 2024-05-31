@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"sync"
 
@@ -87,11 +88,8 @@ func (proxy *ImageProxy) Close() {
 }
 
 func (proxy *ImageProxy) OnConfigChange(oldConfig, newConfig *model.Config) {
-	if model.AreReferencedValuesEqual(oldConfig.ImageProxySettings.Enable, newConfig.ImageProxySettings.Enable) ||
-		model.AreReferencedValuesEqual(oldConfig.ImageProxySettings.ImageProxyType, newConfig.ImageProxySettings.ImageProxyType) ||
-		model.AreReferencedValuesEqual(oldConfig.ImageProxySettings.RemoteImageProxyURL, newConfig.ImageProxySettings.RemoteImageProxyURL) ||
-		model.AreReferencedValuesEqual(oldConfig.ImageProxySettings.RemoteImageProxyOptions, newConfig.ImageProxySettings.RemoteImageProxyOptions) ||
-		model.AreReferencedValuesEqual(oldConfig.ServiceSettings.SiteURL, newConfig.ServiceSettings.SiteURL) {
+	if *oldConfig.ServiceSettings.SiteURL != *newConfig.ServiceSettings.SiteURL ||
+		!reflect.DeepEqual(oldConfig.ImageProxySettings, newConfig.ImageProxySettings) {
 		proxy.lock.Lock()
 		defer proxy.lock.Unlock()
 
