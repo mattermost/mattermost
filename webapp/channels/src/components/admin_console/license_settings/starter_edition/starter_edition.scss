@@ -40,7 +40,7 @@
     .purchase_buttons {
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: center;
         margin-top: 20px;
 
         button {
@@ -54,7 +54,7 @@
 
             &.contact-us {
                 width: 130px;
-                margin-left: 15px;
+                margin-left: 0px !important;
             }
         }
 

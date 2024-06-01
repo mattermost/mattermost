@@ -86,7 +86,7 @@ func (*ExportLinkProvider) DoCommand(a *app.App, c request.CTX, args *model.Comm
 			}
 			t, err := b.FileModTime(f)
 			if err != nil {
-				a.Log().Warn("Failed to get file mod time", mlog.String("file", f), mlog.Err(err))
+				c.Logger().Warn("Failed to get file mod time", mlog.String("file", f), mlog.Err(err))
 				continue
 			}
 			if t.After(latestFound) {

@@ -41,6 +41,7 @@ type Props = {
     isThreadView: boolean;
     newMessagesSeparatorActions: PluginComponent[];
     inputPlaceholder?: string;
+    measureRhsOpened: () => void;
 }
 
 type State = {
@@ -122,6 +123,8 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
     componentDidMount() {
         this.mounted = true;
+
+        this.props.measureRhsOpened();
     }
 
     componentWillUnmount() {

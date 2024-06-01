@@ -204,7 +204,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
 
         return (
             <div
-                style={{position: 'fixed', zIndex: 101, width: this.state.inputBounds.width, ...position}}
+                style={{position: 'absolute', zIndex: 101, width: this.state.inputBounds.width, ...position}}
                 ref={this.container}
             >
                 <SuggestionList

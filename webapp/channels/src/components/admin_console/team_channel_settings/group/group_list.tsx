@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, {memo, useCallback} from 'react';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 
@@ -42,27 +42,46 @@ const Header = () => {
 
 type Props = OwnProps & PropsFromRedux;
 
-export default class GroupList extends React.PureComponent<Props> {
-    renderRow = (item: Partial<Group>) => {
+const GroupList = ({
+    removeGroup,
+    setNewGroupRole,
+    type,
+    isDisabled,
+    isModeSync,
+    ...restProps
+}: Props) => {
+    const renderRow = useCallback((item: Partial<Group>) => {
         return (
             <GroupRow
                 key={item.id}
                 group={item}
-                removeGroup={this.props.removeGroup}
-                setNewGroupRole={this.props.setNewGroupRole}
-                type={this.props.type}
-                isDisabled={this.props.isDisabled}
+                removeGroup={removeGroup}
+                setNewGroupRole={setNewGroupRole}
+                type={type}
+                isDisabled={isDisabled}
             />
         );
-    };
+    }, [isDisabled, removeGroup, setNewGroupRole, type]);
 
-    render(): JSX.Element {
-        return (
-            <AbstractList
-                header={<Header/>}
-                renderRow={this.renderRow}
-                {...this.props}
-            />
-        );
-    }
-}
+    return (
+        <AbstractList
+            header={<Header/>}
+            renderRow={renderRow}
+            emptyListText={isModeSync ? messages.emptyListModeSync : messages.emptyList}
+            {...restProps}
+        />
+    );
+};
+
+const messages = defineMessages({
+    emptyListModeSync: {
+        id: 'admin.team_channel_settings.group_list.no-synced-groups',
+        defaultMessage: 'At least one group must be specified',
+    },
+    emptyList: {
+        id: 'admin.team_channel_settings.group_list.no-groups',
+        defaultMessage: 'No groups specified yet',
+    },
+});
+
+export default memo(GroupList);
