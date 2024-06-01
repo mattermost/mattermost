@@ -3,7 +3,7 @@
 
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import {AlertCircleOutlineIcon, AlertOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Subscription} from '@mattermost/types/cloud';
@@ -22,7 +22,6 @@ import {
     TELEMETRY_CATEGORIES,
     TrialPeriodDays,
 } from 'utils/constants';
-import {t} from 'utils/i18n';
 import {getLocaleDateFromUTC} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
@@ -140,12 +139,11 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
             />
         );
 
-        let modalButtonText = t('admin.billing.subscription.cloudTrial.subscribeButton');
-        let modalButtonDefaultText = 'Upgrade Now';
-
+        let modalButtonText;
         if (this.props.reverseTrial) {
-            modalButtonText = t('admin.billing.subscription.cloudReverseTrial.subscribeButton');
-            modalButtonDefaultText = 'Review your options';
+            modalButtonText = messages.trialButton;
+        } else {
+            modalButtonText = messages.reverseTrialButton;
         }
 
         if (this.props.reverseTrial) {
@@ -221,7 +219,6 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
                 handleClose={this.handleClose}
                 onButtonClick={this.showModal}
                 modalButtonText={modalButtonText}
-                modalButtonDefaultText={modalButtonDefaultText}
                 message={bannerMessage}
                 showLinkAsButton={true}
                 icon={icon}
@@ -229,5 +226,16 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
         );
     }
 }
+
+const messages = defineMessages({
+    reverseTrialButton: {
+        id: 'admin.billing.subscription.cloudReverseTrial.subscribeButton',
+        defaultMessage: 'Review your options',
+    },
+    trialButton: {
+        id: 'admin.billing.subscription.cloudTrial.subscribeButton',
+        defaultMessage: 'Upgrade Now',
+    },
+});
 
 export default CloudTrialAnnouncementBar;

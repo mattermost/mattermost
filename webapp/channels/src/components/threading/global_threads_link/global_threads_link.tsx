@@ -34,7 +34,6 @@ import Constants, {
     Preferences,
     RHSStates,
 } from 'utils/constants';
-import {t} from 'utils/i18n';
 import {Mark} from 'utils/performance_telemetry';
 
 import type {GlobalState} from 'types/store';
@@ -119,7 +118,7 @@ const GlobalThreadsLink = () => {
                     </span>
                     <div className='SidebarChannelLinkLabel_wrapper'>
                         <span className='SidebarChannelLinkLabel sidebar-item__name'>
-                            {formatMessage({id: t('globalThreads.sidebarLink'), defaultMessage: 'Threads'})}
+                            {formatMessage({id: 'globalThreads.sidebarLink', defaultMessage: 'Threads'})}
                         </span>
                     </div>
                     {counts?.total_unread_mentions > 0 && (
