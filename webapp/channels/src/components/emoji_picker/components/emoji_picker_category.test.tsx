@@ -1,22 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
+import {act, screen} from '@testing-library/react';
 import React from 'react';
 
 import type {Category} from 'components/emoji_picker/types';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import EmojiPickerCategory from './emoji_picker_category';
 import type {Props} from './emoji_picker_category';
 
+const categoryMessage = 'categoryMessage';
 const defaultProps: Props = {
     category: {
         className: 'categoryClass',
         emojiIds: ['emojiId'],
         id: 'categoryId',
-        message: 'categoryMessage',
+        message: categoryMessage,
         name: 'recent',
     } as Category,
     categoryRowIndex: 0,
@@ -27,8 +28,8 @@ const defaultProps: Props = {
 
 describe('EmojiPickerCategory', () => {
     test('should match snapshot', () => {
-        const component = renderWithContext(<EmojiPickerCategory {...defaultProps}/>);
-        expect(component).toMatchSnapshot();
+        const {asFragment} = renderWithContext(<EmojiPickerCategory {...defaultProps}/>);
+        expect(asFragment()).toMatchSnapshot();
     });
 
     test('should be disabled when prop is passed disabled', () => {
@@ -41,5 +42,17 @@ describe('EmojiPickerCategory', () => {
 
         // TODO: Change when we actually disabled the element when enable is false
         expect(screen.getByRole('link')).toHaveClass('emoji-picker__category disable');
+    });
+
+    test('should have tooltip on hover', async () => {
+        renderWithContext(<EmojiPickerCategory {...defaultProps}/>);
+
+        await act(async () => {
+            const emojiPickerCategory = screen.getByRole('link');
+            userEvent.hover(emojiPickerCategory);
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+        });
+
+        expect(screen.getByText(categoryMessage)).toBeVisible();
     });
 });
