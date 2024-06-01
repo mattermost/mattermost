@@ -760,18 +760,21 @@ func TestMoveThread(t *testing.T) {
 	basicUser1 := th.BasicUser
 	basicUser2 := th.BasicUser2
 	basicUser3 := th.CreateUser()
-	teamAdminUser := th.TeamAdminUser
 
-	// Create a new public channel to move the post to
-	publicChannel, resp, err := client.CreateChannel(ctx, &model.Channel{
-		TeamId:      th.BasicTeam.Id,
-		Name:        "test-public-channel",
-		DisplayName: "Test Public Channel",
-		Type:        model.ChannelTypeOpen,
-	})
-	require.NoError(t, err)
-	require.NotNil(t, resp)
-	require.NotNil(t, publicChannel)
+	// Helper function to create a new public channel to move the post to
+	createPublicChannel := func(teamId, name, displayName string) *model.Channel {
+		channel, resp, err := client.CreateChannel(ctx, &model.Channel{
+			TeamId:      teamId,
+			Name:        name,
+			DisplayName: displayName,
+			Type:        model.ChannelTypeOpen,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, channel)
+
+		return channel
+	}
 
 	// Create a new private channel to move the post to
 	privateChannel, resp, err := client.CreateChannel(ctx, &model.Channel{
@@ -796,6 +799,9 @@ func TestMoveThread(t *testing.T) {
 	require.NotNil(t, resp)
 	require.NotNil(t, gmChannel)
 	t.Run("Move to public channel", func(t *testing.T) {
+		// Create a public channel
+		publicChannel := createPublicChannel(th.BasicTeam.Id, "test-public-channel", "Test Public Channel")
+
 		// Create a new post to move
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -974,6 +980,9 @@ func TestMoveThread(t *testing.T) {
 	})
 
 	t.Run("Move thread when permitted role is channel admin", func(t *testing.T) {
+		// Create public channel
+		publicChannel := createPublicChannel(th.BasicTeam.Id, "test-public-channel-admin", "Test Public Channel Admin")
+
 		// Set permitted role as channel admin
 		enabled := true
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -986,7 +995,7 @@ func TestMoveThread(t *testing.T) {
 
 		// Login as channel admin and add to channel
 		th.LoginTeamAdmin()
-		th.AddUserToChannel(teamAdminUser, publicChannel)
+		th.AddUserToChannel(th.TeamAdminUser, publicChannel)
 		defer th.LoginBasic()
 
 		// Create a new post to move
