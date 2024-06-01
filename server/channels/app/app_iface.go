@@ -1108,7 +1108,7 @@ type AppIface interface {
 	SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool
 	SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission)
 	SessionHasPermissionToTeam(session model.Session, teamID string, permission *model.Permission) bool
-	SessionHasPermissionToUser(session model.Session, userID string) bool
+	SessionHasPermissionToUser(c request.CTX, session model.Session, userID string) bool
 	SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Session, userID string) bool
 	SetActiveChannel(c request.CTX, userID string, channelID string) *model.AppError
 	SetAutoResponderStatus(rctx request.CTX, user *model.User, oldNotifyProps model.StringMap)

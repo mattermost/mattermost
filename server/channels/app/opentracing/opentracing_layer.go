@@ -16478,7 +16478,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToTeams(c request.CTX, session
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SessionHasPermissionToUser(session model.Session, userID string) bool {
+func (a *OpenTracingAppLayer) SessionHasPermissionToUser(c request.CTX, session model.Session, userID string) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToUser")
 
@@ -16490,7 +16490,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToUser(session model.Session, 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SessionHasPermissionToUser(session, userID)
+	resultVar0 := a.app.SessionHasPermissionToUser(c, session, userID)
 
 	return resultVar0
 }

@@ -198,7 +198,7 @@ func (a *App) SessionHasPermissionToCategory(c request.CTX, session model.Sessio
 	return err == nil && category != nil && category.UserId == session.UserId && category.UserId == userID && category.TeamId == teamID
 }
 
-func (a *App) SessionHasPermissionToUser(session model.Session, userID string) bool {
+func (a *App) SessionHasPermissionToUser(c request.CTX, session model.Session, userID string) bool {
 	if userID == "" {
 		return false
 	}
@@ -227,7 +227,7 @@ func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Se
 		return true
 	}
 	if err.Id == "store.sql_bot.get.missing.app_error" && err.Where == "SqlBotStore.Get" {
-		if a.SessionHasPermissionToUser(session, userID) {
+		if a.SessionHasPermissionToUser(rctx, session, userID) {
 			return true
 		}
 	}
