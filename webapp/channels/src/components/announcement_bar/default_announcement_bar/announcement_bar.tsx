@@ -7,10 +7,9 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import {Constants, AnnouncementBarTypes} from 'utils/constants';
+import {AnnouncementBarTypes} from 'utils/constants';
 import {isStringContainingUrl} from 'utils/url';
 
 type Props = {
@@ -151,11 +150,6 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 <FormattedMarkdownMessage id={this.props.message as string}/>
             );
         }
-        const announcementTooltip = this.state.showTooltip ? (
-            <Tooltip id='announcement-bar__tooltip'>
-                {this.props.tooltipMsg ? this.props.tooltipMsg : message}
-            </Tooltip>
-        ) : <></>;
 
         const announcementIcon = () => {
             return this.props.showLinkAsButton &&
@@ -170,11 +164,12 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 css={{gridArea: 'announcement'}}
                 data-testid={this.props.id}
             >
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                <WithTooltip
+                    id='announcement-bar__tooltip'
+                    title={this.props.tooltipMsg ? this.props.tooltipMsg : message}
                     placement='bottom'
-                    overlay={announcementTooltip}
                     delayHide={this.state.isStringContainingUrl ? OVERLAY_ANNOUNCEMENT_HIDE_DELAY : 0}
+                    hide={!this.state.showTooltip}
                 >
                     <div className='announcement-bar__text'>
                         {this.props.icon ? this.props.icon : announcementIcon()}
@@ -205,7 +200,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                             </button>
                         }
                     </div>
-                </OverlayTrigger>
+                </WithTooltip>
                 {closeButton}
             </div>
         );
