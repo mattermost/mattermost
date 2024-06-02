@@ -403,20 +403,28 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	lines, _ := c.App.GetLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage)
 
-	var buf bytes.Buffer
-	for _, line := range lines {
-		if _, err := buf.WriteString(line); err != nil {
-			c.Err = model.NewAppError("downloadLogs", "api.system.logs.download_bytes_buffer.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	auditRec := c.MakeAuditRecord("downloadLogs", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("downloadLogs", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetLogs) {
+		c.SetPermissionError(model.PermissionGetLogs)
+		return
 	}
 
-	reader := bytes.NewReader(buf.Bytes())
+	fileData, err := c.App.GetMattermostLog(c.AppContext)
+	if err != nil {
+		c.Err = model.NewAppError("downloadLogs", "api.system.logs.download_bytes_buffer.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	reader := bytes.NewReader(fileData.Body)
 	web.WriteFileResponse("mattermost.log",
 		"text/plain",
-		int64(buf.Len()),
+		int64(len(fileData.Body)),
 		time.Now(),
 		*c.App.Config().ServiceSettings.WebserverMode,
 		reader,
