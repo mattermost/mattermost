@@ -912,7 +912,7 @@ type AppIface interface {
 	HasPermissionToChannelMemberCount(c request.CTX, userID string, channel *model.Channel) bool
 	HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool
 	HasPermissionToTeam(c request.CTX, askingUserId string, teamID string, permission *model.Permission) bool
-	HasPermissionToUser(askingUserId string, userID string) bool
+	HasPermissionToUser(c request.CTX, askingUserId string, userID string) bool
 	HasSharedChannel(channelID string) (bool, error)
 	IPFiltering() einterfaces.IPFilteringInterface
 	ImageProxy() *imageproxy.ImageProxy

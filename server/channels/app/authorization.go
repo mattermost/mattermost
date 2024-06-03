@@ -299,7 +299,7 @@ func (a *App) HasPermissionToChannelByPost(c request.CTX, askingUserId string, p
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
-func (a *App) HasPermissionToUser(askingUserId string, userID string) bool {
+func (a *App) HasPermissionToUser(c request.CTX, askingUserId string, userID string) bool {
 	if askingUserId == userID {
 		return true
 	}
