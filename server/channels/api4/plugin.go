@@ -297,7 +297,7 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plugins, appErr := c.App.GetMarketplacePlugins(filter)
+	plugins, appErr := c.App.GetMarketplacePlugins(c.AppContext, filter)
 	if appErr != nil {
 		c.Err = appErr
 		return

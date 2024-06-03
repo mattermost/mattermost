@@ -176,25 +176,20 @@ function sortByLastReply(ids: Array<UserThread['id']>, threads: ReturnType<typeo
 export const getThreadsInChannel: (
     state: GlobalState,
     channelID: string,
-) => Array<UserThread['id']> = createSelector(
+) => UserThread[] = createSelector(
     'getThreadsInChannel',
     getThreads,
-    (state: GlobalState, channelID: string) => channelID,
-    (allThreads: IDMappedObjects<UserThread>, channelID: string) => {
-        return Object.keys(allThreads).filter((id) => allThreads[id].post.channel_id === channelID);
-    },
-);
+    (_: GlobalState, channelID: string) => channelID,
+    (threads: IDMappedObjects<UserThread>, channelID: Channel['id']) => {
+        const allThreads = Object.values(threads);
 
-export const getThreadItemsInChannel: (
-    state: GlobalState,
-    channelID: string,
-) => UserThread[] = createSelector(
-    'getThreadItemsInChannel',
-    getThreads,
-    (state: GlobalState, channelID: string) => channelID,
-    (allThreads: IDMappedObjects<UserThread>, channelID: Channel['id']) => {
-        return Object.keys(allThreads).
-            map((id) => allThreads[id]).
-            filter((item) => item.post.channel_id === channelID);
+        const threadsInChannel: UserThread[] = [];
+        for (const thread of allThreads) {
+            if (thread && thread.post && thread.post.channel_id && thread.post.channel_id === channelID) {
+                threadsInChannel.push(thread);
+            }
+        }
+
+        return threadsInChannel;
     },
 );

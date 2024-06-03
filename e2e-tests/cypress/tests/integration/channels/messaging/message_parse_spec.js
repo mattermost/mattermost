@@ -43,7 +43,7 @@ describe('Messaging', () => {
     function verifyPostedMessage(postId, text) {
         cy.get(`#postMessageText_${postId}`).should('be.visible').within((el) => {
             cy.wrap(el).should('have.text', text);
-            cy.get('.emoticon').should('be.visible').and('have.attr', 'title', ':confused:');
+            cy.get('.emoticon').should('be.visible').and('have.attr', 'alt', ':confused:').and('have.text', ':confused:');
         });
     }
 });

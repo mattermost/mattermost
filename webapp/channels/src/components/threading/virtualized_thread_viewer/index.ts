@@ -10,6 +10,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
+import {measureRhsOpened} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 import {makePrepareReplyIdsForThreadViewer, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
@@ -58,4 +59,8 @@ function makeMapStateToProps() {
     };
 }
 
-export default connect(makeMapStateToProps)(ThreadViewerVirtualized);
+const mapDispatchToProps = {
+    measureRhsOpened,
+};
+
+export default connect(makeMapStateToProps, mapDispatchToProps)(ThreadViewerVirtualized);

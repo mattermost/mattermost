@@ -114,7 +114,8 @@ describe('Messaging', () => {
 
     it('MM-T2195 Emoji reaction - not available on system message Save - not available on system message Pin - not available on system message Can delete your own system message', () => {
         // # Click add a channel header
-        cy.findByRoleExtended('button', {name: 'Add a channel header'}).should('be.visible').click();
+        cy.get('button.header-placeholder').invoke('show').trigger('mouseover');
+        cy.findByRoleExtended('button', {name: 'Add a channel header'}).trigger('mouseover').should('be.visible').click();
 
         // # Add or update a channel header
         cy.get('#editChannelHeaderModalLabel').should('be.visible');

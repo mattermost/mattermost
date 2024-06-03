@@ -1337,7 +1337,7 @@ func (us SqlUserStore) VerifyEmail(userId, email string) (string, error) {
 	return userId, nil
 }
 
-func (us SqlUserStore) PermanentDelete(userId string) error {
+func (us SqlUserStore) PermanentDelete(rctx request.CTX, userId string) error {
 	if _, err := us.GetMasterX().Exec("DELETE FROM Users WHERE Id = ?", userId); err != nil {
 		return errors.Wrapf(err, "failed to delete User with userId=%s", userId)
 	}
@@ -2260,7 +2260,7 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 
 func (us SqlUserStore) RefreshPostStatsForUsers() error {
 	if us.DriverName() == model.DatabaseDriverPostgres {
-		if _, err := us.GetReplicaX().Exec("REFRESH MATERIALIZED VIEW poststats"); err != nil {
+		if _, err := us.GetMasterX().Exec("REFRESH MATERIALIZED VIEW poststats"); err != nil {
 			return errors.Wrap(err, "users_refresh_post_stats_exec")
 		}
 	} else {
