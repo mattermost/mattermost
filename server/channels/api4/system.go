@@ -957,7 +957,7 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+	if !c.App.SessionHasPermissionToAny(c.AppContext, *c.AppContext.Session(), model.SysconsoleReadPermissions) {
 		c.SetPermissionError(model.SysconsoleReadPermissions...)
 		return
 	}

@@ -21,7 +21,7 @@ func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Pe
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
-func (a *App) SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool {
+func (a *App) SessionHasPermissionToAny(c request.CTX, session model.Session, permissions []*model.Permission) bool {
 	for _, perm := range permissions {
 		if a.SessionHasPermissionTo(session, perm) {
 			return true

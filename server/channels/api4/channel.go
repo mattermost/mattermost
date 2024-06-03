@@ -788,7 +788,7 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.PermissionSysconsoleReadUserManagementGroups,
 		model.PermissionSysconsoleReadUserManagementChannels,
 	}
-	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), permissions) {
+	if !c.App.SessionHasPermissionToAny(c.AppContext, *c.AppContext.Session(), permissions) {
 		c.SetPermissionError(permissions...)
 		return
 	}

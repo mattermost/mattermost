@@ -1093,7 +1093,7 @@ type AppIface interface {
 	SendTestPushNotification(deviceID string) string
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool
-	SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool
+	SessionHasPermissionToAny(c request.CTX, session model.Session, permissions []*model.Permission) bool
 	SessionHasPermissionToCategory(c request.CTX, session model.Session, userID, teamID, categoryId string) bool
 	SessionHasPermissionToChannel(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool
 	SessionHasPermissionToChannelByPost(c request.CTX, session model.Session, postID string, permission *model.Permission) bool

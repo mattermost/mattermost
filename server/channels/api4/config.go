@@ -48,7 +48,7 @@ func init() {
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+	if !c.App.SessionHasPermissionToAny(c.AppContext, *c.AppContext.Session(), model.SysconsoleReadPermissions) {
 		c.SetPermissionError(model.SysconsoleReadPermissions...)
 		return
 	}
@@ -123,7 +123,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cfg.SetDefaults()
 
-	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleWritePermissions) {
+	if !c.App.SessionHasPermissionToAny(c.AppContext, *c.AppContext.Session(), model.SysconsoleWritePermissions) {
 		c.SetPermissionError(model.SysconsoleWritePermissions...)
 		return
 	}
@@ -283,7 +283,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("patchConfig", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleWritePermissions) {
+	if !c.App.SessionHasPermissionToAny(c.AppContext, *c.AppContext.Session(), model.SysconsoleWritePermissions) {
 		c.SetPermissionError(model.SysconsoleWritePermissions...)
 		return
 	}
@@ -427,7 +427,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 				continue
 			}
 			if tagValue == model.ConfigAccessTagAnySysConsoleRead && accessType == FilterTypeRead &&
-				c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+				c.App.SessionHasPermissionToAny(c.AppContext, *c.AppContext.Session(), model.SysconsoleReadPermissions) {
 				return true
 			}
 
