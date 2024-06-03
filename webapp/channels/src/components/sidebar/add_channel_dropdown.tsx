@@ -2,15 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import {CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     canCreateChannel: boolean;
@@ -146,28 +145,19 @@ const AddChannelDropdown = ({
         return null;
     }
 
-    const tooltip = (
-        <Tooltip
-            id='new-group-tooltip'
-            className='hidden-xs'
-        >
-            <FormattedMessage
-                id={'sidebar_left.add_channel_dropdown.browseOrCreateChannels'}
-                defaultMessage='Browse or create channels'
-            />
-        </Tooltip>
-    );
-
     return (
         <MenuWrapper
             className='AddChannelDropdown'
             onToggle={trackOpen}
             open={isAddChannelOpen}
         >
-            <OverlayTrigger
-                delayShow={500}
+            <WithTooltip
+                id='new-group-tooltip'
                 placement='top'
-                overlay={tooltip}
+                title={intl.formatMessage({
+                    id: 'sidebar_left.add_channel_dropdown.browseOrCreateChannels',
+                    defaultMessage: 'Browse or create channels',
+                })}
             >
                 <button
                     className={'AddChannelDropdown_dropdownButton'}
@@ -175,7 +165,7 @@ const AddChannelDropdown = ({
                 >
                     <i className='icon-plus'/>
                 </button>
-            </OverlayTrigger>
+            </WithTooltip>
             <Menu
                 id='AddChannelDropdown'
                 ariaLabel={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
