@@ -38,7 +38,7 @@ func getSharedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// only return channels the user is a member of, unless they are a shared channels manager.
-	if !c.App.HasPermissionTo(c.AppContext.Session().UserId, model.PermissionManageSharedChannels) {
+	if !c.App.HasPermissionTo(c.AppContext, c.AppContext.Session().UserId, model.PermissionManageSharedChannels) {
 		opts.MemberId = c.AppContext.Session().UserId
 	}
 

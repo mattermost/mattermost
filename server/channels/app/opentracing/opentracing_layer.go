@@ -11666,7 +11666,7 @@ func (a *OpenTracingAppLayer) HandleMessageExportConfig(cfg *model.Config, appCf
 	a.app.HandleMessageExportConfig(cfg, appCfg)
 }
 
-func (a *OpenTracingAppLayer) HasPermissionTo(askingUserId string, permission *model.Permission) bool {
+func (a *OpenTracingAppLayer) HasPermissionTo(c request.CTX, askingUserId string, permission *model.Permission) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionTo")
 
@@ -11678,7 +11678,7 @@ func (a *OpenTracingAppLayer) HasPermissionTo(askingUserId string, permission *m
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.HasPermissionTo(askingUserId, permission)
+	resultVar0 := a.app.HasPermissionTo(c, askingUserId, permission)
 
 	return resultVar0
 }

@@ -108,7 +108,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 	var groupChannel *model.Channel
 	var channelErr *model.AppError
 
-	if a.HasPermissionTo(args.UserId, model.PermissionCreateGroupChannel) {
+	if a.HasPermissionTo(c, args.UserId, model.PermissionCreateGroupChannel) {
 		groupChannel, channelErr = a.CreateGroupChannel(c, targetUsersSlice, args.UserId)
 		if channelErr != nil {
 			c.Logger().Error(channelErr.Error())

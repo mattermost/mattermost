@@ -234,7 +234,7 @@ func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Se
 	return false
 }
 
-func (a *App) HasPermissionTo(askingUserId string, permission *model.Permission) bool {
+func (a *App) HasPermissionTo(c request.CTX, askingUserId string, permission *model.Permission) bool {
 	user, err := a.GetUser(askingUserId)
 	if err != nil {
 		return false
@@ -255,7 +255,7 @@ func (a *App) HasPermissionToTeam(c request.CTX, askingUserId string, teamID str
 			return true
 		}
 	}
-	return a.HasPermissionTo(askingUserId, permission)
+	return a.HasPermissionTo(c, askingUserId, permission)
 }
 
 func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channelID string, permission *model.Permission) bool {
@@ -282,7 +282,7 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 		return a.HasPermissionToTeam(c, askingUserId, channel.TeamId, permission)
 	}
 
-	return a.HasPermissionTo(askingUserId, permission)
+	return a.HasPermissionTo(c, askingUserId, permission)
 }
 
 func (a *App) HasPermissionToChannelByPost(c request.CTX, askingUserId string, postID string, permission *model.Permission) bool {
@@ -296,7 +296,7 @@ func (a *App) HasPermissionToChannelByPost(c request.CTX, askingUserId string, p
 		return a.HasPermissionToTeam(c, askingUserId, channel.TeamId, permission)
 	}
 
-	return a.HasPermissionTo(askingUserId, permission)
+	return a.HasPermissionTo(c, askingUserId, permission)
 }
 
 func (a *App) HasPermissionToUser(c request.CTX, askingUserId string, userID string) bool {
@@ -304,7 +304,7 @@ func (a *App) HasPermissionToUser(c request.CTX, askingUserId string, userID str
 		return true
 	}
 
-	if a.HasPermissionTo(askingUserId, model.PermissionEditOtherUsers) {
+	if a.HasPermissionTo(c, askingUserId, model.PermissionEditOtherUsers) {
 		return true
 	}
 

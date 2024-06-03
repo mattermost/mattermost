@@ -77,7 +77,7 @@ func (*msgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs
 	if channel, channelErr := a.Srv().Store().Channel().GetByName(args.TeamId, channelName, true); channelErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(channelErr, &nfErr) {
-			if !a.HasPermissionTo(args.UserId, model.PermissionCreateDirectChannel) {
+			if !a.HasPermissionTo(c, args.UserId, model.PermissionCreateDirectChannel) {
 				return &model.CommandResponse{Text: args.T("api.command_msg.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 			}
 
