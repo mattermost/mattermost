@@ -16263,7 +16263,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToCreateJob(session model.Sess
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool {
+func (a *OpenTracingAppLayer) SessionHasPermissionToGroup(c request.CTX, session model.Session, groupID string, permission *model.Permission) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToGroup")
 
@@ -16275,7 +16275,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToGroup(session model.Session,
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SessionHasPermissionToGroup(session, groupID, permission)
+	resultVar0 := a.app.SessionHasPermissionToGroup(c, session, groupID, permission)
 
 	return resultVar0
 }

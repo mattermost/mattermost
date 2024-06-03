@@ -151,7 +151,7 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 	return true
 }
 
-func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool {
+func (a *App) SessionHasPermissionToGroup(c request.CTX, session model.Session, groupID string, permission *model.Permission) bool {
 	groupMember, err := a.Srv().Store().Group().GetMember(groupID, session.UserId)
 	// don't reject immediately on ErrNoRows error because there's further authz logic below for non-groupmembers
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {

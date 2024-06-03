@@ -544,7 +544,7 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}, Roles: systemRole.Name})
 		require.Nil(t, err)
 
-		result := th.App.SessionHasPermissionToGroup(*session, group.Id, permission)
+		result := th.App.SessionHasPermissionToGroup(th.Context, *session, group.Id, permission)
 
 		if permissionShouldBeGranted {
 			require.True(t, result, fmt.Sprintf("row: %v", row))

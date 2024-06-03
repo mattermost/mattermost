@@ -128,7 +128,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if group.Source == model.GroupSourceLdap {
-		if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleReadUserManagementGroups) {
+		if !c.App.SessionHasPermissionToGroup(c.AppContext, *c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleReadUserManagementGroups) {
 			c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 			return
 		}
@@ -239,7 +239,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		requiredPermission = model.PermissionSysconsoleWriteUserManagementGroups
 	}
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, requiredPermission) {
+	if !c.App.SessionHasPermissionToGroup(c.AppContext, *c.AppContext.Session(), c.Params.GroupId, requiredPermission) {
 		c.SetPermissionError(requiredPermission)
 		return
 	}
@@ -639,7 +639,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 	// This voids leaking the list of group members.
 	// See https://mattermost.atlassian.net/browse/MM-55314 for more details.
 	if !group.AllowReference {
-		if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleReadUserManagementGroups) {
+		if !c.App.SessionHasPermissionToGroup(c.AppContext, *c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleReadUserManagementGroups) {
 			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
 		}
 	}
@@ -1167,7 +1167,7 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionDeleteCustomGroup) {
+	if !c.App.SessionHasPermissionToGroup(c.AppContext, *c.AppContext.Session(), c.Params.GroupId, model.PermissionDeleteCustomGroup) {
 		c.SetPermissionError(model.PermissionDeleteCustomGroup)
 		return
 	}
@@ -1220,7 +1220,7 @@ func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionRestoreCustomGroup) {
+	if !c.App.SessionHasPermissionToGroup(c.AppContext, *c.AppContext.Session(), c.Params.GroupId, model.PermissionRestoreCustomGroup) {
 		c.SetPermissionError(model.PermissionRestoreCustomGroup)
 		return
 	}
@@ -1274,7 +1274,7 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionManageCustomGroupMembers) {
+	if !c.App.SessionHasPermissionToGroup(c.AppContext, *c.AppContext.Session(), c.Params.GroupId, model.PermissionManageCustomGroupMembers) {
 		c.SetPermissionError(model.PermissionManageCustomGroupMembers)
 		return
 	}
@@ -1333,7 +1333,7 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionManageCustomGroupMembers) {
+	if !c.App.SessionHasPermissionToGroup(c.AppContext, *c.AppContext.Session(), c.Params.GroupId, model.PermissionManageCustomGroupMembers) {
 		c.SetPermissionError(model.PermissionManageCustomGroupMembers)
 		return
 	}
