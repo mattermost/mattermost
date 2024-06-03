@@ -193,7 +193,10 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         }
 
         let labelElement: JSX.Element = (
-            <span ref={this.labelRef} className='SidebarChannelLinkLabel'>
+            <span
+                ref={this.labelRef}
+                className='SidebarChannelLinkLabel'
+            >
                 {wrapEmojis(label)}
             </span>
         );
@@ -210,7 +213,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                     overlay={displayNameToolTip}
                     onEntering={this.removeTooltipLink}
                 >
-                  {labelElement}
+                    {labelElement}
                 </OverlayTrigger>
             );
         }
