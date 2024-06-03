@@ -27,6 +27,17 @@ func (a *App) CreateSession(c request.CTX, session *model.Session) (*model.Sessi
 		return nil, appErr
 	}
 
+	// remote/synthetic users cannot create sessions. This lookup will already be cached.
+	// Some unit tests rely on sessions being created for users that don't exist, therefore
+	// missing users are allowed.
+	user, appErr := a.GetUser(session.UserId)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		return nil, appErr
+	}
+	if user != nil && user.IsRemote() {
+		return nil, model.NewAppError("login", "api.user.login.remote_users.login.error", nil, "", http.StatusUnauthorized)
+	}
+
 	session, err := a.ch.srv.platform.CreateSession(c, session)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
