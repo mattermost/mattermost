@@ -67,6 +67,8 @@ export default class PerformanceReporter {
     private observer: PerformanceObserver;
     private reportTimeout: number | undefined;
 
+    // These values are protected instead of private so that they can be modified by unit tests
+    protected sendBeacon = navigator.sendBeacon;
     protected reportPeriodBase = 60 * 1000;
     protected reportPeriodJitter = 15 * 1000;
 
@@ -298,7 +300,7 @@ export default class PerformanceReporter {
         const url = this.client.getClientMetricsRoute();
         const data = JSON.stringify(report);
 
-        const beaconSent = navigator.sendBeacon(url, data);
+        const beaconSent = this.sendBeacon(url, data);
 
         if (!beaconSent) {
             // The data couldn't be queued as a beacon for some reason, so fall back to sending an immediate fetch
