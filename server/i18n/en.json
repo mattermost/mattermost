@@ -4631,14 +4631,6 @@
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
   {
-    "id": "app.channel.opengraph.link_not_allowed.error",
-    "translation": "Unable to parse opengraph link. Link not permitted."
-  },
-  {
-    "id": "app.channel.opengraph.link_previews_disabled.error",
-    "translation": "Unable to parse opengraph link. Link previews disabled."
-  },
-  {
     "id": "app.channel.patch_channel_members_notify_props.app_error",
     "translation": "Unable to update channel members' notify props."
   },

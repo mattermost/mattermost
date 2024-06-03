@@ -4,8 +4,8 @@
     display: flex;
     padding: 4px;
     border: none;
-    background: transparent;
     border-radius: 4px;
+    background: transparent;
     color: rgba(var(--center-channel-color-rgb), 0.56);
     font-family: Open Sans;
     font-size: 12px;
@@ -41,9 +41,9 @@
     align-items: center;
     padding: 0;
     border: none;
+    border-radius: 4px;
     background: rgba(var(--center-channel-color-rgb), 8%);
     background: color-mix(in sRGB, var(--center-channel-bg), var(--center-channel-color) 8%);
-    border-radius: 4px;
     color: rgba(var(--center-channel-color-rgb), 0.56);
     font-family: Open Sans;
     font-size: 12px;

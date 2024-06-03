@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from "./channels";
-import {FileInfo} from "./files";
-import {IDMappedObjects} from "./utilities";
+import type {Channel} from './channels';
+import type {FileInfo} from './files';
+import type {IDMappedObjects} from './utilities';
 
 type ChannelBookmarkType = 'link' | 'file';
 

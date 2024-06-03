@@ -19,7 +19,6 @@ func (api *API) InitChannelBookmarks() {
 		api.BaseRoutes.ChannelBookmark.Handle("/sort_order", api.APISessionRequired(updateChannelBookmarkSortOrder)).Methods("POST")
 		api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(deleteChannelBookmark)).Methods("DELETE")
 		api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(listChannelBookmarksForChannel)).Methods("GET")
-		api.BaseRoutes.ChannelBookmarks.Handle("/open_graph", api.APISessionRequired(fetchOpenGraph)).Methods("GET")
 	}
 }
 
@@ -406,31 +405,4 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 	if err := json.NewEncoder(w).Encode(bookmarks); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
-}
-
-func fetchOpenGraph(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("fetchOpenGraph", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	c.RequireChannelId()
-	if c.Err != nil {
-		return
-	}
-
-	c.RequireUrl()
-	if c.Err != nil {
-		return
-	}
-
-	og, err := c.App.GetOpenGraphMetadata(c.AppContext, c.Params.Url)
-	if err != nil {
-		c.Logger.Warn("Error while getting opengraph data", mlog.Err(err))
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(og)
 }

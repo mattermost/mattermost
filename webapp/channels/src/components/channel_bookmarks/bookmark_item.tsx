@@ -40,15 +40,17 @@ const BookmarkItem = <T extends HTMLAnchorElement>({bookmark}: Props) => {
     const handleOpenFile = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
 
-        fileInfo && dispatch(openModal({
-            modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
-            dialogType: FilePreviewModal,
-            dialogProps: {
-                post: {} as Post,
-                fileInfos: [fileInfo],
-                startIndex: 0,
-            },
-        }));
+        if (fileInfo) {
+            dispatch(openModal({
+                modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
+                dialogType: FilePreviewModal,
+                dialogProps: {
+                    post: {} as Post,
+                    fileInfos: [fileInfo],
+                    startIndex: 0,
+                },
+            }));
+        }
     };
 
     const icon = (
@@ -178,6 +180,7 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({href, chil
                 href={prefixed ? href.substring(1) : href}
                 rel='noopener noreferrer'
                 target='_blank'
+                location='channel_bookmarks.item'
                 ref={ref}
             >
                 {children}
