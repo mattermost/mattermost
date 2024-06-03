@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedTime, defineMessages} from 'react-intl';
 
 import type {Session} from '@mattermost/types/sessions';
 
 import {General} from 'mattermost-redux/constants';
 
-import {getMonthLong, t} from 'utils/i18n';
-import {localizeMessage} from 'utils/utils';
+import {getMonthLong} from 'utils/i18n';
 
+import DeviceIcon from './device_icon';
 import MoreInfo from './more_info';
 
 type Props = {
@@ -42,8 +43,8 @@ type State = {
 
 type MobileSessionInfo = {
     devicePicture?: string;
-    deviceTitle?: string;
-    devicePlatform: JSX.Element;
+    deviceTitle?: MessageDescriptor;
+    devicePlatform?: JSX.Element;
 };
 
 export default class ActivityLog extends React.PureComponent<Props, State> {
@@ -68,42 +69,52 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
     };
 
     mobileSessionInfo = (session: Session): MobileSessionInfo => {
-        let deviceTypeId;
-        let deviceTypeMessage;
+        let devicePlatform;
         let devicePicture;
         let deviceTitle;
 
         if (session.device_id.includes('apple')) {
             devicePicture = 'fa fa-apple';
-            deviceTitle = localizeMessage('device_icons.apple', 'Apple Icon');
-            deviceTypeId = t('activity_log_modal.iphoneNativeClassicApp');
-            deviceTypeMessage = 'iPhone Native Classic App';
+            deviceTitle = messages.appleIcon;
+            devicePlatform = (
+                <FormattedMessage
+                    id='activity_log_modal.iphoneNativeClassicApp'
+                    defaultMessage='iPhone Native Classic App'
+                />
+            );
 
             if (session.device_id.includes(General.PUSH_NOTIFY_APPLE_REACT_NATIVE)) {
-                deviceTypeId = t('activity_log_modal.iphoneNativeApp');
-                deviceTypeMessage = 'iPhone Native App';
+                devicePlatform = (
+                    <FormattedMessage
+                        id='activity_log_modal.iphoneNativeApp'
+                        defaultMessage='iPhone Native App'
+                    />
+                );
             }
         } else if (session.device_id.includes('android')) {
             devicePicture = 'fa fa-android';
-            deviceTitle = localizeMessage('device_icons.android', 'Android Icon');
-            deviceTypeId = t('activity_log_modal.androidNativeClassicApp');
-            deviceTypeMessage = 'Android Native Classic App';
+            deviceTitle = messages.androidIcon;
+            devicePlatform = (
+                <FormattedMessage
+                    id='activity_log_modal.androidNativeClassicApp'
+                    defaultMessage='Android Native Classic App'
+                />
+            );
 
             if (session.device_id.includes(General.PUSH_NOTIFY_ANDROID_REACT_NATIVE)) {
-                deviceTypeId = t('activity_log_modal.androidNativeApp');
-                deviceTypeMessage = 'Android Native App';
+                devicePlatform = (
+                    <FormattedMessage
+                        id='activity_log_modal.androidNativeApp'
+                        defaultMessage='Android Native App'
+                    />
+                );
             }
         }
 
         return {
             devicePicture,
             deviceTitle,
-            devicePlatform: (
-                <FormattedMessage
-                    id={deviceTypeId}
-                    defaultMessage={deviceTypeMessage}
-                />
-            ),
+            devicePlatform,
         };
     };
 
@@ -117,7 +128,7 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
         const lastAccessTime = new Date(currentSession.last_activity_at);
         let devicePlatform = currentSession.props.platform;
         let devicePicture: string | undefined = '';
-        let deviceTitle = '';
+        let deviceTitle: MessageDescriptor | string = '';
 
         if (this.isMobileSession(currentSession)) {
             const sessionInfo = this.mobileSessionInfo(currentSession);
@@ -127,11 +138,11 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
         } else {
             if (currentSession.props.platform === 'Windows') {
                 devicePicture = 'fa fa-windows';
-                deviceTitle = localizeMessage('device_icons.windows', 'Windows Icon');
+                deviceTitle = messages.windowsIcon;
             } else if (currentSession.props.platform === 'Macintosh' ||
                 currentSession.props.platform === 'iPhone') {
                 devicePicture = 'fa fa-apple';
-                deviceTitle = localizeMessage('device_icons.apple', 'Apple Icon');
+                deviceTitle = messages.appleIcon;
             } else if (currentSession.props.platform === 'Linux') {
                 if (currentSession.props.os.indexOf('Android') >= 0) {
                     devicePlatform = (
@@ -141,14 +152,14 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
                         />
                     );
                     devicePicture = 'fa fa-android';
-                    deviceTitle = localizeMessage('device_icons.android', 'Android Icon');
+                    deviceTitle = messages.androidIcon;
                 } else {
                     devicePicture = 'fa fa-linux';
-                    deviceTitle = localizeMessage('device_icons.linux', 'Linux Icon');
+                    deviceTitle = messages.linuxIcon;
                 }
             } else if (currentSession.props.os.indexOf('Linux') !== -1) {
                 devicePicture = 'fa fa-linux';
-                deviceTitle = localizeMessage('device_icons.linux', 'Linux Icon');
+                deviceTitle = messages.linuxIcon;
             }
 
             if (currentSession.props.browser.indexOf('Desktop App') !== -1) {
@@ -168,10 +179,11 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
             >
                 <div className='activity-log__report'>
                     <div className='report__platform'>
-                        <i
-                            className={devicePicture}
-                            title={deviceTitle}
-                        />{devicePlatform}
+                        <DeviceIcon
+                            devicePicture={devicePicture}
+                            deviceTitle={deviceTitle}
+                        />
+                        {devicePlatform}
                     </div>
                     <div className='report__info'>
                         <div>
@@ -220,3 +232,22 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
         );
     }
 }
+
+const messages = defineMessages({
+    androidIcon: {
+        id: 'device_icons.android',
+        defaultMessage: 'Android Icon',
+    },
+    appleIcon: {
+        id: 'device_icons.apple',
+        defaultMessage: 'Apple Icon',
+    },
+    linuxIcon: {
+        id: 'device_icons.linux',
+        defaultMessage: 'Linux Icon',
+    },
+    windowsIcon: {
+        id: 'device_icons.windows',
+        defaultMessage: 'Windows Icon',
+    },
+});

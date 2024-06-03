@@ -758,8 +758,9 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigMetrics, map[string]any{
-		"enable":             *cfg.MetricsSettings.Enable,
-		"block_profile_rate": *cfg.MetricsSettings.BlockProfileRate,
+		"enable":                *cfg.MetricsSettings.Enable,
+		"block_profile_rate":    *cfg.MetricsSettings.BlockProfileRate,
+		"enable_client_metrics": *cfg.MetricsSettings.EnableClientMetrics,
 	})
 
 	ts.SendTelemetry(TrackConfigNativeApp, map[string]any{

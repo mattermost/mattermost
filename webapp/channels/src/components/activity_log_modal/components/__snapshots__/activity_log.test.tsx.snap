@@ -11,9 +11,14 @@ exports[`components/activity_log_modal/ActivityLog should match snapshot 1`] = `
     <div
       className="report__platform"
     >
-      <i
-        className="fa fa-linux"
-        title="Linux Icon"
+      <DeviceIcon
+        devicePicture="fa fa-linux"
+        deviceTitle={
+          Object {
+            "defaultMessage": "Linux Icon",
+            "id": "device_icons.linux",
+          }
+        }
       />
       <MemoizedFormattedMessage
         defaultMessage="Native Desktop App"
@@ -98,9 +103,14 @@ exports[`components/activity_log_modal/ActivityLog should match snapshot with mo
     <div
       className="report__platform"
     >
-      <i
-        className="fa fa-apple"
-        title="Apple Icon"
+      <DeviceIcon
+        devicePicture="fa fa-apple"
+        deviceTitle={
+          Object {
+            "defaultMessage": "Apple Icon",
+            "id": "device_icons.apple",
+          }
+        }
       />
       <MemoizedFormattedMessage
         defaultMessage="iPhone Native Classic App"
