@@ -1670,6 +1670,21 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 		return nil, err
 	}
 
+	if user.IsSystemAdmin() && !strings.Contains(newRoles, model.SystemAdminRoleId) {
+		// if user being updated is SysAdmin, make sure its not the last one.
+		options := model.UserCountOptions{
+			IncludeBotAccounts: false,
+			Roles:              []string{model.SystemAdminRoleId},
+		}
+		count, err := a.Srv().Store().User().Count(options)
+		if err != nil {
+			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.countAdmins.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		if count <= 1 {
+			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.lastAdmin.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	user.Roles = newRoles
 	uchan := make(chan store.StoreResult[*model.UserUpdate], 1)
 	go func() {
@@ -2723,7 +2738,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	post, appErr := a.GetSinglePost(threadID, false)
+	post, appErr := a.GetSinglePost(c, threadID, false)
 	if appErr != nil {
 		return appErr
 	}
@@ -2772,7 +2787,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 }
 
 func (a *App) UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError) {
-	post, err := a.GetSinglePost(postID, false)
+	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2805,7 +2820,7 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	post, err := a.GetSinglePost(threadID, false)
+	post, err := a.GetSinglePost(c, threadID, false)
 	if err != nil {
 		return nil, err
 	}

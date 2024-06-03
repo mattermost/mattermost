@@ -101,4 +101,19 @@ describe('components/AnnouncementBar', () => {
         wrapper.setProps(newProps as any);
         expect(wrapper).toMatchSnapshot();
     });
+
+    test('should match snapshot, admin configured bar', () => {
+        const props = {...baseProps, enableBanner: true, bannerText: 'Banner text'};
+        const wrapper = shallow(
+            <div>
+                <AnnouncementBar {...props}/>
+                <AnnouncementBar
+                    {...props}
+                    className='admin-announcement'
+                />
+            </div>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
 });
