@@ -5533,7 +5533,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -5801,11 +5801,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 118+"
+    "translation": "Версия 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 118+"
+    "translation": "Версия 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -5813,7 +5813,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Версия 16.2+"
+    "translation": "Версия 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -10026,5 +10026,9 @@
   {
     "id": "ent.compliance.csv.seek.appError",
     "translation": "Невозможно перейти к началу файла экспорта."
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Команда с таким URL уже существует."
   }
 ]

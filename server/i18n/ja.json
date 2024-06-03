@@ -10016,5 +10016,9 @@
   {
     "id": "ent.compliance.csv.seek.appError",
     "translation": "エクスポートファイルの開始位置が見つかりませんでした。"
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "このURLのチームはすでに存在します。"
   }
 ]
