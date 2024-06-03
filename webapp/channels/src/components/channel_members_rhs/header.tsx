@@ -32,7 +32,7 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                     <button
                         className='sidebar--right__back btn btn-icon btn-sm'
                         onClick={goBack}
-                        aria-label={formatMessage({ id: 'rhs_header.back.icon', defaultMessage: 'Back Icon' })}
+                        aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
                     >
                         <i
                             className='icon icon-arrow-back-ios'
@@ -70,7 +70,7 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                     id='rhsCloseButton'
                     type='button'
                     className='sidebar--right__close btn btn-icon btn-sm'
-                    aria-label={formatMessage({ id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon' })}
+                    aria-label={formatMessage({id:'rhs_header.closeTooltip.icon', defaultMessage:'Close Sidebar Icon'})}
                     onClick={onClose}
                 >
                     <i
