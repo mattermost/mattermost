@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
-import type { Channel } from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 
 import WithTooltip from 'components/with_tooltip';
 
@@ -22,7 +22,7 @@ const HeaderTitle = styled.span`
 `;
 
 const Header = ({ channel, canGoBack, onClose, goBack }: Props) => {
-    const { formatMessage } = useIntl();
+    const {formatMessage} = useIntl();
 
     return (
         <div className='sidebar--right__header'>
