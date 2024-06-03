@@ -21,7 +21,7 @@ const HeaderTitle = styled.span`
     line-height: 2.4rem;
 `;
 
-const Header = ({ channel, canGoBack, onClose, goBack }: Props) => {
+const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
     const {formatMessage} = useIntl();
 
     return (
