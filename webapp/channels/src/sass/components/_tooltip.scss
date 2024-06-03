@@ -1,6 +1,7 @@
 @charset 'UTF-8';
 
 .tooltip {
+    z-index: 2000;
     max-width: 220px;
     font-family: inherit;
     pointer-events: none;
