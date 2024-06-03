@@ -4,21 +4,16 @@
 import {DateTime} from 'luxon';
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {getTimezoneForUserProfile} from 'mattermost-redux/selectors/entities/timezone';
-import {getCurrentUserId, getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import Moon from 'components/common/svg_images_components/moon_svg';
 import Timestamp from 'components/timestamp';
 
 import Constants from 'utils/constants';
-
-import type {GlobalState} from 'types/store';
-
-const getDisplayName = makeGetDisplayName();
 
 const Container = styled.div`
     display: flex;
@@ -29,10 +24,6 @@ const Container = styled.div`
 
     & + .AdvancedTextEditor {
         padding-top: 0;
-    }
-
-    .DoNotDisturbWarning + &{
-        display: none;
     }
 
     time {
@@ -52,24 +43,11 @@ const Icon = styled(Moon)`
 `;
 
 type Props = {
-    channelId: string;
+    teammate: UserProfile;
+    displayName: string;
 }
 
-const RemoteUserHour = ({channelId}: Props) => {
-    const userId = useSelector(getCurrentUserId);
-    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
-    const channelMembersIds = channel?.name.split('__');
-
-    let teammateId = '';
-    if (channelMembersIds && channelMembersIds.length === 2) {
-        teammateId = channelMembersIds[0];
-        if (teammateId === userId) {
-            teammateId = channelMembersIds[1];
-        }
-    }
-
-    const displayName = useSelector((state: GlobalState) => getDisplayName(state, teammateId, true));
-    const teammate = useSelector((state: GlobalState) => getUser(state, teammateId));
+const RemoteUserHour = ({teammate, displayName}: Props) => {
     const [timestamp, setTimestamp] = useState(0);
     const [showIt, setShowIt] = useState(false);
 
@@ -88,15 +66,7 @@ const RemoteUserHour = ({channelId}: Props) => {
         return () => clearInterval(interval);
     }, [teammateTimezone.useAutomaticTimezone, teammateTimezone.automaticTimezone, teammateTimezone.manualTimezone]);
 
-    if (teammateId === userId) {
-        return null;
-    }
-
     if (!showIt) {
-        return null;
-    }
-
-    if (!channel || channel.type !== 'D') {
         return null;
     }
 
