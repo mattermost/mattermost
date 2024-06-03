@@ -15,7 +15,7 @@ import (
 )
 
 func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	post, err := a.GetSinglePost(reaction.PostId, false)
+	post, err := a.GetSinglePost(c, reaction.PostId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func populateEmptyReactions(postIDs []string, reactions map[string][]*model.Reac
 }
 
 func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError {
-	post, err := a.GetSinglePost(reaction.PostId, false)
+	post, err := a.GetSinglePost(c, reaction.PostId, false)
 	if err != nil {
 		return err
 	}

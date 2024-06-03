@@ -323,6 +323,11 @@ func (_m *MetricsInterface) ObserveClientLargestContentfulPaint(platform string,
 	_m.Called(platform, agent, elapsed)
 }
 
+// ObserveClientPageLoadDuration provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveClientPageLoadDuration(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
+}
+
 // ObserveClientRHSLoadDuration provides a mock function with given fields: platform, agent, elapsed
 func (_m *MetricsInterface) ObserveClientRHSLoadDuration(platform string, agent string, elapsed float64) {
 	_m.Called(platform, agent, elapsed)
@@ -351,6 +356,11 @@ func (_m *MetricsInterface) ObserveEnabledUsers(users int64) {
 // ObserveFilesSearchDuration provides a mock function with given fields: elapsed
 func (_m *MetricsInterface) ObserveFilesSearchDuration(elapsed float64) {
 	_m.Called(elapsed)
+}
+
+// ObserveGlobalThreadsLoadDuration provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveGlobalThreadsLoadDuration(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
 }
 
 // ObservePluginAPIDuration provides a mock function with given fields: pluginID, apiName, success, elapsed

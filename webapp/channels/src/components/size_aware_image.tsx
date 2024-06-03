@@ -16,10 +16,8 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
 import LoadingImagePreview from 'components/loading_image_preview';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import {t} from 'utils/i18n';
 import {localizeMessage, copyToClipboard} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 48;
@@ -237,31 +235,22 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         // copyLinkTooltip, downloadTooltip are tooltips for the buttons respectively.
         // if linkCopiedRecently is true, defaultMessage would be 'Copy Link', else 'Copied!'
 
-        const copyLinkTooltip = (
-            <Tooltip
-                id='copy-link-tooltip'
-                className='hidden-xs'
-            >
-                {this.state.linkCopiedRecently ? (
-                    <FormattedMessage
-                        id={t('single_image_view.copied_link_tooltip')}
-                        defaultMessage={'Copied'}
-                    />
-                ) : (
-                    <FormattedMessage
-                        id={t('single_image_view.copy_link_tooltip')}
-                        defaultMessage={'Copy link'}
-                    />
-                )}
-            </Tooltip>
+        const copyLinkTooltipText = this.state.linkCopiedRecently ? (
+            <FormattedMessage
+                id={'single_image_view.copied_link_tooltip'}
+                defaultMessage={'Copied'}
+            />
+        ) : (
+            <FormattedMessage
+                id={'single_image_view.copy_link_tooltip'}
+                defaultMessage={'Copy link'}
+            />
         );
         const copyLink = (
-            <OverlayTrigger
-                className='hidden-xs'
-                delayShow={500}
+            <WithTooltip
+                id='single_image_view.copy_link_tooltip.text'
+                title={copyLinkTooltipText}
                 placement='top'
-                overlay={copyLinkTooltip}
-                rootClose={true}
             >
                 <button
                     className={classNames('style--none', 'size-aware-image__copy_link', {
@@ -282,28 +271,20 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                         />
                     )}
                 </button>
-            </OverlayTrigger>
+            </WithTooltip>
         );
 
-        const downloadTooltip = (
-            <Tooltip
-                id='download-preview-tooltip'
-                className='hidden-xs'
-            >
-                <FormattedMessage
-                    id='single_image_view.download_tooltip'
-                    defaultMessage='Download'
-                />
-            </Tooltip>
+        const downloadTooltipText = (
+            <FormattedMessage
+                id='single_image_view.download_tooltip'
+                defaultMessage='Download'
+            />
         );
-
         const download = (
-            <OverlayTrigger
-                className='hidden-xs'
-                delayShow={500}
+            <WithTooltip
+                id='single_image_view.download_tooltip.text'
                 placement='top'
-                overlay={downloadTooltip}
-                rootClose={true}
+                title={downloadTooltipText}
             >
                 <a
                     target='_blank'
@@ -319,7 +300,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                         size={20}
                     />
                 </a>
-            </OverlayTrigger>
+            </WithTooltip>
         );
 
         if (this.props.handleSmallImageContainer && this.state.isSmallImage) {

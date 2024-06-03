@@ -9393,7 +9393,7 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.audience.error",
-    "translation": "Niektóre adresy URL odbiorców są nieprawidłowe."
+    "translation": "Adres URL odbiorców jest nieprawidłowy: {{ .Url }}"
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
@@ -9481,7 +9481,7 @@
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
-    "translation": "Wątek z {{.NumMessages}} wiadomościami został przeniesiony do wiadomości bezpośrednich/grupowych\n"
+    "translation": "Wątek z wiadomościami {{.NumMessages}} został przeniesiony do wiadomości bezpośredniej/grupowej\n"
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.one_message",
@@ -9541,11 +9541,11 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": "Wystąpił błąd podczas zapisywania wychodzącego połączenia oauth."
+    "translation": "Wystąpił błąd podczas zapisywania wychodzącego połączenia oauth: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": "Wystąpił błąd aktualizacji wychodzącego połączenia oauth."
+    "translation": "Wystąpił błąd aktualizacji wychodzącego połączenia oauth: {{ .Error }}"
   },
   {
     "id": "api.payload.parse.error",
@@ -10026,5 +10026,9 @@
   {
     "id": "ent.compliance.csv.seek.appError",
     "translation": "Nie można wyszukać początku pliku eksportu."
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Zespół o tym adresie URL już istnieje."
   }
 ]
