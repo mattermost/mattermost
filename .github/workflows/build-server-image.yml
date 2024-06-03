@@ -30,8 +30,7 @@ jobs:
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
         with:
           provenance: false
-          context: server/build
-          file: Dockerfile.buildenv
+          file: server/build/Dockerfile.buildenv
           push: true
           pull: true
           tags: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
