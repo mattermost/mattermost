@@ -13,7 +13,6 @@ import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch} from 
 import type {FileInfo} from '@mattermost/types/files';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
-import {Client4} from 'mattermost-redux/client';
 import {getFile} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -25,7 +24,6 @@ import FileAttachment from 'components/file_attachment';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileProgressPreview from 'components/file_preview/file_progress_preview';
 import Input from 'components/widgets/inputs/input/input';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -37,7 +35,7 @@ import type {GlobalState} from 'types/store';
 import './bookmark_create_modal.scss';
 
 import CreateModalNameInput from './create_modal_name_input';
-import {useCanGetLinkPreviews, useCanUploadFiles} from './utils';
+import {useCanUploadFiles} from './utils';
 
 type Props = {
     channelId: string;
@@ -110,9 +108,6 @@ function ChannelBookmarkCreateModal({
     const [link, setLinkImmediately] = useState(linkInputValue);
     const [linkError, setLinkError] = useState('');
     const [icon, setIcon] = useState(bookmark?.image_url);
-    const [isLoadingOpenGraphMetaLink, setIsLoadingOpenGraphMetaLink] = useState('');
-    const openGraphRequestAbortController = useRef<AbortController>();
-    const canUseLinkPreviews = useCanGetLinkPreviews();
 
     const handleLinkChange = useCallback(({target: {value}}: ChangeEvent<HTMLInputElement>) => {
         setLinkInputValue(value);
@@ -137,7 +132,7 @@ function ChannelBookmarkCreateModal({
     };
 
     useEffect(() => {
-        if (link === bookmark?.link_url) {
+        if (link === bookmark?.link_url || !link) {
             return;
         }
 
@@ -147,38 +142,11 @@ function ChannelBookmarkCreateModal({
             resetParsed();
 
             if (!url) {
+                setLinkError('Please enter a valid link. Could not parse: ' + link);
                 return;
             }
-
-            if (!canUseLinkPreviews) {
-                setParsedDisplayName(link);
-                return;
-            }
-
-            try {
-                openGraphRequestAbortController?.current?.abort('stale request');
-                openGraphRequestAbortController.current = new AbortController();
-                setIsLoadingOpenGraphMetaLink(link);
-
-                const {title, images} = await Client4.fetchChannelBookmarkOpenGraph(channelId, url.toString(), openGraphRequestAbortController.current.signal);
-
-                setParsedDisplayName(title || link);
-                const favicon = images?.find(({type}) => type === 'image/x-mm-icon');
-                setIcon(favicon?.secure_url || favicon?.url || '');
-                setLinkError('');
-            } catch (err) {
-                if (err.server_error_id === 'api.context.invalid_url_param.app_error') {
-                    setLinkError(formatMessage(msg.linkInvalid));
-                }
-                resetParsed();
-            } finally {
-                setIsLoadingOpenGraphMetaLink((currentLink) => {
-                    if (currentLink === link) {
-                        return '';
-                    }
-                    return currentLink;
-                });
-            }
+            setLinkError('');
+            setParsedDisplayName(link);
         })();
     }, [link, bookmark?.link_url, channelId]);
 
@@ -435,7 +403,6 @@ function ChannelBookmarkCreateModal({
                         value={linkInputValue}
                         data-testid='linkInput'
                         autoFocus={true}
-                        addon={isLoadingOpenGraphMetaLink ? <LoadingSpinner/> : undefined}
                         customMessage={linkError ? {type: 'error', value: linkError} : {value: formatMessage(msg.linkInfoMessage)}}
                     />
                 ) : (
