@@ -68,7 +68,6 @@ export default class PerformanceReporter {
     private reportTimeout: number | undefined;
 
     // These values are protected instead of private so that they can be modified by unit tests
-    protected sendBeacon = navigator.sendBeacon;
     protected reportPeriodBase = 60 * 1000;
     protected reportPeriodJitter = 15 * 1000;
 
@@ -306,6 +305,10 @@ export default class PerformanceReporter {
             // The data couldn't be queued as a beacon for some reason, so fall back to sending an immediate fetch
             fetch(url, {method: 'POST', body: data});
         }
+    }
+
+    protected sendBeacon(url: string | URL, data?: BodyInit | null | undefined): boolean {
+        return navigator.sendBeacon(url, data);
     }
 }
 
