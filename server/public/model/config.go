@@ -4332,29 +4332,36 @@ type SanitizeConfigRules struct {
 	Contains   []string
 	StartsWith []string
 	EndsWith   []string
+	Whitelist  []string
 }
 
-func sanitizeConfigMap(config map[string]interface{}, rules SanitizeConfigRules) *AppError {
+func sanitizeConfigMap(config map[string]interface{}, rules SanitizeConfigRules, currentPath string) *AppError {
 	for key, value := range config {
+		// Construct the new path
+		newPath := key
+		if currentPath != "" {
+			newPath = currentPath + "." + key
+		}
+
 		switch v := value.(type) {
 		case map[string]interface{}:
-			if err := sanitizeConfigMap(v, rules); err != nil {
+			if err := sanitizeConfigMap(v, rules, newPath); err != nil {
 				return err
 			}
 		case []interface{}:
 			for i, item := range v {
 				if itemMap, ok := item.(map[string]interface{}); ok {
-					if err := sanitizeConfigMap(itemMap, rules); err != nil {
+					if err := sanitizeConfigMap(itemMap, rules, newPath); err != nil {
 						return err
 					}
 				} else if str, ok := item.(string); ok {
-					if shouldSanitize(key, rules) && str != "" {
+					if shouldSanitize(newPath, key, rules) && str != "" {
 						v[i] = FakeSetting
 					}
 				}
 			}
 		case string:
-			if shouldSanitize(key, rules) && v != "" {
+			if shouldSanitize(newPath, key, rules) && v != "" {
 				config[key] = FakeSetting
 			}
 		default:
@@ -4364,7 +4371,13 @@ func sanitizeConfigMap(config map[string]interface{}, rules SanitizeConfigRules)
 	return nil
 }
 
-func shouldSanitize(key string, rules SanitizeConfigRules) bool {
+func shouldSanitize(path string, key string, rules SanitizeConfigRules) bool {
+	// Check if the path is in the whitelist
+	for _, whitelistedPath := range rules.Whitelist {
+		if strings.EqualFold(whitelistedPath, path) {
+			return false
+		}
+	}
 	lowerKey := strings.ToLower(key)
 	for _, substring := range rules.Contains {
 		if strings.Contains(lowerKey, strings.ToLower(substring)) {
@@ -4389,6 +4402,7 @@ func (o *Config) Sanitize() *AppError {
 		Contains:   []string{"password", "secret", "key", "keyid", "email"},
 		StartsWith: []string{"key", "password", "email"},
 		EndsWith:   []string{"key", "keyid", "id", "email"},
+		Whitelist:  []string{"EmailSettings.EmailNotificationContentsType"},
 	}
 
 	// Marshal the config struct to JSON and back to map
@@ -4403,7 +4417,7 @@ func (o *Config) Sanitize() *AppError {
 	}
 
 	// Sanitize the map
-	if sanitizeErr := sanitizeConfigMap(configMap, rules); sanitizeErr != nil {
+	if sanitizeErr := sanitizeConfigMap(configMap, rules, ""); sanitizeErr != nil {
 		return sanitizeErr
 	}
 

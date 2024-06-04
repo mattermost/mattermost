@@ -1381,23 +1381,27 @@ func TestShouldSanitize(t *testing.T) {
 		Contains:   []string{"password", "secret", "key", "keyid"},
 		StartsWith: []string{"key", "password"},
 		EndsWith:   []string{"key", "keyid", "id"},
+		Whitelist:  []string{"whitelist.parentKey"},
 	}
 
 	tests := map[string]struct {
 		Key         string
+		Path        string
 		ExpectMatch bool
 	}{
-		"contains password":      {Key: "userPassword", ExpectMatch: true},
-		"contains secret":        {Key: "clientSecret", ExpectMatch: true},
-		"starts with key":        {Key: "keyName", ExpectMatch: true},
-		"ends with id":           {Key: "clientId", ExpectMatch: true},
-		"does not match":         {Key: "username", ExpectMatch: false},
-		"case insensitive match": {Key: "SeCrEtKeY", ExpectMatch: true},
+		"contains password":      {Key: "userPassword", Path: "userPassword", ExpectMatch: true},
+		"contains secret":        {Key: "clientSecret", Path: "clientSecret", ExpectMatch: true},
+		"starts with key":        {Key: "keyName", Path: "keyName", ExpectMatch: true},
+		"ends with id":           {Key: "clientId", Path: "clientId", ExpectMatch: true},
+		"does not match":         {Key: "username", Path: "username", ExpectMatch: false},
+		"case insensitive match": {Key: "SeCrEtKeY", Path: "SeCrEtKeY", ExpectMatch: true},
+		"whitelisted key":        {Key: "parentKey", Path: "whitelist.parentKey", ExpectMatch: false},
+		"whitelisted key child":  {Key: "childKey", Path: "whitelist.parentKey.childKey", ExpectMatch: true},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, test.ExpectMatch, shouldSanitize(test.Key, rules))
+			assert.Equal(t, test.ExpectMatch, shouldSanitize(test.Path, test.Key, rules))
 		})
 	}
 }
@@ -1407,6 +1411,7 @@ func TestSanitizeMap(t *testing.T) {
 		Contains:   []string{"password", "secret", "key", "keyid", "email"},
 		StartsWith: []string{"key", "password", "email"},
 		EndsWith:   []string{"key", "keyid", "id", "email"},
+		Whitelist:  []string{"config.enableFeature"},
 	}
 
 	tests := map[string]struct {
@@ -1507,11 +1512,26 @@ func TestSanitizeMap(t *testing.T) {
 			},
 			ExpectErr: false,
 		},
+		"whitelisted scenario": {
+			Config: map[string]interface{}{
+				"config": map[string]interface{}{
+					"enableFeature": true,
+					"featureKey":    "myfeaturekey",
+				},
+			},
+			Expect: map[string]interface{}{
+				"config": map[string]interface{}{
+					"enableFeature": true,
+					"featureKey":    FakeSetting,
+				},
+			},
+			ExpectErr: false,
+		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := sanitizeConfigMap(test.Config, rules)
+			err := sanitizeConfigMap(test.Config, rules, "")
 			if test.ExpectErr {
 				assert.NotNil(t, err)
 			} else {
@@ -1535,6 +1555,7 @@ func TestConfigSanitize(t *testing.T) {
 	*c.ServiceSettings.EnableEmailInvitations = true
 	*c.SamlSettings.PrivateKeyFile = ""
 	*c.EmailSettings.FeedbackEmail = "feedback@email.com"
+	*c.EmailSettings.EmailNotificationContentsType = "full"
 	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
 	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
 	c.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{{
@@ -1562,8 +1583,9 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, "QueryAbsoluteLag", *c.SqlSettings.ReplicaLagSettings[0].QueryAbsoluteLag)
 	assert.Equal(t, "QueryTimeLag", *c.SqlSettings.ReplicaLagSettings[0].QueryTimeLag)
 	assert.Equal(t, true, *c.ServiceSettings.EnableEmailInvitations)
-	assert.Equal(t, FakeSetting, *c.EmailSettings.FeedbackEmail)
 	assert.Equal(t, "", *c.SamlSettings.PrivateKeyFile)
+	assert.Equal(t, FakeSetting, *c.EmailSettings.FeedbackEmail)
+	assert.Equal(t, "full", *c.EmailSettings.EmailNotificationContentsType)
 
 	t.Run("with default config", func(t *testing.T) {
 		c := Config{}
