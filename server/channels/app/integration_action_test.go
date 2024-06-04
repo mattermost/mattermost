@@ -530,7 +530,7 @@ func TestPostActionProps(t *testing.T) {
 	require.Nil(t, err)
 	assert.True(t, len(clientTriggerId) == 26)
 
-	newPost, nErr := th.App.Srv().Store().Post().GetSingle(post.Id, false)
+	newPost, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
 	require.NoError(t, nErr)
 
 	assert.True(t, newPost.IsPinned)

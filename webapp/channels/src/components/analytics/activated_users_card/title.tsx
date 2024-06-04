@@ -23,7 +23,10 @@ const Title = () => {
             placement='top'
         >
             <span>
-                <ExternalLink href='https://mattermost.com/pl/site-statistics-definitions'>
+                <ExternalLink
+                    location='activated_users_card.title'
+                    href='https://mattermost.com/pl/site-statistics-definitions'
+                >
                     {intl.formatMessage(messages.totalUsers)}
                     <InformationOutlineIcon size='16'/>
                 </ExternalLink>

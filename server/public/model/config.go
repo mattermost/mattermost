@@ -178,7 +178,8 @@ const (
 	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/pl/android-app/"
 	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/pl/ios-app/"
 
-	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds = 5000
+	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds                       = 5000
+	ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPollIntervalMilliseconds = 3000
 
 	AnalyticsSettingsDefaultMaxUsersForStatistics = 2500
 
@@ -1010,16 +1011,17 @@ func (s *MetricsSettings) SetDefaults() {
 }
 
 type ExperimentalSettings struct {
-	ClientSideCertEnable            *bool   `access:"experimental_features,cloud_restrictable"`
-	ClientSideCertCheck             *string `access:"experimental_features,cloud_restrictable"`
-	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
-	EnableSharedChannels            *bool   `access:"experimental_features"`
-	EnableRemoteClusterService      *bool   `access:"experimental_features"`
-	DisableAppBar                   *bool   `access:"experimental_features"`
-	DisableRefetchingOnBrowserFocus *bool   `access:"experimental_features"`
-	DelayChannelAutocomplete        *bool   `access:"experimental_features"`
-	DisableWakeUpReconnectHandler   *bool   `access:"experimental_features"`
+	ClientSideCertEnable                                  *bool   `access:"experimental_features,cloud_restrictable"`
+	ClientSideCertCheck                                   *string `access:"experimental_features,cloud_restrictable"`
+	LinkMetadataTimeoutMilliseconds                       *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	RestrictSystemAdmin                                   *bool   `access:"experimental_features,write_restrictable"`
+	EnableSharedChannels                                  *bool   `access:"experimental_features"`
+	EnableRemoteClusterService                            *bool   `access:"experimental_features"`
+	DisableAppBar                                         *bool   `access:"experimental_features"`
+	DisableRefetchingOnBrowserFocus                       *bool   `access:"experimental_features"`
+	DelayChannelAutocomplete                              *bool   `access:"experimental_features"`
+	DisableWakeUpReconnectHandler                         *bool   `access:"experimental_features"`
+	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1061,6 +1063,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.DisableWakeUpReconnectHandler == nil {
 		s.DisableWakeUpReconnectHandler = NewBool(false)
+	}
+
+	if s.UsersStatusAndProfileFetchingPollIntervalMilliseconds == nil {
+		s.UsersStatusAndProfileFetchingPollIntervalMilliseconds = NewInt64(ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPollIntervalMilliseconds)
 	}
 }
 

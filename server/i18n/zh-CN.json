@@ -5775,11 +5775,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "版本 16.2+"
+    "translation": "版本 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -5787,11 +5787,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 118+"
+    "translation": "版本 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 118+"
+    "translation": "版本 122+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10010,7 +10010,15 @@
     "translation": "获取用户计数失败"
   },
   {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "获取消息计数失败"
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "使用此 URL 的团队已存在。"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "无法关闭 zip 文件"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "无法找到导出文件以开始导出。"
   }
 ]
