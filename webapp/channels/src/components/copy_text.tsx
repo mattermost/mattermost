@@ -2,13 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {useIntl} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import Constants from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
+
+import WithTooltip from './with_tooltip';
 
 type Props = {
     value: string;
@@ -21,6 +19,8 @@ const CopyText = ({
     defaultMessage = 'Copy',
     idMessage = 'integrations.copy',
 }: Props) => {
+    const intl = useIntl();
+
     const copyText = useCallback((e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         e.preventDefault();
         copyToClipboard(value);
@@ -30,20 +30,14 @@ const CopyText = ({
         return null;
     }
 
-    const tooltip = (
-        <Tooltip id='copy'>
-            <FormattedMessage
-                id={idMessage}
-                defaultMessage={defaultMessage}
-            />
-        </Tooltip>
-    );
-
     return (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id='copy'
+            title={intl.formatMessage({
+                id: idMessage,
+                defaultMessage,
+            })}
             placement='top'
-            overlay={tooltip}
         >
             <a
                 href='#'
@@ -51,7 +45,7 @@ const CopyText = ({
                 className='fa fa-copy ml-2'
                 onClick={copyText}
             />
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 
