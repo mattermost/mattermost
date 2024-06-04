@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"sync"
 
@@ -59,21 +60,21 @@ func MakeImageProxy(configService configservice.ConfigService, httpService https
 	proxy.configListenerID = proxy.ConfigService.AddConfigListener(proxy.OnConfigChange)
 
 	config := proxy.ConfigService.Config()
-	proxy.backend = proxy.makeBackend(*config.ImageProxySettings.Enable, *config.ImageProxySettings.ImageProxyType)
+	proxy.backend = proxy.makeBackend(config.ImageProxySettings)
 
 	return proxy
 }
 
-func (proxy *ImageProxy) makeBackend(enable bool, proxyType string) ImageProxyBackend {
-	if !enable {
+func (proxy *ImageProxy) makeBackend(proxySettings model.ImageProxySettings) ImageProxyBackend {
+	if !*proxySettings.Enable {
 		return nil
 	}
 
-	switch proxyType {
+	switch *proxySettings.ImageProxyType {
 	case model.ImageProxyTypeLocal:
 		return makeLocalBackend(proxy)
 	case model.ImageProxyTypeAtmosCamo:
-		return makeAtmosCamoBackend(proxy)
+		return makeAtmosCamoBackend(proxy, proxySettings)
 	default:
 		return nil
 	}
@@ -87,12 +88,15 @@ func (proxy *ImageProxy) Close() {
 }
 
 func (proxy *ImageProxy) OnConfigChange(oldConfig, newConfig *model.Config) {
-	if *oldConfig.ImageProxySettings.Enable != *newConfig.ImageProxySettings.Enable ||
-		*oldConfig.ImageProxySettings.ImageProxyType != *newConfig.ImageProxySettings.ImageProxyType {
+	if *oldConfig.ServiceSettings.SiteURL != *newConfig.ServiceSettings.SiteURL ||
+		!reflect.DeepEqual(oldConfig.ImageProxySettings, newConfig.ImageProxySettings) {
 		proxy.lock.Lock()
 		defer proxy.lock.Unlock()
 
-		proxy.backend = proxy.makeBackend(*newConfig.ImageProxySettings.Enable, *newConfig.ImageProxySettings.ImageProxyType)
+		siteURL, _ := url.Parse(*newConfig.ServiceSettings.SiteURL)
+		proxy.siteURL = siteURL
+
+		proxy.backend = proxy.makeBackend(newConfig.ImageProxySettings)
 	}
 }
 
