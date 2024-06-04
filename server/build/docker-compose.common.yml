@@ -100,7 +100,9 @@ services:
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
   opensearch:
-    image: "opensearchproject/opensearch:2.7.0"
+    build:
+      context: .
+      dockerfile: ./Dockerfile.opensearch
     networks:
       - mm-test
     environment:
