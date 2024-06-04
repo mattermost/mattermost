@@ -12,6 +12,8 @@ import type {Emoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
 
+import {getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
@@ -207,8 +209,14 @@ const AdvanceTextEditor = ({
     let showDndWarning = false;
     let showRemoteUserHour = false;
     let teammateId = '';
-    if (currentChannel && currentChannel.type === 'D') {
-        teammateId = (currentChannel.creator_id === currentUserId ? currentChannel.teammate_id : currentChannel.creator_id) || '';
+    const post = useSelector((state: GlobalState) => getPost(state, postId));
+    const postChannel = useSelector((state: GlobalState) => getDirectChannel(state, post?.channel_id));
+    let channel = currentChannel;
+    if (postChannel) {
+        channel = postChannel;
+    }
+    if (channel && channel.type === 'D') {
+        teammateId = (channel.creator_id === currentUserId ? channel.teammate_id : channel.creator_id) || '';
     }
     const teammateStatus = useSelector((state: GlobalState) => getStatusForUserId(state, teammateId));
     const teammate = useSelector((state: GlobalState) => getUser(state, teammateId));
@@ -216,7 +224,7 @@ const AdvanceTextEditor = ({
     if (teammate && teammateId !== '' && teammateStatus === UserStatuses.DND) {
         showDndWarning = true;
     }
-    if (teammate && teammateId !== '') {
+    if (!showDndWarning && teammate && teammateId !== '') {
         showRemoteUserHour = true;
     }
 
@@ -673,7 +681,7 @@ const AdvanceTextEditor = ({
     return (
         <>
             {showDndWarning && <DoNotDisturbWarning displayName={currentChannel?.display_name || ''}/>}
-            {!showDndWarning && showRemoteUserHour && (
+            {showRemoteUserHour && (
                 <RemoteUserHour
                     teammate={teammate}
                     displayName={currentChannel?.display_name || ''}
