@@ -20,6 +20,8 @@ describe('Channel Bookmarks', () => {
     let user1: Cypress.UserProfile;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let admin: Cypress.UserProfile;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    let channel: Cypress.Channel;
 
     before(() => {
         cy.apiGetMe().then(({user: adminUser}) => {
@@ -30,6 +32,11 @@ describe('Channel Bookmarks', () => {
                 user1 = user;
 
                 cy.visit(`/${testTeam.name}/channels/town-square`);
+                cy.getCurrentChannelId().then((channelId) => {
+                    cy.makeClient().then(async (client) => {
+                        channel = await client.getChannel(channelId);
+                    });
+                });
             });
         });
     });
@@ -53,7 +60,7 @@ describe('Channel Bookmarks', () => {
         });
     });
 
-    it('create file bookmark', () => {
+    it('create file bookmark, and open preview', () => {
         // # Create bookmark
         const {file} = createFileBookmark({file: 'small-image.png'});
 
@@ -65,6 +72,8 @@ describe('Channel Bookmarks', () => {
 
         // * Verify preview opened
         cy.get('.file-preview-modal').findByRole('heading', {name: file});
+        cy.get('.file-preview-modal__file-details-user-name').should('have.text', admin.username);
+        cy.get('.file-preview-modal__channel').should('have.text', `Shared in ~${channel.display_name}`);
         cy.get('.icon-close').click();
     });
 

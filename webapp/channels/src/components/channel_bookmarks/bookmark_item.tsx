@@ -45,7 +45,7 @@ const BookmarkItem = <T extends HTMLAnchorElement>({bookmark}: Props) => {
                 modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
                 dialogType: FilePreviewModal,
                 dialogProps: {
-                    post: {} as Post,
+                    post: {user_id: bookmark.owner_id, channel_id: bookmark.channel_id} as Post,
                     fileInfos: [fileInfo],
                     startIndex: 0,
                 },
