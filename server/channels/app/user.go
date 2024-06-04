@@ -1226,10 +1226,10 @@ func (a *App) isUniqueToGroupNames(val string) *model.AppError {
 	var notFoundErr *store.ErrNotFound
 	group, err := a.Srv().Store().Group().GetByName(val, model.GroupSearchOpts{})
 	if err != nil && !errors.As(err, &notFoundErr) {
-		return model.NewAppError("isUniqueToGroupNames", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("isUniqueToGroupNames", "app.user.save.groupname.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if group != nil {
-		return model.NewAppError("isUniqueToGroupNames", model.NoTranslation, nil, fmt.Sprintf("group name %s exists", val), http.StatusBadRequest)
+		return model.NewAppError("isUniqueToGroupNames", "app.user.save.username_exists.app_error", nil, fmt.Sprintf("group name %s exists", val), http.StatusBadRequest)
 	}
 	return nil
 }
@@ -1440,6 +1440,11 @@ func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword str
 		return err
 	}
 
+	// remote/synthetic users cannot update password via any mechanism
+	if user.IsRemote() {
+		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError)
+	}
+
 	hashedPassword := model.HashPassword(newPassword)
 
 	if err := a.Srv().Store().User().UpdatePassword(user.Id, hashedPassword); err != nil {
@@ -1475,6 +1480,11 @@ func (a *App) UpdateHashedPasswordByUserId(userID, newHashedPassword string) *mo
 }
 
 func (a *App) UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError {
+	// remote/synthetic users cannot update password via any mechanism
+	if user.IsRemote() {
+		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError)
+	}
+
 	if err := a.Srv().Store().User().UpdatePassword(user.Id, newHashedPassword); err != nil {
 		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1520,6 +1530,11 @@ func (a *App) resetPasswordFromToken(c request.CTX, userSuppliedTokenString, new
 		return model.NewAppError("ResetPasswordFromCode", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
+	// don't allow password reset for remote/synthetic users
+	if user.IsRemote() {
+		return model.NewAppError("resetPassword", "api.user.reset_password.broken_token.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	T := i18n.GetUserTranslations(user.Locale)
 
 	if err := a.UpdatePasswordSendEmail(c, user, newPassword, T("api.user.reset_password.method")); err != nil {
@@ -1537,6 +1552,11 @@ func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) 
 	user, err := a.GetUserByEmail(email)
 	if err != nil {
 		return false, nil
+	}
+
+	// don't allow password reset for remote/synthetic users
+	if user.IsRemote() {
+		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
 	if user.AuthData != nil && *user.AuthData != "" {
@@ -1668,6 +1688,21 @@ func (a *App) UpdateUserRoles(c request.CTX, userID string, newRoles string, sen
 func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
 	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
 		return nil, err
+	}
+
+	if user.IsSystemAdmin() && !strings.Contains(newRoles, model.SystemAdminRoleId) {
+		// if user being updated is SysAdmin, make sure its not the last one.
+		options := model.UserCountOptions{
+			IncludeBotAccounts: false,
+			Roles:              []string{model.SystemAdminRoleId},
+		}
+		count, err := a.Srv().Store().User().Count(options)
+		if err != nil {
+			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.countAdmins.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		if count <= 1 {
+			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.lastAdmin.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	user.Roles = newRoles
