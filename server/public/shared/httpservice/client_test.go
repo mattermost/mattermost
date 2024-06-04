@@ -173,7 +173,8 @@ func TestUserAgentIsSet(t *testing.T) {
 
 	require.NoError(t, err, "NewRequest failed", err)
 
-	client.Do(req)
+	_, err = client.Do(req)
+	require.NoError(t, err, "Do failed", err)
 }
 
 func NewHTTPClient(transport http.RoundTripper) *http.Client {
