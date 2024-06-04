@@ -244,7 +244,7 @@
         - 'in_progress' | 'pending' -> 'cancel_requested'
         - 'cancel_requested' -> 'canceled'
 
-        Add force to the body of the PATCH request to bypass the given rules. This can have unexpected consequences and should be used with caution
+        Add force to the body of the PATCH request to bypass the given rules, the only statuses you can go to are: pending, cancel_requested and canceled. This can have unexpected consequences and should be used with caution.
       operationId: UpdateJobStatus
       parameters:
         - name: job_id

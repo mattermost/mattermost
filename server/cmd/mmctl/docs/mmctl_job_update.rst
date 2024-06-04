@@ -14,7 +14,7 @@ Update the status of a job. The following restrictions are in place:
 	- in_progress | pending -> cancel_requested
 	- cancel_requested -> canceled
 	
-	Those restriction can be bypassed with --force=true
+	Those restriction can be bypassed with --force=true but the only statuses you can go to are: pending, cancel_requested and canceled. This can have unexpected consequences and should be used with caution.
 
 ::
 
