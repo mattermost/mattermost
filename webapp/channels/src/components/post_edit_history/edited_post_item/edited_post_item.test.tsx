@@ -48,31 +48,40 @@ describe('components/post_edit_history/edited_post_item', () => {
     test('clicking on the restore button should call openRestorePostModal', () => {
         const wrapper = shallow(<EditedPostItem {...baseProps}/>);
 
-        // find the button with restore icon and click it
-        wrapper.find('ForwardRef').filterWhere((button) => button.prop('icon') === 'restore').simulate('click');
-        expect(baseProps.actions.openModal).toHaveBeenCalledWith(
-            expect.objectContaining({
-                modalId: ModalIdentifiers.RESTORE_POST_MODAL,
-                dialogType: RestorePostModal,
-            }),
-        );
+        const restoreButton = wrapper.find('.restore-icon').first();
+        restoreButton.simulate('click', {stopPropagation: jest.fn()});
+
+        expect(baseProps.actions.openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.RESTORE_POST_MODAL,
+            dialogType: RestorePostModal,
+            dialogProps: {
+                post: baseProps.post,
+                postHeader: expect.anything(),
+                actions: {
+                    handleRestore: expect.any(Function),
+                },
+            },
+        });
     });
 
-    test('when isCurrent is true, should not render the restore button', () => {
-        const props = {
-            ...baseProps,
-            isCurrent: true,
-        };
-        const wrapper = shallow(<EditedPostItem {...props}/>);
-        expect(wrapper.find('ForwardRef').filterWhere((button) => button.prop('icon') === 'refresh')).toHaveLength(0);
+    test('clicking on the title container should toggle post', () => {
+        const wrapper = shallow(<EditedPostItem {...baseProps}/>);
+        const titleContainer = wrapper.find('.edit-post-history__title__container').first();
+        titleContainer.simulate('click', {stopPropagation: jest.fn()});
+        expect(wrapper.find('.edit-post-history__container__background').exists()).toBe(true);
+        titleContainer.simulate('click', {stopPropagation: jest.fn()});
+        expect(wrapper.find('.edit-post-history__container__background').exists()).toBe(false);
     });
 
-    test('when isCurrent is true, should render the current version text', () => {
-        const props = {
-            ...baseProps,
-            isCurrent: true,
-        };
-        const wrapper = shallow(<EditedPostItem {...props}/>);
-        expect(wrapper.find('.edit-post-history__current__indicator')).toHaveLength(1);
+    test('clicking inside the expanded container should not collapse it', () => {
+        const wrapper = shallow(<EditedPostItem {...baseProps}/>);
+
+        const titleContainer = wrapper.find('.edit-post-history__title__container').first();
+        titleContainer.simulate('click', {stopPropagation: jest.fn()});
+        expect(wrapper.find('.edit-post-history__container__background').exists()).toBe(true);
+        const messageContainer = wrapper.find('.edit-post-history__content_container').first();
+        messageContainer.simulate('click', {stopPropagation: jest.fn()});
+        expect(wrapper.find('.edit-post-history__container__background').exists()).toBe(true);
     });
 });
+

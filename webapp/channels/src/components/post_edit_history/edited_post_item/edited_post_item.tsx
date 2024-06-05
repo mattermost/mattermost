@@ -74,7 +74,10 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
         actions.openModal(restorePostModalData);
     }, [actions, post]);
 
-    const togglePost = () => setOpen((prevState) => !prevState);
+    const togglePost = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        setOpen((prevState) => !prevState);
+    }, []);
 
     if (!post) {
         return null;
@@ -191,9 +194,12 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                 className='edit-post-history__icon__button restore-icon'
                 size={'sm'}
                 icon={'restore'}
-                onClick={openRestorePostModal}
                 compact={true}
                 aria-label={formatMessage(itemMessages.ariaLabelMessage)}
+                onClick={(e) => {
+                    e.stopPropagation(); // Prevent toggling the post container
+                    openRestorePostModal();
+                }}
             />
         </OverlayTrigger>
     );
@@ -205,7 +211,11 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
         <CompassThemeProvider theme={theme}>
             <div
                 className={postContainerClass}
-                onClick={togglePost}
+                onClick={() => {
+                    if (!open) {
+                        setOpen(true);
+                    }
+                }}
             >
                 <PostAriaLabelDiv
                     className={'a11y__section post'}
@@ -215,6 +225,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                     <div
                         className='edit-post-history__title__container'
                         aria-hidden='true'
+                        onClick={togglePost}
                     >
                         <div className='edit-post-history__date__badge__container'>
                             <IconButton
@@ -223,12 +234,12 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                                 compact={true}
                                 aria-label='Toggle to see an old message.'
                                 className='edit-post-history__icon__button'
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    togglePost();
-                                }}
+                                onClick={togglePost}
                             />
-                            <span className='edit-post-history__date'>
+                            <span
+                                className='edit-post-history__date'
+                                onClick={togglePost}
+                            >
                                 <Timestamp
                                     value={timeStampValue}
                                     ranges={DATE_RANGES}
