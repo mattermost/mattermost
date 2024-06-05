@@ -2,17 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {FileGenericOutlineIcon, BookOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo} from '@mattermost/types/files';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+
 import RenderEmoji from 'components/emoji/render_emoji';
 import FileThumbnail from 'components/file_attachment/file_thumbnail';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 
 import {trimmedEmojiName} from 'utils/emoji_utils';
+import {getImageSrc} from 'utils/post_utils';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     type: ChannelBookmark['type'];
@@ -31,6 +37,7 @@ const BookmarkIcon = ({
 }: Props) => {
     let icon = type === 'link' ? <BookOutlineIcon size={size}/> : <FileGenericOutlineIcon size={size}/>;
     const emojiName = emoji && trimmedEmojiName(emoji);
+    const hasImageProxy = useSelector((state: GlobalState) => getConfig(state).HasImageProxy === 'true');
 
     if (emojiName) {
         icon = (
@@ -42,7 +49,7 @@ const BookmarkIcon = ({
     } else if (imageUrl) {
         icon = (
             <BookmarkIconImg
-                src={imageUrl}
+                src={getImageSrc(imageUrl, hasImageProxy)}
                 size={size}
             />
         );
