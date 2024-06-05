@@ -265,8 +265,6 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 			c.Logger().Warn("Invalid status code returned from plugin. Converting to internal server error.", mlog.String("plugin_id", pluginID), mlog.Int("status_code", appErr.StatusCode))
 			appErr.StatusCode = http.StatusInternalServerError
 		}
-
-		return clientTriggerId, nil
 	} else {
 		requestJSON, err := json.Marshal(upstreamRequest)
 		if err != nil {
