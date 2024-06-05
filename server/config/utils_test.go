@@ -57,7 +57,9 @@ func TestDesanitize(t *testing.T) {
 	target.SqlSettings.DataSourceSearchReplicas = []string{model.FakeSetting, model.FakeSetting}
 
 	actualClone := actual.Clone()
-	desanitize(actual, target)
+	err := desanitize(actual, target)
+	require.NoError(t, err)
+
 	assert.Equal(t, actualClone, actual, "actual should not have been changed")
 
 	// Verify the settings that should have been left untouched in target

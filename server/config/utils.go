@@ -62,7 +62,7 @@ func desanitizeConfigMap(actual, target map[string]interface{}, rules model.Sani
 }
 
 // desanitize replaces fake settings with their actual values.
-func desanitize(actual, target *model.Config) {
+func desanitize(actual, target *model.Config) error {
 	rules := model.SanitizeConfigRules{
 		Contains:   []string{"password", "secret", "key", "keyid", "email"},
 		StartsWith: []string{"key", "password", "email"},
@@ -71,17 +71,33 @@ func desanitize(actual, target *model.Config) {
 
 	// Marshal the config structs to JSON and back to map
 	var actualMap, targetMap map[string]interface{}
-	data, _ := json.Marshal(actual)
-	json.Unmarshal(data, &actualMap)
-	data, _ = json.Marshal(target)
-	json.Unmarshal(data, &targetMap)
+	data, err := json.Marshal(actual)
+	if err != nil {
+		return fmt.Errorf("failed to marshal actual config: %w", err)
+	}
+	if err = json.Unmarshal(data, &actualMap); err != nil {
+		return fmt.Errorf("failed to unmarshal actual config: %w", err)
+	}
+
+	data, err = json.Marshal(target)
+	if err != nil {
+		return fmt.Errorf("failed to marshal target config: %w", err)
+	}
+	if err = json.Unmarshal(data, &targetMap); err != nil {
+		return fmt.Errorf("failed to unmarshal target config: %w", err)
+	}
 
 	// Desanitize the map
 	desanitizeConfigMap(actualMap, targetMap, rules, "")
 
 	// Marshal the map back to JSON and into struct
-	data, _ = json.Marshal(targetMap)
-	json.Unmarshal(data, target)
+	data, err = json.Marshal(targetMap)
+	if err != nil {
+		return fmt.Errorf("failed to marshal targetMap config: %w", err)
+	}
+	if err = json.Unmarshal(data, target); err != nil {
+		return fmt.Errorf("failed to unmarshal target config: %w", err)
+	}
 
 	// Desanitize other fields not matching the sanitization rules
 	if target.FileSettings.PublicLinkSalt != nil && *target.FileSettings.PublicLinkSalt == model.FakeSetting {
@@ -127,6 +143,8 @@ func desanitize(actual, target *model.Config) {
 	if target.ServiceSettings.AllowedUntrustedInternalConnections != nil && *target.ServiceSettings.AllowedUntrustedInternalConnections == model.FakeSetting {
 		*target.ServiceSettings.AllowedUntrustedInternalConnections = *actual.ServiceSettings.AllowedUntrustedInternalConnections
 	}
+
+	return nil
 }
 
 // fixConfig patches invalid or missing data in the configuration.
