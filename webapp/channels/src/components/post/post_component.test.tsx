@@ -325,4 +325,17 @@ describe('PostComponent', () => {
             });
         });
     });
+
+    describe('date separator', ()=> {
+        test('should not show date separator on consecutive posts when RHS is open', ()=> {
+            const props = {
+                ...baseProps,
+                isConsecutivePost: true,
+                location: Locations.RHS_ROOT,
+            };
+            renderWithContext(<PostComponent {...props}/>)
+
+            expect(screen.queryByTestId('basicSeparator')).not.toBeInTheDocument();
+        });
+    });
 });
