@@ -241,7 +241,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 
 		pluginsEnvironment := a.GetPluginsEnvironment()
 		if pluginsEnvironment == nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "model.plugin_postactionr.error.app_error", nil, "err=Plugins are not enabled", http.StatusInternalServerError)
+			return "", model.NewAppError("DoPostActionWithCookie", "model.plugin_postaction.error.app_error", nil, "err=Plugins are not enabled", http.StatusInternalServerError)
 		}
 
 		// Checking if plugin is working or not
