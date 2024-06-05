@@ -131,24 +131,6 @@ func isNotFoundError(err error) bool {
 	return errors.As(err, &errNotFound)
 }
 
-func postsSliceToMap(posts []*model.Post) map[string]*model.Post {
-	m := make(map[string]*model.Post, len(posts))
-	for _, p := range posts {
-		m[p.Id] = p
-	}
-	return m
-}
-
-func reducePostsSliceInCache(posts []*model.Post, cache map[string]*model.Post) []*model.Post {
-	reduced := make([]*model.Post, 0, len(posts))
-	for _, p := range posts {
-		if _, ok := cache[p.Id]; !ok {
-			reduced = append(reduced, p)
-		}
-	}
-	return reduced
-}
-
 func SafeString(p *string) string {
 	if p == nil {
 		return ""
