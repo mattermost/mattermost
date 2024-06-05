@@ -254,7 +254,6 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 			return "", model.NewAppError("DoPostActionWithCookie", "model.plugin_postaction.error.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
 
-		var appErr *model.AppError
 		response, appErr = pluginHooks.ExecutePostAction(pluginContext(c), handleName, upstreamRequest)
 
 		// Checking if plugin crashed after running the command
@@ -276,7 +275,8 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 		defer cancel()
-		resp, appErr := a.DoActionRequest(c.WithContext(ctx), upstreamURL, requestJSON)
+		var resp *http.Response
+		resp, appErr = a.DoActionRequest(c.WithContext(ctx), upstreamURL, requestJSON)
 		if appErr != nil {
 			return "", appErr
 		}
