@@ -19,7 +19,6 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         desktop: 'default',
         desktop_sound: 'true',
         calls_desktop_sound: 'true',
-        calls_mobile_sound: 'true',
         email: 'true',
         first_name: 'true',
         mark_unread: 'all',
