@@ -216,7 +216,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
           "nickname": "",
           "notify_props": Object {
             "calls_desktop_sound": "true",
-            "calls_mobile_sound": "true",
             "channel": "false",
             "comments": "never",
             "desktop": "default",
@@ -256,7 +255,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
           "nickname": "",
           "notify_props": Object {
             "calls_desktop_sound": "true",
-            "calls_mobile_sound": "true",
             "channel": "false",
             "comments": "never",
             "desktop": "default",
@@ -296,7 +294,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
           "nickname": "",
           "notify_props": Object {
             "calls_desktop_sound": "true",
-            "calls_mobile_sound": "true",
             "channel": "false",
             "comments": "never",
             "desktop": "default",

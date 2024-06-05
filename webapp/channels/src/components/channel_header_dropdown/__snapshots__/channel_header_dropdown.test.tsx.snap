@@ -131,7 +131,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
-              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -209,7 +208,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "nickname": "",
           "notify_props": Object {
             "calls_desktop_sound": "true",
-            "calls_mobile_sound": "true",
             "channel": "false",
             "comments": "never",
             "desktop": "default",
@@ -755,7 +753,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "nickname": "",
           "notify_props": Object {
             "calls_desktop_sound": "true",
-            "calls_mobile_sound": "true",
             "channel": "false",
             "comments": "never",
             "desktop": "default",
@@ -966,7 +963,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
-              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -1044,7 +1040,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "nickname": "",
           "notify_props": Object {
             "calls_desktop_sound": "true",
-            "calls_mobile_sound": "true",
             "channel": "false",
             "comments": "never",
             "desktop": "default",
@@ -1590,7 +1585,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "nickname": "",
           "notify_props": Object {
             "calls_desktop_sound": "true",
-            "calls_mobile_sound": "true",
             "channel": "false",
             "comments": "never",
             "desktop": "default",

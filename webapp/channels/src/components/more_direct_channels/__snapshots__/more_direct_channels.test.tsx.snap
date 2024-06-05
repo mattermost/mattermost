@@ -89,7 +89,6 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
-              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -129,7 +128,6 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
-              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -169,7 +167,6 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
-              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -209,7 +206,6 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
-              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -249,7 +245,6 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
-              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -384,7 +379,6 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
-              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -424,7 +418,6 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
-              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -464,7 +457,6 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
-              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -509,7 +501,6 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
-              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -551,7 +542,6 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
             "nickname": "",
             "notify_props": Object {
               "calls_desktop_sound": "true",
-              "calls_mobile_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
