@@ -223,6 +223,10 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                                 compact={true}
                                 aria-label='Toggle to see an old message.'
                                 className='edit-post-history__icon__button'
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    togglePost();
+                                }}
                             />
                             <span className='edit-post-history__date'>
                                 <Timestamp
