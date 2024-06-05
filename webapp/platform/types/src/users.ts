@@ -12,7 +12,7 @@ export type UserNotifyProps = {
     desktop: 'default' | 'all' | 'mention' | 'none';
     desktop_sound: 'true' | 'false';
     calls_desktop_sound: 'true' | 'false';
-    calls_mobile_sound: 'true' | 'false' | '';
+    calls_mobile_sound: 'true' | 'false';
     email: 'true' | 'false';
     mark_unread: 'all' | 'mention';
     push: 'default' | 'all' | 'mention' | 'none';
@@ -24,7 +24,7 @@ export type UserNotifyProps = {
     highlight_keys: string;
     desktop_notification_sound?: 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
     calls_notification_sound?: 'Dynamic' | 'Calm' | 'Urgent' | 'Cheerful';
-    calls_mobile_notification_sound?: 'Dynamic' | 'Calm' | 'Urgent' | 'Cheerful' | '';
+    calls_mobile_notification_sound?: 'Dynamic' | 'Calm' | 'Urgent' | 'Cheerful';
     desktop_threads?: 'default' | 'all' | 'mention' | 'none';
     email_threads?: 'default' | 'all' | 'mention' | 'none';
     push_threads?: 'default' | 'all' | 'mention' | 'none';
