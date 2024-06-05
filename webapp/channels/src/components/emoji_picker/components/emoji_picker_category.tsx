@@ -8,12 +8,9 @@ import {FormattedMessage} from 'react-intl';
 import type {EmojiCategory} from '@mattermost/types/emojis';
 
 import type {Category, CategoryOrEmojiRow} from 'components/emoji_picker/types';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import {Constants} from 'utils/constants';
-
-interface Props {
+export interface Props {
     category: Category;
     categoryRowIndex: CategoryOrEmojiRow['index'];
     selected: boolean;
@@ -38,20 +35,14 @@ function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onCl
     });
 
     return (
-        <OverlayTrigger
-            trigger={['hover', 'focus']}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id={`emojiPickerCategoryTooltip-${category.name}`}
             placement='bottom'
-            overlay={
-                <Tooltip
-                    id='skinTooltip'
-                    className='emoji-tooltip'
-                >
-                    <FormattedMessage
-                        id={`emoji_picker.${category.name}`}
-                        defaultMessage={category.message}
-                    />
-                </Tooltip>
+            title={
+                <FormattedMessage
+                    id={`emoji_picker.${category.name}`}
+                    defaultMessage={category.message}
+                />
             }
         >
             <a
@@ -62,7 +53,7 @@ function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onCl
             >
                 <i className={category.className}/>
             </a>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 }
 

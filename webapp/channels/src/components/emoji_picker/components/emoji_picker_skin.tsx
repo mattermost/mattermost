@@ -9,11 +9,9 @@ import {CSSTransition} from 'react-transition-group';
 
 import {CloseIcon} from '@mattermost/compass-icons/components';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import imgTrans from 'images/img_trans.gif';
-import {Constants} from 'utils/constants';
 import * as Emoji from 'utils/emoji';
 
 const skinsList = [
@@ -27,7 +25,7 @@ const skinsList = [
 
 const skinToneEmojis = new Map(skinsList.map((pair) => [pair[1], Emoji.Emojis[Emoji.EmojiIndicesByAlias.get(pair[0])!]]));
 
-type Props = {
+export type Props = {
     userSkinTone: string;
     onSkinSelected: (skin: string) => void;
     intl: IntlShape;
@@ -117,31 +115,20 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
             </>
         );
     }
+
     collapsed() {
         const emoji = skinToneEmojis.get(this.props.userSkinTone)!;
-        const spriteClassName = classNames('emojisprite', `emoji-category-${emoji.category}`, `emoji-${emoji.unified.toLowerCase()}`);
+        const spriteClassName = classNames('emojisprite', `emoji-category-${emoji?.category}`, `emoji-${emoji?.unified.toLowerCase()}`);
         const expandButtonLabel = this.props.intl.formatMessage({
             id: 'emoji_picker.skin_tone',
             defaultMessage: 'Skin tone',
         });
 
-        const tooltip = (
-            <Tooltip
-                id='skinTooltip'
-                className='emoji-tooltip'
-            >
-                <span>
-                    {expandButtonLabel}
-                </span>
-            </Tooltip>
-        );
-
         return (
-            <OverlayTrigger
-                trigger={['hover', 'focus']}
-                delayShow={Constants.OVERLAY_TIME_DELAY}
+            <WithTooltip
+                id='emojiPickerSkinTooltip'
                 placement='top'
-                overlay={tooltip}
+                title={expandButtonLabel}
             >
                 <button
                     data-testid={`skin-picked-${this.props.userSkinTone}`}
@@ -155,7 +142,7 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                         className={spriteClassName}
                     />
                 </button>
-            </OverlayTrigger>
+            </WithTooltip>
         );
     }
 
