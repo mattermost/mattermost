@@ -16,14 +16,31 @@ import type {PerformanceLongTaskTiming} from './long_task';
 import type {PlatformLabel, UserAgentLabel} from './platform_detection';
 import {getPlatformLabel, getUserAgentLabel} from './platform_detection';
 
+import {Measure} from '.';
+
 type PerformanceReportMeasure = {
+
+    /**
+     * metric is the name of a counter or histogram metric which must match a MetricType constant as defined in
+     * model/metrics.go on the server.
+     */
     metric: string;
+
+    /**
+     * value is the floating point value of the metric. It's often a millisecond duration, but it's meaning depends
+     * on which metric this is.
+     */
     value: number;
+
+    /**
+     * timestamp is an integer value representing when the metric was measured as a millisecond value. Some browsers
+     * use floating point numbers for performance timestamps, so we need to make sure to round this.
+     */
     timestamp: number;
 }
 
 type PerformanceReport = {
-    version: '1.0';
+    version: '0.1.0';
 
     labels: {
         platform: PlatformLabel;
@@ -78,6 +95,10 @@ export default class PerformanceReporter {
             entryTypes: observedEntryTypes,
         });
 
+        // Record the page load separately because it arrived before we were observing and because you can't use
+        // the buffered option for PerformanceObserver with multiple entry types.
+        this.measurePageLoad();
+
         // Register handlers for standard metrics and Web Vitals
         onCLS((metric) => this.handleWebVital(metric));
         onFCP((metric) => this.handleWebVital(metric));
@@ -92,6 +113,20 @@ export default class PerformanceReporter {
         // Send any remaining metrics when the page becomes hidden rather than when it's unloaded because that's
         // what's recommended by various sites due to unload handlers being unreliable, particularly on mobile.
         addEventListener('visibilitychange', this.handleVisibilityChange);
+    }
+
+    private measurePageLoad() {
+        const entries = performance.getEntriesByType('navigation');
+
+        if (entries.length === 0) {
+            return;
+        }
+
+        this.histogramMeasures.push({
+            metric: Measure.PageLoad,
+            value: entries[0].duration,
+            timestamp: performance.timeOrigin + entries[0].startTime,
+        });
     }
 
     /**
@@ -212,7 +247,7 @@ export default class PerformanceReporter {
         const counterMeasures = this.countersToMeasures(now, counters);
 
         return {
-            version: '1.0',
+            version: '0.1.0',
 
             labels: {
                 platform: this.platformLabel,

@@ -985,6 +985,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                 values={{
                                     a: (chunks: string) => ((
                                         <ExternalLink
+                                            location='user_settings_notifications'
                                             href='https://mattermost.com/pl/about-notifications'
                                             className='btn btn-link'
                                         >

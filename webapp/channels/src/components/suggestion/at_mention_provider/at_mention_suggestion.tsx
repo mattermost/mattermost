@@ -151,7 +151,6 @@ const AtMentionSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Ite
         <SharedUserIndicator
             id={`sharedUserIndicator-${item.id}`}
             className='shared-user-icon'
-            withTooltip={true}
         />
     ) : null;
 
