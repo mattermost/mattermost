@@ -2273,52 +2273,12 @@
     "translation": "Failed to apply new trial license. You have previously applied a trial license to this Mattermost instance.. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Error getting the license renewal link"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Renewing this license on the portal is not possible"
-  },
-  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
   {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "We were unable to process the request due to limitations for embargoed countries. [Learn more in our documentation](https://mattermost.com/pl/limitations-for-embargoed-countries), or reach out to legal@mattermost.com for questions around export limitations."
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Could not create true up status record"
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Failed to submit true up review profile to CWS."
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Could not get true up status records"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "True up review requires a license"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "True up review is not allowed for cloud instances"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Could not get the total active users count"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Could not get the total incoming webhook count"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Could not get the total outgoing webhook count"
   },
   {
     "id": "api.license.upgrade_needed.app_error",
@@ -2853,10 +2813,6 @@
   {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal unavailable for self-hosted signup."
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Failed to generate the license renewal link"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -3491,20 +3447,12 @@
     "translation": "Contact sales"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Renew now"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "Your license is up for renewal"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, your subscription is set to expire in {{.Days}} days. We hope you’re experiencing the flexible, secure team collaboration that Mattermost enables. Renew soon to ensure your team can keep enjoying these benefits."
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Log in to your Customer Account to renew"
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
@@ -3553,10 +3501,6 @@
   {
     "id": "api.templates.questions_footer.title",
     "translation": "Questions?"
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License Now"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
@@ -5735,24 +5679,8 @@
     "translation": "Error fetching last accessible post"
   },
   {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Failed to generate a new renewal token."
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "This type of license doesn't support renewal token generation"
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "No license present"
-  },
-  {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Failed to get user count"
-  },
-  {
-    "id": "app.limits.get_server_limits.post_count.store_error",
-    "translation": "Failed to get post count"
   },
   {
     "id": "app.login.doLogin.updateLastLogin.error",
@@ -6903,6 +6831,10 @@
     "translation": "Must call update for existing user."
   },
   {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Unable to determine if that username already exists"
+  },
+  {
     "id": "app.user.save.username_exists.app_error",
     "translation": "An account with that username already exists."
   },
@@ -6919,12 +6851,20 @@
     "translation": "Failed to check if user store is empty."
   },
   {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Error determining number of System Admin accounts."
+  },
+  {
     "id": "app.user.update.find.app_error",
     "translation": "Unable to find the existing account to update."
   },
   {
     "id": "app.user.update.finding.app_error",
     "translation": "We encountered an error finding the account."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Cannot demote last System Admin."
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
@@ -9943,6 +9883,10 @@
     "translation": "A team member with that ID already exists."
   },
   {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "A team with this URL already exists."
+  },
+  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Unable to find an existing account matching your credentials. This team may require an invite from the team owner to join."
   },
@@ -10012,11 +9956,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 120+"
+    "translation": "Version 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 120+"
+    "translation": "Version 122+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -10024,11 +9968,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 16.2+"
+    "translation": "Version 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",

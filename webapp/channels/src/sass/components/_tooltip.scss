@@ -1,6 +1,7 @@
 @charset 'UTF-8';
 
 .tooltip {
+    z-index: 2000;
     max-width: 220px;
     font-family: inherit;
     pointer-events: none;
@@ -40,11 +41,6 @@
         }
     }
 
-    &.text-nowrap {
-        .tooltip-inner {
-            white-space: nowrap;
-        }
-    }
 
     .tooltip-help {
         color: rgba(255, 255, 255, 0.75);

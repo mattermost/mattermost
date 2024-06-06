@@ -24,11 +24,11 @@ func TestBusySet(t *testing.T) {
 
 	require.False(t, busy.IsBusy())
 
-	busy.Set(time.Millisecond * 500)
+	busy.Set(5 * time.Second)
 	require.True(t, busy.IsBusy())
 	require.True(t, compareBusyState(t, busy, cluster.Busy))
 
-	// should automatically expire after 500ms.
+	// should automatically expire after 5s.
 	require.Eventually(t, isNotBusy, time.Second*15, time.Millisecond*100)
 	// allow a moment for cluster to sync.
 	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
@@ -149,3 +149,6 @@ func (c *ClusterMock) ConfigChanged(previousConfig *model.Config, newConfig *mod
 	return nil
 }
 func (c *ClusterMock) HealthScore() int { return 0 }
+func (c *ClusterMock) WebConnCountForUser(userID string) (int, *model.AppError) {
+	return 0, nil
+}
