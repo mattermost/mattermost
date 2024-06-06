@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import {LicenseSkus} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import DataRetentionSVG from './images/data_retention_svg';
 
@@ -15,17 +15,18 @@ const DataRetentionFeatureDiscovery: React.FC = () => {
         <FeatureDiscovery
             featureName='data_retention'
             minimumSKURequiredForFeature={LicenseSkus.Enterprise}
-            titleID='admin.data_retention_feature_discovery.title'
-            titleDefault='Create data retention schedules with Mattermost Enterprise'
-            copyID='admin.data_retention_feature_discovery.copy'
-            copyDefault={'Hold on to your data only as long as you need to. Create data retention jobs for select channels and teams to automatically delete disposable data.'}
+            title={defineMessage({
+                id: 'admin.data_retention_feature_discovery.title',
+                defaultMessage: 'Create data retention schedules with Mattermost Enterprise',
+            })}
+            copy={defineMessage({
+                id: 'admin.data_retention_feature_discovery.copy',
+                defaultMessage: 'Hold on to your data only as long as you need to. Create data retention jobs for select channels and teams to automatically delete disposable data.',
+            })}
             learnMoreURL='https://docs.mattermost.com/administration/data-retention.html'
             featureDiscoveryImage={<DataRetentionSVG/>}
         />
     );
 };
-
-t('admin.data_retention_feature_discovery.title');
-t('admin.data_retention_feature_discovery.copy');
 
 export default DataRetentionFeatureDiscovery;
