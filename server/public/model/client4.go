@@ -5847,12 +5847,17 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 }
 
 // Download logs as mattermost.log file
-func (c *Client4) DownloadLogs(ctx context.Context) (*http.Response, *Response, error) {
+func (c *Client4) DownloadLogs(ctx context.Context) ([]byte, *Response, error) {
 	r, err := c.DoAPIGet(ctx, "/logs/download", "")
 	if err != nil {
-		return nil, nil, err
+		return nil, BuildResponse(r), err
 	}
-	return r, BuildResponse(r), nil
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("DownloadLogs", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
+	}
+
+	return data, BuildResponse(r), nil
 }
 
 // PostLog is a convenience Web Service call so clients can log messages into

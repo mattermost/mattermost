@@ -405,7 +405,6 @@ func TestGetLogs(t *testing.T) {
 func TestDownloadLogs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-	client := th.Client
 
 	for i := 0; i < 20; i++ {
 		th.TestLogger.Info(strconv.Itoa(i))
@@ -413,18 +412,14 @@ func TestDownloadLogs(t *testing.T) {
 	err := th.TestLogger.Flush()
 	require.NoError(t, err, "failed to flush log")
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		res, resp, err := client.DownloadLogs(context.Background())
-		require.NoError(t, err)
-
-		defer res.Body.Close()
-		bodyBytes, err := io.ReadAll(res.Body)
-		require.NoError(t, err)
+	t.Run("Download Logs as system admin", func(t *testing.T) {
+		resData, resp, err2 := th.SystemAdminClient.DownloadLogs(context.Background())
+		require.NoError(t, err2)
 
 		require.Equal(t, "text/plain", resp.Header.Get("Content-Type"))
-		require.Contains(t, resp.Header.Get("Content-Disposition"), "attachment; filename=\"mattermost.log\"")
+		require.Contains(t, resp.Header.Get("Content-Disposition"), "attachment;filename=\"mattermost.log\"")
 
-		bodyString := string(bodyBytes)
+		bodyString := string(resData)
 		for i := 0; i < 20; i++ {
 			assert.Contains(t, bodyString, fmt.Sprintf(`"msg":"%d"`, i))
 		}
@@ -432,8 +427,8 @@ func TestDownloadLogs(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
-		_, resp, err := th.Client.DownloadLogs(context.Background())
-		require.Error(t, err)
+		_, resp, err2 := th.Client.DownloadLogs(context.Background())
+		require.Error(t, err2)
 		CheckForbiddenStatus(t, resp)
 	})
 

@@ -403,7 +403,6 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	auditRec := c.MakeAuditRecord("downloadLogs", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
