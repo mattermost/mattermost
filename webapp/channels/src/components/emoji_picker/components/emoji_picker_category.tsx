@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {EmojiCategory} from '@mattermost/types/emojis';
 
@@ -19,6 +19,8 @@ export interface Props {
 }
 
 function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onClick}: Props) {
+    const intl = useIntl();
+
     const handleClick = (event: React.MouseEvent) => {
         event.preventDefault();
 
@@ -39,19 +41,16 @@ function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onCl
             id={`emojiPickerCategoryTooltip-${category.name}`}
             placement='bottom'
             title={
-                <FormattedMessage
-                    id={`emoji_picker.${category.name}`}
-                    defaultMessage={category.message}
-                />
+                <FormattedMessage {...category.label}/>
             }
         >
             <a
                 className={className}
                 href='#'
                 onClick={handleClick}
-                aria-label={category.id}
+                aria-label={intl.formatMessage(category.label)}
             >
-                <i className={category.className}/>
+                <i className={category.iconClassName}/>
             </a>
         </WithTooltip>
     );
