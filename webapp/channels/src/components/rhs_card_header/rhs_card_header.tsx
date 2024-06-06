@@ -7,8 +7,8 @@ import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+
+import WithTooltip from 'components/with_tooltip';
 
 import Constants, {RHSStates} from 'utils/constants';
 
@@ -61,47 +61,47 @@ class RhsCardHeader extends React.PureComponent<Props> {
         case RHSStates.SEARCH:
         case RHSStates.MENTION:
             backToResultsTooltip = (
-                <Tooltip id='backToResultsTooltip'>
+                <WithTooltip id='backToResultsTooltip'>
                     <FormattedMessage
                         id='rhs_header.backToResultsTooltip'
                         defaultMessage='Back to search results'
                     />
-                </Tooltip>
+                </WithTooltip>
             );
             break;
         case RHSStates.FLAG:
             backToResultsTooltip = (
-                <Tooltip id='backToResultsTooltip'>
+                <WithTooltip id='backToResultsTooltip'>
                     <FormattedMessage
                         id='rhs_header.backToFlaggedTooltip'
                         defaultMessage='Back to saved messages'
                     />
-                </Tooltip>
+                </WithTooltip>
             );
             break;
         case RHSStates.PIN:
             backToResultsTooltip = (
-                <Tooltip id='backToResultsTooltip'>
+                <WithTooltip id='backToResultsTooltip'>
                     <FormattedMessage
                         id='rhs_header.backToPinnedTooltip'
                         defaultMessage='Back to pinned messages'
                     />
-                </Tooltip>
+                </WithTooltip>
             );
             break;
         }
 
         const closeSidebarTooltip = (
-            <Tooltip id='closeSidebarTooltip'>
+            <WithTooltip id='closeSidebarTooltip'>
                 <FormattedMessage
                     id='rhs_header.closeSidebarTooltip'
                     defaultMessage='Close'
                 />
-            </Tooltip>
+            </WithTooltip>
         );
 
         const expandSidebarTooltip = (
-            <Tooltip id='expandSidebarTooltip'>
+            <WithTooltip id='expandSidebarTooltip'>
                 <FormattedMessage
                     id='rhs_header.expandSidebarTooltip'
                     defaultMessage='Expand the right sidebar'
@@ -111,11 +111,11 @@ class RhsCardHeader extends React.PureComponent<Props> {
                     hideDescription={true}
                     isInsideTooltip={true}
                 />
-            </Tooltip>
+            </WithTooltip>
         );
 
         const shrinkSidebarTooltip = (
-            <Tooltip id='shrinkSidebarTooltip'>
+            <WithTooltip id='shrinkSidebarTooltip'>
                 <FormattedMessage
                     id='rhs_header.collapseSidebarTooltip'
                     defaultMessage='Collapse the right sidebar'
@@ -125,15 +125,15 @@ class RhsCardHeader extends React.PureComponent<Props> {
                     hideDescription={true}
                     isInsideTooltip={true}
                 />
-            </Tooltip>
+            </WithTooltip>
         );
 
         if (backToResultsTooltip) {
             back = (
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                <WithTooltip
+                    // delayShow={Constants.OVERLAY_TIME_DELAY}
                     placement='top'
-                    overlay={backToResultsTooltip}
+                    title={backToResultsTooltip}
                 >
                     <button
                         className='sidebar--right__back btn btn-icon btn-sm'
@@ -144,7 +144,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
                             className='icon icon-arrow-back-ios'
                         />
                     </button>
-                </OverlayTrigger>
+                </WithTooltip>
             );
         }
 
@@ -158,10 +158,10 @@ class RhsCardHeader extends React.PureComponent<Props> {
                     />
                 </span>
                 <div className='pull-right'>
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                    <WithTooltip
+                        // delayShow={Constants.OVERLAY_TIME_DELAY}
                         placement='bottom'
-                        overlay={this.props.isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
+                        title={this.props.isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
                     >
                         <button
                             type='button'
@@ -178,11 +178,11 @@ class RhsCardHeader extends React.PureComponent<Props> {
                                 aria-label={this.props.intl.formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
                             />
                         </button>
-                    </OverlayTrigger>
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                    </WithTooltip>
+                    <WithTooltip
+                        // delayShow={Constants.OVERLAY_TIME_DELAY}
                         placement='top'
-                        overlay={closeSidebarTooltip}
+                        title={closeSidebarTooltip}
                     >
                         <button
                             type='button'
@@ -195,7 +195,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
                                 aria-label={this.props.intl.formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                             />
                         </button>
-                    </OverlayTrigger>
+                    </WithTooltip>
                 </div>
             </div>
         );
