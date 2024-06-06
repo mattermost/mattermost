@@ -55,12 +55,11 @@ export function getInt(state: GlobalState, category: string, name: string, defau
     return parseInt(value, 10);
 }
 
-export function makeGetCategory(): (state: GlobalState, category: string) => PreferenceType[] {
+export function makeGetCategory(selectorName: string, category: string): (state: GlobalState) => PreferenceType[] {
     return createSelector(
-        'makeGetCategory',
+        selectorName,
         getMyPreferences,
-        (state: GlobalState, category: string) => category,
-        (preferences, category) => {
+        (preferences) => {
             const prefix = category + '--';
             const prefsInCategory: PreferenceType[] = [];
 
@@ -75,12 +74,11 @@ export function makeGetCategory(): (state: GlobalState, category: string) => Pre
     );
 }
 
-export function makeGetUserCategory(userID: string): (state: GlobalState, category: string) => PreferenceType[] {
+export function makeGetUserCategory(selectorName: string, category: string): (state: GlobalState, userID: string) => PreferenceType[] {
     return createSelector(
-        'makeGetCategory',
-        (state) => getUserPreferences(state, userID),
-        (state: GlobalState, category: string) => category,
-        (preferences, category) => {
+        selectorName,
+        (state: GlobalState, userID: string) => getUserPreferences(state, userID),
+        (preferences) => {
             const prefix = category + '--';
             const prefsInCategory: PreferenceType[] = [];
 
@@ -95,17 +93,8 @@ export function makeGetUserCategory(userID: string): (state: GlobalState, catego
     );
 }
 
-const getDirectShowCategory = makeGetCategory();
-
-export function getDirectShowPreferences(state: GlobalState) {
-    return getDirectShowCategory(state, Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
-}
-
-const getGroupShowCategory = makeGetCategory();
-
-export function getGroupShowPreferences(state: GlobalState) {
-    return getGroupShowCategory(state, Preferences.CATEGORY_GROUP_CHANNEL_SHOW);
-}
+export const getDirectShowPreferences = makeGetCategory('getDirectShowPreferences', Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
+export const getGroupShowPreferences = makeGetCategory('getGroupShowPreferences', Preferences.CATEGORY_GROUP_CHANNEL_SHOW);
 
 export const getTeammateNameDisplaySetting: (state: GlobalState) => string = createSelector(
     'getTeammateNameDisplaySetting',
@@ -123,6 +112,8 @@ export const getTeammateNameDisplaySetting: (state: GlobalState) => string = cre
         return General.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME;
     },
 );
+
+export const getThemePreferences = makeGetCategory('getThemePreferences', Preferences.CATEGORY_THEME);
 
 const getThemePreference = createSelector(
     'getThemePreference',
@@ -344,3 +335,5 @@ export function moveThreadsEnabled(state: GlobalState): boolean {
 export function streamlinedMarketplaceEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'StreamlinedMarketplace') === 'true';
 }
+
+export const getOverageBannerPreferences = makeGetCategory('getOverageBannerPreferences', Preferences.CATEGORY_OVERAGE_USERS_BANNER);

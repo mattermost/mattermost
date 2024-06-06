@@ -5,7 +5,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {PreferenceTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {getMyPreferences as getMyPreferencesSelector, makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
+import {getMyPreferences as getMyPreferencesSelector, getThemePreferences} from 'mattermost-redux/selectors/entities/preferences';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
@@ -116,7 +116,7 @@ export function deleteTeamSpecificThemes(): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
 
-        const themePreferences: PreferenceType[] = makeGetCategory()(state, Preferences.CATEGORY_THEME);
+        const themePreferences: PreferenceType[] = getThemePreferences(state);
         const currentUserId = getCurrentUserId(state);
 
         const toDelete = themePreferences.filter((pref) => pref.name !== '');

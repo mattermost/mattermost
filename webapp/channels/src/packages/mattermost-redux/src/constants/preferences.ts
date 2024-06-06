@@ -78,6 +78,8 @@ const Preferences = {
     HIDE_BATCH_EXPORT_CONFIRM_MODAL: 'hide_batch_export_confirm_modal',
     HIDE_MYSQL_STATS_NOTIFICATION: 'hide_mysql_stats_notifcation',
 
+    CATEGORY_OVERAGE_USERS_BANNER: 'overage_users_banner',
+
     CATEGORY_THEME: 'theme',
     THEMES: {
         denim: {

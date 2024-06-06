@@ -136,8 +136,8 @@ describe('Selectors.Preferences', () => {
     });
 
     it('get preferences by category', () => {
-        const getCategory = Selectors.makeGetCategory();
-        expect(getCategory(testState, category1)).toEqual([pref1]);
+        const getTestCategory = Selectors.makeGetCategory('getTestCategory', category1);
+        expect(getTestCategory(testState)).toEqual([pref1]);
     });
 
     it('get direct channel show preferences', () => {
