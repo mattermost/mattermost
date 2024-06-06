@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import {isNil} from 'lodash';
+import isNil from 'lodash/isNil';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -84,7 +84,7 @@ export type Props = {
 
 export type State = {
     editText: string;
-    selectionRange: {start: number; end: number};
+    selectionRange: { start: number; end: number };
     postError: React.ReactNode;
     errorClass: string | null;
     showEmojiPicker: boolean;
@@ -116,7 +116,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     // If we would just use the editText value from the state it would be a stale since it is encapsuled in the
     // function closure on initial render
     const draftRef = useRef<PostDraft>(draft);
-    const saveDraftFrame = useRef<number|null>();
+    const saveDraftFrame = useRef<number | null>();
 
     const draftStorageId = `${StoragePrefixes.EDIT_DRAFT}${editingPost.postId}`;
 
@@ -251,7 +251,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         setSelectionRange({start: res.selectionStart, end: res.selectionEnd});
     };
 
-    const handleRefocusAndExit = (refocusId: string|null) => {
+    const handleRefocusAndExit = (refocusId: string | null) => {
         if (refocusId) {
             const element = document.getElementById(refocusId);
             element?.focus();
