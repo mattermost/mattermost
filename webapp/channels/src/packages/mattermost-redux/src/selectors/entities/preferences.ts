@@ -20,19 +20,18 @@ export function getUserPreferences(state: GlobalState, userID: string): Preferen
     return state.entities.preferences.userPreferences[userID];
 }
 
+function getPreferenceObject(state: GlobalState, category: string, name: string): PreferenceType | undefined {
+    return getMyPreferences(state)[getPreferenceKey(category, name)];
+}
+
 export function get(state: GlobalState, category: string, name: string, defaultValue = '', preferences?: PreferencesType): string {
     if (preferences) {
         return getFromPreferences(preferences, category, name, defaultValue);
     }
 
-    const key = getPreferenceKey(category, name);
-    const prefs = getMyPreferences(state);
+    const pref = getPreferenceObject(state, category, name);
 
-    if (!(key in prefs)) {
-        return defaultValue;
-    }
-
-    return prefs[key].value;
+    return pref ? pref.value : defaultValue;
 }
 
 export function getFromPreferences(preferences: PreferencesType, category: string, name: string, defaultValue: any = '') {
@@ -99,13 +98,12 @@ export const getGroupShowPreferences = makeGetCategory('getGroupShowPreferences'
 export const getTeammateNameDisplaySetting: (state: GlobalState) => string = createSelector(
     'getTeammateNameDisplaySetting',
     getConfig,
-    getMyPreferences,
+    (state) => getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT),
     getLicense,
-    (config, preferences, license) => {
+    (config, teammateNameDisplayPreference, license) => {
         const useAdminTeammateNameDisplaySetting = (license && license.LockTeammateNameDisplay === 'true') && config.LockTeammateNameDisplay === 'true';
-        const key = getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT);
-        if (preferences[key] && !useAdminTeammateNameDisplaySetting) {
-            return preferences[key].value || '';
+        if (teammateNameDisplayPreference && !useAdminTeammateNameDisplaySetting) {
+            return teammateNameDisplayPreference.value || '';
         } else if (config.TeammateNameDisplay) {
             return config.TeammateNameDisplay;
         }
@@ -207,6 +205,14 @@ export function makeGetStyleFromTheme<Style>(): (state: GlobalState, getStyleFro
             return getStyleFromTheme(theme);
         },
     );
+}
+
+export function shouldShowJoinLeaveMessages(state: GlobalState) {
+    const config = getConfig(state);
+    const enableJoinLeaveMessage = config.EnableJoinLeaveMessageByDefault === 'true';
+
+    // This setting is true or not set if join/leave messages are to be displayed
+    return getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE, enableJoinLeaveMessage);
 }
 
 // shouldShowUnreadsCategory returns true if the user has unereads grouped separately with the new sidebar enabled.
