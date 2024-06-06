@@ -8,7 +8,7 @@ import type {GlobalState} from '@mattermost/types/store';
 import {General, Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {createShallowSelector} from 'mattermost-redux/utils/helpers';
+import {createIdsSelector, createShallowSelector} from 'mattermost-redux/utils/helpers';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
 
@@ -55,7 +55,7 @@ export function getInt(state: GlobalState, category: string, name: string, defau
 }
 
 export function makeGetCategory(selectorName: string, category: string): (state: GlobalState) => PreferenceType[] {
-    return createSelector(
+    return createIdsSelector(
         selectorName,
         getMyPreferences,
         (preferences) => {
@@ -74,7 +74,7 @@ export function makeGetCategory(selectorName: string, category: string): (state:
 }
 
 export function makeGetUserCategory(selectorName: string, category: string): (state: GlobalState, userID: string) => PreferenceType[] {
-    return createSelector(
+    return createIdsSelector(
         selectorName,
         (state: GlobalState, userID: string) => getUserPreferences(state, userID),
         (preferences) => {
