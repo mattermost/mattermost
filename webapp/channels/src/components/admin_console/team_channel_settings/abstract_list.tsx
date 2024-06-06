@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {MouseEvent} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
@@ -28,8 +29,7 @@ type Props = {
     total: number;
     header: JSX.Element;
     renderRow: (item: Group | TeamWithMembership) => JSX.Element;
-    emptyListTextId: string;
-    emptyListTextDefaultMessage: string;
+    emptyListText: MessageDescriptor;
     actions: {
         getData: (page: number, perPage: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, includeDeleted?: boolean) => Promise<void>;
     };
@@ -91,10 +91,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
         if (this.props.data.length === 0) {
             return (
                 <div className='groups-list-empty'>
-                    <FormattedMessage
-                        id={this.props.emptyListTextId}
-                        defaultMessage={this.props.emptyListTextDefaultMessage}
-                    />
+                    <FormattedMessage {...this.props.emptyListText}/>
                 </div>
             );
         }

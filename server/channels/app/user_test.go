@@ -1687,6 +1687,49 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 	// Test bad role.
 	_, err = th.App.UpdateUserRolesWithUser(th.Context, user, "does not exist", false)
 	require.NotNil(t, err)
+
+	//Test reset to User role
+	user, err = th.App.UpdateUserRolesWithUser(th.Context, user, model.SystemUserRoleId, false)
+	require.Nil(t, err)
+	assert.Equal(t, user.Roles, model.SystemUserRoleId)
+}
+
+func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
+	// InitBasic is used to let the first CreateUser call not be
+	// a system_admin
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Cannot remove if only admin", func(t *testing.T) {
+		// Attempt to downgrade sysadmin.
+		user, appErr := th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.NotNil(t, appErr)
+		require.Nil(t, user)
+	})
+
+	t.Run("Cannot remove if only non-Bot admin", func(t *testing.T) {
+		bot := th.CreateBot()
+		user, appErr := th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+
+		// Attempt to downgrade sysadmin.
+		user, appErr = th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.NotNil(t, appErr)
+		require.Nil(t, user)
+	})
+
+	t.Run("Can remove if not only non-Bot admin", func(t *testing.T) {
+		systemAdminUser2 := th.CreateUser()
+		user, appErr := th.App.UpdateUserRoles(th.Context, systemAdminUser2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+
+		// Attempt to downgrade sysadmin.
+		user, appErr = th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+	})
 }
 
 func TestDeactivateMfa(t *testing.T) {
