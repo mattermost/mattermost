@@ -1,0 +1,1 @@
+UPDATE Roles set Permissions = REPLACE(Permissions, 'upload_file', '') WHERE Permissions ~~ 'upload_file' and Permissions !~ 'create_post(\?|\s)';
