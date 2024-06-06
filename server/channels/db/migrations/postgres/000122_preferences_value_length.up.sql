@@ -1,0 +1,1 @@
+ALTER TABLE Preferences ALTER COLUMN TYPE text;
