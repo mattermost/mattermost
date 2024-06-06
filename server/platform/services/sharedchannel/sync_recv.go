@@ -17,6 +17,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
+var (
+	ErrRemoteIDMismatch = errors.New("remoteID mismatch")
+)
+
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	if msg.Topic != TopicSync {
 		return fmt.Errorf("wrong topic, expected `%s`, got `%s`", TopicSync, msg.Topic)
@@ -167,9 +171,6 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 
 func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
-	if user.RemoteId == nil || *user.RemoteId == "" {
-		user.RemoteId = model.NewString(rc.RemoteId)
-	}
 
 	// Check if user already exists
 	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
@@ -181,10 +182,22 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 
 	var userSaved *model.User
 	if euser == nil {
+		// new user.  Make sure the remoteID is correct and insert the record
+		user.RemoteId = model.NewString(rc.RemoteId)
 		if userSaved, err = scs.insertSyncUser(c, user, channel, rc); err != nil {
 			return nil, err
 		}
 	} else {
+		// existing user. Make sure user belongs to the remote that issued the update
+		if SafeString(euser.RemoteId) != rc.RemoteId {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "RemoteID mismatch sync'ing user",
+				mlog.String("remote", rc.Name),
+				mlog.String("user_id", user.Id),
+				mlog.String("existing_user_remote_id", SafeString(euser.RemoteId)),
+				mlog.String("update_user_remote_id", SafeString(user.RemoteId)),
+			)
+			return nil, fmt.Errorf("error updating user: %w", ErrRemoteIDMismatch)
+		}
 		patch := &model.UserPatch{
 			Username:  &user.Username,
 			Nickname:  &user.Nickname,
@@ -195,7 +208,6 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 			Position:  &user.Position,
 			Locale:    &user.Locale,
 			Timezone:  user.Timezone,
-			RemoteId:  user.RemoteId,
 		}
 		if userSaved, err = scs.updateSyncUser(c, patch, euser, channel, rc); err != nil {
 			return nil, err
@@ -329,8 +341,9 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 	var appErr *model.AppError
 
 	post.RemoteId = model.NewString(rc.RemoteId)
+	rctx := request.EmptyContext(scs.server.Log())
 
-	rpost, err := scs.server.GetStore().Post().GetSingle(post.Id, true)
+	rpost, err := scs.server.GetStore().Post().GetSingle(rctx, post.Id, true)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
 			return nil, fmt.Errorf("error checking sync post: %w", err)
@@ -339,7 +352,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 
 	if rpost == nil {
 		// post doesn't exist; create new one
-		rpost, appErr = scs.app.CreatePost(request.EmptyContext(scs.server.Log()), post, channel, true, true)
+		rpost, appErr = scs.app.CreatePost(rctx, post, channel, true, true)
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 				mlog.String("post_id", post.Id),
@@ -348,7 +361,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 		}
 	} else if post.DeleteAt > 0 {
 		// delete post
-		rpost, appErr = scs.app.DeletePost(request.EmptyContext(scs.server.Log()), post.Id, post.UserId)
+		rpost, appErr = scs.app.DeletePost(rctx, post.Id, post.UserId)
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Deleted sync post",
 				mlog.String("post_id", post.Id),

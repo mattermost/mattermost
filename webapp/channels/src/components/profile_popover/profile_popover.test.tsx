@@ -315,7 +315,7 @@ describe('components/ProfilePopover', () => {
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         const button = (await screen.findByLabelText('Call with user is ongoing')).closest('button');
-        expect(button?.getAttribute('aria-disabled')).toBe('true');
+        expect(button).toBeDisabled();
     });
 
     test('should not show the start call button when callsChannelState.enabled is false', async () => {

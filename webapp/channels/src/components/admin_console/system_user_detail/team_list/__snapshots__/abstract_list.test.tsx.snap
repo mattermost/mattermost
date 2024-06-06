@@ -55,7 +55,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Name
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.team_settings.team_list.header.name"
+      />
     </div>
     <div
       className="AbstractList__header-label"
@@ -66,7 +69,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Type
+      <MemoizedFormattedMessage
+        defaultMessage="Type"
+        id="admin.systemUserDetail.teamList.header.type"
+      />
     </div>
     <div
       className="AbstractList__header-label"
@@ -77,7 +83,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Role
+      <MemoizedFormattedMessage
+        defaultMessage="Role"
+        id="admin.systemUserDetail.teamList.header.role"
+      />
     </div>
   </div>
   <div
@@ -280,7 +289,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Name
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.team_settings.team_list.header.name"
+      />
     </div>
     <div
       className="AbstractList__header-label"
@@ -291,7 +303,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Type
+      <MemoizedFormattedMessage
+        defaultMessage="Type"
+        id="admin.systemUserDetail.teamList.header.type"
+      />
     </div>
     <div
       className="AbstractList__header-label"
@@ -302,7 +317,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Role
+      <MemoizedFormattedMessage
+        defaultMessage="Role"
+        id="admin.systemUserDetail.teamList.header.role"
+      />
     </div>
   </div>
   <div
@@ -505,7 +523,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Name
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.team_settings.team_list.header.name"
+      />
     </div>
     <div
       className="AbstractList__header-label"
@@ -516,7 +537,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Type
+      <MemoizedFormattedMessage
+        defaultMessage="Type"
+        id="admin.systemUserDetail.teamList.header.type"
+      />
     </div>
     <div
       className="AbstractList__header-label"
@@ -527,7 +551,10 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         }
       }
     >
-      Role
+      <MemoizedFormattedMessage
+        defaultMessage="Role"
+        id="admin.systemUserDetail.teamList.header.role"
+      />
     </div>
   </div>
   <div
