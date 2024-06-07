@@ -13,7 +13,7 @@
         "allowSyntheticDefaultImports": true,
         "jsx": "react",
         "outDir": "./lib",
-        "rootDir": "./src",
+        "rootDir": ".",
         "composite": true,
         "useUnknownInCatchVariables": false,
         "paths": {
