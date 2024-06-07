@@ -1,1 +1,1 @@
-ALTER TABLE Preferences ALTER COLUMN TYPE text;
+ALTER TABLE Preferences ALTER COLUMN Value TYPE text;
