@@ -216,7 +216,7 @@ const AdvanceTextEditor = ({
         channel = postChannel;
     }
     if (channel && channel.type === 'D') {
-        teammateId = channel.teammate_id || ''
+        teammateId = channel.teammate_id || '';
     }
     const teammateStatus = useSelector((state: GlobalState) => getStatusForUserId(state, teammateId));
     const teammate = useSelector((state: GlobalState) => getUser(state, teammateId));
