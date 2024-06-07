@@ -19,7 +19,7 @@ func TestDoDeleteEmptyDraftsMigrationBatch(t *testing.T) {
 			mockStore.AssertExpectations(t)
 		})
 
-		mockStore.DraftStore.On("DeleteVisibleDmsGms").Return(errors.New("failure"))
+		mockStore.PreferenceStore.On("DeleteInvalidVisibleDmsGms").Return(errors.New("failure"))
 
 		data, done, err := doDeleteDmsPreferencesMigrationBatch(nil, mockStore)
 		require.EqualError(t, err, "failed to delete empty drafts (create_at=1695920000, user_id=user_id_1): failure")

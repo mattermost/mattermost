@@ -30,7 +30,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, app jobs.BatchMigr
 
 // doDeleteDmsPreferencesMigrationBatch deletes any limit_visible_dms_gms preferences with a value > 40
 func doDeleteDmsPreferencesMigrationBatch(data model.StringMap, store store.Store) (model.StringMap, bool, error) {
-	rowAffected, err := store.Preference().DeleteVisibleDmsGms()
+	rowAffected, err := store.Preference().DeleteInvalidVisibleDmsGms()
 	if err != nil {
 		return nil, false, errors.Wrapf(err, "failed to delete limit_visible_dms_gms with a value > 40")
 	}

@@ -129,9 +129,9 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		if pref.Name == model.PreferenceLimitVisibleDmsGms {
+		if pref.Category == model.PreferenceCategorySidebarSettings && pref.Name == model.PreferenceLimitVisibleDmsGms {
 			visibleDmsGmsValue, convErr := strconv.Atoi(pref.Value)
-			if convErr != nil || visibleDmsGmsValue < 0 || visibleDmsGmsValue > model.PreferenceMaxLimitVisibleDmsGmsValue {
+			if convErr != nil || visibleDmsGmsValue < 1 || visibleDmsGmsValue > model.PreferenceMaxLimitVisibleDmsGmsValue {
 				c.SetInvalidParam("preference.value")
 				return
 			}

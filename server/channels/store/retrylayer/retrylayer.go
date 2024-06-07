@@ -8363,11 +8363,11 @@ func (s *RetryLayerPreferenceStore) DeleteCategoryAndName(category string, name 
 
 }
 
-func (s *RetryLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error) {
+func (s *RetryLayerPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.PreferenceStore.DeleteOrphanedRows(limit)
+		result, err := s.PreferenceStore.DeleteInvalidVisibleDmsGms()
 		if err == nil {
 			return result, nil
 		}
@@ -8384,11 +8384,11 @@ func (s *RetryLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error)
 
 }
 
-func (s *RetryLayerPreferenceStore) DeleteVisibleDmsGms() (int64, error) {
+func (s *RetryLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.PreferenceStore.DeleteVisibleDmsGms()
+		result, err := s.PreferenceStore.DeleteOrphanedRows(limit)
 		if err == nil {
 			return result, nil
 		}

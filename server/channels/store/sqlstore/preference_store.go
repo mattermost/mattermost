@@ -316,7 +316,7 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 	return rowsAffected, nil
 }
 
-func (s SqlPreferenceStore) DeleteVisibleDmsGms() (int64, error) {
+func (s SqlPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
 	var query string
 	if s.DriverName() == "postgres" {
 		query = `DELETE FROM Preferences
@@ -335,11 +335,16 @@ func (s SqlPreferenceStore) DeleteVisibleDmsGms() (int64, error) {
 	} else {
 		query = `DELETE FROM Preferences
 		WHERE category = 'sidebar_settings' AND name = 'limit_visible_dms_gms'
-		AND SUBSTRING(
+		AND (SUBSTRING(
 		  CONCAT('000000000000000', value), 
 		  LENGTH(value) + 1, 
 		  15
 		) > '000000000000040'
+		OR SUBSTRING(
+			CONCAT('000000000000000', value), 
+			LENGTH(value) + 1, 
+			15
+		  ) < '000000000000001')
 		LIMIT 100`
 	}
 	result, err := s.GetMasterX().Exec(query)
