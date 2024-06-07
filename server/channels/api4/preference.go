@@ -129,7 +129,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		if pref.Category == model.PreferenceLimitVisibleDmsGms {
+		if pref.Name == model.PreferenceLimitVisibleDmsGms {
 			visibleDmsGmsValue, convErr := strconv.Atoi(pref.Value)
 			if convErr != nil || visibleDmsGmsValue < 0 || visibleDmsGmsValue > model.PreferenceMaxLimitVisibleDmsGmsValue {
 				c.SetInvalidParam("preference.value")
