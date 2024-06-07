@@ -1,0 +1,53 @@
+{
+  "name": "@mattermost/mattermost-redux",
+  "version": "9.3.0",
+  "description": "Redux utilities for working with Mattermost",
+  "keywords": [
+    "mattermost"
+  ],
+  "homepage": "https://github.com/mattermost/mattermost/tree/master/webapp/platform/mattermost-redux#readme",
+  "license": "MIT",
+  "files": [
+    "lib"
+  ],
+  "exports": {
+    "./*": "./lib/*.js"
+  },
+  "typesVersions": {
+    ">=3.1": {
+      "*": [
+        "./lib/*.d.ts"
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "github:mattermost/mattermost",
+    "directory": "webapp/platform/mattermost-redux"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@types/jest": "28.1.8",
+    "jest": "27.1.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@mattermost/types": "9.3.0",
+    "@mattermost/client": "9.3.0",
+    "typescript": "^4.3.0 || ^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json --verbose",
+    "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
+    "run": "tsc --watch --preserveWatchOutput",
+    "test": "cross-env TZ=Etc/UTC jest",
+    "test-ci": "cross-env TZ=Etc/UTC jest --ci --forceExit --detectOpenHandles --maxWorkers=100%",
+    "clean": "rm -rf lib node_modules *.tsbuildinfo"
+  }
+}
