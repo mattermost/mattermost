@@ -8,7 +8,7 @@ import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
 import reducer from 'mattermost-redux/reducers/entities/users';
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
-import {TestHelper} from 'utils/test_helper';
+import TestHelper from '../../../test/test_helper';
 
 type ReducerState = ReturnType<typeof reducer>;
 

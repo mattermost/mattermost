@@ -198,7 +198,7 @@ function dumpTrackedSelectorsStatistics() {
     console.table(selectors); //eslint-disable-line no-console
 }
 
-globalThis.dumpTrackedSelectorsStatistics = dumpTrackedSelectorsStatistics;
-globalThis.resetTrackedSelectors = resetTrackedSelectors;
-globalThis.getSortedTrackedSelectors = getSortedTrackedSelectors
+window.dumpTrackedSelectorsStatistics = dumpTrackedSelectorsStatistics;
+window.resetTrackedSelectors = resetTrackedSelectors;
+window.getSortedTrackedSelectors = getSortedTrackedSelectors
 

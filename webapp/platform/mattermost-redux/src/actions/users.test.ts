@@ -1086,7 +1086,7 @@ describe('Actions.Users', () => {
         });
         await store.dispatch(Actions.loadMe());
 
-        const testImageData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
+        const testImageData = fs.createReadStream('test/assets/images/test.png');
 
         const beforeTime = new Date().getTime();
         const currentUserId = store.getState().entities.users.currentUserId;

@@ -382,7 +382,7 @@ describe('Actions.Admin', () => {
     });
 
     it('uploadBrandImage', async () => {
-        const testImageData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
+        const testImageData = fs.createReadStream('test/assets/images/test.png');
 
         nock(Client4.getBaseRoute()).
             post('/brand/image').
@@ -464,7 +464,7 @@ describe('Actions.Admin', () => {
     });
 
     it('uploadPublicSamlCertificate', async () => {
-        const testFileData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
+        const testFileData = fs.createReadStream('test/assets/images/test.png');
 
         nock(Client4.getBaseRoute()).
             post('/saml/certificate/public').
@@ -476,7 +476,7 @@ describe('Actions.Admin', () => {
     });
 
     it('uploadPrivateSamlCertificate', async () => {
-        const testFileData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
+        const testFileData = fs.createReadStream('test/assets/images/test.png');
 
         nock(Client4.getBaseRoute()).
             post('/saml/certificate/private').
@@ -488,7 +488,7 @@ describe('Actions.Admin', () => {
     });
 
     it('uploadIdpSamlCertificate', async () => {
-        const testFileData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
+        const testFileData = fs.createReadStream('test/assets/images/test.png');
 
         nock(Client4.getBaseRoute()).
             post('/saml/certificate/idp').
@@ -530,7 +530,7 @@ describe('Actions.Admin', () => {
     });
 
     it('uploadPublicLdapCertificate', async () => {
-        const testFileData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
+        const testFileData = fs.createReadStream('test/assets/images/test.png');
 
         nock(Client4.getBaseRoute()).
             post('/ldap/certificate/public').
@@ -542,7 +542,7 @@ describe('Actions.Admin', () => {
     });
 
     it('uploadPrivateLdapCertificate', async () => {
-        const testFileData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
+        const testFileData = fs.createReadStream('test/assets/images/test.png');
 
         nock(Client4.getBaseRoute()).
             post('/ldap/certificate/private').
@@ -594,7 +594,7 @@ describe('Actions.Admin', () => {
     });
 
     it('uploadLicense', async () => {
-        const testFileData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
+        const testFileData = fs.createReadStream('test/assets/images/test.png');
 
         nock(Client4.getBaseRoute()).
             post('/license').
@@ -704,7 +704,7 @@ describe('Actions.Admin', () => {
     });
 
     it('uploadPlugin', async () => {
-        const testFileData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
+        const testFileData = fs.createReadStream('test/assets/images/test.png');
         const testPlugin = {id: 'testplugin', webapp: {bundle_path: '/static/somebundle.js'}};
 
         nock(Client4.getBaseRoute()).

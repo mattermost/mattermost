@@ -540,7 +540,7 @@ class TestHelper {
         };
     };
 
-    getPostMock = (override?: Partial<Post>) => {
+    getPostMock = (override?: Omit<Partial<Post>, 'metadata'> & {metadata?: Partial<Post['metadata']>}) => {
         return Object.assign(this.fakePost(override?.channel_id || ''), override);
     };
 

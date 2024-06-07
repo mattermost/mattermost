@@ -645,7 +645,7 @@ describe('Actions.Teams', () => {
         let state = store.getState();
         expect(state.entities.teams.teams[team!.id].invite_id).toEqual('');
 
-        const imageData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
+        const imageData = fs.createReadStream('test/assets/images/test.png');
 
         nock(Client4.getTeamRoute(team!.id)).
             post('/image').

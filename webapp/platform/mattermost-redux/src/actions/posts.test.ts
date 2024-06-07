@@ -17,10 +17,8 @@ import {Client4} from 'mattermost-redux/client';
 import type {GetStateFunc} from 'mattermost-redux/types/actions';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import mockStore from 'tests/test_store';
-
 import TestHelper from '../../test/test_helper';
-import configureStore from '../../test/test_store';
+import configureStore, {mockStore} from '../../test/test_store';
 import {Preferences, Posts, RequestStatus} from '../constants';
 
 const OK_RESPONSE = {status: 'OK'};
@@ -1314,7 +1312,7 @@ describe('Actions.Posts', () => {
     });
 
     it('getCustomEmojiForReaction', async () => {
-        const testImageData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
+        const testImageData = fs.createReadStream('test/assets/images/test.png');
         const {dispatch, getState} = store;
 
         nock(Client4.getBaseRoute()).
