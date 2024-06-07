@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {randomUUID} from 'crypto';
+
 import nock from 'nock';
 
 import {Client4} from '@mattermost/client';

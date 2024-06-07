@@ -26,10 +26,23 @@
     "directory": "webapp/platform/mattermost-redux"
   },
   "dependencies": {
+    "lodash": "^4.17.21",
+    "moment-timezone": "^0.5.38",
+    "redux": "^4.2.0",
+    "redux-batched-actions": "^0.5.0",
+    "redux-thunk": "^2.4.2",
+    "shallow-equals": "^1.0.0",
+    "timezones.json": "^1.6.1"
   },
   "devDependencies": {
     "@types/jest": "28.1.8",
+    "identity-obj-proxy": "3.0.0",
+    "isomorphic-fetch": "3.0.0",
     "jest": "27.1.0",
+    "jest-environment-jsdom": "29.7.0",
+    "nock": "13.2.8",
+    "@redux-devtools/extension": "3.2.3",
+    "redux-mock-store": "1.5.4",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
