@@ -27,8 +27,8 @@ const config = {
         '^@mattermost/(client)$': '<rootDir>/../platform/$1/src',
         '^@mattermost/(types)/(.*)$': '<rootDir>/../platform/$1/src/$2',
         '^mattermost-redux/test/(.*)$':
-            '<rootDir>/src/packages/mattermost-redux/test/$1',
-        '^mattermost-redux/(.*)$': '<rootDir>/src/packages/mattermost-redux/src/$1',
+            '<rootDir>/../platform/mattermost-redux/test/$1',
+        '^mattermost-redux/(.*)$': '<rootDir>/../platform/mattermost-redux/src/$1',
         '^.+\\.(jpg|jpeg|png|apng|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
             'identity-obj-proxy',
         '^.+\\.(css|less|scss)$': 'identity-obj-proxy',

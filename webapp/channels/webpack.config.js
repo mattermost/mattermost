@@ -129,8 +129,6 @@ var config = {
             './src',
         ],
         alias: {
-            'mattermost-redux/test': 'packages/mattermost-redux/test',
-            'mattermost-redux': 'packages/mattermost-redux/src',
             '@mui/styled-engine': '@mui/styled-engine-sc',
 
             // This alias restricts single version of styled components acros all packages
