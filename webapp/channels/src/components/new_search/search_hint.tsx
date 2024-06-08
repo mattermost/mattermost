@@ -22,7 +22,7 @@ const SearchHintsContainer = styled.div`
         margin-right: 8px;
         color: var(--center-channel-color-56);
     }
-`
+`;
 
 const SearchFilter = styled.div`
     display: flex;
@@ -34,13 +34,13 @@ const SearchFilter = styled.div`
     line-height: 12px;
     margin-left: 10px;
     cursor: pointer;
-`
+`;
 
 const SearchHints = ({onSelectFilter, searchType, searchTerms, hasSelectedOption}: Props): JSX.Element => {
     const intl = useIntl();
     let filters = searchHintOptions.filter((filter) => filter.searchTerm !== '-' && filter.searchTerm !== '""');
     if (searchType === 'files') {
-        filters = searchFilesHintOptions.filter((filter) => filter.searchTerm !== '-' && filter.searchTerm !== '""');;
+        filters = searchFilesHintOptions.filter((filter) => filter.searchTerm !== '-' && filter.searchTerm !== '""');
     }
 
     if (hasSelectedOption) {

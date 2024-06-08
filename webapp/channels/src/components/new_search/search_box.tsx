@@ -6,21 +6,22 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import styled from 'styled-components';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
-
-import QuickInput from 'components/quick_input';
-import SearchChannelProvider from 'components/suggestion/search_channel_provider';
-import SearchDateProvider from 'components/suggestion/search_date_provider';
-import SearchUserProvider, {SearchUserSuggestion} from 'components/suggestion/search_user_provider';
-import SearchChannelSuggestion from 'components/suggestion/search_channel_suggestion';
-import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
-
-import Provider, {ProviderResult} from 'components/suggestion/provider';
 
 import {autocompleteChannelsForSearch} from 'actions/channel_actions';
 import {autocompleteUsersInTeam} from 'actions/user_actions';
+
+import QuickInput from 'components/quick_input';
+import type {ProviderResult} from 'components/suggestion/provider';
+import type Provider from 'components/suggestion/provider';
+import SearchChannelProvider from 'components/suggestion/search_channel_provider';
+import SearchChannelSuggestion from 'components/suggestion/search_channel_suggestion';
+import SearchDateProvider from 'components/suggestion/search_date_provider';
+import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
+import SearchUserProvider, {SearchUserSuggestion} from 'components/suggestion/search_user_provider';
+import type {SuggestionProps} from 'components/suggestion/suggestion';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -36,7 +37,7 @@ type Props = {
 
 const SearchBoxContainer = styled.div`
     padding: 0px;
-`
+`;
 
 const SearchInput = styled.div`
     position: relative;
@@ -63,7 +64,7 @@ const SearchInput = styled.div`
             box-shadow: none;
         }
     }
-`
+`;
 
 const SearchTypeSelector = styled.div`
     margin: 24px 32px 0px 24px;
@@ -76,7 +77,7 @@ const SearchTypeSelector = styled.div`
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     margin-bottom: 8px;
     width: fit-content;
-`
+`;
 
 type SearchTypeItemProps = {
     selected: boolean;
@@ -90,14 +91,14 @@ const SearchTypeItem = styled.div<SearchTypeItemProps>`
     border-radius: 4px;
     font-size: 12px;
     font-weight: 600;
-`
+`;
 
 const ClearButton = styled.div`
     display: flex;
     position: absolute;
     right: 10px;
     cursor: pointer;
-`
+`;
 
 const CloseIcon = styled.i`
     cursor: pointer;
@@ -114,10 +115,10 @@ const CloseIcon = styled.i`
     background-color: #f5f5f5;
     width: 24px;
     height: 24px;
-`
+`;
 
 const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
-    const intl = useIntl()
+    const intl = useIntl();
     const dispatch = useDispatch();
     const [searchTerms, setSearchTerms] = useState<string>('');
     const [searchType, setSearchType] = useState<string>('messages');
@@ -136,34 +137,33 @@ const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
         setProviderResults(null);
         suggestionProviders.current[0].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
             res.component = SearchDateSuggestion;
-            res.items = res.items.slice(0, 10)
-            res.terms = res.terms.slice(0, 10)
-            setProviderResults(res)
+            res.items = res.items.slice(0, 10);
+            res.terms = res.terms.slice(0, 10);
+            setProviderResults(res);
             setSelectedOption(0);
         });
         suggestionProviders.current[1].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
             res.component = SearchChannelSuggestion;
-            res.items = res.items.slice(0, 10)
-            res.terms = res.terms.slice(0, 10)
-            setProviderResults(res)
+            res.items = res.items.slice(0, 10);
+            res.terms = res.terms.slice(0, 10);
+            setProviderResults(res);
             setSelectedOption(0);
         });
         suggestionProviders.current[2].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
             res.component = SearchUserSuggestion;
-            res.items = res.items.slice(0, 10)
-            res.terms = res.terms.slice(0, 10)
-            setProviderResults(res)
+            res.items = res.items.slice(0, 10);
+            res.terms = res.terms.slice(0, 10);
+            setProviderResults(res);
             setSelectedOption(0);
         });
     }, [searchTerms]);
-
 
     const handleKeyDown = (e: React.KeyboardEvent<Element>): void => {
         if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
             e.stopPropagation();
             e.preventDefault();
             if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
-                onClose()
+                onClose();
             } else {
                 setSelectedOption(-1);
             }
@@ -193,7 +193,7 @@ const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
                 onSearch(searchType, searchTerms);
             } else {
                 const value = providerResults?.terms[selectedOption];
-                setSearchTerms(searchTerms + value + " ");
+                setSearchTerms(searchTerms + value + ' ');
                 inputRef.current?.focus();
                 setSelectedOption(-1);
             }
@@ -246,10 +246,12 @@ const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
                     autoFocus={true}
                     onKeyDown={handleKeyDown}
                 />
-                <ClearButton onClick={() => {
-                    setSearchTerms('');
-                    inputRef.current?.focus();
-                }}>
+                <ClearButton
+                    onClick={() => {
+                        setSearchTerms('');
+                        inputRef.current?.focus();
+                    }}
+                >
                     <i className='icon icon-close'/>
                     <FormattedMessage
                         id='search_bar.clear'
@@ -263,31 +265,33 @@ const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
                         if (!providerResults.component) {
                             return null;
                         }
-                        const Component = providerResults.component;
-                        return (<Component
-                            key={providerResults.terms[idx]}
-                            item={item as UserProfile}
-                            term={providerResults.terms[idx]}
-                            matchedPretext={providerResults.matchedPretext}
-                            isSelection={idx === selectedOption}
-                            onClick={(value: string, matchedPretext: string) => {
-                                matchedPretext
-                                setSearchTerms(searchTerms + value + " ")
-                                inputRef.current?.focus();
-                            }}
-                            onMouseMove={() => null}
-                        />)
+                        const Component = providerResults.component as React.ComponentType<SuggestionProps<any>>;
+                        return (
+                            <Component
+                                key={providerResults.terms[idx]}
+                                item={item as UserProfile}
+                                term={providerResults.terms[idx]}
+                                matchedPretext={providerResults.matchedPretext}
+                                isSelection={idx === selectedOption}
+                                onClick={(value: string, matchedPretext: string) => {
+                                    const changedValue = value.replace(matchedPretext, '');
+                                    setSearchTerms(searchTerms + changedValue + ' ');
+                                    inputRef.current?.focus();
+                                }}
+                                onMouseMove={() => null}
+                            />
+                        );
                     })}
                 </div>
             )}
             <SearchHints
                 onSelectFilter={(filter: string) => {
-                    setSearchTerms(searchTerms + " " + filter);
+                    setSearchTerms(searchTerms + ' ' + filter);
                     inputRef.current?.focus();
                 }}
                 searchType={searchType}
                 searchTerms={searchTerms}
-                hasSelectedOption={(providerResults && providerResults.items.length > 0 && selectedOption !== -1) ? true : false}
+                hasSelectedOption={Boolean(providerResults && providerResults.items.length > 0 && selectedOption !== -1)}
             />
         </SearchBoxContainer>
     );

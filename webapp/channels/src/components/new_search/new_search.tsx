@@ -2,30 +2,25 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
+import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
 
-import Constants, {RHSStates} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
-import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
-import Popover from 'components/widgets/popover';
+
 import {
     updateSearchTerms,
     updateSearchTermsForShortcut,
     showSearchResults,
-    showChannelFiles,
-    showMentions,
-    showFlaggedPosts,
-    closeRightHandSide,
-    updateRhsState,
-    setRhsExpanded,
-    openRHSSearch,
-    filterFilesSearchByExt,
     updateSearchType,
 } from 'actions/views/rhs';
+
+import Popover from 'components/widgets/popover';
+
+import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
+import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import SearchBox from './search_box';
 
@@ -41,7 +36,7 @@ const PopoverStyled = styled(Popover)`
     .popover-content {
         padding: 0px;
     }
-`
+`;
 
 const NewSearchContainer = styled.div`
     display: flex;
@@ -56,7 +51,7 @@ const NewSearchContainer = styled.div`
     border-radius: 8px;
     padding: 4px;
     cursor: text;
-`
+`;
 
 const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
@@ -85,7 +80,7 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
                 if (currentChannelName) {
                     dispatch(updateSearchTermsForShortcut());
                 }
-                setFocused(true)
+                setFocused(true);
             }
         };
 
@@ -107,10 +102,10 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
                     <SearchBox
                         onClose={() => setFocused(false)}
                         onSearch={(searchType: string, searchTerms: string) => {
-                            dispatch(updateSearchType(searchType))
-                            dispatch(updateSearchTerms(searchTerms))
-                            dispatch(showSearchResults(false))
-                            setFocused(false)
+                            dispatch(updateSearchType(searchType));
+                            dispatch(updateSearchTerms(searchTerms));
+                            dispatch(showSearchResults(false));
+                            setFocused(false);
                         }}
                     />
                 </PopoverStyled>
