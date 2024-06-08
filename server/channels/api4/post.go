@@ -1172,7 +1172,7 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userHasRole := hasPermittedRole(c, user, channelMember)
+	userHasRole := hasPermittedWranglerRole(c, user, channelMember)
 
 	// Sysadmins are always permitted
 	if !userHasRole && !user.IsSystemAdmin() {
@@ -1273,7 +1273,7 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func hasPermittedRole(c *Context, user *model.User, channelMember *model.ChannelMember) bool {
+func hasPermittedWranglerRole(c *Context, user *model.User, channelMember *model.ChannelMember) bool {
 	// If there are no configured PermittedWranglerRoles, skip the check
 	if len(c.App.Config().WranglerSettings.PermittedWranglerRoles) == 0 {
 		return true
