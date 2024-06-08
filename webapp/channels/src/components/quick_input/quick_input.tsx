@@ -69,6 +69,11 @@ export type Props = {
     onKeyUp?: (event: React.KeyboardEvent) => void;
 
     /**
+     * Callback to handle the key down of the input
+     */
+    onKeyDown?: (event: React.KeyboardEvent) => void;
+
+    /**
      * When true, and an onClear callback is defined, show an X on the input field even if
      * the input is empty.
      */
