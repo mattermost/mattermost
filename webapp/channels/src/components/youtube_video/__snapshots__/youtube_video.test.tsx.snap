@@ -113,7 +113,7 @@ exports[`YoutubeVideo should match snapshot for playing state 1`] = `
       <span
         className="video-type"
       >
-        YouTube -
+        YouTube - 
       </span>
       <span
         className="video-title"
@@ -131,12 +131,12 @@ exports[`YoutubeVideo should match snapshot for playing state 1`] = `
       onClick={[Function]}
     >
       <iframe
-        allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen={true}
         frameBorder="0"
         height="360px"
-        referrerPolicy='strict-origin-when-cross-origin'
-        sandbox='allow-scripts allow-same-origin allow-popups allow-presentation'
+        referrerPolicy="strict-origin-when-cross-origin"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
         src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&autohide=1&border=0&wmode=opaque&fs=1&enablejsapi=1"
         title="Youtube title"
         width="480px"
