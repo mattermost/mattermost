@@ -31,7 +31,7 @@ type Props = {
 const PopoverStyled = styled(Popover)`
     min-width: 600px;
     left: -90px;
-    top: -8px;
+    top: -12px;
     border-radius: 12px;
 
     .popover-content {
@@ -39,19 +39,24 @@ const PopoverStyled = styled(Popover)`
     }
 `;
 
-const NewSearchContainer = styled.div`
+const NewSearchContainer = styled.button`
     display: flex;
     position: relative;
     align-items: center;
     height: 28px;
     width: 100%;
     background-color: rgba(var(--sidebar-text-rgb), 0.08);
-    color: rgba(var(--sidebar-text-rgb), 0.56);
+    color: rgba(var(--sidebar-text-rgb), 0.64);
     font-size: 12px;
     font-weight: 500;
     border-radius: var(--radius-s);
+    border: none;
     padding: 4px;
-    cursor: text;
+    cursor: pointer;
+    &:hover {
+        background-color: rgba(var(--sidebar-text-rgb), 0.16);
+        color: rgba(var(--sidebar-text-rgb), 0.88);
+    }
 `;
 
 const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
