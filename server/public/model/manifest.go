@@ -188,6 +188,9 @@ type Manifest struct {
 
 	// Plugins can store any kind of data in Props to allow other plugins to use it.
 	Props map[string]any `json:"props,omitempty" yaml:"props,omitempty"`
+
+	// To show the plugin in market place, if set to true then hide the plugin from market place plugin list
+	DisableInMarketPlace bool `json:"disable_in_marketplace,omitempty" yaml:"disable_in_marketplace,omitempty"`
 }
 
 type ManifestServer struct {

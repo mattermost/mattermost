@@ -652,7 +652,7 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 	}
 
 	for _, prepackaged := range pluginsEnvironment.PrepackagedPlugins() {
-		if prepackaged.Manifest == nil {
+		if prepackaged.Manifest == nil || prepackaged.Manifest.DisableInMarketPlace {
 			continue
 		}
 
@@ -953,6 +953,8 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 		if ch.pluginIsTransitionallyPrepackaged(p.Manifest.Id) {
 			if ch.shouldPersistTransitionallyPrepackagedPlugin(availablePluginsMap, p) {
 				transitionallyPrepackagedPlugins = append(transitionallyPrepackagedPlugins, p)
+			} else {
+				prepackagedPlugins = append(prepackagedPlugins, p)
 			}
 		} else {
 			prepackagedPlugins = append(prepackagedPlugins, p)
