@@ -953,8 +953,6 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 		if ch.pluginIsTransitionallyPrepackaged(p.Manifest.Id) {
 			if ch.shouldPersistTransitionallyPrepackagedPlugin(availablePluginsMap, p) {
 				transitionallyPrepackagedPlugins = append(transitionallyPrepackagedPlugins, p)
-			} else {
-				prepackagedPlugins = append(prepackagedPlugins, p)
 			}
 		} else {
 			prepackagedPlugins = append(prepackagedPlugins, p)
