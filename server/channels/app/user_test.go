@@ -1122,7 +1122,7 @@ func TestPasswordRecovery(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("password token with same email as during creation", func(t *testing.T) {
-		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
 		tokenData := struct {
@@ -1140,7 +1140,7 @@ func TestPasswordRecovery(t *testing.T) {
 	})
 
 	t.Run("password token with modified email as during creation", func(t *testing.T) {
-		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
 		th.App.UpdateConfig(func(c *model.Config) {
@@ -1156,7 +1156,7 @@ func TestPasswordRecovery(t *testing.T) {
 	})
 
 	t.Run("non-expired token", func(t *testing.T) {
-		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
 		err = th.App.resetPasswordFromToken(th.Context, token.Token, "abcdefgh", model.GetMillis())
@@ -1164,7 +1164,7 @@ func TestPasswordRecovery(t *testing.T) {
 	})
 
 	t.Run("expired token", func(t *testing.T) {
-		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
 		err = th.App.resetPasswordFromToken(th.Context, token.Token, "abcdefgh", model.GetMillisForTime(time.Now().Add(25*time.Hour)))
@@ -1197,10 +1197,10 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 	})
 
 	t.Run("add multiple tokens, should only be one valid", func(t *testing.T) {
-		_, appErr := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		_, appErr := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, appErr)
 
-		token, appErr := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		token, appErr := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, appErr)
 
 		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
@@ -1687,6 +1687,49 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 	// Test bad role.
 	_, err = th.App.UpdateUserRolesWithUser(th.Context, user, "does not exist", false)
 	require.NotNil(t, err)
+
+	//Test reset to User role
+	user, err = th.App.UpdateUserRolesWithUser(th.Context, user, model.SystemUserRoleId, false)
+	require.Nil(t, err)
+	assert.Equal(t, user.Roles, model.SystemUserRoleId)
+}
+
+func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
+	// InitBasic is used to let the first CreateUser call not be
+	// a system_admin
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Cannot remove if only admin", func(t *testing.T) {
+		// Attempt to downgrade sysadmin.
+		user, appErr := th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.NotNil(t, appErr)
+		require.Nil(t, user)
+	})
+
+	t.Run("Cannot remove if only non-Bot admin", func(t *testing.T) {
+		bot := th.CreateBot()
+		user, appErr := th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+
+		// Attempt to downgrade sysadmin.
+		user, appErr = th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.NotNil(t, appErr)
+		require.Nil(t, user)
+	})
+
+	t.Run("Can remove if not only non-Bot admin", func(t *testing.T) {
+		systemAdminUser2 := th.CreateUser()
+		user, appErr := th.App.UpdateUserRoles(th.Context, systemAdminUser2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+
+		// Attempt to downgrade sysadmin.
+		user, appErr = th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+	})
 }
 
 func TestDeactivateMfa(t *testing.T) {

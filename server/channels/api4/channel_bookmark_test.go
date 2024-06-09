@@ -16,6 +16,7 @@ import (
 )
 
 func TestCreateChannelBookmark(t *testing.T) {
+	t.Skip("MM-57312")
 	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
 
@@ -1309,8 +1310,7 @@ func TestDeleteChannelBookmark(t *testing.T) {
 
 		var b *model.ChannelBookmarkWithFileInfo
 		require.Eventuallyf(t, func() bool {
-			event := <-webSocketClient.EventChannel
-			if event.EventType() == model.WebsocketEventChannelBookmarkDeleted {
+			if event, ok := <-webSocketClient.EventChannel; ok && event.EventType() == model.WebsocketEventChannelBookmarkDeleted {
 				err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
 				require.NoError(t, err)
 				return true

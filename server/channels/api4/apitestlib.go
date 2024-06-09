@@ -359,6 +359,25 @@ func SetupWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 	return th
 }
 
+func SetupEnterpriseWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+	searchEngine := mainHelper.GetSearchEngine()
+	th := setupTestHelper(dbStore, searchEngine, true, true, nil, options)
+	th.InitLogin()
+	return th
+}
+
 func (th *TestHelper) ShutdownApp() {
 	done := make(chan bool)
 	go func() {

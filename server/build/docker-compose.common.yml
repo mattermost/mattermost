@@ -119,15 +119,31 @@ services:
      - "./docker/keycloak:/opt/keycloak/data/import"
   prometheus:
     image: "prom/prometheus:v2.46.0"
+    user: root
     volumes:
       - "./docker/prometheus${IS_LINUX}.yml:/etc/prometheus/prometheus.yml"
+      - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - mm-test
   grafana:
-    image: "grafana/grafana:10.0.3"
+    image: "grafana/grafana:10.4.2"
     volumes:
-     - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
-     - "./docker/grafana/provisioning:/etc/grafana/provisioning"
-     - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
+      - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
+      - "./docker/grafana/provisioning:/etc/grafana/provisioning"
+      - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
+    networks:
+      - mm-test
+  loki:
+    image: "grafana/loki:3.0.0"
+    networks:
+      - mm-test
+  promtail:
+    image: "grafana/promtail:3.0.0"
+    volumes:
+      - "./docker/promtail/promtail-local-config.yaml:/etc/promtail/docker-config.yaml"
+      - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "../logs:/logs"
+    command: -config.file=/etc/promtail/docker-config.yaml
     networks:
       - mm-test
