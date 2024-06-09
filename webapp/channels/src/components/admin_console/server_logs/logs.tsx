@@ -119,12 +119,12 @@ export default class Logs extends React.PureComponent<Props, State> {
     };
 
     reloadPlain = async () => {
-        this.setState({loadingPlain: true});
+        this.setState({loadingLogs: true});
         await this.props.actions.getPlainLogs(
             this.state.page,
             this.state.perPage,
         );
-        this.setState({loadingPlain: false});
+        this.setState({loadingLogs: false});
     };
 
     onSearchChange = (search: string) => {
@@ -153,44 +153,15 @@ export default class Logs extends React.PureComponent<Props, State> {
 
     render() {
         const ToggleView = (
-            this.props.logs.length > 0 &&
             <div className='logs-banner'>
                 <Toggle
-                    onText='Plain'
-                    offText='Formatted'
+                    onText='Formatted'
+                    offText='Plain'
                     toggled={this.state.isLocalFormattedView}
                     onToggle={this.toggleMode}
                 />
             </div>);
         const content = this.state.isLocalFormattedView ? (
-            <>
-                <div className='logs-banner'>
-                    <div className='banner'>
-                        <div className='banner__content'>
-                            <FormattedMessage {...messages.bannerDesc}/>
-                        </div>
-                    </div>
-                    <button
-                        type='submit'
-                        className='btn btn-primary'
-                        onClick={this.reloadPlain}
-                    >
-                        <FormattedMessage
-                            id='admin.logs.ReloadLogs'
-                            defaultMessage='Reload Logs'
-                        />
-                    </button>
-                    {ToggleView}
-                </div>
-                <PlainLogList
-                    logs={this.props.plainLogs}
-                    nextPage={this.nextPage}
-                    previousPage={this.previousPage}
-                    page={this.state.page}
-                    perPage={this.state.perPage}
-                />
-            </>
-        ) : (
             <>
                 <div className='logs-banner'>
                     <div className='banner'>
@@ -222,6 +193,34 @@ export default class Logs extends React.PureComponent<Props, State> {
                         logLevels: this.state.logLevels,
                         serverNames: this.state.serverNames,
                     }}
+                />
+            </>
+        ) : (
+            <>
+                <div className='logs-banner'>
+                    <div className='banner'>
+                        <div className='banner__content'>
+                            <FormattedMessage {...messages.bannerDesc}/>
+                        </div>
+                    </div>
+                    <button
+                        type='submit'
+                        className='btn btn-primary'
+                        onClick={this.reloadPlain}
+                    >
+                        <FormattedMessage
+                            id='admin.logs.ReloadLogs'
+                            defaultMessage='Reload Logs'
+                        />
+                    </button>
+                    {ToggleView}
+                </div>
+                <PlainLogList
+                    logs={this.props.plainLogs}
+                    nextPage={this.nextPage}
+                    previousPage={this.previousPage}
+                    page={this.state.page}
+                    perPage={this.state.perPage}
                 />
             </>
         );
