@@ -40,14 +40,24 @@ const SearchBoxContainer = styled.div`
 
     .rdp {
         margin: 0;
-        padding: 0 20px 20px 20px;
+        padding: 16px 20px;
 
         .rdp-months {
             justify-content: center;
+            width: 100%;
+        }
+
+        .rdp-month {
+            width: 100%;
         }
 
         .rdp-table {
             max-width: none;
+            width: 100%;
+        }
+
+        .rdp-tbody .rdp-button {
+            display: unset;
         }
     }
 `;
