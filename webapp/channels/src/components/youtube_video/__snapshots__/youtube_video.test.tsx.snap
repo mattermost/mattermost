@@ -39,7 +39,7 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
           <span
             className="video-type"
           >
-            YouTube -
+            YouTube - 
           </span>
           <span
             className="video-title"
