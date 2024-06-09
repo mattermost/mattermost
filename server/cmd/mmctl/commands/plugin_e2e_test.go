@@ -5,10 +5,10 @@ package commands
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/pkg/errors"
 
 	"path/filepath"
@@ -22,7 +22,7 @@ import (
 func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	pluginPath := filepath.Join(os.Getenv("MM_SERVER_PATH"), "tests", "testplugin.tar.gz")
+	pluginPath := filepath.Join(server.GetPackagePath(), "tests", "testplugin.tar.gz")
 
 	s.RunForSystemAdminAndLocal("add an already installed plugin without force", func(c client.Client) {
 		printer.Clean()

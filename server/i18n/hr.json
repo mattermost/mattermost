@@ -996,10 +996,6 @@
     "translation": "%v je napustio/la tim."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Obnovi licencu sada"
-  },
-  {
     "id": "web.error.unsupported_browser.system_browser_or",
     "translation": "ili"
   },
