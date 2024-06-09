@@ -31,7 +31,8 @@ type Props = {
 const PopoverStyled = styled(Popover)`
     min-width: 600px;
     left: -90px;
-    top: -10px;
+    top: -8px;
+    border-radius: 12px;
 
     .popover-content {
         padding: 0px;
@@ -46,9 +47,9 @@ const NewSearchContainer = styled.div`
     width: 100%;
     background-color: rgba(var(--sidebar-text-rgb), 0.08);
     color: rgba(var(--sidebar-text-rgb), 0.56);
-    font-size: 10px;
-    font-weight: 600;
-    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: var(--radius-s);
     padding: 4px;
     cursor: text;
 `;

@@ -16,24 +16,28 @@ type Props = {
 
 const SearchHintsContainer = styled.div`
     display: flex;
-    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    padding: 24px;
+    padding: 20px 24px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     i {
         margin-right: 8px;
         color: var(--center-channel-color-56);
     }
 `;
 
-const SearchFilter = styled.div`
+const SearchFilter = styled.button`
     display: flex;
     padding: 4px 10px;
+    color: var(--center-channel-color);
     background: rgba(var(--center-channel-color-rgb), 0.08);
-    border-radius: 10px;
+    border-radius: var(--radius-l);
+    border: none;
     font-size: 10px;
     font-weight: 600;
     line-height: 12px;
-    margin-left: 10px;
-    cursor: pointer;
+    margin-left: 8px;
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+    }
 `;
 
 const SearchHints = ({onSelectFilter, searchType, searchTerms, hasSelectedOption}: Props): JSX.Element => {

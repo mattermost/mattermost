@@ -37,11 +37,23 @@ type Props = {
 
 const SearchBoxContainer = styled.div`
     padding: 0px;
+
+    .rdp {
+        margin: 0;
+        padding: 0 20px 20px 20px;
+
+        .rdp-months {
+            justify-content: center;
+        }
+
+        .rdp-table {
+            max-width: none;
+        }
+    }
 `;
 
 const SearchInput = styled.div`
     position: relative;
-    margin: 20px 24px;
     display: flex;
     align-items: center;
     i {
@@ -52,16 +64,32 @@ const SearchInput = styled.div`
             postion: absolute;
             right: 10px;
         }
+        &.icon-magnify {
+            position: absolute;
+            left: 20px;
+            top: 21px;
+            font-size: 24px;
+        }
     }
     .input-wrapper {
         flex-grow: 1;
     }
     && input {
-        padding-left: 4px;
-        border: 0;
+        padding: 20px 24px 20px 56px;
+        height: auto;
+        border-radius: 0;
+        border: none;
+        border-bottom: var(--border-default);
+        font-size: 20px;
+        line-height: 28px;
+        font-family: Metropolis, sans-serif;
         :focus {
-            border: 0;
+            border: none;
+            border-bottom: var(--border-default);
             box-shadow: none;
+        }
+        ::placeholder {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
 `;
@@ -71,50 +99,49 @@ const SearchTypeSelector = styled.div`
     display: flex;
     align-items: center;
     padding: 4px;
-    height: 32px;
     background-color: var(--center-channel-bg);
-    border-radius: 8px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-    margin-bottom: 8px;
+    border-radius: var(--radius-m);
+    border: var(--border-default);
     width: fit-content;
+    gap: 4px;
 `;
 
 type SearchTypeItemProps = {
     selected: boolean;
 };
 
-const SearchTypeItem = styled.div<SearchTypeItemProps>`
+const SearchTypeItem = styled.button<SearchTypeItemProps>`
     cursor: pointer;
     padding: 4px 10px;
     background-color: ${(props) => (props.selected ? 'rgba(var(--button-bg-rgb), 0.08)' : 'transparent')};
-    color: ${(props) => (props.selected ? 'var(--button-bg)' : 'rgba(var(--center-channel-color), 0.75)')};
+    color: ${(props) => (props.selected ? 'var(--button-bg)' : 'rgba(var(--center-channel-color-rgb), 0.75)')};
     border-radius: 4px;
     font-size: 12px;
+    line-height: 16px;
     font-weight: 600;
+    border: none;
+    &:hover {
+        color: rgba(var(--center-channel-color-rgb), 0.88);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
 `;
 
-const ClearButton = styled.div`
+const ClearButton = styled.button`
     display: flex;
     position: absolute;
-    right: 10px;
-    cursor: pointer;
+    right: 12px;
+    background: none;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    &:hover{
+        color: rgba(var(--center-channel-color-rgb), 0.88);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
 `;
 
-const CloseIcon = styled.i`
-    cursor: pointer;
+const CloseIcon = styled.button`
     position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    top: 5px;
-    right: 5px;
-    color: #333;
-    font-size: 12px;
-    padding: 5px;
-    border-radius: 50%;
-    background-color: #f5f5f5;
-    width: 24px;
-    height: 24px;
+    top: 18px;
+    right: 18px;
 `;
 
 const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
@@ -203,12 +230,14 @@ const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
     return (
         <SearchBoxContainer>
             <CloseIcon
-                className='icon icon-close icon-12'
+                className='btn btn-icon btn-m'
                 onClick={(e: React.MouseEvent) => {
                     e.stopPropagation();
                     onClose();
                 }}
-            />
+            >
+                <i className='icon icon-close'/>
+            </CloseIcon>
             <SearchTypeSelector>
                 <SearchTypeItem
                     selected={searchType === 'messages'}
@@ -247,12 +276,13 @@ const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
                     onKeyDown={handleKeyDown}
                 />
                 <ClearButton
+                    className='btn btn-sm'
                     onClick={() => {
                         setSearchTerms('');
                         inputRef.current?.focus();
                     }}
                 >
-                    <i className='icon icon-close'/>
+                    <i className='icon icon-close-circle'/>
                     <FormattedMessage
                         id='search_bar.clear'
                         defaultMessage='Clear'
