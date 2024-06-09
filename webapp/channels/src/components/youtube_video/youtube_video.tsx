@@ -76,11 +76,10 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                     height='360px'
                     frameBorder='0'
                     allowFullScreen={true}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
+                    allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+                    referrerPolicy='strict-origin-when-cross-origin'
                     title={videoTitle}
-                    sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
-                    credentialless="true"
+                    sandbox='allow-scripts allow-same-origin allow-popups allow-presentation'
                 />
             );
         } else {
