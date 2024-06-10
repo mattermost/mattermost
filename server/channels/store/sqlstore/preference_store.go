@@ -325,11 +325,17 @@ func (s SqlPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
 			FROM preferences 
 			WHERE category = 'sidebar_settings' 
 			AND name = 'limit_visible_dms_gms'
-			AND SUBSTRING(
+			AND (SUBSTRING(
 			  CONCAT('000000000000000', value), 
 			  LENGTH(value) + 1, 
 			  15
-			) > '000000000000040' 
+			) > '000000000000040'
+			OR SUBSTRING(
+				CONCAT('000000000000000', value), 
+				LENGTH(value) + 1, 
+				15
+			  ) < '000000000000001'
+			) 
 			LIMIT 100
 		)`
 	} else {
@@ -344,7 +350,8 @@ func (s SqlPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
 			CONCAT('000000000000000', value), 
 			LENGTH(value) + 1, 
 			15
-		  ) < '000000000000001')
+		  ) < '000000000000001'
+		)
 		LIMIT 100`
 	}
 	result, err := s.GetMasterX().Exec(query)

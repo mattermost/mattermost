@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDoDeleteEmptyDraftsMigrationBatch(t *testing.T) {
+func TestDoDeleteDMsPreferencesMigrationBatch(t *testing.T) {
 	t.Run("failure deleting batch", func(t *testing.T) {
 		mockStore := &storetest.Store{}
 		t.Cleanup(func() {
@@ -22,43 +22,36 @@ func TestDoDeleteEmptyDraftsMigrationBatch(t *testing.T) {
 		mockStore.PreferenceStore.On("DeleteInvalidVisibleDmsGms").Return(errors.New("failure"))
 
 		data, done, err := doDeleteDmsPreferencesMigrationBatch(nil, mockStore)
-		require.EqualError(t, err, "failed to delete empty drafts (create_at=1695920000, user_id=user_id_1): failure")
+		require.EqualError(t, err, "failed to delete invalid limit_visible_dms_gms: failure")
 		assert.False(t, done)
 		assert.Nil(t, data)
 	})
 
-	// t.Run("do batch", func(t *testing.T) {
-	// 	mockStore := &storetest.Store{}
-	// 	t.Cleanup(func() {
-	// 		mockStore.AssertExpectations(t)
-	// 	})
+	t.Run("do batches", func(t *testing.T) {
+		mockStore := &storetest.Store{}
+		t.Cleanup(func() {
+			mockStore.AssertExpectations(t)
+		})
 
-	// 	createAt, userID := int64(1695922000), "user_id_1"
-	// 	nextCreateAt, nextUserID := int64(1695922034), "user_id_2"
+		mockStore.DraftStore.On("DeleteInvalidVisibleDmsGms").Return(10, nil)
 
-	// 	mockStore.DraftStore.On("GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration", createAt, userID).Return(nextCreateAt, nextUserID, nil)
-	// 	mockStore.DraftStore.On("DeleteEmptyDraftsByCreateAtAndUserId", createAt, userID).Return(nil)
+		data, done, err := doDeleteDmsPreferencesMigrationBatch(nil, mockStore)
+		require.NoError(t, err)
+		assert.False(t, done)
+		assert.Nil(t, data)
+	})
 
-	// 	data, done, err := doDeleteEmptyDraftsMigrationBatch(makeJobMetadata(createAt, userID), mockStore)
-	// 	require.NoError(t, err)
-	// 	assert.False(t, done)
-	// 	assert.Equal(t, makeJobMetadata(nextCreateAt, nextUserID), data)
-	// })
+	t.Run("done batches", func(t *testing.T) {
+		mockStore := &storetest.Store{}
+		t.Cleanup(func() {
+			mockStore.AssertExpectations(t)
+		})
 
-	// t.Run("done batches", func(t *testing.T) {
-	// 	mockStore := &storetest.Store{}
-	// 	t.Cleanup(func() {
-	// 		mockStore.AssertExpectations(t)
-	// 	})
+		mockStore.DraftStore.On("DeleteInvalidVisibleDmsGms").Return(0, nil)
 
-	// 	createAt, userID := int64(1695922000), "user_id_1"
-	// 	nextCreateAt, nextUserID := int64(0), ""
-
-	// 	mockStore.DraftStore.On("GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration", createAt, userID).Return(nextCreateAt, nextUserID, nil)
-
-	// 	data, done, err := doDeleteEmptyDraftsMigrationBatch(makeJobMetadata(createAt, userID), mockStore)
-	// 	require.NoError(t, err)
-	// 	assert.True(t, done)
-	// 	assert.Nil(t, data)
-	// })
+		data, done, err := doDeleteDmsPreferencesMigrationBatch(nil, mockStore)
+		require.NoError(t, err)
+		assert.True(t, done)
+		assert.Nil(t, data)
+	})
 }
