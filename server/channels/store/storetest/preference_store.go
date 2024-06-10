@@ -431,22 +431,28 @@ func testDeleteInvalidVisibleDmsGms(t *testing.T, rctx request.CTX, ss store.Sto
 			Value:    "invalid",
 		},
 		{
-			UserId:   userId4,
+			UserId:   model.NewId(),
 			Category: category,
 			Name:     name,
 			Value:    "-10",
 		},
 		{
-			UserId:   userId4,
+			UserId:   model.NewId(),
 			Category: category,
 			Name:     name,
 			Value:    "0",
 		},
 		{
-			UserId:   userId4,
+			UserId:   model.NewId(),
 			Category: category,
 			Name:     name,
 			Value:    "00000",
+		},
+		{
+			UserId:   userId4,
+			Category: category,
+			Name:     name,
+			Value:    "20",
 		},
 	}
 
@@ -457,8 +463,11 @@ func testDeleteInvalidVisibleDmsGms(t *testing.T, rctx request.CTX, ss store.Sto
 	require.NoError(t, err)
 	assert.Equal(t, int64(5), count)
 
-	prefs, err := ss.Preference().GetCategoryAndName(category, name)
+	preference, err := ss.Preference().Get(userId2, category, name)
 	require.NoError(t, err)
-	assert.Len(t, prefs, 1)
-	assert.Equal(t, userId2, prefs[0].UserId)
+	require.Equal(t, &preferences[1], preference)
+
+	preference, err = ss.Preference().Get(userId4, category, name)
+	require.NoError(t, err)
+	require.Equal(t, &preferences[6], preference)
 }
