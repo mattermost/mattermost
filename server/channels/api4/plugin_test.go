@@ -1297,6 +1297,25 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		require.Len(t, plugins, 1)
 		require.Equal(t, newerPrepackagePlugin.Manifest, plugins[0].Manifest)
 	})
+
+	t.Run("hide prepackaged plugins from marketplace if skip_marketplace_if_prepackaged is set", func(t *testing.T) {
+		manifest := &model.Manifest{
+			Version:                      "0.1.2",
+			Id:                           "prepackaged.id.test",
+			SkipMarketplaceIfPrepackaged: true,
+		}
+
+		prepackagedPlugins := &plugin.PrepackagedPlugin{
+			Manifest: manifest,
+		}
+
+		env := th.App.GetPluginsEnvironment()
+		env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{prepackagedPlugins}, nil)
+
+		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
+		require.NoError(t, err)
+		require.Len(t, plugins, 1)
+	})
 }
 
 func TestInstallMarketplacePlugin(t *testing.T) {
