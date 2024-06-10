@@ -63,13 +63,6 @@ const SearchBoxContainer = styled.div`
     }
 `;
 
-const SuggestionsContainer = styled.div`
-    .suggestion-list__item:hover {
-        color: rgba(var(--center-channel-color-rgb), 0.88);
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-    }
-`
-
 const SearchInput = styled.div`
     position: relative;
     display: flex;
@@ -237,8 +230,10 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
                 onSearch(searchType, searchTerms);
             } else {
+                const matchedPretext = providerResults?.matchedPretext
                 const value = providerResults?.terms[selectedOption];
-                setSearchTerms(searchTerms + value + ' ');
+                const changedValue = value.replace(matchedPretext, '');
+                setSearchTerms(searchTerms + changedValue + ' ');
                 inputRef.current?.focus();
                 setSelectedOption(-1);
             }
@@ -314,7 +309,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                 )}
             </SearchInput>
             {providerResults && (
-                <SuggestionsContainer>
+                <div>
                     {providerResults.items.slice(0, 10).map((item, idx) => {
                         if (!providerResults.component) {
                             return null;
@@ -332,11 +327,13 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                                     setSearchTerms(searchTerms + changedValue + ' ');
                                     inputRef.current?.focus();
                                 }}
-                                onMouseMove={() => null}
+                                onMouseMove={() => {
+                                    setSelectedOption(idx);
+                                }}
                             />
                         );
                     })}
-                </SuggestionsContainer>
+                </div>
             )}
             <SearchHints
                 onSelectFilter={(filter: string) => {
