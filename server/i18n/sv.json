@@ -4889,7 +4889,7 @@
   },
   {
     "id": "api.templates.email_info3",
-    "translation": "{{.SiteName}} Gruppen"
+    "translation": "Teamet hos {{.SiteName}}"
   },
   {
     "id": "api.templates.email_info2",
@@ -4901,7 +4901,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "För att ändra dina notifieringsinställningar, logga in på din grupps sida och gå till Inställningar > Notifieringar."
+    "translation": "För att ändra dina notifieringsinställningar, logga in på Mattermostservern och gå till Inställningar > Notifieringar."
   },
   {
     "id": "api.templates.email_change_verify_subject",
