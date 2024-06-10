@@ -1,51 +1,18 @@
-SHELL := /bin/bash
-
-.PHONY: all run stop clean
-all: run
-run: cloud-init generate-server start-server prepare-server run-test cloud-teardown
-stop: stop-server stop-dashboard clean
-clean:
-	rm -fv .ci/server.yml
-	rm -fv .ci/.env*
-
-.PHONY: generate-server start-server prepare-server run-test stop-server restart-server
-generate-server:
-	bash ./.ci/server.generate.sh
-start-server: generate-server
-	bash ./.ci/server.start.sh
-prepare-server:
-	bash ./.ci/server.prepare.sh
-run-test:
-	bash ./.ci/server.run_test.sh
-stop-server: generate-server
-	bash ./.ci/server.stop.sh
-restart-server: stop-server start-server
-
-.PHONY: start-dashboard generate-test-cycle stop-dashboard
-start-dashboard:
-	bash ./.ci/dashboard.start.sh
-generate-test-cycle: requirecmd-node generate-server
-	bash ./.ci/dashboard.generate_test_cycle.sh
-stop-dashboard:
-	bash ./.ci/dashboard.stop.sh
-
-.PHONY: cloud-init cloud-teardown
-cloud-init: requirecmd-jq requirecmd-curl
-	bash ./.ci/server.cloud_init.sh
-cloud-teardown:
-	bash ./.ci/server.cloud_teardown.sh
-
-.PHONY: publish-report
-publish-report: requirecmd-node
-	bash ./.ci/report.publish.sh
-
-.PHONY: fmt-node fmt-shell fmt
-requirecmd-%:
-	@which "$(*)" >/dev/null || { echo "Error, missing required CLI tool: $(*). Aborting." >&2; exit 1; }
-fmt-node: requirecmd-npx
-	# Formats yaml files
-	npx prettier ./.ci "!./.ci/dashboard" --write --cache
-fmt-shell: requirecmd-shfmt requirecmd-shellcheck
-	shfmt -w -s -i 2 ./.ci/*.sh         # Install with https://webinstall.dev/shellcheck/
-	shellcheck ./.ci/*.sh ./.ci/.e2erc* # Install with https://webinstall.dev/shfmt/
-fmt: fmt-node fmt-shell
+      - name: ci/e2e-test-gencycle
+        id: e2e-test-gencycle
+        env:
+          AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
+          AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
+          BRANCH: "${{ inputs.BRANCH }}"
+          BUILD_ID: "${{ inputs.BUILD_ID }}"
+          TEST_FILTER: "${{ inputs.TEST_FILTER }}"
+        run: |
+          set -e -o pipefail
+          make generate-test-cycle | tee generate-test-cycle.out
+          # Extract cycle's dashboard URL, if present
+          TEST_CYCLE_ID=$(sed -nE "s/^.*id: '([^']+)'.*$/\1/p"  <generate-test-cycle.out)
+          if [ -n "$TEST_CYCLE_ID" ]; then
+            echo "status_check_url=https://automation-dashboard.vercel.app/cycles/${TEST_CYCLE_ID}" >> $GITHUB_OUTPUT
+          else
+            echo "status_check_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+          fi
