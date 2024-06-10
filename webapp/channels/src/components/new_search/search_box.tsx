@@ -33,7 +33,7 @@ const {KeyCodes} = Constants;
 type Props = {
     onClose: () => void;
     onSearch: (searchType: string, searchTerms: string) => void;
-    searchInChannel: string;
+    initialSearchTerms: string;
 }
 
 const SearchBoxContainer = styled.div`
@@ -162,11 +162,10 @@ const CloseIcon = styled.button`
     right: 18px;
 `;
 
-const SearchBox = forwardRef(({onClose, onSearch, searchInChannel}: Props, ref: React.Ref<HTMLDivElement>): JSX.Element => {
+const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, ref: React.Ref<HTMLDivElement>): JSX.Element => {
     const intl = useIntl();
     const dispatch = useDispatch();
-    const defaultSearchTerms = searchInChannel ? `in:${searchInChannel} ` : '';
-    const [searchTerms, setSearchTerms] = useState<string>(defaultSearchTerms);
+    const [searchTerms, setSearchTerms] = useState<string>(initialSearchTerms);
     const [searchType, setSearchType] = useState<string>('messages');
     const [selectedOption, setSelectedOption] = useState<number>(-1);
     const [providerResults, setProviderResults] = useState<ProviderResult<unknown>|null>(null);

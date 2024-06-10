@@ -14,6 +14,10 @@ import {
     updateSearchType,
 } from 'actions/views/rhs';
 
+import {
+    getSearchTerms,
+} from 'selectors/rhs';
+
 import Popover from 'components/widgets/popover';
 
 import Constants from 'utils/constants';
@@ -60,6 +64,7 @@ const NewSearchContainer = styled.div`
 
 const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
+    const searchTerms = useSelector(getSearchTerms) || '';
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
     const [currentChannel, setCurrentChannel] = useState('');
@@ -121,10 +126,13 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
     return (
         <NewSearchContainer onClick={() => setFocused(true)}>
             <i className='icon icon-magnify'/>
-            <FormattedMessage
-                id='search_bar.search'
-                defaultMessage='Search'
-            />
+            {searchTerms && <span>{searchTerms}</span>}
+            {!searchTerms && (
+                <FormattedMessage
+                    id='search_bar.search'
+                    defaultMessage='Search'
+                />
+            )}
             {focused && (
                 <PopoverStyled
                     id="searchPopover"
@@ -143,7 +151,7 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
                             setFocused(false);
                             setCurrentChannel('');
                         }}
-                        searchInChannel={currentChannel}
+                        initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
                     />
                 </PopoverStyled>
             )}
