@@ -364,7 +364,7 @@
   "admin.billing.subscription.planDetails.features.autoComplianceExports": "Zautomatyzowany eksport zgodności",
   "admin.billing.subscription.planDetails.features.customRetentionPolicies": "Zasady przechowywania danych użytkownika",
   "admin.billing.subscription.planDetails.features.enterpriseAdminAndSso": "Administracja Enterprise i SSO",
-  "admin.billing.subscription.planDetails.features.fileStorage": "Nieograniczone przechowywanie plików",
+  "admin.billing.subscription.planDetails.features.fileStorage": "Nieograniczone miejsce na pliki",
   "admin.billing.subscription.planDetails.features.groupAndOneToOneMessaging": "Wiadomości grupowe i indywidualne, udostępnianie plików i wyszukiwanie",
   "admin.billing.subscription.planDetails.features.guestAccounts": "Konta gości",
   "admin.billing.subscription.planDetails.features.incidentCollaboration": "Współpraca przy incydentach",
