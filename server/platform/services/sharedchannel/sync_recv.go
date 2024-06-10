@@ -171,9 +171,6 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 
 func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
-	if SafeString(user.RemoteId) == "" {
-		user.RemoteId = model.NewString(rc.RemoteId)
-	}
 
 	// Check if user already exists
 	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
@@ -185,12 +182,14 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 
 	var userSaved *model.User
 	if euser == nil {
+		// new user.  Make sure the remoteID is correct and insert the record
+		user.RemoteId = model.NewString(rc.RemoteId)
 		if userSaved, err = scs.insertSyncUser(c, user, channel, rc); err != nil {
 			return nil, err
 		}
 	} else {
-		// check if existing user belongs to the remote that issued the update
-		if SafeString(euser.RemoteId) != SafeString(user.RemoteId) {
+		// existing user. Make sure user belongs to the remote that issued the update
+		if SafeString(euser.RemoteId) != rc.RemoteId {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "RemoteID mismatch sync'ing user",
 				mlog.String("remote", rc.Name),
 				mlog.String("user_id", user.Id),
@@ -209,7 +208,6 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 			Position:  &user.Position,
 			Locale:    &user.Locale,
 			Timezone:  user.Timezone,
-			RemoteId:  user.RemoteId,
 		}
 		if userSaved, err = scs.updateSyncUser(c, patch, euser, channel, rc); err != nil {
 			return nil, err
