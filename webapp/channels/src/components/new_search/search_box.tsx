@@ -15,7 +15,7 @@ import {autocompleteUsersInTeam} from 'actions/user_actions';
 
 import QuickInput from 'components/quick_input';
 import type {ProviderResult} from 'components/suggestion/provider';
-import type Provider from 'components/suggestion/provider';
+import Provider from 'components/suggestion/provider';
 import SearchChannelProvider from 'components/suggestion/search_channel_provider';
 import SearchChannelSuggestion from 'components/suggestion/search_channel_suggestion';
 import SearchDateProvider from 'components/suggestion/search_date_provider';
@@ -27,6 +27,7 @@ import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 
 import SearchHints from './search_hint';
+import {SearchFileExtensionProvider, SearchFileExtensionSuggestion} from './extension_suggestions';
 
 const {KeyCodes} = Constants;
 
@@ -155,6 +156,16 @@ const CloseIcon = styled.button`
     right: 18px;
 `;
 
+const SuggestionsHeader = styled.div`
+    padding: 8px 2.4rem;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+`;
+
+
 const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, ref: React.Ref<HTMLDivElement>): JSX.Element => {
     const intl = useIntl();
     const dispatch = useDispatch();
@@ -162,6 +173,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
     const [searchType, setSearchType] = useState<string>('messages');
     const [selectedOption, setSelectedOption] = useState<number>(-1);
     const [providerResults, setProviderResults] = useState<ProviderResult<unknown>|null>(null);
+    const [suggestionsHeader, setSuggestionsHeader] = useState<React.ReactNode|null>(null);
 
     const inputRef = useRef<HTMLInputElement|null>(null);
 
@@ -169,6 +181,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
         new SearchDateProvider(),
         new SearchChannelProvider((term: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => dispatch(autocompleteChannelsForSearch(term, success, error))),
         new SearchUserProvider((username: string) => dispatch(autocompleteUsersInTeam(username))),
+        new SearchFileExtensionProvider(),
     ]);
 
     useEffect(() => {
@@ -179,6 +192,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             res.terms = res.terms.slice(0, 10);
             setProviderResults(res);
             setSelectedOption(0);
+            setSuggestionsHeader(null);
         });
         suggestionProviders.current[1].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
             res.component = SearchChannelSuggestion;
@@ -186,6 +200,12 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             res.terms = res.terms.slice(0, 10);
             setProviderResults(res);
             setSelectedOption(0);
+            setSuggestionsHeader(
+                <FormattedMessage
+                    id='search_bar.channels'
+                    defaultMessage='Channels'
+                />
+            )
         });
         suggestionProviders.current[2].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
             res.component = SearchUserSuggestion;
@@ -193,8 +213,30 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             res.terms = res.terms.slice(0, 10);
             setProviderResults(res);
             setSelectedOption(0);
+            setSuggestionsHeader(
+                <FormattedMessage
+                    id='search_bar.users'
+                    defaultMessage='Users'
+                />
+            )
         });
-    }, [searchTerms]);
+        suggestionProviders.current[3].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
+            if (searchType !== 'files') {
+                return
+            }
+            res.component = SearchFileExtensionSuggestion;
+            res.items = res.items.slice(0, 10);
+            res.terms = res.terms.slice(0, 10);
+            setProviderResults(res);
+            setSelectedOption(0);
+            setSuggestionsHeader(
+                <FormattedMessage
+                    id='search_bar.file_types'
+                    defaultMessage='File types'
+                />
+            )
+        });
+    }, [searchTerms, searchType]);
 
     const handleKeyDown = (e: React.KeyboardEvent<Element>): void => {
         if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
@@ -234,7 +276,6 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                 const value = providerResults?.terms[selectedOption];
                 const changedValue = value.replace(matchedPretext, '');
                 setSearchTerms(searchTerms + changedValue + ' ');
-                inputRef.current?.focus();
                 setSelectedOption(-1);
             }
         }
@@ -242,6 +283,15 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
     let searchPlaceholder = intl.formatMessage({id: 'search_bar.search_messages', defaultMessage: 'Search messages'})
     if (searchType === 'files') {
         searchPlaceholder = intl.formatMessage({id: 'search_bar.search_files', defaultMessage: 'Search files'})
+    }
+
+    const focus = (element: HTMLInputElement | null, newposition: number) => {
+        if (element) {
+            element.focus();
+            setTimeout(() => {
+                element.setSelectionRange(newposition, newposition);
+            }, 0);
+        }
     }
 
     return (
@@ -297,7 +347,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                         className='btn btn-sm'
                         onClick={() => {
                             setSearchTerms('');
-                            inputRef.current?.focus();
+                            focus(inputRef.current, 0);
                         }}
                     >
                         <i className='icon icon-close-circle'/>
@@ -310,6 +360,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             </SearchInput>
             {providerResults && (
                 <div>
+                    <SuggestionsHeader>{suggestionsHeader}</SuggestionsHeader>
                     {providerResults.items.slice(0, 10).map((item, idx) => {
                         if (!providerResults.component) {
                             return null;
@@ -325,7 +376,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                                 onClick={(value: string, matchedPretext: string) => {
                                     const changedValue = value.replace(matchedPretext, '');
                                     setSearchTerms(searchTerms + changedValue + ' ');
-                                    inputRef.current?.focus();
+                                    focus(inputRef.current, searchTerms.length + changedValue.length + 1);
                                 }}
                                 onMouseMove={() => {
                                     setSelectedOption(idx);
@@ -337,8 +388,14 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             )}
             <SearchHints
                 onSelectFilter={(filter: string) => {
-                    setSearchTerms(searchTerms + ' ' + filter);
-                    inputRef.current?.focus();
+                    if (searchTerms.endsWith(' ') || searchTerms.length === 0) {
+                        setSearchTerms(searchTerms + filter);
+                        focus(inputRef.current, searchTerms.length + filter.length);
+                    } else {
+                        setSearchTerms(searchTerms + ' ' + filter);
+                        focus(inputRef.current, searchTerms.length + filter.length + 1);
+                    }
+
                 }}
                 searchType={searchType}
                 searchTerms={searchTerms}
@@ -350,4 +407,3 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
 });
 
 export default SearchBox;
-

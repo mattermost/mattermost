@@ -124,9 +124,18 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
 
 
     return (
-        <NewSearchContainer onClick={() => setFocused(true)}>
+        <NewSearchContainer
+            tabIndex={0}
+            onKeyDown={(e: React.KeyboardEvent) => {
+                if (Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
+                    return;
+                }
+                setFocused(true)
+            }}
+            onClick={() => setFocused(true)}
+        >
             <i className='icon icon-magnify'/>
-            {searchTerms && <span>{searchTerms}</span>}
+            {searchTerms && <span tabIndex={0}>{searchTerms}</span>}
             {!searchTerms && (
                 <FormattedMessage
                     id='search_bar.search'
