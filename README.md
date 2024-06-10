@@ -8,7 +8,7 @@
           TEST_FILTER: "${{ inputs.TEST_FILTER }}"
         run: |
           set -e -o pipefail
-          make generate-test-cycle | tee generate-test-cycle.out
+          make generate-test-cycle | tee generate-test-cycle.out | echo test
           # Extract cycle's dashboard URL, if present
           TEST_CYCLE_ID=$(sed -nE "s/^.*id: '([^']+)'.*$/\1/p"  <generate-test-cycle.out)
           if [ -n "$TEST_CYCLE_ID" ]; then
