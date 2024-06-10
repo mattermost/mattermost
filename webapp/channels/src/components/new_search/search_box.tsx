@@ -157,7 +157,8 @@ const CloseIcon = styled.button`
 `;
 
 const SuggestionsHeader = styled.div`
-    padding: 8px 2.4rem;
+    margin-top: 16px;
+    padding: 8px 24px;
     color: rgba(var(--center-channel-color-rgb), 0.56);
     font-size: 12px;
     line-height: 16px;
