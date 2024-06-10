@@ -33,7 +33,7 @@ func TestDoDeleteDMsPreferencesMigrationBatch(t *testing.T) {
 			mockStore.AssertExpectations(t)
 		})
 
-		mockStore.DraftStore.On("DeleteInvalidVisibleDmsGms").Return(int64(10), nil)
+		mockStore.PreferenceStore.On("DeleteInvalidVisibleDmsGms").Return(int64(10), nil)
 
 		data, done, err := doDeleteDmsPreferencesMigrationBatch(nil, mockStore)
 		require.NoError(t, err)
@@ -47,7 +47,7 @@ func TestDoDeleteDMsPreferencesMigrationBatch(t *testing.T) {
 			mockStore.AssertExpectations(t)
 		})
 
-		mockStore.DraftStore.On("DeleteInvalidVisibleDmsGms").Return(int64(0), nil)
+		mockStore.PreferenceStore.On("DeleteInvalidVisibleDmsGms").Return(int64(0), nil)
 
 		data, done, err := doDeleteDmsPreferencesMigrationBatch(nil, mockStore)
 		require.NoError(t, err)
