@@ -362,7 +362,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             {providerResults && (
                 <div>
                     <SuggestionsHeader>{suggestionsHeader}</SuggestionsHeader>
-                    {providerResults.items.slice(0, 10).map((item, idx) => {
+                    {providerResults.items.map((item, idx) => {
                         if (!providerResults.component) {
                             return null;
                         }
