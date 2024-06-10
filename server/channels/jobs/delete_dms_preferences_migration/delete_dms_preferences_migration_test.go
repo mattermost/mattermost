@@ -19,7 +19,7 @@ func TestDoDeleteDMsPreferencesMigrationBatch(t *testing.T) {
 			mockStore.AssertExpectations(t)
 		})
 
-		mockStore.PreferenceStore.On("DeleteInvalidVisibleDmsGms").Return(errors.New("failure"))
+		mockStore.PreferenceStore.On("DeleteInvalidVisibleDmsGms").Return(0, errors.New("failure"))
 
 		data, done, err := doDeleteDmsPreferencesMigrationBatch(nil, mockStore)
 		require.EqualError(t, err, "failed to delete invalid limit_visible_dms_gms: failure")
