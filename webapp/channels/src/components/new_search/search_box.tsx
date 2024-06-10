@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, forwardRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import styled from 'styled-components';
@@ -33,6 +33,7 @@ const {KeyCodes} = Constants;
 type Props = {
     onClose: () => void;
     onSearch: (searchType: string, searchTerms: string) => void;
+    searchInChannel: string;
 }
 
 const SearchBoxContainer = styled.div`
@@ -61,6 +62,13 @@ const SearchBoxContainer = styled.div`
         }
     }
 `;
+
+const SuggestionsContainer = styled.div`
+    .suggestion-list__item:hover {
+        color: rgba(var(--center-channel-color-rgb), 0.88);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+`
 
 const SearchInput = styled.div`
     position: relative;
@@ -154,10 +162,11 @@ const CloseIcon = styled.button`
     right: 18px;
 `;
 
-const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
+const SearchBox = forwardRef(({onClose, onSearch, searchInChannel}: Props, ref: React.Ref<HTMLDivElement>): JSX.Element => {
     const intl = useIntl();
     const dispatch = useDispatch();
-    const [searchTerms, setSearchTerms] = useState<string>('');
+    const defaultSearchTerms = searchInChannel ? `in:${searchInChannel} ` : '';
+    const [searchTerms, setSearchTerms] = useState<string>(defaultSearchTerms);
     const [searchType, setSearchType] = useState<string>('messages');
     const [selectedOption, setSelectedOption] = useState<number>(-1);
     const [providerResults, setProviderResults] = useState<ProviderResult<unknown>|null>(null);
@@ -236,9 +245,13 @@ const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
             }
         }
     };
+    let searchPlaceholder = intl.formatMessage({id: 'search_bar.search_messages', defaultMessage: 'Search messages'})
+    if (searchType === 'files') {
+        searchPlaceholder = intl.formatMessage({id: 'search_bar.search_files', defaultMessage: 'Search files'})
+    }
 
     return (
-        <SearchBoxContainer>
+        <SearchBoxContainer ref={ref}>
             <CloseIcon
                 className='btn btn-icon btn-m'
                 onClick={(e: React.MouseEvent) => {
@@ -273,10 +286,9 @@ const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
                 <QuickInput
                     ref={inputRef}
                     className={'search-bar form-control a11y__region'}
-                    data-a11y-sort-order='9'
                     aria-describedby={'searchbar-help-popup'}
-                    aria-label={intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
-                    placeholder={intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
+                    aria-label={searchPlaceholder}
+                    placeholder={searchPlaceholder}
                     value={searchTerms}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerms(e.target.value)}
                     type='search'
@@ -284,23 +296,26 @@ const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
                     clearable={true}
                     autoFocus={true}
                     onKeyDown={handleKeyDown}
+                    tabIndex={0}
                 />
-                <ClearButton
-                    className='btn btn-sm'
-                    onClick={() => {
-                        setSearchTerms('');
-                        inputRef.current?.focus();
-                    }}
-                >
-                    <i className='icon icon-close-circle'/>
-                    <FormattedMessage
-                        id='search_bar.clear'
-                        defaultMessage='Clear'
-                    />
-                </ClearButton>
+                {searchTerms.length > 0 && (
+                    <ClearButton
+                        className='btn btn-sm'
+                        onClick={() => {
+                            setSearchTerms('');
+                            inputRef.current?.focus();
+                        }}
+                    >
+                        <i className='icon icon-close-circle'/>
+                        <FormattedMessage
+                            id='search_bar.clear'
+                            defaultMessage='Clear'
+                        />
+                    </ClearButton>
+                )}
             </SearchInput>
             {providerResults && (
-                <div>
+                <SuggestionsContainer>
                     {providerResults.items.slice(0, 10).map((item, idx) => {
                         if (!providerResults.component) {
                             return null;
@@ -322,7 +337,7 @@ const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
                             />
                         );
                     })}
-                </div>
+                </SuggestionsContainer>
             )}
             <SearchHints
                 onSelectFilter={(filter: string) => {
@@ -332,10 +347,11 @@ const SearchBox = ({onClose, onSearch}: Props): JSX.Element => {
                 searchType={searchType}
                 searchTerms={searchTerms}
                 hasSelectedOption={Boolean(providerResults && providerResults.items.length > 0 && selectedOption !== -1)}
+                isDate={providerResults?.component === SearchDateSuggestion}
             />
         </SearchBoxContainer>
     );
-};
+});
 
 export default SearchBox;
 

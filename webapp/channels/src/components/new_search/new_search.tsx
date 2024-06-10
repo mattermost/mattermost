@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
@@ -10,7 +10,6 @@ import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors
 
 import {
     updateSearchTerms,
-    updateSearchTermsForShortcut,
     showSearchResults,
     updateSearchType,
 } from 'actions/views/rhs';
@@ -39,7 +38,7 @@ const PopoverStyled = styled(Popover)`
     }
 `;
 
-const NewSearchContainer = styled.button`
+const NewSearchContainer = styled.div`
     display: flex;
     position: relative;
     align-items: center;
@@ -63,6 +62,8 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
+    const [currentChannel, setCurrentChannel] = useState('');
+    const searchBoxRef = useRef<HTMLDivElement|null>(null);
 
     useEffect(() => {
         if (!enableFindShortcut) {
@@ -72,6 +73,12 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
         const isDesktop = isDesktopApp() && isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), '4.7.0');
 
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
+                e.preventDefault();
+                setCurrentChannel('');
+                setFocused(false);
+            }
+
             if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.F)) {
                 if (!isDesktop && !e.shiftKey) {
                     return;
@@ -83,9 +90,7 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
                 }
 
                 e.preventDefault();
-                if (currentChannelName) {
-                    dispatch(updateSearchTermsForShortcut());
-                }
+                setCurrentChannel(currentChannelName || '');
                 setFocused(true);
             }
         };
@@ -96,6 +101,23 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
         };
     }, [currentChannelName]);
 
+    useEffect(() => {
+        const handleClick = (e: MouseEvent) => {
+            if (searchBoxRef.current) {
+                if (e.target !== searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
+                    setFocused(false);
+                    setCurrentChannel('');
+                }
+            }
+        }
+
+        document.addEventListener('click', handleClick, {capture: true});
+        return () => {
+            document.removeEventListener('click', handleClick);
+        }
+    }, [])
+
+
     return (
         <NewSearchContainer onClick={() => setFocused(true)}>
             <i className='icon icon-magnify'/>
@@ -104,15 +126,24 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
                 defaultMessage='Search'
             />
             {focused && (
-                <PopoverStyled placement='bottom'>
+                <PopoverStyled
+                    id="searchPopover"
+                    placement='bottom'
+                >
                     <SearchBox
-                        onClose={() => setFocused(false)}
+                        ref={searchBoxRef}
+                        onClose={() => {
+                            setFocused(false);
+                            setCurrentChannel('');
+                        }}
                         onSearch={(searchType: string, searchTerms: string) => {
                             dispatch(updateSearchType(searchType));
                             dispatch(updateSearchTerms(searchTerms));
                             dispatch(showSearchResults(false));
                             setFocused(false);
+                            setCurrentChannel('');
                         }}
+                        searchInChannel={currentChannel}
                     />
                 </PopoverStyled>
             )}

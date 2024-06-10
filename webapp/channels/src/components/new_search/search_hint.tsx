@@ -12,6 +12,7 @@ type Props = {
     searchType: string;
     searchTerms: string;
     hasSelectedOption: boolean;
+    isDate: boolean;
 }
 
 const SearchHintsContainer = styled.div`
@@ -40,11 +41,15 @@ const SearchFilter = styled.button`
     }
 `;
 
-const SearchHints = ({onSelectFilter, searchType, searchTerms, hasSelectedOption}: Props): JSX.Element => {
+const SearchHints = ({onSelectFilter, searchType, searchTerms, hasSelectedOption, isDate}: Props): JSX.Element => {
     const intl = useIntl();
     let filters = searchHintOptions.filter((filter) => filter.searchTerm !== '-' && filter.searchTerm !== '""');
     if (searchType === 'files') {
         filters = searchFilesHintOptions.filter((filter) => filter.searchTerm !== '-' && filter.searchTerm !== '""');
+    }
+
+    if (isDate) {
+        return <></>;
     }
 
     if (hasSelectedOption) {
