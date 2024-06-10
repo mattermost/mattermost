@@ -190,7 +190,7 @@ type Manifest struct {
 	Props map[string]any `json:"props,omitempty" yaml:"props,omitempty"`
 
 	// To show the plugin in market place, if set to true then hide the plugin from market place plugin list
-	DisableInMarketPlace bool `json:"disable_in_marketplace,omitempty" yaml:"disable_in_marketplace,omitempty"`
+	SkipMarketplaceIfPrepackaged bool `json:"skip_marketplace_if_prepackaged,omitempty" yaml:"skip_marketplace_if_prepackaged,omitempty"`
 }
 
 type ManifestServer struct {

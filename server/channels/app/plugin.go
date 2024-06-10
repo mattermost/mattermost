@@ -652,7 +652,7 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 	}
 
 	for _, prepackaged := range pluginsEnvironment.PrepackagedPlugins() {
-		if prepackaged.Manifest == nil || prepackaged.Manifest.DisableInMarketPlace {
+		if prepackaged.Manifest == nil || prepackaged.Manifest.SkipMarketplaceIfPrepackaged {
 			continue
 		}
 
