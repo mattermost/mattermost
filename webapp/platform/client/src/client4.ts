@@ -250,7 +250,10 @@ export default class Client4 {
     getServerVersion() {
         return this.serverVersion;
     }
-
+    
+    setUrlVersion(urlVersion: string) {
+        this.urlVersion = urlVersion;
+    }
     getUrlVersion() {
         return this.urlVersion;
     }
