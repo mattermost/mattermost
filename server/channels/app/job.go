@@ -114,19 +114,21 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 }
 
 func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.Job) (bool, *model.Permission) {
+	var permission *model.Permission = nil
+
 	switch job.Type {
 	case model.JobTypeBlevePostIndexing:
-		return a.SessionHasPermissionTo(session, model.PermissionManagePostBleveIndexesJob), model.PermissionManagePostBleveIndexesJob
+		permission = model.PermissionManagePostBleveIndexesJob
 	case model.JobTypeDataRetention:
-		return a.SessionHasPermissionTo(session, model.PermissionManageDataRetentionJob), model.PermissionManageDataRetentionJob
+		permission = model.PermissionManageDataRetentionJob
 	case model.JobTypeMessageExport:
-		return a.SessionHasPermissionTo(session, model.PermissionManageComplianceExportJob), model.PermissionManageComplianceExportJob
+		permission = model.PermissionManageComplianceExportJob
 	case model.JobTypeElasticsearchPostIndexing:
-		return a.SessionHasPermissionTo(session, model.PermissionManageElasticsearchPostIndexingJob), model.PermissionManageElasticsearchPostIndexingJob
+		permission = model.PermissionManageElasticsearchPostIndexingJob
 	case model.JobTypeElasticsearchPostAggregation:
-		return a.SessionHasPermissionTo(session, model.PermissionManageElasticsearchPostAggregationJob), model.PermissionManageElasticsearchPostAggregationJob
+		permission = model.PermissionManageElasticsearchPostAggregationJob
 	case model.JobTypeLdapSync:
-		return a.SessionHasPermissionTo(session, model.PermissionManageLdapSyncJob), model.PermissionManageLdapSyncJob
+		permission = model.PermissionManageLdapSyncJob
 	case
 		model.JobTypeMigrations,
 		model.JobTypePlugins,
@@ -139,10 +141,14 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
 		model.JobTypeExtractContent:
-		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
+		permission = model.PermissionManageJobs
 	}
 
-	return false, nil
+	if permission == nil {
+		return false, nil
+	}
+
+	return a.SessionHasPermissionTo(session, permission), permission
 }
 
 func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {

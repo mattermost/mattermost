@@ -75,6 +75,7 @@ func listJobsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
 	status, err := cmd.Flags().GetString("status")
 	if err != nil {
 		return err
@@ -84,6 +85,12 @@ func listJobsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		jobs := make([]*model.Job, 0, len(ids))
 		var result *multierror.Error
 		for _, id := range ids {
+			isValidId := model.IsValidId(id)
+			if !isValidId {
+				result = multierror.Append(result, fmt.Errorf("invalid job ID: %s", id))
+				continue
+			}
+
 			job, _, err := c.GetJob(context.TODO(), id)
 			if err != nil {
 				result = multierror.Append(result, err)
@@ -107,7 +114,13 @@ func updateJobCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	jobId := args[0]
+	if !model.IsValidId(jobId) {
+		return fmt.Errorf("invalid job ID: %s", jobId)
+	}
 	status := args[1]
+	if !model.IsValidJobStatus(status) {
+		return fmt.Errorf("invalid job status: %s", status)
+	}
 
 	_, err = c.UpdateJobStatus(context.TODO(), jobId, status, force)
 	if err != nil {
@@ -133,6 +146,14 @@ func jobListCmdF(c client.Client, command *cobra.Command, jobType string, status
 
 	if showAll {
 		page = 0
+	}
+
+	if jobType != "" && !model.IsValidJobType(jobType) {
+		return fmt.Errorf("invalid job type: %s", jobType)
+	}
+
+	if status != "" && !model.IsValidJobStatus(status) {
+		return fmt.Errorf("invalid job status: %s", status)
 	}
 
 	for {

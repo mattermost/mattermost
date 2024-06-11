@@ -181,6 +181,11 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	status := r.URL.Query().Get("status")
+	isValidStatus := model.IsValidJobStatus(status)
+	if !isValidStatus {
+		c.Err = model.NewAppError("getJobs", "api.job.status.invalid", nil, "", http.StatusBadRequest)
+	}
+
 	var jobs []*model.Job
 	var appErr *model.AppError
 

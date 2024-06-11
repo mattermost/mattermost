@@ -108,15 +108,8 @@ func (j *Job) IsValid() *AppError {
 		return NewAppError("Job.IsValid", "model.job.is_valid.create_at.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 
-	switch j.Status {
-	case JobStatusPending,
-		JobStatusInProgress,
-		JobStatusSuccess,
-		JobStatusError,
-		JobStatusWarning,
-		JobStatusCancelRequested,
-		JobStatusCanceled:
-	default:
+	validStatus := IsValidJobStatus(j.Status)
+	if !validStatus {
 		return NewAppError("Job.IsValid", "model.job.is_valid.status.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 
@@ -133,6 +126,32 @@ func (j *Job) IsValidStatusChange(newStatus string) bool {
 		return newStatus == JobStatusCancelRequested
 	case JobStatusCancelRequested:
 		return newStatus == JobStatusCanceled
+	}
+
+	return false
+}
+
+func IsValidJobStatus(status string) bool {
+	switch status {
+	case JobStatusPending,
+		JobStatusInProgress,
+		JobStatusSuccess,
+		JobStatusError,
+		JobStatusWarning,
+		JobStatusCancelRequested,
+		JobStatusCanceled:
+	default:
+		return false
+	}
+
+	return true
+}
+
+func IsValidJobType(jobType string) bool {
+	for _, t := range AllJobTypes {
+		if t == jobType {
+			return true
+		}
 	}
 
 	return false
