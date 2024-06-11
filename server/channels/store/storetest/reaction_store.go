@@ -1016,5 +1016,8 @@ func testReactionGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 		reactionFound, err := ss.Reaction().GetSingle(testUserID, post.Id, "bogus-remoteId", testEmojiName)
 		require.Error(t, err)
 		assert.Nil(t, reactionFound)
+
+		var errNotFound *store.ErrNotFound
+		assert.True(t, errors.As(err, &errNotFound))
 	})
 }
