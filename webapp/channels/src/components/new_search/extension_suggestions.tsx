@@ -9,7 +9,7 @@ import Provider, {ResultsCallback} from 'components/suggestion/provider';
 import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
 import type {SuggestionProps} from 'components/suggestion/suggestion';
 
-import {getIconClassName} from 'utils/utils';
+import {getCompassIconClassName} from 'utils/utils';
 
 import Constants from 'utils/constants';
 
@@ -68,16 +68,18 @@ const SearchFileExtensionSuggestionContainer = styled.div`
     display: flex;
     align-items: center;
     padding: 8px 2.4rem;
-    &.selected {
-        background: var(--center-channel-color-08);
+    &.selected, &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
     }
-    span {
-        margin-left: 10px;
-    }
+
     .file-icon {
         background-size: 16px 20px;
-        width: 16px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
+        font-size: 18px;
+        margin-right: 8px;
+        display: flex;
+        align-items: center;
     }
 `;
 
@@ -128,8 +130,8 @@ export const SearchFileExtensionSuggestion = React.forwardRef<HTMLDivElement, Su
             className={props.isSelection ? 'selected' : ''}
             onClick={() => props.onClick(item.label, props.matchedPretext)}
         >
-             <div className={'file-icon ' + getIconClassName(item.type)}/>
-             <span>{labelName}</span>
+             <div className={'file-icon ' + getCompassIconClassName(item.type)}/>
+             {labelName}
              <span>(.{item.value})</span>
         </SearchFileExtensionSuggestionContainer>
     );
