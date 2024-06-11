@@ -18,7 +18,8 @@ import (
 )
 
 var (
-	ErrRemoteIDMismatch = errors.New("remoteID mismatch")
+	ErrRemoteIDMismatch  = errors.New("remoteID mismatch")
+	ErrChannelIDMismatch = errors.New("channelID mismatch")
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
@@ -46,7 +47,7 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 }
 
 func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-	var channel *model.Channel
+	var targetChannel *model.Channel
 	var team *model.Team
 
 	var err error
@@ -65,13 +66,13 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		mlog.Int("reaction_count", len(syncMsg.Reactions)),
 	)
 
-	if channel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
+	if targetChannel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
 		// if the channel doesn't exist then none of these sync items are going to work.
 		return fmt.Errorf("channel not found processing sync message: %w", err)
 	}
 
 	// make sure target channel is shared with the remote
-	exists, err := scs.server.GetStore().SharedChannel().HasRemote(channel.Id, rc.RemoteId)
+	exists, err := scs.server.GetStore().SharedChannel().HasRemote(targetChannel.Id, rc.RemoteId)
 	if err != nil {
 		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
 	}
@@ -81,7 +82,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 
 	// add/update users before posts
 	for _, user := range syncMsg.Users {
-		if userSaved, err := scs.upsertSyncUser(c, user, channel, rc); err != nil {
+		if userSaved, err := scs.upsertSyncUser(c, user, targetChannel, rc); err != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync user",
 				mlog.String("remote", rc.Name),
 				mlog.String("channel_id", syncMsg.ChannelId),
@@ -112,7 +113,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 			continue
 		}
 
-		if channel.Type != model.ChannelTypeDirect && team == nil {
+		if targetChannel.Type != model.ChannelTypeDirect && team == nil {
 			var err2 error
 			team, err2 = scs.server.GetStore().Channel().GetTeamForChannel(syncMsg.ChannelId)
 			if err2 != nil {
@@ -133,7 +134,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		}
 
 		// add/update post
-		rpost, err := scs.upsertSyncPost(post, channel, rc)
+		rpost, err := scs.upsertSyncPost(post, targetChannel, rc)
 		if err != nil {
 			syncResp.PostErrors = append(syncResp.PostErrors, post.Id)
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync post",
@@ -149,7 +150,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 
 	// add/remove reactions
 	for _, reaction := range syncMsg.Reactions {
-		if _, err := scs.upsertSyncReaction(reaction, rc); err != nil {
+		if _, err := scs.upsertSyncReaction(reaction, targetChannel, rc); err != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync reaction",
 				mlog.String("remote", rc.Name),
 				mlog.String("user_id", reaction.UserId),
@@ -346,7 +347,7 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 	return nil, fmt.Errorf("error updating sync user %s: %w", user.Id, err)
 }
 
-func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
+func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
 	var appErr *model.AppError
 
 	post.RemoteId = model.NewString(rc.RemoteId)
@@ -357,6 +358,12 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 		if _, ok := err.(errNotFound); !ok {
 			return nil, fmt.Errorf("error checking sync post: %w", err)
 		}
+	}
+
+	// ensure the post is in the target channel. This ensures the post can only be associated with a channel
+	// that is shared with the remote.
+	if post.ChannelId != targetChannel.Id || (rpost != nil && rpost.ChannelId != targetChannel.Id) {
+		return nil, fmt.Errorf("post sync failed: %w", ErrChannelIDMismatch)
 	}
 
 	if rpost == nil {
@@ -370,7 +377,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
 		}
 
-		rpost, appErr = scs.app.CreatePost(rctx, post, channel, true, true)
+		rpost, appErr = scs.app.CreatePost(rctx, post, targetChannel, true, true)
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 				mlog.String("post_id", post.Id),
@@ -410,9 +417,20 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 	return rpost, rerr
 }
 
-func (scs *Service) upsertSyncReaction(reaction *model.Reaction, rc *model.RemoteCluster) (*model.Reaction, error) {
+func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *model.Channel, rc *model.RemoteCluster) (*model.Reaction, error) {
 	savedReaction := reaction
 	var appErr *model.AppError
+
+	// check that the reaction's post is in the target channel. This ensures the reaction can only be associated with a post
+	// that is in a channel shared with the remote.
+	rctx := request.EmptyContext(scs.server.Log())
+	post, err := scs.server.GetStore().Post().GetSingle(rctx, reaction.PostId, true)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching post for reaction sync: %w", err)
+	}
+	if post.ChannelId != targetChannel.Id {
+		return nil, fmt.Errorf("reaction sync failed: %w", ErrChannelIDMismatch)
+	}
 
 	existingReaction, err := scs.server.GetStore().Reaction().GetSingle(reaction.UserId, reaction.PostId, rc.RemoteId, reaction.EmojiName)
 	if err != nil && !isNotFoundError(err) {
