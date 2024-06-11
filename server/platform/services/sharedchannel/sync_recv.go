@@ -70,6 +70,15 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		return fmt.Errorf("channel not found processing sync message: %w", err)
 	}
 
+	// make sure target channel is shared with the remote
+	exists, err := scs.server.GetStore().SharedChannel().HasRemote(channel.Id, rc.RemoteId)
+	if err != nil {
+		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
+	}
+	if !exists {
+		return fmt.Errorf("cannot process sync message; channel not shared with remote: %w", ErrRemoteIDMismatch)
+	}
+
 	// add/update users before posts
 	for _, user := range syncMsg.Users {
 		if userSaved, err := scs.upsertSyncUser(c, user, channel, rc); err != nil {
@@ -189,12 +198,12 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 		}
 	} else {
 		// existing user. Make sure user belongs to the remote that issued the update
-		if SafeString(euser.RemoteId) != rc.RemoteId {
+		if euser.GetRemoteID() != rc.RemoteId {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "RemoteID mismatch sync'ing user",
 				mlog.String("remote", rc.Name),
 				mlog.String("user_id", user.Id),
-				mlog.String("existing_user_remote_id", SafeString(euser.RemoteId)),
-				mlog.String("update_user_remote_id", SafeString(user.RemoteId)),
+				mlog.String("existing_user_remote_id", euser.GetRemoteID()),
+				mlog.String("update_user_remote_id", user.GetRemoteID()),
 			)
 			return nil, fmt.Errorf("error updating user: %w", ErrRemoteIDMismatch)
 		}
@@ -351,7 +360,16 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 	}
 
 	if rpost == nil {
-		// post doesn't exist; create new one
+		// post doesn't exist; check that user belongs to remote and create post.
+		// user is not checked for edit/delete because admins can perform those actions
+		user, err := scs.server.GetStore().User().Get(context.TODO(), post.UserId)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching user for post sync: %w", err)
+		}
+		if user.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
+		}
+
 		rpost, appErr = scs.app.CreatePost(rctx, post, channel, true, true)
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
@@ -396,17 +414,34 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, rc *model.Remot
 	savedReaction := reaction
 	var appErr *model.AppError
 
-	reaction.RemoteId = model.NewString(rc.RemoteId)
+	existingReaction, err := scs.server.GetStore().Reaction().GetSingle(reaction.UserId, reaction.PostId, rc.RemoteId, reaction.EmojiName)
+	if err != nil && !isNotFoundError(err) {
+		return nil, fmt.Errorf("error fetching reaction for sync: %w", err)
+	}
 
-	if reaction.DeleteAt == 0 {
+	if existingReaction == nil {
+		// reaction does not exist; check that user belongs to remote and create reaction
+		// this is not done for delete since deletion can be done by admins on the remote
+		user, err := scs.server.GetStore().User().Get(context.TODO(), reaction.UserId)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching user for reaction sync: %w", err)
+		}
+		if user.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("reaction sync failed: %w", ErrRemoteIDMismatch)
+		}
+		reaction.RemoteId = model.NewString(rc.RemoteId)
 		savedReaction, appErr = scs.app.SaveReactionForPost(request.EmptyContext(scs.server.Log()), reaction)
 	} else {
+		// make sure the reaction being deleted is owned by the remote
+		if existingReaction.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("reaction sync failed: %w", ErrRemoteIDMismatch)
+		}
 		appErr = scs.app.DeleteReactionForPost(request.EmptyContext(scs.server.Log()), reaction)
 	}
 
-	var err error
+	var retErr error
 	if appErr != nil {
-		err = errors.New(appErr.Error())
+		retErr = errors.New(appErr.Error())
 	}
-	return savedReaction, err
+	return savedReaction, retErr
 }
