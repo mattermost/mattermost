@@ -1018,6 +1018,6 @@ func testReactionGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Nil(t, reactionFound)
 
 		var errNotFound *store.ErrNotFound
-		assert.True(t, errors.As(err, &errNotFound))
+		assert.ErrorAs(t, err, &errNotFound)
 	})
 }
