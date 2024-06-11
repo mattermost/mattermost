@@ -3,12 +3,17 @@
 
 import React, {useState, useRef, forwardRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
 
 import type {UserProfile} from '@mattermost/types/users';
 
 import {GlobalState} from 'types/store';
+
+import {
+    updateSearchTerms,
+    updateSearchType,
+} from 'actions/views/rhs';
 
 import QuickInput from 'components/quick_input';
 import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
@@ -165,6 +170,7 @@ const SuggestionsBody = styled.div`
 
 const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, ref: React.Ref<HTMLDivElement>): JSX.Element => {
     const intl = useIntl();
+    const dispatch = useDispatch();
     const [searchTerms, setSearchTerms] = useState<string>(initialSearchTerms);
     const [searchType, setSearchType] = useState<string>('messages');
     const [selectedOption, setSelectedOption] = useState<number>(-1);
@@ -298,6 +304,9 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                         className='btn btn-sm'
                         onClick={() => {
                             setSearchTerms('');
+                            setSearchType('messages')
+                            dispatch(updateSearchTerms(''));
+                            dispatch(updateSearchType('messages'));
                             focus(inputRef.current, 0);
                         }}
                     >
