@@ -34,7 +34,7 @@
   "references": [
     {"path": "../platform/client"},
     {"path": "../platform/components"},
-    {"path": "../platform/mattermost-redux"},
+    {"path": "../platform/mattermost-redux/tsconfig.build.json"},
     {"path": "../platform/types"}
   ]
 }

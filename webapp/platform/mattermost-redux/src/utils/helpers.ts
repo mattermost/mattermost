@@ -6,7 +6,7 @@ import shallowEqual from 'shallow-equals';
 import {createSelectorCreator, defaultMemoize} from 'mattermost-redux/selectors/create_selector';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export function memoizeResult<F extends Function>(func: F, measure: Function | undefined = undefined): F {
+export function memoizeResult<F extends Function>(func: F, measure: Function | undefined | null = undefined): F {
     let lastArgs: IArguments|null = null;
     let lastResult: any = null;
 
@@ -35,7 +35,7 @@ export function memoizeResult<F extends Function>(func: F, measure: Function | u
 export const createIdsSelector = createSelectorCreator(memoizeResult);
 
 // Use this selector when you want a shallow comparison of the arguments and you don't need to memoize the result
-export const createShallowSelector = createSelectorCreator(defaultMemoize, shallowEqual as any);
+export const createShallowSelector = createSelectorCreator(defaultMemoize as any, shallowEqual as any);
 
 // isMinimumServerVersion will return true if currentVersion is equal to higher or than the
 // the provided minimum version. A non-equal major version will ignore minor and dot

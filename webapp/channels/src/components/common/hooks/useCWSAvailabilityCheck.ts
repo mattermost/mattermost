@@ -4,7 +4,7 @@
 import {useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 
-import {Client4} from 'mattermost-redux/client';
+import {Client4} from 'mattermost-redux/client/index';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 export enum CSWAvailabilityCheckTypes {

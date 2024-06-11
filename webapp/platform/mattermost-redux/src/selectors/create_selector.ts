@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {CreateSelectorFunction, MemoizeFunction} from './create_selector_types';
+
 /* eslint-disable */
 
 // Generates a RFC-4122 version 4 compliant globally unique identifier.
@@ -23,11 +25,11 @@ export function generateId() {
     return id;
 }
 
-function defaultEqualityCheck(a, b) {
+function defaultEqualityCheck<T>(a: T, b: T) {
     return a === b;
 }
 
-function areArgumentsShallowlyEqual(equalityCheck, prev, next) {
+function areArgumentsShallowlyEqual(equalityCheck: typeof defaultEqualityCheck, prev: unknown[] | null, next: unknown[] | null) {
     if (prev === null || next === null || prev.length !== next.length) {
         return false;
     }
@@ -43,12 +45,12 @@ function areArgumentsShallowlyEqual(equalityCheck, prev, next) {
     return true;
 }
 
-export function defaultMemoize(func, measure, equalityCheck = defaultEqualityCheck) {
-    let lastArgs = null
-    let lastResult = null
+export function defaultMemoize(func: Function, measure: Function | undefined | null, equalityCheck = defaultEqualityCheck) {
+    let lastArgs: unknown[] | null = null
+    let lastResult: unknown = null
     // we reference arguments instead of spreading them for performance reasons
     return function () {
-        if (!areArgumentsShallowlyEqual(equalityCheck, lastArgs, arguments)) {
+        if (!areArgumentsShallowlyEqual(equalityCheck, lastArgs, arguments as unknown as unknown[])) {
             // apply arguments instead of spreading for performance.
             lastResult = func.apply(null, arguments)
         }
@@ -56,12 +58,12 @@ export function defaultMemoize(func, measure, equalityCheck = defaultEqualityChe
         if (measure) {
             measure();
         }
-        lastArgs = arguments
+        lastArgs = arguments as unknown as unknown[]
         return lastResult
     }
 }
 
-function getDependencies(funcs) {
+function getDependencies(funcs: unknown[]) {
     const dependencies = Array.isArray(funcs[0]) ? funcs[0] : funcs;
 
     if (!dependencies.every((dep) => typeof dep === 'function')) {
@@ -77,10 +79,17 @@ function getDependencies(funcs) {
     return dependencies;
 }
 
-const trackedSelectors = {};
+type TrackedSelector = {
+    id: string;
+    name: string;
+    calls: number;
+    recomputations: number;
+}
 
-export function createSelectorCreator(memoize, ...memoizeOptions) {
-    return (name, ...funcs) => {
+const trackedSelectors: Record<string, TrackedSelector> = {};
+
+export function createSelectorCreator(memoize: MemoizeFunction, ...memoizeOptions: any): CreateSelectorFunction {
+    const creator = (name: string, ...funcs: any[]) => {
         const id = generateId();
         let recomputations = 0;
         let calls = 0;
@@ -110,17 +119,17 @@ export function createSelectorCreator(memoize, ...memoizeOptions) {
             }
 
             // apply arguments instead of spreading for performance.
-            return memoizedResultFunc.apply(null, params);
+            return (memoizedResultFunc as any).apply(null, params);
         },
         () => {
             calls++;
             trackedSelectors[id].calls++;
         });
 
-        selector.resultFunc = resultFunc;
-        selector.dependencies = dependencies;
-        selector.recomputations = () => recomputations;
-        selector.resetRecomputations = () => recomputations = 0;
+        (selector as any).resultFunc = resultFunc;
+        (selector as any).dependencies = dependencies;
+        (selector as any).recomputations = () => recomputations;
+        (selector as any).resetRecomputations = () => recomputations = 0;
 
         trackedSelectors[id] = {
             id,
@@ -131,28 +140,29 @@ export function createSelectorCreator(memoize, ...memoizeOptions) {
 
         return selector;
     };
+    return creator as unknown as CreateSelectorFunction;
 }
 
-export const createSelector = /* #__PURE__ */ createSelectorCreator(defaultMemoize);
+export const createSelector = /* #__PURE__ */ createSelectorCreator(defaultMemoize as MemoizeFunction);
 
-export function createStructuredSelector(selectors, selectorCreator = createSelector) {
-    if (typeof selectors !== 'object') {
-        throw new Error(
-            'createStructuredSelector expects first argument to be an object ' +
-        `where each property is a selector, instead received a ${typeof selectors}`,
-        );
-    }
-    const objectKeys = Object.keys(selectors);
-    return selectorCreator(
-        objectKeys.map((key) => selectors[key]),
-        (...values) => {
-            return values.reduce((composition, value, index) => {
-                composition[objectKeys[index]] = value;
-                return composition;
-            }, {});
-        },
-    );
-}
+// export function createStructuredSelector(selectors: Record<string, unknown>, selectorCreator: CreateSelectorFunction = createSelector): ReturnType<CreateStructuredSelectorFunction> {
+//     if (typeof selectors !== 'object') {
+//         throw new Error(
+//             'createStructuredSelector expects first argument to be an object ' +
+//         `where each property is a selector, instead received a ${typeof selectors}`,
+//         );
+//     }
+//     const objectKeys = Object.keys(selectors);
+//     return selectorCreator(
+//         objectKeys.map((key) => selectors[key]),
+//         (...values: any[]) => {
+//             return values.reduce((composition, value, index) => {
+//                 composition[objectKeys[index]] = value;
+//                 return composition;
+//             }, {});
+//         },
+//     );
+// }
 
 // resetTrackedSelectors resets all the measurements for memoization effectiveness.
 function resetTrackedSelectors() {
@@ -188,7 +198,7 @@ export function getSortedTrackedSelectors() {
     return selectorsData;
 }
 
-function effectiveness(selector) {
+function effectiveness(selector: TrackedSelector) {
     return 100 - ((selector.recomputations / selector.calls) * 100);
 }
 
@@ -198,7 +208,7 @@ function dumpTrackedSelectorsStatistics() {
     console.table(selectors); //eslint-disable-line no-console
 }
 
-window.dumpTrackedSelectorsStatistics = dumpTrackedSelectorsStatistics;
-window.resetTrackedSelectors = resetTrackedSelectors;
-window.getSortedTrackedSelectors = getSortedTrackedSelectors
+(window as any).dumpTrackedSelectorsStatistics = dumpTrackedSelectorsStatistics;
+(window as any).resetTrackedSelectors = resetTrackedSelectors;
+(window as any).getSortedTrackedSelectors = getSortedTrackedSelectors
 
