@@ -813,79 +813,15 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                     <div
                       className="Acknowledgements-kPkVCv dNydui"
                     >
-                      <OverlayTrigger
-                        defaultOverlayShown={false}
-                        delayShow={400}
-                        overlay={
-                          <Tooltip
-                            id="post-priority-picker-ack-tooltip"
-                          >
-                            <Memo(MemoizedFormattedMessage)
-                              defaultMessage="Acknowledgement will be requested"
-                              id="post_priority.request_acknowledgement.tooltip"
-                            />
-                          </Tooltip>
-                        }
+                      <WithTooltip
+                        id="post-priority-picker-ack-tooltip"
                         placement="top"
-                        trigger={
-                          Array [
-                            "hover",
-                            "focus",
-                          ]
-                        }
+                        title="Acknowledgement will be requested"
                       >
                         <OverlayTrigger
                           defaultOverlayShown={false}
-                          delayShow={400}
-                          overlay={
-                            <OverlayWrapper
-                              id="post-priority-picker-ack-tooltip"
-                              intl={
-                                Object {
-                                  "$t": [Function],
-                                  "defaultFormats": Object {},
-                                  "defaultLocale": "en",
-                                  "defaultRichTextElements": undefined,
-                                  "fallbackOnEmptyString": true,
-                                  "formatDate": [Function],
-                                  "formatDateTimeRange": [Function],
-                                  "formatDateToParts": [Function],
-                                  "formatDisplayName": [Function],
-                                  "formatList": [Function],
-                                  "formatListToParts": [Function],
-                                  "formatMessage": [Function],
-                                  "formatNumber": [Function],
-                                  "formatNumberToParts": [Function],
-                                  "formatPlural": [Function],
-                                  "formatRelativeTime": [Function],
-                                  "formatTime": [Function],
-                                  "formatTimeToParts": [Function],
-                                  "formats": Object {},
-                                  "formatters": Object {
-                                    "getDateTimeFormat": [Function],
-                                    "getDisplayNames": [Function],
-                                    "getListFormat": [Function],
-                                    "getMessageFormat": [Function],
-                                    "getNumberFormat": [Function],
-                                    "getPluralRules": [Function],
-                                    "getRelativeTimeFormat": [Function],
-                                  },
-                                  "locale": "en",
-                                  "messages": Object {},
-                                  "onError": [Function],
-                                  "onWarn": [Function],
-                                  "textComponent": "span",
-                                  "timeZone": "Etc/UTC",
-                                  "wrapRichTextChunksInFragment": undefined,
-                                }
-                              }
-                            >
-                              <Memo(MemoizedFormattedMessage)
-                                defaultMessage="Acknowledgement will be requested"
-                                id="post_priority.request_acknowledgement.tooltip"
-                              />
-                            </OverlayWrapper>
-                          }
+                          delay={400}
+                          overlay={<Unknown />}
                           placement="top"
                           trigger={
                             Array [
@@ -894,34 +830,89 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                             ]
                           }
                         >
-                          <CheckCircleOutlineIcon
-                            onBlur={[Function]}
-                            onClick={null}
-                            onFocus={[Function]}
-                            onMouseOut={[Function]}
-                            onMouseOver={[Function]}
-                            size={14}
+                          <OverlayTrigger
+                            defaultOverlayShown={false}
+                            delay={400}
+                            overlay={
+                              <OverlayWrapper
+                                intl={
+                                  Object {
+                                    "$t": [Function],
+                                    "defaultFormats": Object {},
+                                    "defaultLocale": "en",
+                                    "defaultRichTextElements": undefined,
+                                    "fallbackOnEmptyString": true,
+                                    "formatDate": [Function],
+                                    "formatDateTimeRange": [Function],
+                                    "formatDateToParts": [Function],
+                                    "formatDisplayName": [Function],
+                                    "formatList": [Function],
+                                    "formatListToParts": [Function],
+                                    "formatMessage": [Function],
+                                    "formatNumber": [Function],
+                                    "formatNumberToParts": [Function],
+                                    "formatPlural": [Function],
+                                    "formatRelativeTime": [Function],
+                                    "formatTime": [Function],
+                                    "formatTimeToParts": [Function],
+                                    "formats": Object {},
+                                    "formatters": Object {
+                                      "getDateTimeFormat": [Function],
+                                      "getDisplayNames": [Function],
+                                      "getListFormat": [Function],
+                                      "getMessageFormat": [Function],
+                                      "getNumberFormat": [Function],
+                                      "getPluralRules": [Function],
+                                      "getRelativeTimeFormat": [Function],
+                                    },
+                                    "locale": "en",
+                                    "messages": Object {},
+                                    "onError": [Function],
+                                    "onWarn": [Function],
+                                    "textComponent": "span",
+                                    "timeZone": "Etc/UTC",
+                                    "wrapRichTextChunksInFragment": undefined,
+                                  }
+                                }
+                              />
+                            }
+                            placement="top"
+                            trigger={
+                              Array [
+                                "hover",
+                                "focus",
+                              ]
+                            }
                           >
-                            <svg
-                              fill="currentColor"
-                              height={14}
+                            <CheckCircleOutlineIcon
                               onBlur={[Function]}
                               onClick={null}
                               onFocus={[Function]}
                               onMouseOut={[Function]}
                               onMouseOver={[Function]}
-                              version="1.1"
-                              viewBox="0 0 24 24"
-                              width={14}
-                              xmlns="http://www.w3.org/2000/svg"
+                              size={14}
                             >
-                              <path
-                                d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z"
-                              />
-                            </svg>
-                          </CheckCircleOutlineIcon>
+                              <svg
+                                fill="currentColor"
+                                height={14}
+                                onBlur={[Function]}
+                                onClick={null}
+                                onFocus={[Function]}
+                                onMouseOut={[Function]}
+                                onMouseOver={[Function]}
+                                version="1.1"
+                                viewBox="0 0 24 24"
+                                width={14}
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z"
+                                />
+                              </svg>
+                            </CheckCircleOutlineIcon>
+                          </OverlayTrigger>
                         </OverlayTrigger>
-                      </OverlayTrigger>
+                      </WithTooltip>
                       <FormattedMessage
                         defaultMessage="Request acknowledgement"
                         id="post_priority.request_acknowledgement"

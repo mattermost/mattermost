@@ -214,10 +214,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
             &--untouched {
                 color: var(--sidebar-unread-text);
                 font-weight: $font-weight--semibold;
-
-                i::before {
-                    font-weight: $font-weight--semibold;
-                }
             }
         }
 
@@ -1282,10 +1278,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarChannel.unread .SidebarChannelLinkLabel,
-    .SidebarChannel.unread .SidebarLink > i,
     .SidebarChannel.unread .SidebarLink:hover .SidebarChannelLinkLabel {
         color: var(--sidebar-unread-text);
         font-weight: 600;
+    }
+
+    .SidebarChannel.unread .SidebarLink > i {
+        color: var(--sidebar-unread-text);
     }
 
     .SidebarChannel .SidebarLink > i {

@@ -10028,5 +10028,13 @@
   {
     "id": "store.sql_team.save_team.existing.app_error",
     "translation": "Es gibt bereits ein Team mit dieser URL."
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Fehler bei der Ermittlung der Anzahl der Systemadmin-Konten."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Der letzte Systemadministrator kann nicht zurückgestuft werden."
   }
 ]
