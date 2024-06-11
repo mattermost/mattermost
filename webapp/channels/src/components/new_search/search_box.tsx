@@ -89,7 +89,7 @@ const SearchInput = styled.div`
         flex-grow: 1;
     }
     && input {
-        padding: 20px 24px 20px 56px;
+        padding: 20px 100px 20px 56px;
         height: auto;
         border-radius: 0;
         border: none;
@@ -169,6 +169,10 @@ const SuggestionsHeader = styled.div`
     text-transform: uppercase;
 `;
 
+const SuggestionsBody = styled.div`
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    padding-bottom: 16px;
+`
 
 const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, ref: React.Ref<HTMLDivElement>): JSX.Element => {
     const intl = useIntl();
@@ -194,6 +198,10 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
 
     useEffect(() => {
         setProviderResults(null);
+        if (searchType !== '' && searchType !== 'messages' && searchType !== 'files') {
+            return
+        };
+
         suggestionProviders.current[0].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
             res.component = SearchDateSuggestion;
             res.items = res.items.slice(0, 10);
@@ -379,7 +387,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                 )}
             </SearchInput>
             {(searchType === "" || searchType == "messages" || searchType === "files") && providerResults && (
-                <div>
+                <SuggestionsBody>
                     <SuggestionsHeader>{suggestionsHeader}</SuggestionsHeader>
                     {providerResults.items.map((item, idx) => {
                         if (!providerResults.component) {
@@ -404,7 +412,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                             />
                         );
                     })}
-                </div>
+                </SuggestionsBody>
             )}
             {SearchPluginSuggestions.map(({component, pluginId}: any) => {
                 if (searchType !== pluginId) {
