@@ -20,10 +20,6 @@ export default keyMirror({
     GET_TEAM_MEMBERS_SUCCESS: null,
     GET_TEAM_MEMBERS_FAILURE: null,
 
-    JOIN_TEAM_REQUEST: null,
-    JOIN_TEAM_SUCCESS: null,
-    JOIN_TEAM_FAILURE: null,
-
     TEAM_INVITE_INFO_REQUEST: null,
     TEAM_INVITE_INFO_SUCCESS: null,
     TEAM_INVITE_INFO_FAILURE: null,

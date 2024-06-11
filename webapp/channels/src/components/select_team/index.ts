@@ -2,26 +2,27 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, compose} from 'redux';
 import {withRouter} from 'react-router-dom';
+import {bindActionCreators, compose} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {getTeams} from 'mattermost-redux/actions/teams';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
+import {getTeams} from 'mattermost-redux/actions/teams';
+import {Permissions} from 'mattermost-redux/constants';
 import {getCloudSubscription as selectCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {Permissions} from 'mattermost-redux/constants';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getSortedListableTeams, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {isGuest} from 'mattermost-redux/utils/user_utils';
+
+import {addUserToTeam} from 'actions/team_actions';
 
 import withUseGetUsageDelta from 'components/common/hocs/cloud/with_use_get_usage_deltas';
 
-import {GlobalState} from 'types/store';
-
-import {addUserToTeam} from 'actions/team_actions';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
-
 import {isCloudLicense} from 'utils/license_utils';
+
+import type {GlobalState} from 'types/store';
 
 import SelectTeam from './select_team';
 

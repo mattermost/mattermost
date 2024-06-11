@@ -2,19 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Link, RouteComponentProps} from 'react-router-dom';
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
+
+import type {Scheme} from '@mattermost/types/schemes';
+import type {Team} from '@mattermost/types/teams';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import * as Utils from 'utils/utils';
 import Constants from 'utils/constants';
-import {Scheme} from '@mattermost/types/schemes';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {Team} from '@mattermost/types/teams';
+import * as Utils from 'utils/utils';
 
 const MAX_TEAMS_PER_SCHEME_SUMMARY = 8;
 

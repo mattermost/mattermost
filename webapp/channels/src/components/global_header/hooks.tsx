@@ -1,13 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {MutableRefObject, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
+import type {MutableRefObject} from 'react';
 import {useSelector} from 'react-redux';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import {getCurrentUser, isFirstAdmin, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {UserProfile} from '@mattermost/types/users';
+
 import {isModalOpen} from 'selectors/views/modals';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 /**
  * Hook that alerts clicks outside of the passed ref.

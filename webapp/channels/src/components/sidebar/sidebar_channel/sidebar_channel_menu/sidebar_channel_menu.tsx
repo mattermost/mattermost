@@ -19,8 +19,8 @@ import {
 import {trackEvent} from 'actions/telemetry_actions';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
-import * as Menu from 'components/menu';
 import ChannelMoveToSubmenu from 'components/channel_move_to_sub_menu';
+import * as Menu from 'components/menu';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
@@ -37,7 +37,8 @@ const SidebarChannelMenu = (props: Props) => {
     let markAsReadUnreadMenuItem: JSX.Element | null = null;
     if (props.isUnread) {
         function handleMarkAsRead() {
-            props.markChannelAsRead(props.channel.id);
+            // We use mark multiple to not update the active channel in the server
+            props.markMultipleChannelsAsRead({[props.channel.id]: Date.now()});
             trackEvent('ui', 'ui_sidebar_channel_menu_markAsRead');
         }
 
@@ -271,7 +272,10 @@ const SidebarChannelMenu = (props: Props) => {
             menuButton={{
                 id: `SidebarChannelMenu-Button-${props.channel.id}`,
                 class: 'SidebarMenu_menuButton',
-                'aria-label': formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'}),
+                'aria-label': formatMessage({
+                    id: 'sidebar_left.sidebar_channel_menu.editChannel.ariaLabel',
+                    defaultMessage: 'Channel options for {channelName}',
+                }, {channelName: props.channel.name}),
                 children: <DotsVerticalIcon size={16}/>,
             }}
             menuButtonTooltip={{

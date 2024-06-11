@@ -10,37 +10,6 @@
 // Stage: @prod
 // Group: @channels @enterprise @not_cloud @system_console
 
-// # Goes to the System Scheme page as System Admin
-const goToSessionLengths = () => {
-    cy.apiAdminLogin();
-    cy.visit('/admin_console/environment/session_lengths');
-};
-
-// # Wait's until the Saving text becomes Save
-const waitUntilConfigSave = () => {
-    cy.waitUntil(() => cy.get('#saveSetting').then((el) => {
-        return el[0].innerText === 'Save';
-    }));
-};
-
-// Clicks the save button in the system console page.
-// waitUntilConfigSaved: If we need to wait for the save button to go from saving -> save.
-// Usually we need to wait unless we are doing this in team override scheme
-const saveConfig = (waitUntilConfigSaved = true, clickConfirmationButton = false) => {
-    // # Save if possible (if previous test ended abruptly all permissions may already be enabled)
-    cy.get('#saveSetting').then((btn) => {
-        if (btn.is(':enabled')) {
-            btn.click();
-        }
-    });
-    if (clickConfirmationButton) {
-        cy.get('#confirmModalButton').click();
-    }
-    if (waitUntilConfigSaved) {
-        waitUntilConfigSave();
-    }
-};
-
 describe('MM-T2574 Session Lengths', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
@@ -125,4 +94,35 @@ describe('MM-T2574 Session Lengths', () => {
             }
         });
     });
+
+    // # Goes to the System Scheme page as System Admin
+    const goToSessionLengths = () => {
+        cy.apiAdminLogin();
+        cy.visit('/admin_console/environment/session_lengths');
+    };
+
+    // # Wait's until the Saving text becomes Save
+    const waitUntilConfigSave = () => {
+        cy.waitUntil(() => cy.get('#saveSetting').then((el) => {
+            return el[0].innerText === 'Save';
+        }));
+    };
+
+    // Clicks the save button in the system console page.
+    // waitUntilConfigSaved: If we need to wait for the save button to go from saving -> save.
+    // Usually we need to wait unless we are doing this in team override scheme
+    const saveConfig = (waitUntilConfigSaved = true, clickConfirmationButton = false) => {
+        // # Save if possible (if previous test ended abruptly all permissions may already be enabled)
+        cy.get('#saveSetting').then((btn) => {
+            if (btn.is(':enabled')) {
+                btn.click();
+            }
+        });
+        if (clickConfirmationButton) {
+            cy.get('#confirmModalButton').click();
+        }
+        if (waitUntilConfigSaved) {
+            waitUntilConfigSave();
+        }
+    };
 });

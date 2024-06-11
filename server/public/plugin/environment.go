@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	plugin "github.com/hashicorp/go-plugin"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -48,21 +49,22 @@ type PrepackagedPlugin struct {
 // It is meant for use by the Mattermost server to manipulate, interact with and report on the set
 // of active plugins.
 type Environment struct {
-	registeredPlugins      sync.Map
-	pluginHealthCheckJob   *PluginHealthCheckJob
-	logger                 *mlog.Logger
-	metrics                metricsInterface
-	newAPIImpl             apiImplCreatorFunc
-	dbDriver               Driver
-	pluginDir              string
-	webappPluginDir        string
-	prepackagedPlugins     []*PrepackagedPlugin
-	prepackagedPluginsLock sync.RWMutex
+	registeredPlugins                sync.Map
+	pluginHealthCheckJob             *PluginHealthCheckJob
+	logger                           *mlog.Logger
+	metrics                          metricsInterface
+	newAPIImpl                       apiImplCreatorFunc
+	dbDriver                         AppDriver
+	pluginDir                        string
+	webappPluginDir                  string
+	prepackagedPlugins               []*PrepackagedPlugin
+	transitionallyPrepackagedPlugins []*PrepackagedPlugin
+	prepackagedPluginsLock           sync.RWMutex
 }
 
 func NewEnvironment(
 	newAPIImpl apiImplCreatorFunc,
-	dbDriver Driver,
+	dbDriver AppDriver,
 	pluginDir string,
 	webappPluginDir string,
 	logger *mlog.Logger,
@@ -103,43 +105,40 @@ func scanSearchPath(path string) ([]*model.BundleInfo, error) {
 	return ret, nil
 }
 
-var pluginIDBlocklist = map[string]bool{
-	"com.mattermost.plugin-incident-response":   true,
-	"com.mattermost.plugin-incident-management": true,
-}
-
-func PluginIDIsBlocked(id string) bool {
-	_, ok := pluginIDBlocklist[id]
-	return ok
-}
-
 // Returns a list of all plugins within the environment.
 func (env *Environment) Available() ([]*model.BundleInfo, error) {
-	rawList, err := scanSearchPath(env.pluginDir)
-	if err != nil {
-		return nil, err
-	}
-
-	// Filter any plugins that match the blocklist
-	filteredList := make([]*model.BundleInfo, 0, len(rawList))
-	for _, bundleInfo := range rawList {
-		if PluginIDIsBlocked(bundleInfo.Manifest.Id) {
-			env.logger.Debug("Plugin ignored by blocklist", mlog.String("plugin_id", bundleInfo.Manifest.Id))
-		} else {
-			filteredList = append(filteredList, bundleInfo)
-		}
-	}
-
-	return filteredList, nil
+	return scanSearchPath(env.pluginDir)
 }
 
-// Returns a list of prepackaged plugins available in the local prepackaged_plugins folder.
+// Returns a list of prepackaged plugins available in the local prepackaged_plugins folder,
+// excluding those in transition out of being prepackaged.
+//
 // The list content is immutable and should not be modified.
 func (env *Environment) PrepackagedPlugins() []*PrepackagedPlugin {
 	env.prepackagedPluginsLock.RLock()
 	defer env.prepackagedPluginsLock.RUnlock()
 
 	return env.prepackagedPlugins
+}
+
+// TransitionallyPrepackagedPlugins returns a list of plugins transitionally prepackaged in the
+// local prepackaged_plugins folder.
+//
+// The list content is immutable and should not be modified.
+func (env *Environment) TransitionallyPrepackagedPlugins() []*PrepackagedPlugin {
+	env.prepackagedPluginsLock.RLock()
+	defer env.prepackagedPluginsLock.RUnlock()
+
+	return env.transitionallyPrepackagedPlugins
+}
+
+// ClearTransitionallyPrepackagedPlugins clears the list of plugins transitionally prepackaged
+// in the local prepackaged_plugins folder.
+func (env *Environment) ClearTransitionallyPrepackagedPlugins() {
+	env.prepackagedPluginsLock.RLock()
+	defer env.prepackagedPluginsLock.RUnlock()
+
+	env.transitionallyPrepackagedPlugins = nil
 }
 
 // Returns a list of all currently active plugins within the environment.
@@ -194,6 +193,15 @@ func (env *Environment) setPluginState(id string, state int) {
 	if rp, ok := env.registeredPlugins.Load(id); ok {
 		p := rp.(registeredPlugin)
 		p.State = state
+		env.registeredPlugins.Store(id, p)
+	}
+}
+
+// setPluginSupervisor records the supervisor for a registered plugin.
+func (env *Environment) setPluginSupervisor(id string, supervisor *supervisor) {
+	if rp, ok := env.registeredPlugins.Load(id); ok {
+		p := rp.(registeredPlugin)
+		p.supervisor = supervisor
 		env.registeredPlugins.Store(id, p)
 	}
 }
@@ -256,6 +264,46 @@ func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
 	return nil, ErrNotFound
 }
 
+func checkMinServerVersion(pluginInfo *model.BundleInfo) error {
+	if pluginInfo.Manifest.MinServerVersion == "" {
+		return nil
+	}
+
+	fulfilled, err := pluginInfo.Manifest.MeetMinServerVersion(model.CurrentVersion)
+	if err != nil {
+		return fmt.Errorf("%v: %v", err.Error(), pluginInfo.Manifest.Id)
+	}
+	if !fulfilled {
+		return fmt.Errorf("plugin requires Mattermost %v: %v", pluginInfo.Manifest.MinServerVersion, pluginInfo.Manifest.Id)
+	}
+
+	return nil
+}
+
+func (env *Environment) startPluginServer(pluginInfo *model.BundleInfo, opts ...func(*supervisor, *plugin.ClientConfig) error) error {
+	sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics, opts...)
+	if err != nil {
+		return errors.Wrapf(err, "unable to start plugin: %v", pluginInfo.Manifest.Id)
+	}
+
+	// We pre-emptively set the state to running to prevent re-entrancy issues.
+	// The plugin's OnActivate hook can in-turn call UpdateConfiguration
+	// which again calls this method. This method is guarded against multiple calls,
+	// but fails if it is called recursively.
+	//
+	// Therefore, setting the state to running prevents this from happening,
+	// and in case there is an error, the defer clause will set the proper state anyways.
+	env.setPluginState(pluginInfo.Manifest.Id, model.PluginStateRunning)
+
+	if err := sup.Hooks().OnActivate(); err != nil {
+		sup.Shutdown()
+		return err
+	}
+	env.setPluginSupervisor(pluginInfo.Manifest.Id, sup)
+
+	return nil
+}
+
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
 	defer func() {
 		if reterr != nil {
@@ -298,20 +346,16 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		}
 	}()
 
-	if pluginInfo.Manifest.MinServerVersion != "" {
-		fulfilled, err := pluginInfo.Manifest.MeetMinServerVersion(model.CurrentVersion)
-		if err != nil {
-			return nil, false, fmt.Errorf("%v: %v", err.Error(), id)
-		}
-		if !fulfilled {
-			return nil, false, fmt.Errorf("plugin requires Mattermost %v: %v", pluginInfo.Manifest.MinServerVersion, id)
-		}
+	err = checkMinServerVersion(pluginInfo)
+	if err != nil {
+		return nil, false, err
 	}
 
 	componentActivated := false
 
 	if pluginInfo.Manifest.HasWebapp() {
-		updatedManifest, err := env.UnpackWebappBundle(id)
+		var updatedManifest *model.Manifest
+		updatedManifest, err = env.UnpackWebappBundle(id)
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "unable to generate webapp bundle: %v", id)
 		}
@@ -321,27 +365,10 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	}
 
 	if pluginInfo.Manifest.HasServer() {
-		sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics)
+		err = env.startPluginServer(pluginInfo, WithExecutableFromManifest(pluginInfo))
 		if err != nil {
-			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
-		}
-
-		// We pre-emptively set the state to running to prevent re-entrancy issues.
-		// The plugin's OnActivate hook can in-turn call UpdateConfiguration
-		// which again calls this method. This method is guarded against multiple calls,
-		// but fails if it is called recursively.
-		//
-		// Therefore, setting the state to running prevents this from happening,
-		// and in case there is an error, the defer clause will set the proper state anyways.
-		env.setPluginState(id, model.PluginStateRunning)
-
-		if err := sup.Hooks().OnActivate(); err != nil {
-			sup.Shutdown()
 			return nil, false, err
 		}
-		rp.supervisor = sup
-		env.registeredPlugins.Store(id, rp)
-
 		componentActivated = true
 	}
 
@@ -352,6 +379,64 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	mlog.Debug("Plugin activated", mlog.String("plugin_id", pluginInfo.Manifest.Id), mlog.String("version", pluginInfo.Manifest.Version))
 
 	return pluginInfo.Manifest, true, nil
+}
+
+// Reattach allows the server to bind to an existing plugin instance launched elsewhere.
+func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig *model.PluginReattachConfig) (reterr error) {
+	id := manifest.Id
+
+	defer func() {
+		if reterr != nil {
+			env.SetPluginError(id, reterr.Error())
+		} else {
+			env.SetPluginError(id, "")
+		}
+	}()
+
+	// Check if we are already active
+	if env.IsActive(id) {
+		return nil
+	}
+
+	pluginInfo := &model.BundleInfo{
+		Path:          "",
+		Manifest:      manifest,
+		ManifestPath:  "",
+		ManifestError: nil,
+	}
+
+	rp := newRegisteredPlugin(pluginInfo)
+	env.registeredPlugins.Store(id, rp)
+
+	defer func() {
+		if reterr == nil {
+			env.setPluginState(id, model.PluginStateRunning)
+		} else {
+			env.setPluginState(id, model.PluginStateFailedToStart)
+		}
+	}()
+
+	err := checkMinServerVersion(pluginInfo)
+	if err != nil {
+		return nil
+	}
+
+	if !pluginInfo.Manifest.HasServer() {
+		return errors.New("cannot reattach plugin without server component")
+	}
+
+	if pluginInfo.Manifest.HasWebapp() {
+		env.logger.Warn("Ignoring webapp for reattached plugin", mlog.String("plugin_id", id))
+	}
+
+	err = env.startPluginServer(pluginInfo, WithReattachConfig(pluginReattachConfig))
+	if err != nil {
+		return nil
+	}
+
+	mlog.Debug("Plugin reattached", mlog.String("plugin_id", pluginInfo.Manifest.Id), mlog.String("version", pluginInfo.Manifest.Version))
+
+	return nil
 }
 
 func (env *Environment) RemovePlugin(id string) {
@@ -557,9 +642,10 @@ func (env *Environment) PerformHealthCheck(id string) error {
 }
 
 // SetPrepackagedPlugins saves prepackaged plugins in the environment.
-func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
+func (env *Environment) SetPrepackagedPlugins(plugins, transitionalPlugins []*PrepackagedPlugin) {
 	env.prepackagedPluginsLock.Lock()
 	env.prepackagedPlugins = plugins
+	env.transitionallyPrepackagedPlugins = transitionalPlugins
 	env.prepackagedPluginsLock.Unlock()
 }
 

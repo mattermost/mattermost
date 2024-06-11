@@ -2,16 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled from 'styled-components';
 import {useIntl} from 'react-intl';
+import styled from 'styled-components';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+
+import {Client4} from 'mattermost-redux/client';
 
 import Markdown from 'components/markdown';
 import ProfilePicture from 'components/profile_picture';
-import {Client4} from 'mattermost-redux/client';
 import UserProfileElement from 'components/user_profile';
-
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
 
 import EditableArea from './components/editable_area';
 import LineLimiter from './components/linelimiter';
@@ -59,7 +60,7 @@ const ChannelId = styled.div`
     font-size: 11px;
     line-height: 16px;
     letter-spacing: 0.02em;
-    color: rgba(var(--center-channel-color-rgb), .64);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 interface Props {
@@ -88,7 +89,6 @@ const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
                                 userId={user.id}
                                 username={user.username}
                                 channelId={channel.id}
-                                popoverPlacement='left'
                             />
                         </ProfilePictureContainer>
                     ))}
@@ -98,7 +98,6 @@ const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
                         <React.Fragment key={user.id}>
                             <UserProfileElement
                                 userId={user.id}
-                                isRHS={true}
                                 channelId={channel.id}
                             />
                             {(i + 1 !== length) && (<span>{', '}</span>)}

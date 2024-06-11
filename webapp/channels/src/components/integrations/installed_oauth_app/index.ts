@@ -5,11 +5,12 @@ import {connect} from 'react-redux';
 
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
-
 import {getDisplayNameByUser} from 'utils/utils';
 
-import InstalledOAuthApp, {InstalledOAuthAppProps} from './installed_oauth_app';
+import type {GlobalState} from 'types/store';
+
+import InstalledOAuthApp from './installed_oauth_app';
+import type {InstalledOAuthAppProps} from './installed_oauth_app';
 
 function mapStateToProps(state: GlobalState, ownProps: InstalledOAuthAppProps) {
     const oauthApp = ownProps.oauthApp || {};

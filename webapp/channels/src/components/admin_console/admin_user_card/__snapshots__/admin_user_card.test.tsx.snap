@@ -9,7 +9,9 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
       class="AdminUserCard__header"
     >
       <span
-        class="status-wrapper  admin-user-card"
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="status-wrapper admin-user-card"
       >
         <button
           class="RoundButton-dvlhqG gnYSKj style--none"
@@ -22,7 +24,6 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
               class="Avatar Avatar-xxl"
               loading="lazy"
               src="/api/v4/users/1234/image"
-              tabindex="-1"
             />
           </span>
         </button>
@@ -47,9 +48,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
       <div
         class="AdminUserCard__user-id"
       >
-        User ID:
-         
-        1234
+        User ID: 1234
       </div>
     </div>
     <div
@@ -71,7 +70,9 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       class="AdminUserCard__header"
     >
       <span
-        class="status-wrapper  admin-user-card"
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="status-wrapper admin-user-card"
       >
         <button
           class="RoundButton-dvlhqG gnYSKj style--none"
@@ -84,7 +85,6 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
               class="Avatar Avatar-xxl"
               loading="lazy"
               src="/api/v4/users/1234/image"
-              tabindex="-1"
             />
           </span>
         </button>
@@ -104,9 +104,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       <div
         class="AdminUserCard__user-id"
       >
-        User ID:
-         
-        1234
+        User ID: 1234
       </div>
     </div>
     <div
@@ -128,7 +126,9 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       class="AdminUserCard__header"
     >
       <span
-        class="status-wrapper  admin-user-card"
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="status-wrapper admin-user-card"
       >
         <button
           class="RoundButton-dvlhqG gnYSKj style--none"
@@ -141,7 +141,6 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
               class="Avatar Avatar-xxl"
               loading="lazy"
               src="/api/v4/users/1234/image"
-              tabindex="-1"
             />
           </span>
         </button>
@@ -159,9 +158,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       <div
         class="AdminUserCard__user-id"
       >
-        User ID:
-         
-        1234
+        User ID: 1234
       </div>
     </div>
     <div
@@ -183,7 +180,9 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       class="AdminUserCard__header"
     >
       <span
-        class="status-wrapper  admin-user-card"
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="status-wrapper admin-user-card"
       >
         <button
           class="RoundButton-dvlhqG gnYSKj style--none"
@@ -196,7 +195,6 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
               class="Avatar Avatar-xxl"
               loading="lazy"
               src="/api/v4/users/1234/image"
-              tabindex="-1"
             />
           </span>
         </button>
@@ -216,9 +214,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       <div
         class="AdminUserCard__user-id"
       >
-        User ID:
-         
-        1234
+        User ID: 1234
       </div>
     </div>
     <div

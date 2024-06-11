@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
@@ -62,7 +62,7 @@ type PluginSetting struct {
 	//
 	// "longtext" will result in a multi line string that can be typed in manually.
 	//
-	// "number" will result in in integer setting that can be typed in manually.
+	// "number" will result in integer setting that can be typed in manually.
 	//
 	// "username" will result in a text setting that will autocomplete to a username.
 	//
@@ -188,11 +188,6 @@ type Manifest struct {
 
 	// Plugins can store any kind of data in Props to allow other plugins to use it.
 	Props map[string]any `json:"props,omitempty" yaml:"props,omitempty"`
-
-	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
-	//
-	// Use the pluginapi.Configuration.CheckRequiredServerConfiguration method to enforce this.
-	RequiredConfig *Config `json:"required_configuration,omitempty" yaml:"required_configuration,omitempty"`
 }
 
 type ManifestServer struct {
@@ -208,18 +203,6 @@ type ManifestServer struct {
 	// If your plugin is compiled for multiple platforms, consider bundling them together
 	// and using the Executables field instead.
 	Executable string `json:"executable" yaml:"executable"`
-}
-
-// Deprecated: ManifestExecutables is a legacy structure capturing a subset of the known platform executables.
-// It will be remove in v7.0: https://mattermost.atlassian.net/browse/MM-40531
-type ManifestExecutables struct {
-	// LinuxAmd64 is the path to your executable binary for the corresponding platform
-	LinuxAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
-	// DarwinAmd64 is the path to your executable binary for the corresponding platform
-	DarwinAmd64 string `json:"darwin-amd64,omitempty" yaml:"darwin-amd64,omitempty"`
-	// WindowsAmd64 is the path to your executable binary for the corresponding platform
-	// This file must have a ".exe" extension
-	WindowsAmd64 string `json:"windows-amd64,omitempty" yaml:"windows-amd64,omitempty"`
 }
 
 type ManifestWebapp struct {
@@ -337,6 +320,10 @@ func (m *Manifest) IsValid() error {
 	}
 
 	return nil
+}
+
+func (m *Manifest) GetPluginID() string {
+	return m.Id
 }
 
 func (s *PluginSettingsSchema) isValid() error {

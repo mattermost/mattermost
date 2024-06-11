@@ -2,6 +2,9 @@
 
 exports[`components/Root Routes Should mount public product routes 1`] = `
 <RootProvider>
+  <Connect(MobileViewWatcher) />
+  <LuxonController />
+  <PerformanceReporterController />
   <Switch>
     <Route
       component={[Function]}
@@ -90,42 +93,46 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
     <CompassThemeProvider
       theme={Object {}}
     >
+      <WindowSizeObserver />
       <Connect(ModalController) />
-      <Connect(_class) />
-      <Connect(SystemNotice) />
+      <Connect(Component) />
+      <Connect(injectIntl(SystemNotice)) />
       <GlobalHeader />
       <CloudEffectsWrapper />
       <withRouter(Connect(TeamSidebar)) />
-      <DelinquencyModalController />
-      <Switch>
-        <Route
-          key="productwithpublic-public"
-          path="/productwithpublic/public"
-          render={[Function]}
-        />
-        <Route
-          key="productwithpublic"
-          path="/productwithpublic"
-          render={[Function]}
-        />
-        <Route
-          key="productwithoutpublic"
-          path="/productwithoutpublic"
-          render={[Function]}
-        />
-        <LoggedInRoute
-          component={[Function]}
-          path="/:team"
-          theme={Object {}}
-        />
-        <Connect(RootRedirect) />
-      </Switch>
+      <div
+        className="main-wrapper"
+      >
+        <Switch>
+          <Route
+            key="productwithpublic-public"
+            path="/productwithpublic/public"
+            render={[Function]}
+          />
+          <Route
+            key="productwithpublic"
+            path="/productwithpublic"
+            render={[Function]}
+          />
+          <Route
+            key="productwithoutpublic"
+            path="/productwithoutpublic"
+            render={[Function]}
+          />
+          <LoggedInRoute
+            component={[Function]}
+            path="/:team([a-z0-9\\\\-_]+)"
+            theme={Object {}}
+          />
+          <Connect(RootRedirect) />
+        </Switch>
+        <withRouter(Connect(SidebarRight)) />
+      </div>
       <Connect(Pluggable)
         pluggableName="Global"
       />
-      <withRouter(Connect(Component)) />
       <AppBar />
-      <Connect(SidebarRightMenu) />
+      <Connect(Component) />
     </CompassThemeProvider>
   </Switch>
 </RootProvider>

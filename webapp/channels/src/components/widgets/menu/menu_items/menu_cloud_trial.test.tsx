@@ -6,7 +6,6 @@ import {Provider} from 'react-redux';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-
 import {CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 import {limitThresholds} from 'utils/limits';
@@ -111,10 +110,6 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                     },
                 },
                 cloud: {
-                    customer: null,
-                    subscription: null,
-                    products: null,
-                    invoices: null,
                     limits,
                 },
                 usage,
@@ -131,10 +126,6 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 users,
                 general: {},
                 cloud: {
-                    customer: null,
-                    subscription: null,
-                    products: null,
-                    invoices: null,
                     limits,
                 },
                 usage,

@@ -90,7 +90,6 @@ func (s SqlCommandWebhookStore) TryUse(id string, limit int) error {
 }
 
 func (s SqlCommandWebhookStore) Cleanup() {
-	mlog.Debug("Cleaning up command webhook store.")
 	exptime := model.GetMillis() - model.CommandWebhookLifetime
 
 	query := s.getQueryBuilder().

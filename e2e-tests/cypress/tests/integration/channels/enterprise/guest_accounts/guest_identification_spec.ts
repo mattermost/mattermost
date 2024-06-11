@@ -119,7 +119,7 @@ describe('Guest Accounts', () => {
             children().should('have.length', 1).
             eq(0).should('contain', testChannel.name).click();
 
-        cy.get('#inviteGuestButton').scrollIntoView().click();
+        cy.findByTestId('inviteButton').scrollIntoView().click();
         cy.findByTestId('confirm-done').should('be.visible').click();
 
         // # Get invitation link.

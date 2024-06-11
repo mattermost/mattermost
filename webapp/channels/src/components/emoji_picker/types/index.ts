@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {EmojiCategory, Emoji, SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
+import type {MessageDescriptor} from 'react-intl';
 
-import {
+import type {EmojiCategory, Emoji, SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
+
+import type {
     CATEGORY_HEADER_ROW,
     EMOJIS_ROW,
 } from 'components/emoji_picker/constants';
 
 export type Category = {
-    className: string;
-    emojiIds?: string[];
-    id: string;
-    message: string;
     name: EmojiCategory;
+    emojiIds?: string[];
+    label: MessageDescriptor;
+    iconClassName: string;
 };
 
 export type Categories = Record<EmojiCategory, Category>;

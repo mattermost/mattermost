@@ -7,11 +7,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -574,23 +576,71 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 	return nil
 }
 
-func (s *Server) doElasticsearchFixChannelIndex() error {
+func (s *Server) doCloudS3PathMigrations(c request.CTX) error {
+	// This migration is only applicable for cloud environments
+	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
+		return nil
+	}
+
 	// If the migration is already marked as completed, don't do it again.
-	var nfErr *store.ErrNotFound
-	if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
-		return nil
-	} else if !errors.As(err, &nfErr) {
-		return fmt.Errorf("could not query migration: %w", err)
-	}
-
-	license := s.License()
-	if model.BuildEnterpriseReady != "true" || license == nil || !*license.Features.Elasticsearch {
-		mlog.Info("Skipping triggering Elasticsearch channel index fix job as build is not Enterprise ready")
+	if _, err := s.Store().System().GetByName(model.MigrationKeyS3Path); err == nil {
 		return nil
 	}
 
-	if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
-		return fmt.Errorf("failed to start job for fixing Elasticsearch channels index: %w", appErr)
+	// If there is a job already pending, no need to schedule again.
+	// This is possible if the pod was rolled over.
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeS3PathMigration, model.JobStatusPending)
+	if err != nil {
+		return fmt.Errorf("failed to get jobs by type and status: %w", err)
+	}
+	if len(jobs) > 0 {
+		return nil
+	}
+
+	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeS3PathMigration, nil); appErr != nil {
+		return fmt.Errorf("failed to start job for migrating s3 file paths: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Server) doDeleteEmptyDraftsMigration(c request.CTX) error {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteEmptyDrafts); err == nil {
+		return nil
+	}
+
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteEmptyDraftsMigration, model.JobStatusPending)
+	if err != nil {
+		return fmt.Errorf("failed to get jobs by type and status: %w", err)
+	}
+	if len(jobs) > 0 {
+		return nil
+	}
+
+	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteEmptyDraftsMigration, nil); appErr != nil {
+		return fmt.Errorf("failed to start job for deleting empty drafts: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Server) doDeleteOrphanDraftsMigration(c request.CTX) error {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteOrphanDrafts); err == nil {
+		return nil
+	}
+
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteOrphanDraftsMigration, model.JobStatusPending)
+	if err != nil {
+		return fmt.Errorf("failed to get jobs by type and status: %w", err)
+	}
+	if len(jobs) > 0 {
+		return nil
+	}
+
+	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteOrphanDraftsMigration, nil); appErr != nil {
+		return fmt.Errorf("failed to start job for deleting orphan drafts: %w", err)
 	}
 
 	return nil
@@ -605,7 +655,7 @@ func (s *Server) doAppMigrations() {
 		name    string
 		handler func() error
 	}
-	migrations := []migration{
+	m1 := []migration{
 		{"Advanced Permissions Migration", s.doAdvancedPermissionsMigration},
 		{"Emojis Permissions Migration", s.doEmojisPermissionsMigration},
 		{"GuestRolesCreationMigration", s.doGuestRolesCreationMigration},
@@ -618,14 +668,34 @@ func (s *Server) doAppMigrations() {
 		{"First Admin Setup Complete Migration", s.doFirstAdminSetupCompleteMigration},
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
-		{"Elasticsearch Fix Channel Index", s.doElasticsearchFixChannelIndex},
 	}
 
-	for i := range migrations {
-		err := migrations[i].handler()
+	for i := range m1 {
+		err := m1[i].handler()
 		if err != nil {
 			mlog.Fatal("Failed to run app migration",
-				mlog.String("migration", migrations[i].name),
+				mlog.String("migration", m1[i].name),
+				mlog.Err(err),
+			)
+		}
+	}
+
+	type migrationContext struct {
+		name    string
+		handler func(request.CTX) error
+	}
+	m2 := []migrationContext{
+		{"Encode S3 Image Paths Migration", s.doCloudS3PathMigrations},
+		{"Delete Empty Drafts Migration", s.doDeleteEmptyDraftsMigration},
+		{"Delete Orphan Drafts Migration", s.doDeleteOrphanDraftsMigration},
+	}
+
+	c := request.EmptyContext(s.Log())
+	for i := range m2 {
+		err := m2[i].handler(c)
+		if err != nil {
+			mlog.Fatal("Failed to run app migration",
+				mlog.String("migration", m2[i].name),
 				mlog.Err(err),
 			)
 		}

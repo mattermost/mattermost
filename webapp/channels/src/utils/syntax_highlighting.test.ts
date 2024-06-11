@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import hlJS from 'highlight.js/lib/core';
-import swift from 'highlight.js/lib/languages/swift';
 import javascript from 'highlight.js/lib/languages/javascript';
+import plaintext from 'highlight.js/lib/languages/plaintext';
+import swift from 'highlight.js/lib/languages/swift';
 
 import {highlight} from './syntax_highlighting';
 
@@ -24,5 +25,13 @@ describe('utils/syntax_highlighting.tsx', () => {
         await highlight('js', '');
 
         expect(hlJS.registerLanguage).toHaveBeenCalledWith('javascript', javascript);
+    });
+
+    it('should register WebVTT format as plaintext', async () => {
+        expect.assertions(1);
+
+        await highlight('vtt', '');
+
+        expect(hlJS.registerLanguage).toHaveBeenCalledWith('vtt', plaintext);
     });
 });

@@ -36,6 +36,7 @@ const (
 	ChannelMentionsNotifyProp      = "channel"
 	CommentsNotifyProp             = "comments"
 	MentionKeysNotifyProp          = "mention_keys"
+	HighlightsNotifyProp           = "highlight_keys"
 	CommentsNotifyNever            = "never"
 	CommentsNotifyRoot             = "root"
 	CommentsNotifyAny              = "any"
@@ -62,6 +63,8 @@ const (
 	UserLocaleMaxLength   = 5
 	UserTimezoneMaxRunes  = 256
 	UserRolesMaxLength    = 256
+
+	DesktopTokenTTL = time.Minute * 3
 )
 
 //msgp:tuple User
@@ -103,6 +106,7 @@ type User struct {
 	TermsOfServiceId       string    `json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `json:"terms_of_service_create_at,omitempty"`
 	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
+	LastLogin              int64     `json:"last_login,omitempty"`
 }
 
 func (u *User) Auditable() map[string]interface{} {
@@ -135,6 +139,10 @@ func (u *User) Auditable() map[string]interface{} {
 		"terms_of_service_create_at": u.TermsOfServiceCreateAt,
 		"disable_welcome_email":      u.DisableWelcomeEmail,
 	}
+}
+
+func (u *User) LogClone() any {
+	return u.Auditable()
 }
 
 //msgp UserMap
@@ -183,7 +191,6 @@ func (u *UserPatch) Auditable() map[string]interface{} {
 
 //msgp:ignore UserAuth
 type UserAuth struct {
-	Password    string  `json:"password,omitempty"` // DEPRECATED: It is not used.
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
 }
@@ -392,6 +399,13 @@ func (u *User) IsValid() *AppError {
 			map[string]any{"Limit": UserRolesMaxLength}, "user_id="+u.Id+" roles_limit="+u.Roles, http.StatusBadRequest)
 	}
 
+	if u.Props != nil {
+		if !u.ValidateCustomStatus() {
+			return NewAppError("User.IsValid", "model.user.is_valid.invalidProperty.app_error",
+				map[string]any{"Props": u.Props}, "user_id="+u.Id, http.StatusBadRequest)
+		}
+	}
+
 	return nil
 }
 
@@ -465,47 +479,12 @@ func (u *User) PreSave() {
 	if u.Password != "" {
 		u.Password = HashPassword(u.Password)
 	}
-}
 
-// The following are some GraphQL methods necessary to return the
-// data in float64 type. The spec doesn't support 64 bit integers,
-// so we have to pass the data in float64. The _ at the end is
-// a hack to keep the attribute name same in GraphQL schema.
-
-func (u *User) CreateAt_() float64 {
-	return float64(u.CreateAt)
-}
-
-func (u *User) DeleteAt_() float64 {
-	return float64(u.DeleteAt)
-}
-
-func (u *User) UpdateAt_() float64 {
-	return float64(u.UpdateAt)
-}
-
-func (u *User) LastPictureUpdate_() float64 {
-	return float64(u.LastPictureUpdate)
-}
-
-func (u *User) LastPasswordUpdate_() float64 {
-	return float64(u.LastPasswordUpdate)
-}
-
-func (u *User) FailedAttempts_() float64 {
-	return float64(u.FailedAttempts)
-}
-
-func (u *User) LastActivityAt_() float64 {
-	return float64(u.LastActivityAt)
-}
-
-func (u *User) BotLastIconUpdate_() float64 {
-	return float64(u.BotLastIconUpdate)
-}
-
-func (u *User) TermsOfServiceCreateAt_() float64 {
-	return float64(u.TermsOfServiceCreateAt)
+	cs := u.GetCustomStatus()
+	if cs != nil {
+		cs.PreSave()
+		u.SetCustomStatus(cs)
+	}
 }
 
 // PreUpdate should be run before updating the user in the db.
@@ -541,6 +520,14 @@ func (u *User) PreUpdate() {
 			}
 		}
 		u.NotifyProps[MentionKeysNotifyProp] = strings.Join(goodKeys, ",")
+	}
+
+	if u.Props != nil {
+		cs := u.GetCustomStatus()
+		if cs != nil {
+			cs.PreSave()
+			u.SetCustomStatus(cs)
+		}
 	}
 }
 
@@ -646,6 +633,7 @@ func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
 	u.AuthData = NewString("")
 	u.MfaSecret = ""
+	u.LastLogin = 0
 
 	if len(options) != 0 && !options["email"] {
 		u.Email = ""
@@ -669,6 +657,7 @@ func (u *User) SanitizeInput(isAdmin bool) {
 		u.AuthService = ""
 		u.EmailVerified = false
 	}
+	u.RemoteId = NewString("")
 	u.DeleteAt = 0
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
@@ -744,6 +733,17 @@ func (u *User) ClearCustomStatus() {
 	u.Props[UserPropsKeyCustomStatus] = ""
 }
 
+func (u *User) ValidateCustomStatus() bool {
+	status, exists := u.Props[UserPropsKeyCustomStatus]
+	if exists && status != "" {
+		cs := u.GetCustomStatus()
+		if cs == nil {
+			return false
+		}
+	}
+	return true
+}
+
 func (u *User) GetFullName() string {
 	if u.FirstName != "" && u.LastName != "" {
 		return u.FirstName + " " + u.LastName
@@ -751,9 +751,8 @@ func (u *User) GetFullName() string {
 		return u.FirstName
 	} else if u.LastName != "" {
 		return u.LastName
-	} else {
-		return ""
 	}
+	return ""
 }
 
 func (u *User) getDisplayName(baseName, nameFormat string) string {
@@ -795,7 +794,6 @@ func (u *User) GetRawRoles() string {
 }
 
 func IsValidUserRoles(userRoles string) bool {
-
 	roles := strings.Fields(userRoles)
 
 	for _, r := range roles {
@@ -974,7 +972,7 @@ func IsValidUsernameAllowRemote(s string) bool {
 	return !found
 }
 
-func CleanUsername(username string) string {
+func CleanUsername(logger mlog.LoggerIFace, username string) string {
 	s := NormalizeUsername(strings.Replace(username, " ", "-", -1))
 
 	for _, value := range reservedName {
@@ -996,7 +994,7 @@ func CleanUsername(username string) string {
 
 	if !IsValidUsername(s) {
 		s = "a" + NewId()
-		mlog.Warn("Generating new username since provided username was invalid",
+		logger.Warn("Generating new username since provided username was invalid",
 			mlog.String("provided_username", username), mlog.String("new_username", s))
 	}
 
@@ -1040,4 +1038,17 @@ func (u *UserWithGroups) GetGroupIDs() []string {
 type UsersWithGroupsAndCount struct {
 	Users []*UserWithGroups `json:"users"`
 	Count int64             `json:"total_count"`
+}
+
+func (u *User) EmailDomain() string {
+	at := strings.LastIndex(u.Email, "@")
+	// at >= 0 holds true and this is not checked here. It holds true, because during signup we run `mail.ParseAddress(email)`
+	return u.Email[at+1:]
+}
+
+type UserPostStats struct {
+	LastStatusAt *int64 `json:"last_status_at,omitempty"`
+	LastPostDate *int64 `json:"last_post_date,omitempty"`
+	DaysActive   *int   `json:"days_active,omitempty"`
+	TotalPosts   *int   `json:"total_posts,omitempty"`
 }

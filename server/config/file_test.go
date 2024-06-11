@@ -37,7 +37,8 @@ func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 		cfgData, err := marshalConfig(cfg)
 		require.NoError(t, err)
 
-		os.WriteFile(f.Name(), cfgData, 0644)
+		err = os.WriteFile(f.Name(), cfgData, 0644)
+		require.NoError(t, err)
 
 		name = f.Name()
 	}
@@ -94,7 +95,8 @@ func assertFileNotEqualsConfig(t *testing.T, expectedCfg *model.Config, path str
 }
 
 func TestFileStoreNew(t *testing.T) {
-	utils.TranslationsPreInit()
+	err := utils.TranslationsPreInit()
+	require.NoError(t, err)
 
 	t.Run("absolute path, initialization required", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, testConfig)
@@ -125,7 +127,6 @@ func TestFileStoreNew(t *testing.T) {
 		assert.Equal(t, "http://TestStoreNew", *configStore.Get().ServiceSettings.SiteURL)
 		// nonexisting value should be overwritten by the custom
 		// defaults
-		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
 		assertFileNotEqualsConfig(t, testConfig, path)
 	})
 
@@ -156,7 +157,6 @@ func TestFileStoreNew(t *testing.T) {
 		// as the whole config has default values already, custom
 		// defaults should have no effect
 		assert.Equal(t, "http://minimal", *configStore.Get().ServiceSettings.SiteURL)
-		assert.NotEqual(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
 		assertFileEqualsConfig(t, minimalConfigNoFF, path)
 	})
 
@@ -195,7 +195,6 @@ func TestFileStoreNew(t *testing.T) {
 		defer configStore.Close()
 
 		assert.Equal(t, *customConfigDefaults.ServiceSettings.SiteURL, *configStore.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
 	})
 
 	t.Run("absolute path, path to file does not exist", func(t *testing.T) {
@@ -224,7 +223,8 @@ func TestFileStoreNew(t *testing.T) {
 		cfgData, err := marshalConfig(testConfig)
 		require.NoError(t, err)
 
-		os.WriteFile(path, cfgData, 0644)
+		err = os.WriteFile(path, cfgData, 0644)
+		require.NoError(t, err)
 
 		fs, err := NewFileStore(path, false)
 		require.NoError(t, err)
@@ -814,7 +814,8 @@ func TestFileStoreLoad(t *testing.T) {
 		cfgData, err := marshalConfig(invalidConfig)
 		require.NoError(t, err)
 
-		os.WriteFile(path, cfgData, 0644)
+		err = os.WriteFile(path, cfgData, 0644)
+		require.NoError(t, err)
 
 		err = fs.Load()
 		if assert.Error(t, err) {
@@ -1007,7 +1008,6 @@ func TestFileGetFile(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, []byte("new file"), data)
 	})
-
 }
 
 func TestFileSetFile(t *testing.T) {
@@ -1141,7 +1141,6 @@ func TestFileHasFile(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, has)
 	})
-
 }
 
 func TestFileRemoveFile(t *testing.T) {
@@ -1226,7 +1225,6 @@ func TestFileRemoveFile(t *testing.T) {
 		has, err := fs.HasFile(filename)
 		require.NoError(t, err)
 		require.True(t, has)
-
 	})
 }
 

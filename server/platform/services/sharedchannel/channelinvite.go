@@ -11,7 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
@@ -54,7 +54,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		ChannelId:   channel.Id,
 		TeamId:      rc.RemoteTeamId,
 		ReadOnly:    sc.ReadOnly,
-		Name:        sc.ShareName,
+		Name:        channel.Name,
 		DisplayName: sc.ShareDisplayName,
 		Header:      sc.ShareHeader,
 		Purpose:     sc.SharePurpose,
@@ -72,6 +72,37 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 
 	msg := model.NewRemoteClusterMsg(TopicChannelInvite, json)
 
+	// onInvite is called after invite is sent, whether to a remote cluster or plugin.
+	onInvite := func(_ model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
+		if err != nil || !resp.IsSuccess() {
+			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, combineErrors(err, resp.Err)))
+			return
+		}
+
+		scr := &model.SharedChannelRemote{
+			ChannelId:         sc.ChannelId,
+			CreatorId:         userId,
+			RemoteId:          rc.RemoteId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			LastPostCreateAt:  model.GetMillis(),
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
+			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
+			return
+		}
+		scs.NotifyChannelChanged(sc.ChannelId)
+		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
+	}
+
+	if rc.IsPlugin() {
+		// for now plugins are considered fully invited automatically
+		// TODO: MM-57537 create plugin hook that passes invitation to plugins if BitflagOptionAutoInvited is not set
+		onInvite(msg, rc, &remotecluster.Response{Status: remotecluster.ResponseStatusOK}, nil)
+		return nil
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
 
@@ -87,6 +118,8 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 			RemoteId:          rc.RemoteId,
 			IsInviteAccepted:  true,
 			IsInviteConfirmed: true,
+			LastPostCreateAt:  model.GetMillis(),
+			LastPostUpdateAt:  model.GetMillis(),
 		}
 		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
@@ -129,14 +162,21 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		mlog.String("team_id", invite.TeamId),
 	)
 
-	// create channel if it doesn't exist; the channel may already exist, such as if it was shared then unshared at some point.
-	channel, err := scs.server.GetStore().Channel().Get(invite.ChannelId, true)
-	if err != nil {
-		if channel, err = scs.handleChannelCreation(invite, rc); err != nil {
-			return err
-		}
+	// check if channel already exists
+	var channel *model.Channel
+	_, err := scs.server.GetStore().Channel().Get(invite.ChannelId, true)
+	if err == nil {
+		// the channel already exists on this server; could be the remote is trying to re-share it (not allowed at this time).
+		// If the channel is already shared with the remote, it will remain so.
+		return fmt.Errorf("cannot create shared channel (channel_id=%s): %w", invite.ChannelId, model.ErrChannelAlreadyExists)
 	}
 
+	// create new local channel to sync with the remote channel
+	if channel, err = scs.handleChannelCreation(invite, rc); err != nil {
+		return err
+	}
+
+	// mark the newly created channel read-only if requested in the invite
 	if invite.ReadOnly {
 		if err := scs.makeChannelReadOnly(channel); err != nil {
 			return fmt.Errorf("cannot make channel readonly `%s`: %w", invite.ChannelId, err)
@@ -158,6 +198,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 	}
 
 	if _, err := scs.server.GetStore().SharedChannel().Save(sharedChannel); err != nil {
+		// delete the newly created channel since we could not create a SharedChannel record for it
 		scs.app.PermanentDeleteChannel(request.EmptyContext(scs.server.Log()), channel)
 		return fmt.Errorf("cannot create shared channel (channel_id=%s): %w", invite.ChannelId, err)
 	}
@@ -169,9 +210,13 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		IsInviteAccepted:  true,
 		IsInviteConfirmed: true,
 		RemoteId:          rc.RemoteId,
+		LastPostCreateAt:  model.GetMillis(),
+		LastPostUpdateAt:  model.GetMillis(),
 	}
 
 	if _, err := scs.server.GetStore().SharedChannel().SaveRemote(sharedChannelRemote); err != nil {
+		// delete the newly created channel since we could not create a SharedChannelRemote record for it,
+		// and delete the newly created SharedChannel record as well.
 		scs.app.PermanentDeleteChannel(request.EmptyContext(scs.server.Log()), channel)
 		scs.server.GetStore().SharedChannel().Delete(sharedChannel.ChannelId)
 		return fmt.Errorf("cannot create shared channel remote (channel_id=%s): %w", invite.ChannelId, err)

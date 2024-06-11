@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import VirtPostList from 'components/post_view/post_list_virtualized/post_list_virtualized';
 
@@ -16,8 +16,6 @@ const actionsProp = {
     loadPosts: jest.fn().mockImplementation(() => Promise.resolve({moreToLoad: false})),
     syncPostsInChannel: jest.fn().mockResolvedValue({}),
     loadLatestPosts: jest.fn().mockImplementation(() => Promise.resolve({atLatestMessage: true, atOldestmessage: true})),
-    checkAndSetMobileView: jest.fn(),
-    markChannelAsViewed: jest.fn(),
     markChannelAsRead: jest.fn(),
     updateNewMessagesAtInChannel: jest.fn(),
     toggleShouldStartFromBottomWhenUnread: jest.fn(),
@@ -250,7 +248,6 @@ describe('components/post_view/post_list', () => {
 
             await wrapper.instance().postsOnLoad('undefined');
             expect(actionsProp.markChannelAsRead).toHaveBeenCalledWith(baseProps.channelId);
-            expect(actionsProp.markChannelAsViewed).toHaveBeenCalledWith(baseProps.channelId);
         });
         test('Should not call markChannelAsReadAndViewed as it is a permalink', async () => {
             const emptyPostList: string[] = [];
@@ -261,7 +258,6 @@ describe('components/post_view/post_list', () => {
 
             await actionsProp.loadPostsAround();
             expect(actionsProp.markChannelAsRead).not.toHaveBeenCalled();
-            expect(actionsProp.markChannelAsViewed).not.toHaveBeenCalled();
         });
     });
 });

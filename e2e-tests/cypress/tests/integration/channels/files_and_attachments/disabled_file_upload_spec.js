@@ -140,6 +140,7 @@ describe('Upload Files - Settings', () => {
                     },
                 }],
                 types: [],
+                getData: () => {},
             }});
 
             // * An error should be visible saying 'File attachments are disabled'
@@ -165,6 +166,7 @@ describe('Upload Files - Settings', () => {
                     },
                 }],
                 types: [],
+                getData: () => {},
             }});
 
             // * An error should be visible saying 'File attachments are disabled'

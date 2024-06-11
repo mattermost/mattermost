@@ -36,6 +36,10 @@ func newMMPreviewExtractor(url string, secret string, pdfExtractor pdfExtractor)
 	return &mmPreviewExtractor{url: url, secret: secret, pdfExtractor: pdfExtractor}
 }
 
+func (mpe *mmPreviewExtractor) Name() string {
+	return "mmPreviewExtractor"
+}
+
 func (mpe *mmPreviewExtractor) Match(filename string) bool {
 	extension := strings.TrimPrefix(path.Ext(filename), ".")
 	return mmpreviewSupportedExtensions[extension]

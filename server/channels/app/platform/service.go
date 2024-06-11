@@ -43,7 +43,8 @@ type PlatformService struct {
 
 	configStore *config.Store
 
-	filestore filestore.FileBackend
+	filestore       filestore.FileBackend
+	exportFilestore filestore.FileBackend
 
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
@@ -97,7 +98,9 @@ type PlatformService struct {
 	goroutineBuffered   chan struct{}
 
 	additionalClusterHandlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
-	sharedChannelService      SharedChannelServiceIFace
+
+	shareChannelServiceMux sync.RWMutex
+	sharedChannelService   SharedChannelServiceIFace
 
 	pluginEnv HookRunner
 }
@@ -203,7 +206,11 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Timer layer
 			// |
 			// Cache layer
-			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
+			var err error
+			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace)
+			if err != nil {
+				return nil, err
+			}
 
 			searchStore := searchlayer.NewSearchLayer(
 				retrylayer.New(ps.sqlStore),
@@ -247,6 +254,19 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.filestore = backend
 	}
 
+	if ps.exportFilestore == nil {
+		ps.exportFilestore = ps.filestore
+		if *ps.Config().FileSettings.DedicatedExportStore {
+			mlog.Info("Setting up dedicated export filestore", mlog.String("driver_name", *ps.Config().FileSettings.ExportDriverName))
+			backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, false))
+			if errFileBack != nil {
+				return nil, fmt.Errorf("failed to initialize export filebackend: %w", errFileBack)
+			}
+
+			ps.exportFilestore = backend
+		}
+	}
+
 	var err error
 	ps.Store, err = ps.newStore()
 	if err != nil {
@@ -255,6 +275,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	// Needed before loading license
 	ps.statusCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
+		Name:           "Status",
 		Size:           model.StatusCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
@@ -305,11 +326,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	}
 
 	ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		if (oldLicense == nil && newLicense == nil) || !ps.startMetrics {
-			return
-		}
+		wasLicensed := (oldLicense != nil && *oldLicense.Features.Metrics) || (model.BuildNumber == "dev")
+		isLicensed := (newLicense != nil && *newLicense.Features.Metrics) || (model.BuildNumber == "dev")
 
-		if oldLicense != nil && newLicense != nil && *oldLicense.Features.Metrics == *newLicense.Features.Metrics {
+		if wasLicensed == isLicensed || !ps.startMetrics {
 			return
 		}
 
@@ -326,8 +346,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	return ps, nil
 }
 
-func (ps *PlatformService) Start() error {
-	ps.hubStart()
+func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error {
+	ps.hubStart(broadcastHooks)
 
 	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
 		ps.regenerateClientConfig()
@@ -350,10 +370,7 @@ func (ps *PlatformService) Start() error {
 
 		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
 		message.Add("license", ps.GetSanitizedClientLicense())
-		ps.Go(func() {
-			ps.Publish(message)
-		})
-
+		ps.Publish(message)
 	})
 	return nil
 }
@@ -457,7 +474,15 @@ func (ps *PlatformService) SetSqlStore(s *sqlstore.SqlStore) {
 }
 
 func (ps *PlatformService) SetSharedChannelService(s SharedChannelServiceIFace) {
+	ps.shareChannelServiceMux.Lock()
+	defer ps.shareChannelServiceMux.Unlock()
 	ps.sharedChannelService = s
+}
+
+func (ps *PlatformService) GetSharedChannelService() SharedChannelServiceIFace {
+	ps.shareChannelServiceMux.RLock()
+	defer ps.shareChannelServiceMux.RUnlock()
+	return ps.sharedChannelService
 }
 
 func (ps *PlatformService) SetPluginsEnvironment(runner HookRunner) {
@@ -489,4 +514,8 @@ func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.App
 
 func (ps *PlatformService) FileBackend() filestore.FileBackend {
 	return ps.filestore
+}
+
+func (ps *PlatformService) ExportFileBackend() filestore.FileBackend {
+	return ps.exportFilestore
 }

@@ -2,22 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {injectIntl, IntlShape} from 'react-intl';
+import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
 import * as GlobalActions from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
-import {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
-
 import AboutBuildModal from 'components/about_build_modal';
 import CommercialSupportModal from 'components/commercial_support_modal';
-import LocalizedIcon from 'components/localized_icon';
-
 import Menu from 'components/widgets/menu/menu';
+
+import {ModalIdentifiers} from 'utils/constants';
+import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import MenuItemBlockableLink from './menu_item_blockable_link';
 
@@ -66,9 +64,12 @@ class AdminNavbarDropdown extends React.PureComponent<Props> {
                 <MenuItemBlockableLink
                     to={'/select_team'}
                     icon={
-                        <LocalizedIcon
+                        <i
                             className='fa fa-exchange'
-                            title={{id: t('select_team.icon'), defaultMessage: 'Select Team Icon'}}
+                            title={formatMessage({
+                                id: 'select_team.icon',
+                                defaultMessage: 'Select Team Icon',
+                            })}
                         />
                     }
                     text={formatMessage({id: 'admin.nav.switch', defaultMessage: 'Team Selection'})}

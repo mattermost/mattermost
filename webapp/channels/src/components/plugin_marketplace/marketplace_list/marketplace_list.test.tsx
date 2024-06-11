@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import {AuthorType, MarketplacePlugin, ReleaseStage} from '@mattermost/types/marketplace';
-
-import MarketplaceItem from '../marketplace_item/marketplace_item_plugin';
+import {AuthorType, ReleaseStage} from '@mattermost/types/marketplace';
+import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 
 import MarketplaceList, {ITEMS_PER_PAGE} from './marketplace_list';
+
+import MarketplaceItem from '../marketplace_item/marketplace_item_plugin';
 
 describe('components/marketplace/marketplace_list', () => {
     const samplePlugin: MarketplacePlugin = {

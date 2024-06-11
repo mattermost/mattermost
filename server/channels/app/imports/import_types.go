@@ -14,6 +14,7 @@ import (
 
 type LineImportData struct {
 	Type          string                   `json:"type"`
+	Role          *RoleImportData          `json:"role,omitempty"`
 	Scheme        *SchemeImportData        `json:"scheme,omitempty"`
 	Team          *TeamImportData          `json:"team,omitempty"`
 	Channel       *ChannelImportData       `json:"channel,omitempty"`
@@ -50,6 +51,7 @@ type ChannelImportData struct {
 	Header      *string            `json:"header,omitempty"`
 	Purpose     *string            `json:"purpose,omitempty"`
 	Scheme      *string            `json:"scheme,omitempty"`
+	DeletedAt   *int64             `json:"deleted_at,omitempty"`
 }
 
 type UserImportData struct {
@@ -207,10 +209,11 @@ type SchemeImportData struct {
 }
 
 type RoleImportData struct {
-	Name        *string   `json:"name"`
-	DisplayName *string   `json:"display_name"`
-	Description *string   `json:"description"`
-	Permissions *[]string `json:"permissions"`
+	Name          *string   `json:"name"`
+	DisplayName   *string   `json:"display_name"`
+	Description   *string   `json:"description"`
+	Permissions   *[]string `json:"permissions"`
+	SchemeManaged *bool     `json:"scheme_managed"`
 }
 
 type LineImportWorkerData struct {

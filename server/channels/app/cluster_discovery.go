@@ -12,6 +12,5 @@ func (a *App) IsLeader() bool {
 }
 
 func (a *App) GetClusterId() string {
-
 	return a.Srv().Platform().GetClusterId()
 }

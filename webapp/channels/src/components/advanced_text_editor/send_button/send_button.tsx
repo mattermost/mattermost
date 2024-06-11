@@ -4,9 +4,8 @@
 import React, {FormEvent, memo} from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
-import {SendIcon} from '@mattermost/compass-icons/components';
 
-import {t} from 'utils/i18n';
+import {SendIcon} from '@mattermost/compass-icons/components';
 
 type SendButtonProps = {
     handleSubmit: (e: React.FormEvent) => void;
@@ -65,7 +64,7 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
                 size={18}
                 color='currentColor'
                 aria-label={formatMessage({
-                    id: t('create_post.icon'),
+                    id: 'create_post.icon',
                     defaultMessage: 'Create a post',
                 })}
             />

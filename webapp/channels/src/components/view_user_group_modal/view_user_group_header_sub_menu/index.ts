@@ -2,24 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from 'types/store';
-import {ModalData} from 'types/actions';
-import {openModal} from 'actions/views/modals';
 import {addUsersToGroup, archiveGroup, removeUsersFromGroup} from 'mattermost-redux/actions/groups';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import ViewUserGroupHeaderSubMenu from './view_user_group_header_sub_menu';
+import {openModal} from 'actions/views/modals';
 
-type Actions = {
-    openModal: <P>(modalData: ModalData<P>) => void;
-    removeUsersFromGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
-    addUsersToGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
-    archiveGroup: (groupId: string) => Promise<ActionResult>;
-};
+import type {GlobalState} from 'types/store';
+
+import ViewUserGroupHeaderSubMenu from './view_user_group_header_sub_menu';
 
 function mapStateToProps(state: GlobalState) {
     return {
@@ -29,7 +22,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             openModal,
             removeUsersFromGroup,
             addUsersToGroup,

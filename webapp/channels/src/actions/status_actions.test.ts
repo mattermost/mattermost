@@ -1,20 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {cloneDeep} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {Preferences} from 'mattermost-redux/constants';
+import {addUserIdsForStatusAndProfileFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
+import {Preferences} from 'mattermost-redux/constants';
 
 import * as Actions from 'actions/status_actions';
-import {GlobalState} from 'types/store';
 
 import mockStore from 'tests/test_store';
 
 jest.mock('mattermost-redux/actions/users', () => ({
     getStatusesByIds: jest.fn(() => {
+        return {type: ''};
+    }),
+}));
+
+jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
+    addUserIdsForStatusAndProfileFetchingPoll: jest.fn(() => {
         return {type: ''};
     }),
 }));
@@ -37,12 +43,13 @@ describe('actions/status_actions', () => {
                 currentChannelId: 'channel_id1',
                 channels: {channel_id1: {id: 'channel_id1', name: 'channel1', team_id: 'team_id1'}, channel_id2: {id: 'channel_id2', name: 'channel2', team_id: 'team_id1'}},
                 myMembers: {channel_id1: {channel_id: 'channel_id1', user_id: 'current_user_id'}},
-                channelsInTeam: {team_id1: ['channel_id1']},
+                channelsInTeam: {team_id1: new Set(['channel_id1'])},
             },
             general: {
                 config: {
                     EnableCustomEmoji: 'true',
                     EnableCustomUserStatuses: 'true',
+                    EnableUserStatuses: 'true',
                 },
             },
             teams: {
@@ -74,22 +81,23 @@ describe('actions/status_actions', () => {
                 },
             },
         },
-    } as unknown as GlobalState;
+    };
 
-    describe('loadStatusesForChannelAndSidebar', () => {
+    describe('addUserIdsForStatusAndProfileFetchingPoll', () => {
         test('load statuses with posts in channel and user in sidebar', () => {
             const state = cloneDeep(initialState);
             const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForChannelAndSidebar());
-            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['current_user_id', 'user_id2', 'user_id3']));
+            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelToStatusPoll());
+            expect(addUserIdsForStatusAndProfileFetchingPoll).toHaveBeenCalled();
+            expect(addUserIdsForStatusAndProfileFetchingPoll).toHaveBeenCalledWith({userIdsForStatus: ['user_id2', 'user_id3']});
         });
 
         test('load statuses with empty channel and user in sidebar', () => {
             const state = cloneDeep(initialState);
             state.entities.channels.currentChannelId = 'channel_id2';
             const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForChannelAndSidebar());
-            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['current_user_id', 'user_id3']));
+            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelToStatusPoll());
+            expect(addUserIdsForStatusAndProfileFetchingPoll).toHaveBeenCalledWith({userIdsForStatus: ['user_id3']});
         });
 
         test('load statuses with empty channel and no users in sidebar', () => {
@@ -97,8 +105,8 @@ describe('actions/status_actions', () => {
             state.entities.channels.currentChannelId = 'channel_id2';
             state.entities.preferences.myPreferences = {};
             const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForChannelAndSidebar());
-            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['current_user_id']));
+            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelToStatusPoll());
+            expect(addUserIdsForStatusAndProfileFetchingPoll).not.toHaveBeenCalled();
         });
     });
 

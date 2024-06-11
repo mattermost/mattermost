@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import Observable from 'zen-observable';
 import baseLocalForage from 'localforage';
 import {extendPrototype} from 'localforage-observable';
-
 import {persistStore, REHYDRATE} from 'redux-persist';
+import Observable from 'zen-observable';
 
 import {General, RequestStatus} from 'mattermost-redux/constants';
 import configureServiceStore from 'mattermost-redux/store';
@@ -23,9 +22,10 @@ window.Observable = Observable;
 
 const localForage = extendPrototype(baseLocalForage);
 
-export default function configureStore(preloadedState) {
+export default function configureStore(preloadedState, additionalReducers) {
+    const reducers = additionalReducers ? {...appReducers, ...additionalReducers} : appReducers;
     const store = configureServiceStore({
-        appReducers,
+        appReducers: reducers,
         getAppReducers,
         preloadedState,
     });

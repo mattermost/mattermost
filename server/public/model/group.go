@@ -45,6 +45,7 @@ type Group struct {
 	AllowReference              bool        `json:"allow_reference"`
 	ChannelMemberCount          *int        `db:"-" json:"channel_member_count,omitempty"`
 	ChannelMemberTimezonesCount *int        `db:"-" json:"channel_member_timezones_count,omitempty"`
+	MemberIDs                   []string    `db:"-" json:"member_ids"`
 }
 
 func (group *Group) Auditable() map[string]interface{} {
@@ -59,6 +60,10 @@ func (group *Group) Auditable() map[string]interface{} {
 		"member_count":    group.MemberCount,
 		"allow_reference": group.AllowReference,
 	}
+}
+
+func (group *Group) LogClone() any {
+	return group.Auditable()
 }
 
 type GroupWithUserIds struct {
@@ -133,10 +138,18 @@ type GroupSearchOpts struct {
 
 	IncludeChannelMemberCount string
 	IncludeTimezones          bool
+	IncludeMemberIDs          bool
+
+	// Include archived groups
+	IncludeArchived bool
+
+	// Only return archived groups
+	FilterArchived bool
 }
 
 type GetGroupOpts struct {
 	IncludeMemberCount bool
+	IncludeMemberIDs   bool
 }
 
 type PageOpts struct {
@@ -234,7 +247,6 @@ func (group *Group) IsValidForUpdate() *AppError {
 var validGroupnameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
 
 func (group *Group) IsValidName() *AppError {
-
 	if group.Name == nil {
 		if group.AllowReference {
 			return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]any{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)

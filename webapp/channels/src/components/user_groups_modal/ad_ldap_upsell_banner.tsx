@@ -1,26 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
 import moment from 'moment';
+import React, {memo, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
-import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import type {GlobalState} from '@mattermost/types/store';
 
-import {isAdmin} from 'mattermost-redux/utils/user_utils';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {checkHadPriorTrial, isCurrentLicenseCloud, getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {getBrowserTimezone} from 'utils/timezone';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {isAdmin} from 'mattermost-redux/utils/user_utils';
+
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
 import {CloudProducts, LicenseSkus} from 'utils/constants';
-
-import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
-
-import {GlobalState} from '@mattermost/types/store';
+import {getBrowserTimezone} from 'utils/timezone';
 
 function ADLDAPUpsellBanner() {
     const [show, setShow] = useState(true);
@@ -90,7 +88,7 @@ function ADLDAPUpsellBanner() {
         return null;
     }
 
-    let btn = (
+    let btn: JSX.Element | null = (
         <StartTrialBtn
             btnClass='ad-ldap-banner-btn'
             message={formatMessage({id: 'adldap_upsell_banner.trial_btn', defaultMessage: 'Start trial'})}
@@ -99,18 +97,7 @@ function ADLDAPUpsellBanner() {
             onClick={() => setConfirmed(true)}
         />);
 
-    if (isCloud) {
-        btn = (
-            <CloudStartTrialButton
-                extraClass='ad-ldap-banner-btn'
-                message={formatMessage({id: 'adldap_upsell_banner.trial_btn', defaultMessage: 'Start trial'})}
-                telemetryId={'start_cloud_trial_from_adldap_upsell_banner'}
-                onClick={() => setConfirmed(true)}
-            />
-        );
-    }
-
-    if (prevTrialed) {
+    if (prevTrialed || isCloud) {
         btn = (
             <button
                 className='ad-ldap-banner-btn'
@@ -146,4 +133,4 @@ function ADLDAPUpsellBanner() {
     );
 }
 
-export default ADLDAPUpsellBanner;
+export default memo(ADLDAPUpsellBanner);

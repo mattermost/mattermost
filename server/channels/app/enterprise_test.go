@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -17,51 +18,46 @@ import (
 
 func TestSAMLSettings(t *testing.T) {
 	tt := []struct {
-		name              string
-		setNewInterface   bool
-		useNewSAMLLibrary bool
-		isNil             bool
-		metadata          string
+		name         string
+		setInterface bool
+		isNil        bool
+		metadata     string
 	}{
 		{
-			name:              "No SAML Interfaces, default setting",
-			setNewInterface:   false,
-			useNewSAMLLibrary: false,
-			isNil:             true,
+			name:         "No SAML Interfaces, default setting",
+			setInterface: false,
+			isNil:        true,
 		},
 		{
-			name:              "No SAML Interfaces, set config true",
-			setNewInterface:   false,
-			useNewSAMLLibrary: true,
-			isNil:             true,
+			name:         "No SAML Interfaces, set config true",
+			setInterface: false,
+			isNil:        true,
 		},
 		{
-			name:              "Both SAML Interfaces, default setting",
-			setNewInterface:   true,
-			useNewSAMLLibrary: false,
-			isNil:             false,
-			metadata:          "samlTwo",
+			name:         "Both SAML Interfaces, default setting",
+			setInterface: true,
+			isNil:        false,
+			metadata:     "samlTwo",
 		},
 		{
-			name:              "Both SAML Interfaces, config true",
-			setNewInterface:   true,
-			useNewSAMLLibrary: true,
-			isNil:             false,
-			metadata:          "samlTwo",
+			name:         "Both SAML Interfaces, config true",
+			setInterface: true,
+			isNil:        false,
+			metadata:     "samlTwo",
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			saml2 := &mocks.SamlInterface{}
-			saml2.Mock.On("ConfigureSP").Return(nil)
-			saml2.Mock.On("GetMetadata").Return("samlTwo", nil)
-			if tc.setNewInterface {
-				RegisterNewSamlInterface(func(_ *App) einterfaces.SamlInterface {
+			saml2.Mock.On("ConfigureSP", mock.AnythingOfType("*request.Context")).Return(nil)
+			saml2.Mock.On("GetMetadata", mock.AnythingOfType("*request.Context")).Return("samlTwo", nil)
+			if tc.setInterface {
+				RegisterSamlInterface(func(_ *App) einterfaces.SamlInterface {
 					return saml2
 				})
 			} else {
-				RegisterNewSamlInterface(nil)
+				RegisterSamlInterface(nil)
 			}
 
 			th := SetupEnterpriseWithStoreMock(t)
@@ -83,17 +79,11 @@ func TestSAMLSettings(t *testing.T) {
 			mockStore.On("Post").Return(&mockPostStore)
 			mockStore.On("System").Return(&mockSystemStore)
 
-			if tc.useNewSAMLLibrary {
-				th.App.UpdateConfig(func(cfg *model.Config) {
-					*cfg.ExperimentalSettings.UseNewSAMLLibrary = tc.useNewSAMLLibrary
-				})
-			}
-
 			if tc.isNil {
 				assert.Nil(t, th.App.Channels().Saml)
 			} else {
 				assert.NotNil(t, th.App.Channels().Saml)
-				metadata, err := th.App.Channels().Saml.GetMetadata()
+				metadata, err := th.App.Channels().Saml.GetMetadata(request.TestContext(t))
 				assert.Nil(t, err)
 				assert.Equal(t, tc.metadata, metadata)
 			}

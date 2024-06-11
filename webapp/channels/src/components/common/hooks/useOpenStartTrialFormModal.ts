@@ -4,9 +4,12 @@
 import {useDispatch} from 'react-redux';
 
 import {openModal} from 'actions/views/modals';
-import {ModalIdentifiers} from 'utils/constants';
+
 import StartTrialFormModal from 'components/start_trial_form_modal';
-import {TelemetryProps} from './useOpenPricingModal';
+
+import {ModalIdentifiers} from 'utils/constants';
+
+import type {TelemetryProps} from './useOpenPricingModal';
 
 export default function useOpenStartTrialFormModal() {
     const dispatch = useDispatch();

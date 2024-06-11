@@ -1,0 +1,622 @@
+[
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "Kunne ikke underskrive genereret trigger ID til interaktiv dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "Bekræftelse af signatur mislykkedes for trigger ID til interaktiv dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Afkodning af base64 signatur, for trigger ID til interaktiv dialog, mislykkedes."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "Trigger ID mangler nødvendig data til interaktiv dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "Trigger ID tilhørende interaktiv dialog er udløbet. Trigger ID'er lever i maksimalt {{.Seconds}} sekunder."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "Afkodning af base64 signatur, for trigger ID til interaktiv dialog, mislykkedes."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Afkodning af base64 for trigger ID til interaktiv dialog mislykkedes."
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "SAML 2.0 er ikke konfigureret eller understøttet på denne server."
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "Der opstod en fejl under konstruktion af Service Provider Metadata."
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Der opstod en fejl i kodning JSON for den interaktive dialog."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Der opstod en fejl under gem af filen."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Der opstod en fejl under læsning af filen."
+  },
+  {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Der opstod en fejl under sletningen af offentlig nøgle."
+  },
+  {
+    "id": "api.user.upload_profile_user.too_large.app_error",
+    "translation": "Kan ikke uploade profilbillede. Filen er for stor."
+  },
+  {
+    "id": "api.user.upload_profile_user.storage.app_error",
+    "translation": "Ude af stand til at uploade billedet. Lagring af billeder er ikke konfigureret."
+  },
+  {
+    "id": "api.user.upload_profile_user.parse.app_error",
+    "translation": "Kunne ikke oversætte multipart-form."
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "Kunne ikke åbne certifikat-fil."
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "Ingen fil under \"billede\" i anmodningen."
+  },
+  {
+    "id": "api.user.upload_profile_user.array.app_error",
+    "translation": "Tom tabel under \"billede\" i forespørgsel."
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "SAML 2.0 er ikke konfigureret eller understøttet på denne server."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "Kan ikke uploade gruppe-ikon. Filen er for stor."
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "Ude af stand til at uploade billedet. Lagring af billeder er ikke konfigureret."
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "Kunne ikke oversætte multipart-form."
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Kunne ikke åbne certifikat-fil."
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "Ingen fil under \"billede\" i anmodningen."
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "Tom tabel under \"billede\" i forespørgsel."
+  },
+  {
+    "id": "api.team.import_team.parse.app_error",
+    "translation": "Kunne ikke oversætte multipart-form."
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "Kunne ikke åbne certifikat-fil."
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "Ingen fil under \"fil\" i anmodningen."
+  },
+  {
+    "id": "api.team.import_team.array.app_error",
+    "translation": "Tom tabel under \"billede\" i forespørgsel."
+  },
+  {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v tilføjet til kanalen af %v."
+  },
+  {
+    "id": "api.restricted_system_admin",
+    "translation": "Denne handling er ikke tilladt for en begrænset system admin."
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "Kunne ikke åbne certifikat-fil."
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "Ingen fil under \"licens\" i anmodningen."
+  },
+  {
+    "id": "api.license.add_license.array.app_error",
+    "translation": "Tom tabel under \"billede\" i forespørgsel."
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "Ude af stand til at uploade billedet. Lagring af billeder er ikke konfigureret."
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "Der opstod en fejl under besked til bruger."
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "Der opstod en fejl ved forlad kanalen."
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "Der opstod en fejl under visning af kanalen."
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "Der opstod en fejl under tilslutning til kanalen."
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "Der opstod en fejl under tilslutning til kanalen."
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Der opstod en fejl mens der blev sendt besked til brugere."
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "Der opstod en fejl mens forhåndsvisninger blev udvidet."
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "invite_people"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Kan ikke tilføje bruger til denne type kanal."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Denne kanal er blevet omdannet til et Privat Kanal."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Denne kanal er blevet konverteret til en offentlig kanal og alle slags gruppe medlemmer kan nu tilslutte sig."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Kan ikke tilføje bruger til denne type kanal."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Kunne ikke tilføje bruger til kanal, fordi de er blevet fjernet fra gruppen."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Kunne ikke tilføje bruger til kanal."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v tilføjet til kanalen af %v."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v tilføjet til kanalen af %v."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Kan ikke uploade fil. Filen er for stor."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Ude af stand til at uploade billedet. Lagring af billeder er ikke konfigureret."
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "Kunne ikke oversætte multipart-form."
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Ingen fil under \"billede\" i anmodningen."
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "Tom tabel under \"billede\" i forespørgsel."
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket er påkrævet"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Test af E-Mail indstillinger"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "SMTP-server, port, eller brugernavn var ændret. Venligst indtast SMTP-adgangskode for at teste forbindelsen."
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP Server er påkrævet"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Det ser ud til at din Mattermost e-mail er sat korrekt op!"
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 er ikke konfigureret eller understøttet på denne server."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "Der opstod en fejl under konstruktion af Service Provider Metadata."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Kunne ikke gemme certifikat-fil."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Der opstod en fejl under sletningen af certifikatet."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Billedlager er ikke konfigureret."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Fejl ved læsning af log-fil."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Ikke muligt at slette mærke billede, ikke fundet."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Kunne ikke gemme certifikat-fil."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Kunne ikke åbne certifikat-fil."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Ingen fil under \"certifikat\" i anmodningen."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Ingen fil under \"certifikat\" i anmodningen."
+  },
+  {
+    "id": "September",
+    "translation": "September"
+  },
+  {
+    "id": "October",
+    "translation": "Oktober"
+  },
+  {
+    "id": "November",
+    "translation": "November"
+  },
+  {
+    "id": "May",
+    "translation": "Maj"
+  },
+  {
+    "id": "March",
+    "translation": "Marts"
+  },
+  {
+    "id": "June",
+    "translation": "Juni"
+  },
+  {
+    "id": "July",
+    "translation": "Juli"
+  },
+  {
+    "id": "January",
+    "translation": "Januar"
+  },
+  {
+    "id": "February",
+    "translation": "Februar"
+  },
+  {
+    "id": "December",
+    "translation": "December"
+  },
+  {
+    "id": "August",
+    "translation": "August"
+  },
+  {
+    "id": "April",
+    "translation": "April"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] eller slet"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Sæt eller slet din status"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Din status blev slettet."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Fejl ved rømning af status."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Fejl under oprettelse af status."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Tilbage til {{.SiteName}}"
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Fejl ved behandling af forespørgsel på multiformular"
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "Manglende identitetsudbyder SSO Services node i XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "Manglende identitetsudbyder Key Descriptors node i XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "Manglende identitetsudbyder SSO Descriptors node i XML."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Kunne ikke nulstille AuthData felt til e-post."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Fejlede under fortolkning af metadata information modtaget af identitetsudbyderen af et certifikat."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Ikke muligt at finde metadata fra identitetsudbyderens URL."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP er ikke tilgængelig."
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Deres licens understøtter ikke support grupper"
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Kanalmedlemskabs nægtet til følgende brugere på grund af gruppebegrænsninger: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "En fejl opstod ved at tilføje medlemmer til kanalen."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Tilføj mig til hold og kanaler, som jeg skal interagere med. For at opnå dette, brug browser eller Mattermost skrivebordsapplikation."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Oprettelse af bot er blevet deaktiveret."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Manglende indholdstype."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Ugyldig indholdstype."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Ugyldig certifikat tekst."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Din licens giver ikke adgang til bogmærker i kanaler."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Det er ikke tilladt for brugeren at lave bogmærker i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke lave bogmærke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke lave bogmærke i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunne ikke slette bogmærket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke slette bogmærket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke slette bogmærket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunne ikke opdatere bogmærket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke opdatere bogmærket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke opdatere bogmærket i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunne ikke opdatere sorteringsrækkefølgen af bogmærker i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke opdatere sorteringsrækkefølgen af bogmærker i kanalen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Kunne ikke opdatere sorteringsrækkefølgen af bogmærker i kanalen."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "En direkte kanal kan ikke oprettes mellem disse brugere, da de ikke er i fælles team."
+  },
+  {
+    "id": "api.channel.create_channel.max_channel_limit.app_error",
+    "translation": "Kan ikke oprette mere end {{.MaxChannelsPerTeam}} kanaler for det aktuelle team."
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "Irrelevant"
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "Torv"
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "Ugyldigt bruger ID til at oprette direkte kanaler."
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "Kanalen er blevet arkiveret eller slettet."
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Kan ikke fjerne en bruger fra en kanal med gruppemedlemsskab."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Følgende brugere kunne ikke fjernes fra kanalen på grund af grupperestriktioner: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Du kan ikke omdøbe en kanal til direkte beskeder."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Du kan ikke omdøbe en kanal til gruppebeskeder."
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "Kan ikke afarkivere kanalen. Kanalen er ikke arkiveret."
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} afarkiverede kanalen."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Ugyldig opdatering af kanalmedlem: En bruger skal være gæst eller bruger, men ikke begge dele."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Du kan ikke fjerne en bekræftelse i en arkiveret kanal."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Du kan ikke slette en bekræftelse efter 5 min."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Du kan ikke bekræfte i en arkiveret kanal."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "kunne ikke tilføje en bruger til group-teams og group-channels"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "Det er nødvendigt at bruge createDirectChannel API tjenesten, for at oprette kanaler til direkte beskeder."
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v har arkiveret kanalen."
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "Kan ikke fjerne standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Kanaler til gruppemeddelelser skal indeholde mindst 3 og højest 8 brugere."
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "En af de angivne brugere eksisterer ikke."
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "Forsøgte at udføre en ugyldig opdatering af standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "Kanalen er blevet arkiveret eller slettet."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Kanaltypen kan ikke opdateres."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Du har ikke tilladelse til at opdatere navn, visningsnavn og formål med direkte beskeder eller gruppebeskeder."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Ugyldig opdatering af kanalmedlem: Du kan ikke tilføje eller fjerne gæsterollen manuelt."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Ugyldig opdatering af kanalmedlem: En gæst kan ikke blive teammedlem eller teamadministrator, gør venligst gæsten til bruger først."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "Rollen administreres af et skema og kan derfor ikke anvendes direkte på et kanalmedlem."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Ugyldig opdatering af kanalmedlem: En gæst kan ikke gøres ansvarlig for en kanal. En systemadministrator skal først gøre gæsten til bruger."
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "Standardkanalen kan ikke gøres privat."
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "Din licens tillader ikke opdatering af kanalens skema"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "Kan ikke indstille skemaet til kanalen, fordi det medfølgende skema ikke er et kanalskema."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Ugyldig opdatering af teammedlem: Du kan ikke tilføje eller fjerne gæsterollen manuelt."
+  }
+]

@@ -2,17 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
+
+import type {GlobalState} from 'types/store';
 
 import AboutAreaDM from './about_area_dm';
 
-const initialState = {
+const initialState: DeepPartial<GlobalState> = {
     entities: {
         channels: {
             currentChannelId: 'current_channel_id',
@@ -39,12 +41,12 @@ const initialState = {
                     name: 'current_user_id__existingId',
                     display_name: 'Default',
                     delete_at: 0,
-                    type: '0',
+                    type: 'D',
                     team_id: 'team_id',
                 },
             },
             channelsInTeam: {
-                'team-id': ['current_channel_id'],
+                'team-id': new Set(['current_channel_id']),
             },
             messageCounts: {
                 current_channel_id: {total: 10},
@@ -57,7 +59,7 @@ const initialState = {
                 'team-id': {
                     id: 'team_id',
                     name: 'team-1',
-                    displayName: 'Team 1',
+                    display_name: 'Team 1',
                 },
             },
             myMembers: {
@@ -103,7 +105,7 @@ const initialState = {
         general: {
             license: {IsLicensed: 'false'},
             serverVersion: '5.4.0',
-            config: {PostEditTimeLimit: -1},
+            config: {PostEditTimeLimit: '-1'},
         },
     },
 };
@@ -132,50 +134,40 @@ describe('channel_info_rhs/about_area_dm', () => {
         },
     };
 
-    test('should display user avatar', async () => {
-        const store = await mockStore(initialState);
-
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutAreaDM
-                    {...defaultProps}
-                />
-            </Provider>,
+    test('should display user avatar', () => {
+        renderWithContext(
+            <AboutAreaDM
+                {...defaultProps}
+            />,
+            initialState,
         );
 
         expect(screen.getByAltText('my_username profile image')).toBeInTheDocument();
     });
 
-    test('should display user name', async () => {
-        const store = await mockStore(initialState);
-
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutAreaDM
-                    {...defaultProps}
-                />
-            </Provider>,
+    test('should display user name', () => {
+        renderWithContext(
+            <AboutAreaDM
+                {...defaultProps}
+            />,
+            initialState,
         );
 
         expect(screen.getByText('my_username')).toBeInTheDocument();
     });
 
-    test('should display user position', async () => {
-        const store = await mockStore(initialState);
-
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutAreaDM
-                    {...defaultProps}
-                />
-            </Provider>,
+    test('should display user position', () => {
+        renderWithContext(
+            <AboutAreaDM
+                {...defaultProps}
+            />,
+            initialState,
         );
 
         expect(screen.getByText('my position')).toBeInTheDocument();
     });
 
-    test('should display bot tag', async () => {
-        const store = await mockStore(initialState);
+    test('should display bot tag', () => {
         const props = {
             ...defaultProps,
             dmUser: {
@@ -186,19 +178,17 @@ describe('channel_info_rhs/about_area_dm', () => {
                 },
             },
         };
-        const {container} = renderWithIntl(
-            <Provider store={store}>
-                <AboutAreaDM
-                    {...props}
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
         );
         expect(container.querySelector('.Tag')).toBeInTheDocument();
         expect(container.querySelector('.Tag')).toHaveTextContent('BOT');
     });
 
-    test('should display guest tag', async () => {
-        const store = await mockStore(initialState);
+    test('should display guest tag', () => {
         const props = {
             ...defaultProps,
             dmUser: {
@@ -206,19 +196,17 @@ describe('channel_info_rhs/about_area_dm', () => {
                 is_guest: true,
             },
         };
-        const {container} = renderWithIntl(
-            <Provider store={store}>
-                <AboutAreaDM
-                    {...props}
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
         );
         expect(container.querySelector('.Tag')).toBeInTheDocument();
         expect(container.querySelector('.Tag')).toHaveTextContent('GUEST');
     });
 
-    test('should display bot description', async () => {
-        const store = await mockStore(initialState);
+    test('should display bot description', () => {
         const props = {
             ...defaultProps,
             dmUser: {
@@ -229,32 +217,28 @@ describe('channel_info_rhs/about_area_dm', () => {
                 },
             },
         };
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutAreaDM
-                    {...props}
-                />
-            </Provider>,
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
         );
 
         expect(screen.getByText('my bot description')).toBeInTheDocument();
     });
 
-    test('should display channel header', async () => {
-        const store = await mockStore(initialState);
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutAreaDM
-                    {...defaultProps}
-                />
-            </Provider>,
+    test('should display channel header', () => {
+        renderWithContext(
+            <AboutAreaDM
+                {...defaultProps}
+            />,
+            initialState,
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
     });
 
-    test('should not display channel header for bots', async () => {
-        const store = await mockStore(initialState);
+    test('should not display channel header for bots', () => {
         const props = {
             ...defaultProps,
             dmUser: {
@@ -265,12 +249,11 @@ describe('channel_info_rhs/about_area_dm', () => {
                 },
             },
         };
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutAreaDM
-                    {...props}
-                />
-            </Provider>,
+        renderWithContext(
+            <AboutAreaDM
+                {...props}
+            />,
+            initialState,
         );
 
         expect(screen.queryByText('my channel header')).not.toBeInTheDocument();

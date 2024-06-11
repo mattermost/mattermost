@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 const (
@@ -17,7 +18,7 @@ const (
 	BrandFileName = "image.png"
 )
 
-func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
+func (a *App) SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) *model.AppError {
 	if *a.Config().FileSettings.DriverName == "" {
 		return model.NewAppError("SaveBrandImage", "api.admin.upload_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -53,7 +54,7 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 	return nil
 }
 
-func (a *App) GetBrandImage() ([]byte, *model.AppError) {
+func (a *App) GetBrandImage(rctx request.CTX) ([]byte, *model.AppError) {
 	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("GetBrandImage", "api.admin.get_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -66,7 +67,7 @@ func (a *App) GetBrandImage() ([]byte, *model.AppError) {
 	return img, nil
 }
 
-func (a *App) DeleteBrandImage() *model.AppError {
+func (a *App) DeleteBrandImage(rctx request.CTX) *model.AppError {
 	filePath := BrandFilePath + BrandFileName
 
 	fileExists, err := a.FileExists(filePath)

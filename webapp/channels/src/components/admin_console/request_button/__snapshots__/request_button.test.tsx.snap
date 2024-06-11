@@ -9,20 +9,25 @@ exports[`components/admin_console/request_button/request_button.jsx should match
   >
     <div>
       <button
-        className="btn btn-default"
+        className="btn btn-tertiary"
         disabled={false}
         onClick={[Function]}
         type="button"
       >
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
-          text="Loading..."
+          text={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Loading..."
+              id="admin.requestButton.loading"
+            />
+          }
         >
           <MemoizedFormattedMessage
             defaultMessage="Button Text"
             id="test2"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       </button>
     </div>
     <div
@@ -92,14 +97,19 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          className="btn btn-default"
+          className="btn btn-tertiary"
           disabled={false}
           onClick={[Function]}
           type="button"
         >
-          <LoadingWrapper
+          <Memo(LoadingWrapper)
             loading={false}
-            text="Loading..."
+            text={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading..."
+                id="admin.requestButton.loading"
+              />
+            }
           >
             <FormattedMessage
               defaultMessage="Button Text"
@@ -109,30 +119,18 @@ exports[`components/admin_console/request_button/request_button.jsx should match
                 Button Text
               </span>
             </FormattedMessage>
-          </LoadingWrapper>
+          </Memo(LoadingWrapper)>
         </button>
         <div>
           <div
             className="alert alert-warning"
           >
-            <WarningIcon
-              additionalClassName={null}
-            >
-              <LocalizedIcon
+            <Memo(WarningIcon)>
+              <i
                 className="fa fa-warning"
-                title={
-                  Object {
-                    "defaultMessage": "Warning Icon",
-                    "id": "generic_icons.warning",
-                  }
-                }
-              >
-                <i
-                  className="fa fa-warning"
-                  title="Warning Icon"
-                />
-              </LocalizedIcon>
-            </WarningIcon>
+                title="Warning Icon"
+              />
+            </Memo(WarningIcon)>
             <FormattedMessage
               defaultMessage="Error Message: {error}"
               id="error.message"
@@ -229,14 +227,19 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          className="btn btn-default"
+          className="btn btn-tertiary"
           disabled={false}
           onClick={[Function]}
           type="button"
         >
-          <LoadingWrapper
+          <Memo(LoadingWrapper)
             loading={false}
-            text="Loading..."
+            text={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading..."
+                id="admin.requestButton.loading"
+              />
+            }
           >
             <FormattedMessage
               defaultMessage="Button Text"
@@ -246,30 +249,18 @@ exports[`components/admin_console/request_button/request_button.jsx should match
                 Button Text
               </span>
             </FormattedMessage>
-          </LoadingWrapper>
+          </Memo(LoadingWrapper)>
         </button>
         <div>
           <div
             className="alert alert-warning"
           >
-            <WarningIcon
-              additionalClassName={null}
-            >
-              <LocalizedIcon
+            <Memo(WarningIcon)>
+              <i
                 className="fa fa-warning"
-                title={
-                  Object {
-                    "defaultMessage": "Warning Icon",
-                    "id": "generic_icons.warning",
-                  }
-                }
-              >
-                <i
-                  className="fa fa-warning"
-                  title="Warning Icon"
-                />
-              </LocalizedIcon>
-            </WarningIcon>
+                title="Warning Icon"
+              />
+            </Memo(WarningIcon)>
             <FormattedMessage
               defaultMessage="Error Message: {error}"
               id="error.message"
@@ -358,14 +349,19 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          className="btn btn-default"
+          className="btn btn-tertiary"
           disabled={false}
           onClick={[Function]}
           type="button"
         >
-          <LoadingWrapper
+          <Memo(LoadingWrapper)
             loading={false}
-            text="Loading..."
+            text={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading..."
+                id="admin.requestButton.loading"
+              />
+            }
           >
             <FormattedMessage
               defaultMessage="Button Text"
@@ -375,27 +371,17 @@ exports[`components/admin_console/request_button/request_button.jsx should match
                 Button Text
               </span>
             </FormattedMessage>
-          </LoadingWrapper>
+          </Memo(LoadingWrapper)>
         </button>
         <div>
           <div
             className="alert alert-success"
           >
             <SuccessIcon>
-              <LocalizedIcon
+              <i
                 className="fa fa-check"
-                title={
-                  Object {
-                    "defaultMessage": "Success Icon",
-                    "id": "generic_icons.success",
-                  }
-                }
-              >
-                <i
-                  className="fa fa-check"
-                  title="Success Icon"
-                />
-              </LocalizedIcon>
+                title="Success Icon"
+              />
             </SuccessIcon>
             <FormattedMessage
               defaultMessage="Success Message"
@@ -488,14 +474,19 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          className="btn btn-default"
+          className="btn btn-tertiary"
           disabled={false}
           onClick={[Function]}
           type="button"
         >
-          <LoadingWrapper
+          <Memo(LoadingWrapper)
             loading={false}
-            text="Loading..."
+            text={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading..."
+                id="admin.requestButton.loading"
+              />
+            }
           >
             <FormattedMessage
               defaultMessage="Button Text"
@@ -505,7 +496,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
                 Button Text
               </span>
             </FormattedMessage>
-          </LoadingWrapper>
+          </Memo(LoadingWrapper)>
         </button>
       </div>
       <div

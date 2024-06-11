@@ -94,13 +94,11 @@ describe('Keyboard Shortcuts', () => {
         });
 
         cy.getLastPostId().then((postId) => {
-            // * verify Save not shown in webview
-            cy.findByText('Save').should('not.exist');
-
-            cy.viewport('iphone-6');
+            // * verify Saved not shown in webview
+            cy.findByText('Saved').should('not.exist');
 
             // # Save Post
-            cy.uiPostDropdownMenuShortcut(postId, 'Save', 'S', 'RHS_ROOT');
+            cy.uiPostDropdownMenuShortcut(postId, 'Save Message', 'S', 'RHS_ROOT');
 
             // * Verify post is Saved
             cy.get(`#post_${postId}`).find('.post-pre-header').should('be.visible').and('have.text', 'Saved');

@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode, memo, useCallback, useEffect, useState} from 'react';
-import {useIntl} from 'react-intl';
-import {isEmpty} from 'lodash';
-import {Link, useRouteMatch} from 'react-router-dom';
-import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 import classNames from 'classnames';
+import isEmpty from 'lodash/isEmpty';
+import React, {memo, useCallback, useEffect, useState} from 'react';
+import type {ReactNode} from 'react';
+import {useIntl} from 'react-intl';
+import {useSelector, useDispatch, shallowEqual} from 'react-redux';
+import {Link, useRouteMatch} from 'react-router-dom';
 
+import {getThreadCounts, getThreadsForCurrentTeam} from 'mattermost-redux/actions/threads';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {
     getThreadOrderInCurrentTeam,
     getUnreadThreadOrderInCurrentTeam,
@@ -15,35 +18,30 @@ import {
     getThread,
 } from 'mattermost-redux/selectors/entities/threads';
 
-import {getThreadCounts, getThreads} from 'mattermost-redux/actions/threads';
-
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
-
-import {GlobalState} from 'types/store/index';
-
-import {useGlobalState} from 'stores/hooks';
-import LocalStorageStore from 'stores/local_storage_store';
 import {clearLastUnreadChannel} from 'actions/global_actions';
-import {setSelectedThreadId} from 'actions/views/threads';
+import {loadProfilesForSidebar} from 'actions/user_actions';
 import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
-import {loadProfilesForSidebar} from 'actions/user_actions';
+import {setSelectedThreadId} from 'actions/views/threads';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
-import {LhsItemType, LhsPage} from 'types/store/lhs';
+import {useGlobalState} from 'stores/hooks';
+import LocalStorageStore from 'stores/local_storage_store';
 
-import {Constants, PreviousViewedTypes} from 'utils/constants';
-
-import Header from 'components/widgets/header';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 
-import {useThreadRouting} from '../hooks';
-import ChatIllustration from '../common/chat_illustration';
+import {PreviousViewedTypes} from 'utils/constants';
+import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 
-import ThreadViewer from '../thread_viewer';
+import type {GlobalState} from 'types/store/index';
+import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import ThreadList, {ThreadFilter, FILTER_STORAGE_KEY} from './thread_list';
 import ThreadPane from './thread_pane';
+
+import ChatIllustration from '../common/chat_illustration';
+import {useThreadRouting} from '../hooks';
+import ThreadViewer from '../thread_viewer';
 
 import './global_threads.scss';
 
@@ -96,19 +94,6 @@ const GlobalThreads = () => {
 
     const [isLoading, setLoading] = useState(isEmptyList);
 
-    const fetchThreads = useCallback(async (unread): Promise<{data: any}> => {
-        await dispatch(getThreads(
-            currentUserId,
-            currentTeamId,
-            {
-                unread,
-                perPage: Constants.THREADS_PAGE_SIZE,
-            },
-        ));
-
-        return {data: true};
-    }, [currentUserId, currentTeamId]);
-
     const isOnlySelectedThreadInList = (list: string[]) => {
         return selectedThreadId && list.length === 1 && list[0] === selectedThreadId;
     };
@@ -121,17 +106,24 @@ const GlobalThreads = () => {
 
         // this is needed to jump start threads fetching
         if (shouldLoadThreads) {
-            promises.push(fetchThreads(false));
+            promises.push(dispatch(getThreadsForCurrentTeam({unread: false})));
         }
 
         if (filter === ThreadFilter.unread && shouldLoadUnreadThreads) {
-            promises.push(fetchThreads(true));
+            promises.push(dispatch(getThreadsForCurrentTeam({unread: true})));
         }
 
         Promise.all(promises).then(() => {
             setLoading(false);
         });
-    }, [fetchThreads, filter, threadIds, unreadThreadIds]);
+    }, [filter, threadIds, unreadThreadIds]);
+
+    useEffect(() => {
+        if (!isLoading) {
+            measureAndReport(Measure.GlobalThreadsLoad, Mark.GlobalThreadsLinkClicked, undefined, true);
+            performance.clearMarks(Mark.GlobalThreadsLinkClicked);
+        }
+    }, [isLoading]);
 
     useEffect(() => {
         if (!selectedThread && !selectedPost && !isLoading) {
@@ -155,19 +147,6 @@ const GlobalThreads = () => {
             id='app-content'
             className={classNames('GlobalThreads app__content', {'thread-selected': Boolean(selectedThread)})}
         >
-            <Header
-                level={2}
-                className={'GlobalThreads___header'}
-                heading={formatMessage({
-                    id: 'globalThreads.heading',
-                    defaultMessage: 'Followed threads',
-                })}
-                subtitle={formatMessage({
-                    id: 'globalThreads.subtitle',
-                    defaultMessage: 'Threads you’re participating in will automatically show here',
-                })}
-            />
-
             {isLoading || isEmptyList ? (
                 <div className='no-results__holder'>
                     {isLoading ? (

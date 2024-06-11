@@ -19,7 +19,7 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, _ time.Time, _ b
 	return &nextTime
 }
 
-func MakeScheduler(jobServer *jobs.JobServer, licenseFunc func() *model.License) model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer, licenseFunc func() *model.License) *Scheduler {
 	enabledFunc := func(_ *model.Config) bool {
 		l := licenseFunc()
 		return l != nil && (l.SkuShortName == model.LicenseShortSkuProfessional || l.SkuShortName == model.LicenseShortSkuEnterprise)

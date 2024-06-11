@@ -17,7 +17,7 @@ exports[`admin_console/team_channel_settings/group/GroupRow should match snapsho
     <span
       className="group-description row-content"
     >
-      <Connect(ToggleModalButton)
+      <ToggleModalButton
         className="color--link"
         dialogProps={
           Object {
@@ -41,7 +41,7 @@ exports[`admin_console/team_channel_settings/group/GroupRow should match snapsho
             }
           }
         />
-      </Connect(ToggleModalButton)>
+      </ToggleModalButton>
     </span>
     <div
       className="group-description row-content roles"

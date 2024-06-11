@@ -66,7 +66,7 @@ describe('Group Synced Team - Bot invitation flow', () => {
             click();
 
         // # Invite the bot
-        cy.get('#inviteMembersButton').click();
+        cy.findByTestId('inviteButton').click();
 
         // * Ensure that the response message was not an error
         cy.get('.InviteResultRow').find('.reason').should('not.contain', 'Error');

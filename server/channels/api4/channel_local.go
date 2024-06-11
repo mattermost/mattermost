@@ -40,7 +40,7 @@ func (api *API) InitChannelLocal() {
 func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	var channel *model.Channel
 	err := json.NewDecoder(r.Body).Decode(&channel)
-	if err != nil {
+	if err != nil || channel == nil {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
@@ -176,7 +176,7 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "post_root_id", postRootId)
 
 	if ok && len(postRootId) == 26 {
-		rootPost, err := c.App.GetSinglePost(postRootId, false)
+		rootPost, err := c.App.GetSinglePost(c.AppContext, postRootId, false)
 		if err != nil {
 			c.Err = err
 			return
@@ -206,7 +206,7 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
 			} else {
-				c.Err = model.NewAppError("localAddChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
+				c.Err = model.NewAppError("localAddChannelMember", "api.channel.add_members.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 			return
 		}
@@ -288,7 +288,7 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var patch *model.ChannelPatch
 	err := json.NewDecoder(r.Body).Decode(&patch)
-	if err != nil {
+	if err != nil || patch == nil {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}

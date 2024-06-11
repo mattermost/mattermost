@@ -1,0 +1,40 @@
+.LearnAboutTeamsLink {
+    >span {
+        width: 100%;
+
+        a {
+            display: flex;
+            align-items: center;
+            padding: 6px 18px;
+            column-gap: 10px;
+
+            &:hover,
+            &:focus,
+            &:active {
+                text-decoration: none;
+            }
+
+            >i {
+                display: inline-flex !important;
+                padding: 3px;
+                border-radius: 50%;
+                background-color: hsla(221, 77%, 48%, 0.08);
+                font-size: 14px !important;
+
+                &::before {
+                    margin: 0;
+                }
+            }
+
+            span {
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 16px;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+    }
+}

@@ -1,21 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// import thunk from 'redux-thunk';
-// import configureStore from 'redux-mock-store';
-
-import {Post} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {ChannelTypes} from 'mattermost-redux/action_types';
 import {receivedNewPost} from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
+import type {GetStateFunc} from 'mattermost-redux/types/actions';
 
 import * as NewPostActions from 'actions/new_post';
+
 import mockStore from 'tests/test_store';
 import {Constants} from 'utils/constants';
-import {GlobalState} from '@mattermost/types/store';
-
-import {GetStateFunc} from 'mattermost-redux/types/actions';
 
 jest.mock('mattermost-redux/actions/channels', () => ({
     ...jest.requireActual('mattermost-redux/actions/channels'),
@@ -99,7 +96,7 @@ describe('actions/new_post', () => {
     test('completePostReceive', async () => {
         const testStore = mockStore(initialState);
         const newPost = {id: 'new_post_id', channel_id: 'current_channel_id', message: 'new message', type: Constants.PostTypes.ADD_TO_CHANNEL, user_id: 'some_user_id', create_at: POST_CREATED_TIME, props: {addedUserId: 'other_user_id'}} as unknown as Post;
-        const websocketProps = {team_id: 'team_id', mentions: ['current_user_id']};
+        const websocketProps = {team_id: 'team_id', mentions: ['current_user_id'], should_ack: false};
 
         await testStore.dispatch(NewPostActions.completePostReceive(newPost, websocketProps));
         expect(testStore.getActions()).toEqual([
@@ -174,7 +171,7 @@ describe('actions/new_post', () => {
                     },
                 },
                 {
-                    type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
+                    type: ChannelTypes.RECEIVED_LAST_VIEWED_AT,
                     data: {
                         channel_id: channelId,
                     },
@@ -377,7 +374,7 @@ describe('actions/new_post', () => {
                     },
                 },
                 {
-                    type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
+                    type: ChannelTypes.RECEIVED_LAST_VIEWED_AT,
                     data: {
                         channel_id: channelId,
                     },

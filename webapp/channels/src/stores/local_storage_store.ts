@@ -3,8 +3,9 @@
 
 import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 
-import store from 'stores/redux_store.jsx';
 import {getBasePath} from 'selectors/general';
+import store from 'stores/redux_store';
+
 import {PreviousViewedTypes} from 'utils/constants';
 
 const getPreviousTeamIdKey = (userId: string) => ['user_prev_team', userId].join(':');
@@ -15,6 +16,7 @@ export const getPenultimateChannelNameKey = (userId: string, teamId: string) => 
 const getRecentEmojisKey = (userId: string) => ['recent_emojis', userId].join(':');
 const getWasLoggedInKey = () => 'was_logged_in';
 const teamIdJoinedOnLoadKey = 'teamIdJoinedOnLoad';
+const wasNotifiedOfLogInKey = 'was_notified_of_login';
 
 const getPathScopedKey = (path: string, key: string) => {
     if (path === '' || path === '/') {
@@ -154,6 +156,16 @@ class LocalStorageStoreClass {
 
     getWasLoggedIn() {
         return this.getItem(getWasLoggedInKey()) === 'true';
+    }
+
+    // the following flag's setter and getter are used to make sure a user is notified (via aria-label)
+    // about a successful login only once (MM-50821)
+    setWasNotifiedOfLogIn(wasNotified: boolean) {
+        this.setItem(wasNotifiedOfLogInKey, String(wasNotified));
+    }
+
+    getWasNotifiedOfLogIn() {
+        return this.getItem(wasNotifiedOfLogInKey) === 'true';
     }
 }
 

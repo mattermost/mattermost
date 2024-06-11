@@ -1,34 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import classNames from 'classnames';
-
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Job, JobType} from '@mattermost/types/jobs';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {Job, JobType} from '@mattermost/types/jobs';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {JobTypes} from 'utils/constants';
 
-import JobDownloadLink from './job_download_link';
-import JobStatus from './job_status';
-import JobRunLength from './job_run_length';
 import JobCancelButton from './job_cancel_button';
+import JobDownloadLink from './job_download_link';
 import JobFinishAt from './job_finish_at';
+import JobRunLength from './job_run_length';
+import JobStatus from './job_status';
 
 import './table.scss';
 
 export type Props = {
     jobs: Job[];
-    getExtraInfoText?: (job: Job) => string | React.ReactElement;
+    getExtraInfoText?: (job: Job) => React.ReactNode;
     disabled: boolean;
     createJobHelpText: React.ReactElement;
     jobType: JobType;
     downloadExportResults?: boolean;
     className?: string;
     hideJobCreateButton?: boolean;
-    createJobButtonText: React.ReactElement;
+    createJobButtonText: React.ReactNode;
+    hideTable?: boolean;
+    jobData?: any;
     actions: {
         getJobsByType: (jobType: JobType) => void;
         cancelJob: (jobId: string) => Promise<ActionResult>;
@@ -75,6 +77,7 @@ class JobTable extends React.PureComponent<Props> {
         e.preventDefault();
         const job = {
             type: this.props.jobType,
+            data: this.props.jobData,
         };
 
         await this.props.actions.createJob(job);
@@ -119,7 +122,7 @@ class JobTable extends React.PureComponent<Props> {
                         <div>
                             <button
                                 type='button'
-                                className='btn btn-default'
+                                className='btn btn-tertiary'
                                 onClick={this.handleCreateJob}
                                 disabled={this.props.disabled}
                             >
@@ -131,53 +134,56 @@ class JobTable extends React.PureComponent<Props> {
                         {this.props.createJobHelpText}
                     </div>
                 </div>
-                <div className='job-table__table'>
-                    <table
-                        className='table'
-                        data-testid='jobTable'
-                    >
-                        <thead>
-                            <tr>
-                                <th className='cancel-button-field'/>
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerStatus'
-                                        defaultMessage='Status'
-                                    />
-                                </th>
-                                {showFilesColumn &&
+                {
+                    !this.props.hideTable &&
+                    <div className='job-table__table'>
+                        <table
+                            className='table'
+                            data-testid='jobTable'
+                        >
+                            <thead>
+                                <tr>
+                                    <th className='cancel-button-field'/>
+                                    <th>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerStatus'
+                                            defaultMessage='Status'
+                                        />
+                                    </th>
+                                    {showFilesColumn &&
                                     <th>
                                         <FormattedMessage
                                             id='admin.jobTable.headerFiles'
                                             defaultMessage='Files'
                                         />
                                     </th>
-                                }
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerFinishAt'
-                                        defaultMessage='Finish Time'
-                                    />
-                                </th>
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerRunTime'
-                                        defaultMessage='Run Time'
-                                    />
-                                </th>
-                                <th colSpan={3}>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerExtraInfo'
-                                        defaultMessage='Details'
-                                    />
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {items}
-                        </tbody>
-                    </table>
-                </div>
+                                    }
+                                    <th>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerFinishAt'
+                                            defaultMessage='Finish Time'
+                                        />
+                                    </th>
+                                    <th>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerRunTime'
+                                            defaultMessage='Run Time'
+                                        />
+                                    </th>
+                                    <th colSpan={3}>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerExtraInfo'
+                                            defaultMessage='Details'
+                                        />
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {items}
+                            </tbody>
+                        </table>
+                    </div>
+                }
             </div>
         );
     }

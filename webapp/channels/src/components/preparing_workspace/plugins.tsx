@@ -5,24 +5,22 @@ import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 
-import {t} from 'utils/i18n';
 import MultiSelectCards from 'components/common/multi_select_cards';
-
 import GithubSVG from 'components/common/svg_images_components/github_svg';
 import GitlabSVG from 'components/common/svg_images_components/gitlab_svg';
 import JiraSVG from 'components/common/svg_images_components/jira_svg';
-import ZoomSVG from 'components/common/svg_images_components/zoom_svg';
 import ServiceNowSVG from 'components/common/svg_images_components/servicenow_svg';
+import ZoomSVG from 'components/common/svg_images_components/zoom_svg';
 import ExternalLink from 'components/external_link';
 
-import {Animations, mapAnimationReasonToClass, Form, PreparingWorkspacePageProps} from './steps';
-
-import Title from './title';
 import Description from './description';
 import PageBody from './page_body';
-import SingleColumnLayout from './single_column_layout';
-
 import PageLine from './page_line';
+import SingleColumnLayout from './single_column_layout';
+import {Animations, mapAnimationReasonToClass} from './steps';
+import type {Form, PreparingWorkspacePageProps} from './steps';
+import Title from './title';
+
 import './plugins.scss';
 
 type Props = PreparingWorkspacePageProps & {
@@ -91,8 +89,11 @@ const Plugins = (props: Props) => {
                                 {
                                     onClick: () => props.setOption('github'),
                                     icon: <GithubSVG/>,
-                                    id: t('onboarding_wizard.plugins.github'),
-                                    defaultMessage: 'GitHub',
+                                    id: 'onboarding_wizard.plugins.github',
+                                    buttonText: formatMessage({
+                                        id: 'onboarding_wizard.plugins.github',
+                                        defaultMessage: 'GitHub',
+                                    }),
                                     checked: props.options.github,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.github.tooltip',
@@ -102,8 +103,11 @@ const Plugins = (props: Props) => {
                                 {
                                     onClick: () => props.setOption('gitlab'),
                                     icon: <GitlabSVG/>,
-                                    id: t('onboarding_wizard.plugins.gitlab'),
-                                    defaultMessage: 'GitLab',
+                                    id: 'onboarding_wizard.plugins.gitlab',
+                                    buttonText: formatMessage({
+                                        id: 'onboarding_wizard.plugins.gitlab',
+                                        defaultMessage: 'GitLab',
+                                    }),
                                     checked: props.options.gitlab,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.gitlab.tooltip',
@@ -113,8 +117,11 @@ const Plugins = (props: Props) => {
                                 {
                                     onClick: () => props.setOption('jira'),
                                     icon: <JiraSVG/>,
-                                    id: t('onboarding_wizard.plugins.jira'),
-                                    defaultMessage: 'Jira',
+                                    id: 'onboarding_wizard.plugins.jira',
+                                    buttonText: formatMessage({
+                                        id: 'onboarding_wizard.plugins.jira',
+                                        defaultMessage: 'Jira',
+                                    }),
                                     checked: props.options.jira,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.jira.tooltip',
@@ -124,8 +131,11 @@ const Plugins = (props: Props) => {
                                 {
                                     onClick: () => props.setOption('zoom'),
                                     icon: <ZoomSVG/>,
-                                    id: t('onboarding_wizard.plugins.zoom'),
-                                    defaultMessage: 'Zoom',
+                                    id: 'onboarding_wizard.plugins.zoom',
+                                    buttonText: formatMessage({
+                                        id: 'onboarding_wizard.plugins.zoom',
+                                        defaultMessage: 'Zoom',
+                                    }),
                                     checked: props.options.zoom,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.zoom.tooltip',
@@ -135,8 +145,11 @@ const Plugins = (props: Props) => {
                                 {
                                     onClick: () => props.setOption('servicenow'),
                                     icon: <ServiceNowSVG/>,
-                                    id: t('onboarding_wizard.plugins.servicenow'),
-                                    defaultMessage: 'ServiceNow',
+                                    id: 'onboarding_wizard.plugins.servicenow',
+                                    buttonText: formatMessage({
+                                        id: 'onboarding_wizard.plugins.servicenow',
+                                        defaultMessage: 'ServiceNow',
+                                    }),
                                     checked: props.options.servicenow,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.servicenow.tooltip',

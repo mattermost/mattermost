@@ -1,27 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, ReactNode} from 'react';
+import React, {memo, useCallback} from 'react';
+import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
+import type {UserThread} from '@mattermost/types/threads';
 
-import {UserThread} from '@mattermost/types/threads';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
-
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
-import {t} from 'utils/i18n';
+import Header from 'components/widgets/header';
+import SimpleTooltip from 'components/widgets/simple_tooltip';
 
-import {GlobalState} from 'types/store';
-import ThreadMenu from '../thread_menu';
+import type {GlobalState} from 'types/store';
+
 import Button from '../../common/button';
 import FollowButton from '../../common/follow_button';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
-import Header from 'components/widgets/header';
 import {useThreadRouting} from '../../hooks';
+import ThreadMenu from '../thread_menu';
+
 import './thread_pane.scss';
 
 const getChannel = makeGetChannel();
@@ -121,7 +122,7 @@ const ThreadPane = ({
                             <SimpleTooltip
                                 id='threadActionMenu'
                                 content={formatMessage({
-                                    id: t('threading.threadHeader.menu'),
+                                    id: 'threading.threadHeader.menu',
                                     defaultMessage: 'More Actions',
                                 })}
                             >

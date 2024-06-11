@@ -2,22 +2,24 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
-import {AnyAction} from 'redux';
-import thunk, {ThunkDispatch} from 'redux-thunk';
-import configureStore from 'redux-mock-store';
-
 import {IntlProvider} from 'react-intl';
+import {Provider} from 'react-redux';
+import type {AnyAction} from 'redux';
+import configureStore from 'redux-mock-store';
+import thunk from 'redux-thunk';
+import type {ThunkDispatch} from 'redux-thunk';
 
-import {GlobalState} from 'types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import type {GlobalState} from 'types/store';
 
 import {defaultIntl} from './helpers/intl-test-helper';
 
-export default function testConfigureStore(initialState = {}) {
-    return configureStore<GlobalState, ThunkDispatch<GlobalState, Record<string, never>, AnyAction>>([thunk])(initialState as GlobalState);
+export default function testConfigureStore<State extends GlobalState>(initialState?: DeepPartial<State>) {
+    return configureStore<State, ThunkDispatch<State, Record<string, never>, AnyAction>>([thunk])(initialState as State);
 }
 
-export function mockStore(initialState = {}, intl = defaultIntl) {
+export function mockStore<State extends GlobalState>(initialState?: DeepPartial<State>, intl = defaultIntl) {
     const store = testConfigureStore(initialState);
     return {
         store,

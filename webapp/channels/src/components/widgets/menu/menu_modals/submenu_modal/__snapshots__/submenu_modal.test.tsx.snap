@@ -33,6 +33,7 @@ exports[`components/submenu_modal should match snapshot 1`] = `
   <ModalBody
     bsClass="modal-body"
     componentClass="div"
+    data-testid="SubMenuModalBody"
     onClick={[Function]}
   >
     <MenuWrapper

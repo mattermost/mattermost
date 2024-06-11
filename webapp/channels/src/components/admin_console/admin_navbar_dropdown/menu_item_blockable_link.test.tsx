@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import {MenuItemBlockableLinkImpl} from './menu_item_blockable_link';
 
 describe('components/MenuItemBlockableLink', () => {
     test('should render my link', () => {
-        renderWithFullContext(
+        renderWithContext(
             <MenuItemBlockableLinkImpl
                 to='/wherever'
                 text='Whatever'

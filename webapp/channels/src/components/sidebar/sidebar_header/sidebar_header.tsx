@@ -5,26 +5,28 @@ import React, {useCallback, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import Flex from '@mattermost/compass-components/utilities/layout/Flex'; // eslint-disable-line no-restricted-imports
 import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports
+import Flex from '@mattermost/compass-components/utilities/layout/Flex'; // eslint-disable-line no-restricted-imports
 
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {GlobalState} from 'types/store';
-import Constants from 'utils/constants';
-
-import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import MainMenu from 'components/main_menu';
-import AddChannelDropdown from 'components/sidebar/add_channel_dropdown';
-import {isAddChannelDropdownOpen} from 'selectors/views/add_channel_dropdown';
-import {useShowOnboardingTutorialStep} from 'components/tours/onboarding_tour';
-import {OnboardingTourSteps} from 'components/tours';
 
 import {setAddChannelDropdown} from 'actions/views/add_channel_dropdown';
+import {isAddChannelDropdownOpen} from 'selectors/views/add_channel_dropdown';
+
+import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import MainMenu from 'components/main_menu';
+import OverlayTrigger from 'components/overlay_trigger';
+import AddChannelDropdown from 'components/sidebar/add_channel_dropdown';
+import Tooltip from 'components/tooltip';
+import {OnboardingTourSteps} from 'components/tours';
+import {useShowOnboardingTutorialStep} from 'components/tours/onboarding_tour';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
+import Constants from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 type SidebarHeaderContainerProps = {
     id?: string;
@@ -38,8 +40,9 @@ const SidebarHeaderContainer = styled(Flex).attrs(() => ({
     justify: 'space-between',
     alignment: 'center',
 }))<SidebarHeaderContainerProps>`
-    height: 52px;
+    height: 55px;
     padding: 0 16px;
+    gap: 8px;
 
     .dropdown-menu {
         position: absolute;
@@ -54,22 +57,16 @@ const SidebarHeaderContainer = styled(Flex).attrs(() => ({
     }
 `;
 
-const HEADING_WIDTH = 200;
-const CHEVRON_WIDTH = 26;
-const ADD_CHANNEL_DROPDOWN_WIDTH = 28;
-const TITLE_WIDTH = (HEADING_WIDTH - CHEVRON_WIDTH - ADD_CHANNEL_DROPDOWN_WIDTH).toString();
-
 const SidebarHeading = styled(Heading).attrs(() => ({
     element: 'h1',
     margin: 'none',
     size: 200,
 }))<SidebarHeaderProps>`
-    color: var(--sidebar-header-text-color);
+    color: var(--sidebar-text);
     cursor: pointer;
     display: flex;
 
     .title {
-        max-width: ${TITLE_WIDTH}px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -100,7 +97,7 @@ export type Props = {
     canCreateCustomGroups: boolean;
 }
 
-const SidebarHeader: React.FC<Props> = (props: Props): JSX.Element => {
+const SidebarHeader = (props: Props) => {
     const dispatch = useDispatch();
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const showCreateTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS);
@@ -117,6 +114,10 @@ const SidebarHeader: React.FC<Props> = (props: Props): JSX.Element => {
     const handleMenuToggle = () => {
         setMenuToggled(!menuToggled);
     };
+
+    if (!currentTeam) {
+        return null;
+    }
 
     return (
         <CompassThemeProvider theme={theme}>

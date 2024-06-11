@@ -3,11 +3,11 @@
 
 import os from 'node:os';
 
-import {expect, test} from '@playwright/test';
+import {expect} from '@playwright/test';
 
+import {test} from './test_fixture';
 import {callsPluginId} from './constant';
 import {getAdminClient} from './server/init';
-import {isSmallScreen} from './util';
 
 export async function shouldHaveCallsEnabled(enabled = true) {
     const {adminClient} = await getAdminClient();
@@ -26,15 +26,18 @@ export async function shouldHaveFeatureFlag(name: string, value: string | boolea
     const matched = config.FeatureFlags[name] === value;
     expect(
         matched,
-        matched ? '' : `FeatureFlags["${name}'] expect "${value}" but actual "${config.FeatureFlags[name]}"`
+        matched ? '' : `FeatureFlags["${name}'] expect "${value}" but actual "${config.FeatureFlags[name]}"`,
     ).toBeTruthy();
-}
-
-export function shouldSkipInSmallScreen() {
-    test.skip(({viewport}) => isSmallScreen(viewport), 'Not applicable to mobile device');
 }
 
 export async function shouldRunInLinux() {
     const platform = os.platform();
     await expect(platform, 'Run in Linux or Playwright docker image only').toBe('linux');
+}
+
+export async function skipIfNoLicense() {
+    const {adminClient} = await getAdminClient();
+    const license = await adminClient.getClientLicenseOld();
+
+    test.skip(license.IsLicensed === 'false', 'Skipping test - server not licensed');
 }

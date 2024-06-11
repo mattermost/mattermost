@@ -4,12 +4,15 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Product} from '@mattermost/types/cloud';
+
 import {trackEvent} from 'actions/telemetry_actions';
+
+import ExternalLink from 'components/external_link';
+
 import {BillingSchemes, CloudProducts, CloudLinks, RecurringIntervals} from 'utils/constants';
-import {Product} from '@mattermost/types/cloud';
 
 import './plan_pricing.scss';
-import ExternalLink from 'components/external_link';
 
 interface Props {
     product: Product;

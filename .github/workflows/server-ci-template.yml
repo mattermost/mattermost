@@ -5,9 +5,6 @@ name: Server CI Template
 on:
   workflow_call:
 
-env:
-  go-version: "1.19.5"
-
 jobs:
   check-mocks:
     name: Check mocks
@@ -17,11 +14,14 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
@@ -39,14 +39,19 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
@@ -59,15 +64,18 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
-      - name: Setup go.work
+      - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
         run: make golangci-lint
@@ -79,14 +87,19 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
@@ -99,22 +112,48 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
-      - name: Reset config
-        run: make config-reset
       - name: Run setup-go-work
         run: make setup-go-work
+      - name: Reset config
+        run: make config-reset
       - name: Run plugin-checker
         run: make plugin-checker
       - name: Run mattermost-vet
-        run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
+        run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true
+  check-mattermost-vet-api:
+    name: Vet API
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
+      - name: Run mattermost-vet-api
+        run: make vet-api
   check-migrations:
     name: Check migration files
     runs-on: ubuntu-22.04
@@ -123,33 +162,11 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Extract migrations files
         run: make migrations-extract
       - name: Check migration files
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
-  build-api-spec:
-    name: Build API specification
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
-        with:
-          go-version: ${{ env.go-version }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
-      - name: Checkout mattermost-api-reference
-        run: |
-          cd ..
-          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
-          cd mattermost-api-reference
-          echo "Trying to checkout the same branch on mattermost-api-reference as mattermost"
-          git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || true
-          make build
-          cd ../mattermost
   check-email-templates:
     name: Generate email templates
     runs-on: ubuntu-22.04
@@ -158,7 +175,7 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Generate email templates
         run: |
           sudo npm install -g mjml@4.9.0
@@ -173,14 +190,19 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
@@ -193,14 +215,19 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Generate app layers
         run: make app-layers
       - name: Check generated code
@@ -208,20 +235,27 @@ jobs:
   check-mmctl-docs:
     name: Check mmctl docs
     runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
     steps:
       - name: Checkout mattermost-server
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Check docs
         run: |
           echo "Making sure docs are updated"
-          cd server
           make mmctl-docs
           if [[ -n $(git status --porcelain) ]]; then echo "Please update the mmctl docs using make mmctl-docs"; exit 1; fi
   test-postgres-binary:
@@ -251,7 +285,7 @@ jobs:
     uses: ./.github/workflows/server-test-template.yml
     with:
       name: MySQL
-      datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304
+      datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4&multiStatements=true&maxAllowedPacket=4194304
       drivername: mysql
       logsartifact: mysql-server-test-logs
     secrets: inherit
@@ -273,28 +307,46 @@ jobs:
     needs: check-mattermost-vet
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: ci/setup-node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        id: setup_node
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "webapp/package-lock.json"
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Build
         run: |
           make config-reset
           make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
           make package BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
       - name: Persist dist artifacts
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           name: server-dist-artifact
           path: server/dist/
-          retention-days: 14
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 2
       - name: Persist build artifacts
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           name: server-build-artifact
           path: server/build/
-          retention-days: 14
+          retention-days: 2
+  test-migration:
+    name: MySQL to PostgreSQL Migration
+    uses: ./.github/workflows/migration.yml
+    secrets: inherit

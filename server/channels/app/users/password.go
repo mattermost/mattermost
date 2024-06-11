@@ -39,7 +39,6 @@ func ComparePassword(hash string, password string) error {
 }
 
 func (us *UserService) isPasswordValid(password string) error {
-
 	return IsPasswordValidWithSettings(password, &us.config().PasswordSettings)
 }
 
@@ -49,8 +48,14 @@ func IsPasswordValidWithSettings(password string, settings *model.PasswordSettin
 	id := "model.user.is_valid.pwd"
 	isError := false
 
-	if len(password) < *settings.MinimumLength || len(password) > model.PasswordMaximumLength {
+	if len(password) < *settings.MinimumLength {
 		isError = true
+		id = id + "_min_length"
+	}
+
+	if len(password) > model.PasswordMaximumLength {
+		isError = true
+		id = id + "_max_length"
 	}
 
 	if *settings.Lowercase {

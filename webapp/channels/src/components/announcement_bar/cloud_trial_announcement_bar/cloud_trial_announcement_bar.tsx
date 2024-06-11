@@ -1,24 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import isEmpty from 'lodash/isEmpty';
 import React from 'react';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {isEmpty} from 'lodash';
-
-import {FormattedMessage} from 'react-intl';
-
-import {PreferenceType} from '@mattermost/types/preferences';
-import {UserProfile} from '@mattermost/types/users';
-import {Subscription} from '@mattermost/types/cloud';
+import {AlertCircleOutlineIcon, AlertOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Subscription} from '@mattermost/types/cloud';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {t} from 'utils/i18n';
 import PricingModal from 'components/pricing_modal';
-
-import {ModalData} from 'types/actions';
-
-import {AlertCircleOutlineIcon, AlertOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {
     Preferences,
@@ -29,6 +23,8 @@ import {
     TrialPeriodDays,
 } from 'utils/constants';
 import {getLocaleDateFromUTC} from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 import AnnouncementBar from '../default_announcement_bar';
 
@@ -143,12 +139,11 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
             />
         );
 
-        let modalButtonText = t('admin.billing.subscription.cloudTrial.subscribeButton');
-        let modalButtonDefaultText = 'Upgrade Now';
-
+        let modalButtonText;
         if (this.props.reverseTrial) {
-            modalButtonText = t('admin.billing.subscription.cloudReverseTrial.subscribeButton');
-            modalButtonDefaultText = 'Review your options';
+            modalButtonText = messages.trialButton;
+        } else {
+            modalButtonText = messages.reverseTrialButton;
         }
 
         if (this.props.reverseTrial) {
@@ -224,7 +219,6 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
                 handleClose={this.handleClose}
                 onButtonClick={this.showModal}
                 modalButtonText={modalButtonText}
-                modalButtonDefaultText={modalButtonDefaultText}
                 message={bannerMessage}
                 showLinkAsButton={true}
                 icon={icon}
@@ -232,5 +226,16 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
         );
     }
 }
+
+const messages = defineMessages({
+    reverseTrialButton: {
+        id: 'admin.billing.subscription.cloudReverseTrial.subscribeButton',
+        defaultMessage: 'Review your options',
+    },
+    trialButton: {
+        id: 'admin.billing.subscription.cloudTrial.subscribeButton',
+        defaultMessage: 'Upgrade Now',
+    },
+});
 
 export default CloudTrialAnnouncementBar;

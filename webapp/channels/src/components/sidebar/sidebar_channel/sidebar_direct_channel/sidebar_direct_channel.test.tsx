@@ -3,12 +3,12 @@
 
 import React from 'react';
 
-import {ChannelType} from '@mattermost/types/channels';
+import type {ChannelType} from '@mattermost/types/channels';
+
+import SidebarDirectChannel from 'components/sidebar/sidebar_channel/sidebar_direct_channel/sidebar_direct_channel';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
-
-import SidebarDirectChannel from 'components/sidebar/sidebar_channel/sidebar_direct_channel/sidebar_direct_channel';
 
 describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
     const baseProps = {

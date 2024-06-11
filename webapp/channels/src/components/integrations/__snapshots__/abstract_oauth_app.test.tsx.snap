@@ -1,0 +1,613 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
+<div
+  className="backstage-content"
+>
+  <BackstageHeader>
+    <Link
+      to="/test/integrations/oauth2-apps"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Installed OAuth2 Apps"
+        id="installed_oauth_apps.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Header"
+      id="Header"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <div
+      className="integration__icon"
+    >
+      <img
+        alt="integration icon"
+        src="https://test.com/icon"
+      />
+    </div>
+    <form
+      className="form-horizontal"
+    >
+      <Memo(SystemPermissionGate)
+        permissions={
+          Array [
+            "manage_system",
+          ]
+        }
+      >
+        <div
+          className="form-group"
+        >
+          <label
+            className="control-label col-sm-4"
+            htmlFor="is_trusted"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Is Trusted"
+              id="installed_oauth_apps.trusted"
+            />
+          </label>
+          <div
+            className="col-md-5 col-sm-8"
+          >
+            <label
+              className="radio-inline"
+            >
+              <input
+                checked={true}
+                name="is_trusted"
+                onChange={[Function]}
+                type="radio"
+                value="true"
+              />
+              <MemoizedFormattedMessage
+                defaultMessage="Yes"
+                id="installed_oauth_apps.trusted.yes"
+              />
+            </label>
+            <label
+              className="radio-inline"
+            >
+              <input
+                checked={false}
+                name="is_trusted"
+                onChange={[Function]}
+                type="radio"
+                value="false"
+              />
+              <MemoizedFormattedMessage
+                defaultMessage="No"
+                id="installed_oauth_apps.trusted.no"
+              />
+            </label>
+            <div
+              className="form__help"
+            >
+              <MemoizedFormattedMessage
+                defaultMessage="If true, the OAuth 2.0 application is considered trusted by the Mattermost server and does not require the user to accept authorization. If false, a window opens to ask the user to accept or deny the authorization."
+                id="add_oauth_app.trusted.help"
+              />
+            </div>
+          </div>
+        </div>
+      </Memo(SystemPermissionGate)>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="name"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Display Name"
+            id="installed_oauth_apps.name"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="name"
+            maxLength={64}
+            onChange={[Function]}
+            type="text"
+            value="testApp"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify the display name, of up to 64 characters, for your OAuth 2.0 application."
+              id="add_oauth_app.name.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="description"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Description"
+            id="installed_oauth_apps.description"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="description"
+            maxLength={512}
+            onChange={[Function]}
+            type="text"
+            value="testing"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Describe your OAuth 2.0 application."
+              id="add_oauth_app.description.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="homepage"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Homepage"
+            id="installed_oauth_apps.homepage"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="homepage"
+            maxLength={256}
+            onChange={[Function]}
+            type="url"
+            value="https://test.com"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="This is the URL for the homepage of the OAuth 2.0 application. Depending on your server configuration, use HTTP or HTTPS in the URL."
+              id="add_oauth_app.homepage.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="icon_url"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Icon URL"
+            id="installed_oauth_apps.iconUrl"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="icon_url"
+            maxLength={512}
+            onChange={[Function]}
+            type="url"
+            value="https://test.com/icon"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="(Optional) The URL of the image used for your OAuth 2.0 application. Make sure you use HTTP or HTTPS in your URL."
+              id="add_oauth_app.icon.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="callbackUrls"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Callback URLs (One Per Line)"
+            id="installed_oauth_apps.callbackUrls"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <textarea
+            className="form-control"
+            id="callbackUrls"
+            maxLength={1024}
+            onChange={[Function]}
+            rows={3}
+            value="https://test.com/callback
+https://test.com/callback2"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="The redirect URIs to which the service will redirect users after accepting or denying authorization of your application, and which will handle authorization codes or access tokens. Must be a valid URL and start with http:// or https://."
+              id="add_oauth_app.callbackUrls.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={
+            Array [
+              "",
+              null,
+            ]
+          }
+          type="backstage"
+        />
+        <Link
+          className="btn btn-tertiary"
+          to="/test/integrations/oauth2-apps"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="installed_oauth_apps.cancel"
+          />
+        </Link>
+        <Memo(SpinnerButton)
+          className="btn btn-primary"
+          id="saveOauthApp"
+          onClick={[Function]}
+          spinning={false}
+          spinningText="Loading"
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Footer"
+            id="Footer"
+          />
+        </Memo(SpinnerButton)>
+        <div>
+          renderExtra
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractOAuthApp should match snapshot, displays client error 1`] = `
+<div
+  className="backstage-content"
+>
+  <BackstageHeader>
+    <Link
+      to="/test/integrations/oauth2-apps"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Installed OAuth2 Apps"
+        id="installed_oauth_apps.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Header"
+      id="Header"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <div
+      className="integration__icon"
+    >
+      <img
+        alt="integration icon"
+        src="https://test.com/icon"
+      />
+    </div>
+    <form
+      className="form-horizontal"
+    >
+      <Memo(SystemPermissionGate)
+        permissions={
+          Array [
+            "manage_system",
+          ]
+        }
+      >
+        <div
+          className="form-group"
+        >
+          <label
+            className="control-label col-sm-4"
+            htmlFor="is_trusted"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Is Trusted"
+              id="installed_oauth_apps.trusted"
+            />
+          </label>
+          <div
+            className="col-md-5 col-sm-8"
+          >
+            <label
+              className="radio-inline"
+            >
+              <input
+                checked={true}
+                name="is_trusted"
+                onChange={[Function]}
+                type="radio"
+                value="true"
+              />
+              <MemoizedFormattedMessage
+                defaultMessage="Yes"
+                id="installed_oauth_apps.trusted.yes"
+              />
+            </label>
+            <label
+              className="radio-inline"
+            >
+              <input
+                checked={false}
+                name="is_trusted"
+                onChange={[Function]}
+                type="radio"
+                value="false"
+              />
+              <MemoizedFormattedMessage
+                defaultMessage="No"
+                id="installed_oauth_apps.trusted.no"
+              />
+            </label>
+            <div
+              className="form__help"
+            >
+              <MemoizedFormattedMessage
+                defaultMessage="If true, the OAuth 2.0 application is considered trusted by the Mattermost server and does not require the user to accept authorization. If false, a window opens to ask the user to accept or deny the authorization."
+                id="add_oauth_app.trusted.help"
+              />
+            </div>
+          </div>
+        </div>
+      </Memo(SystemPermissionGate)>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="name"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Display Name"
+            id="installed_oauth_apps.name"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="name"
+            maxLength={64}
+            onChange={[Function]}
+            type="text"
+            value="testApp"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify the display name, of up to 64 characters, for your OAuth 2.0 application."
+              id="add_oauth_app.name.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="description"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Description"
+            id="installed_oauth_apps.description"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="description"
+            maxLength={512}
+            onChange={[Function]}
+            type="text"
+            value="testing"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Describe your OAuth 2.0 application."
+              id="add_oauth_app.description.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="homepage"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Homepage"
+            id="installed_oauth_apps.homepage"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="homepage"
+            maxLength={256}
+            onChange={[Function]}
+            type="url"
+            value="https://test.com"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="This is the URL for the homepage of the OAuth 2.0 application. Depending on your server configuration, use HTTP or HTTPS in the URL."
+              id="add_oauth_app.homepage.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="icon_url"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Icon URL"
+            id="installed_oauth_apps.iconUrl"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="icon_url"
+            maxLength={512}
+            onChange={[Function]}
+            type="url"
+            value="https://test.com/icon"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="(Optional) The URL of the image used for your OAuth 2.0 application. Make sure you use HTTP or HTTPS in your URL."
+              id="add_oauth_app.icon.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="callbackUrls"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Callback URLs (One Per Line)"
+            id="installed_oauth_apps.callbackUrls"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <textarea
+            className="form-control"
+            id="callbackUrls"
+            maxLength={1024}
+            onChange={[Function]}
+            rows={3}
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="The redirect URIs to which the service will redirect users after accepting or denying authorization of your application, and which will handle authorization codes or access tokens. Must be a valid URL and start with http:// or https://."
+              id="add_oauth_app.callbackUrls.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={
+            Array [
+              "serverError",
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="One or more callback URLs are required."
+                id="add_oauth_app.callbackUrlsRequired"
+              />,
+            ]
+          }
+          type="backstage"
+        />
+        <Link
+          className="btn btn-tertiary"
+          to="/test/integrations/oauth2-apps"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="installed_oauth_apps.cancel"
+          />
+        </Link>
+        <Memo(SpinnerButton)
+          className="btn btn-primary"
+          id="saveOauthApp"
+          onClick={[Function]}
+          spinning={false}
+          spinningText="Loading"
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Footer"
+            id="Footer"
+          />
+        </Memo(SpinnerButton)>
+        <div>
+          renderExtra
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+`;

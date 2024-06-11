@@ -82,10 +82,10 @@ func TestBroadcastMsg(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(makeRemoteClusters(NumRemotes, ts.URL))
-		defer mockServer.Shutdown()
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL, false))
+		mockApp := newMockApp(t, nil)
 
-		service, err := NewRemoteClusterService(mockServer)
+		service, err := NewRemoteClusterService(mockServer, mockApp)
 		require.NoError(t, err)
 
 		err = service.Start()
@@ -139,10 +139,10 @@ func TestBroadcastMsg(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(makeRemoteClusters(NumRemotes, ts.URL))
-		defer mockServer.Shutdown()
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL, false))
+		mockApp := newMockApp(t, nil)
 
-		service, err := NewRemoteClusterService(mockServer)
+		service, err := NewRemoteClusterService(mockServer, mockApp)
 		require.NoError(t, err)
 
 		err = service.Start()
@@ -171,10 +171,13 @@ func TestBroadcastMsg(t *testing.T) {
 	})
 }
 
-func makeRemoteClusters(num int, siteURL string) []*model.RemoteCluster {
+func makeRemoteClusters(num int, siteURL string, isPlugin bool) []*model.RemoteCluster {
 	var remotes []*model.RemoteCluster
 	for i := 0; i < num; i++ {
 		rc := makeRemoteCluster(fmt.Sprintf("test cluster %d", i+1), siteURL, TestTopics)
+		if isPlugin {
+			rc.PluginID = model.NewId()
+		}
 		remotes = append(remotes, rc)
 	}
 	return remotes

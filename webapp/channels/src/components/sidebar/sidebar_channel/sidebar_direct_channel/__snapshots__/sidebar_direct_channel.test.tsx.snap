@@ -24,11 +24,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
   channelLeaveHandler={[Function]}
   icon={
     <ProfilePicture
-      hasMention={false}
-      isEmoji={false}
-      isRHS={false}
       newStatusIcon={true}
-      popoverPlacement="right"
       size="xs"
       src="/api/v4/users/user_id/image"
       statusClass="DirectChannel__status-icon "
@@ -65,11 +61,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
   channelLeaveHandler={[Function]}
   icon={
     <ProfilePicture
-      hasMention={false}
-      isEmoji={false}
-      isRHS={false}
       newStatusIcon={true}
-      popoverPlacement="right"
       size="xs"
       src="/api/v4/users/user_id/image"
       status=""
@@ -107,11 +99,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
   channelLeaveHandler={[Function]}
   icon={
     <ProfilePicture
-      hasMention={false}
-      isEmoji={false}
-      isRHS={false}
       newStatusIcon={true}
-      popoverPlacement="right"
       size="xs"
       src="/api/v4/users/user_id/image"
       statusClass="DirectChannel__status-icon "

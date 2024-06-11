@@ -9,10 +9,11 @@ import (
 	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/configservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
@@ -22,7 +23,7 @@ type AppIface interface {
 	configservice.ConfigService
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetTeamMembersByIds(teamID string, userIDs []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
-	InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
+	InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 }
 
 type ResendInvitationEmailWorker struct {
@@ -31,18 +32,21 @@ type ResendInvitationEmailWorker struct {
 	stopped          chan bool
 	jobs             chan model.Job
 	jobServer        *jobs.JobServer
+	logger           mlog.LoggerIFace
 	app              AppIface
 	store            store.Store
 	telemetryService *telemetry.TelemetryService
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, telemetryService *telemetry.TelemetryService) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, telemetryService *telemetry.TelemetryService) *ResendInvitationEmailWorker {
+	const workerName = "ResendInvitationEmail"
 	worker := ResendInvitationEmailWorker{
-		name:             model.JobTypeResendInvitationEmail,
+		name:             workerName,
 		stop:             make(chan bool, 1),
 		stopped:          make(chan bool, 1),
 		jobs:             make(chan model.Job),
 		jobServer:        jobServer,
+		logger:           jobServer.Logger().With(mlog.String("worker_name", workerName)),
 		app:              app,
 		store:            store,
 		telemetryService: telemetryService,
@@ -51,20 +55,19 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, tele
 }
 
 func (rseworker *ResendInvitationEmailWorker) Run() {
-	mlog.Debug("Worker started", mlog.String("worker", rseworker.name))
+	rseworker.logger.Debug("Worker started")
 
 	defer func() {
-		mlog.Debug("Worker finished", mlog.String("worker", rseworker.name))
+		rseworker.logger.Debug("Worker finished")
 		rseworker.stopped <- true
 	}()
 
 	for {
 		select {
 		case <-rseworker.stop:
-			mlog.Debug("Worker received stop signal", mlog.String("worker", rseworker.name))
+			rseworker.logger.Debug("Worker received stop signal")
 			return
 		case job := <-rseworker.jobs:
-			mlog.Debug("Worker received a new candidate job.", mlog.String("worker", rseworker.name))
 			rseworker.DoJob(&job)
 		}
 	}
@@ -75,7 +78,7 @@ func (rseworker *ResendInvitationEmailWorker) IsEnabled(cfg *model.Config) bool 
 }
 
 func (rseworker *ResendInvitationEmailWorker) Stop() {
-	mlog.Debug("Worker stopping", mlog.String("worker", rseworker.name))
+	rseworker.logger.Debug("Worker stopping")
 	rseworker.stop <- true
 	<-rseworker.stopped
 }
@@ -85,25 +88,27 @@ func (rseworker *ResendInvitationEmailWorker) JobChannel() chan<- model.Job {
 }
 
 func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
-	defer rseworker.jobServer.HandleJobPanic(job)
+	logger := rseworker.logger.With(jobs.JobLoggerFields(job)...)
+	logger.Debug("Worker: Received a new candidate job.")
+	defer rseworker.jobServer.HandleJobPanic(logger, job)
 
 	elapsedTimeSinceSchedule, DurationInMillis := rseworker.GetDurations(job)
 	if elapsedTimeSinceSchedule > DurationInMillis {
-		rseworker.ResendEmails(job, "48")
-		rseworker.TearDown(job)
+		rseworker.ResendEmails(logger, job, "48")
+		rseworker.TearDown(logger, job)
 	}
 }
 
-func (rseworker *ResendInvitationEmailWorker) setJobSuccess(job *model.Job) {
+func (rseworker *ResendInvitationEmailWorker) setJobSuccess(logger mlog.LoggerIFace, job *model.Job) {
 	if err := rseworker.jobServer.SetJobSuccess(job); err != nil {
-		mlog.Error("Worker: Failed to set success for job", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
-		rseworker.setJobError(job, err)
+		logger.Error("Worker: Failed to set success for job", mlog.Err(err))
+		rseworker.setJobError(logger, job, err)
 	}
 }
 
-func (rseworker *ResendInvitationEmailWorker) setJobError(job *model.Job, appError *model.AppError) {
+func (rseworker *ResendInvitationEmailWorker) setJobError(logger mlog.LoggerIFace, job *model.Job, appError *model.AppError) {
 	if err := rseworker.jobServer.SetJobError(job, appError); err != nil {
-		mlog.Error("Worker: Failed to set job error", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+		logger.Error("Worker: Failed to set job error", mlog.Err(err))
 	}
 }
 
@@ -163,15 +168,16 @@ func (rseworker *ResendInvitationEmailWorker) GetDurations(job *model.Job) (int6
 	}
 
 	return elapsedTimeSinceSchedule, DurationInMillis
-
 }
 
-func (rseworker *ResendInvitationEmailWorker) TearDown(job *model.Job) {
+func (rseworker *ResendInvitationEmailWorker) TearDown(logger mlog.LoggerIFace, job *model.Job) {
 	rseworker.store.System().PermanentDeleteByName(job.Id)
-	rseworker.setJobSuccess(job)
+	rseworker.setJobSuccess(logger, job)
 }
 
-func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, interval string) {
+func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFace, job *model.Job, interval string) {
+	rctx := request.EmptyContext(logger)
+
 	teamID := job.Data["teamID"]
 	emailListData := job.Data["emailList"]
 	channelListData := job.Data["channelList"]
@@ -179,15 +185,15 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 	emailList, err := rseworker.cleanEmailData(emailListData)
 	if err != nil {
 		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
-		mlog.Error("Worker: Failed to clean emails string data", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
-		rseworker.setJobError(job, appErr)
+		logger.Error("Worker: Failed to clean emails string data", mlog.Err(appErr))
+		rseworker.setJobError(logger, job, appErr)
 	}
 
 	channelList, err := rseworker.cleanChannelsData(channelListData)
 	if err != nil {
 		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
-		mlog.Error("Worker: Failed to clean channel string data", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
-		rseworker.setJobError(job, appErr)
+		logger.Error("Worker: Failed to clean channel string data", mlog.Err(appErr))
+		rseworker.setJobError(logger, job, appErr)
 	}
 
 	emailList = rseworker.removeAlreadyJoined(teamID, emailList)
@@ -200,10 +206,10 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 		memberInvite.ChannelIds = channelList
 	}
 
-	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(&memberInvite, teamID, job.Data["senderID"], interval)
+	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(rctx, &memberInvite, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
-		mlog.Error("Worker: Failed to send emails", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
-		rseworker.setJobError(job, appErr)
+		logger.Error("Worker: Failed to send emails", mlog.Err(appErr))
+		rseworker.setJobError(logger, job, appErr)
 	}
 	rseworker.telemetryService.SendTelemetry("track_invite_email_resend", map[string]any{interval: interval})
 }

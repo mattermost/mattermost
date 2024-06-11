@@ -133,3 +133,23 @@ func TestSessionIsOAuthUser(t *testing.T) {
 		})
 	}
 }
+
+func TestIsIntegration(t *testing.T) {
+	testCases := []struct {
+		Description   string
+		Session       Session
+		IsIntegration bool
+	}{
+		{"False on empty props", Session{}, false},
+		{"True when is OAuth App", Session{IsOAuth: true}, true},
+		{"True when session is bot", Session{Props: StringMap{SessionPropIsBot: SessionPropIsBotValue}}, true},
+		{"True when session is user access token", Session{Props: StringMap{SessionPropType: SessionTypeUserAccessToken}}, true},
+		{"Not affected by Props[UserAuthServiceIsOAuth]", Session{Props: StringMap{UserAuthServiceIsOAuth: strconv.FormatBool(true)}}, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Description, func(t *testing.T) {
+			require.Equal(t, tc.IsIntegration, tc.Session.IsIntegration())
+		})
+	}
+}

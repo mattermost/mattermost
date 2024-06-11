@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {
     getPlugins,
@@ -13,8 +14,6 @@ import {
     enablePlugin,
     disablePlugin,
 } from 'mattermost-redux/actions/admin';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 
 import PluginManagement from './plugin_management';
@@ -27,7 +26,7 @@ function mapStateToProps(state: any) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             uploadPlugin,

@@ -53,7 +53,6 @@ func ParseEmail(email string) string {
 }
 
 func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
-
 	parsedEmail := ParseEmail(email)
 
 	url := fmt.Sprintf("%s%s%s", getInbucketHost(), InbucketAPI, parsedEmail)
@@ -132,7 +131,6 @@ func downloadAttachment(url string) ([]byte, error) {
 }
 
 func DeleteMailBox(email string) (err error) {
-
 	parsedEmail := ParseEmail(email)
 
 	url := fmt.Sprintf("%s%s%s", getInbucketHost(), InbucketAPI, parsedEmail)
@@ -171,7 +169,6 @@ func RetryInbucket(attempts int, callback func() error) (err error) {
 }
 
 func getInbucketHost() (host string) {
-
 	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
 	if inbucket_host == "" {
 		inbucket_host = "localhost"

@@ -1,0 +1,24 @@
+
+@charset 'UTF-8';
+
+.GenericModal.CollapsedReplyThreadsModal {
+    width: 692px;
+
+    .CollapsedReplyThreadsModal__img {
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        margin-top: 22px;
+    }
+}
+
+// Styles to override global styles
+.modal {
+    .GenericModal.CollapsedReplyThreadsModal.modal-dialog {
+        height: unset;
+        margin-top: calc(50vh - 307px);
+    }
+
+    .GenericModal.CollapsedReplyThreadsModal .modal-footer {
+        position: relative;
+    }
+}

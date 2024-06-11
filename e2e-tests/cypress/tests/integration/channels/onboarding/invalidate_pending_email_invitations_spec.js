@@ -103,6 +103,6 @@ describe('Onboarding', () => {
         cy.findByRole('textbox', {name: 'Add or Invite People'}).
             typeWithForce(email).wait(TIMEOUTS.HALF_SEC).
             typeWithForce('{enter}');
-        cy.get('#inviteMembersButton').click();
+        cy.findByTestId('inviteButton').click();
     }
 });

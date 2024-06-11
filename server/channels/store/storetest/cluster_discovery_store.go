@@ -11,18 +11,19 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestClusterDiscoveryStore(t *testing.T, ss store.Store) {
-	t.Run("", func(t *testing.T) { testClusterDiscoveryStore(t, ss) })
-	t.Run("Delete", func(t *testing.T) { testClusterDiscoveryStoreDelete(t, ss) })
-	t.Run("LastPing", func(t *testing.T) { testClusterDiscoveryStoreLastPing(t, ss) })
-	t.Run("Exists", func(t *testing.T) { testClusterDiscoveryStoreExists(t, ss) })
-	t.Run("ClusterDiscoveryGetStore", func(t *testing.T) { testClusterDiscoveryGetStore(t, ss) })
+func TestClusterDiscoveryStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("", func(t *testing.T) { testClusterDiscoveryStore(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testClusterDiscoveryStoreDelete(t, rctx, ss) })
+	t.Run("LastPing", func(t *testing.T) { testClusterDiscoveryStoreLastPing(t, rctx, ss) })
+	t.Run("Exists", func(t *testing.T) { testClusterDiscoveryStoreExists(t, rctx, ss) })
+	t.Run("ClusterDiscoveryGetStore", func(t *testing.T) { testClusterDiscoveryGetStore(t, rctx, ss) })
 }
 
-func testClusterDiscoveryStore(t *testing.T, ss store.Store) {
+func testClusterDiscoveryStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	discovery := &model.ClusterDiscovery{
 		ClusterName: "cluster_name",
 		Hostname:    "hostname" + model.NewId(),
@@ -36,7 +37,7 @@ func testClusterDiscoveryStore(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testClusterDiscoveryStoreDelete(t *testing.T, ss store.Store) {
+func testClusterDiscoveryStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	discovery := &model.ClusterDiscovery{
 		ClusterName: "cluster_name",
 		Hostname:    "hostname" + model.NewId(),
@@ -50,7 +51,7 @@ func testClusterDiscoveryStoreDelete(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testClusterDiscoveryStoreLastPing(t *testing.T, ss store.Store) {
+func testClusterDiscoveryStoreLastPing(t *testing.T, rctx request.CTX, ss store.Store) {
 	discovery := &model.ClusterDiscovery{
 		ClusterName: "cluster_name_lastPing",
 		Hostname:    "hostname" + model.NewId(),
@@ -86,7 +87,7 @@ func testClusterDiscoveryStoreLastPing(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testClusterDiscoveryStoreExists(t *testing.T, ss store.Store) {
+func testClusterDiscoveryStoreExists(t *testing.T, rctx request.CTX, ss store.Store) {
 	discovery := &model.ClusterDiscovery{
 		ClusterName: "cluster_name_Exists",
 		Hostname:    "hostname" + model.NewId(),
@@ -107,7 +108,7 @@ func testClusterDiscoveryStoreExists(t *testing.T, ss store.Store) {
 	assert.False(t, val)
 }
 
-func testClusterDiscoveryGetStore(t *testing.T, ss store.Store) {
+func testClusterDiscoveryGetStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	testType1 := model.NewId()
 
 	discovery1 := &model.ClusterDiscovery{

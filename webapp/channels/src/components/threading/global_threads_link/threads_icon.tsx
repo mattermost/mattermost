@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {HTMLAttributes} from 'react';
+import React from 'react';
+import type {HTMLAttributes} from 'react';
 
 const ThreadsIcon = (attrs: HTMLAttributes<SVGElement>) => {
     return (
         <svg
-            width='14'
-            height='13'
+            width='18'
+            height='18'
             viewBox='0 0 14 13'
             fill='none'
             xmlns='http://www.w3.org/2000/svg'

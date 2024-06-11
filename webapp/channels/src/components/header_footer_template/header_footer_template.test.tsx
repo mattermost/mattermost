@@ -2,9 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
 
-import NotLoggedIn from 'components/header_footer_template/header_footer_template';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {renderWithContext} from 'tests/react_testing_utils';
+
+import type {GlobalState} from 'types/store';
+
+import HeaderFooterNotLoggedIn from './header_footer_template';
 
 describe('components/HeaderFooterTemplate', () => {
     const RealDate: DateConstructor = Date;
@@ -17,13 +23,41 @@ describe('components/HeaderFooterTemplate', () => {
         global.Date = mock as any;
     }
 
+    const initialState: DeepPartial<GlobalState> = {
+        entities: {
+            general: {
+                config: {},
+            },
+            users: {
+                currentUserId: '',
+                profiles: {
+                    user1: {
+                        id: 'user1',
+                        roles: '',
+                    },
+                },
+            },
+            teams: {
+                currentTeamId: 'team1',
+                teams: {
+                    team1: {
+                        id: 'team1',
+                        name: 'team-1',
+                        display_name: 'Team 1',
+                    },
+                },
+                myMembers: {
+                    team1: {roles: 'team_role'},
+                },
+            },
+        },
+        storage: {
+            initialized: true,
+        },
+    };
+
     beforeEach(() => {
         mockDate(new Date(2017, 6, 1));
-
-        const elm = document.createElement('div');
-        elm.setAttribute('id', 'root');
-        document.body.appendChild(elm);
-        document.body.classList.remove('sticky');
     });
 
     afterEach(() => {
@@ -31,83 +65,118 @@ describe('components/HeaderFooterTemplate', () => {
     });
 
     test('should match snapshot without children', () => {
-        const wrapper = shallow(
-            <NotLoggedIn config={{}}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, initialState);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with children', () => {
-        const wrapper = shallow(
-            <NotLoggedIn config={{}}>
+        const {container} = renderWithContext(
+            <HeaderFooterNotLoggedIn>
                 <p>{'test'}</p>
-            </NotLoggedIn>,
+            </HeaderFooterNotLoggedIn>,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with help link', () => {
-        const wrapper = shallow(
-            <NotLoggedIn config={{HelpLink: 'http://testhelplink'}}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+        const state = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        HelpLink: 'http://testhelplink',
+                    },
+                },
+            },
+        });
+
+        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with term of service link', () => {
-        const wrapper = shallow(
-            <NotLoggedIn config={{TermsOfServiceLink: 'http://testtermsofservicelink'}}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+        const state = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        TermsOfServiceLink: 'http://testtermsofservicelink',
+                    },
+                },
+            },
+        });
+
+        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with privacy policy link', () => {
-        const wrapper = shallow(
-            <NotLoggedIn config={{PrivacyPolicyLink: 'http://testprivacypolicylink'}}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+        const state = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        PrivacyPolicyLink: 'http://testprivacypolicylink',
+                    },
+                },
+            },
+        });
+
+        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with about link', () => {
-        const wrapper = shallow(
-            <NotLoggedIn config={{AboutLink: 'http://testaboutlink'}}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+        const state = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        AboutLink: 'http://testaboutlink',
+                    },
+                },
+            },
+        });
+
+        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with all links', () => {
-        const wrapper = shallow(
-            <NotLoggedIn
-                config={{
-                    HelpLink: 'http://testhelplink',
-                    TermsOfServiceLink: 'http://testtermsofservicelink',
-                    PrivacyPolicyLink: 'http://testprivacypolicylink',
-                    AboutLink: 'http://testaboutlink',
-                }}
-            />,
-        );
-        expect(wrapper).toMatchSnapshot();
+        const state = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        HelpLink: 'http://testhelplink',
+                        TermsOfServiceLink: 'http://testtermsofservicelink',
+                        PrivacyPolicyLink: 'http://testprivacypolicylink',
+                        AboutLink: 'http://testaboutlink',
+                    },
+                },
+            },
+        });
+
+        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
+        expect(container).toMatchSnapshot();
     });
 
-    test('should set classes on body and #root on mount', () => {
+    test('should set classes on body and #root on mount and unset on unmount', () => {
+        const state = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        HelpLink: 'http://testhelplink',
+                        TermsOfServiceLink: 'http://testtermsofservicelink',
+                        PrivacyPolicyLink: 'http://testprivacypolicylink',
+                        AboutLink: 'http://testaboutlink',
+                    },
+                },
+            },
+        });
         expect(document.body.classList.contains('sticky')).toBe(false);
-        const rootElement: HTMLElement | null = document.getElementById('root');
-        expect(rootElement?.classList?.contains('container-fluid')).toBe(true);
-        shallow(<NotLoggedIn config={{AboutLink: 'http://testaboutlink'}}/>);
+        const {container, unmount} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
+        expect(container).toMatchSnapshot();
         expect(document.body.classList.contains('sticky')).toBe(true);
-        expect(rootElement?.classList?.contains('container-fluid')).toBe(true);
-    });
 
-    test('should unset classes on body and #root on unmount', () => {
+        unmount();
         expect(document.body.classList.contains('sticky')).toBe(false);
-        const rootElement: HTMLElement | null = document.getElementById('root');
-        expect(rootElement?.classList?.contains('container-fluid')).toBe(true);
-        const wrapper = shallow(
-            <NotLoggedIn config={{AboutLink: 'http://testaboutlink'}}/>,
-        );
-        expect(document.body.classList.contains('sticky')).toBe(true);
-        expect(rootElement?.classList?.contains('container-fluid')).toBe(true);
-        wrapper.unmount();
-        expect(document.body.classList.contains('sticky')).toBe(false);
-        expect(rootElement?.classList?.contains('container-fluid')).toBe(false);
+        expect(container).toMatchSnapshot();
     });
 });

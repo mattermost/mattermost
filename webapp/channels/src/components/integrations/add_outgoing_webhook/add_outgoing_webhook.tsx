@@ -2,20 +2,30 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
+import {defineMessages} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
-import {t} from 'utils/i18n';
+import type {OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
-import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook.jsx';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {Team} from '@mattermost/types/teams';
-import {OutgoingWebhook} from '@mattermost/types/integrations';
+import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-const HEADER = {id: t('integrations.add'), defaultMessage: 'Add'};
-const FOOTER = {id: t('add_outgoing_webhook.save'), defaultMessage: 'Save'};
-const LOADING = {id: t('add_outgoing_webhook.saving'), defaultMessage: 'Saving...'};
+const messages = defineMessages({
+    footer: {
+        id: 'add_outgoing_webhook.save',
+        defaultMessage: 'Save',
+    },
+    header: {
+        id: 'integrations.add',
+        defaultMessage: 'Add',
+    },
+    loading: {
+        id: 'add_outgoing_webhook.saving',
+        defaultMessage: 'Saving...',
+    },
+});
 
 export type Props = {
 
@@ -29,7 +39,7 @@ export type Props = {
         /**
         * The function to call to add a new outgoing webhook
         */
-        createOutgoingHook: (hook: OutgoingWebhook) => Promise<ActionResult>;
+        createOutgoingHook: (hook: OutgoingWebhook) => Promise<ActionResult<OutgoingWebhook>>;
     };
 
     /**
@@ -65,9 +75,9 @@ const AddOutgoingWebhook = ({team, actions, enablePostUsernameOverride, enablePo
     return (
         <AbstractOutgoingWebhook
             team={team}
-            header={HEADER}
-            footer={FOOTER}
-            loading={LOADING}
+            header={messages.header}
+            footer={messages.footer}
+            loading={messages.loading}
             renderExtra={''}
             action={addOutgoingHook}
             serverError={serverError}

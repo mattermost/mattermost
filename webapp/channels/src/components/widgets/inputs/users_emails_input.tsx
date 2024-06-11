@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {RefObject} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {components, FormatOptionLabelMeta, InputActionMeta, InputProps, OptionsType, Styles, ValueType} from 'react-select';
-import AsyncCreatable from 'react-select/async-creatable';
 import classNames from 'classnames';
+import React from 'react';
+import type {RefObject} from 'react';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
+import {components} from 'react-select';
+import type {FormatOptionLabelMeta, InputActionMeta, InputProps, OptionsType, Styles, ValueType} from 'react-select';
+import AsyncCreatable from 'react-select/async-creatable';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {isEmail} from 'mattermost-redux/utils/helpers';
@@ -18,11 +21,10 @@ import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_ic
 import MailIcon from 'components/widgets/icons/mail_icon';
 import MailPlusIcon from 'components/widgets/icons/mail_plus_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import Avatar from 'components/widgets/users/avatar';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
+import Avatar from 'components/widgets/users/avatar';
 
-import {t} from 'utils/i18n';
 import {getDisplayName, getLongDisplayNameParts, imageURLForUser} from 'utils/utils';
 
 import './users_emails_input.scss';
@@ -35,18 +37,14 @@ type Props = {
     onBlur?: () => void;
     onChange: (change: Array<UserProfile | string>) => void;
     showError?: boolean;
-    errorMessageId: string;
-    errorMessageDefault: string;
+    errorMessage?: MessageDescriptor;
     errorMessageValues?: Record<string, React.ReactNode>;
     value: Array<UserProfile | string>;
     onInputChange: (change: string) => void;
     inputValue: string;
-    noMatchMessageId?: string;
-    noMatchMessageDefault?: string;
-    validAddressMessageId?: string;
-    validAddressMessageDefault?: string;
-    loadingMessageId?: string;
-    loadingMessageDefault?: string;
+    noMatchMessage?: MessageDescriptor;
+    validAddressMessage?: MessageDescriptor;
+    loadingMessage?: MessageDescriptor;
     emailInvitationsEnabled: boolean;
     extraErrorText?: React.ReactNode;
     autoFocus?: boolean;
@@ -65,14 +63,26 @@ type State = {
 
 const multipleValuesDelimiter = /[\s,;]+/;
 
+const messages = defineMessages({
+    loadingDefault: {
+        id: 'widgets.users_emails_input.loading',
+        defaultMessage: 'Loading',
+    },
+    noMatchDefault: {
+        id: 'widgets.users_emails_input.no_user_found_matching',
+        defaultMessage: 'No one found matching **{text}**. Enter their email to invite them.',
+    },
+    validAddressDefault: {
+        id: 'widgets.users_emails_input.valid_email',
+        defaultMessage: 'Add **{email}**',
+    },
+});
+
 export default class UsersEmailsInput extends React.PureComponent<Props, State> {
     static defaultProps = {
-        noMatchMessageId: t('widgets.users_emails_input.no_user_found_matching'),
-        noMatchMessageDefault: 'No one found matching **{text}**. Enter their email to invite them.',
-        validAddressMessageId: t('widgets.users_emails_input.valid_email'),
-        validAddressMessageDefault: 'Add **{email}**',
-        loadingMessageId: t('widgets.users_emails_input.loading'),
-        loadingMessageDefault: 'Loading',
+        noMatchMessage: messages.noMatchDefault,
+        validAddress: messages.validAddressDefault,
+        loadingMessage: messages.loadingDefault,
         showError: false,
     };
     private selectRef: RefObject<AsyncCreatable<UserProfile | EmailInvite> & { handleInputChange: (newValue: string, actionMeta: InputActionMeta | { action: 'custom' }) => string }>;
@@ -108,8 +118,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
     loadingMessage = (): string => {
         const text = (
             <FormattedMessage
-                id={this.props.loadingMessageId}
-                defaultMessage={this.props.loadingMessageDefault}
+                {...this.props.loadingMessage}
             />
         );
 
@@ -198,8 +207,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
             <MailPlusIcon className='mail-plus-icon'/>
             <FormattedMarkdownMessage
                 key='widgets.users_emails_input.valid_email'
-                id={this.props.validAddressMessageId}
-                defaultMessage={this.props.validAddressMessageDefault}
+                {...this.props.validAddressMessage}
                 values={{email: value}}
                 disableLinks={true}
             />
@@ -240,8 +248,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
             <div className='users-emails-input__option users-emails-input__option--no-matches'>
                 <Msg {...props}>
                     <FormattedMarkdownMessage
-                        id={this.props.noMatchMessageId}
-                        defaultMessage={this.props.noMatchMessageDefault}
+                        {...this.props.noMatchMessage}
                         values={{text: inputValue}}
                         disableLinks={true}
                     />
@@ -516,8 +523,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                     <div className='InputErrorBox'>
                         <Msg>
                             <FormattedMarkdownMessage
-                                id={this.props.errorMessageId}
-                                defaultMessage={this.props.errorMessageDefault}
+                                {...this.props.errorMessage}
                                 values={this.props.errorMessageValues}
                                 disableLinks={true}
                             />

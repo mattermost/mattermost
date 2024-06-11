@@ -51,3 +51,28 @@ func callback(listener TopicListener, msg model.RemoteClusterMsg, rc *model.Remo
 	err = listener(msg, rc, resp)
 	return
 }
+
+// ReceiveInviteConfirmation is called by the Rest API layer when a Remote Cluster accepts an invitation from this
+// local cluster.
+func (rcs *Service) ReceiveInviteConfirmation(confirm model.RemoteClusterInvite) (*model.RemoteCluster, error) {
+	store := rcs.server.GetStore().RemoteCluster()
+
+	rc, err := store.Get(confirm.RemoteId)
+	if err != nil {
+		return nil, fmt.Errorf("cannot accept invite confirmation for remote %s: %w", confirm.RemoteId, err)
+	}
+
+	rc.RemoteTeamId = confirm.RemoteTeamId
+	rc.SiteURL = confirm.SiteURL
+	rc.RemoteToken = confirm.Token
+
+	rcUpdated, err := store.Update(rc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot apply invite confirmation for remote %s: %w", confirm.RemoteId, err)
+	}
+
+	// issue the first ping right away. The goroutine will exit when ping completes or PingTimeout exceeded.
+	go rcs.PingNow(rcUpdated)
+
+	return rcUpdated, nil
+}

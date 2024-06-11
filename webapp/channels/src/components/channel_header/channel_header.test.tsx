@@ -1,29 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
+import type {ChannelType} from '@mattermost/types/channels';
+import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import ChannelHeader from 'components/channel_header/channel_header';
 import ChannelInfoButton from 'components/channel_header/channel_info_button';
 import Markdown from 'components/markdown';
+
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import Constants, {RHSStates} from 'utils/constants';
-import {TestHelper} from '../../utils/test_helper';
-import {ChannelType} from '@mattermost/types/channels';
-import {UserCustomStatus} from '@mattermost/types/users';
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/ChannelHeader', () => {
     const baseProps: ComponentProps<typeof ChannelHeader> = {
         actions: {
-            favoriteChannel: jest.fn(),
-            unfavoriteChannel: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelFiles: jest.fn(),
             closeRightHandSide: jest.fn(),
             openModal: jest.fn(),
-            closeModal: jest.fn(),
             getCustomEmojisInText: jest.fn(),
             updateChannelNotifyProps: jest.fn(),
             goToLastViewedChannel: jest.fn(),
@@ -34,7 +32,6 @@ describe('components/ChannelHeader', () => {
         channel: TestHelper.getChannelMock({}),
         channelMember: TestHelper.getChannelMembershipMock({}),
         currentUser: TestHelper.getUserMock({}),
-        teammateNameDisplaySetting: '',
         currentRelativeTeamUrl: '',
         isCustomStatusEnabled: false,
         isCustomStatusExpired: false,
@@ -263,36 +260,6 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should render the guest tags on gms', () => {
-        const props = {
-            ...populatedProps,
-            channel: TestHelper.getChannelMock({
-                header: 'test',
-                display_name: 'regular_user, guest_user',
-                type: Constants.GM_CHANNEL as ChannelType,
-            }),
-            gmMembers: [
-                TestHelper.getUserMock({
-                    id: 'user_id',
-                    username: 'regular_user',
-                    roles: 'system_user',
-                }),
-                TestHelper.getUserMock({
-                    id: 'guest_id',
-                    username: 'guest_user',
-                    roles: 'system_guest',
-                }),
-            ],
-        };
-
-        const wrapper = shallowWithIntl(
-            <ChannelHeader {...props}/>,
-        );
-        expect(wrapper.containsMatchingElement(
-            <GuestTag/>,
-        )).toEqual(true);
     });
 
     test('should render properly when custom status is set', () => {

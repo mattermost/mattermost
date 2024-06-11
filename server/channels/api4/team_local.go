@@ -6,7 +6,6 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 
@@ -79,15 +78,10 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	bf, err := io.ReadAll(r.Body)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
 	memberInvite := &model.MemberInvite{}
-	err = json.Unmarshal(bf, memberInvite)
+	err := model.StructFromJSONLimited(r.Body, memberInvite)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		c.Err = model.NewAppError("Api4.localInviteUsersToTeam", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 

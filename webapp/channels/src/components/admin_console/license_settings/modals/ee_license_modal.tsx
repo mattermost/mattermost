@@ -4,17 +4,14 @@
 import React from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from 'types/store';
-
-import {isModalOpen} from 'selectors/views/modals';
-
 import {GenericModal} from '@mattermost/components';
+
+import {closeModal} from 'actions/views/modals';
+import {isModalOpen} from 'selectors/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import {closeModal} from 'actions/views/modals';
+import type {GlobalState} from 'types/store';
 
 import './ee_license_modal.scss';
 
@@ -23,7 +20,7 @@ type Props = {
 }
 
 const EELicenseModal: React.FC<Props> = (props: Props): JSX.Element | null => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.ENTERPRISE_EDITION_LICENSE));
     if (!show) {
@@ -40,6 +37,7 @@ const EELicenseModal: React.FC<Props> = (props: Props): JSX.Element | null => {
     // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
     return (
         <GenericModal
+            compassDesign={true}
             className={'EELicenseModal'}
             show={show}
             id='EELicenseModal'

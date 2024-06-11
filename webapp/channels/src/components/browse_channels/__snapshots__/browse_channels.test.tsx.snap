@@ -1,0 +1,161 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/BrowseChannels should match snapshot and state 1`] = `
+<GenericModal
+  aria-labelledby="browseChannelsModalLabel"
+  aria-modal={true}
+  autoCloseOnCancelButton={true}
+  autoCloseOnConfirmButton={false}
+  bodyPadding={false}
+  compassDesign={true}
+  enforceFocus={false}
+  headerButton={
+    <Memo(TeamPermissionGate)
+      permissions={
+        Array [
+          "create_public_channel",
+        ]
+      }
+      teamId="team_1"
+    >
+      <button
+        aria-label="Create New Channel"
+        className="btn btn-secondary btn-sm"
+        id="createNewChannelButton"
+        onClick={[Function]}
+        type="button"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Create New Channel"
+          id="more_channels.create"
+        />
+      </button>
+    </Memo(TeamPermissionGate)>
+  }
+  id="browseChannelsModal"
+  keyboardEscape={true}
+  modalHeaderText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Browse Channels"
+      id="more_channels.title"
+    />
+  }
+  onExited={[Function]}
+  show={true}
+>
+  <injectIntl(SearchableChannelList)
+    canShowArchivedChannels={true}
+    changeFilter={[Function]}
+    channels={
+      Array [
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "channel-3",
+          "group_constrained": false,
+          "header": "channel-3-header",
+          "id": "channel_id_3",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "channel-3",
+          "purpose": "channel-3-purpose",
+          "scheme_id": "id",
+          "team_id": "team_1",
+          "type": "P",
+          "update_at": 0,
+        },
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        },
+      ]
+    }
+    channelsPerPage={50}
+    closeModal={[MockFunction]}
+    filter="All"
+    handleJoin={[Function]}
+    hideJoinedChannelsPreference={[Function]}
+    isSearch={false}
+    loading={false}
+    myChannelMemberships={
+      Object {
+        "channel-id-3": Object {
+          "channel_id": "channel-id-3",
+          "last_update_at": 0,
+          "last_viewed_at": 0,
+          "mention_count": 0,
+          "mention_count_root": 0,
+          "msg_count": 0,
+          "msg_count_root": 0,
+          "notify_props": Object {
+            "channel_auto_follow_threads": "off",
+            "desktop": "default",
+            "email": "default",
+            "ignore_channel_mentions": "default",
+            "mark_unread": "all",
+            "push": "default",
+          },
+          "roles": "channel_user",
+          "scheme_admin": false,
+          "scheme_user": true,
+          "urgent_mention_count": 0,
+          "user_id": "user-1",
+        },
+      }
+    }
+    nextPage={[Function]}
+    noResultsText={
+      <React.Fragment>
+        <p
+          className="secondary-message"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Try searching different keywords, checking for typos or adjusting the filters."
+            id="more_channels.searchError"
+          />
+        </p>
+        <Memo(TeamPermissionGate)
+          permissions={
+            Array [
+              "create_public_channel",
+            ]
+          }
+          teamId="team_1"
+        >
+          <button
+            aria-label="Create New Channel"
+            className="btn btn-primary"
+            id="createNewChannelButton"
+            onClick={[Function]}
+            type="button"
+          >
+            <i
+              className="icon-plus"
+            />
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Create New Channel"
+              id="more_channels.create"
+            />
+          </button>
+        </Memo(TeamPermissionGate)>
+      </React.Fragment>
+    }
+    rememberHideJoinedChannelsChecked={false}
+    search={[Function]}
+  />
+</GenericModal>
+`;

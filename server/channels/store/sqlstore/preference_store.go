@@ -22,7 +22,6 @@ func newSqlPreferenceStore(sqlStore *SqlStore) store.PreferenceStore {
 }
 
 func (s SqlPreferenceStore) deleteUnusedFeatures() {
-	mlog.Debug("Deleting any unused pre-release features")
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
 		Where(sq.Eq{"Category": model.PreferenceCategoryAdvancedSettings}).
@@ -172,7 +171,6 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.P
 		return nil, errors.Wrapf(err, "failed to find Preference with userId=%s, category=%s", userId, category)
 	}
 	return preferences, nil
-
 }
 
 func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, error) {
@@ -205,7 +203,6 @@ func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) error {
 }
 
 func (s SqlPreferenceStore) Delete(userId, category, name string) error {
-
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
 		Where(sq.Eq{"UserId": userId}).
@@ -224,7 +221,6 @@ func (s SqlPreferenceStore) Delete(userId, category, name string) error {
 }
 
 func (s SqlPreferenceStore) DeleteCategory(userId string, category string) error {
-
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
 		Where(sq.Eq{"UserId": userId}).

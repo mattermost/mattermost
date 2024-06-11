@@ -3,16 +3,20 @@
 
 import {mount} from 'enzyme';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {OverlayTrigger as BaseOverlayTrigger} from 'react-bootstrap';
+import {OverlayTrigger as BaseOverlayTrigger} from 'react-bootstrap'; // eslint-disable-line no-restricted-imports
 import {FormattedMessage, IntlProvider} from 'react-intl';
+import {Provider as ReduxProvider} from 'react-redux';
+import type {Store} from 'redux';
 
+import testConfigureStore from 'packages/mattermost-redux/test/test_store';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import OverlayTrigger from './overlay_trigger';
 
 describe('OverlayTrigger', () => {
     const testId = 'test.value';
+
+    let store: Store;
 
     const intlProviderProps = {
         defaultLocale: 'en',
@@ -34,6 +38,7 @@ describe('OverlayTrigger', () => {
     let originalConsoleError: () => void;
 
     beforeEach(() => {
+        store = testConfigureStore();
         originalConsoleError = console.error;
         console.error = jest.fn();
     });
@@ -44,11 +49,13 @@ describe('OverlayTrigger', () => {
 
     test('base OverlayTrigger should fail to pass intl to overlay', () => {
         const wrapper = mount(
-            <IntlProvider {...intlProviderProps}>
-                <BaseOverlayTrigger {...baseProps}>
-                    <span/>
-                </BaseOverlayTrigger>
-            </IntlProvider>,
+            <ReduxProvider store={store}>
+                <IntlProvider {...intlProviderProps}>
+                    <BaseOverlayTrigger {...baseProps}>
+                        <span/>
+                    </BaseOverlayTrigger>
+                </IntlProvider>
+            </ReduxProvider>,
         );
 
         // console.error will have been called by FormattedMessage because its intl context is missing
@@ -59,11 +66,13 @@ describe('OverlayTrigger', () => {
 
     test('custom OverlayTrigger should pass intl to overlay', () => {
         const wrapper = mount(
-            <IntlProvider {...intlProviderProps}>
-                <OverlayTrigger {...baseProps}>
-                    <span/>
-                </OverlayTrigger>
-            </IntlProvider>,
+            <ReduxProvider store={store}>
+                <IntlProvider {...intlProviderProps}>
+                    <OverlayTrigger {...baseProps}>
+                        <span/>
+                    </OverlayTrigger>
+                </IntlProvider>
+            </ReduxProvider>,
         );
 
         const overlay = mount(wrapper.find(BaseOverlayTrigger).prop('overlay'));
@@ -80,11 +89,13 @@ describe('OverlayTrigger', () => {
         };
 
         const wrapper = mountWithIntl(
-            <IntlProvider {...intlProviderProps}>
-                <OverlayTrigger {...props}>
-                    <span/>
-                </OverlayTrigger>
-            </IntlProvider>,
+            <ReduxProvider store={store}>
+                <IntlProvider {...intlProviderProps}>
+                    <OverlayTrigger {...props}>
+                        <span/>
+                    </OverlayTrigger>
+                </IntlProvider>
+            </ReduxProvider>,
         );
 
         expect(ref.current).toBe(wrapper.find(BaseOverlayTrigger).instance());
@@ -105,11 +116,13 @@ describe('OverlayTrigger', () => {
         };
 
         const wrapper = mount(
-            <IntlProvider {...intlProviderProps}>
-                <OverlayTrigger {...props}>
-                    <span/>
-                </OverlayTrigger>
-            </IntlProvider>,
+            <ReduxProvider store={store}>
+                <IntlProvider {...intlProviderProps}>
+                    <OverlayTrigger {...props}>
+                        <span/>
+                    </OverlayTrigger>
+                </IntlProvider>
+            </ReduxProvider>,
         );
 
         // Dive into the react-bootstrap internals to find our overlay
@@ -144,11 +157,13 @@ describe('OverlayTrigger', () => {
         };
 
         const wrapper = mount(
-            <IntlProvider {...intlProviderProps}>
-                <OverlayTrigger {...props}>
-                    <span/>
-                </OverlayTrigger>
-            </IntlProvider>,
+            <ReduxProvider store={store}>
+                <IntlProvider {...intlProviderProps}>
+                    <OverlayTrigger {...props}>
+                        <span/>
+                    </OverlayTrigger>
+                </IntlProvider>
+            </ReduxProvider>,
         );
 
         // Dive into the react-bootstrap internals to find our overlay

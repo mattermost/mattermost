@@ -11,13 +11,13 @@ import {
     getSubscriptionProduct,
 } from 'mattermost-redux/selectors/entities/cloud';
 
-import {CloudProducts} from 'utils/constants';
-import {asGBString, fallbackStarterLimits, hasSomeLimits} from 'utils/limits';
-
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+
+import {CloudProducts} from 'utils/constants';
+import {asGBString, fallbackStarterLimits, hasSomeLimits} from 'utils/limits';
 
 import LimitCard from './limit_card';
 

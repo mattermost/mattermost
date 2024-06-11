@@ -7,13 +7,13 @@
         height: 48px;
         flex-grow: 1;
         padding: 12px 14px;
+        border-radius: 4px 0 0 4px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
         border-right: 0;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
         border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
         background: var(--center-channel-color-rgb);
-        border-radius: 4px 0 0 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 16px;
     }
 
@@ -41,8 +41,8 @@
         width: 180px;
         height: 48px;
         border: 1px solid var(--button-bg);
-        background: var(--center-channel-bg);
         border-radius: 0 4px 4px 0;
+        background: var(--center-channel-bg);
         color: var(--button-bg);
 
         &:hover {

@@ -2,16 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {IntlShape} from 'react-intl';
+import {injectIntl} from 'react-intl';
 
-import {RelationOneToOne} from '@mattermost/types/utilities';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {filterProfilesStartingWithTerm} from 'mattermost-redux/utils/user_utils';
-import {localizeMessage} from 'utils/utils';
-import MultiSelect, {Value} from 'components/multiselect/multiselect';
+
+import MultiSelect from 'components/multiselect/multiselect';
+import type {Value} from 'components/multiselect/multiselect';
 
 import Constants from 'utils/constants';
+import {localizeMessage} from 'utils/utils';
 
 import MultiSelectOption from './multiselect_option/multiselect_option';
 
@@ -24,6 +28,8 @@ export type Props = {
     multilSelectKey: string;
     userStatuses: RelationOneToOne<UserProfile, string>;
     focusOnLoad?: boolean;
+
+    intl: IntlShape;
 
     // Used if we are adding new members to an existing group
     groupId?: string;
@@ -64,7 +70,7 @@ type State = {
     loadingUsers: boolean;
 }
 
-export default class AddUserToGroupMultiSelect extends React.PureComponent<Props, State> {
+export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State> {
     private searchTimeoutId = 0;
     selectedItemRef;
 
@@ -216,6 +222,7 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
                 key={this.props.multilSelectKey}
                 options={users}
                 optionRenderer={this.renderOption}
+                intl={this.props.intl}
                 selectedItemRef={this.selectedItemRef}
                 values={this.state.values}
                 ariaLabelRenderer={this.renderAriaLabel}
@@ -243,3 +250,5 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
         );
     };
 }
+
+export default injectIntl(AddUserToGroupMultiSelect);

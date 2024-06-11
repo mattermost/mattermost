@@ -11,7 +11,8 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
@@ -78,7 +79,7 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 			oAuthStore:   s.OAuth(),
 			config:       configStore.Get,
 		},
-		Context:     request.EmptyContext(nil),
+		Context:     request.EmptyContext(mlog.CreateConsoleTestLogger(tb)),
 		configStore: configStore,
 		dbStore:     s,
 		LogBuffer:   buffer,
@@ -123,11 +124,11 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 
 	var err error
 	if guest {
-		if user, err = th.service.CreateUser(user, UserCreateOptions{Guest: true}); err != nil {
+		if user, err = th.service.CreateUser(th.Context, user, UserCreateOptions{Guest: true}); err != nil {
 			panic(err)
 		}
 	} else {
-		if user, err = th.service.CreateUser(user, UserCreateOptions{}); err != nil {
+		if user, err = th.service.CreateUser(th.Context, user, UserCreateOptions{}); err != nil {
 			panic(err)
 		}
 	}

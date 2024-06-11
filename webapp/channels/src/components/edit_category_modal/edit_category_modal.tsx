@@ -4,12 +4,11 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ChannelCategory} from '@mattermost/types/channel_categories';
+import {GenericModal} from '@mattermost/components';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
-import {GenericModal} from '@mattermost/components';
 
 import {localizeMessage} from 'utils/utils';
 
@@ -25,7 +24,7 @@ type Props = {
     initialCategoryName?: string;
     channelIdsToAdd?: string[];
     actions: {
-        createCategory: (teamId: string, displayName: string, channelIds?: string[] | undefined) => {data: ChannelCategory};
+        createCategory: (teamId: string, displayName: string, channelIds?: string[] | undefined) => void;
         renameCategory: (categoryId: string, newName: string) => void;
     };
 };
@@ -144,6 +143,7 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
                 ariaLabel={localizeMessage('rename_category_modal.renameCategory', 'Rename Category')}
                 modalHeaderText={modalHeaderText}
                 confirmButtonText={editButtonText}
+                compassDesign={true}
                 onExited={this.props.onExited}
                 handleEnterKeyPress={this.handleConfirm}
                 handleConfirm={this.handleConfirm}

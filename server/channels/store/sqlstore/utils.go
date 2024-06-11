@@ -5,7 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
-	"errors"
+	"fmt"
 	"io"
 	"net/url"
 	"strconv"
@@ -16,8 +16,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-
-	"github.com/go-sql-driver/mysql"
 )
 
 var escapeLikeSearchChar = []string{
@@ -183,57 +181,6 @@ func AppendBinaryFlag(buf []byte) []byte {
 	return append([]byte{0x01}, buf...)
 }
 
-// AppendMultipleStatementsFlag attached dsn parameters to MySQL dsn in order to make migrations work.
-func AppendMultipleStatementsFlag(dataSource string) (string, error) {
-	config, err := mysql.ParseDSN(dataSource)
-	if err != nil {
-		return "", err
-	}
-
-	if config.Params == nil {
-		config.Params = map[string]string{}
-	}
-
-	config.Params["multiStatements"] = "true"
-	return config.FormatDSN(), nil
-}
-
-// ResetReadTimeout removes the timeout constraint from the MySQL dsn.
-func ResetReadTimeout(dataSource string) (string, error) {
-	config, err := mysql.ParseDSN(dataSource)
-	if err != nil {
-		return "", err
-	}
-	config.ReadTimeout = 0
-	return config.FormatDSN(), nil
-}
-
-func SanitizeDataSource(driverName, dataSource string) (string, error) {
-	switch driverName {
-	case model.DatabaseDriverPostgres:
-		u, err := url.Parse(dataSource)
-		if err != nil {
-			return "", err
-		}
-		u.User = url.UserPassword("****", "****")
-		params := u.Query()
-		params.Del("user")
-		params.Del("password")
-		u.RawQuery = params.Encode()
-		return u.String(), nil
-	case model.DatabaseDriverMysql:
-		cfg, err := mysql.ParseDSN(dataSource)
-		if err != nil {
-			return "", err
-		}
-		cfg.User = "****"
-		cfg.Passwd = "****"
-		return cfg.FormatDSN(), nil
-	default:
-		return "", errors.New("invalid drivername. Not postgres or mysql.")
-	}
-}
-
 const maxTokenSize = 50
 
 // trimInput limits the string to a max size to prevent clogging up disk space
@@ -243,4 +190,24 @@ func trimInput(input string) string {
 		input = input[:maxTokenSize] + "..."
 	}
 	return input
+}
+
+func maxInt64(a, b int64) int64 {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+// Adds backtiks to the column name for MySQL, this is required if
+// the column name is a reserved keyword.
+//
+//	`ColumnName` -  MySQL
+//	ColumnName   -  Postgres
+func quoteColumnName(driver string, columnName string) string {
+	if driver == model.DatabaseDriverMysql {
+		return fmt.Sprintf("`%s`", columnName)
+	}
+
+	return columnName
 }

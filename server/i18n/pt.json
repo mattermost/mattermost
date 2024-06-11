@@ -1,0 +1,58 @@
+[
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Não foi possível abrir o ficheiro do certificado."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Nenhum ficheiro de 'certificado' no pedido."
+  },
+  {
+    "id": "September",
+    "translation": "Setembro"
+  },
+  {
+    "id": "October",
+    "translation": "Outubro"
+  },
+  {
+    "id": "November",
+    "translation": "Novembro"
+  },
+  {
+    "id": "May",
+    "translation": "Maio"
+  },
+  {
+    "id": "March",
+    "translation": "Março"
+  },
+  {
+    "id": "June",
+    "translation": "Junho"
+  },
+  {
+    "id": "July",
+    "translation": "Julho"
+  },
+  {
+    "id": "January",
+    "translation": "Janeiro"
+  },
+  {
+    "id": "February",
+    "translation": "Fevereiro"
+  },
+  {
+    "id": "December",
+    "translation": "Dezembro"
+  },
+  {
+    "id": "August",
+    "translation": "Agosto"
+  },
+  {
+    "id": "April",
+    "translation": "Abril"
+  }
+]
