@@ -10030,5 +10030,13 @@
   {
     "id": "store.sql_team.save_team.existing.app_error",
     "translation": "Zespół o tym adresie URL już istnieje."
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Błąd przy określaniu liczby kont administratora systemu."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Nie możesz zdegradować ostatniego administratora systemu."
   }
 ]
