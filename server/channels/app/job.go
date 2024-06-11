@@ -114,7 +114,7 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 }
 
 func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.Job) (bool, *model.Permission) {
-	var permission *model.Permission = nil
+	var permission *model.Permission
 
 	switch job.Type {
 	case model.JobTypeBlevePostIndexing:
