@@ -10024,5 +10024,9 @@
   {
     "id": "ent.compliance.csv.seek.appError",
     "translation": "Kann nicht zum Anfang der Exportdatei suchen."
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Es gibt bereits ein Team mit dieser URL."
   }
 ]

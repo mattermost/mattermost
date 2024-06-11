@@ -20,6 +20,7 @@ const (
 	ClientInteractionToNextPaint    MetricType = "INP"
 	ClientCumulativeLayoutShift     MetricType = "CLS"
 	ClientLongTasks                 MetricType = "long_tasks"
+	ClientPageLoadDuration          MetricType = "page_load"
 	ClientChannelSwitchDuration     MetricType = "channel_switch"
 	ClientTeamSwitchDuration        MetricType = "team_switch"
 	ClientRHSLoadDuration           MetricType = "rhs_load"
