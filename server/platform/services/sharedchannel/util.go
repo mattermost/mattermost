@@ -130,10 +130,3 @@ func isNotFoundError(err error) bool {
 	var errNotFound *store.ErrNotFound
 	return errors.As(err, &errNotFound)
 }
-
-func SafeString(p *string) string {
-	if p == nil {
-		return ""
-	}
-	return *p
-}
