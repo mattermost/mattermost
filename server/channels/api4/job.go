@@ -152,6 +152,11 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 	var validJobTypes []string
 
 	if jobType != "" {
+		isValidJobType := model.IsValidJobType(jobType)
+		if !isValidJobType {
+			c.Err = model.NewAppError("getJobs", "api.job.type.invalid", nil, "", http.StatusBadRequest)
+			return
+		}
 		hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jobType)
 		if permissionRequired == nil {
 			c.Err = model.NewAppError("getJobsByType", "api.job.retrieve.nopermissions", nil, "", http.StatusBadRequest)
