@@ -10040,5 +10040,13 @@
   {
     "id": "store.sql_team.save_team.existing.app_error",
     "translation": "Er bestaat al een team met deze URL."
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Fout bij het bepalen van het aantal systeembeheeraccounts."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Kan laatste systeembeheerder niet degraderen."
   }
 ]
