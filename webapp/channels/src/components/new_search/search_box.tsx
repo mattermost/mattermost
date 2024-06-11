@@ -3,12 +3,14 @@
 
 import React, {useState, useRef, useEffect, forwardRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
+
+import {GlobalState} from 'types/store';
 
 import {autocompleteChannelsForSearch} from 'actions/channel_actions';
 import {autocompleteUsersInTeam} from 'actions/user_actions';
@@ -123,6 +125,7 @@ type SearchTypeItemProps = {
 };
 
 const SearchTypeItem = styled.button<SearchTypeItemProps>`
+    display: flex;
     cursor: pointer;
     padding: 4px 10px;
     background-color: ${(props) => (props.selected ? 'rgba(var(--button-bg-rgb), 0.08)' : 'transparent')};
@@ -175,6 +178,10 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
     const [selectedOption, setSelectedOption] = useState<number>(-1);
     const [providerResults, setProviderResults] = useState<ProviderResult<unknown>|null>(null);
     const [suggestionsHeader, setSuggestionsHeader] = useState<React.ReactNode|null>(null);
+
+    const SearchPluginButtons = useSelector((state: GlobalState) => state.plugins.components.SearchButtons) || [];
+    const SearchPluginSuggestions = useSelector((state: GlobalState) => state.plugins.components.SearchSuggestions) || [];
+    const SearchPluginHints = useSelector((state: GlobalState) => state.plugins.components.SearchHints) || [];
 
     const inputRef = useRef<HTMLInputElement|null>(null);
 
@@ -325,6 +332,18 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                         defaultMessage='Files'
                     />
                 </SearchTypeItem>
+                {SearchPluginButtons.map(({component, pluginId}: any) => {
+                    const Component = component as React.ComponentType;
+                    return (
+                        <SearchTypeItem
+                            key={pluginId}
+                            selected={searchType === pluginId}
+                            onClick={() => setSearchType(pluginId)}
+                        >
+                            <Component/>
+                        </SearchTypeItem>
+                    );
+                })}
             </SearchTypeSelector>
             <SearchInput>
                 <i className='icon icon-magnify'/>
@@ -359,7 +378,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                     </ClearButton>
                 )}
             </SearchInput>
-            {providerResults && (
+            {(searchType === "" || searchType == "messages" || searchType === "files") && providerResults && (
                 <div>
                     <SuggestionsHeader>{suggestionsHeader}</SuggestionsHeader>
                     {providerResults.items.map((item, idx) => {
@@ -387,22 +406,61 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                     })}
                 </div>
             )}
-            <SearchHints
-                onSelectFilter={(filter: string) => {
-                    if (searchTerms.endsWith(' ') || searchTerms.length === 0) {
-                        setSearchTerms(searchTerms + filter);
-                        focus(inputRef.current, searchTerms.length + filter.length);
-                    } else {
-                        setSearchTerms(searchTerms + ' ' + filter);
-                        focus(inputRef.current, searchTerms.length + filter.length + 1);
-                    }
+            {SearchPluginSuggestions.map(({component, pluginId}: any) => {
+                if (searchType !== pluginId) {
+                    return null;
+                }
+                const Component = component;
+                return (
+                    <Component
+                        key={pluginId}
+                        searchTerms={searchTerms}
+                        onChangeSearch={(value: string, matchedPretext: string) => {
+                            const changedValue = value.replace(matchedPretext, '');
+                            setSearchTerms(searchTerms + changedValue + ' ');
+                            focus(inputRef.current, searchTerms.length + changedValue.length + 1);
+                        }}
+                        onRunSearch={(searchTerms: string) => {
+                            onSearch(pluginId, searchTerms);
+                        }}
+                    />
+                );
+            })}
+            {(searchType === "" || searchType == "messages" || searchType === "files") && (
+                <SearchHints
+                    onSelectFilter={(filter: string) => {
+                        if (searchTerms.endsWith(' ') || searchTerms.length === 0) {
+                            setSearchTerms(searchTerms + filter);
+                            focus(inputRef.current, searchTerms.length + filter.length);
+                        } else {
+                            setSearchTerms(searchTerms + ' ' + filter);
+                            focus(inputRef.current, searchTerms.length + filter.length + 1);
+                        }
 
-                }}
-                searchType={searchType}
-                searchTerms={searchTerms}
-                hasSelectedOption={Boolean(providerResults && providerResults.items.length > 0 && selectedOption !== -1)}
-                isDate={providerResults?.component === SearchDateSuggestion}
-            />
+                    }}
+                    searchType={searchType}
+                    searchTerms={searchTerms}
+                    hasSelectedOption={Boolean(providerResults && providerResults.items.length > 0 && selectedOption !== -1)}
+                    isDate={providerResults?.component === SearchDateSuggestion}
+                />
+            )}
+            {SearchPluginHints.map(({component, pluginId}: any) => {
+                if (searchType !== pluginId) {
+                    return null;
+                }
+                const Component = component;
+                return (
+                    <Component
+                        key={pluginId}
+                        onChangeSearch={(value: string, matchedPretext: string) => {
+                            const changedValue = value.replace(matchedPretext, '');
+                            setSearchTerms(searchTerms + changedValue + ' ');
+                            focus(inputRef.current, searchTerms.length + changedValue.length + 1);
+                        }}
+                        searchTerms={searchTerms}
+                    />
+                );
+            })}
         </SearchBoxContainer>
     );
 });

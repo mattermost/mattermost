@@ -24,6 +24,7 @@ import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
+import {GlobalState} from 'types/store';
 
 import SearchBox from './search_box';
 
@@ -65,6 +66,7 @@ const NewSearchContainer = styled.div`
 const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
+    const pluginSearch = useSelector((state: GlobalState) => state.plugins.components.SearchButtons);
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
     const [currentChannel, setCurrentChannel] = useState('');
@@ -156,9 +158,18 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
                         onSearch={(searchType: string, searchTerms: string) => {
                             dispatch(updateSearchType(searchType));
                             dispatch(updateSearchTerms(searchTerms));
-                            dispatch(showSearchResults(false));
                             setFocused(false);
                             setCurrentChannel('');
+
+                            if (searchType === '' || searchType === 'messages' || searchType === 'files') {
+                                dispatch(showSearchResults(true));
+                            } else {
+                                pluginSearch.forEach((pluginData: any) => {
+                                    if (pluginData.pluginId == searchType) {
+                                        pluginData.action(searchTerms)
+                                    }
+                                });
+                            }
                         }}
                         initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
                     />
