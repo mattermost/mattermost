@@ -1,35 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef, useEffect, forwardRef} from 'react';
+import React, {useState, useRef, forwardRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import type {Channel} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {GlobalState} from 'types/store';
 
-import {autocompleteChannelsForSearch} from 'actions/channel_actions';
-import {autocompleteUsersInTeam} from 'actions/user_actions';
-
 import QuickInput from 'components/quick_input';
-import type {ProviderResult} from 'components/suggestion/provider';
-import Provider from 'components/suggestion/provider';
-import SearchChannelProvider from 'components/suggestion/search_channel_provider';
-import SearchChannelSuggestion from 'components/suggestion/search_channel_suggestion';
-import SearchDateProvider from 'components/suggestion/search_date_provider';
 import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
-import SearchUserProvider, {SearchUserSuggestion} from 'components/suggestion/search_user_provider';
 import type {SuggestionProps} from 'components/suggestion/suggestion';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 
 import SearchHints from './search_hint';
-import {SearchFileExtensionProvider, SearchFileExtensionSuggestion} from './extension_suggestions';
+import useSearchSuggestions from './hooks';
 
 const {KeyCodes} = Constants;
 
@@ -176,12 +165,9 @@ const SuggestionsBody = styled.div`
 
 const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, ref: React.Ref<HTMLDivElement>): JSX.Element => {
     const intl = useIntl();
-    const dispatch = useDispatch();
     const [searchTerms, setSearchTerms] = useState<string>(initialSearchTerms);
     const [searchType, setSearchType] = useState<string>('messages');
     const [selectedOption, setSelectedOption] = useState<number>(-1);
-    const [providerResults, setProviderResults] = useState<ProviderResult<unknown>|null>(null);
-    const [suggestionsHeader, setSuggestionsHeader] = useState<React.ReactNode|null>(null);
 
     const SearchPluginButtons = useSelector((state: GlobalState) => state.plugins.components.SearchButtons) || [];
     const SearchPluginSuggestions = useSelector((state: GlobalState) => state.plugins.components.SearchSuggestions) || [];
@@ -189,70 +175,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
 
     const inputRef = useRef<HTMLInputElement|null>(null);
 
-    const suggestionProviders = useRef<Provider[]>([
-        new SearchDateProvider(),
-        new SearchChannelProvider((term: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => dispatch(autocompleteChannelsForSearch(term, success, error))),
-        new SearchUserProvider((username: string) => dispatch(autocompleteUsersInTeam(username))),
-        new SearchFileExtensionProvider(),
-    ]);
-
-    useEffect(() => {
-        setProviderResults(null);
-        if (searchType !== '' && searchType !== 'messages' && searchType !== 'files') {
-            return
-        };
-
-        suggestionProviders.current[0].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
-            res.component = SearchDateSuggestion;
-            res.items = res.items.slice(0, 10);
-            res.terms = res.terms.slice(0, 10);
-            setProviderResults(res);
-            setSelectedOption(0);
-            setSuggestionsHeader(null);
-        });
-        suggestionProviders.current[1].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
-            res.component = SearchChannelSuggestion;
-            res.items = res.items.slice(0, 10);
-            res.terms = res.terms.slice(0, 10);
-            setProviderResults(res);
-            setSelectedOption(0);
-            setSuggestionsHeader(
-                <FormattedMessage
-                    id='search_bar.channels'
-                    defaultMessage='Channels'
-                />
-            )
-        });
-        suggestionProviders.current[2].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
-            res.component = SearchUserSuggestion;
-            res.items = res.items.slice(0, 10);
-            res.terms = res.terms.slice(0, 10);
-            setProviderResults(res);
-            setSelectedOption(0);
-            setSuggestionsHeader(
-                <FormattedMessage
-                    id='search_bar.users'
-                    defaultMessage='Users'
-                />
-            )
-        });
-        suggestionProviders.current[3].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
-            if (searchType !== 'files') {
-                return
-            }
-            res.component = SearchFileExtensionSuggestion;
-            res.items = res.items.slice(0, 10);
-            res.terms = res.terms.slice(0, 10);
-            setProviderResults(res);
-            setSelectedOption(0);
-            setSuggestionsHeader(
-                <FormattedMessage
-                    id='search_bar.file_types'
-                    defaultMessage='File types'
-                />
-            )
-        });
-    }, [searchTerms, searchType]);
+    const [providerResults, suggestionsHeader] = useSearchSuggestions(searchType, searchTerms, setSelectedOption)
 
     const handleKeyDown = (e: React.KeyboardEvent<Element>): void => {
         if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {

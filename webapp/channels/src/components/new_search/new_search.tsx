@@ -158,11 +158,9 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
                         onSearch={(searchType: string, searchTerms: string) => {
                             dispatch(updateSearchType(searchType));
                             dispatch(updateSearchTerms(searchTerms));
-                            setFocused(false);
-                            setCurrentChannel('');
 
                             if (searchType === '' || searchType === 'messages' || searchType === 'files') {
-                                dispatch(showSearchResults(true));
+                                dispatch(showSearchResults(false));
                             } else {
                                 pluginSearch.forEach((pluginData: any) => {
                                     if (pluginData.pluginId == searchType) {
@@ -170,6 +168,8 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
                                     }
                                 });
                             }
+                            setFocused(false);
+                            setCurrentChannel('');
                         }}
                         initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
                     />
