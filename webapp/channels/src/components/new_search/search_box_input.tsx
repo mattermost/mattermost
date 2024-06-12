@@ -103,7 +103,6 @@ const SearchInput = ({searchTerms, searchType, setSearchTerms, setSearchType, on
                     className='btn btn-sm'
                     onClick={() => {
                         setSearchTerms('');
-                        setSearchType('messages')
                         dispatch(updateSearchTerms(''));
                         dispatch(updateSearchType('messages'));
                         focus(0);

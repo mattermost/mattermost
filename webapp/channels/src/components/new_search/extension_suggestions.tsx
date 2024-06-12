@@ -26,21 +26,36 @@ export class SearchFileExtensionProvider extends Provider {
             const matchedPretext = captured[1];
 
             let extensions: ExtensionItem[] = [];
-            Constants.TEXT_TYPES.forEach((extension) => extensions.push({label: extension, type: 'text', value: extension}))
-            Constants.IMAGE_TYPES.forEach((extension) => extensions.push({label: extension, type: 'image', value: extension}))
-            Constants.AUDIO_TYPES.forEach((extension) => extensions.push({label: extension, type: 'audio', value: extension}))
-            Constants.VIDEO_TYPES.forEach((extension) => extensions.push({label: extension, type: 'video', value: extension}))
-            Constants.PRESENTATION_TYPES.forEach((extension) => extensions.push({label: extension, type: 'presentation', value: extension}))
-            Constants.SPREADSHEET_TYPES.forEach((extension) => extensions.push({label: extension, type: 'spreadsheet', value: extension}))
-            Constants.WORD_TYPES.forEach((extension) => extensions.push({label: extension, type: 'word', value: extension}))
-            Constants.CODE_TYPES.forEach((extension) => extensions.push({label: extension, type: 'code', value: extension}))
-            Constants.PDF_TYPES.forEach((extension) => extensions.push({label: extension, type: 'pdf', value: extension}))
-            Constants.PATCH_TYPES.forEach((extension) => extensions.push({label: extension, type: 'patch', value: extension}))
-            Constants.SVG_TYPES.forEach((extension) => extensions.push({label: extension, type: 'svg', value: extension}))
+            if (matchedPretext.length > 0) {
+                Constants.TEXT_TYPES.forEach((extension) => extensions.push({label: extension, type: 'text', value: extension}))
+                Constants.IMAGE_TYPES.forEach((extension) => extensions.push({label: extension, type: 'image', value: extension}))
+                Constants.AUDIO_TYPES.forEach((extension) => extensions.push({label: extension, type: 'audio', value: extension}))
+                Constants.VIDEO_TYPES.forEach((extension) => extensions.push({label: extension, type: 'video', value: extension}))
+                Constants.PRESENTATION_TYPES.forEach((extension) => extensions.push({label: extension, type: 'presentation', value: extension}))
+                Constants.SPREADSHEET_TYPES.forEach((extension) => extensions.push({label: extension, type: 'spreadsheet', value: extension}))
+                Constants.WORD_TYPES.forEach((extension) => extensions.push({label: extension, type: 'word', value: extension}))
+                Constants.CODE_TYPES.forEach((extension) => extensions.push({label: extension, type: 'code', value: extension}))
+                Constants.PDF_TYPES.forEach((extension) => extensions.push({label: extension, type: 'pdf', value: extension}))
+                Constants.PATCH_TYPES.forEach((extension) => extensions.push({label: extension, type: 'patch', value: extension}))
+                Constants.SVG_TYPES.forEach((extension) => extensions.push({label: extension, type: 'svg', value: extension}))
 
-            extensions = extensions.filter((extension) => extension.label.startsWith(matchedPretext));
-            extensions.sort((a, b) => a.label.localeCompare(b.label));
-            extensions = extensions.slice(0, 10);
+                extensions = extensions.filter((extension) => extension.label.startsWith(matchedPretext));
+                extensions.sort((a, b) => a.label.localeCompare(b.label));
+                extensions = extensions.slice(0, 10);
+            } else {
+                extensions = [
+                    {label: 'text', type: 'text', value: 'txt'},
+                    {label: 'word', type: 'word', value: 'docx'},
+                    {label: 'spreadsheet', type: 'spreadsheet', value: 'xlsx'},
+                    {label: 'presentation', type: 'presentation', value: 'pptx'},
+                    {label: 'pdf', type: 'pdf', value: 'pdf'},
+                    {label: 'image', type: 'image', value: 'png'},
+                    {label: 'image', type: 'image', value: 'jpg'},
+                    {label: 'audio', type: 'audio', value: 'mp3'},
+                    {label: 'video', type: 'video', value: 'mp4'},
+                ]
+            }
+
 
             const terms = extensions.map((extension) => extension.value);
 
@@ -80,6 +95,18 @@ const SearchFileExtensionSuggestionContainer = styled.div`
         margin-right: 8px;
         display: flex;
         align-items: center;
+        &.icon-file-excel-outline {
+            color: #339970;
+        }
+        &.icon-file-powerpoint-outline {
+            color: #E07315;
+        }
+        &.icon-file-pdf-outline {
+            color: #C43133;
+        }
+        &.icon-file-image-outline,&.icon-file-audio-outline, &.icon-file-video-outline, &.icon-file-word-outline {
+            color: #5D89EA;
+        }
     }
 `;
 

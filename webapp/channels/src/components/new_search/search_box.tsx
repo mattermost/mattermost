@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useRef, forwardRef, useCallback} from 'react';
-import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import Constants from 'utils/constants';
