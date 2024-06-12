@@ -4174,7 +4174,7 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 		}
 	}
 
-	if *s.Backend != ElasticsearchSettingsOSBackend && *s.Backend != ElasticsearchSettingsOSBackend {
+	if *s.Backend != ElasticsearchSettingsOSBackend && *s.Backend != ElasticsearchSettingsESBackend {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.invalid_backend.app_error", nil, "", http.StatusBadRequest)
 	}
 
