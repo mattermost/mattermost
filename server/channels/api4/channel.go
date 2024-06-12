@@ -415,8 +415,10 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(channel)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageTeam) {
-		c.SetPermissionError(model.PermissionManageTeam)
-		return
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+			c.SetPermissionError(model.PermissionManageTeam)
+			return
+		}
 	}
 
 	channel, err = c.App.RestoreChannel(c.AppContext, channel, c.AppContext.Session().UserId)
