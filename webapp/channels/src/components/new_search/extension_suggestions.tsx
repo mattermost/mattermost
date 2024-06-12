@@ -39,7 +39,7 @@ export class SearchFileExtensionProvider extends Provider {
                 Constants.PATCH_TYPES.forEach((extension) => extensions.push({label: extension, type: 'patch', value: extension}))
                 Constants.SVG_TYPES.forEach((extension) => extensions.push({label: extension, type: 'svg', value: extension}))
 
-                extensions = extensions.filter((extension) => extension.label.startsWith(matchedPretext));
+                extensions = extensions.filter((extension) => extension.label.startsWith(matchedPretext.toLowerCase()));
                 extensions.sort((a, b) => a.label.localeCompare(b.label));
                 extensions = extensions.slice(0, 10);
             } else {
@@ -110,6 +110,10 @@ const SearchFileExtensionSuggestionContainer = styled.div`
     }
 `;
 
+const ExtensionText = styled.span`
+    margin-left: 4px;
+`;
+
 export const SearchFileExtensionSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<ExtensionItem>>((props, ref) => {
     const {item} = props;
 
@@ -159,7 +163,7 @@ export const SearchFileExtensionSuggestion = React.forwardRef<HTMLDivElement, Su
         >
              <div className={'file-icon ' + getCompassIconClassName(item.type)}/>
              {labelName}
-             <span>(.{item.value})</span>
+             <ExtensionText>(.{item.value})</ExtensionText>
         </SearchFileExtensionSuggestionContainer>
     );
 });
