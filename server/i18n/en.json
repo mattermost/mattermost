@@ -8555,6 +8555,10 @@
     "translation": "Ignored indexes for purge should not start with dash."
   },
   {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Invalid search backend. Must be either elasticsearch or opensearch."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
     "translation": "Elasticsearch Live Indexing Batch Size must be at least 1."
   },
