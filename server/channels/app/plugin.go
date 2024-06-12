@@ -999,7 +999,7 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 		}
 		if version.GTE(SemVerV2) {
 			license := ch.License()
-			canUsePlaybookv2 := license != nil && license.SkuShortName == model.LicenseShortSkuEnterprise
+			canUsePlaybookv2 := license != nil && license.IsE20OrEnterprise()
 			if !canUsePlaybookv2 {
 				logger.Info("Skip installing prepackaged playbooks because the license does not allow it")
 				return plugin, nil
