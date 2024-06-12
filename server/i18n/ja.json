@@ -10020,5 +10020,13 @@
   {
     "id": "store.sql_team.save_team.existing.app_error",
     "translation": "このURLのチームはすでに存在します。"
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "システム管理者アカウント数を確認する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "最後のシステム管理者を降格することはできません。"
   }
 ]
