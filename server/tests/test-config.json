@@ -323,6 +323,7 @@
     },
     "ElasticsearchSettings": {
         "ConnectionUrl": "http://localhost:9200",
+        "Backend": "elasticsearch",
         "Username": "elastic",
         "Password": "changeme",
         "EnableIndexing": false,
