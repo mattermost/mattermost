@@ -10,7 +10,8 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 )
 
 // HTTPService wraps the functionality for making http requests to provide some improvements to the default client
@@ -28,8 +29,12 @@ type HTTPService interface {
 	MakeTransport(trustURLs bool) *MattermostTransport
 }
 
+type getConfig interface {
+	Config() *model.Config
+}
+
 type HTTPServiceImpl struct {
-	configService configservice.ConfigService
+	configService getConfig
 
 	RequestTimeout time.Duration
 }
@@ -38,11 +43,23 @@ func splitFields(c rune) bool {
 	return unicode.IsSpace(c) || c == ','
 }
 
-func MakeHTTPService(configService configservice.ConfigService) HTTPService {
+func MakeHTTPService(configService getConfig) HTTPService {
 	return &HTTPServiceImpl{
 		configService,
 		RequestTimeout,
 	}
+}
+
+type pluginAPIConfigServiceAdapter struct {
+	pluginAPIConfigService plugin.API
+}
+
+func (p *pluginAPIConfigServiceAdapter) Config() *model.Config {
+	return p.pluginAPIConfigService.GetConfig()
+}
+
+func MakeHTTPServicePlugin(configService plugin.API) HTTPService {
+	return MakeHTTPService(&pluginAPIConfigServiceAdapter{configService})
 }
 
 func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *http.Client {
