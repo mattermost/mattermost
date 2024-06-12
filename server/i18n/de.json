@@ -10036,5 +10036,9 @@
   {
     "id": "app.user.update.lastAdmin.app_error",
     "translation": "Der letzte Systemadministrator kann nicht zurückgestuft werden."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Es kann nicht festgestellt werden, ob dieser Benutzername bereits existiert"
   }
 ]
