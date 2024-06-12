@@ -226,7 +226,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 
 func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.RemoteCluster) (*model.Channel, error) {
 	if invite.Type == model.ChannelTypeDirect {
-		return scs.createDirectChannel(invite)
+		return scs.createDirectChannel(invite, rc)
 	}
 
 	channelNew := &model.Channel{
@@ -250,7 +250,7 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 	return channel, nil
 }
 
-func (scs *Service) createDirectChannel(invite channelInviteMsg) (*model.Channel, error) {
+func (scs *Service) createDirectChannel(invite channelInviteMsg, rc *model.RemoteCluster) (*model.Channel, error) {
 	if len(invite.DirectParticipantIDs) != 2 {
 		return nil, fmt.Errorf("cannot create direct channel `%s` insufficient participant count `%d`", invite.ChannelId, len(invite.DirectParticipantIDs))
 	}
@@ -282,6 +282,10 @@ func (scs *Service) createDirectChannel(invite channelInviteMsg) (*model.Channel
 
 	if userLocal.IsRemote() {
 		return nil, fmt.Errorf("cannot create direct channel `%s` local user is not local (%s)", invite.ChannelId, userLocal.Id)
+	}
+
+	if userRemote.GetRemoteID() != rc.RemoteId {
+		return nil, fmt.Errorf("cannot create direct channel `%s`: %w", invite.ChannelId, ErrRemoteIDMismatch)
 	}
 
 	// ensure remote user is allowed to DM the local user
