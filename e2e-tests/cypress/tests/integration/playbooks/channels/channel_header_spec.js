@@ -91,7 +91,7 @@ describe('channels > channel header', {testIsolation: true}, () => {
             });
 
             // * Verify tooltip text
-            cy.get('#pluginTooltip').contains('Playbooks');
+            cy.get('#playbooksChannelHeaderButton').contains('Playbooks');
         });
 
         it('webapp should make the Playbook channel header button active when opened', () => {
