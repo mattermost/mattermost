@@ -1,14 +1,16 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import React from 'react';
-import styled from 'styled-components';
-import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
+import styled from 'styled-components';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {GlobalState} from 'types/store';
-
-import type {SuggestionProps} from 'components/suggestion/suggestion';
 import type {ProviderResult} from 'components/suggestion/provider';
+import type {SuggestionProps} from 'components/suggestion/suggestion';
+
+import type {GlobalState} from 'types/store';
 
 const SuggestionsHeader = styled.div`
     margin-top: 16px;
@@ -23,7 +25,7 @@ const SuggestionsHeader = styled.div`
 const SuggestionsBody = styled.div`
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     padding-bottom: 16px;
-`
+`;
 
 type Props = {
     searchType: string;
@@ -40,7 +42,7 @@ type Props = {
 const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, suggestionsHeader, providerResults, selectedOption, setSelectedOption, focus, onSearch}: Props) => {
     const SearchPluginSuggestions = useSelector((state: GlobalState) => state.plugins.components.SearchSuggestions) || [];
 
-    if ((searchType === "" || searchType == "messages" || searchType === "files") && providerResults) {
+    if ((searchType === '' || searchType === 'messages' || searchType === 'files') && providerResults) {
         return (
             <SuggestionsBody>
                 <SuggestionsHeader>{suggestionsHeader}</SuggestionsHeader>
@@ -68,7 +70,7 @@ const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, suggestions
                     );
                 })}
             </SuggestionsBody>
-        )
+        );
     }
 
     const pluginComponentInfo = SearchPluginSuggestions.find(({pluginId}: any) => {
@@ -79,7 +81,7 @@ const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, suggestions
     });
 
     if (!pluginComponentInfo) {
-        return null
+        return null;
     }
 
     const Component: any = pluginComponentInfo.component;
@@ -101,5 +103,4 @@ const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, suggestions
 };
 
 export default SearchSuggestions;
-
 

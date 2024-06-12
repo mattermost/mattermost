@@ -1,16 +1,19 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import React from 'react';
 import {useSelector} from 'react-redux';
 
 import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import SearchHints from './search_hint';
 
 const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResults, selectedOption, focus}: any) => {
     const SearchPluginHints = useSelector((state: GlobalState) => state.plugins.components.SearchHints) || [];
 
-    if (searchType === "" || searchType == "messages" || searchType === "files") {
+    if (searchType === '' || searchType === 'messages' || searchType === 'files') {
         return (
             <SearchHints
                 onSelectFilter={(filter: string) => {
@@ -21,14 +24,13 @@ const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResult
                         setSearchTerms(searchTerms + ' ' + filter);
                         focus(searchTerms.length + filter.length + 1);
                     }
-
                 }}
                 searchType={searchType}
                 searchTerms={searchTerms}
                 hasSelectedOption={Boolean(providerResults && providerResults.items.length > 0 && selectedOption !== -1)}
                 isDate={providerResults?.component === SearchDateSuggestion}
             />
-        )
+        );
     }
 
     const pluginComponentInfo = SearchPluginHints.find(({pluginId}: any) => {
@@ -39,7 +41,7 @@ const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResult
     });
 
     if (!pluginComponentInfo) {
-        return null
+        return null;
     }
 
     const Component: any = pluginComponentInfo.component;

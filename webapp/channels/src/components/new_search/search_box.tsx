@@ -7,12 +7,11 @@ import styled from 'styled-components';
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 
-import SearchBoxHints from './search_box_hints';
 import useSearchSuggestions from './hooks';
-
-import SearchTypeSelector from './search_box_type_selector';
+import SearchBoxHints from './search_box_hints';
 import SearchInput from './search_box_input';
 import SearchSuggestions from './search_box_suggestions';
+import SearchTypeSelector from './search_box_type_selector';
 
 const {KeyCodes} = Constants;
 
@@ -62,7 +61,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
 
     const inputRef = useRef<HTMLInputElement|null>(null);
 
-    const [providerResults, suggestionsHeader] = useSearchSuggestions(searchType, searchTerms, setSelectedOption)
+    const [providerResults, suggestionsHeader] = useSearchSuggestions(searchType, searchTerms, setSelectedOption);
 
     const handleKeyDown = (e: React.KeyboardEvent<Element>): void => {
         if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
@@ -98,7 +97,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
                 onSearch(searchType, searchTerms);
             } else {
-                const matchedPretext = providerResults?.matchedPretext
+                const matchedPretext = providerResults?.matchedPretext;
                 const value = providerResults?.terms[selectedOption];
                 const changedValue = value.replace(matchedPretext, '');
                 setSearchTerms(searchTerms + changedValue + ' ');
@@ -136,7 +135,6 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                 searchTerms={searchTerms}
                 searchType={searchType}
                 setSearchTerms={setSearchTerms}
-                setSearchType={setSearchType}
                 onKeyDown={handleKeyDown}
                 focus={focus}
             />

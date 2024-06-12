@@ -13,7 +13,6 @@ import {
     showSearchResults,
     updateSearchType,
 } from 'actions/views/rhs';
-
 import {
     getSearchTerms,
 } from 'selectors/rhs';
@@ -24,7 +23,8 @@ import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 import SearchBox from './search_box';
 
@@ -116,14 +116,13 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
                     setCurrentChannel('');
                 }
             }
-        }
+        };
 
         document.addEventListener('click', handleClick, {capture: true});
         return () => {
             document.removeEventListener('click', handleClick);
-        }
-    }, [])
-
+        };
+    }, []);
 
     return (
         <NewSearchContainer
@@ -132,7 +131,7 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
                 if (Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
                     return;
                 }
-                setFocused(true)
+                setFocused(true);
             }}
             onClick={() => setFocused(true)}
         >
@@ -146,7 +145,7 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
             )}
             {focused && (
                 <PopoverStyled
-                    id="searchPopover"
+                    id='searchPopover'
                     placement='bottom'
                 >
                     <SearchBox
@@ -163,8 +162,8 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
                                 dispatch(showSearchResults(false));
                             } else {
                                 pluginSearch.forEach((pluginData: any) => {
-                                    if (pluginData.pluginId == searchType) {
-                                        pluginData.action(searchTerms)
+                                    if (pluginData.pluginId === searchType) {
+                                        pluginData.action(searchTerms);
                                     }
                                 });
                             }

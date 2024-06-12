@@ -5,13 +5,13 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
-import Provider, {ResultsCallback} from 'components/suggestion/provider';
+import type {ResultsCallback} from 'components/suggestion/provider';
+import Provider from 'components/suggestion/provider';
 import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
 import type {SuggestionProps} from 'components/suggestion/suggestion';
 
-import {getCompassIconClassName} from 'utils/utils';
-
 import Constants from 'utils/constants';
+import {getCompassIconClassName} from 'utils/utils';
 
 type ExtensionItem = {
     label: string;
@@ -27,17 +27,17 @@ export class SearchFileExtensionProvider extends Provider {
 
             let extensions: ExtensionItem[] = [];
             if (matchedPretext.length > 0) {
-                Constants.TEXT_TYPES.forEach((extension) => extensions.push({label: extension, type: 'text', value: extension}))
-                Constants.IMAGE_TYPES.forEach((extension) => extensions.push({label: extension, type: 'image', value: extension}))
-                Constants.AUDIO_TYPES.forEach((extension) => extensions.push({label: extension, type: 'audio', value: extension}))
-                Constants.VIDEO_TYPES.forEach((extension) => extensions.push({label: extension, type: 'video', value: extension}))
-                Constants.PRESENTATION_TYPES.forEach((extension) => extensions.push({label: extension, type: 'presentation', value: extension}))
-                Constants.SPREADSHEET_TYPES.forEach((extension) => extensions.push({label: extension, type: 'spreadsheet', value: extension}))
-                Constants.WORD_TYPES.forEach((extension) => extensions.push({label: extension, type: 'word', value: extension}))
-                Constants.CODE_TYPES.forEach((extension) => extensions.push({label: extension, type: 'code', value: extension}))
-                Constants.PDF_TYPES.forEach((extension) => extensions.push({label: extension, type: 'pdf', value: extension}))
-                Constants.PATCH_TYPES.forEach((extension) => extensions.push({label: extension, type: 'patch', value: extension}))
-                Constants.SVG_TYPES.forEach((extension) => extensions.push({label: extension, type: 'svg', value: extension}))
+                Constants.TEXT_TYPES.forEach((extension) => extensions.push({label: extension, type: 'text', value: extension}));
+                Constants.IMAGE_TYPES.forEach((extension) => extensions.push({label: extension, type: 'image', value: extension}));
+                Constants.AUDIO_TYPES.forEach((extension) => extensions.push({label: extension, type: 'audio', value: extension}));
+                Constants.VIDEO_TYPES.forEach((extension) => extensions.push({label: extension, type: 'video', value: extension}));
+                Constants.PRESENTATION_TYPES.forEach((extension) => extensions.push({label: extension, type: 'presentation', value: extension}));
+                Constants.SPREADSHEET_TYPES.forEach((extension) => extensions.push({label: extension, type: 'spreadsheet', value: extension}));
+                Constants.WORD_TYPES.forEach((extension) => extensions.push({label: extension, type: 'word', value: extension}));
+                Constants.CODE_TYPES.forEach((extension) => extensions.push({label: extension, type: 'code', value: extension}));
+                Constants.PDF_TYPES.forEach((extension) => extensions.push({label: extension, type: 'pdf', value: extension}));
+                Constants.PATCH_TYPES.forEach((extension) => extensions.push({label: extension, type: 'patch', value: extension}));
+                Constants.SVG_TYPES.forEach((extension) => extensions.push({label: extension, type: 'svg', value: extension}));
 
                 extensions = extensions.filter((extension) => extension.label.startsWith(matchedPretext.toLowerCase()));
                 extensions.sort((a, b) => a.label.localeCompare(b.label));
@@ -53,9 +53,8 @@ export class SearchFileExtensionProvider extends Provider {
                     {label: 'image', type: 'image', value: 'jpg'},
                     {label: 'audio', type: 'audio', value: 'mp3'},
                     {label: 'video', type: 'video', value: 'mp4'},
-                ]
+                ];
             }
-
 
             const terms = extensions.map((extension) => extension.value);
 
@@ -120,39 +119,94 @@ export const SearchFileExtensionSuggestion = React.forwardRef<HTMLDivElement, Su
     let labelName: React.ReactNode = item.type;
 
     switch (item.type) {
-        case 'pdf':
-            labelName = <FormattedMessage id='file_type.pdf' defaultMessage='Acrobat'/>;
-            break;
-        case 'word':
-            labelName = <FormattedMessage id='file_type.word' defaultMessage='Word Document'/>;
-            break;
-        case 'image':
-            labelName = <FormattedMessage id='file_type.image' defaultMessage='Image'/>;
-            break;
-        case 'audio':
-            labelName = <FormattedMessage id='file_type.audio' defaultMessage='Audio'/>;
-            break;
-        case 'video':
-            labelName = <FormattedMessage id='file_type.video' defaultMessage='Video'/>;
-            break;
-        case 'presentation':
-            labelName = <FormattedMessage id='file_type.presentation' defaultMessage='Powerpoint Presentation'/>;
-            break;
-        case 'spreadsheet':
-            labelName = <FormattedMessage id='file_type.spreadsheet' defaultMessage='Excel spreadsheet'/>;
-            break;
-        case 'code':
-            labelName = <FormattedMessage id='file_type.code' defaultMessage='Code file'/>;
-            break;
-        case 'patch':
-            labelName = <FormattedMessage id='file_type.patch' defaultMessage='Patch file'/>;
-            break;
-        case 'svg':
-            labelName = <FormattedMessage id='file_type.svg' defaultMessage='Vector graphics'/>;
-            break;
-        case 'text':
-            labelName = <FormattedMessage id='file_type.text' defaultMessage='Text file'/>;
-            break;
+    case 'pdf':
+        labelName = (
+            <FormattedMessage
+                id='file_type.pdf'
+                defaultMessage='Acrobat'
+            />
+        );
+        break;
+    case 'word':
+        labelName = (
+            <FormattedMessage
+                id='file_type.word'
+                defaultMessage='Word Document'
+            />
+        );
+        break;
+    case 'image':
+        labelName = (
+            <FormattedMessage
+                id='file_type.image'
+                defaultMessage='Image'
+            />
+        );
+        break;
+    case 'audio':
+        labelName = (
+            <FormattedMessage
+                id='file_type.audio'
+                defaultMessage='Audio'
+            />
+        );
+        break;
+    case 'video':
+        labelName = (
+            <FormattedMessage
+                id='file_type.video'
+                defaultMessage='Video'
+            />
+        );
+        break;
+    case 'presentation':
+        labelName = (
+            <FormattedMessage
+                id='file_type.presentation'
+                defaultMessage='Powerpoint Presentation'
+            />
+        );
+        break;
+    case 'spreadsheet':
+        labelName = (
+            <FormattedMessage
+                id='file_type.spreadsheet'
+                defaultMessage='Excel spreadsheet'
+            />
+        );
+        break;
+    case 'code':
+        labelName = (
+            <FormattedMessage
+                id='file_type.code'
+                defaultMessage='Code file'
+            />
+        );
+        break;
+    case 'patch':
+        labelName = (
+            <FormattedMessage
+                id='file_type.patch'
+                defaultMessage='Patch file'
+            />
+        );
+        break;
+    case 'svg':
+        labelName = (
+            <FormattedMessage
+                id='file_type.svg'
+                defaultMessage='Vector graphics'
+            />
+        );
+        break;
+    case 'text':
+        labelName = (
+            <FormattedMessage
+                id='file_type.text'
+                defaultMessage='Text file'
+            />
+        );
+        break;
     }
 
     return (
@@ -161,9 +215,9 @@ export const SearchFileExtensionSuggestion = React.forwardRef<HTMLDivElement, Su
             className={props.isSelection ? 'selected' : ''}
             onClick={() => props.onClick(item.label, props.matchedPretext)}
         >
-             <div className={'file-icon ' + getCompassIconClassName(item.type)}/>
-             {labelName}
-             <ExtensionText>(.{item.value})</ExtensionText>
+            <div className={'file-icon ' + getCompassIconClassName(item.type)}/>
+            {labelName}
+            <ExtensionText>{`(.${item.value})`}</ExtensionText>
         </SearchFileExtensionSuggestionContainer>
     );
 });

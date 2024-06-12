@@ -1,9 +1,12 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import React from 'react';
-import styled from 'styled-components';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
+import styled from 'styled-components';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 const SearchTypeSelectorContainer = styled.div`
     margin: 24px 32px 0px 24px;
@@ -37,7 +40,6 @@ const SearchTypeItem = styled.button<SearchTypeItemProps>`
         background: rgba(var(--center-channel-color-rgb), 0.08);
     }
 `;
-
 
 type Props = {
     searchType: string;

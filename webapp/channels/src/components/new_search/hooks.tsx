@@ -12,12 +12,13 @@ import {autocompleteChannelsForSearch} from 'actions/channel_actions';
 import {autocompleteUsersInTeam} from 'actions/user_actions';
 
 import type {ProviderResult} from 'components/suggestion/provider';
-import Provider from 'components/suggestion/provider';
+import type Provider from 'components/suggestion/provider';
 import SearchChannelProvider from 'components/suggestion/search_channel_provider';
 import SearchChannelSuggestion from 'components/suggestion/search_channel_suggestion';
 import SearchDateProvider from 'components/suggestion/search_date_provider';
 import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
 import SearchUserProvider, {SearchUserSuggestion} from 'components/suggestion/search_user_provider';
+
 import {SearchFileExtensionProvider, SearchFileExtensionSuggestion} from './extension_suggestions';
 
 const useSearchSuggestions = (searchType: string, searchTerms: string, setSelectedOption: (idx: number) => void): [ProviderResult<unknown>|null, React.ReactNode] => {
@@ -36,8 +37,8 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, setSelect
     useEffect(() => {
         setProviderResults(null);
         if (searchType !== '' && searchType !== 'messages' && searchType !== 'files') {
-            return
-        };
+            return;
+        }
 
         suggestionProviders.current[0].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
             res.component = SearchDateSuggestion;
@@ -57,8 +58,8 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, setSelect
                 <FormattedMessage
                     id='search_bar.channels'
                     defaultMessage='Channels'
-                />
-            )
+                />,
+            );
         });
         suggestionProviders.current[2].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
             res.component = SearchUserSuggestion;
@@ -70,12 +71,12 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, setSelect
                 <FormattedMessage
                     id='search_bar.users'
                     defaultMessage='Users'
-                />
-            )
+                />,
+            );
         });
         suggestionProviders.current[3].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
             if (searchType !== 'files') {
-                return
+                return;
             }
             res.component = SearchFileExtensionSuggestion;
             res.items = res.items.slice(0, 10);
@@ -86,12 +87,12 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, setSelect
                 <FormattedMessage
                     id='search_bar.file_types'
                     defaultMessage='File types'
-                />
-            )
+                />,
+            );
         });
     }, [searchTerms, searchType]);
 
     return [providerResults, suggestionsHeader];
-}
+};
 
 export default useSearchSuggestions;

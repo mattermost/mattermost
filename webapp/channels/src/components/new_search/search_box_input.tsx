@@ -1,13 +1,17 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import React, {forwardRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import styled from 'styled-components';
-import QuickInput from 'components/quick_input';
 
 import {
     updateSearchTerms,
     updateSearchType,
 } from 'actions/views/rhs';
+
+import QuickInput from 'components/quick_input';
 
 const SearchInputContainer = styled.div`
     position: relative;
@@ -67,16 +71,15 @@ type Props = {
     searchTerms: string;
     searchType: string;
     setSearchTerms: (searchTerms: string) => void;
-    setSearchType: (searchType: string) => void;
     onKeyDown: (e: React.KeyboardEvent<Element>) => void;
     focus: (newPosition: number) => void;
 }
 
-const SearchInput = ({searchTerms, searchType, setSearchTerms, setSearchType, onKeyDown, focus}: Props, inputRef: React.Ref<HTMLInputElement>) => {
+const SearchInput = ({searchTerms, searchType, setSearchTerms, onKeyDown, focus}: Props, inputRef: React.Ref<HTMLInputElement>) => {
     const intl = useIntl();
-    let searchPlaceholder = intl.formatMessage({id: 'search_bar.search_messages', defaultMessage: 'Search messages'})
+    let searchPlaceholder = intl.formatMessage({id: 'search_bar.search_messages', defaultMessage: 'Search messages'});
     if (searchType === 'files') {
-        searchPlaceholder = intl.formatMessage({id: 'search_bar.search_files', defaultMessage: 'Search files'})
+        searchPlaceholder = intl.formatMessage({id: 'search_bar.search_files', defaultMessage: 'Search files'});
     }
 
     const dispatch = useDispatch();
