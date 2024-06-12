@@ -3068,7 +3068,7 @@
   },
   {
     "id": "api.team.invite_members.deactivated_email.app_error",
-    "translation": "The following email addresses are deactivated: {{.Addresses}}."
+    "translation": "This user has been deactivated and can't be invited again. Please contact your system admin for assistance."
   },
   {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
