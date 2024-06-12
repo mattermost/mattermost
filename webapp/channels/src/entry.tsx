@@ -28,7 +28,7 @@ declare global {
 
 // This is for anything that needs to be done for ALL react components.
 // This runs before we start to render anything.
-function preRenderSetup(callwhendone: () => void) {
+function preRenderSetup(onPreRenderSetupReady: () => void) {
     window.onerror = (msg, url, line, column, error) => {
         if (msg === 'ResizeObserver loop limit exceeded') {
             return;
@@ -47,12 +47,13 @@ function preRenderSetup(callwhendone: () => void) {
             ),
         );
     };
+
     setCSRFFromCookie();
 
-    callwhendone();
+    onPreRenderSetupReady();
 }
 
-function renderRootComponent() {
+function renderReactRootComponent() {
     ReactDOM.render((
         <App/>
     ),
@@ -62,16 +63,17 @@ function renderRootComponent() {
 /**
  * Adds a function to be invoked when the DOM content is loaded.
  */
-function appendOnDOMContentLoadedEvent(fn: (evt: Event) => void) {
+function appendOnDOMContentLoadedEvent(onDomContentReady: () => void) {
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', fn);
+        // If the DOM hasn't finished loading, add an event listener and call the function when it does
+        document.addEventListener('DOMContentLoaded', onDomContentReady);
     } else {
         // If the DOM is already loaded, call the function immediately
-        fn(new Event('DOMContentLoaded'));
+        onDomContentReady();
     }
 }
 
 appendOnDOMContentLoadedEvent(() => {
-    // Do the pre-render setup and call renderRootComponent when done
-    preRenderSetup(renderRootComponent);
+    // Do the pre-render setup and call renderReactRootComponent when done
+    preRenderSetup(renderReactRootComponent);
 });
