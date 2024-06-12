@@ -1,5 +1,5 @@
 /api/v4/logs/download:
-  post:
+  get:
     tags:
       - logs
     summary: Download system logs
