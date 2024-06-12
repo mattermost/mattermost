@@ -2125,7 +2125,7 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string, includeA
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (_ map[string]string, err error) {
+func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId string, allowFromCache bool, includeDeleted bool) (_ map[string]string, err error) {
 	query := s.getQueryBuilder().
 		Select(`
 				ChannelMembers.ChannelId, ChannelMembers.Roles, ChannelMembers.SchemeGuest,
@@ -2151,7 +2151,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
 
-	rows, err := s.GetReplicaX().DB.Query(queryString, args...)
+	rows, err := s.SqlStore.DBXFromContext(rctx.Context()).Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find ChannelMembers, TeamScheme and ChannelScheme data")
 	}

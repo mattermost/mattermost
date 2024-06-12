@@ -20,6 +20,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -28,7 +29,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
@@ -376,7 +376,7 @@ type AppIface interface {
 	// be included; otherwise, they will be excluded.
 	TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError)
 	// This function migrates the default built in roles from code/config to the database.
-	DoAdvancedPermissionsMigration()
+	DoAdvancedPermissionsMigration() error
 	// This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
 	// Ensure the zip file name ends with a .zip
 	CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error
@@ -594,7 +594,7 @@ type AppIface interface {
 	DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError)
 	DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) (*model.Session, *model.AppError)
 	DoPostActionWithCookie(c request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
-	DoSystemConsoleRolesCreationMigration()
+	DoSystemConsoleRolesCreationMigration() error
 	DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, *model.AppError)
 	DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, []byte, *model.AppError)
 	DownloadFromURL(downloadURL string) ([]byte, error)
@@ -821,7 +821,7 @@ type AppIface interface {
 	GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
 	GetSidebarCategory(c request.CTX, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	GetSidebarCategoryOrder(c request.CTX, userID, teamID string) ([]string, *model.AppError)
-	GetSinglePost(postID string, includeDeleted bool) (*model.Post, *model.AppError)
+	GetSinglePost(rctx request.CTX, postID string, includeDeleted bool) (*model.Post, *model.AppError)
 	GetSiteURL() string
 	GetStatus(userID string) (*model.Status, *model.AppError)
 	GetStatusFromCache(userID string) *model.Status
@@ -831,7 +831,7 @@ type AppIface interface {
 	GetTeamByName(name string) (*model.Team, *model.AppError)
 	GetTeamIcon(team *model.Team) ([]byte, *model.AppError)
 	GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *model.AppError)
-	GetTeamMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError)
+	GetTeamMember(rctx request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError)
 	GetTeamMembers(teamID string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError)
 	GetTeamMembersByIds(teamID string, userIDs []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetTeamMembersForUser(c request.CTX, userID string, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, *model.AppError)
@@ -1007,6 +1007,7 @@ type AppIface interface {
 	RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppError)
+	RegisterPerformanceReport(rctx request.CTX, report *model.PerformanceReport) *model.AppError
 	RegisterPluginCommand(pluginID string, command *model.Command) error
 	RegisterPluginForSharedChannels(rctx request.CTX, opts model.RegisterPluginOpts) (remoteID string, err error)
 	ReloadConfig() error

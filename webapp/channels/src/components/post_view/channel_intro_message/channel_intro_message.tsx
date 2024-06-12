@@ -277,13 +277,11 @@ function createDMIntroMessage(
                         status={teammate.is_bot ? '' : channel.status}
                         userId={teammate?.id}
                         username={teammate?.username}
-                        hasMention={true}
                     />
                 </div>
                 <h2 className='channel-intro__title'>
                     <UserProfile
                         userId={teammate?.id}
-                        disablePopover={false}
                     />
                 </h2>
                 <p className='channel-intro__text'>

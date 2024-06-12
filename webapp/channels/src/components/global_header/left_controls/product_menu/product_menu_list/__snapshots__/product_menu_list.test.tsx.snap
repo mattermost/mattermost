@@ -14,17 +14,6 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
     <Memo(SystemPermissionGate)
       permissions={
         Array [
-          "sysconsole_write_about_edition_and_license",
-        ]
-      }
-    >
-      <MenuStartTrial
-        id="startTrial"
-      />
-    </Memo(SystemPermissionGate)>
-    <Memo(SystemPermissionGate)
-      permissions={
-        Array [
           "sysconsole_read_about_edition_and_license",
           "sysconsole_read_billing",
           "sysconsole_read_reporting_site_statistics",
@@ -209,17 +198,6 @@ exports[`components/global/product_switcher_menu should match snapshot with most
     <MenuItemCloudLimit
       id="menuItemCloudLimit"
     />
-    <Memo(SystemPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_write_about_edition_and_license",
-        ]
-      }
-    >
-      <MenuStartTrial
-        id="startTrial"
-      />
-    </Memo(SystemPermissionGate)>
     <Memo(SystemPermissionGate)
       permissions={
         Array [
@@ -533,17 +511,6 @@ exports[`components/global/product_switcher_menu should show integrations should
     <MenuItemCloudLimit
       id="menuItemCloudLimit"
     />
-    <Memo(SystemPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_write_about_edition_and_license",
-        ]
-      }
-    >
-      <MenuStartTrial
-        id="startTrial"
-      />
-    </Memo(SystemPermissionGate)>
     <Memo(SystemPermissionGate)
       permissions={
         Array [
