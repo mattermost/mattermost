@@ -160,6 +160,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 	})
 
 	t.Run("DM channels", func(t *testing.T) {
+		var testRemoteID = model.NewId()
 		testCases := []struct {
 			desc          string
 			user1         *model.User
@@ -167,11 +168,12 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			canSee        bool
 			expectSuccess bool
 		}{
-			{"valid users", &model.User{Id: model.NewId(), RemoteId: model.NewString(model.NewId())}, &model.User{Id: model.NewId()}, true, true},
-			{"swapped users", &model.User{Id: model.NewId()}, &model.User{Id: model.NewId(), RemoteId: model.NewString(model.NewId())}, true, true},
-			{"two remotes", &model.User{Id: model.NewId(), RemoteId: model.NewString(model.NewId())}, &model.User{Id: model.NewId(), RemoteId: model.NewString(model.NewId())}, true, false},
+			{"valid users", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, true, true},
+			{"swapped users", &model.User{Id: model.NewId()}, &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, true, true},
+			{"two remotes", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, true, false},
 			{"two locals", &model.User{Id: model.NewId()}, &model.User{Id: model.NewId()}, true, false},
-			{"can't see", &model.User{Id: model.NewId(), RemoteId: model.NewString(model.NewId())}, &model.User{Id: model.NewId()}, false, false},
+			{"can't see", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, false, false},
+			{"invalid remoteid", &model.User{Id: model.NewId(), RemoteId: model.NewString("bogus")}, &model.User{Id: model.NewId()}, true, false},
 		}
 
 		for _, tc := range testCases {
@@ -186,7 +188,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 				}
 
 				mockStore := &mocks.Store{}
-				remoteCluster := &model.RemoteCluster{Name: "test3", CreatorId: model.NewId()}
+				remoteCluster := &model.RemoteCluster{Name: "test3", CreatorId: model.NewId(), RemoteId: testRemoteID}
 				invitation := channelInviteMsg{
 					ChannelId:            model.NewId(),
 					TeamId:               model.NewId(),
