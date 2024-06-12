@@ -20,10 +20,15 @@ const (
 	ClientInteractionToNextPaint    MetricType = "INP"
 	ClientCumulativeLayoutShift     MetricType = "CLS"
 	ClientLongTasks                 MetricType = "long_tasks"
+	ClientPageLoadDuration          MetricType = "page_load"
 	ClientChannelSwitchDuration     MetricType = "channel_switch"
 	ClientTeamSwitchDuration        MetricType = "team_switch"
 	ClientRHSLoadDuration           MetricType = "rhs_load"
 	ClientGlobalThreadsLoadDuration MetricType = "global_threads_load"
+
+	MobileClientLoadDuration          MetricType = "mobile_load"
+	MobileClientChannelSwitchDuration MetricType = "mobile_channel_switch"
+	MobileClientTeamSwitchDuration    MetricType = "mobile_team_switch"
 
 	performanceReportTTLMilliseconds = 300 * 1000 // 300 seconds/5 minutes
 )
