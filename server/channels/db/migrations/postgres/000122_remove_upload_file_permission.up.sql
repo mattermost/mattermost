@@ -11,8 +11,8 @@ BEGIN
           ORDER BY id ASC limit 100
     )
     UPDATE Roles r set Permissions = REGEXP_REPLACE(Permissions, 'upload_file(\?|\s)', '') 
-	        WHERE r.id in (SELECT id FROM table_holder)  AND
-          Permissions ~~ '%upload_file%' and Permissions !~ 'create_post(\?|\s)';
+        WHERE r.id in (SELECT id FROM table_holder)  AND
+        Permissions ~~ '%upload_file%' and Permissions !~ 'create_post(\?|\s)';
     GET DIAGNOSTICS rows_updated = ROW_COUNT;
 
      -- We have to run the select query again
