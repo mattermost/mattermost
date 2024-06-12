@@ -255,7 +255,25 @@ func (scs *Service) createDirectChannel(invite channelInviteMsg) (*model.Channel
 		return nil, fmt.Errorf("cannot create direct channel `%s` insufficient participant count `%d`", invite.ChannelId, len(invite.DirectParticipantIDs))
 	}
 
-	channel, err := scs.app.GetOrCreateDirectChannel(request.EmptyContext(scs.server.Log()), invite.DirectParticipantIDs[0], invite.DirectParticipantIDs[1], model.WithID(invite.ChannelId))
+	user1 := invite.DirectParticipantIDs[0]
+	user2 := invite.DirectParticipantIDs[1]
+
+	// ensure users can see each other (allowed to DM each other)
+	canSee, appErr := scs.app.UserCanSeeOtherUser(request.EmptyContext(scs.server.Log()), user1, user2)
+	if appErr != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "cannot check user visibility for DM creation",
+			mlog.String("user1", user1),
+			mlog.String("user2", user2),
+			mlog.String("channel_id", invite.ChannelId),
+			mlog.Err(appErr),
+		)
+		return nil, fmt.Errorf("cannot check user visibility for DM (%s) creation: %w", invite.ChannelId, appErr)
+	}
+	if !canSee {
+		return nil, fmt.Errorf("cannot create direct channel `%s`: %w", invite.ChannelId, ErrUserDMPermission)
+	}
+
+	channel, err := scs.app.GetOrCreateDirectChannel(request.EmptyContext(scs.server.Log()), user1, user2, model.WithID(invite.ChannelId))
 	if err != nil {
 		return nil, fmt.Errorf("cannot create direct channel `%s`: %w", invite.ChannelId, err)
 	}
