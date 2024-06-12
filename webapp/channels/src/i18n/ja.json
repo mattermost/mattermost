@@ -5671,7 +5671,7 @@
   "user_profile.roleTitle.system_admin": "システム管理者",
   "user_profile.roleTitle.team_admin": "チーム管理者",
   "user_profile.send.dm": "メッセージ",
-  "user_profile.send.dm.yourself": "自分にメッセーを送る",
+  "user_profile.send.dm.yourself": "自分にメッセージを送る",
   "users_limits_announcement_bar.copyText": "ユーザー数の制限を超えました。次のキーワードと共に管理者に連絡してください: {ErrorCode}",
   "users_limits_announcement_bar.ctaText": "詳しく",
   "version_bar.new": "新しいバージョンのMattermostが利用可能です。",
