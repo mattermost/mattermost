@@ -20,6 +20,7 @@ import (
 var (
 	ErrRemoteIDMismatch  = errors.New("remoteID mismatch")
 	ErrChannelIDMismatch = errors.New("channelID mismatch")
+	ErrUserDMPermission  = errors.New("users cannot DM each other")
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
@@ -226,20 +227,23 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 		}
 	}
 
-	// Add user to team. We do this here regardless of whether the user was
+	// Add user to team and channel. We do this here regardless of whether the user was
 	// just created or patched since there are three steps to adding a user
 	// (insert rec, add to team, add to channel) and any one could fail.
 	// Instead of undoing what succeeded on any failure we simply do all steps each
 	// time. AddUserToChannel & AddUserToTeamByTeamId do not error if user was already
-	// added and exit quickly.
-	if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
-		return nil, fmt.Errorf("error adding sync user to Team: %w", err)
+	// added and exit quickly.  Not needed for DMs where teamId is empty.
+	if channel.TeamId != "" {
+		// add user to team
+		if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
+			return nil, fmt.Errorf("error adding sync user to Team: %w", err)
+		}
+		// add user to channel
+		if _, err := scs.app.AddUserToChannel(c, userSaved, channel, false); err != nil {
+			return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
+		}
 	}
 
-	// add user to channel
-	if _, err := scs.app.AddUserToChannel(c, userSaved, channel, false); err != nil {
-		return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
-	}
 	return userSaved, nil
 }
 
