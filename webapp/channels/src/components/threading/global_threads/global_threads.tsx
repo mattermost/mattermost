@@ -110,7 +110,7 @@ const GlobalThreads = () => {
         }
 
         if (filter === ThreadFilter.unread && shouldLoadUnreadThreads) {
-            promises.push(dispatch(getThreadsForCurrentTeam({unread: false})));
+            promises.push(dispatch(getThreadsForCurrentTeam({unread: true})));
         }
 
         Promise.all(promises).then(() => {

@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	sq "github.com/mattermost/squirrel"
@@ -196,6 +197,33 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 		return nil, errors.Wrap(err, "failed to get Reactions")
 	}
 	return reactions, nil
+}
+
+func (s *SqlReactionStore) GetSingle(userID, postID, remoteID, emojiName string) (*model.Reaction, error) {
+	query := s.getQueryBuilder().
+		Select("UserId", "PostId", "EmojiName", "CreateAt",
+			"COALESCE(UpdateAt, CreateAt) As UpdateAt", "COALESCE(DeleteAt, 0) As DeleteAt",
+			"RemoteId", "ChannelId").
+		From("Reactions").
+		Where(sq.Eq{"UserId": userID}).
+		Where(sq.Eq{"PostId": postID}).
+		Where(sq.Eq{"COALESCE(RemoteId, '')": remoteID}).
+		Where(sq.Eq{"EmojiName": emojiName})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "reactions_getsingle_tosql")
+	}
+
+	var reactions []*model.Reaction
+	if err := s.GetReplicaX().Select(&reactions, queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find reaction")
+	}
+	if len(reactions) == 0 {
+		return nil, store.NewErrNotFound("Reaction", fmt.Sprintf("user_id=%s, post_id=%s, remote_id=%s, emoji_name=%s",
+			userID, postID, remoteID, emojiName))
+	}
+	return reactions[0], nil
 }
 
 func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {

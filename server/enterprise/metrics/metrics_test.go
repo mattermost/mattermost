@@ -176,6 +176,61 @@ func TestPluginMetrics(t *testing.T) {
 	})
 }
 
+func TestMobileMetrics(t *testing.T) {
+	th := api4.SetupEnterprise(t, app.StartMetrics)
+	defer th.TearDown()
+
+	configureMetrics(th)
+	mi := th.App.Metrics()
+
+	miImpl, ok := mi.(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", mi))
+
+	ttcc := []struct {
+		name         string
+		histogramVec *prometheus.HistogramVec
+		observeFunc  func(string, float64)
+	}{
+		{
+			name:         "load duration",
+			histogramVec: miImpl.MobileClientLoadDuration,
+			observeFunc:  mi.ObserveMobileClientLoadDuration,
+		},
+		{
+			name:         "channel switch duration",
+			histogramVec: miImpl.MobileClientChannelSwitchDuration,
+			observeFunc:  mi.ObserveMobileClientChannelSwitchDuration,
+		},
+		{
+			name:         "team switch duration",
+			histogramVec: miImpl.MobileClientTeamSwitchDuration,
+			observeFunc:  mi.ObserveMobileClientTeamSwitchDuration,
+		},
+	}
+
+	for _, tc := range ttcc {
+		t.Run(tc.name, func(t *testing.T) {
+			m := &prometheusModels.Metric{}
+			elapsed := 999.1
+
+			for _, platform := range []string{"ios", "android"} {
+				actualMetric, err := tc.histogramVec.GetMetricWith(prometheus.Labels{"platform": platform})
+				require.NoError(t, err)
+				require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+				require.Equal(t, uint64(0), m.Histogram.GetSampleCount())
+				require.Equal(t, 0.0, m.Histogram.GetSampleSum())
+
+				tc.observeFunc(platform, elapsed)
+				actualMetric, err = tc.histogramVec.GetMetricWith(prometheus.Labels{"platform": platform})
+				require.NoError(t, err)
+				require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+				require.Equal(t, uint64(1), m.Histogram.GetSampleCount())
+				require.InDelta(t, elapsed, m.Histogram.GetSampleSum(), 0.001)
+			}
+		})
+	}
+}
+
 func TestExtractDBCluster(t *testing.T) {
 	testCases := []struct {
 		description         string
