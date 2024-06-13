@@ -64,3 +64,10 @@ func (o *Reaction) PreUpdate() {
 		o.RemoteId = NewString("")
 	}
 }
+
+func (o *Reaction) GetRemoteID() string {
+	if o.RemoteId == nil {
+		return ""
+	}
+	return *o.RemoteId
+}
