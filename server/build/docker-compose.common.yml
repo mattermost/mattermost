@@ -99,6 +99,7 @@ services:
       http.cors.allow-credentials: "true"
       transport.host: "127.0.0.1"
       xpack.security.enabled: "false"
+      action.destructive_requires_name: "false"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
   opensearch:
     build:
