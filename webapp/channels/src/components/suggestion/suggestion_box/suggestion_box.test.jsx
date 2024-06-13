@@ -293,4 +293,12 @@ describe('components/SuggestionBox', () => {
         instance.componentDidMount();
         expect(instance.handlePretextChanged).toHaveBeenCalledTimes(1);
     });
+
+    test('should not clear pretext when clearing the suggestion list', () => {
+        const wrapper = shallow(<SuggestionBox {...baseProps}/>);
+        const instance = wrapper.instance();
+        instance.handlePretextChanged = jest.fn();
+        instance.clear();
+        expect(instance.handlePretextChanged).not.toHaveBeenCalled();
+    });
 });
