@@ -148,10 +148,3 @@ func reducePostsSliceInCache(posts []*model.Post, cache map[string]*model.Post) 
 	}
 	return reduced
 }
-
-func SafeString(p *string) string {
-	if p == nil {
-		return ""
-	}
-	return *p
-}
