@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
@@ -11,8 +11,6 @@ import FlagIcon from 'components/widgets/icons/flag_icon';
 import FlagIconFilled from 'components/widgets/icons/flag_icon_filled';
 
 import Constants, {Locations, A11yCustomEventTypes} from 'utils/constants';
-import {t} from 'utils/i18n';
-import {localizeMessage} from 'utils/utils';
 
 export type Actions = {
     flagPost: (postId: string) => void;
@@ -35,6 +33,8 @@ const PostFlagIcon = ({
     postId,
     location = Locations.CENTER,
 }: Props) => {
+    const intl = useIntl();
+
     const buttonRef = useRef<HTMLButtonElement>(null);
     const [a11yActive, setA11yActive] = useState(false);
 
@@ -92,17 +92,24 @@ const PostFlagIcon = ({
                     id='flagTooltip'
                     className='hidden-xs'
                 >
-                    <FormattedMessage
-                        id={isFlagged ? t('flag_post.unflag') : t('flag_post.flag')}
-                        defaultMessage={isFlagged ? 'Remove from Saved' : 'Save Message'}
-                    />
+                    {isFlagged ? (
+                        <FormattedMessage
+                            id='flag_post.unflag'
+                            defaultMessage='Remove from Saved'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='flag_post.flag'
+                            defaultMessage='Save Message'
+                        />
+                    )}
                 </Tooltip>
             }
         >
             <button
                 ref={buttonRef}
                 id={`${location}_flagIcon_${postId}`}
-                aria-label={isFlagged ? localizeMessage('flag_post.unflag', 'Remove from Saved').toLowerCase() : localizeMessage('flag_post.flag', 'Save').toLowerCase()}
+                aria-label={isFlagged ? intl.formatMessage({id: 'flag_post.unflag', defaultMessage: 'Remove from Saved'}).toLowerCase() : intl.formatMessage({id: 'flag_post.flag', defaultMessage: 'Save'}).toLowerCase()}
                 className='post-menu__item'
                 onClick={handlePress}
             >

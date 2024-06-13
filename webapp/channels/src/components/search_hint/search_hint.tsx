@@ -59,6 +59,7 @@ const SearchHint = (props: Props): JSX.Element => {
                             values={{
                                 a: (chunks) => (
                                     <ExternalLink
+                                        location='search_hint'
                                         className='search-hint_learn-search'
                                         href='https://mattermost.com/pl/mattermost-academy-search-training'
                                     >

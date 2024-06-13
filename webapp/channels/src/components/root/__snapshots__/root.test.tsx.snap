@@ -126,11 +126,11 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
           />
           <Connect(RootRedirect) />
         </Switch>
-        <Connect(Pluggable)
-          pluggableName="Global"
-        />
         <withRouter(Connect(SidebarRight)) />
       </div>
+      <Connect(Pluggable)
+        pluggableName="Global"
+      />
       <AppBar />
       <Connect(Component) />
     </CompassThemeProvider>

@@ -322,7 +322,7 @@ func (scs *Service) handlePostError(postId string, task syncTask, rc *model.Remo
 	}
 
 	// this post failed as part of a group of posts. Retry as an individual post.
-	post, err := scs.server.GetStore().Post().GetSingle(postId, true)
+	post, err := scs.server.GetStore().Post().GetSingle(request.EmptyContext(scs.server.Log()), postId, true)
 	if err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "error fetching post for sync retry",
 			mlog.String("remote", rc.DisplayName),
