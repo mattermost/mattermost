@@ -3,8 +3,8 @@ BEGIN
     updateRoles: LOOP
         -- update affected rows
         UPDATE Roles 
-            SET Permissions = REGEXP_REPLACE(Permissions, 'upload_file[[:space:]|?]', '')
-            WHERE Permissions like '%upload_file%' and Permissions not REGEXP 'create_post[[:space:]|?]'
+            SET Permissions = REGEXP_REPLACE(Permissions, 'upload_file([[:space:]]|$)', '')
+            WHERE Permissions like '%upload_file%' and Permissions not REGEXP 'create_post([[:space:]]|$)'
             LIMIT 100;
 
           -- check if the loop has completed    
