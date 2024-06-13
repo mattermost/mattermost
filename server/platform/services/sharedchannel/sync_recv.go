@@ -241,13 +241,9 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, channel *
 	// ensure the new user is created with system_user role and random password.
 	user = sanitizeUserForSync(user)
 
-	// save the original username and email in props (if not already done by another remote)
-	if _, ok := user.GetProp(KeyRemoteUsername); !ok {
-		user.SetProp(KeyRemoteUsername, user.Username)
-	}
-	if _, ok := user.GetProp(KeyRemoteEmail); !ok {
-		user.SetProp(KeyRemoteEmail, user.Email)
-	}
+	// save the original username and email in props
+	user.SetProp(KeyRemoteUsername, user.Username)
+	user.SetProp(KeyRemoteEmail, user.Email)
 
 	// Apply a suffix to the username until it is unique. Collisions will be quite
 	// rare since we are joining a username that is unique at a remote site with a unique
