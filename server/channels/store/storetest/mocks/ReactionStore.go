@@ -174,10 +174,6 @@ func (_m *ReactionStore) GetForPostSince(postId string, since int64, excludeRemo
 func (_m *ReactionStore) GetSingle(userID string, postID string, remoteID string, emojiName string) (*model.Reaction, error) {
 	ret := _m.Called(userID, postID, remoteID, emojiName)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetSingle")
-	}
-
 	var r0 *model.Reaction
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, string, string, string) (*model.Reaction, error)); ok {
