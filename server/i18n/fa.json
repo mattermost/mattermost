@@ -8518,5 +8518,9 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "تا زمانی که بیصدایی کانال خاموش نشود ، اعلانی برای {{.Channel}} دریافت نخواهید کرد."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "شما نمی توانید یک تاییدیه را در یک کانال بایگانی شده حذف کنید."
   }
 ]

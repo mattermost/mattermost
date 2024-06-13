@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineMessage} from 'react-intl';
+
 import type {EmojiCategory} from '@mattermost/types/emojis';
 
 import * as Emoji from 'utils/emoji';
@@ -12,39 +14,114 @@ export const SEARCH_RESULTS = 'searchResults';
 export const SMILEY_EMOTION = 'smileys-emotion';
 export const CUSTOM = 'custom';
 
-const categoryClass: Map<EmojiCategory, string> = new Map([
-    [RECENT, 'icon-clock-outline'],
-    [SMILEY_EMOTION, 'icon-emoticon-happy-outline'],
-    ['people-body', 'icon-account-outline'],
-    ['animals-nature', 'icon-leaf-outline'],
-    ['food-drink', 'icon-food-apple'],
-    ['activities', 'icon-basketball'],
-    ['travel-places', 'icon-airplane-variant'],
-    ['objects', 'icon-lightbulb-outline'],
-    ['symbols', 'icon-heart-outline'],
-    ['flags', 'icon-flag-outline'],
-    [CUSTOM, 'icon-emoticon-custom-outline'],
-    [SEARCH_RESULTS, ''],
-]);
+const emojiCategories = {
+    recent: {
+        name: 'recent',
+        label: defineMessage({
+            id: 'emoji_picker.recent',
+            defaultMessage: 'Recent',
+        }),
+        iconClassName: 'icon-clock-outline',
+    },
+    searchResults: {
+        name: 'searchResults',
+        label: defineMessage({
+            id: 'emoji_picker.searchResults',
+            defaultMessage: 'Search Results',
+        }),
+        iconClassName: '',
+    },
+    'smileys-emotion': {
+        name: 'smileys-emotion',
+        label: defineMessage({
+            id: 'emoji_picker.smileys-emotion',
+            defaultMessage: 'Smileys & Emotion',
+        }),
+        iconClassName: 'icon-emoticon-happy-outline',
+    },
+    'people-body': {
+        name: 'people-body',
+        label: defineMessage({
+            id: 'emoji_picker.people-body',
+            defaultMessage: 'People & Body',
+        }),
+        iconClassName: 'icon-account-outline',
+    },
+    'animals-nature': {
+        name: 'animals-nature',
+        label: defineMessage({
+            id: 'emoji_picker.animals-nature',
+            defaultMessage: 'Animals & Nature',
+        }),
+        iconClassName: 'icon-leaf-outline',
+    },
+    'food-drink': {
+        name: 'food-drink',
+        label: defineMessage({
+            id: 'emoji_picker.food-drink',
+            defaultMessage: 'Food & Drink',
+        }),
+        iconClassName: 'icon-food-apple',
+    },
+    'travel-places': {
+        name: 'travel-places',
+        label: defineMessage({
+            id: 'emoji_picker.travel-places',
+            defaultMessage: 'Travel & Places',
+        }),
+        iconClassName: 'icon-airplane-variant',
+    },
+    activities: {
+        name: 'activities',
+        label: defineMessage({
+            id: 'emoji_picker.activities',
+            defaultMessage: 'Activities',
+        }),
+        iconClassName: 'icon-basketball',
+    },
+    objects: {
+        name: 'objects',
+        label: defineMessage({
+            id: 'emoji_picker.objects',
+            defaultMessage: 'Objects',
+        }),
+        iconClassName: 'icon-lightbulb-outline',
+    },
+    symbols: {
+        name: 'symbols',
+        label: defineMessage({
+            id: 'emoji_picker.symbols',
+            defaultMessage: 'Symbols',
+        }),
+        iconClassName: 'icon-heart-outline',
+    },
+    flags: {
+        name: 'flags',
+        label: defineMessage({
+            id: 'emoji_picker.flags',
+            defaultMessage: 'Flags',
+        }),
+        iconClassName: 'icon-flag-outline',
+    },
+    custom: {
+        name: 'custom',
+        label: defineMessage({
+            id: 'emoji_picker.custom',
+            defaultMessage: 'Custom',
+        }),
+        iconClassName: 'icon-emoticon-custom-outline',
+    },
+} satisfies Record<EmojiCategory, Category>;
 
-function createCategory(name: EmojiCategory): Category {
-    return {
-        name,
-        id: Emoji.CategoryTranslations.get(name) || '',
-        className: categoryClass.get(name) || '',
-        message: Emoji.CategoryMessage.get(name)!,
-    };
-}
-
-export const RECENT_EMOJI_CATEGORY: Pick<Categories, 'recent'> = {recent: createCategory(RECENT)};
-export const SEARCH_EMOJI_CATEGORY: Pick<Categories, typeof SEARCH_RESULTS> = {searchResults: createCategory(SEARCH_RESULTS)};
+export const RECENT_EMOJI_CATEGORY: Pick<Categories, 'recent'> = {recent: emojiCategories.recent};
+export const SEARCH_EMOJI_CATEGORY: Pick<Categories, typeof SEARCH_RESULTS> = {searchResults: emojiCategories.searchResults};
 
 export const CATEGORIES: Categories = Emoji.CategoryNames.
     filter((category) => !(category === 'recent' || category === 'searchResults')).
     reduce((previousCategory, currentCategory) => {
         return {
             ...previousCategory,
-            [currentCategory]: createCategory(currentCategory as EmojiCategory),
+            [currentCategory]: emojiCategories[currentCategory as EmojiCategory],
         };
     }, {} as Categories);
 
