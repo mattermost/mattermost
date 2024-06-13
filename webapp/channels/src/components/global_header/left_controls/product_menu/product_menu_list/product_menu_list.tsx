@@ -36,8 +36,8 @@ import './product_menu_list.scss';
 
 export type Props = {
     isMobile: boolean;
-    teamId: string;
-    teamName: string;
+    teamId?: string;
+    teamName?: string;
     siteName: string;
     currentUser: UserProfile;
     appDownloadLink: string;
@@ -112,13 +112,6 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
             <div onClick={onClick}>
                 <Menu.CloudTrial id='menuCloudTrial'/>
                 <Menu.ItemCloudLimit id='menuItemCloudLimit'/>
-                <SystemPermissionGate
-                    permissions={[Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE]}
-                >
-                    <Menu.StartTrial
-                        id='startTrial'
-                    />
-                </SystemPermissionGate>
                 <SystemPermissionGate permissions={Permissions.SYSCONSOLE_READ_PERMISSIONS}>
                     <Menu.ItemLink
                         id='systemConsole'

@@ -4,10 +4,10 @@
 import {UserTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
-    getMentionsAndStatusesForPosts,
-    getThreadsForPosts,
+    getPostThreads,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
+import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
 
 import {handleNewPost} from 'actions/post_actions';
@@ -40,8 +40,13 @@ import {
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),
-    getThreadsForPosts: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
+    getPostThreads: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
     getMentionsAndStatusesForPosts: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
+    ...jest.requireActual('mattermost-redux/actions/status_profile_polling'),
+    batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => ({type: ''})),
 }));
 
 jest.mock('mattermost-redux/actions/groups', () => ({
@@ -488,8 +493,8 @@ describe('handleNewPostEvent', () => {
         };
 
         testStore.dispatch(handleNewPostEvent(msg));
-        expect(getMentionsAndStatusesForPosts).toHaveBeenCalledWith([post], expect.anything(), expect.anything());
         expect(handleNewPost).toHaveBeenCalledWith(post, msg);
+        expect(batchFetchStatusesProfilesGroupsFromPosts).toHaveBeenCalledWith([post]);
     });
 
     test('should set other user to online', () => {
@@ -507,7 +512,7 @@ describe('handleNewPostEvent', () => {
 
         expect(testStore.getActions()).toContainEqual({
             type: UserTypes.RECEIVED_STATUSES,
-            data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
+            data: [{[post.user_id]: UserStatuses.ONLINE}],
         });
     });
 
@@ -526,7 +531,7 @@ describe('handleNewPostEvent', () => {
 
         expect(testStore.getActions()).not.toContainEqual({
             type: UserTypes.RECEIVED_STATUSES,
-            data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
+            data: [{[post.user_id]: UserStatuses.ONLINE}],
         });
     });
 
@@ -556,7 +561,7 @@ describe('handleNewPostEvent', () => {
 
         expect(testStore.getActions()).not.toContainEqual({
             type: UserTypes.RECEIVED_STATUSES,
-            data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
+            data: [{[post.user_id]: UserStatuses.ONLINE}],
         });
     });
 
@@ -575,7 +580,7 @@ describe('handleNewPostEvent', () => {
 
         expect(testStore.getActions()).not.toContainEqual({
             type: UserTypes.RECEIVED_STATUSES,
-            data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
+            data: [{[post.user_id]: UserStatuses.ONLINE}],
         });
     });
 });
@@ -609,18 +614,17 @@ describe('handleNewPostEvents', () => {
 
         testStore.dispatch(handleNewPostEvents(queue));
 
-        expect(testStore.getActions()).toEqual([
-            {
-                meta: {batch: true},
-                payload: posts.map((post) => receivedNewPost(post, false)),
-                type: 'BATCHING_REDUCER.BATCH',
-            },
-            {
-                type: 'GET_THREADS_FOR_POSTS',
-            },
-        ]);
-        expect(getThreadsForPosts).toHaveBeenCalledWith(posts);
-        expect(getMentionsAndStatusesForPosts).toHaveBeenCalledWith(posts, expect.anything(), expect.anything());
+        expect(testStore.getActions()[0]).toEqual({
+            type: 'BATCHING_REDUCER.BATCH',
+            meta: {batch: true},
+            payload: posts.map((post) => receivedNewPost(post, false)),
+        });
+        expect(testStore.getActions()[1]).toEqual({
+            type: 'GET_THREADS_FOR_POSTS',
+        });
+
+        expect(getPostThreads).toHaveBeenCalledWith(posts);
+        expect(batchFetchStatusesProfilesGroupsFromPosts).toHaveBeenCalledWith(posts);
     });
 });
 

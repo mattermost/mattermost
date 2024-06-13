@@ -21,6 +21,10 @@
     }
 }
 
+.rounded-button {
+    border-radius: 50%;
+}
+
 button {
     .unread-badge {
         display: inline-block;
@@ -49,6 +53,7 @@ button {
 
     &.btn-icon {
         width: 40px;
+        min-width: 40px;
         padding: 0;
         background-color: transparent;
         color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
@@ -58,7 +63,6 @@ button {
             color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
         }
 
-        &:focus,
         &:active {
             background-color: rgba(var(--button-bg-rgb), 0.08);
             color: rgba(var(--button-bg-rgb), 1);
@@ -70,8 +74,11 @@ button {
 
         &.btn-xs {
             width: 24px;
+            min-width: 24px;
             height: 24px;
             padding: 0;
+            font-size: 12px;
+            gap: 4px;
 
             &.btn-compact {
                 width: 20px;
@@ -85,8 +92,11 @@ button {
 
         &.btn-sm {
             width: 32px;
+            min-width: 32px;
             height: 32px;
             padding: 0;
+            font-size: 14px;
+            gap: 4px;
 
             &.btn-compact {
                 width: 28px;
@@ -123,7 +133,7 @@ button {
     }
 
     & + .btn {
-        margin-left: 8px !important;
+        margin-left: 8px;
     }
 
     &.btn-full {

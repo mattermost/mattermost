@@ -160,7 +160,7 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	all, _ := cmd.Flags().GetBool("all")
 
 	page := 0
-	perPage := 200
+	perPage := DefaultPageSize
 	tpl := `{{.UserId}}: {{.Username}}`
 	for {
 		var bots []*model.Bot
@@ -206,7 +206,7 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintT(tpl+tplExtraText, bot)
 		}
 
-		if len(bots) < 200 {
+		if len(bots) < perPage {
 			break
 		}
 

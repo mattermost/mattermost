@@ -11,11 +11,13 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 const (
 	connectionIDParam   = "connection_id"
 	sequenceNumberParam = "sequence_number"
+	postedAckParam      = "posted_ack"
 )
 
 func (api *API) InitWebSocket() {
@@ -35,18 +37,28 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		params := map[string]any{
 			"BlockedOrigin": r.Header.Get("Origin"),
 		}
-		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", params, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", params, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
 	// We initialize webconn with all the necessary data.
 	// If the queues are empty, they are initialized in the constructor.
 	cfg := &platform.WebConnConfig{
-		WebSocket: ws,
-		Session:   *c.AppContext.Session(),
-		TFunc:     c.AppContext.T,
-		Locale:    "",
-		Active:    true,
+		WebSocket:     ws,
+		Session:       *c.AppContext.Session(),
+		TFunc:         c.AppContext.T,
+		Locale:        "",
+		Active:        true,
+		PostedAck:     r.URL.Query().Get(postedAckParam) == "true",
+		RemoteAddress: c.AppContext.IPAddress(),
+		XForwardedFor: c.AppContext.XForwardedFor(),
+	}
+	// The WebSocket upgrade request coming from mobile is missing the
+	// user agent so we need to fallback on the session's metadata.
+	if c.AppContext.Session().IsMobileApp() {
+		cfg.OriginClient = "mobile"
+	} else {
+		cfg.OriginClient = string(web.GetOriginClient(r))
 	}
 
 	cfg.ConnectionID = r.URL.Query().Get(connectionIDParam)

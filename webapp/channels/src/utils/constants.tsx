@@ -202,6 +202,7 @@ export const ActionTypes = keyMirror({
     SET_RHS_SIZE: null,
 
     RHS_GO_BACK: null,
+    RHS_FOCUSED: null,
 
     SET_RHS_EXPANDED: null,
     TOGGLE_RHS_EXPANDED: null,
@@ -966,13 +967,14 @@ export const ChannelAutoFollowThreads = {
     OFF: 'off',
 } as const;
 
-export const NotificationSections = {
-    IGNORE_CHANNEL_MENTIONS: 'ignoreChannelMentions',
-    CHANNEL_AUTO_FOLLOW_THREADS: 'channelAutoFollowThreads',
-    MARK_UNREAD: 'markUnread',
-    DESKTOP: 'desktop',
-    PUSH: 'push',
-    NONE: '',
+export const UserSettingsNotificationSections = {
+    DESKTOP_AND_MOBILE: 'desktopAndMobile',
+    DESKTOP_NOTIFICATION_SOUND: 'desktopNotificationSound',
+    EMAIL: 'email',
+    KEYWORDS_MENTIONS: 'keywordsAndMentions',
+    KEYWORDS_HIGHLIGHT: 'keywordsAndHighlight',
+    REPLY_NOTIFCATIONS: 'replyNotifications',
+    AUTO_RESPONDER: 'autoResponder',
 };
 
 export const AdvancedSections = {
@@ -1112,6 +1114,7 @@ export const LicenseLinks = {
     EMBARGOED_COUNTRIES: 'https://mattermost.com/pl/limitations-for-embargoed-countries',
     SOFTWARE_SERVICES_LICENSE_AGREEMENT: 'https://mattermost.com/pl/software-and-services-license-agreement',
     SOFTWARE_SERVICES_LICENSE_AGREEMENT_TEXT: 'Software Services and License Agreement',
+    UNSUPPORTED: 'https://mattermost.com/pricing/',
 };
 
 export const MattermostLink = 'https://mattermost.com/';
@@ -1959,7 +1962,7 @@ export const Constants = {
     MAX_USERNAME_LENGTH: 22,
     MAX_NICKNAME_LENGTH: 64,
     MIN_PASSWORD_LENGTH: 5,
-    MAX_PASSWORD_LENGTH: 64,
+    MAX_PASSWORD_LENGTH: 72,
     MAX_POSITION_LENGTH: 128,
     MIN_TRIGGER_LENGTH: 1,
     MAX_TRIGGER_LENGTH: 128,
@@ -2021,7 +2024,6 @@ export const Constants = {
     MAX_ATTACHMENT_FOOTER_LENGTH: 300,
     ACCEPT_STATIC_IMAGE: '.jpeg,.jpg,.png,.bmp',
     ACCEPT_EMOJI_IMAGE: '.jpeg,.jpg,.png,.gif',
-    THREADS_PAGE_SIZE: 25,
     THREADS_LOADING_INDICATOR_ITEM_ID: 'threads_loading_indicator_item_id',
     THREADS_NO_RESULTS_ITEM_ID: 'threads_no_results_item_id',
     TRIAL_MODAL_AUTO_SHOWN: 'trial_modal_auto_shown',
