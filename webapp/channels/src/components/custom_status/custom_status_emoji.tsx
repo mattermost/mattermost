@@ -79,24 +79,26 @@ function CustomStatusEmoji({
                                 marginTop: 2,
                             }}
                         />
-                        {customStatus.text &&
+                        <div style={{textAlign: 'center'}}>
+                            {customStatus.text &&
                             <span
                                 className='custom-status-text'
                                 style={{marginLeft: 5}}
                             >
                                 {customStatus.text}
                             </span>
-                        }
-                    </div>
-                    {customStatus.expires_at && customStatus.duration !== CustomStatusDuration.DONT_CLEAR &&
-                        <div>
-                            <ExpiryTime
-                                time={customStatus.expires_at}
-                                timezone={timezone}
-                                className='custom-status-expiry'
-                            />
+                            }
+                            {customStatus.expires_at && customStatus.duration !== CustomStatusDuration.DONT_CLEAR &&
+                            <div>
+                                <ExpiryTime
+                                    time={customStatus.expires_at}
+                                    timezone={timezone}
+                                    className='custom-status-expiry'
+                                />
+                            </div>
+                            }
                         </div>
-                    }
+                    </div>
                 </Tooltip>
             }
         >
