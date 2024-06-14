@@ -41,7 +41,7 @@ type Props = {
      * An array of values that have been selected by the user in the multiselect.
      */
     values: OptionValue[];
-};
+}
 
 const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionValue>>) => {
     const renderOptionValue = useCallback((
@@ -60,8 +60,7 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
                 select={select}
             />
         );
-    },
-    [props.selectedItemRef],
+    }, [props.selectedItemRef],
     );
 
     const dispatch = useDispatch();
@@ -70,9 +69,7 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
         return (
             value.id === props.currentUserId || Boolean(value.delete_at)
         );
-    },
-    [props.currentUserId],
-    );
+    }, [props.currentUserId]);
 
     const handleCreateChannel = () => {
         props.handleHide();
