@@ -72,7 +72,6 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
         e.preventDefault()
         props.handleHide()
         dispatch(openModal({modalId: ModalIdentifiers.NEW_CHANNEL_MODAL, dialogType: NewChannelModal}));
-        
     };
 
     const intl = useIntl();
