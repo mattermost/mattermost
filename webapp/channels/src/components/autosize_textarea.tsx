@@ -41,7 +41,6 @@ const styles = {
     },
     textArea: {
         overflowY: 'auto',
-        maxHeight:'200px'
     } as CSSProperties,
 };
 
