@@ -4,6 +4,7 @@
 import {createIntl} from 'react-intl';
 
 import enMessages from 'i18n/en.json';
+import {setGlobalIntl} from 'utils/i18n';
 
 jest.mock('react-intl', function() {
     const reactIntl = jest.requireActual('react-intl');
@@ -33,5 +34,7 @@ export function createTestIntl() {
         textComponent: 'span',
     });
 }
+
+setGlobalIntl(createTestIntl());
 
 export default {};

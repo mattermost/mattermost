@@ -1199,20 +1199,6 @@ export function localizeMessage(id: string, defaultMessage?: string) {
     return translations[id];
 }
 
-/**
- * @deprecated If possible, use intl.formatMessage instead
- */
-export function formatLocalizedMessage(base: string, template: { [name: string]: any } | undefined) {
-    if (!template) {
-        return base;
-    }
-
-    return base.replace(/{[\w]+}/g, (match) => {
-        const key = match.substr(1, match.length - 2);
-        return template[key] || match;
-    });
-}
-
 export function mod(a: number, b: number): number {
     return ((a % b) + b) % b;
 }

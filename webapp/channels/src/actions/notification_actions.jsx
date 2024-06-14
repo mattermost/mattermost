@@ -20,13 +20,13 @@ import {isThreadOpen} from 'selectors/views/threads';
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
+import {getGlobalIntl} from 'utils/i18n';
 import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import * as NotificationSounds from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
 import {isDesktopApp, isMobileApp} from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 
 import {runDesktopNotificationHooks} from './hooks';
 
@@ -188,6 +188,8 @@ export function sendDesktopNotification(post, msgProps) {
             return {status: 'not_sent', reason: 'not_following_thread'};
         }
 
+        const intl = getGlobalIntl();
+
         const config = getConfig(state);
         const userFromPost = getUser(state, post.user_id);
 
@@ -199,10 +201,10 @@ export function sendDesktopNotification(post, msgProps) {
         } else if (msgProps.sender_name) {
             username = msgProps.sender_name;
         } else {
-            username = Utils.localizeMessage('channel_loader.someone', 'Someone');
+            username = intl.formatMessage({id: 'channel_loader.someone', defaultMessage: 'Someone'});
         }
 
-        let title = Utils.localizeMessage('channel_loader.posted', 'Posted');
+        let title = intl.formatMessage({id: 'channel_loader.posted', defaultMessage: 'Posted'});
         if (!channel) {
             title = msgProps.channel_display_name;
             channel = {
@@ -210,21 +212,21 @@ export function sendDesktopNotification(post, msgProps) {
                 type: msgProps.channel_type,
             };
         } else if (channel.type === Constants.DM_CHANNEL) {
-            title = Utils.localizeMessage('notification.dm', 'Direct Message');
+            title = intl.formatMessage({id: 'notification.dm', defaultMessage: 'Direct Message'});
         } else {
             title = channel.display_name;
         }
 
         if (title === '') {
             if (msgProps.channel_type === Constants.DM_CHANNEL) {
-                title = Utils.localizeMessage('notification.dm', 'Direct Message');
+                title = intl.formatMessage({id: 'notification.dm', defaultMessage: 'Direct Message'});
             } else {
                 title = msgProps.channel_display_name;
             }
         }
 
         if (isCrtReply) {
-            title = Utils.formatLocalizedMessage(Utils.localizeMessage('notification.crt', 'Reply in {title}'), {title});
+            title = intl.formatMessage({id: 'notification.crt', defaultMessage: 'Reply in {title}'}, {title});
         }
 
         let notifyText = post.message;
@@ -246,13 +248,13 @@ export function sendDesktopNotification(post, msgProps) {
         let body = `@${username}`;
         if (strippedMarkdownNotifyText.length === 0) {
             if (msgProps.image) {
-                body += Utils.localizeMessage('channel_loader.uploadedImage', ' uploaded an image');
+                body += intl.formatMessage({id: 'channel_loader.uploadedImage', defaultMessage: ' uploaded an image'});
             } else if (msgProps.otherFile) {
-                body += Utils.localizeMessage('channel_loader.uploadedFile', ' uploaded a file');
+                body += intl.formatMessage({id: 'channel_loader.uploadedFile', defaultMessage: ' uploaded a file'});
             } else if (image) {
-                body += Utils.localizeMessage('channel_loader.postedImage', ' posted an image');
+                body += intl.formatMessage({id: 'channel_loader.postedImage', defaultMessage: ' posted an image'});
             } else {
-                body += Utils.localizeMessage('channel_loader.something', ' did something new');
+                body += intl.formatMessage({id: 'channel_loader.something', defaultMessage: ' did something new'});
             }
         } else {
             body += `: ${strippedMarkdownNotifyText}`;
