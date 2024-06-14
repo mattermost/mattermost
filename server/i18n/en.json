@@ -5083,6 +5083,10 @@
     "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
   },
   {
+    "id": "app.import.custom_status.error",
+    "translation": "Unable to marshal custom status"
+  },
+  {
     "id": "app.import.emoji.bad_file.error",
     "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
   },
