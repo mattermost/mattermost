@@ -70,12 +70,7 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
 
     const handleCreateChannel = () => {
         props.handleHide();
-        dispatch(
-            openModal({
-                modalId: ModalIdentifiers.NEW_CHANNEL_MODAL,
-                dialogType: NewChannelModal,
-            }),
-        );
+        dispatch(openModal({modalId: ModalIdentifiers.NEW_CHANNEL_MODAL, dialogType: NewChannelModal}));
     };
 
     const intl = useIntl();
@@ -173,8 +168,7 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
             placeholderText={intl.formatMessage({id: 'multiselect.placeholder', defaultMessage: 'Search and add members'})}
         />
     );
-},
-);
+});
 
 export default List;
 
