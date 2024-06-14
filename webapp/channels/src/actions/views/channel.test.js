@@ -3,16 +3,16 @@
 
 import nock from 'nock';
 
-import {leaveChannel, markChannelAsRead, getChannel} from 'mattermost-redux/actions/channels';
+import {markChannelAsRead, getChannel} from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import * as UserActions from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {General, Posts, RequestStatus} from 'mattermost-redux/constants';
 
 import * as Actions from 'actions/views/channel';
-import * as RhsActions from 'actions/views/rhs';
 import configureStore from 'store';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, PostRequestTypes} from 'utils/constants';
@@ -32,7 +32,6 @@ jest.mock('mattermost-redux/actions/users');
 jest.mock('mattermost-redux/actions/channels', () => ({
     ...jest.requireActual('mattermost-redux/actions/channels'),
     markChannelAsRead: jest.fn(() => ({type: ''})),
-    leaveChannel: jest.fn(() => ({type: ''})),
     getChannel: jest.fn(() => ({
         type: 'RECEIVED_CHANNEL',
         data: {team_id: 'teamid1', id: 'non-existing-channelid', name: 'non-existing-channel', display_name: 'Channel 1', type: 'O'},
@@ -141,50 +140,6 @@ describe('channel view actions', () => {
             await store.dispatch(Actions.loadIfNecessaryAndSwitchToChannelById('non-existing-channelid'));
             expect(getChannel).toHaveBeenCalledWith('non-existing-channelid');
             expect(getHistory().push).toHaveBeenCalledWith(`/${team1.name}/channels/non-existing-channel`);
-        });
-    });
-
-    describe('leaveChannel', () => {
-        test('leave a channel successfully', async () => {
-            const closeRightHandSideSpy = jest.spyOn(RhsActions, 'closeRightHandSide');
-            await store.dispatch(Actions.leaveChannel('channelid1'));
-            expect(getHistory().push).toHaveBeenCalledWith(`/${team1.name}`);
-            expect(leaveChannel).toHaveBeenCalledWith('channelid1');
-            expect(closeRightHandSideSpy).not.toHaveBeenCalled();
-        });
-        test('leave a channel successfully with a thread open', async () => {
-            const closeRightHandSideSpy = jest.spyOn(RhsActions, 'closeRightHandSide');
-            store = mockStore({
-                ...initialState,
-                views: {
-                    ...initialState.views,
-                    rhs: {
-                        selectedPostId: '1',
-                    },
-                },
-            });
-            await store.dispatch(Actions.leaveChannel('channelid1'));
-            expect(getHistory().push).toHaveBeenCalledWith(`/${team1.name}`);
-            expect(leaveChannel).toHaveBeenCalledWith('channelid1');
-            expect(closeRightHandSideSpy).toHaveBeenCalled();
-        });
-        test('leave the last channel successfully', async () => {
-            store = mockStore({
-                ...initialState,
-                entities: {
-                    ...initialState.entities,
-                    channels: {
-                        ...initialState.entities,
-                        myMembers: {
-                            channelid1: {channel_id: 'channelid1', user_id: 'userid1'},
-                        },
-                    },
-                },
-            });
-
-            await store.dispatch(Actions.leaveChannel('channelid1'));
-            expect(getHistory().push).toHaveBeenCalledWith('/');
-            expect(leaveChannel).toHaveBeenCalledWith('channelid1');
         });
     });
 
@@ -805,6 +760,212 @@ describe('channel view actions', () => {
             const response = await store.dispatch(Actions.autocompleteUsersInChannel('test', 'channelid1'));
             expect(response).toStrictEqual({data: {out_of_channel: [], users: []}});
         });
+    });
+});
+
+describe('leaveChannel', () => {
+    const currentUser = TestHelper.getUserMock({id: 'currentUser'});
+    const currentTeam = TestHelper.getTeamMock({id: 'currentTeam'});
+
+    const initialState = {
+        entities: {
+            channels: {
+                myMembers: {},
+            },
+            teams: {
+                currentTeamId: currentTeam.id,
+                teams: {
+                    [currentTeam.id]: currentTeam,
+                },
+            },
+            users: {
+                currentUserId: currentUser.id,
+                profiles: {
+                    [currentUser.id]: currentUser,
+                },
+            },
+        },
+    };
+
+    test('should delete the channel and its posts from the store', async () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: currentTeam.id});
+        const post1 = TestHelper.getPostMock({id: 'post1', channel_id: channel1.id});
+
+        const store = configureStore(mergeObjects(initialState, {
+            entities: {
+                channels: {
+                    channels: {
+                        [channel1.id]: channel1,
+                    },
+                    myMembers: {
+                        [channel1.id]: TestHelper.getChannelMembershipMock({user_id: currentUser.id, channel_id: channel1.id}),
+                    },
+                },
+                posts: {
+                    posts: {
+                        [post1.id]: post1,
+                    },
+                },
+            },
+        }));
+
+        await store.dispatch(Actions.leaveChannel(channel1.id));
+
+        const state = store.getState();
+        expect(state.entities.channels.channels[channel1.id]).not.toBeDefined();
+        expect(state.entities.posts.posts[post1.id]).not.toBeDefined();
+    });
+
+    test('should send you back to the root of the team when leaving the current channel if you have other channels on that team', async () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: currentTeam.id});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: currentTeam.id});
+        const post1 = TestHelper.getPostMock({id: 'post1', channel_id: channel1.id});
+
+        const store = configureStore(mergeObjects(initialState, {
+            entities: {
+                channels: {
+                    channels: {
+                        [channel1.id]: channel1,
+                        [channel2.id]: channel2,
+                    },
+                    channelsInTeam: {
+                        [currentTeam.id]: [channel1.id, channel2.id],
+                    },
+                    currentChannelId: channel1.id,
+                    myMembers: {
+                        [channel1.id]: TestHelper.getChannelMembershipMock({user_id: currentUser.id, channel_id: channel1.id}),
+                        [channel2.id]: TestHelper.getChannelMembershipMock({user_id: currentUser.id, channel_id: channel2.id}),
+                    },
+                },
+                posts: {
+                    posts: {
+                        [post1.id]: post1,
+                    },
+                },
+            },
+        }));
+
+        await store.dispatch(Actions.leaveChannel(channel1.id));
+
+        expect(getHistory().push).toHaveBeenCalledWith(`/${currentTeam.name}`);
+    });
+
+    test("should send you back to the root of the server when leaving a channel if you don't have other channels on that team", async () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: currentTeam.id});
+        const post1 = TestHelper.getPostMock({id: 'post1', channel_id: channel1.id});
+
+        const store = configureStore(mergeObjects(initialState, {
+            entities: {
+                channels: {
+                    channels: {
+                        [channel1.id]: channel1,
+                    },
+                    channelsInTeam: {
+                        [currentTeam.id]: [channel1.id],
+                    },
+                    currentChannelId: channel1.id,
+                    myMembers: {
+                        [channel1.id]: TestHelper.getChannelMembershipMock({user_id: currentUser.id, channel_id: channel1.id}),
+                    },
+                },
+                posts: {
+                    posts: {
+                        [post1.id]: post1,
+                    },
+                },
+            },
+        }));
+
+        await store.dispatch(Actions.leaveChannel(channel1.id));
+
+        expect(getHistory().push).toHaveBeenCalledWith('/');
+    });
+
+    test("should close the RHS if it's open to a post in the channel that was deleted", async () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: currentTeam.id});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: currentTeam.id});
+        const post1 = TestHelper.getPostMock({id: 'post1', channel_id: channel1.id});
+        const post2 = TestHelper.getPostMock({id: 'post2', channel_id: channel2.id});
+
+        const store = configureStore(mergeObjects(initialState, {
+            entities: {
+                channels: {
+                    channels: {
+                        [channel1.id]: channel1,
+                        [channel2.id]: channel2,
+                    },
+                    myMembers: {
+                        [channel1.id]: TestHelper.getChannelMembershipMock({user_id: currentUser.id, channel_id: channel1.id}),
+                        [channel2.id]: TestHelper.getChannelMembershipMock({user_id: currentUser.id, channel_id: channel2.id}),
+                    },
+                },
+                posts: {
+                    posts: {
+                        [post1.id]: post1,
+                        [post2.id]: post2,
+                    },
+                },
+            },
+            views: {
+                rhs: {
+                    selectedChannelId: channel1.id,
+                    selectedPostId: post1.id,
+                },
+            },
+        }));
+
+        await store.dispatch(Actions.leaveChannel(channel1.id));
+
+        const state = store.getState();
+        expect(state.views.rhs.selectedChannelId).toEqual('');
+        expect(state.views.rhs.selectedPostId).toEqual('');
+    });
+
+    test("should not close the RHS if it's open to a post in another channel", async () => {
+        const team1 = TestHelper.getTeamMock({id: 'team1'});
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: team1.id});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: team1.id});
+        const post1 = TestHelper.getPostMock({id: 'post1', channel_id: channel1.id});
+        const post2 = TestHelper.getPostMock({id: 'post2', channel_id: channel2.id});
+
+        const store = configureStore(mergeObjects(initialState, {
+            entities: {
+                channels: {
+                    channels: {
+                        [channel1.id]: channel1,
+                        [channel2.id]: channel2,
+                    },
+                    myMembers: {
+                        [channel1.id]: TestHelper.getChannelMembershipMock({user_id: currentUser.id, channel_id: channel1.id}),
+                        [channel2.id]: TestHelper.getChannelMembershipMock({user_id: currentUser.id, channel_id: channel2.id}),
+                    },
+                },
+                posts: {
+                    posts: {
+                        [post1.id]: post1,
+                        [post2.id]: post2,
+                    },
+                },
+                teams: {
+                    currentTeamId: team1.id,
+                    teams: {
+                        [team1.id]: team1,
+                    },
+                },
+            },
+            views: {
+                rhs: {
+                    selectedChannelId: channel2.id,
+                    selectedPostId: post2.id,
+                },
+            },
+        }));
+
+        await store.dispatch(Actions.leaveChannel(channel1.id));
+
+        const state = store.getState();
+        expect(state.views.rhs.selectedChannelId).toEqual(channel2.id);
+        expect(state.views.rhs.selectedPostId).toEqual(post2.id);
     });
 });
 

@@ -50,7 +50,7 @@ import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {getLastViewedChannelName} from 'selectors/local_storage';
-import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
+import {getSelectedPost} from 'selectors/rhs';
 import {getLastPostsApiTimeForChannel} from 'selectors/views/channel';
 import {getSocketStatus} from 'selectors/views/websocket';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -146,7 +146,7 @@ export function joinChannelById(channelId: string): ActionFuncAsync {
     };
 }
 
-export function leaveChannel(channelId: string): ActionFuncAsync {
+export function leaveChannel(channelId: string): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         let state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -178,9 +178,8 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
         if (!prevChannel || !getMyChannelMemberships(state)[prevChannel.id]) {
             LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state);
         }
-        const selectedPost = getSelectedPost(state as GlobalState);
-        const selectedPostId = getSelectedPostId(state as GlobalState);
-        if (selectedPostId && selectedPost.exists === false) {
+        const selectedPost = getSelectedPost(state);
+        if (selectedPost && selectedPost.channel_id === channelId) {
             dispatch(closeRightHandSide());
         }
 
