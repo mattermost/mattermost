@@ -940,6 +940,36 @@ func (_m *ChannelStore) GetChannelMembersTimezones(channelID string) ([]model.St
 	return r0, r1
 }
 
+// GetChannelMembersWithDualMemberships provides a mock function with given fields: firstChannelID, secondChannelID, offset, limit
+func (_m *ChannelStore) GetChannelMembersWithDualMemberships(firstChannelID string, secondChannelID string, offset int, limit int) ([]*model.ChannelMember, error) {
+	ret := _m.Called(firstChannelID, secondChannelID, offset, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetChannelMembersWithDualMemberships")
+	}
+
+	var r0 []*model.ChannelMember
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, int, int) ([]*model.ChannelMember, error)); ok {
+		return rf(firstChannelID, secondChannelID, offset, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, int, int) []*model.ChannelMember); ok {
+		r0 = rf(firstChannelID, secondChannelID, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
+		r1 = rf(firstChannelID, secondChannelID, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChannelUnread provides a mock function with given fields: channelID, userID
 func (_m *ChannelStore) GetChannelUnread(channelID string, userID string) (*model.ChannelUnread, error) {
 	ret := _m.Called(channelID, userID)

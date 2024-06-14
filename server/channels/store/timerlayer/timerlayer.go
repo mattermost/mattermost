@@ -471,22 +471,6 @@ type TimerLayerWebhookStore struct {
 	Root *TimerLayer
 }
 
-func (s *TimerLayerAuditStore) BatchMergeUserId(toUserId string, fromUserId string) error {
-	start := time.Now()
-
-	err := s.AuditStore.BatchMergeUserId(toUserId, fromUserId)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AuditStore.BatchMergeUserId", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
 	start := time.Now()
 
@@ -1185,6 +1169,22 @@ func (s *TimerLayerChannelStore) GetChannelMembersTimezones(channelID string) ([
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelMembersTimezones", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetChannelMembersWithDualMemberships(firstChannelID string, secondChannelID string, offset int, limit int) ([]*model.ChannelMember, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetChannelMembersWithDualMemberships(firstChannelID, secondChannelID, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelMembersWithDualMemberships", success, elapsed)
 	}
 	return result, err
 }

@@ -491,27 +491,6 @@ func isRepeatableError(err error) bool {
 	return false
 }
 
-func (s *RetryLayerAuditStore) BatchMergeUserId(toUserId string, fromUserId string) error {
-
-	tries := 0
-	for {
-		err := s.AuditStore.BatchMergeUserId(toUserId, fromUserId)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
 
 	tries := 0
@@ -1390,6 +1369,27 @@ func (s *RetryLayerChannelStore) GetChannelMembersTimezones(channelID string) ([
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetChannelMembersTimezones(channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetChannelMembersWithDualMemberships(firstChannelID string, secondChannelID string, offset int, limit int) ([]*model.ChannelMember, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetChannelMembersWithDualMemberships(firstChannelID, secondChannelID, offset, limit)
 		if err == nil {
 			return result, nil
 		}

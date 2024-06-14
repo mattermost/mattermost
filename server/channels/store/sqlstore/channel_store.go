@@ -4331,3 +4331,25 @@ func (s SqlChannelStore) MigrateChannelRecordsToNewUser(channel *model.Channel, 
 	}
 	return nil
 }
+
+// This function returns ChannelMember records from firstChannelID that also have a membership in secondChannelID.
+func (s *SqlChannelStore) GetChannelMembersWithDualMemberships(firstChannelID string, secondChannelID string, offset int, limit int) ([]*model.ChannelMember, error) {
+	query := `SELECT
+		*
+	FROM
+		ChannelMembers
+	WHERE
+		UserId IN(
+			SELECT
+				UserId FROM ChannelMembers
+			WHERE
+				channelid = ?)
+		AND channelid = ? OFFSET ? LIMIT ?`
+
+	dbMembers := []*model.ChannelMember{}
+	if err := s.GetReplicaX().Select(&dbMembers, query, secondChannelID, firstChannelID, offset, limit); err != nil {
+		return nil, errors.Wrapf(err, "failed to find ChannelMembers with memberships in channelIds: %v", []string{firstChannelID, secondChannelID})
+	}
+
+	return dbMembers, nil
+}

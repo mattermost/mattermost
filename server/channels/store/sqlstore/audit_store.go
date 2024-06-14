@@ -66,30 +66,3 @@ func (s SqlAuditStore) PermanentDeleteByUser(userId string) error {
 	}
 	return nil
 }
-
-func (s *SqlAuditStore) BatchMergeUserId(toUserId string, fromUserId string) error {
-	for {
-		var query string
-		if s.DriverName() == "postgres" {
-			query = "UPDATE Audits SET UserId = ? WHERE Id = any (array (SELECT Id FROM audits WHERE UserId = ? LIMIT 1000))"
-		} else {
-			query = "UPDATE Audits SET UserId = ? WHERE UserId = ? LIMIT 1000"
-		}
-
-		sqlResult, err := s.GetMasterX().Exec(query, toUserId, fromUserId)
-		if err != nil {
-			return errors.Wrap(err, "failed to update audits")
-		}
-
-		rowsAffected, err := sqlResult.RowsAffected()
-		if err != nil {
-			return errors.Wrap(err, "failed to update audits")
-		}
-
-		if rowsAffected < 1000 {
-			break
-		}
-	}
-
-	return nil
-}

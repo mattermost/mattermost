@@ -12894,6 +12894,50 @@ func (a *OpenTracingAppLayer) MentionsToTeamMembers(c request.CTX, message strin
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) MergeChannelMemberRecords(rctx request.CTX, toChannelID string, fromChannelID string) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MergeChannelMemberRecords")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.MergeChannelMemberRecords(rctx, toChannelID, fromChannelID)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) MergeChannelMemberStatsForDifferentUsers(rctx request.CTX, toUserId string, fromUserId string, toChannelID string, fromChannelID string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MergeChannelMemberStatsForDifferentUsers")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.MergeChannelMemberStatsForDifferentUsers(rctx, toUserId, fromUserId, toChannelID, fromChannelID)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) MergeChannels(rctx request.CTX, toChannel *model.Channel, fromChannel *model.Channel) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MergeChannels")

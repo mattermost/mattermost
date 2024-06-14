@@ -3762,9 +3762,120 @@ func (a *App) MergeChannels(rctx request.CTX, toChannel *model.Channel, fromChan
 		return err
 	}
 
+	toChannel.TotalMsgCount += fromChannel.TotalMsgCount
+	toChannel.TotalMsgCountRoot += fromChannel.TotalMsgCountRoot
+	if fromChannel.LastPostAt > toChannel.LastPostAt {
+		toChannel.LastPostAt = fromChannel.LastPostAt
+	}
+	if fromChannel.LastRootPostAt > toChannel.LastRootPostAt {
+		toChannel.LastRootPostAt = fromChannel.LastRootPostAt
+	}
+	_, err = a.Srv().Store().Channel().Update(rctx, toChannel)
+	if err != nil {
+		return err
+	}
+
+	err = a.MergeChannelMemberRecords(rctx, toChannel.Id, fromChannel.Id)
+	if err != nil {
+		return err
+	}
+
+	// When creating the channel merge job in future we need to move fromChannel members who aren't in the toChannel since we already merged the existing member counts
+
 	if nErr := a.Srv().Store().Channel().PermanentDelete(rctx, fromChannel.Id); nErr != nil {
 		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
+
+	return nil
+}
+
+func (a *App) MergeChannelMemberRecords(rctx request.CTX, toChannelID, fromChannelID string) error {
+	offset := 0
+
+	for {
+		// <userid, channelmember>
+		channelMemberMap := make(map[string]*model.ChannelMember)
+		userIds := make([]string, 0, 100)
+
+		// Batch get channelmembers in the fromChannel who are in both channels
+		fromChannelMembers, err := a.Srv().Store().Channel().GetChannelMembersWithDualMemberships(fromChannelID, toChannelID, offset, 100)
+		if err != nil {
+			return err
+		}
+
+		// Plug fromChannelMembers into a map for easy lookup <userid, channelmember>
+		for _, fromChannelMember := range fromChannelMembers {
+			userIds = append(userIds, fromChannelMember.UserId)
+			// Map the toUser DM channel name to the fromUser DM channel so we can match them up for merging later on
+			channelMemberMap[fromChannelMember.UserId] = fromChannelMember
+		}
+
+		// Get channel members from the to channel
+		toChannelMembers, err := a.Srv().Store().Channel().GetMembersByIds(toChannelID, userIds)
+		if err != nil {
+			return err
+		}
+
+		// Unfortunately toChannelMembers has a type of model.ChannelMembers and UpdateMultipleMembers expects []*model.ChannelMember
+		channelMembers := make([]*model.ChannelMember, len(toChannelMembers))
+		// Loop through toChannel members
+		// Lookup members in map in order to combine the following stats: Msgcount, MentionCount, MentionCountRoot, MsgCountRoot and UrgentMentionCount
+		// Update channel member record in the to channel with field changes
+		for _, toChannelMember := range toChannelMembers {
+			if fromChannelMember, ok := channelMemberMap[toChannelMember.UserId]; ok {
+				toChannelMember.MsgCount += fromChannelMember.MsgCount
+				toChannelMember.MentionCount += fromChannelMember.MentionCount
+				toChannelMember.MentionCountRoot += fromChannelMember.MentionCountRoot
+				toChannelMember.MsgCountRoot += fromChannelMember.MsgCountRoot
+				toChannelMember.UrgentMentionCount += fromChannelMember.UrgentMentionCount
+				channelMembers = append(channelMembers, &toChannelMember)
+			}
+		}
+
+		// Do a bulk update of the channel members
+		_, err = a.Srv().Store().Channel().UpdateMultipleMembers(channelMembers)
+		if err != nil {
+			return err
+		}
+
+		if len(fromChannelMembers) < 100 {
+			break
+		}
+
+		offset += 100
+	}
+	return nil
+}
+
+func (a *App) MergeChannelMemberStatsForDifferentUsers(rctx request.CTX, toUserId string, fromUserId string, toChannelID string, fromChannelID string) *model.AppError {
+	toChannelMembers, err := a.Srv().Store().Channel().GetMembersByIds(toChannelID, []string{toUserId})
+	if err != nil {
+		return model.NewAppError("MergeChannelMemberStatsForDifferentUsers", "app.channel.MergeChannelMemberStatsForDifferentUsers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	fromChannelMembers, err := a.Srv().Store().Channel().GetMembersByIds(fromChannelID, []string{fromUserId})
+	if err != nil {
+		return model.NewAppError("MergeChannelMemberStatsForDifferentUsers", "app.channel.MergeChannelMemberStatsForDifferentUsers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if len(toChannelMembers) == 1 && len(fromChannelMembers) == 1 {
+		toChannelMember := toChannelMembers[0]
+		fromChannelMember := fromChannelMembers[0]
+
+		toChannelMember.MsgCount += fromChannelMember.MsgCount
+		toChannelMember.MentionCount += fromChannelMember.MentionCount
+		toChannelMember.MentionCountRoot += fromChannelMember.MentionCountRoot
+		toChannelMember.MsgCountRoot += fromChannelMember.MsgCountRoot
+		toChannelMember.UrgentMentionCount += fromChannelMember.UrgentMentionCount
+
+		_, err = a.Srv().Store().Channel().UpdateMember(rctx, &toChannelMember)
+		if err != nil {
+			return model.NewAppError("MergeChannelMemberStatsForDifferentUsers", "app.channel.MergeChannelMemberStatsForDifferentUsers.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return nil
+	}
+
+	rctx.Logger().Info("MergeChannelMemberStatsForDifferentUsers: failed to find channel members", mlog.String("toUserId", toUserId), mlog.String("fromUserId", fromUserId), mlog.String("toChannelID", toChannelID), mlog.String("fromChannelID", fromChannelID))
 
 	return nil
 }

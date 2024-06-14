@@ -312,6 +312,7 @@ type ChannelStore interface {
 
 	GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset int, limit int) ([]*model.Channel, error)
 	MigrateChannelRecordsToNewUser(channel *model.Channel, toUserID string, fromUserID string) error
+	GetChannelMembersWithDualMemberships(firstChannelID string, secondChannelID string, offset int, limit int) ([]*model.ChannelMember, error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -525,7 +526,6 @@ type AuditStore interface {
 	Save(audit *model.Audit) error
 	Get(user_id string, offset int, limit int) (model.Audits, error)
 	PermanentDeleteByUser(userID string) error
-	BatchMergeUserId(toUserId string, fromUserId string) error
 }
 
 type ClusterDiscoveryStore interface {

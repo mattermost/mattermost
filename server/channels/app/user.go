@@ -2934,7 +2934,9 @@ func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId
 	offset := 0
 
 	for {
+		// <toUserDMChannel.Name, fromUserDmChannel>
 		channelNameMap := make(map[string]*model.Channel)
+		// []toUserDMChannel.Name
 		keys := make([]string, 0, 100)
 
 		fromUserDmChannels, err := a.Srv().Store().Channel().GetChannelsByTypeForUser(fromUserId, model.ChannelTypeDirect, offset, 100)
@@ -2943,13 +2945,16 @@ func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId
 		}
 
 		for _, fromUserDmChannel := range fromUserDmChannels {
+			// Get the other user id in the DM channel (not fromUserId)
 			otherUserIdInDMChannel := fromUserDmChannel.GetOtherUserIdForDM(fromUserId)
+			// Construct the channel name of the DM channel for the toUser
 			channelName := model.GetDMNameFromIds(toUserId, otherUserIdInDMChannel)
 			keys = append(keys, channelName)
 			// Map the toUser DM channel name to the fromUser DM channel so we can match them up for merging later on
 			channelNameMap[channelName] = fromUserDmChannel
 		}
 
+		// Fetch all the toUser DM channels where fromUser also has a DM with the same user
 		toUserDmChannels, err := a.Srv().Store().Channel().GetByNames("", keys, true)
 		if err != nil {
 			return errors.Wrapf(err, "failed to get dm channels for user %s", toUserId)
@@ -2958,10 +2963,13 @@ func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId
 		for _, toUserDmChannel := range toUserDmChannels {
 			fromUserDmChannel := channelNameMap[toUserDmChannel.Name]
 			delete(channelNameMap, toUserDmChannel.Name)
-			// kick off channel merges for fromUserDmChannel and toUserDmChannel
+			// kick off channel merges for toUserDmChannel and fromUserDmChannel
 			a.MergeChannels(rctx, toUserDmChannel, fromUserDmChannel)
+			// Handle special case of user merge where we need to merge the stats of 2 different users/channel members
+			a.MergeChannelMemberStatsForDifferentUsers(rctx, toUserId, fromUserId, toUserDmChannel.Id, fromUserDmChannel.Id)
 		}
 
+		// channelNameMap now only contains channels that are unique to fromUser
 		for newChannelName, channel := range channelNameMap {
 			// update channel information to use toUserId
 			channel.Name = newChannelName
@@ -3007,12 +3015,6 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 	err = a.BatchMergeDmChannels(rctx, toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_dm_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	rctx.Logger().Info("MergeUsers: Batch merging audit records")
-	err = a.Srv().Store().Audit().BatchMergeUserId(toUser.Id, fromUser.Id)
-	if err != nil {
-		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_audits.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	rctx.Logger().Info("MergeUsers: Merging bot ownerIds")
