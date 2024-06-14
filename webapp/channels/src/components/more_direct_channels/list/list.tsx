@@ -68,7 +68,8 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
         return value.id === props.currentUserId || Boolean(value.delete_at);
     }, [props.currentUserId]);
 
-    const handleCreateChannel = () => {
+    const handleCreateChannel = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+        e.preventDefault();
         props.handleHide();
         dispatch(openModal({modalId: ModalIdentifiers.NEW_CHANNEL_MODAL, dialogType: NewChannelModal}));
     };
@@ -131,7 +132,10 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
                         num: MAX_SELECTABLE_VALUES - props.values.length,
                         a: (chunks: React.ReactNode) => {
                             return (
-                                <a onClick={handleCreateChannel}>{chunks}</a>
+                                <a
+                                    href='#'
+                                    onClick={(e) => handleCreateChannel(e)}
+                                >{chunks}</a>
                             );
                         },
                     }}
