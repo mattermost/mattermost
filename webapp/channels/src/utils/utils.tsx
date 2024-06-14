@@ -1200,11 +1200,9 @@ export function localizeMessage(id: string, defaultMessage?: string) {
 }
 
 /**
- * @deprecated If possible, use intl.formatMessage instead. If you have to use this, remember to mark the id using `t`
+ * @deprecated If possible, use intl.formatMessage instead
  */
-export function localizeAndFormatMessage(id: string, defaultMessage: string, template: { [name: string]: any } | undefined) {
-    const base = localizeMessage(id, defaultMessage);
-
+export function formatLocalizedMessage(base: string, template: { [name: string]: any } | undefined) {
     if (!template) {
         return base;
     }

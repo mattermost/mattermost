@@ -16,13 +16,6 @@ export function getMonthLong(locale: string): 'short' | 'long' {
     return 'long';
 }
 
-/**
- * @deprecated Use react-intl methods such as formatMessage, FormattedMessage, defineMessage, defineMessages.
- */
-export function t(v: string): string {
-    return v;
-}
-
 export interface Message {
     id: string;
     defaultMessage: string;
