@@ -519,8 +519,7 @@ export function deleteChannel(channelId: string): ActionFuncAsync<boolean, Globa
         const state = getState();
 
         const selectedPost = getSelectedPost(state);
-        const selectedPostId = getSelectedPostId(state);
-        if (selectedPostId && !selectedPost.exists) {
+        if (selectedPost && selectedPost.channel_id === channelId) {
             dispatch(closeRightHandSide());
         }
 

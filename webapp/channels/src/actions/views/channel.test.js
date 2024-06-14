@@ -1,17 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import nock from 'nock';
+
 import {leaveChannel, markChannelAsRead, getChannel} from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import * as UserActions from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 import {General, Posts, RequestStatus} from 'mattermost-redux/constants';
 
 import * as Actions from 'actions/views/channel';
-import {closeRightHandSide} from 'actions/views/rhs';
+import * as RhsActions from 'actions/views/rhs';
+import configureStore from 'store';
 
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, PostRequestTypes} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 jest.mock('utils/channel_utils.tsx', () => {
     const original = jest.requireActual('utils/channel_utils.tsx');
@@ -34,11 +39,6 @@ jest.mock('mattermost-redux/actions/channels', () => ({
     })),
 }));
 
-jest.mock('actions/views/rhs', () => ({
-    ...jest.requireActual('actions/views/rhs'),
-    closeRightHandSide: jest.fn(() => ({type: ''})),
-}));
-
 jest.mock('mattermost-redux/actions/posts');
 
 jest.mock('selectors/local_storage', () => ({
@@ -48,6 +48,8 @@ jest.mock('selectors/local_storage', () => ({
 jest.mock('mattermost-redux/selectors/entities/utils', () => ({
     makeAddLastViewAtToProfiles: () => jest.fn().mockReturnValue([]),
 }));
+
+Client4.setUrl('http://localhost:8065');
 
 describe('channel view actions', () => {
     const channel1 = {id: 'channelid1', name: 'channel1', display_name: 'Channel 1', type: 'O', team_id: 'teamid1'};
@@ -144,12 +146,14 @@ describe('channel view actions', () => {
 
     describe('leaveChannel', () => {
         test('leave a channel successfully', async () => {
+            const closeRightHandSideSpy = jest.spyOn(RhsActions, 'closeRightHandSide');
             await store.dispatch(Actions.leaveChannel('channelid1'));
             expect(getHistory().push).toHaveBeenCalledWith(`/${team1.name}`);
             expect(leaveChannel).toHaveBeenCalledWith('channelid1');
-            expect(closeRightHandSide).not.toHaveBeenCalled();
+            expect(closeRightHandSideSpy).not.toHaveBeenCalled();
         });
         test('leave a channel successfully with a thread open', async () => {
+            const closeRightHandSideSpy = jest.spyOn(RhsActions, 'closeRightHandSide');
             store = mockStore({
                 ...initialState,
                 views: {
@@ -162,7 +166,7 @@ describe('channel view actions', () => {
             await store.dispatch(Actions.leaveChannel('channelid1'));
             expect(getHistory().push).toHaveBeenCalledWith(`/${team1.name}`);
             expect(leaveChannel).toHaveBeenCalledWith('channelid1');
-            expect(closeRightHandSide).toHaveBeenCalled();
+            expect(closeRightHandSideSpy).toHaveBeenCalled();
         });
         test('leave the last channel successfully', async () => {
             store = mockStore({
@@ -791,6 +795,7 @@ describe('channel view actions', () => {
             jest.runOnlyPendingTimers();
             await Promise.resolve();
             expect(PostActions.getPostsUnread).toHaveBeenCalledWith('channelid1');
+            jest.useRealTimers();
         });
     });
 
@@ -800,5 +805,117 @@ describe('channel view actions', () => {
             const response = await store.dispatch(Actions.autocompleteUsersInChannel('test', 'channelid1'));
             expect(response).toStrictEqual({data: {out_of_channel: [], users: []}});
         });
+    });
+});
+
+describe('deleteChannel', () => {
+    test('should delete the channel and its posts from the store', async () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1'});
+        const post1 = TestHelper.getPostMock({id: 'post1', channel_id: channel1.id});
+
+        const store = configureStore({
+            entities: {
+                channels: {
+                    channels: {
+                        [channel1.id]: channel1,
+                    },
+                },
+                posts: {
+                    posts: {
+                        [post1.id]: post1,
+                    },
+                },
+            },
+        });
+
+        nock(Client4.getBaseRoute()).
+            delete(`/channels/${channel1.id}`).
+            reply(200, {status: 'OK'});
+
+        await store.dispatch(Actions.deleteChannel(channel1.id));
+
+        const state = store.getState();
+        expect(state.entities.channels.channels[channel1.id].delete_at).toBeGreaterThan(0);
+        expect(state.entities.posts.posts[post1.id]).not.toBeDefined();
+    });
+
+    test("should close the RHS if it's open to a post in the channel that was deleted", async () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1'});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2'});
+        const post1 = TestHelper.getPostMock({id: 'post1', channel_id: channel1.id});
+        const post2 = TestHelper.getPostMock({id: 'post2', channel_id: channel2.id});
+
+        const store = configureStore({
+            entities: {
+                channels: {
+                    channels: {
+                        [channel1.id]: channel1,
+                        [channel2.id]: channel2,
+                    },
+                },
+                posts: {
+                    posts: {
+                        [post1.id]: post1,
+                        [post2.id]: post2,
+                    },
+                },
+            },
+            views: {
+                rhs: {
+                    selectedChannelId: channel1.id,
+                    selectedPostId: post1.id,
+                },
+            },
+        });
+
+        nock(Client4.getBaseRoute()).
+            delete(`/channels/${channel1.id}`).
+            reply(200, {status: 'OK'});
+
+        await store.dispatch(Actions.deleteChannel(channel1.id));
+
+        const state = store.getState();
+        expect(state.views.rhs.selectedChannelId).toEqual('');
+        expect(state.views.rhs.selectedPostId).toEqual('');
+    });
+
+    test("should not close the RHS if it's open to a post in another channel", async () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1'});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2'});
+        const post1 = TestHelper.getPostMock({id: 'post1', channel_id: channel1.id});
+        const post2 = TestHelper.getPostMock({id: 'post2', channel_id: channel2.id});
+
+        const store = configureStore({
+            entities: {
+                channels: {
+                    channels: {
+                        [channel1.id]: channel1,
+                        [channel2.id]: channel2,
+                    },
+                },
+                posts: {
+                    posts: {
+                        [post1.id]: post1,
+                        [post2.id]: post2,
+                    },
+                },
+            },
+            views: {
+                rhs: {
+                    selectedChannelId: channel2.id,
+                    selectedPostId: post2.id,
+                },
+            },
+        });
+
+        nock(Client4.getBaseRoute()).
+            delete(`/channels/${channel1.id}`).
+            reply(200, {status: 'OK'});
+
+        await store.dispatch(Actions.deleteChannel(channel1.id));
+
+        const state = store.getState();
+        expect(state.views.rhs.selectedChannelId).toEqual(channel2.id);
+        expect(state.views.rhs.selectedPostId).toEqual(post2.id);
     });
 });

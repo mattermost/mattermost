@@ -118,6 +118,7 @@ function channels(state: IDMappedObjects<Channel> = {}, action: AnyAction) {
 
         return nextState;
     }
+    case ChannelTypes.DELETE_CHANNEL_SUCCESS:
     case ChannelTypes.RECEIVED_CHANNEL_DELETED: {
         const {id, deleteAt} = action.data;
 

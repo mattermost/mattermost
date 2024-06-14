@@ -657,8 +657,14 @@ export function deleteChannel(channelId: string): ActionFuncAsync {
                 dispatch({type: ChannelTypes.SELECT_CHANNEL, data: channel.id});
             }
         }
-
-        dispatch({type: ChannelTypes.DELETE_CHANNEL_SUCCESS, data: {id: channelId, viewArchivedChannels}});
+        dispatch({
+            type: ChannelTypes.DELETE_CHANNEL_SUCCESS,
+            data: {
+                id: channelId,
+                deleteAt: Date.now(),
+                viewArchivedChannels,
+            },
+        });
 
         return {data: true};
     };
