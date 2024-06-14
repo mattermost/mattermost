@@ -25,11 +25,11 @@ import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_short
 import LeaveChannelModal from 'components/leave_channel_modal';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import {AppCommandParser} from 'components/suggestion/command_provider/app_command_parser/app_command_parser';
-import {intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
 import UserSettingsModal from 'components/user_settings/modal';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants, ModalIdentifiers} from 'utils/constants';
+import {getGlobalIntl} from 'utils/i18n';
 import {isUrlSafe, getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import {localizeMessage, getUserIdFromChannelName} from 'utils/utils';
@@ -145,11 +145,11 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         }
 
         if (appsEnabled(state)) {
-            const getGlobalState = () => getState() as GlobalState;
             const createErrorMessage = (errMessage: string) => {
                 return {error: {message: errMessage}};
             };
-            const parser = new AppCommandParser({dispatch, getState: getGlobalState} as any, intlShim, args.channel_id, args.team_id, args.root_id);
+            const intlShim = getGlobalIntl();
+            const parser = new AppCommandParser({dispatch, getState} as any, intlShim, args.channel_id, args.team_id, args.root_id);
             if (parser.isAppCommand(msg)) {
                 try {
                     const {creq, errorMessage} = await parser.composeCommandSubmitCall(msg);

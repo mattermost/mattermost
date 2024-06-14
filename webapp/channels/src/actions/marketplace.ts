@@ -13,11 +13,11 @@ import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/acti
 
 import {getFilter, getPlugin} from 'selectors/views/marketplace';
 
-import {intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
 import type {DoAppCallResult} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
 
 import {createCallContext, createCallRequest} from 'utils/apps';
 import {ActionTypes} from 'utils/constants';
+import {getGlobalIntl} from 'utils/i18n';
 
 import type {GlobalState} from 'types/store';
 
@@ -156,7 +156,7 @@ export function installApp(id: string): ThunkActionFunc<Promise<boolean>, Global
 
         const creq = createCallRequest(call, context, expand, values);
 
-        const res = await dispatch(doAppSubmit(creq, intlShim)) as DoAppCallResult;
+        const res = await dispatch(doAppSubmit(creq, getGlobalIntl())) as DoAppCallResult;
 
         if (res.error) {
             const errorResponse = res.error;

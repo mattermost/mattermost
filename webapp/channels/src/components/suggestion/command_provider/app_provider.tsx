@@ -10,11 +10,12 @@ import {openAppsModal} from 'actions/apps';
 import globalStore from 'stores/redux_store';
 
 import {Constants} from 'utils/constants';
+import {getGlobalIntl} from 'utils/i18n';
 
 import type {GlobalState} from 'types/store';
 
 import {AppCommandParser} from './app_command_parser/app_command_parser';
-import {COMMAND_SUGGESTION_CHANNEL, COMMAND_SUGGESTION_USER, intlShim} from './app_command_parser/app_command_parser_dependencies';
+import {COMMAND_SUGGESTION_CHANNEL, COMMAND_SUGGESTION_USER} from './app_command_parser/app_command_parser_dependencies';
 import type {AutocompleteSuggestion, Channel, UserProfile} from './app_command_parser/app_command_parser_dependencies';
 import {CommandSuggestion} from './command_provider';
 
@@ -40,7 +41,7 @@ export default class AppCommandProvider extends Provider {
         super();
 
         this.store = globalStore;
-        this.appCommandParser = new AppCommandParser(this.store as any, intlShim, props.channelId, props.teamId, props.rootId);
+        this.appCommandParser = new AppCommandParser(this.store as any, getGlobalIntl(), props.channelId, props.teamId, props.rootId);
         this.triggerCharacter = '/';
     }
 

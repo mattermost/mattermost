@@ -14,12 +14,12 @@ import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import globalStore from 'stores/redux_store';
 
 import {Constants} from 'utils/constants';
+import {getGlobalIntl} from 'utils/i18n';
 import * as UserAgent from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 
 import {AppCommandParser} from './app_command_parser/app_command_parser';
-import {intlShim} from './app_command_parser/app_command_parser_dependencies';
 
 import Provider from '../provider';
 import type {ResultsCallback} from '../provider';
@@ -97,7 +97,7 @@ export default class CommandProvider extends Provider {
 
         this.store = globalStore;
         this.props = props;
-        this.appCommandParser = new AppCommandParser(this.store as any, intlShim, props.channelId, props.teamId, props.rootId);
+        this.appCommandParser = new AppCommandParser(this.store as any, getGlobalIntl(), props.channelId, props.teamId, props.rootId);
         this.triggerCharacter = '/';
     }
 

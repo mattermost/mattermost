@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createTestIntl} from 'tests/react-intl_mock';
 import mockStore from 'tests/test_store';
 
 import {
@@ -57,11 +58,7 @@ describe('AppCommandParser', () => {
         return testStore;
     };
 
-    const intl = {
-        formatMessage: (message: {id: string; defaultMessage: string}) => {
-            return message.defaultMessage;
-        },
-    };
+    const intl = createTestIntl();
 
     let parser: AppCommandParser;
     beforeEach(async () => {
@@ -161,7 +158,7 @@ describe('AppCommandParser', () => {
                     expect(parsed.state).toBe(ParseState.Command);
                     expect(parsed.incomplete).toBe('jir');
                 }},
-                submit: {expectError: '`{command}`: No matching command found in this workspace.'},
+                submit: {expectError: '`/jir`: No matching command found in this workspace.'},
             },
             {
                 title: 'no space after the top command',
@@ -419,7 +416,7 @@ describe('AppCommandParser', () => {
             {
                 title: 'error: invalid flag',
                 command: '/jira issue view --wrong test',
-                submit: {expectError: 'Command does not accept flag `{flagName}`.'},
+                submit: {expectError: 'Command does not accept flag `wrong`.'},
             },
             {
                 title: 'error: unexpected positional',
