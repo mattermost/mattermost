@@ -52,7 +52,6 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 
 	invite := channelInviteMsg{
 		ChannelId:   channel.Id,
-		TeamId:      rc.RemoteTeamId,
 		ReadOnly:    sc.ReadOnly,
 		Name:        channel.Name,
 		DisplayName: sc.ShareDisplayName,
@@ -229,9 +228,21 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 		return scs.createDirectChannel(invite, rc)
 	}
 
+	teamId := invite.TeamId
+	// if the invite doesn't have a teamId associated and until the
+	// acceptance of an invite includes selecting a team, we use the
+	// first team of the list
+	if teamId == "" {
+		teams, err := scs.server.GetStore().Team().GetAllPage(0, 1, nil)
+		if err != nil {
+			return nil, fmt.Errorf("cannot get team to create the channel `%s`: %w", invite.ChannelId, err)
+		}
+		teamId = teams[0].Id
+	}
+
 	channelNew := &model.Channel{
 		Id:          invite.ChannelId,
-		TeamId:      invite.TeamId,
+		TeamId:      teamId,
 		Type:        invite.Type,
 		DisplayName: invite.DisplayName,
 		Name:        invite.Name,
