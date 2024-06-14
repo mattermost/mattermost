@@ -44,36 +44,34 @@ type Props = {
 };
 
 const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionValue>>) => {
-    const renderOptionValue = useCallback(
-        (
-            option: OptionValue,
-            isSelected: boolean,
-            add: (value: OptionValue) => void,
-            select: (value: OptionValue) => void,
-        ) => {
-            return (
-                <ListItem
-                    ref={isSelected ? props.selectedItemRef : undefined}
-                    key={'more_direct_channels_list_' + option.value}
-                    option={option}
-                    isSelected={isSelected}
-                    add={add}
-                    select={select}
-                />
-            );
-        },
-        [props.selectedItemRef],
+    const renderOptionValue = useCallback((
+        option: OptionValue,
+        isSelected: boolean,
+        add: (value: OptionValue) => void,
+        select: (value: OptionValue) => void,
+    ) => {
+        return (
+            <ListItem
+                ref={isSelected ? props.selectedItemRef : undefined}
+                key={'more_direct_channels_list_' + option.value}
+                option={option}
+                isSelected={isSelected}
+                add={add}
+                select={select}
+            />
+        );
+    },
+    [props.selectedItemRef],
     );
 
     const dispatch = useDispatch();
 
-    const handleSubmitImmediatelyOn = useCallback(
-        (value: OptionValue) => {
-            return (
-                value.id === props.currentUserId || Boolean(value.delete_at)
-            );
-        },
-        [props.currentUserId],
+    const handleSubmitImmediatelyOn = useCallback((value: OptionValue) => {
+        return (
+            value.id === props.currentUserId || Boolean(value.delete_at)
+        );
+    },
+    [props.currentUserId],
     );
 
     const handleCreateChannel = () => {
