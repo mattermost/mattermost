@@ -114,7 +114,3 @@ export function mountWithIntl<T extends ReactElement | IntlInjectedElement>(elem
         },
     );
 }
-
-export interface MockIntl extends IntlShape {
-    formatMessage: jest.Mock;
-}

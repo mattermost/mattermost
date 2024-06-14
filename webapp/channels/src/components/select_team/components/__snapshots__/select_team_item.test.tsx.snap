@@ -17,6 +17,7 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
     </span>
     <span
       className="fa fa-refresh fa-spin right signup-team__icon"
+      title="Loading Icon"
     />
   </a>
 </div>
@@ -39,9 +40,11 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
     </span>
     <i
       className="fa fa-lock light"
+      title="Private team"
     />
     <span
       className="fa fa-angle-right right signup-team__icon"
+      title="Join Team Icon"
     />
   </a>
 </div>
@@ -63,6 +66,7 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
     </span>
     <i
       className="fa fa-lock light"
+      title="Private team"
     />
   </a>
 </div>
@@ -85,6 +89,7 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
     </span>
     <span
       className="fa fa-angle-right right signup-team__icon"
+      title="Join Team Icon"
     />
   </a>
 </div>
@@ -121,22 +126,40 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
           "canJoinPrivateTeams": false,
           "canJoinPublicTeams": true,
           "intl": Object {
-            "formatMessage": [MockFunction] {
-              "calls": Array [
-                Array [
-                  Object {
-                    "defaultMessage": "Join Team Icon",
-                    "id": "select_team.join.icon",
-                  },
-                ],
-              ],
-              "results": Array [
-                Object {
-                  "type": "return",
-                  "value": undefined,
-                },
-              ],
+            "$t": [Function],
+            "defaultFormats": Object {},
+            "defaultLocale": "en",
+            "defaultRichTextElements": undefined,
+            "fallbackOnEmptyString": true,
+            "formatDate": [Function],
+            "formatDateTimeRange": [Function],
+            "formatDateToParts": [Function],
+            "formatDisplayName": [Function],
+            "formatList": [Function],
+            "formatListToParts": [Function],
+            "formatMessage": [Function],
+            "formatNumber": [Function],
+            "formatNumberToParts": [Function],
+            "formatPlural": [Function],
+            "formatRelativeTime": [Function],
+            "formatTime": [Function],
+            "formatTimeToParts": [Function],
+            "formats": Object {},
+            "formatters": Object {
+              "getDateTimeFormat": [Function],
+              "getDisplayNames": [Function],
+              "getListFormat": [Function],
+              "getMessageFormat": [Function],
+              "getNumberFormat": [Function],
+              "getPluralRules": [Function],
+              "getRelativeTimeFormat": [Function],
             },
+            "locale": "en",
+            "messages": Object {},
+            "onError": [Function],
+            "onWarn": [Function],
+            "textComponent": "span",
+            "timeZone": "Etc/UTC",
           },
           "loading": false,
           "onTeamClick": [MockFunction],
@@ -179,22 +202,40 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
               canJoinPublicTeams={true}
               intl={
                 Object {
-                  "formatMessage": [MockFunction] {
-                    "calls": Array [
-                      Array [
-                        Object {
-                          "defaultMessage": "Join Team Icon",
-                          "id": "select_team.join.icon",
-                        },
-                      ],
-                    ],
-                    "results": Array [
-                      Object {
-                        "type": "return",
-                        "value": undefined,
-                      },
-                    ],
+                  "$t": [Function],
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "fallbackOnEmptyString": true,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
                   },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "onWarn": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
                 }
               }
               loading={false}
@@ -255,6 +296,7 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
                 </span>
                 <span
                   className="fa fa-angle-right right signup-team__icon"
+                  title="Join Team Icon"
                 />
               </a>
             </div>,
@@ -300,6 +342,7 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
     </span>
     <span
       className="fa fa-angle-right right signup-team__icon"
+      title="Join Team Icon"
     />
   </a>
 </div>

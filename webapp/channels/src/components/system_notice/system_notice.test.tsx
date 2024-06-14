@@ -5,7 +5,8 @@ import React from 'react';
 
 import SystemNotice from 'components/system_notice/system_notice';
 
-import {mountWithIntl, type MockIntl} from 'tests/helpers/intl-test-helper';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {createTestIntl} from 'tests/react-intl_mock';
 
 describe('components/SystemNotice', () => {
     const baseProps = {
@@ -18,9 +19,7 @@ describe('components/SystemNotice', () => {
         license: {IsLicensed: 'true'},
         config: {},
         analytics: {TOTAL_USERS: 300},
-        intl: {
-            formatMessage: jest.fn(),
-        } as MockIntl,
+        intl: createTestIntl(),
         actions: {
             savePreferences: jest.fn(),
             dismissNotice: jest.fn(),

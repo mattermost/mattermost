@@ -12,7 +12,8 @@ import type {
     Params,
 } from 'components/admin_console/system_user_detail/system_user_detail';
 
-import {shallowWithIntl, type MockIntl} from 'tests/helpers/intl-test-helper';
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {createTestIntl} from 'tests/react-intl_mock';
 
 describe('SystemUserDetail', () => {
     const defaultProps: Props = {
@@ -24,9 +25,7 @@ describe('SystemUserDetail', () => {
         setNavigationBlocked: jest.fn(),
         addUserToTeam: jest.fn(),
         openModal: jest.fn(),
-        intl: {
-            formatMessage: jest.fn(),
-        } as MockIntl,
+        intl: createTestIntl(),
         ...({
             match: {
                 params: {
@@ -53,7 +52,7 @@ describe('SystemUserDetail', () => {
 });
 
 describe('getUserAuthenticationTextField', () => {
-    const intl = {formatMessage: ({defaultMessage}) => defaultMessage} as MockIntl;
+    const intl = createTestIntl();
 
     it('should return empty string if user is not provided', () => {
         const result = getUserAuthenticationTextField(intl, false, undefined);

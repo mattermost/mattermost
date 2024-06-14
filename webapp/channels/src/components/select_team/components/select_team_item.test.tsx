@@ -6,7 +6,7 @@ import React from 'react';
 
 import type {Team} from '@mattermost/types/teams';
 
-import type {MockIntl} from 'tests/helpers/intl-test-helper';
+import {createTestIntl} from 'tests/react-intl_mock';
 
 import {SelectTeamItem} from './select_team_item';
 
@@ -17,9 +17,7 @@ describe('components/select_team/components/SelectTeamItem', () => {
         loading: false,
         canJoinPublicTeams: true,
         canJoinPrivateTeams: false,
-        intl: {
-            formatMessage: jest.fn(),
-        } as MockIntl,
+        intl: createTestIntl(),
     };
 
     test('should match snapshot, on public joinable', () => {

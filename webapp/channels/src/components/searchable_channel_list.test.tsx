@@ -6,7 +6,7 @@ import React from 'react';
 
 import {SearchableChannelList} from 'components/searchable_channel_list';
 
-import {type MockIntl} from 'tests/helpers/intl-test-helper';
+import {createTestIntl} from 'tests/react-intl_mock';
 
 import {Filter} from './browse_channels/browse_channels';
 
@@ -28,9 +28,7 @@ describe('components/SearchableChannelList', () => {
         rememberHideJoinedChannelsChecked: false,
         noResultsText: <>{'no channel found'}</>,
         filter: Filter.All,
-        intl: {
-            formatMessage: jest.fn(),
-        } as MockIntl,
+        intl: createTestIntl(),
     };
 
     test('should match init snapshot', () => {

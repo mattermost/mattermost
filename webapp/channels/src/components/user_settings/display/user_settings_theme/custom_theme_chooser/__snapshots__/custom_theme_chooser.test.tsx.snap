@@ -21,9 +21,11 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
       >
         <i
           className="fa fa-plus"
+          title="Expand Icon"
         />
         <i
           className="fa fa-minus"
+          title="Collapse Icon"
         />
       </div>
     </div>
@@ -273,9 +275,11 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
       >
         <i
           className="fa fa-plus"
+          title="Expand Icon"
         />
         <i
           className="fa fa-minus"
+          title="Collapse Icon"
         />
       </div>
     </div>
@@ -479,9 +483,11 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
       >
         <i
           className="fa fa-plus"
+          title="Expand Icon"
         />
         <i
           className="fa fa-minus"
+          title="Collapse Icon"
         />
       </div>
     </div>

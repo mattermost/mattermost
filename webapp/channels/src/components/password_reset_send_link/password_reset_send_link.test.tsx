@@ -5,7 +5,8 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
 
-import {mountWithIntl, type MockIntl} from 'tests/helpers/intl-test-helper';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {createTestIntl} from 'tests/react-intl_mock';
 
 import {PasswordResetSendLink} from './password_reset_send_link';
 
@@ -14,9 +15,7 @@ describe('components/PasswordResetSendLink', () => {
         actions: {
             sendPasswordResetEmail: jest.fn().mockResolvedValue({data: true}),
         },
-        intl: {
-            formatMessage: jest.fn(),
-        } as MockIntl,
+        intl: createTestIntl(),
     };
 
     it('should match snapshot', () => {

@@ -9,7 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
 
-import type {MockIntl} from 'tests/helpers/intl-test-helper';
+import {createTestIntl} from 'tests/react-intl_mock';
 import Constants from 'utils/constants';
 
 import {SecurityTab} from './user_settings_security';
@@ -49,9 +49,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         experimentalEnableAuthenticationTransfer: true,
         passwordConfig: {} as PasswordConfig,
         militaryTime: false,
-        intl: {
-            formatMessage: jest.fn(({id, defaultMessage}) => defaultMessage || id),
-        } as MockIntl,
+        intl: createTestIntl(),
     };
 
     test('should match snapshot, enable google', () => {
