@@ -43,158 +43,157 @@ type Props = {
     values: OptionValue[];
 };
 
-const List = React.forwardRef(
-    (props: Props, ref?: React.Ref<MultiSelect<OptionValue>>) => {
-        const renderOptionValue = useCallback(
-            (
-                option: OptionValue,
-                isSelected: boolean,
-                add: (value: OptionValue) => void,
-                select: (value: OptionValue) => void,
-            ) => {
-                return (
-                    <ListItem
-                        ref={isSelected ? props.selectedItemRef : undefined}
-                        key={'more_direct_channels_list_' + option.value}
-                        option={option}
-                        isSelected={isSelected}
-                        add={add}
-                        select={select}
-                    />
-                );
-            },
-            [props.selectedItemRef],
-        );
-
-        const dispatch = useDispatch();
-
-        const handleSubmitImmediatelyOn = useCallback(
-            (value: OptionValue) => {
-                return (
-                    value.id === props.currentUserId || Boolean(value.delete_at)
-                );
-            },
-            [props.currentUserId],
-        );
-
-        const handleCreateChannel = () => {
-            props.handleHide();
-            dispatch(
-                openModal({
-                    modalId: ModalIdentifiers.NEW_CHANNEL_MODAL,
-                    dialogType: NewChannelModal,
-                }),
+const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionValue>>) => {
+    const renderOptionValue = useCallback(
+        (
+            option: OptionValue,
+            isSelected: boolean,
+            add: (value: OptionValue) => void,
+            select: (value: OptionValue) => void,
+        ) => {
+            return (
+                <ListItem
+                    ref={isSelected ? props.selectedItemRef : undefined}
+                    key={'more_direct_channels_list_' + option.value}
+                    option={option}
+                    isSelected={isSelected}
+                    add={add}
+                    select={select}
+                />
             );
-        };
+        },
+        [props.selectedItemRef],
+    );
 
-        const intl = useIntl();
+    const dispatch = useDispatch();
 
-        let note;
-        if (props.isExistingChannel) {
-            if (props.values.length >= MAX_SELECTABLE_VALUES) {
-                note = (
-                    <FormattedMessage
-                        id='more_direct_channels.new_convo_note.full'
-                        defaultMessage={
-                            "You've reached the maximum number of people for this conversation. Consider creating a private channel instead."
-                        }
-                    />
-                );
-            } else {
-                note = (
-                    <FormattedMessage
-                        id='more_direct_channels.new_convo_note'
-                        defaultMessage={
-                            "This will start a new conversation. If you're adding a lot of people, consider creating a private channel instead."
-                        }
-                    />
-                );
-            }
+    const handleSubmitImmediatelyOn = useCallback(
+        (value: OptionValue) => {
+            return (
+                value.id === props.currentUserId || Boolean(value.delete_at)
+            );
+        },
+        [props.currentUserId],
+    );
+
+    const handleCreateChannel = () => {
+        props.handleHide();
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.NEW_CHANNEL_MODAL,
+                dialogType: NewChannelModal,
+            }),
+        );
+    };
+
+    const intl = useIntl();
+
+    let note;
+    if (props.isExistingChannel) {
+        if (props.values.length >= MAX_SELECTABLE_VALUES) {
+            note = (
+                <FormattedMessage
+                    id='more_direct_channels.new_convo_note.full'
+                    defaultMessage={
+                        "You've reached the maximum number of people for this conversation. Consider creating a private channel instead."
+                    }
+                />
+            );
+        } else {
+            note = (
+                <FormattedMessage
+                    id='more_direct_channels.new_convo_note'
+                    defaultMessage={
+                        "This will start a new conversation. If you're adding a lot of people, consider creating a private channel instead."
+                    }
+                />
+            );
         }
+    }
 
-        const RemainingText = () => {
-            if (MAX_SELECTABLE_VALUES - props.values.length) {
-                return (
-                    <FormattedMessage
-                        id='multiselect.numPeopleRemaining'
-                        defaultMessage={
-                            'Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. '
-                        }
-                        values={{
-                            num: MAX_SELECTABLE_VALUES - props.values.length,
-                        }}
-                    />
-                );
-            }
+    const RemainingText = () => {
+        if (MAX_SELECTABLE_VALUES - props.values.length) {
             return (
                 <FormattedMessage
-                    id='multiselect.maxPeople'
+                    id='multiselect.numPeopleRemaining'
                     defaultMessage={
-                        "Use ↑↓ to browse, ↵ to select. You can't add more than 7 people. Please <a>create a channel</a> to include more people. "
+                        'Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. '
                     }
                     values={{
-                        a: (chunks: React.ReactNode) => {
-                            return (
-                                <a onClick={handleCreateChannel}>{chunks}</a>
-                            );
-                        },
+                        num: MAX_SELECTABLE_VALUES - props.values.length,
                     }}
                 />
             );
-        };
-
-        const options = useMemo(() => {
-            return props.options.map(optionValue);
-        }, [props.options]);
-
+        }
         return (
-            <MultiSelect<OptionValue>
-                ref={ref}
-                options={options}
-                optionRenderer={renderOptionValue}
-                intl={intl}
-                selectedItemRef={props.selectedItemRef}
-                values={props.values}
-                valueRenderer={renderValue}
-                ariaLabelRenderer={renderAriaLabel}
-                perPage={USERS_PER_PAGE}
-                handlePageChange={props.handlePageChange}
-                handleInput={props.search}
-                handleDelete={props.handleDelete}
-                handleAdd={props.addValue}
-                handleSubmit={props.handleSubmit}
-                noteText={note}
-                maxValues={MAX_SELECTABLE_VALUES}
-                numRemainingText={<RemainingText/>}
-                buttonSubmitText={
-                    <FormattedMessage
-                        id='multiselect.go'
-                        defaultMessage='Go'
-                    />
+            <FormattedMessage
+                id='multiselect.maxPeople'
+                defaultMessage={
+                    "Use ↑↓ to browse, ↵ to select. You can't add more than 7 people. Please <a>create a channel</a> to include more people. "
                 }
-                buttonSubmitLoadingText={
-                    <FormattedMessage
-                        id='multiselect.loading'
-                        defaultMessage='Loading...'
-                    />
-                }
-                submitImmediatelyOn={handleSubmitImmediatelyOn}
-                saving={props.saving}
-                loading={props.loading}
-                users={props.users}
-                totalCount={props.totalCount}
-                placeholderText={intl.formatMessage({
-                    id: 'multiselect.placeholder',
-                    defaultMessage: 'Search and add members',
-                })}
+                values={{
+                    a: (chunks: React.ReactNode) => {
+                        return (
+                            <a onClick={handleCreateChannel}>{chunks}</a>
+                        );
+                    },
+                }}
             />
         );
-    },
+    };
+
+    const options = useMemo(() => {
+        return props.options.map(optionValue);
+    }, [props.options]);
+
+    return (
+        <MultiSelect<OptionValue>
+            ref={ref}
+            options={options}
+            optionRenderer={renderOptionValue}
+            intl={intl}
+            selectedItemRef={props.selectedItemRef}
+            values={props.values}
+            valueRenderer={renderValue}
+            ariaLabelRenderer={renderAriaLabel}
+            perPage={USERS_PER_PAGE}
+            handlePageChange={props.handlePageChange}
+            handleInput={props.search}
+            handleDelete={props.handleDelete}
+            handleAdd={props.addValue}
+            handleSubmit={props.handleSubmit}
+            noteText={note}
+            maxValues={MAX_SELECTABLE_VALUES}
+            numRemainingText={<RemainingText/>}
+            buttonSubmitText={
+                <FormattedMessage
+                    id='multiselect.go'
+                    defaultMessage='Go'
+                />
+            }
+            buttonSubmitLoadingText={
+                <FormattedMessage
+                    id='multiselect.loading'
+                    defaultMessage='Loading...'
+                />
+            }
+            submitImmediatelyOn={handleSubmitImmediatelyOn}
+            saving={props.saving}
+            loading={props.loading}
+            users={props.users}
+            totalCount={props.totalCount}
+            placeholderText={intl.formatMessage({
+                id: 'multiselect.placeholder',
+                defaultMessage: 'Search and add members',
+            })}
+        />
+    );
+},
 );
 
 export default List;
 
-function renderValue(props: { data: OptionValue }) {
+function renderValue(props: {data: OptionValue }) {
     return (props.data as UserProfile).username;
 }
 
