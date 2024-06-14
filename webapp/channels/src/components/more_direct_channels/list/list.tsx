@@ -7,7 +7,7 @@ import {useDispatch} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {closeModal, openModal} from 'actions/views/modals';
+import {openModal} from 'actions/views/modals';
 
 import MultiSelect from 'components/multiselect/multiselect';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
@@ -27,6 +27,7 @@ type Props = {
     handleDelete: (values: OptionValue[]) => void;
     handlePageChange: (page: number, prevPage: number) => void;
     handleSubmit: (values?: OptionValue[]) => void;
+    handleHide: () => void;
     isExistingChannel: boolean;
     loading: boolean;
     options: Option[];
@@ -68,9 +69,10 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
     }, [props.currentUserId]);
 
     const handleCreateChannel = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-        e.preventDefault();
-        dispatch(closeModal(ModalIdentifiers.ADD_USER_TO_CHANNEL));
+        e.preventDefault()
+        props.handleHide()
         dispatch(openModal({modalId: ModalIdentifiers.NEW_CHANNEL_MODAL, dialogType: NewChannelModal}));
+        
     };
 
     const intl = useIntl();
@@ -95,7 +97,7 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
     }
 
     let remainingText;
-    if (MAX_SELECTABLE_VALUES >= props.values.length) {
+    if (MAX_SELECTABLE_VALUES > props.values.length) {
         remainingText = (
             <FormattedMessage
                 id={'multiselect.numPeopleRemaining'}
@@ -109,8 +111,9 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
         remainingText = (
             <FormattedMessage
                 id={'multiselect.maxPeople'}
-                defaultMessage={'Use ↑↓ to browse, ↵ to select. You can\'t add more than 7 people. Please <a>create a channel</a> to include more people.'}
+                defaultMessage={'Use ↑↓ to browse, ↵ to select. You can\'t add more than {num} people. Please <a>create a channel</a> to include more people.'}
                 values={{
+                    num: MAX_SELECTABLE_VALUES,
                     a: (chunks: React.ReactNode) => {
                         return (
                             <a
