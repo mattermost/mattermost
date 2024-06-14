@@ -18,7 +18,7 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import Pluggable from 'plugins/pluggable';
 import {getHistory} from 'utils/browser_history';
-import {A11yCustomEventTypes, UserStatuses} from 'utils/constants';
+import {A11yCustomEventTypes, PostTypes, UserStatuses} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
@@ -239,7 +239,7 @@ const ProfilePopover = ({
 
 function getDefaultChannelId(state: GlobalState) {
     const selectedPost = getSelectedPost(state);
-    return selectedPost.exists ? selectedPost.channel_id : getCurrentChannelId(state);
+    return selectedPost.type === PostTypes.FAKE_PARENT_DELETED ? selectedPost.channel_id : getCurrentChannelId(state);
 }
 
 export default React.memo(ProfilePopover);

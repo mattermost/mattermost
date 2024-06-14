@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Channel} from '@mattermost/types/channels';
-import type {Post, PostType} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {SidebarSize} from 'components/resizable_sidebar/constants';
@@ -13,8 +13,7 @@ export type SearchType = '' | 'files' | 'messages';
 
 export type FakePost = {
     id: Post['id'];
-    exists: boolean;
-    type: PostType;
+    type: 'system_fake_parent_deleted';
     message: string;
     reply_count: number;
     channel_id: Channel['id'];

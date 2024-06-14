@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Channel} from '@mattermost/types/channels';
-import type {Post, PostType} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -89,8 +89,7 @@ export const getSelectedPost = createSelector(
         // If there is no root post found, assume it has been deleted by data retention policy, and create a fake one.
         return {
             id: selectedPostId,
-            exists: false,
-            type: PostTypes.FAKE_PARENT_DELETED as PostType,
+            type: PostTypes.FAKE_PARENT_DELETED,
             message: localizeMessage('rhs_thread.rootPostDeletedMessage.body', 'Part of this thread has been deleted due to a data retention policy. You can no longer reply to this thread.'),
             channel_id: selectedPostChannelId,
             user_id: currentUserId,

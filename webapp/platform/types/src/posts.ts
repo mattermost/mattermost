@@ -98,7 +98,6 @@ export type Post = {
     participants?: any; //Array<UserProfile | UserProfile['id']>;
     message_source?: string;
     is_following?: boolean;
-    exists?: boolean;
 };
 
 export type PostState = 'DELETED';
