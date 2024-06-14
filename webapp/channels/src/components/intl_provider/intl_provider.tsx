@@ -10,6 +10,7 @@ import {Client4} from 'mattermost-redux/client';
 import {setLocalizeFunction} from 'mattermost-redux/utils/i18n_utils';
 
 import * as I18n from 'i18n/i18n';
+import GlobalIntlManager from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
 
 type Props = {
@@ -68,6 +69,7 @@ export default class IntlProvider extends React.PureComponent<Props> {
                 textComponent='span'
                 wrapRichTextChunksInFragment={false}
             >
+                <GlobalIntlManager/>
                 {this.props.children}
             </BaseIntlProvider>
         );
