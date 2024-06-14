@@ -60,15 +60,12 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
                 select={select}
             />
         );
-    }, [props.selectedItemRef],
-    );
+    }, [props.selectedItemRef]);
 
     const dispatch = useDispatch();
 
     const handleSubmitImmediatelyOn = useCallback((value: OptionValue) => {
-        return (
-            value.id === props.currentUserId || Boolean(value.delete_at)
-        );
+        return value.id === props.currentUserId || Boolean(value.delete_at);
     }, [props.currentUserId]);
 
     const handleCreateChannel = () => {
@@ -89,18 +86,14 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
             note = (
                 <FormattedMessage
                     id='more_direct_channels.new_convo_note.full'
-                    defaultMessage={
-                        "You've reached the maximum number of people for this conversation. Consider creating a private channel instead."
-                    }
+                    defaultMessage={'You\'ve reached the maximum number of people for this conversation. Consider creating a private channel instead.'}
                 />
             );
         } else {
             note = (
                 <FormattedMessage
                     id='more_direct_channels.new_convo_note'
-                    defaultMessage={
-                        "This will start a new conversation. If you're adding a lot of people, consider creating a private channel instead."
-                    }
+                    defaultMessage={'You\'ve reached the maximum number of people for this conversation. Consider creating a private channel instead.'}
                 />
             );
         }
@@ -177,10 +170,7 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
             loading={props.loading}
             users={props.users}
             totalCount={props.totalCount}
-            placeholderText={intl.formatMessage({
-                id: 'multiselect.placeholder',
-                defaultMessage: 'Search and add members',
-            })}
+            placeholderText={intl.formatMessage({id: 'multiselect.placeholder', defaultMessage: 'Search and add members'})}
         />
     );
 },
@@ -188,7 +178,7 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
 
 export default List;
 
-function renderValue(props: {data: OptionValue }) {
+function renderValue(props: {data: OptionValue}) {
     return (props.data as UserProfile).username;
 }
 
