@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import throttle from 'lodash/throttle';
 import React, {useState, useEffect, useRef, useCallback} from 'react';
 import type {FormEvent} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 
@@ -49,7 +49,6 @@ import PasswordInput from 'components/widgets/inputs/password_input/password_inp
 
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
-import {t} from 'utils/i18n';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp} from 'utils/user_agent';
 import {setCSRFFromCookie} from 'utils/utils';
@@ -67,7 +66,8 @@ type LoginProps = {
 }
 
 const Login = ({onCustomizeHeader}: LoginProps) => {
-    const {formatMessage} = useIntl();
+    const intl = useIntl();
+    const {formatMessage} = intl;
     const dispatch = useDispatch();
     const history = useHistory();
     const {pathname, search, hash} = useLocation();
@@ -522,14 +522,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         currentLoginId = currentLoginId.trim().toLowerCase();
 
         if (!currentLoginId) {
-            t('login.noEmail');
-            t('login.noEmailLdapUsername');
-            t('login.noEmailUsername');
-            t('login.noEmailUsernameLdapUsername');
-            t('login.noLdapUsername');
-            t('login.noUsername');
-            t('login.noUsernameLdapUsername');
-
             // it's slightly weird to be constructing the message ID, but it's a bit nicer than triply nested if statements
             let msgId = 'login.no';
             if (enableSignInWithEmail) {
@@ -925,5 +917,36 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         </div>
     );
 };
+
+defineMessages({
+    noEmail: {
+        id: 'login.noEmail',
+        defaultMessage: 'Please enter your email',
+    },
+    noEmailLdapUsername: {
+        id: 'login.noEmailLdapUsername',
+        defaultMessage: 'Please enter your email or {ldapUsername}',
+    },
+    noEmailUsername: {
+        id: 'login.noEmailUsername',
+        defaultMessage: 'Please enter your email or username',
+    },
+    noEmailUsernameLdapUsername: {
+        id: 'login.noEmailUsernameLdapUsername',
+        defaultMessage: 'Please enter your email, username or {ldapUsername}',
+    },
+    noLdapUsername: {
+        id: 'login.noLdapUsername',
+        defaultMessage: 'Please enter your {ldapUsername}',
+    },
+    noUsername: {
+        id: 'login.noUsername',
+        defaultMessage: 'Please enter your username',
+    },
+    noUsernameLdapUsername: {
+        id: 'login.noUsernameLdapUsername',
+        defaultMessage: 'Please enter your username or {ldapUsername}',
+    },
+});
 
 export default Login;
