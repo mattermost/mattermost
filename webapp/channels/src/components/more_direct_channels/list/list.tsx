@@ -94,36 +94,12 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
         }
     }
 
-    const RemainingText = () => {
-        if (MAX_SELECTABLE_VALUES - props.values.length) {
-            return (
-                <FormattedMessage
-                    id='multiselect.numPeopleRemaining'
-                    defaultMessage={
-                        'Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. '
-                    }
-                    values={{
-                        num: MAX_SELECTABLE_VALUES - props.values.length,
-                    }}
-                />
-            );
-        }
-        return (
-            <FormattedMessage
-                id='multiselect.maxPeople'
-                defaultMessage={
-                    "Use ↑↓ to browse, ↵ to select. You can't add more than 7 people. Please <a>create a channel</a> to include more people. "
-                }
-                values={{
-                    a: (chunks: React.ReactNode) => {
-                        return (
-                            <a onClick={handleCreateChannel}>{chunks}</a>
-                        );
-                    },
-                }}
-            />
-        );
-    };
+    let remainingText;
+    if (MAX_SELECTABLE_VALUES >= props.values.length) {
+        remainingText = 'Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. ';
+    } else {
+        remainingText = 'Use ↑↓ to browse, ↵ to select. You can\'t add more than 7 people. Please <a>create a channel</a> to include more people. ';
+    }
 
     const options = useMemo(() => {
         return props.options.map(optionValue);
@@ -147,7 +123,19 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
             handleSubmit={props.handleSubmit}
             noteText={note}
             maxValues={MAX_SELECTABLE_VALUES}
-            numRemainingText={<RemainingText/>}
+            numRemainingText={
+                <FormattedMessage
+                    id='multiselect.numPeopleRemaining'
+                    defaultMessage={remainingText}
+                    values={{
+                        num: MAX_SELECTABLE_VALUES - props.values.length,
+                        a: (chunks: React.ReactNode) => {
+                            return (
+                                <a onClick={handleCreateChannel}>{chunks}</a>
+                            );
+                        },
+                    }}
+                />}
             buttonSubmitText={
                 <FormattedMessage
                     id='multiselect.go'
