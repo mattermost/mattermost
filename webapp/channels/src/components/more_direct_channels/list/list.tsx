@@ -135,7 +135,8 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
                             );
                         },
                     }}
-                />}
+                />
+            }
             buttonSubmitText={
                 <FormattedMessage
                     id='multiselect.go'
