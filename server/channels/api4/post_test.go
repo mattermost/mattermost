@@ -230,6 +230,24 @@ func TestCreatePost(t *testing.T) {
 	rpost, _, err = th.SystemAdminClient.CreatePost(context.Background(), post)
 	require.NoError(t, err)
 	require.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
+
+	t.Run("Should not be able to define the RemoteId of a post from the API", func(t *testing.T) {
+		newPost := &model.Post{
+			RemoteId:  model.NewString(model.NewId()),
+			ChannelId: th.BasicChannel.Id,
+			Message:   "post content " + model.NewId(),
+			DeleteAt:  0,
+		}
+
+		respPost, resp, err := th.SystemAdminClient.CreatePost(context.Background(), newPost)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Zero(t, *respPost.RemoteId)
+
+		createdPost, appErr := th.App.GetSinglePost(th.Context, respPost.Id, false)
+		require.Nil(t, appErr)
+		require.Zero(t, *createdPost.RemoteId)
+	})
 }
 
 func TestCreatePostForPriority(t *testing.T) {
@@ -1627,7 +1645,7 @@ func TestPinPost(t *testing.T) {
 	_, err := client.PinPost(context.Background(), post.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(post.Id, false)
+	rpost, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
 	require.Nil(t, appErr)
 	require.True(t, rpost.IsPinned, "failed to pin post")
 
@@ -1657,7 +1675,7 @@ func TestUnpinPost(t *testing.T) {
 	_, err := client.UnpinPost(context.Background(), pinnedPost.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id, false)
+	rpost, appErr := th.App.GetSinglePost(th.Context, pinnedPost.Id, false)
 	require.Nil(t, appErr)
 	require.False(t, rpost.IsPinned)
 

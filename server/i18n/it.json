@@ -5612,10 +5612,6 @@
     "translation": "Aggiornamento membro squadra invalido: Un utente deve essere ospite o utente ma non entrambi."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Rinnova licenza"
-  },
-  {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "La licenza enterprise è scaduta e alcune funzionalità possono essere disabilitate. Rinnovare la licenza."
   },
@@ -6972,10 +6968,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": " "
-  },
-  {
     "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
     "translation": " "
   },
@@ -7017,10 +7009,6 @@
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
-    "translation": " "
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
     "translation": " "
   },
   {
@@ -7484,10 +7472,6 @@
     "translation": " "
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.no_license",
     "translation": " "
   },
@@ -7628,10 +7612,6 @@
     "translation": " "
   },
   {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.user.invalidate_verify_email_tokens_delete.error",
     "translation": " "
   },
@@ -7692,10 +7672,6 @@
     "translation": " "
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": " "
-  },
-  {
     "id": "app.notification.body.thread_channel.subTitle",
     "translation": " "
   },
@@ -7709,10 +7685,6 @@
   },
   {
     "id": "api.custom_groups.must_be_referenceable",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
     "translation": " "
   },
   {
@@ -8332,10 +8304,6 @@
     "translation": " "
   },
   {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": " "
-  },
-  {
     "id": "app.group.id.app_error",
     "translation": " "
   },
@@ -8525,10 +8493,6 @@
   },
   {
     "id": "bleveengine.create_file_index.error",
-    "translation": " "
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
     "translation": " "
   },
   {

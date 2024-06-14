@@ -764,7 +764,12 @@ func (a *App) RestoreChannel(c request.CTX, channel *model.Channel, userID strin
 	channel.DeleteAt = 0
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelRestored, channel.TeamId, "", "", nil, "")
+	var message *model.WebSocketEvent
+	if channel.Type == model.ChannelTypeOpen {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelRestored, channel.TeamId, "", "", nil, "")
+	} else {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelRestored, "", channel.Id, "", nil, "")
+	}
 	message.Add("channel_id", channel.Id)
 	a.Publish(message)
 
@@ -1497,7 +1502,12 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
+	var message *model.WebSocketEvent
+	if channel.Type == model.ChannelTypeOpen {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
+	} else {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, "", channel.Id, "", nil, "")
+	}
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
 	a.Publish(message)
@@ -2682,7 +2692,7 @@ func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID s
 	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(c, userID) {
 		return a.markChannelAsUnreadFromPostCRTUnsupported(c, postID, userID)
 	}
-	post, err := a.GetSinglePost(postID, false)
+	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2709,7 +2719,7 @@ func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID s
 }
 
 func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
-	post, appErr := a.GetSinglePost(postID, false)
+	post, appErr := a.GetSinglePost(c, postID, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2748,7 +2758,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 	//                          If there are replies with mentions below the marked reply in the thread, then sum the mentions for the threads mention badge.
 	// In CRT Unsupported Client: Channel is marked as unread and new messages line inserted above the marked post.
 	//                            Badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
-	rootPost, appErr := a.GetSinglePost(post.RootId, false)
+	rootPost, appErr := a.GetSinglePost(c, post.RootId, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3078,8 +3088,13 @@ func (a *App) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *mod
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
 
+	var message *model.WebSocketEvent
+	if channel.Type == model.ChannelTypeOpen {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
+	} else {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, "", channel.Id, "", nil, "")
+	}
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
 	a.Publish(message)

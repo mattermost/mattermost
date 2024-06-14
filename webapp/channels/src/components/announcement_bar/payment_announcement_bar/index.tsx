@@ -3,7 +3,7 @@
 
 import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
@@ -18,7 +18,6 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 import {getHistory} from 'utils/browser_history';
 import {isCustomerCardExpired} from 'utils/cloud_utils';
 import {AnnouncementBarTypes, CloudProducts, ConsolePages} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import AnnouncementBar from '../default_announcement_bar';
 
@@ -78,11 +77,17 @@ export default function PaymentAnnouncementBar() {
             type={AnnouncementBarTypes.CRITICAL}
             showCloseButton={false}
             onButtonClick={updatePaymentInfo}
-            modalButtonText={t('admin.billing.subscription.updatePaymentInfo')}
-            modalButtonDefaultText={'Update payment info'}
+            modalButtonText={messages.updatePaymentInfo}
             message={message}
             showLinkAsButton={true}
             isTallBanner={true}
         />
     );
 }
+
+const messages = defineMessages({
+    updatePaymentInfo: {
+        id: 'admin.billing.subscription.updatePaymentInfo',
+        defaultMessage: 'Update payment info',
+    },
+});

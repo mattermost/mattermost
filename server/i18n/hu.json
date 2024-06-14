@@ -2088,18 +2088,6 @@
     "translation": "[{{.SiteName}}] Új közvetlen üzenet {{.SenderDisplayName}} felhasználótól {{.Year}}-{{.Month}}-{{.Day}} napon"
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Nincs jelen licenc"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Ez a típusú licenc nem támogatja a megújítási token generálást"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Nem sikerült generálni egy új megújítási tokent."
-  },
-  {
     "id": "app.job.update.app_error",
     "translation": "Nem sikerült frissíteni a munkát."
   },
@@ -5332,10 +5320,6 @@
     "translation": "Az Enterprise Edition licencje lejárt, és egyes funkciók le vannak tiltva. Kérjük, újítsa meg a licencét most."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Újítsa meg licencét most"
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "Kérdése van?"
   },
@@ -7561,10 +7545,6 @@
     "translation": "Nem sikerült megszerezni a próba licencet, kérjük próbálkozzon újra, vagy írjon a support@mattermost.com címre."
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Hiba történt a licenc megújítási link lekérése közben"
-  },
-  {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
     "translation": "A licenc igényléséhez el kell fogadnia a Mattermost szoftver használati megállapodását és az adatvédelmi irányelveit."
   },
@@ -8403,20 +8383,8 @@
     "translation": "A Mattermost előfizetése megújításra szorul"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "A megújításhoz jelentkezzen be az Ügyfél fiókjába"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "A licence megújításra szorul"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Megújítás most"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Hiba történt a licenc megújító link elkészítése közben"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
@@ -8565,10 +8533,6 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "A kapott Bejegyzés Azonosítók száma meghaladja a maximális mennyiséget ({{.MaxLength}})"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Ennek a licensznek a portálon keresztüli megújítása nem lehetséges"
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
@@ -8887,20 +8851,8 @@
     "translation": "Nincs elég jogosultsága a parancs futtatásához."
   },
   {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Nem sikerült lekérni az összes bejövő webhook számát"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Nem sikerült lekérni az összes aktív felhasználó számát"
-  },
-  {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
     "translation": "A tartós értesítést tartalmazó üzenetnek legfeljebb {{.MaxRecipients}} címzettje lehet."
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Nem sikerült lekérni az összes kimenő webhook számát"
   },
   {
     "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
@@ -8917,10 +8869,6 @@
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Érvénytelen üzleti e-mail a próbaidőszakhoz"
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Nem sikerült elküldeni a CWS-nek a true up profilt."
   },
   {
     "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
@@ -8945,10 +8893,6 @@
   {
     "id": "api.context.ip_filtering.not_available.app_error",
     "translation": "Az IP-szűrés nem érhető el ezen a kiszolgálón"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Nem sikerült létrehozni a true up állapotrekordot"
   },
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",

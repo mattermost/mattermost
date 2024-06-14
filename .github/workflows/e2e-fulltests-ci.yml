@@ -30,7 +30,7 @@ on:
         default: NONE
 
 concurrency:
-  group: "${{ github.workflow }}-${{ inputs.PR_NUMBER || inputs.ref }}"
+  group: "${{ github.workflow }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
   cancel-in-progress: true
 
 jobs:
@@ -63,10 +63,14 @@ jobs:
             echo "commit_sha=$(git rev-parse --verify HEAD)" >> $GITHUB_OUTPUT
             echo "BRANCH=${{ inputs.ref || github.sha }}" >> $GITHUB_OUTPUT
           fi
+
   generate-test-variables:
     runs-on: ubuntu-22.04
     needs:
       - resolve-ref
+    permissions:
+      issues: write
+      pull-requests: write
     defaults:
       run:
         shell: bash
@@ -77,12 +81,15 @@ jobs:
       TEST_FILTER: "${{ steps.generate.outputs.TEST_FILTER }}"
       BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"
     env:
+      GH_TOKEN: "${{ github.token }}"
+      PR_NUMBER: "${{ inputs.PR_NUMBER || '' }}"
       # We could exclude the @smoke group for PRs, but then we wouldn't have it in the report
       TEST_FILTER_PR: >-
         --stage="@prod"
         --excludeGroup="@te_only,@cloud_only,@high_availability"
         --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap"
         --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
+      MM_ENV: "${{ inputs.MM_ENV || '' }}"
     steps:
       - name: ci/generate-test-variables
         id: generate
@@ -91,9 +98,10 @@ jobs:
           # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
           # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
           BUILD_ID_PREFIX="${{ github.run_id }}_${{ github.run_attempt }}-${COMMIT_SHA::7}"
+          MM_ENV_HASH=$(md5sum -z <<<"$MM_ENV" | cut -c-8)
           case "${{ inputs.REPORT_TYPE }}" in
             NONE | PR)
-              echo "status_check_context=E2E Tests/test" >> $GITHUB_OUTPUT
+              echo "status_check_context=E2E Tests/test${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
               echo "workers_number=20" >> $GITHUB_OUTPUT
               echo "ENABLED_DOCKER_SERVICES=postgres inbucket minio openldap elasticsearch keycloak" >> $GITHUB_OUTPUT
               echo "TEST_FILTER=$TEST_FILTER_PR" >> $GITHUB_OUTPUT
@@ -104,6 +112,19 @@ jobs:
               echo "Fatal: unimplemented test type. Aborting."
               exit 1
           esac
+      - name: ci/notify-user
+        run: |
+          if [ -n "$PR_NUMBER" ]; then
+            WORKFLOW_RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            CYCLE_URL="https://automation-dashboard.vercel.app/cycle/${{ github.run_id }}"
+            gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
+          E2E test run is starting for commit \`${{ needs.resolve-ref.outputs.commit_sha }}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
+          You can check its progress by either:
+          - Looking at the corresponding commit status, which will be available in a few moments: \`${{ steps.generate.outputs.status_check_context }}\`.
+          - Looking at the [E2E test's Workflow Run]($WORKFLOW_RUN_URL), with Run ID \`${{ github.run_id }}\`.
+          - Looking at the [E2E test's Cycle on the Automation Dashboard]($CYCLE_URL).
+          EOF
+          fi
 
   e2e-fulltest:
     needs:

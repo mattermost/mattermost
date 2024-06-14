@@ -2,10 +2,8 @@
 // See LICENSE.txt for license information.
 
 .Drafts {
-    --border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-
     &__header {
-        border-bottom: var(--border);
+        border-bottom: var(--border-default);
         grid-area: header;
     }
 
@@ -44,7 +42,7 @@
         }
 
         .Header {
-            border-top: var(--border);
+            border-top: var(--border-default);
         }
     }
 }

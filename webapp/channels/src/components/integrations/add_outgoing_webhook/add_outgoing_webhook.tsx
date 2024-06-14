@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
+import {defineMessages} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
@@ -11,11 +12,20 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook';
 
-import {t} from 'utils/i18n';
-
-const HEADER = {id: t('integrations.add'), defaultMessage: 'Add'};
-const FOOTER = {id: t('add_outgoing_webhook.save'), defaultMessage: 'Save'};
-const LOADING = {id: t('add_outgoing_webhook.saving'), defaultMessage: 'Saving...'};
+const messages = defineMessages({
+    footer: {
+        id: 'add_outgoing_webhook.save',
+        defaultMessage: 'Save',
+    },
+    header: {
+        id: 'integrations.add',
+        defaultMessage: 'Add',
+    },
+    loading: {
+        id: 'add_outgoing_webhook.saving',
+        defaultMessage: 'Saving...',
+    },
+});
 
 export type Props = {
 
@@ -65,9 +75,9 @@ const AddOutgoingWebhook = ({team, actions, enablePostUsernameOverride, enablePo
     return (
         <AbstractOutgoingWebhook
             team={team}
-            header={HEADER}
-            footer={FOOTER}
-            loading={LOADING}
+            header={messages.header}
+            footer={messages.footer}
+            loading={messages.loading}
             renderExtra={''}
             action={addOutgoingHook}
             serverError={serverError}

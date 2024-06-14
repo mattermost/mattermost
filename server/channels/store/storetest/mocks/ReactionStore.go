@@ -198,6 +198,36 @@ func (_m *ReactionStore) GetForPostSince(postId string, since int64, excludeRemo
 	return r0, r1
 }
 
+// GetSingle provides a mock function with given fields: userID, postID, remoteID, emojiName
+func (_m *ReactionStore) GetSingle(userID string, postID string, remoteID string, emojiName string) (*model.Reaction, error) {
+	ret := _m.Called(userID, postID, remoteID, emojiName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSingle")
+	}
+
+	var r0 *model.Reaction
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string) (*model.Reaction, error)); ok {
+		return rf(userID, postID, remoteID, emojiName)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, string) *model.Reaction); ok {
+		r0 = rf(userID, postID, remoteID, emojiName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Reaction)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, string) error); ok {
+		r1 = rf(userID, postID, remoteID, emojiName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUniqueCountForPost provides a mock function with given fields: postId
 func (_m *ReactionStore) GetUniqueCountForPost(postId string) (int, error) {
 	ret := _m.Called(postId)

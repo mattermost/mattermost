@@ -26,10 +26,14 @@ describe('components/feature_discovery', () => {
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
-                    titleID='translation.test.title'
-                    titleDefault='Foo'
-                    copyID='translation.test.copy'
-                    copyDefault={'Bar'}
+                    title={{
+                        id: 'translation.test.title',
+                        defaultMessage: 'Foo',
+                    }}
+                    copy={{
+                        id: 'translation.test.copy',
+                        defaultMessage: 'Bar',
+                    }}
                     learnMoreURL='https://test.mattermost.com/secondary/'
                     featureDiscoveryImage={<SamlSVG/>}
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -82,10 +86,14 @@ describe('components/feature_discovery', () => {
                     <FeatureDiscovery
                         featureName='test'
                         minimumSKURequiredForFeature={LicenseSkus.Professional}
-                        titleID='translation.test.title'
-                        titleDefault='Foo'
-                        copyID='translation.test.copy'
-                        copyDefault={'Bar'}
+                        title={{
+                            id: 'translation.test.title',
+                            defaultMessage: 'Foo',
+                        }}
+                        copy={{
+                            id: 'translation.test.copy',
+                            defaultMessage: 'Bar',
+                        }}
                         learnMoreURL='https://test.mattermost.com/secondary/'
                         featureDiscoveryImage={<SamlSVG/>}
                         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -139,10 +147,14 @@ describe('components/feature_discovery', () => {
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
-                    titleID='translation.test.title'
-                    titleDefault='Foo'
-                    copyID='translation.test.copy'
-                    copyDefault={'Bar'}
+                    title={{
+                        id: 'translation.test.title',
+                        defaultMessage: 'Foo',
+                    }}
+                    copy={{
+                        id: 'translation.test.copy',
+                        defaultMessage: 'Bar',
+                    }}
                     learnMoreURL='https://test.mattermost.com/secondary/'
                     featureDiscoveryImage={<SamlSVG/>}
                     // eslint-disable-next-line @typescript-eslint/naming-convention
