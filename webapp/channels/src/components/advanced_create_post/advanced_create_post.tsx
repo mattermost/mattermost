@@ -199,7 +199,7 @@ export type Props = {
         setDraft: (name: string, value: PostDraft | null, draftChannelId: string, save?: boolean) => void;
 
         // func called for editing posts
-        setEditingPost: (postId?: string, refocusId?: string, title?: string, isRHS?: boolean) => void;
+        setEditingPost: (postId?: string, refocusId?: string, isRHS?: boolean) => void;
 
         // func called for opening the last replayable post in the RHS
         selectPostFromRightHandSideSearchByPostId: (postId: string) => void;
@@ -1111,16 +1111,10 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             return;
         }
 
-        let type;
-        if (lastPost.root_id && lastPost.root_id.length > 0) {
-            type = Utils.localizeMessage('create_post.comment', Posts.MESSAGE_TYPES.COMMENT);
-        } else {
-            type = Utils.localizeMessage('create_post.post', Posts.MESSAGE_TYPES.POST);
-        }
         if (this.textboxRef.current) {
             this.textboxRef.current.blur();
         }
-        this.props.actions.setEditingPost(lastPost.id, 'post_textbox', type);
+        this.props.actions.setEditingPost(lastPost.id, 'post_textbox');
     };
 
     replyToLastPost = (e: React.KeyboardEvent) => {

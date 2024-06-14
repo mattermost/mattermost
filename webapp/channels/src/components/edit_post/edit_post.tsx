@@ -71,7 +71,6 @@ export type Props = {
         post: Post | null;
         postId?: string;
         refocusId?: string;
-        title?: string;
         isRHS?: boolean;
     };
     isRHSOpened: boolean;

@@ -404,7 +404,6 @@ describe('rhs view actions', () => {
                 PostActions.setEditingPost(
                     latestPostId,
                     'reply_textbox',
-                    'Comment',
                     true,
                 ),
             ]);

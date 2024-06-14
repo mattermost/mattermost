@@ -206,7 +206,6 @@ export function makeOnEditLatestPost(rootId: string): () => ActionFunc<boolean> 
         return dispatch(PostActions.setEditingPost(
             lastPost.id,
             'reply_textbox',
-            Utils.localizeMessage('create_comment.commentTitle', 'Comment'),
             true,
         ));
     };
