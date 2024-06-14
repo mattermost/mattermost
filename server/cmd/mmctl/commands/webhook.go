@@ -131,7 +131,7 @@ func listWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 				printer.PrintT("Incoming:\t{{.DisplayName}} ({{.Id}}", hook)
 			}
 		} else {
-			printer.PrintError("Unable to list incoming webhooks for '" + team.Id + "'")
+			printer.PrintError("Unable to list incoming webhooks for '" + team.Id + "': " + result.Err.Error())
 		}
 
 		if result := <-outgoingResult; result.Err == nil {
@@ -140,7 +140,7 @@ func listWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 				printer.PrintT("Outgoing:\t {{.DisplayName}} ({{.Id}})", hook)
 			}
 		} else {
-			printer.PrintError("Unable to list outgoing webhooks for '" + team.Id + "'")
+			printer.PrintError("Unable to list outgoing webhooks for '" + team.Id + "': " + result.Err.Error())
 		}
 	}
 

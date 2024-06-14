@@ -225,8 +225,8 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 2)
-		s.Require().Equal("Unable to list incoming webhooks for '"+teamID+"'", printer.GetErrorLines()[0])
-		s.Require().Equal("Unable to list outgoing webhooks for '"+teamID+"'", printer.GetErrorLines()[1])
+		s.Require().Equal("Unable to list incoming webhooks for '"+teamID+"': mock error", printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to list outgoing webhooks for '"+teamID+"': mock error", printer.GetErrorLines()[1])
 	})
 }
 
