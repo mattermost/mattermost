@@ -162,15 +162,12 @@ interface State {
 }
 
 export default class Root extends React.PureComponent<Props, State> {
-    private mounted: boolean;
-
     // The constructor adds a bunch of event listeners,
     // so we do need this.
     private a11yController: A11yController;
 
     constructor(props: Props) {
         super(props);
-        this.mounted = false;
 
         // Redux
         setUrl(getSiteURL());
@@ -273,16 +270,8 @@ export default class Root extends React.PureComponent<Props, State> {
             this.props.history.push('/signup_user_complete');
         }
 
-        Promise.all([
-            this.props.actions.initializeProducts(),
-            initializePlugins(),
-        ]).then(() => {
-            if (this.mounted) {
-                // supports enzyme tests, set state if and only if
-                // the component is still mounted on screen
-                this.setState({configLoaded: true});
-            }
-        });
+        this.props.actions.initializeProducts();
+        initializePlugins();
 
         this.props.actions.migrateRecentEmojis();
         this.props.actions.loadRecentlyUsedCustomEmojis();
@@ -401,13 +390,12 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (config) {
             this.onConfigLoaded(config);
+            this.setState({configLoaded: true});
         }
     };
 
     componentDidMount() {
         temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
-
-        this.mounted = true;
 
         this.initiateMeRequests();
 
@@ -419,7 +407,6 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
-        this.mounted = false;
         window.removeEventListener('storage', this.handleLogoutLoginSignal);
     }
 
