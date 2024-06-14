@@ -7,7 +7,7 @@ import {useDispatch} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {openModal} from 'actions/views/modals';
+import {closeModal, openModal} from 'actions/views/modals';
 
 import MultiSelect from 'components/multiselect/multiselect';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
@@ -27,7 +27,6 @@ type Props = {
     handleDelete: (values: OptionValue[]) => void;
     handlePageChange: (page: number, prevPage: number) => void;
     handleSubmit: (values?: OptionValue[]) => void;
-    handleHide: () => void;
     isExistingChannel: boolean;
     loading: boolean;
     options: Option[];
@@ -70,7 +69,7 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
 
     const handleCreateChannel = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         e.preventDefault();
-        props.handleHide();
+        dispatch(closeModal(ModalIdentifiers.ADD_USER_TO_CHANNEL));
         dispatch(openModal({modalId: ModalIdentifiers.NEW_CHANNEL_MODAL, dialogType: NewChannelModal}));
     };
 
