@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {IntlShape} from 'react-intl';
 import {batchActions} from 'redux-batched-actions';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -14,8 +15,6 @@ import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 
-import {localizeMessage} from 'utils/utils';
-
 export interface UploadFile {
     file: File;
     name: string;
@@ -28,7 +27,7 @@ export interface UploadFile {
     onError: (err: string | ServerError, clientId: string, channelId: string, rootId: string) => void;
 }
 
-export function uploadFile({file, name, type, rootId, channelId, clientId, onProgress, onSuccess, onError}: UploadFile): ThunkActionFunc<XMLHttpRequest> {
+export function uploadFile(intl: IntlShape, {file, name, type, rootId, channelId, clientId, onProgress, onSuccess, onError}: UploadFile): ThunkActionFunc<XMLHttpRequest> {
     return (dispatch, getState) => {
         dispatch({type: FileTypes.UPLOAD_FILES_REQUEST});
 
@@ -92,10 +91,13 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                     let errorMessage = '';
                     try {
                         const errorResponse = JSON.parse(xhr.response);
-                        errorMessage =
-                        (errorResponse?.id && errorResponse?.message) ? localizeMessage(errorResponse.id, errorResponse.message) : localizeMessage('file_upload.generic_error', 'There was a problem uploading your files.');
+                        if (errorResponse?.id && errorResponse?.message) {
+                            errorMessage = intl.formatMessage(errorResponse);
+                        } else {
+                            errorMessage = intl.formatMessage({id: 'file_upload.generic_error', defaultMessage: 'There was a problem uploading your files.'});
+                        }
                     } catch (e) {
-                        errorMessage = localizeMessage('file_upload.generic_error', 'There was a problem uploading your files.');
+                        errorMessage = intl.formatMessage({id: 'file_upload.generic_error', defaultMessage: 'There was a problem uploading your files.'});
                     }
 
                     dispatch({
@@ -128,7 +130,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                     dispatch(batchActions([uploadFailureAction, getLogErrorAction(errorResponse)]));
                     onError(errorResponse, clientId, channelId, rootId);
                 } else {
-                    const errorMessage = xhr.status === 0 || !xhr.status ? localizeMessage('file_upload.generic_error', 'There was a problem uploading your files.') : localizeMessage('channel_loader.unknown_error', 'We received an unexpected status code from the server.') + ' (' + xhr.status + ')';
+                    const errorMessage = xhr.status === 0 || !xhr.status ? intl.formatMessage({id: 'file_upload.generic_error', defaultMessage: 'There was a problem uploading your files.'}) : intl.formatMessage({id: 'channel_loader.unknown_error', defaultMessage: 'We received an unexpected status code from the server.'}) + ' (' + xhr.status + ')';
 
                     dispatch({
                         type: FileTypes.UPLOAD_FILES_FAILURE,

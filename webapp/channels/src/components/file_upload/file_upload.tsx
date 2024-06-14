@@ -153,7 +153,7 @@ export type Props = {
         /**
          * Function to be called to upload file
          */
-        uploadFile: ({file, name, type, rootId, channelId, clientId, onProgress, onSuccess, onError}: UploadFile) => XMLHttpRequest;
+        uploadFile: (intl: IntlShape, {file, name, type, rootId, channelId, clientId, onProgress, onSuccess, onError}: UploadFile) => XMLHttpRequest;
     };
 };
 
@@ -268,7 +268,7 @@ export class FileUpload extends PureComponent<Props, State> {
             // generate a unique id that can be used by other components to refer back to this upload
             const clientId = generateId();
 
-            const request = this.props.actions.uploadFile({
+            const request = this.props.actions.uploadFile(this.props.intl, {
                 file: sortedFiles[i],
                 name: sortedFiles[i].name,
                 type: sortedFiles[i].type,
