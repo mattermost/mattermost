@@ -18,7 +18,7 @@ import (
 // channelInviteMsg represents an invitation for a remote cluster to start sharing a channel.
 type channelInviteMsg struct {
 	ChannelId            string            `json:"channel_id"`
-	TeamId               string            `json:"team_id"`
+	TeamId               string            `json:"team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
 	ReadOnly             bool              `json:"read_only"`
 	Name                 string            `json:"name"`
 	DisplayName          string            `json:"display_name"`
