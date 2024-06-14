@@ -45,11 +45,6 @@ const headerLabels = [
             width: '150px',
         },
     },
-    {
-        style: {
-            width: '150px',
-        },
-    },
 ];
 
 type Props = {
