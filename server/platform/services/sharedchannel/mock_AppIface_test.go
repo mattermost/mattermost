@@ -458,10 +458,6 @@ func (_m *MockAppIface) UpdatePost(c request.CTX, post *model.Post, safeUpdate b
 func (_m *MockAppIface) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	ret := _m.Called(c, userID, otherUserId)
 
-	if len(ret) == 0 {
-		panic("no return value specified for UserCanSeeOtherUser")
-	}
-
 	var r0 bool
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (bool, *model.AppError)); ok {
@@ -484,12 +480,13 @@ func (_m *MockAppIface) UserCanSeeOtherUser(c request.CTX, userID string, otherU
 	return r0, r1
 }
 
-// NewMockAppIface creates a new instance of MockAppIface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-// The first argument is typically a *testing.T value.
-func NewMockAppIface(t interface {
+type mockConstructorTestingTNewMockAppIface interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockAppIface {
+}
+
+// NewMockAppIface creates a new instance of MockAppIface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockAppIface(t mockConstructorTestingTNewMockAppIface) *MockAppIface {
 	mock := &MockAppIface{}
 	mock.Mock.Test(t)
 
