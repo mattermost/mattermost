@@ -396,7 +396,12 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
             >
                 <WithTooltip
                     id={`${this.props.location}_${this.props.post.id}_tooltip`}
-                    title={messages.tooltipTitle}
+                    title={
+                        <FormattedMessage
+                            id={messages.tooltipTitle.id}
+                            defaultMessage={messages.tooltipTitle.defaultMessage}
+                        />
+                    }
                     placement='top'
                 >
                     <button

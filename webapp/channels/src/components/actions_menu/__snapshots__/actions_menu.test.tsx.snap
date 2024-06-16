@@ -11,10 +11,10 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
     id="center_post_id_1_tooltip"
     placement="top"
     title={
-      Object {
-        "defaultMessage": "Message actions",
-        "id": "post_info.tooltip.actions",
-      }
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Message actions"
+        id="post_info.tooltip.actions"
+      />
     }
   >
     <button
@@ -62,10 +62,10 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
     id="center_post_id_1_tooltip"
     placement="top"
     title={
-      Object {
-        "defaultMessage": "Message actions",
-        "id": "post_info.tooltip.actions",
-      }
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Message actions"
+        id="post_info.tooltip.actions"
+      />
     }
   >
     <button
@@ -132,10 +132,10 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
     id="center_post_id_1_tooltip"
     placement="top"
     title={
-      Object {
-        "defaultMessage": "Message actions",
-        "id": "post_info.tooltip.actions",
-      }
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Message actions"
+        id="post_info.tooltip.actions"
+      />
     }
   >
     <button
