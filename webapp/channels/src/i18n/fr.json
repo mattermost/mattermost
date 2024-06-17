@@ -4191,6 +4191,8 @@
   "signup_team.no_open_teams": "Vous ne pouvez rejoindre aucune équipe. Veuillez demander une invitation à votre administrateur.",
   "signup_team.no_open_teams_canCreate": "Aucune équipe disponible. Veuillez créer une nouvelle équipe ou demandez une invitation à votre administrateur.",
   "signup_team_system_console": "Aller dans la console système",
+  "signup_user_completed.cardtitle": "Créer votre compte",
+  "signup_user_completed.cardtitle.external": "Créez votre compte avec l'une des options ci-dessous :",
   "signup_user_completed.chooseUser": "Spécifiez votre nom d'utilisateur",
   "signup_user_completed.create": "Créer un compte",
   "signup_user_completed.emailIs": "Vous utiliserez cette adresse pour vous connecter à {siteName}.",
