@@ -2963,6 +2963,7 @@ func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId
 		for _, toUserDmChannel := range toUserDmChannels {
 			fromUserDmChannel := channelNameMap[toUserDmChannel.Name]
 			delete(channelNameMap, toUserDmChannel.Name)
+			rctx.Logger().Info("MergeUsers: Batch merging DM channels.", mlog.String("to_user_dm_channel_id", toUserDmChannel.Id), mlog.String("from_user_dm_channel_id", fromUserDmChannel.Id))
 			// kick off channel merges for toUserDmChannel and fromUserDmChannel
 			a.MergeChannels(rctx, toUserDmChannel, fromUserDmChannel)
 			// Handle special case of user merge where we need to merge the stats of 2 different users/channel members
@@ -2976,6 +2977,7 @@ func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId
 			if channel.CreatorId == fromUserId {
 				channel.CreatorId = toUserId
 			}
+			rctx.Logger().Info("MergeUsers: Batch merging DM channel unique to fromUser.", mlog.String("from_user_id", fromUserId), mlog.String("channel_id", channel.Id))
 			err = a.Srv().Store().Channel().MigrateChannelRecordsToNewUser(channel, toUserId, fromUserId)
 			if err != nil {
 				return errors.Wrapf(err, "failed to migrate channel records for channel %s", channel.Id)
@@ -3012,6 +3014,7 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_posts_and_files.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	rctx.Logger().Info("MergeUsers: Batch merging DM channels")
 	err = a.BatchMergeDmChannels(rctx, toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_dm_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
