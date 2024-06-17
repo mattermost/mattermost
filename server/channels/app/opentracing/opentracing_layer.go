@@ -7308,6 +7308,28 @@ func (a *OpenTracingAppLayer) GetJobsByType(c request.CTX, jobType string, offse
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetJobsByTypeAndStatus(c request.CTX, jobTypes []string, status string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsByTypeAndStatus")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetJobsByTypeAndStatus(c, jobTypes, status, page, perPage)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetJobsByTypePage(c request.CTX, jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsByTypePage")
@@ -16316,6 +16338,23 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(rctx request.CTX, 
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) SessionHasPermissionToManageJob(session model.Session, job *model.Job) (bool, *model.Permission) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToManageJob")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.SessionHasPermissionToManageJob(session, job)
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToReadJob")
@@ -18081,6 +18120,28 @@ func (a *OpenTracingAppLayer) UpdateIncomingWebhook(oldHook *model.IncomingWebho
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UpdateJobStatus(c request.CTX, job *model.Job, newStatus string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateJobStatus")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UpdateJobStatus(c, job, newStatus)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) UpdateMfa(c request.CTX, activate bool, userID string, token string) *model.AppError {
