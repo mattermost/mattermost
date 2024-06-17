@@ -17,9 +17,6 @@ import {markAndReport, measureAndReport} from '.';
 
 jest.mock('web-vitals');
 
-const sendBeacon = jest.fn().mockReturnValue(true);
-navigator.sendBeacon = sendBeacon;
-
 const siteUrl = 'http://localhost:8065';
 
 describe('PerformanceReporter', () => {
@@ -29,7 +26,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should report measurements to the server as histograms', async () => {
-        const {reporter} = newTestReporter();
+        const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -77,7 +74,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should report some marks to the server as counters', async () => {
-        const {reporter} = newTestReporter();
+        const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -121,7 +118,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should report longtasks to the server as counters', async () => {
-        const {reporter} = newTestReporter();
+        const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -166,7 +163,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should report web vitals to the server as histograms', async () => {
-        const {reporter} = newTestReporter();
+        const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -229,7 +226,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should not report anything there is no data to report', async () => {
-        const {reporter} = newTestReporter();
+        const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -247,7 +244,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should not report anything if EnableClientMetrics is false', async () => {
-        const {reporter} = newTestReporter(false);
+        const {reporter, sendBeacon} = newTestReporter(false);
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -267,7 +264,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should not report anything if the user is not logged in', async () => {
-        const {reporter} = newTestReporter(true, false);
+        const {reporter, sendBeacon} = newTestReporter(true, false);
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -290,7 +287,7 @@ describe('PerformanceReporter', () => {
         setPlatform('MacIntel');
         setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0');
 
-        const {reporter} = newTestReporter();
+        const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 
         markAndReport('reportedA');
@@ -317,7 +314,11 @@ describe('PerformanceReporter', () => {
     });
 
     test('should fall back to making a fetch request if a beacon cannot be sent', async () => {
-        const {client, reporter} = newTestReporter();
+        const {
+            client,
+            reporter,
+            sendBeacon,
+        } = newTestReporter();
         reporter.observe();
 
         sendBeacon.mockReturnValue(false);
@@ -344,6 +345,7 @@ describe('PerformanceReporter', () => {
 });
 
 class TestPerformanceReporter extends PerformanceReporter {
+    public sendBeacon: jest.Mock = jest.fn(() => true);
     public reportPeriodBase = 10;
     public reportPeriodJitter = 0;
 
@@ -371,7 +373,11 @@ function newTestReporter(telemetryEnabled = true, loggedIn = true) {
         },
     }));
 
-    return {client, reporter};
+    return {
+        client,
+        reporter,
+        sendBeacon: reporter.sendBeacon,
+    };
 }
 
 function waitForReport() {
