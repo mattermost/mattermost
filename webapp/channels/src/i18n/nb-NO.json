@@ -240,6 +240,8 @@
   "suggestion.mention.groups": "Gruppeomtaler",
   "suggestion.mention.here": "Varsler alle som er på nett i denne kanalen",
   "suggestion.mention.morechannels": "Andre kanaler",
+  "system_notice.title.gm_as_dm": "Oppdateringer til gruppemeldinger",
+  "terms_of_service.api_error": "Kan ikke fullføre forespørselen. Kontakt systemadministratoren hvis dette problemet vedvarer.",
   "user.settings.general.close": "Хааx",
   "user.settings.general.email": "E-post",
   "user.settings.general.firstName": "Fornavn",
