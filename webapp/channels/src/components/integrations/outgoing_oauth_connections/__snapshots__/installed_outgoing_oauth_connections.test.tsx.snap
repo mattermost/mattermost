@@ -68,7 +68,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
             />
           }
           emptyTextSearch={
-            <FormattedMarkdownMessage
+            <Memo(MemoizedFormattedMessage)
               defaultMessage="No Outgoing OAuth Connections match {searchTerm}"
               id="installed_outgoing_oauth_connections.emptySearch"
             />

@@ -85,12 +85,12 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                         role='button'
                         onClick={openEEModal}
                     >
-                        <FormattedMarkdownMessage
+                        <FormattedMessage
                             id='admin.license.enterprise.upgrade.eeLicenseLink'
                             defaultMessage='Enterprise Edition License'
                         />
                     </a>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='admin.license.enterprise.upgrade.acceptTermsFinal'
                         defaultMessage='. Upgrading will download the binary and update your team edition.'
                     />
@@ -114,7 +114,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
         upgradeButton = (
             <div>
                 <p>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='admin.license.upgraded-restart'
                         defaultMessage='You have upgraded your binary to mattermost enterprise, please restart the server to start using the new binary. You can do it right here:'
                     />

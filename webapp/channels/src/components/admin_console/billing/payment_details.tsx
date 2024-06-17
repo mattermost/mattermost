@@ -5,7 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import CardImage from 'components/payment_form/card_image';
 
 import type {GlobalState} from 'types/store';
@@ -26,7 +25,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({children}: PaymentDetail
         <div className='PaymentInfoDisplay__paymentInfo-text'>
             <CardImage brand={customerPaymentInfo.payment_method.card_brand}/>
             <div className='PaymentInfoDisplay__paymentInfo-cardInfo'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='admin.billing.payment_info.cardBrandAndDigits'
                     defaultMessage='{brand} ending in {digits}'
                     values={{
@@ -35,7 +34,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({children}: PaymentDetail
                     }}
                 />
                 <br/>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='admin.billing.payment_info.cardExpiry'
                     defaultMessage='Expires {month}/{year}'
                     values={{

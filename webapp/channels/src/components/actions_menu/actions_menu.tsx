@@ -14,7 +14,6 @@ import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import Permissions from 'mattermost-redux/constants/permissions';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import OverlayTrigger from 'components/overlay_trigger';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
@@ -213,9 +212,9 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 key='visit-marketplace-permissions'
             >
                 <div className='visit-marketplace-text' >
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='post_info.actions.noActions'
-                        defaultMessage='No Actions currently\nconfigured for this server'
+                        defaultMessage='No Actions currently configured for this server'
                     />
                 </div>
                 <div className='visit-marketplace' >
@@ -226,7 +225,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     >
                         <ActionsMenuIcon name='icon-view-grid-plus-outline visit-marketplace-button-icon'/>
                         <span className='visit-marketplace-button-text'>
-                            <FormattedMarkdownMessage
+                            <FormattedMessage
                                 id='post_info.actions.visitMarketplace'
                                 defaultMessage='Visit the Marketplace'
                             />

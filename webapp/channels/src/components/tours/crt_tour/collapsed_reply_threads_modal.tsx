@@ -12,7 +12,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {closeModal} from 'actions/views/modals';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 
 import crtInProductImg from 'images/crt-in-product.gif';
@@ -102,7 +101,7 @@ function CollapsedReplyThreadsModal(props: Props) {
         >
             <div>
                 <p className='productNotices__helpText'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id={'collapsed_reply_threads_modal.description'}
                         defaultMessage={'Threads have been revamped to help you create organized conversation around specific messages. Now, channels will appear less cluttered as replies are collapsed under the original message, and all the conversations you\'re following are available in your **Threads** view. Take the tour to see what\'s new.'}
                     />

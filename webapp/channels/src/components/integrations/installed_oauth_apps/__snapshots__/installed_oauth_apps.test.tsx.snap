@@ -12,7 +12,7 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
     />
   }
   emptyTextSearch={
-    <FormattedMarkdownMessage
+    <Memo(MemoizedFormattedMessage)
       defaultMessage="No OAuth 2.0 Applications match {searchTerm}"
       id="installed_oauth_apps.emptySearch"
     />

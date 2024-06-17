@@ -180,7 +180,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
         let help;
         if (this.props.isMobileView) {
             help = (
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='quick_switch_modal.help_mobile'
                     defaultMessage='Type to find a channel.'
                 />

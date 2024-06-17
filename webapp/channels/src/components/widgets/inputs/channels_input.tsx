@@ -13,7 +13,6 @@ import AsyncSelect from 'react-select/async';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import PublicChannelIcon from 'components/widgets/icons/globe_icon';
 import PrivateChannelIcon from 'components/widgets/icons/lock_icon';
@@ -113,7 +112,7 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
         return (
             <div className='channels-input__option channels-input__option--no-matches'>
                 <Msg {...props}>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         {...this.props.noOptionsMessage}
                         values={{text: inputValue}}
                     />
