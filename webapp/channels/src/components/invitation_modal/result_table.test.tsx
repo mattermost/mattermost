@@ -73,7 +73,7 @@ describe('ResultTable', () => {
     test('emails render as email', () => {
         props.rows = [{
             email: 'aa@aa.aa',
-            reason: 'some reason',
+            reason: {id: 'some_reason', defaultMessage: 'some reason'},
         }];
         const wrapper = shallow(<ResultTable {...props}/>);
         expect(wrapper.find(EmailIcon).length).toBe(1);
@@ -82,7 +82,7 @@ describe('ResultTable', () => {
     test('unsent invites render as unsent invites', () => {
         props.rows = [{
             text: '@incomplete_userna',
-            reason: 'This was not a complete user',
+            reason: {id: 'incomplete_user', defaultMessage: 'This was not a complete user'},
         }];
         const wrapper = shallow(<ResultTable {...props}/>);
         expect(wrapper.find(AlertIcon).length).toBe(1);
@@ -91,7 +91,7 @@ describe('ResultTable', () => {
     test('user invites render as users', () => {
         props.rows = [{
             user: defaultUser,
-            reason: 'added successfuly',
+            reason: {id: 'success', defaultMessage: 'added successfully'},
         }];
         const wrapper = shallow(<ResultTable {...props}/>);
         expect(wrapper.find(Avatar).length).toBe(1);
@@ -105,7 +105,7 @@ describe('ResultTable', () => {
                 ...defaultUser,
                 is_bot: true,
             },
-            reason: 'added successfuly',
+            reason: {id: 'success', defaultMessage: 'added successfully'},
         }];
         const wrapper = shallow(<ResultTable {...props}/>);
         expect(wrapper.find(Avatar).length).toBe(1);
@@ -119,7 +119,7 @@ describe('ResultTable', () => {
                 ...defaultUser,
                 roles: 'system_guest',
             },
-            reason: 'added successfuly',
+            reason: {id: 'success', defaultMessage: 'added successfully'},
         }];
         const wrapper = shallow(<ResultTable {...props}/>);
         expect(wrapper.find(Avatar).length).toBe(1);

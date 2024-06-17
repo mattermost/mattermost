@@ -116,7 +116,6 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
                 status={statusProp}
                 size='md'
                 userId={user.id}
-                hasMention={true}
                 username={user.username}
             />
             <div
