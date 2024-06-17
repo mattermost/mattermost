@@ -3,47 +3,40 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {Tooltip} from 'react-bootstrap';
-import type {IntlShape} from 'react-intl';
-import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import { Tooltip } from 'react-bootstrap';
+import type { IntlShape } from 'react-intl';
+import { FormattedMessage, injectIntl } from 'react-intl';
 
-import type {AppBinding} from '@mattermost/types/apps';
-import type {Post} from '@mattermost/types/posts';
+import type { AppBinding } from '@mattermost/types/apps';
+import type { Post } from '@mattermost/types/posts';
 
-import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
+import { AppCallResponseTypes } from 'mattermost-redux/constants/apps';
 import Permissions from 'mattermost-redux/constants/permissions';
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from 'mattermost-redux/types/actions';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
-import type {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
+import type { OpenedFromType } from 'components/plugin_marketplace/marketplace_modal';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import WithTooltip from 'components/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
-import {createCallContext} from 'utils/apps';
-import {Constants, Locations, ModalIdentifiers} from 'utils/constants';
+import { createCallContext } from 'utils/apps';
+import { Constants, Locations, ModalIdentifiers } from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import type {ModalData} from 'types/actions';
-import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
-import type {PluginComponent} from 'types/store/plugins';
+import type { ModalData } from 'types/actions';
+import type { HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost } from 'types/apps';
+import type { PluginComponent } from 'types/store/plugins';
 
 import './actions_menu.scss';
 
-import {ActionsMenuIcon} from './actions_menu_icon';
+import { ActionsMenuIcon } from './actions_menu_icon';
 
 const MENU_BOTTOM_MARGIN = 80;
-
-const messages = defineMessages({
-    tooltipTitle: {
-        id: 'post_info.tooltip.actions',
-        defaultMessage: 'Message actions',
-    },
-});
 
 export const PLUGGABLE_COMPONENT = 'PostDropdownMenuItem';
 export type Props = {
@@ -147,8 +140,8 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
 
     fetchBindings = () => {
         if (this.props.appsEnabled && !this.state.appBindings) {
-            this.props.actions.fetchBindings(this.props.post.channel_id, this.props.teamId).then(({data}) => {
-                this.setState({appBindings: data});
+            this.props.actions.fetchBindings(this.props.post.channel_id, this.props.teamId).then(({ data }) => {
+                this.setState({ appBindings: data });
             });
         }
     };
@@ -158,13 +151,13 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         const openMarketplaceData = {
             modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
             dialogType: MarketplaceModal,
-            dialogProps: {openedFrom},
+            dialogProps: { openedFrom },
         };
         this.props.actions.openModal(openMarketplaceData);
     };
 
     onClickAppBinding = async (binding: AppBinding) => {
-        const {post, intl} = this.props;
+        const { post, intl } = this.props;
 
         const context = createCallContext(
             binding.app_id,
@@ -189,27 +182,27 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
 
         const callResp = res.data!;
         switch (callResp.type) {
-        case AppCallResponseTypes.OK:
-            if (callResp.text) {
-                this.props.actions.postEphemeralCallResponseForPost(callResp, callResp.text, post);
+            case AppCallResponseTypes.OK:
+                if (callResp.text) {
+                    this.props.actions.postEphemeralCallResponseForPost(callResp, callResp.text, post);
+                }
+                break;
+            case AppCallResponseTypes.NAVIGATE:
+                break;
+            case AppCallResponseTypes.FORM:
+                if (callResp.form) {
+                    this.props.actions.openAppsModal(callResp.form, context);
+                }
+                break;
+            default: {
+                const errorMessage = intl.formatMessage({
+                    id: 'apps.error.responses.unknown_type',
+                    defaultMessage: 'App response type not supported. Response type: {type}.',
+                }, {
+                    type: callResp.type,
+                });
+                this.props.actions.postEphemeralCallResponseForPost(callResp, errorMessage, post);
             }
-            break;
-        case AppCallResponseTypes.NAVIGATE:
-            break;
-        case AppCallResponseTypes.FORM:
-            if (callResp.form) {
-                this.props.actions.openAppsModal(callResp.form, context);
-            }
-            break;
-        default: {
-            const errorMessage = intl.formatMessage({
-                id: 'apps.error.responses.unknown_type',
-                defaultMessage: 'App response type not supported. Response type: {type}.',
-            }, {
-                type: callResp.type,
-            });
-            this.props.actions.postEphemeralCallResponseForPost(callResp, errorMessage, post);
-        }
         }
     };
 
@@ -231,7 +224,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         className='btn btn-primary visit-marketplace-button'
                         onClick={this.handleOpenMarketplace}
                     >
-                        <ActionsMenuIcon name='icon-view-grid-plus-outline visit-marketplace-button-icon'/>
+                        <ActionsMenuIcon name='icon-view-grid-plus-outline visit-marketplace-button-icon' />
                         <span className='visit-marketplace-button-text'>
                             <FormattedMarkdownMessage
                                 id='post_info.actions.visitMarketplace'
@@ -339,7 +332,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
             });
         }
 
-        const {formatMessage} = this.props.intl;
+        const { formatMessage } = this.props.intl;
 
         let marketPlace = null;
         if (this.props.canOpenMarketplace) {
@@ -350,8 +343,8 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         id={`marketplace_icon_${this.props.post.id}`}
                         key={`marketplace_${this.props.post.id}`}
                         show={true}
-                        text={formatMessage({id: 'post_info.marketplace', defaultMessage: 'App Marketplace'})}
-                        icon={<ActionsMenuIcon name='icon-view-grid-plus-outline'/>}
+                        text={formatMessage({ id: 'post_info.marketplace', defaultMessage: 'App Marketplace' })}
+                        icon={<ActionsMenuIcon name='icon-view-grid-plus-outline' />}
                         onClick={this.handleOpenMarketplace}
                     />
                 </React.Fragment>
@@ -398,8 +391,8 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     id={`${this.props.location}_${this.props.post.id}_tooltip`}
                     title={
                         <FormattedMessage
-                            id={messages.tooltipTitle.id}
-                            defaultMessage={messages.tooltipTitle.defaultMessage}
+                            id='post_info.tooltip.actions'
+                            defaultMessage='Message actions'
                         />
                     }
                     placement='top'
@@ -415,7 +408,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         type='button'
                         aria-expanded='false'
                     >
-                        <i className={'icon icon-apps'}/>
+                        <i className={'icon icon-apps'} />
                     </button>
                 </WithTooltip>
                 <Menu
