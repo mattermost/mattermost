@@ -166,7 +166,7 @@ PLUGIN_PACKAGES += mattermost-plugin-todo-v0.7.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.2
-PLUGIN_PACKAGES += focalboard-v7.11.4
+PLUGIN_PACKAGES += focalboard-v8.0.0
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
