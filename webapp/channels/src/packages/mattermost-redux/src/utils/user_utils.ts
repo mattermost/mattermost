@@ -186,6 +186,23 @@ export function filterProfilesStartingWithTerm(users: UserProfile[], term: strin
     });
 }
 
+export function filterProfilesStartingWithTermOrPositionMatchingWithTerm(users: UserProfile[], term: string): UserProfile[] {
+    const lowercasedTerm = term.toLowerCase();
+    let trimmedTerm = lowercasedTerm;
+    if (trimmedTerm.startsWith('@')) {
+        trimmedTerm = trimmedTerm.substr(1);
+    }
+
+    return users.filter((user: UserProfile) => {
+        if (!user) {
+            return false;
+        }
+
+        const profileSuggestions = nameSuggestionsForUser(user);
+        return profileSuggestions.filter((suggestion) => suggestion !== '').some((suggestion) => suggestion.startsWith(trimmedTerm) || (user.position || '').toLowerCase().includes(trimmedTerm));
+    });
+}
+
 export function filterProfilesMatchingWithTerm(users: UserProfile[], term: string): UserProfile[] {
     const lowercasedTerm = term.toLowerCase();
     let trimmedTerm = lowercasedTerm;
