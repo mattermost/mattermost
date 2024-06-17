@@ -522,22 +522,22 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         currentLoginId = currentLoginId.trim().toLowerCase();
 
         if (!currentLoginId) {
-            // it's slightly weird to be constructing the message ID, but it's a bit nicer than triply nested if statements
-            let msgId = 'login.no';
+            // It's slightly weird to be constructing a key to get the message, but it's a bit nicer than triply nested if statements
+            let key = 'no';
             if (enableSignInWithEmail) {
-                msgId += 'Email';
+                key += 'Email';
             }
             if (enableSignInWithUsername) {
-                msgId += 'Username';
+                key += 'Username';
             }
             if (ldapEnabled) {
-                msgId += 'LdapUsername';
+                key += 'LdapUsername';
             }
 
             setAlertBanner({
                 mode: 'danger',
                 title: formatMessage(
-                    {id: msgId},
+                    noLoginIdMessages[key as keyof typeof noLoginIdMessages],
                     {ldapUsername: LdapLoginFieldName || formatMessage({id: 'login.ldapUsernameLower', defaultMessage: 'AD/LDAP username'})},
                 ),
             });
@@ -918,7 +918,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     );
 };
 
-defineMessages({
+const noLoginIdMessages = defineMessages({
     noEmail: {
         id: 'login.noEmail',
         defaultMessage: 'Please enter your email',
