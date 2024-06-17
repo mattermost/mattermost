@@ -4,6 +4,7 @@
 package config
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 
@@ -124,6 +125,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DefaultTheme"] = ""
 	props["AllowCustomThemes"] = "true"
 	props["AllowedThemes"] = ""
+	props["CustomThemes"] = ""
 	props["DataRetentionEnableMessageDeletion"] = "false"
 	props["DataRetentionMessageRetentionHours"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
@@ -205,6 +207,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["DefaultTheme"] = *c.ThemeSettings.DefaultTheme
 			props["AllowCustomThemes"] = strconv.FormatBool(*c.ThemeSettings.AllowCustomThemes)
 			props["AllowedThemes"] = strings.Join(c.ThemeSettings.AllowedThemes, ",")
+			customThemes, _ := json.Marshal(c.ThemeSettings.CustomThemes)
+			props["CustomThemes"] = string(customThemes)
 		}
 
 		if *license.Features.DataRetention {
