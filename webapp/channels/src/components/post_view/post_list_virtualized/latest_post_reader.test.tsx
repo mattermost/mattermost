@@ -11,11 +11,6 @@ import {TestHelper} from 'utils/test_helper';
 
 import LatestPostReader from './latest_post_reader';
 
-jest.mock('react-intl', () => ({
-    ...jest.requireActual('react-intl'),
-    useIntl: jest.fn(),
-}));
-
 describe('LatestPostReader', () => {
     const author = TestHelper.getUserMock({
         username: 'some_user',

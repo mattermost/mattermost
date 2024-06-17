@@ -13,15 +13,6 @@ import {TestHelper} from 'utils/test_helper';
 
 import SidebarChannelMenu from './sidebar_channel_menu';
 
-jest.mock('react-intl', () => ({
-    ...jest.requireActual('react-intl'),
-    useIntl: () => ({
-        formatMessage: (message: {id: string; defaultMessage: string}) => {
-            return message.defaultMessage;
-        },
-    }),
-}));
-
 describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
     const testChannel = TestHelper.getChannelMock();
     const testCategory = TestHelper.getCategoryMock();

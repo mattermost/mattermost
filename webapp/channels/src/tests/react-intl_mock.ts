@@ -19,9 +19,9 @@ jest.mock('react-intl', function() {
 
     return {
         ...reactIntl,
-        useIntl() {
+        useIntl: jest.fn(() => {
             return intl;
-        },
+        }),
     };
 });
 

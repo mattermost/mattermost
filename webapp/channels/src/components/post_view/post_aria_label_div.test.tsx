@@ -13,11 +13,6 @@ import {TestHelper} from 'utils/test_helper';
 import PostAriaLabelDiv from './post_aria_label_div';
 import type {Props} from './post_aria_label_div';
 
-jest.mock('react-intl', () => ({
-    ...jest.requireActual('react-intl'),
-    useIntl: jest.fn(),
-}));
-
 describe('PostAriaLabelDiv', () => {
     const author = TestHelper.getUserMock({
         username: 'some_user',
