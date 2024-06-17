@@ -10038,5 +10038,9 @@
   {
     "id": "app.user.update.lastAdmin.app_error",
     "translation": "Nie możesz zdegradować ostatniego administratora systemu."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Nie można ustalić, czy ta nazwa użytkownika już istnieje"
   }
 ]
