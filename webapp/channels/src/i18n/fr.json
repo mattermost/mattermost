@@ -3758,6 +3758,7 @@
   "navbar_dropdown.teamSettings": "Paramètres d'équipe",
   "navbar_dropdown.userGroups": "Groupes d'utilisateurs",
   "navbar_dropdown.viewMembers": "Voir les membres",
+  "newChannelWithBoard.tutorialTip.description": "Pour accéder rapidement au tableau que vous venez de créer, cliquez sur l'icône des Tableaux dans la barre d'application. Vous pouvez voir les tableaux liés à ce canal dans la barre latérale droite et en ouvrir un en vue complète.",
   "newsletter_optin.checkmark.text": "<span>Je souhaite recevoir les mises à jour de sécurité de Mattermost via la newsletter.</span> En m'abonnant, j'accepte de recevoir des emails de Mattermost avec des mises à jour produits, des promotions et des nouvelles de l'entreprise. J'ai lu la <a>Politique de confidentialité</a> et je comprends que je peux <aa>me désabonner</aa> à tout moment",
   "next_steps_view.welcomeToMattermost": "Bienvenue dans Mattermost",
   "no_results.channel_files.subtitle": "Les fichiers postés dans ce canal apparaîtront ici.",
