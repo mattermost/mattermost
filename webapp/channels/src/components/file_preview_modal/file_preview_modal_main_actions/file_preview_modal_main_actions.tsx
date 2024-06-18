@@ -145,15 +145,11 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
             </ExternalLink>
         </OverlayTrigger>
     );
-    const getBeforeCopyText = () => {
-        const fileType = getFileType(props.fileInfo.extension);
-        return fileType === FileTypes.TEXT ? 'Copy text' : undefined;
-    };
 
     const copy = (
         <CopyButton
             className='file-preview-modal-main-actions__action-item'
-            beforeCopyText={getBeforeCopyText()}
+            isForText={getFileType(props.fileInfo.extension) === FileTypes.TEXT}
             placement={tooltipPlacement}
             content={props.content}
         />

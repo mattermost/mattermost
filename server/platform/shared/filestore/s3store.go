@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/tls"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
@@ -641,6 +642,7 @@ func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, er
 	var paths []string
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
+	var count int
 	for object := range b.client.ListObjects(ctx, b.bucket, opts) {
 		if object.Err != nil {
 			return nil, errors.Wrapf(object.Err, "unable to list the directory %s", path)
@@ -652,6 +654,12 @@ func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, er
 		if trimmed != "" {
 			paths = append(paths, trimmed)
 		}
+		count++
+	}
+	// Check if only one item was returned and it matches the path prefix
+	if count == 1 && len(paths) > 0 && strings.TrimRight(path, "/") == paths[0] {
+		// Return a fs.PathError to maintain consistency
+		return nil, &fs.PathError{Op: "readdir", Path: path, Err: fs.ErrNotExist}
 	}
 
 	return paths, nil
