@@ -155,7 +155,7 @@ const getDefaultTheme = createSelector('getDefaultTheme', getConfig, (config): T
         for (const theme of customThemes) {
             if (config.DefaultTheme === theme.ID) {
                 const data = JSON.parse(theme.Theme);
-                data.type = theme.ID
+                data.type = theme.ID;
                 return data;
             }
         }

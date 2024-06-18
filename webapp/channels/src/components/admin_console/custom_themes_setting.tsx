@@ -8,9 +8,9 @@ import styled from 'styled-components';
 import {Preferences} from 'mattermost-redux/constants';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
-import ThemeThumbnail from 'components/user_settings/display/user_settings_theme/theme_thumbnail';
-import CustomThemeChooser from 'components/user_settings/display/user_settings_theme/custom_theme_chooser/custom_theme_chooser';
 import SchemaText from 'components/admin_console/schema_text';
+import CustomThemeChooser from 'components/user_settings/display/user_settings_theme/custom_theme_chooser/custom_theme_chooser';
+import ThemeThumbnail from 'components/user_settings/display/user_settings_theme/theme_thumbnail';
 
 import {generateId} from 'utils/utils';
 
@@ -32,7 +32,7 @@ const CustomThemeContainer = styled.div`
     textarea {
         height: 230px;
     }
-`
+`;
 
 const CustomThemeHeader = styled.div`
     display: flex;
@@ -44,16 +44,16 @@ const CustomThemeHeader = styled.div`
         font-weight: 600;
         flex-grow: 1;
     }
-`
+`;
 
 const CustomThemeBody = styled.div`
     margin-top: 10px;
-`
+`;
 
 const DeleteIcon = styled.i`
     color: #ea6262;
     cursor: pointer;
-`
+`;
 
 type CustomTheme = {
     ID: string;
@@ -78,7 +78,7 @@ const CustomThemesSetting = (props: Props) => {
         }
     }, [props.id, props.onChange]);
 
-    const newTheme: CustomTheme = {ID: generateId(), Name: intl.formatMessage({id: 'admin.themes.custom_theme.new', defaultMessage: 'New Theme'}), Theme: JSON.stringify(Preferences.THEMES['denim'])};
+    const newTheme: CustomTheme = {ID: generateId(), Name: intl.formatMessage({id: 'admin.themes.custom_theme.new', defaultMessage: 'New Theme'}), Theme: JSON.stringify(Preferences.THEMES.denim)};
 
     if (props.disabled) {
         return (
@@ -90,10 +90,10 @@ const CustomThemesSetting = (props: Props) => {
                 inputId={props.id}
             >
                 <div className='help-text'>
-                    <SchemaText text={intl.formatMessage({id: 'admin.themes.custom_theme.disabled', defaultMessage: 'Custom themes are only available if you have custom branding enable and enterprise license.'})} />
+                    <SchemaText text={intl.formatMessage({id: 'admin.themes.custom_theme.disabled', defaultMessage: 'Custom themes are only available if you have custom branding enable and enterprise license.'})}/>
                 </div>
             </Setting>
-        )
+        );
     }
 
     return (
@@ -105,10 +105,13 @@ const CustomThemesSetting = (props: Props) => {
             inputId={props.id}
         >
             {props.value.map((theme: CustomTheme) => {
-                const data = {...Object.values(Preferences.THEMES)[0], ...JSON.parse(theme.Theme)}
-                data.type = theme.ID
+                const data = {...Object.values(Preferences.THEMES)[0], ...JSON.parse(theme.Theme)};
+                data.type = theme.ID;
                 return (
-                    <CustomThemeContainer onClick={() => openTheme === theme.ID ? setOpenTheme(null) : setOpenTheme(theme.ID)}>
+                    <CustomThemeContainer
+                        key={theme.ID}
+                        onClick={() => (openTheme === theme.ID ? setOpenTheme(null) : setOpenTheme(theme.ID))}
+                    >
                         <CustomThemeHeader>
                             <ThemeThumbnail
                                 themeKey={theme.ID}
@@ -129,41 +132,52 @@ const CustomThemesSetting = (props: Props) => {
                             <div className='theme-label'>{theme.Name}</div>
                             <DeleteIcon
                                 className='icon icon-trash-can-outline'
-                                onClick={() => { handleChange(props.value.filter((t) => t.ID !== theme.ID)); setOpenTheme(null)}}
+                                onClick={() => {
+                                    handleChange(props.value.filter((t) => t.ID !== theme.ID));
+                                    setOpenTheme(null);
+                                }}
                             />
                             {openTheme !== theme.ID && <i className='icon icon-chevron-down'/>}
                             {openTheme === theme.ID && <i className='icon icon-chevron-up'/>}
                         </CustomThemeHeader>
                         {openTheme === theme.ID &&
-                            <CustomThemeBody onClick={(e) => e.stopPropagation()}>
-                                <input
-                                    className='form-control'
-                                    value={theme.Name}
-                                    onChange={(e) => handleChange(props.value.map((t) => t.ID === openTheme ? {ID: t.ID, Name: e.target.value, Theme: t.Theme} : t))}
+                        <CustomThemeBody onClick={(e) => e.stopPropagation()}>
+                            <input
+                                className='form-control'
+                                value={theme.Name}
+                                onChange={(e) => handleChange(props.value.map((t) => (t.ID === openTheme ? {ID: t.ID, Name: e.target.value, Theme: t.Theme} : t)))}
+                            />
+                            <CustomThemeChooser
+                                theme={data}
+                                updateTheme={(theme: any) => {
+                                    handleChange(props.value.map((t) => (t.ID === openTheme ? {ID: t.ID, Name: t.Name, Theme: JSON.stringify(theme)} : t)));
+                                }}
+                            />
+                            <button
+                                className='btn btn-tertiary'
+                                onClick={() => {
+                                    handleChange(props.value.filter((t) => t.ID !== openTheme));
+                                    setOpenTheme(null);
+                                }}
+                            >
+                                <FormattedMessage
+                                    id='admin.themes.custom_theme.delete'
+                                    defaultMessage='Delete'
                                 />
-                                <CustomThemeChooser
-                                    theme={data}
-                                    updateTheme={(theme: any) => {
-                                        handleChange(props.value.map((t) => t.ID === openTheme ? {ID: t.ID, Name: t.Name, Theme: JSON.stringify(theme)} : t));
-                                    }}
-                                />
-                                <button
-                                    className='btn btn-tertiary'
-                                    onClick={() => { handleChange(props.value.filter((t) => t.ID !== openTheme)); setOpenTheme(null)}}
-                                >
-                                    <FormattedMessage
-                                        id='admin.themes.custom_theme.delete'
-                                        defaultMessage='Delete'
-                                    />
-                                </button>
-                            </CustomThemeBody>}
+                            </button>
+                        </CustomThemeBody>}
                     </CustomThemeContainer>
                 );
             })}
 
             <button
                 className='btn btn-tertiary'
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleChange([...props.value, newTheme]); setOpenTheme(newTheme.ID)}}
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleChange([...props.value, newTheme]);
+                    setOpenTheme(newTheme.ID);
+                }}
             >
                 <FormattedMessage
                     id='admin.themes.custom_theme.add'

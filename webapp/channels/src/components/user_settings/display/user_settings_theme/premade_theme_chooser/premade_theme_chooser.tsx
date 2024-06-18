@@ -5,9 +5,9 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 
 import {Preferences} from 'mattermost-redux/constants';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import type {Theme, ThemeKey} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {toTitleCase} from 'utils/utils';
 
@@ -23,15 +23,15 @@ const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = []}: Props) =>
     const premadeThemes = [];
     const hasAllowedThemes = allowedThemes.length > 1 || (allowedThemes[0] && allowedThemes[0].trim().length > 0);
 
-    const config = useSelector(getConfig)
+    const config = useSelector(getConfig);
 
-    const customThemes = JSON.parse(config.CustomThemes)
+    const customThemes = JSON.parse(config.CustomThemes);
     customThemes.forEach((customTheme: any) => {
         if (hasAllowedThemes && allowedThemes.indexOf(customTheme.ID) < 0) {
-            return
+            return;
         }
-        const data = {...Object.values(Preferences.THEMES)[0], ...JSON.parse(customTheme.Theme)}
-        data.type = customTheme.ID
+        const data = {...Object.values(Preferences.THEMES)[0], ...JSON.parse(customTheme.Theme)};
+        data.type = customTheme.ID;
 
         let activeClass = '';
         if (data.ID === theme.type) {
@@ -70,8 +70,7 @@ const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = []}: Props) =>
                 </div>
             </div>,
         );
-    })
-
+    });
 
     for (const k in Preferences.THEMES) {
         if (Preferences.THEMES.hasOwnProperty(k)) {

@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {createRef} from 'react';
-import styled from 'styled-components';
 import type {ChangeEvent, ClipboardEvent, MouseEvent, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
+import styled from 'styled-components';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
@@ -44,7 +44,7 @@ const ThemeElementsHeader = styled.div`
         float: right;
         opacity: 0.5;
     }
-`
+`;
 
 const ThemeElementsBody = styled.div`
     max-height: 0;
@@ -62,7 +62,7 @@ const ThemeElementsBody = styled.div`
         padding: 24px 0 0 24px;
         margin: 0 20px 0 0;
     }
-`
+`;
 
 const COPY_SUCCESS_INTERVAL = 3000;
 

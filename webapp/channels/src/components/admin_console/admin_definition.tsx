@@ -39,6 +39,7 @@ import {isCloudLicense} from 'utils/license_utils';
 import {getSiteURL} from 'utils/url';
 
 import * as DefinitionConstants from './admin_definition_constants';
+import AllowedThemesSetting from './allowed_themes_setting';
 import Audits from './audits';
 import {searchableStrings as auditSearchableStrings} from './audits/audits';
 import BillingHistory, {searchableStrings as billingHistorySearchableStrings} from './billing/billing_history';
@@ -51,15 +52,14 @@ import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
 import {messages as customTermsOfServiceMessages, searchableStrings as customTermsOfServiceSearchableStrings} from './custom_terms_of_service_settings/custom_terms_of_service_settings';
-import CustomURLSchemesSetting from './custom_url_schemes_setting';
 import CustomThemesSetting from './custom_themes_setting';
-import AllowedThemesSetting from './allowed_themes_setting';
-import DefaultThemeSetting from './default_theme_setting';
+import CustomURLSchemesSetting from './custom_url_schemes_setting';
 import DataRetentionSettings from './data_retention_settings';
 import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
 import {searchableStrings as dataRetentionSearchableStrings} from './data_retention_settings/data_retention_settings';
 import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
 import DatabaseSettings, {searchableStrings as databaseSearchableStrings} from './database_settings';
+import DefaultThemeSetting from './default_theme_setting';
 import ElasticSearchSettings, {searchableStrings as elasticSearchSearchableStrings} from './elasticsearch_settings';
 import {
     LDAPFeatureDiscovery,
@@ -1939,6 +1939,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+
                             // TODO: Add translations here for support search in the admin console
                             // TODO: Ensure disabled field is correctly set here
                             type: 'custom',
@@ -1947,6 +1948,7 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
                         },
                         {
+
                             // TODO: Add translations here for support search in the admin console
                             // TODO: Ensure disabled field is correctly set here
                             type: 'custom',
@@ -1982,11 +1984,13 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+
                             // TODO: Add translations here for support search in the admin console
                             // TODO: Ensure disabled field is correctly set here
                             type: 'custom',
                             key: 'ThemeSettings.DefaultTheme',
                             component: DefaultThemeSetting,
+
                             // isHidden: it.any(
                             //     it.not(it.licensed),
                             //     it.licensedForSku('starter'),

@@ -6,11 +6,11 @@ import {useIntl} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {ValueType} from 'react-select';
 
-import {toTitleCase} from 'utils/utils';
-
 import {Preferences} from 'mattermost-redux/constants';
 
 import SchemaText from 'components/admin_console/schema_text';
+
+import {toTitleCase} from 'utils/utils';
 
 import Setting from './setting';
 
@@ -37,16 +37,16 @@ type Props = {
 const AllowedThemesSetting = (props: Props) => {
     const intl = useIntl();
 
-    const allThemes: {[key: string]: string} = {}
-    const options: Option[] = []
+    const allThemes: {[key: string]: string} = {};
+    const options: Option[] = [];
     Object.keys(Preferences.THEMES).forEach((theme) => {
-        allThemes[theme] = toTitleCase(theme);;
-        options.push({value: theme, text: toTitleCase(theme)})
-    })
+        allThemes[theme] = toTitleCase(theme);
+        options.push({value: theme, text: toTitleCase(theme)});
+    });
     props.state['ThemeSettings.CustomThemes'].forEach((theme: CustomTheme) => {
         allThemes[theme.ID] = theme.Name;
-        options.push({value: theme.ID, text: theme.Name})
-    })
+        options.push({value: theme.ID, text: theme.Name});
+    });
 
     const getOptionLabel = ({text}: { text: string}) => text;
 
@@ -82,11 +82,11 @@ const AllowedThemesSetting = (props: Props) => {
                 })}
                 onChange={handleChange}
                 value={props.value.map((theme) => {
-                    return {value: theme, text: allThemes[theme]}
+                    return {value: theme, text: allThemes[theme]};
                 })}
             />
             <div className='help-text'>
-                <SchemaText text={intl.formatMessage({id: 'admin.themes.allowed_themes.help_text', defaultMessage: 'Choose the themes you’d like to make available to users on the server. If left empty, there will bo no limits on available themes.'})} />
+                <SchemaText text={intl.formatMessage({id: 'admin.themes.allowed_themes.help_text', defaultMessage: 'Choose the themes you’d like to make available to users on the server. If left empty, there will bo no limits on available themes.'})}/>
             </div>
         </Setting>
     );
