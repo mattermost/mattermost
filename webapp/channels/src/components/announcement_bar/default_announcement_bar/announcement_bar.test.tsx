@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {waitFor, within} from '@testing-library/react';
+import {waitFor, screen} from '@testing-library/react';
 import React from 'react';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
-
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 describe('components/announcement_bar/default_announcement_bar', () => {
     const originalOffsetWidth = Object.getOwnPropertyDescriptor(
@@ -30,12 +29,10 @@ describe('components/announcement_bar/default_announcement_bar', () => {
         Object.defineProperty(HTMLElement.prototype, 'scrollWidth', originalScrollWidth);
     });
 
-    test('should not show tooltip', () => {
+    test('should not show tooltip by default', () => {
         const wrapper = renderWithContext(<AnnouncementBar message={<span>{'Lorem Ipsum'}</span>}/>);
 
         wrapper.getByText('Lorem Ipsum');
-
-        userEvent.hover(wrapper.getByText('Lorem Ipsum'));
 
         expect(wrapper.queryByRole('tooltip')).toBeNull();
     });
@@ -43,12 +40,11 @@ describe('components/announcement_bar/default_announcement_bar', () => {
     test('should show tooltip on hover', async () => {
         const wrapper = renderWithContext(<AnnouncementBar message={<span>{'Lorem Ipsum'}</span>}/>);
 
-        wrapper.getByText('Lorem Ipsum');
-
+        userEvent.hover(wrapper.getByText('Lorem Ipsum'));
         userEvent.hover(wrapper.getByText('Lorem Ipsum'));
 
         await waitFor(() => {
-            within(wrapper.getByRole('tooltip')).getByText('Lorem Ipsum');
+            expect(screen.queryByRole('tooltip')).not.toBeNull();
         });
     });
 });

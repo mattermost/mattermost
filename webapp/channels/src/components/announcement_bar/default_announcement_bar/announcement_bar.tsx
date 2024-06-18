@@ -156,6 +156,49 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
             (this.props.showCloseButton ? <div className='content__icon'>{'\uF5D6'}</div> : <div className='content__icon'>{'\uF02A'}</div>);
         };
 
+        let barContent = (<div className='announcement-bar__text'>
+            {this.props.icon ? this.props.icon : announcementIcon()}
+            <span
+                ref={this.messageRef}
+                onMouseEnter={this.enableToolTipIfNeeded}
+            >
+                {message}
+            </span>
+            {
+                this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText &&
+                <button
+                    onClick={this.props.onButtonClick}
+                    disabled={this.props.ctaDisabled}
+                >
+                    <FormattedMessage
+                        {...this.props.modalButtonText}
+                    />
+                </button>
+            }
+            {
+                this.props.showLinkAsButton && this.props.showCTA && this.props.ctaText &&
+                <button
+                    onClick={this.props.onButtonClick}
+                    disabled={this.props.ctaDisabled}
+                >
+                    {this.props.ctaText}
+                </button>
+            }
+        </div>);
+
+        if (this.state.showTooltip) {
+            barContent = (
+                <WithTooltip
+                    id='announcement-bar__tooltip'
+                    title={this.props.tooltipMsg ? this.props.tooltipMsg : message}
+                    placement='bottom'
+                    delayHide={this.state.isStringContainingUrl ? OVERLAY_ANNOUNCEMENT_HIDE_DELAY : 0}
+                >
+                    {barContent}
+
+                </WithTooltip>);
+        }
+
         return (
             <div
                 className={barClass}
@@ -164,43 +207,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 css={{gridArea: 'announcement'}}
                 data-testid={this.props.id}
             >
-                <WithTooltip
-                    id='announcement-bar__tooltip'
-                    title={this.props.tooltipMsg ? this.props.tooltipMsg : message}
-                    placement='bottom'
-                    delayHide={this.state.isStringContainingUrl ? OVERLAY_ANNOUNCEMENT_HIDE_DELAY : 0}
-                    hide={!this.state.showTooltip}
-                >
-                    <div className='announcement-bar__text'>
-                        {this.props.icon ? this.props.icon : announcementIcon()}
-                        <span
-                            ref={this.messageRef}
-                            onMouseEnter={this.enableToolTipIfNeeded}
-                        >
-                            {message}
-                        </span>
-                        {
-                            this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText &&
-                            <button
-                                onClick={this.props.onButtonClick}
-                                disabled={this.props.ctaDisabled}
-                            >
-                                <FormattedMessage
-                                    {...this.props.modalButtonText}
-                                />
-                            </button>
-                        }
-                        {
-                            this.props.showLinkAsButton && this.props.showCTA && this.props.ctaText &&
-                            <button
-                                onClick={this.props.onButtonClick}
-                                disabled={this.props.ctaDisabled}
-                            >
-                                {this.props.ctaText}
-                            </button>
-                        }
-                    </div>
-                </WithTooltip>
+                {barContent}
                 {closeButton}
             </div>
         );
