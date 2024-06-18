@@ -39,7 +39,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
     }
 
     return (
-        <div className='hfroute-header'>
+        <div className={'hfroute-header' + (freeBanner ? ' has-free-banner' : '') + (title ? ' has-custom-site-name' : '')}>
             <div className='header-main'>
                 <div>
                     {freeBanner &&
