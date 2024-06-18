@@ -23,12 +23,23 @@
             + .tab-button-wrapper {
                 margin-left: 4px;
             }
+
+            Button {
+                display: flex;
+                max-width: 100%;
+
+                .Button_label {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+            }
         }
 
         .left {
-            display: flex;
+            display: grid;
             height: 100%;
-            align-items: center;
+            grid-template-columns: minmax(0, auto) minmax(0, auto);
         }
 
         .right-anchor {

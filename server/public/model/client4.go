@@ -7018,8 +7018,8 @@ func (c *Client4) GetJob(ctx context.Context, id string) (*Job, *Response, error
 }
 
 // GetJobs gets all jobs, sorted with the job that was created most recently first.
-func (c *Client4) GetJobs(ctx context.Context, page int, perPage int) ([]*Job, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.jobsRoute()+fmt.Sprintf("?page=%v&per_page=%v", page, perPage), "")
+func (c *Client4) GetJobs(ctx context.Context, jobType string, status string, page int, perPage int) ([]*Job, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.jobsRoute()+fmt.Sprintf("?page=%v&per_page=%v&job_type=%v&status=%v", page, perPage, jobType, status), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7086,6 +7086,23 @@ func (c *Client4) DownloadJob(ctx context.Context, jobId string) ([]byte, *Respo
 		return nil, BuildResponse(r), NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, "", r.StatusCode).Wrap(err)
 	}
 	return data, BuildResponse(r), nil
+}
+
+// UpdateJobStatus updates the status of a job
+func (c *Client4) UpdateJobStatus(ctx context.Context, jobId string, status string, force bool) (*Response, error) {
+	buf, err := json.Marshal(map[string]any{
+		"status": status,
+		"force":  force,
+	})
+	if err != nil {
+		return nil, NewAppError("UpdateJobStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPatchBytes(ctx, c.jobsRoute()+fmt.Sprintf("/%v/status", jobId), buf)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // Roles Section

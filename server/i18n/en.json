@@ -2177,6 +2177,10 @@
     "translation": "The job types of a job you are trying to retrieve does not contain permissions"
   },
   {
+    "id": "api.job.status.invalid",
+    "translation": "Invalid status set"
+  },
+  {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
     "translation": "The job type of the job you are trying to create is invalid"
   },
@@ -2187,6 +2191,10 @@
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "The job type you are trying to download is not supported at the moment"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "You do not have permission to manage this job type"
   },
   {
     "id": "api.ldap_group.not_found",
@@ -5669,6 +5677,10 @@
   {
     "id": "app.job.update.app_error",
     "translation": "Unable to update the job."
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Unable to update job status. Invalid status set"
   },
   {
     "id": "app.last_accessible_file.app_error",
