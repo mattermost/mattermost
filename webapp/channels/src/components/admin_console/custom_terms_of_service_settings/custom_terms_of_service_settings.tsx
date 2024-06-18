@@ -14,7 +14,6 @@ import type {BaseProps, BaseState} from 'components/admin_console/admin_settings
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 
 import {Constants} from 'utils/constants';
@@ -53,13 +52,15 @@ export const messages = defineMessages({
     termsOfServiceTextHelp: {id: 'admin.support.termsOfServiceTextHelp', defaultMessage: 'Text that will appear in your custom Terms of Service. Supports Markdown-formatted text.'},
     termsOfServiceReAcceptanceTitle: {id: 'admin.support.termsOfServiceReAcceptanceTitle', defaultMessage: 'Re-Acceptance Period:'},
     termsOfServiceReAcceptanceHelp: {id: 'admin.support.termsOfServiceReAcceptanceHelp', defaultMessage: 'The number of days before Terms of Service acceptance expires, and the terms must be re-accepted.'},
-    enableTermsOfServiceHelp: {id: 'admin.support.enableTermsOfServiceHelp', defaultMessage: 'When true, new users must accept the terms of service before accessing any Mattermost teams on desktop, web or mobile. Existing users must accept them after login or a page refresh. To update terms of service link displayed in account creation and login pages, go to [Site Configuration > Customization](../site_config/customization).'},
+    enableTermsOfServiceHelp1: {id: 'admin.support.enableTermsOfServiceHelp1', defaultMessage: 'When true, new users must accept the terms of service before accessing any Mattermost teams on desktop, web or mobile. Existing users must accept them after login or a page refresh.'},
+    enableTermsOfServiceHelp2: {id: 'admin.support.enableTermsOfServiceHelp2', defaultMessage: 'To update terms of service link displayed in account creation and login pages, go to <link>Site Configuration > Customization</link>.'},
 });
 
 export const searchableStrings = [
     messages.termsOfServiceTitle,
     messages.enableTermsOfServiceTitle,
-    messages.enableTermsOfServiceHelp,
+    messages.enableTermsOfServiceHelp1,
+    messages.enableTermsOfServiceHelp2,
     messages.termsOfServiceTextTitle,
     messages.termsOfServiceTextHelp,
     messages.termsOfServiceReAcceptanceTitle,
@@ -201,7 +202,20 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
                     key={'customTermsOfServiceEnabled'}
                     id={'SupportSettings.CustomTermsOfServiceEnabled'}
                     label={<FormattedMessage {...messages.enableTermsOfServiceTitle}/>}
-                    helpText={<FormattedMarkdownMessage {...messages.enableTermsOfServiceHelp}/>}
+                    helpText={
+                        <>
+                            <FormattedMessage {...messages.enableTermsOfServiceHelp1}/>
+                            <br/>
+                            <FormattedMessage
+                                {...messages.enableTermsOfServiceHelp2}
+                                values={{
+                                    link: (msg: React.ReactNode) => (
+                                        <a href='../site_config/customization'>{msg}</a>
+                                    ),
+                                }}
+                            />
+                        </>
+                    }
                     value={Boolean(this.state.termsEnabled)}
                     onChange={this.handleTermsEnabledChange}
                     setByEnv={this.isSetByEnv('SupportSettings.CustomTermsOfServiceEnabled')}

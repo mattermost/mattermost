@@ -7,8 +7,6 @@ import {FormattedMessage} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import GroupsUsers from './group/group_users';
 
 type Props = {
@@ -44,10 +42,13 @@ const UsersToBeRemovedModal = ({total, scope, scopeId, users, onExited}: Props) 
     const handleHide = useCallback(() => setShow(false), []);
 
     const title = (
-        <FormattedMarkdownMessage
+        <FormattedMessage
             id='admin.team_channel_settings.usersToBeRemovedModal.title'
-            defaultMessage='**{total, number} {total, plural, one {User} other {Users}}** To Be Removed'
-            values={{total}}
+            defaultMessage='<strong>{total, number} {total, plural, one {User} other {Users}}</strong> To Be Removed'
+            values={{
+                strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                total,
+            }}
         />
     );
 

@@ -10,7 +10,6 @@ import type {OAuthApp} from '@mattermost/types/integrations';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import FormError from 'components/form_error';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import icon50 from 'images/icon50x50.png';
 import {getHistory} from 'utils/browser_history';
@@ -130,30 +129,33 @@ export default class Authorize extends React.PureComponent<Props, State> {
                             />
                         </div>
                         <div className='text'>
-                            <FormattedMarkdownMessage
+                            <FormattedMessage
                                 id='authorize.title'
-                                defaultMessage='Authorize **{appName}** to Connect to Your **Mattermost** User Account'
+                                defaultMessage='Authorize <strong>{appName}</strong> to Connect to Your <strong>Mattermost</strong> User Account'
                                 values={{
                                     appName: app.name,
+                                    strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                                 }}
                             />
                         </div>
                     </div>
                     <p>
-                        <FormattedMarkdownMessage
+                        <FormattedMessage
                             id='authorize.app'
-                            defaultMessage='The app **{appName}** would like the ability to access and modify your basic information.'
+                            defaultMessage='The app <strong>{appName}</strong> would like the ability to access and modify your basic information.'
                             values={{
                                 appName: app.name,
+                                strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                             }}
                         />
                     </p>
                     <h2 className='prompt__allow'>
-                        <FormattedMarkdownMessage
+                        <FormattedMessage
                             id='authorize.access'
-                            defaultMessage='Allow **{appName}** access?'
+                            defaultMessage='Allow <strong>{appName}</strong> access?'
                             values={{
                                 appName: app.name,
+                                strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                             }}
                         />
                     </h2>

@@ -5,7 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {format} from 'utils/markdown';
@@ -77,9 +76,12 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                     </button>
                 </p>
                 <p className='upgrade-legal-terms'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='admin.license.enterprise.upgrade.acceptTermsInitial'
-                        defaultMessage='By clicking **Upgrade**, I agree to the terms of the Mattermost '
+                        defaultMessage='By clicking <strong>Upgrade</strong>, I agree to the terms of the Mattermost '
+                        values={{
+                            strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                        }}
                     />
                     <a
                         role='button'

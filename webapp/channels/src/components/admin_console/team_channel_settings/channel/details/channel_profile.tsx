@@ -8,7 +8,6 @@ import {FormattedMessage, defineMessage} from 'react-intl';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
@@ -24,18 +23,18 @@ interface ChannelProfileProps {
 export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
     const {team, channel, isArchived, isDisabled} = props;
 
-    const archiveBtn = isArchived ?
-        defineMessage({id: 'admin.channel_settings.channel_details.unarchiveChannel', defaultMessage: 'Unarchive Channel'}) :
-        defineMessage({id: 'admin.channel_settings.channel_details.archiveChannel', defaultMessage: 'Archive Channel'});
+    const archiveBtn = isArchived ? defineMessage({id: 'admin.channel_settings.channel_details.unarchiveChannel', defaultMessage: 'Unarchive Channel'}) : defineMessage({id: 'admin.channel_settings.channel_details.archiveChannel', defaultMessage: 'Archive Channel'});
 
     let sharedBlock;
     if (channel.shared && channel.type) {
         sharedBlock = (
             <div className='channel-organizations'>
-                <FormattedMarkdownMessage
-                    id='admin.channel_settings.channel_detail.channelOrganizations'
-                    defaultMessage='**Organizations**'
-                />
+                <strong>
+                    <FormattedMessage
+                        id='admin.channel_settings.channel_detail.channelOrganizations'
+                        defaultMessage='Organizations'
+                    />
+                </strong>
                 <br/>
                 <SharedChannelIndicator
                     className='shared-channel-icon'
@@ -58,18 +57,22 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
             <div className='group-teams-and-channels AdminChannelDetails'>
                 <div className='group-teams-and-channels--body channel-desc-col'>
                     <div className='channel-name'>
-                        <FormattedMarkdownMessage
-                            id='admin.channel_settings.channel_detail.channelName'
-                            defaultMessage='**Name**'
-                        />
+                        <strong>
+                            <FormattedMessage
+                                id='admin.channel_settings.channel_detail.channelName'
+                                defaultMessage='Name'
+                            />
+                        </strong>
                         <br/>
                         {channel.display_name}
                     </div>
                     <div className='channel-team'>
-                        <FormattedMarkdownMessage
-                            id='admin.channel_settings.channel_detail.channelTeam'
-                            defaultMessage='**Team**'
-                        />
+                        <strong>
+                            <FormattedMessage
+                                id='admin.channel_settings.channel_detail.channelTeam'
+                                defaultMessage='Team'
+                            />
+                        </strong>
                         <br/>
                         {team?.display_name}
                     </div>
@@ -87,9 +90,7 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
                             }
                             onClick={props.onToggleArchive}
                         >
-                            {isArchived ?
-                                <i className='icon icon-archive-arrow-up-outline'/> :
-                                <i className='icon icon-archive-outline'/>}
+                            {isArchived ? <i className='icon icon-archive-arrow-up-outline'/> : <i className='icon icon-archive-outline'/>}
                             <FormattedMessage {...archiveBtn}/>
                         </button>
                     </div>

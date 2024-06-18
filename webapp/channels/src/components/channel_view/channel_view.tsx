@@ -9,7 +9,6 @@ import AdvancedCreatePost from 'components/advanced_create_post';
 import ChannelHeader from 'components/channel_header';
 import deferComponentRender from 'components/deferComponentRender';
 import FileUploadOverlay from 'components/file_upload_overlay';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -110,9 +109,12 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     <div
                         className='channel-archived__message'
                     >
-                        <FormattedMarkdownMessage
+                        <FormattedMessage
                             id='create_post.deactivated'
-                            defaultMessage='You are viewing an archived channel with a **deactivated user**. New messages cannot be posted.'
+                            defaultMessage='You are viewing an archived channel with a <strong>deactivated user</strong>. New messages cannot be posted.'
+                            values={{
+                                strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                            }}
                         />
                         <button
                             className='btn btn-primary channel-archived__close-btn'
@@ -136,9 +138,12 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                         id='channelArchivedMessage'
                         className='channel-archived__message'
                     >
-                        <FormattedMarkdownMessage
+                        <FormattedMessage
                             id='archivedChannelMessage'
-                            defaultMessage='You are viewing an **archived channel**. New messages cannot be posted.'
+                            defaultMessage='You are viewing an <strong>archived channel</strong>. New messages cannot be posted.'
+                            values={{
+                                strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                            }}
                         />
                         <button
                             className='btn btn-primary channel-archived__close-btn'

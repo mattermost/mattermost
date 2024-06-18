@@ -15,7 +15,6 @@ import {openModal} from 'actions/views/modals';
 
 import useGetUsage from 'components/common/hooks/useGetUsage';
 import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import PricingModal from 'components/pricing_modal';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
@@ -54,9 +53,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
         return null;//
     }
 
-    const archiveBtn = isArchived ?
-        defineMessage({id: 'admin.team_settings.team_details.unarchiveTeam', defaultMessage: 'Unarchive Team'}) :
-        defineMessage({id: 'admin.team_settings.team_details.archiveTeam', defaultMessage: 'Archive Team'});
+    const archiveBtn = isArchived ? defineMessage({id: 'admin.team_settings.team_details.unarchiveTeam', defaultMessage: 'Unarchive Team'}) : defineMessage({id: 'admin.team_settings.team_details.archiveTeam', defaultMessage: 'Archive Team'});
 
     const toggleArchive = () => {
         setOverrideRestoreDisabled(true);
@@ -149,17 +146,23 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                         </div>
                         <div className='team-desc-col'>
                             <div className='row row-bottom-padding'>
-                                <FormattedMarkdownMessage
+                                <FormattedMessage
                                     id='admin.team_settings.team_detail.teamName'
-                                    defaultMessage='**Team Name**:'
+                                    defaultMessage='<strong>Team Name</strong>:'
+                                    values={{
+                                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                                    }}
                                 />
                                 <br/>
                                 {team.display_name}
                             </div>
                             <div className='row'>
-                                <FormattedMarkdownMessage
+                                <FormattedMessage
                                     id='admin.team_settings.team_detail.teamDescription'
-                                    defaultMessage='**Team Description**:'
+                                    defaultMessage='<strong>Team Description</strong>:'
+                                    values={{
+                                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                                    }}
                                 />
                                 <br/>
                                 {team.description || <span className='greyed-out'>{intl.formatMessage({id: 'admin.team_settings.team_detail.profileNoDescription', defaultMessage: 'No team description added.'})}</span>}

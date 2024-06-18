@@ -9,7 +9,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import GroupUsersRow from 'components/admin_console/group_settings/group_details/group_users_row';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 
@@ -160,12 +159,16 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
         return (
             <div className='group-users'>
                 <div className='group-users--header'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='admin.group_settings.group_profile.group_users.ldapConnector'
                         defaultMessage={
-                            'AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)'
+                            'AD/LDAP Connector is configured to sync and manage this group and its users. <link>Click here to view</link>'
                         }
-                        values={{siteURL: getSiteURL()}}
+                        values={{
+                            link: (msg: React.ReactNode) => (
+                                <a href={getSiteURL() + '/admin_console/authentication/ldap'}>{msg}</a>
+                            ),
+                        }}
                     />
                 </div>
                 <div className='group-users--body'>

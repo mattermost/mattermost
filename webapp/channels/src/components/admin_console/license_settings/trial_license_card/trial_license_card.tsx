@@ -9,7 +9,6 @@ import type {ClientLicense} from '@mattermost/types/config';
 
 import AlertBanner from 'components/alert_banner';
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {daysToLicenseExpire} from 'utils/license_utils';
 import {getBrowserTimezone} from 'utils/timezone';
@@ -28,10 +27,11 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
     const messageBody = () => {
         if (currentDate.toDateString() === endDate.toDateString()) {
             return (
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='admin.license.trialCard.description.expiringToday'
-                    defaultMessage='Your free trial expires **Today at {time}**. Visit our customer portal to purchase a license now to continue using Mattermost Professional and Enterprise features after trial ends'
+                    defaultMessage='Your free trial expires <strong>Today at {time}</strong>. Visit our customer portal to purchase a license now to continue using Mattermost Professional and Enterprise features after trial ends'
                     values={{
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                         time: moment(endDate).endOf('day').format('h:mm a ') + moment().tz(getBrowserTimezone()).format('z'),
                     }}
                 />
@@ -39,11 +39,12 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
         }
 
         return (
-            <FormattedMarkdownMessage
+            <FormattedMessage
                 id='admin.license.trialCard.description'
-                defaultMessage='Your free trial will expire in **{daysCount} {daysCount, plural, one {day} other {days}}**. Visit our customer portal to purchase a license now to continue using Mattermost Professional and Enterprise features after trial ends.'
+                defaultMessage='Your free trial will expire in <strong>{daysCount} {daysCount, plural, one {day} other {days}}</strong>. Visit our customer portal to purchase a license now to continue using Mattermost Professional and Enterprise features after trial ends.'
                 values={{
                     daysCount: daysToEndLicense,
+                    strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                 }}
             />
         );

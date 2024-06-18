@@ -10,8 +10,6 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import {Constants} from 'utils/constants';
 
 const INT32_MAX = 2147483647;
@@ -87,9 +85,12 @@ export default function EditPostTimeLimitModal(props: Props) {
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='edit_post.time_limit_modal.description'
-                    defaultMessage='Setting a time limit **applies to all users** who have the "Edit Post" permissions in any permission scheme.'
+                    defaultMessage='Setting a time limit <strong>applies to all users</strong> who have the "Edit Post" permissions in any permission scheme.'
+                    values={{
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                    }}
                 />
                 <div className='pt-3'>
                     <div className='pt-3'>

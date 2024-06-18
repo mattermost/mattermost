@@ -5,7 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import ConfirmModal from 'components/confirm_modal';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import BooleanSetting from './boolean_setting';
 
@@ -42,9 +41,14 @@ export default class CustomEnableDisableGuestAccountsSetting extends React.PureC
             />
         );
         const helpText = (
-            <FormattedMarkdownMessage
+            <FormattedMessage
                 id='admin.guest_access.enableDescription'
-                defaultMessage='When true, external guest can be invited to channels within teams. Please see [Permissions Schemes](../user_management/permissions/system_scheme) for which roles can invite guests.'
+                defaultMessage='When true, external guest can be invited to channels within teams. Please see <link>Permissions Schemes</link> for which roles can invite guests.'
+                values={{
+                    link: (msg: React.ReactNode) => (
+                        <a href='../user_management/permissions/system_scheme'>{msg}</a>
+                    ),
+                }}
             />
         );
 

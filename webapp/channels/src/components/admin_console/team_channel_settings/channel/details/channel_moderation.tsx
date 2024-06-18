@@ -11,7 +11,6 @@ import type {ChannelModeration as ChannelPermissions} from '@mattermost/types/ch
 
 import {Permissions, Roles} from 'mattermost-redux/constants';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 
@@ -90,15 +89,15 @@ function getChannelModerationRowsMessages(permission: string): Record<string, Me
         },
         disabledGuests: {
             id: 'admin.channel_settings.channel_moderation.createPosts.disabledGuest',
-            defaultMessage: 'Create posts for guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Create posts for guests are disabled in <link>{schemeName}</link>.',
         },
         disabledMembers: {
             id: 'admin.channel_settings.channel_moderation.createPosts.disabledMember',
-            defaultMessage: 'Create posts for members are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Create posts for members are disabled in <link>{schemeName}</link>.',
         },
         disabledBoth: {
             id: 'admin.channel_settings.channel_moderation.createPosts.disabledBoth',
-            defaultMessage: 'Create posts for members and guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Create posts for members and guests are disabled in <link>{schemeName}</link>.',
         },
     });
 
@@ -117,15 +116,15 @@ function getChannelModerationRowsMessages(permission: string): Record<string, Me
         },
         disabledGuests: {
             id: 'admin.channel_settings.channel_moderation.postReactions.disabledGuest',
-            defaultMessage: 'Post reactions for guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Post reactions for guests are disabled in <link>{schemeName}</link>.',
         },
         disabledMembers: {
             id: 'admin.channel_settings.channel_moderation.postReactions.disabledMember',
-            defaultMessage: 'Post reactions for members are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Post reactions for members are disabled in <link>{schemeName}</link>.',
         },
         disabledBoth: {
             id: 'admin.channel_settings.channel_moderation.postReactions.disabledBoth',
-            defaultMessage: 'Post reactions for members and guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Post reactions for members and guests are disabled in <link>{schemeName}</link>.',
         },
     });
 
@@ -140,15 +139,15 @@ function getChannelModerationRowsMessages(permission: string): Record<string, Me
         },
         disabledGuests: {
             id: 'admin.channel_settings.channel_moderation.manageMembers.disabledGuest',
-            defaultMessage: 'Manage members for guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Manage members for guests are disabled in <link>{schemeName}</link>.',
         },
         disabledMembers: {
             id: 'admin.channel_settings.channel_moderation.manageMembers.disabledMember',
-            defaultMessage: 'Manage members for members are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Manage members for members are disabled in <link>{schemeName}</link>.',
         },
         disabledBoth: {
             id: 'admin.channel_settings.channel_moderation.manageMembers.disabledBoth',
-            defaultMessage: 'Manage members for members and guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Manage members for members and guests are disabled in <link>{schemeName}</link>.',
         },
     });
 
@@ -167,15 +166,15 @@ function getChannelModerationRowsMessages(permission: string): Record<string, Me
         },
         disabledGuests: {
             id: 'admin.channel_settings.channel_moderation.channelMentions.disabledGuest',
-            defaultMessage: 'Channel mentions for guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Channel mentions for guests are disabled in <link>{schemeName}</link>.',
         },
         disabledMembers: {
             id: 'admin.channel_settings.channel_moderation.channelMentions.disabledMember',
-            defaultMessage: 'Channel mentions for members are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Channel mentions for members are disabled in <link>{schemeName}</link>.',
         },
         disabledBoth: {
             id: 'admin.channel_settings.channel_moderation.channelMentions.disabledBoth',
-            defaultMessage: 'Channel mentions for members and guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Channel mentions for members and guests are disabled in <link>{schemeName}</link>.',
         },
         disabledGuestsDueToCreatePosts: {
             id: 'admin.channel_settings.channel_moderation.channelMentions.disabledGuestsDueToCreatePosts',
@@ -202,15 +201,15 @@ function getChannelModerationRowsMessages(permission: string): Record<string, Me
         },
         disabledGuests: {
             id: 'admin.channel_settings.channel_moderation.manageBookmarks.disabledGuest',
-            defaultMessage: 'Manage bookmarks for guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Manage bookmarks for guests are disabled in <link>{schemeName}</link>.',
         },
         disabledMembers: {
             id: 'admin.channel_settings.channel_moderation.manageBookmarks.disabledMember',
-            defaultMessage: 'Manage bookmarks for members are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Manage bookmarks for members are disabled in <link>{schemeName}</link>.',
         },
         disabledBoth: {
             id: 'admin.channel_settings.channel_moderation.manageBookmarks.disabledBoth',
-            defaultMessage: 'Manage bookmarks for members and guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+            defaultMessage: 'Manage bookmarks for members and guests are disabled in <link>{schemeName}</link>.',
         },
     });
 
@@ -458,12 +457,14 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                     data-testid={disabledKeyId?.replace(PERIOD_TO_SLASH_REGEX, '-')}
                     key={disabledKeyId}
                 >
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id={disabledKeyId}
                         defaultMessage={disabledKeyMessage as string}
                         values={{
-                            scheme_name: schemeName,
-                            scheme_link: schemeLink,
+                            link: (msg: React.ReactNode) => (
+                                <a href={'../permissions/' + schemeLink}>{msg}</a>
+                            ),
+                            schemeName,
                         }}
                     />
                 </div>,
