@@ -5,9 +5,9 @@ BEGIN
         UPDATE Roles 
             SET Permissions = REGEXP_REPLACE(Permissions, 'manage_team[[:space:]|?]', '')
             WHERE Permissions like '%manage_team%'
+                AND Permissions not like '%sysconsole_write_user_management_teams%'
                 AND (Permissions like '%sysconsole_write_user_management_chanels%'
                 OR Permissions like '%sysconsole_write_user_management_groups%')
-                AND Permissions not like '%sysconsole_write_user_management_teams%'
             LIMIT 100;
 
           -- check if the loop has completed    
