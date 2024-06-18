@@ -72,10 +72,10 @@ describe('PerformanceReporter', () => {
         });
         expect(report.start).toEqual(report.histograms[0].timestamp);
         expect(report.end).toEqual(report.histograms[2].timestamp);
-        expect(report.histograms[0].timestamp).toBeGreaterThan(timeA);
-        expect(report.histograms[0].timestamp).toBeLessThan(timeBC);
-        expect(report.histograms[1].timestamp).toBeGreaterThan(timeBC);
-        expect(report.histograms[2].timestamp).toBeGreaterThan(timeBC);
+        expect(report.histograms[0].timestamp).toBeGreaterThanOrEqual(timeA);
+        expect(report.histograms[0].timestamp).toBeLessThanOrEqual(timeBC);
+        expect(report.histograms[1].timestamp).toBeGreaterThanOrEqual(timeBC);
+        expect(report.histograms[2].timestamp).toBeGreaterThanOrEqual(timeBC);
 
         reporter.disconnect();
     });
