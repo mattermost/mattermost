@@ -5903,6 +5903,27 @@ func (s *RetryLayerJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string
 
 }
 
+func (s *RetryLayerJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, offset int, limit int) ([]*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.GetAllByTypeAndStatusPage(c, jobType, status, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerJobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
 
 	tries := 0

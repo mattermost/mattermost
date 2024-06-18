@@ -720,6 +720,7 @@ type AppIface interface {
 	GetIncomingWebhooksPageByUser(userID string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
 	GetJob(c request.CTX, id string) (*model.Job, *model.AppError)
 	GetJobsByType(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, *model.AppError)
+	GetJobsByTypeAndStatus(c request.CTX, jobTypes []string, status string, page int, perPage int) ([]*model.Job, *model.AppError)
 	GetJobsByTypePage(c request.CTX, jobType string, page int, perPage int) ([]*model.Job, *model.AppError)
 	GetJobsByTypes(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError)
 	GetJobsByTypesPage(c request.CTX, jobType []string, page int, perPage int) ([]*model.Job, *model.AppError)
@@ -1099,6 +1100,7 @@ type AppIface interface {
 	SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool
 	SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission)
 	SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool
+	SessionHasPermissionToManageJob(session model.Session, job *model.Job) (bool, *model.Permission)
 	SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission)
 	SessionHasPermissionToTeam(session model.Session, teamID string, permission *model.Permission) bool
 	SessionHasPermissionToUser(session model.Session, userID string) bool
@@ -1173,6 +1175,7 @@ type AppIface interface {
 	UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError
 	UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError
 	UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
+	UpdateJobStatus(c request.CTX, job *model.Job, newStatus string) *model.AppError
 	UpdateMfa(c request.CTX, activate bool, userID, token string) *model.AppError
 	UpdateMobileAppBadge(userID string)
 	UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError)
