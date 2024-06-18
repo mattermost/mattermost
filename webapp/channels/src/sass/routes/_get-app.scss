@@ -54,14 +54,14 @@
 }
 
 .get-app__graphic {
-    flex: 0 0 600px;
     display: flex;
+    flex: 0 0 600px;
     flex-direction: column;
     align-items: center;
 
     &.mobile {
-        flex: 0 1 300px;
         max-height: 500px;
+        flex: 0 1 300px;
     }
 }
 
@@ -229,8 +229,8 @@
         flex: 0 1 500px;
 
         &.mobile {
-            flex: 0 1 347px;
             max-height: none;
+            flex: 0 1 347px;
             margin-top: 20px;
             margin-bottom: -200px;
         }

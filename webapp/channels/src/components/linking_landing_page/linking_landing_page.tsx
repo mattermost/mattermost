@@ -9,18 +9,16 @@ import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import BrowserStore from 'stores/browser_store';
 
+import GetAppDesktopSvg from 'components/common/svg_images_components/get-app-desktop_svg';
+import GetAppMobileSvg from 'components/common/svg_images_components/get-app-mobile_svg';
 import BrandedLanding from 'components/custom_branding/branded_landing';
 
-import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
-import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
 import {LandingPreferenceTypes} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import DialogBody from './dialog_body';
 import Header from './header';
-import GetAppDesktopSvg from 'components/common/svg_images_components/get-app-desktop_svg';
-import GetAppMobileSvg from 'components/common/svg_images_components/get-app-mobile_svg';
 
 const LinkingLandingPage = () => {
     const [location, setLocation] = useState('');
@@ -122,7 +120,12 @@ const LinkingLandingPage = () => {
                 <div
                     className={`get-app__graphic ${isMobile ? 'mobile' : ''}`}
                 >
-                    {isMobile ? <GetAppMobileSvg width={362} height={600} /> : <GetAppDesktopSvg /> }
+                    {isMobile ? (
+                        <GetAppMobileSvg
+                            width={362}
+                            height={600}
+                        />
+                    ) : <GetAppDesktopSvg/> }
                 </div>
                 <DialogBody
                     siteUrl={SiteURL}
