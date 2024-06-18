@@ -863,9 +863,9 @@ func (mr *MockClientMockRecorder) GetJob(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GetJobs mocks base method.
-func (m *MockClient) GetJobs(arg0 context.Context, arg1, arg2 int) ([]*model.Job, *model.Response, error) {
+func (m *MockClient) GetJobs(arg0 context.Context, arg1, arg2 string, arg3, arg4 int) ([]*model.Job, *model.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetJobs", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetJobs", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].([]*model.Job)
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
@@ -873,9 +873,9 @@ func (m *MockClient) GetJobs(arg0 context.Context, arg1, arg2 int) ([]*model.Job
 }
 
 // GetJobs indicates an expected call of GetJobs.
-func (mr *MockClientMockRecorder) GetJobs(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetJobs(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJobs", reflect.TypeOf((*MockClient)(nil).GetJobs), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJobs", reflect.TypeOf((*MockClient)(nil).GetJobs), arg0, arg1, arg2, arg3, arg4)
 }
 
 // GetJobsByType mocks base method.
@@ -2103,6 +2103,21 @@ func (m *MockClient) UpdateIncomingWebhook(arg0 context.Context, arg1 *model.Inc
 func (mr *MockClientMockRecorder) UpdateIncomingWebhook(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateIncomingWebhook", reflect.TypeOf((*MockClient)(nil).UpdateIncomingWebhook), arg0, arg1)
+}
+
+// UpdateJobStatus mocks base method.
+func (m *MockClient) UpdateJobStatus(arg0 context.Context, arg1, arg2 string, arg3 bool) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateJobStatus", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateJobStatus indicates an expected call of UpdateJobStatus.
+func (mr *MockClientMockRecorder) UpdateJobStatus(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateJobStatus", reflect.TypeOf((*MockClient)(nil).UpdateJobStatus), arg0, arg1, arg2, arg3)
 }
 
 // UpdateOutgoingWebhook mocks base method.
