@@ -3086,10 +3086,15 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_reactions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// err = a.Srv().Store().Thread().BatchMergeThreadMembershipUserId(toUser.Id, fromUser.Id)
-	// if err != nil {
-	// 	return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_thread_memberships.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	// }
+	err = a.Srv().Store().Thread().MergeThreadParticipants(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.merge_thread_participants.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	err = a.Srv().Store().Thread().BatchMergeThreadMembershipUserId(toUser.Id, fromUser.Id)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_thread_memberships.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
 	// // don't think this is needed
 	// err = a.Srv().Store().UserTermsOfService().BatchMergeUserId(toUser.Id, fromUser.Id)

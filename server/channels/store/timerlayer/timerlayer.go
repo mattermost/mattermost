@@ -10103,6 +10103,22 @@ func (s *TimerLayerThreadStore) MarkAsRead(userID string, threadID string, times
 	return err
 }
 
+func (s *TimerLayerThreadStore) MergeThreadParticipants(toUserID string, fromUserID string) error {
+	start := time.Now()
+
+	err := s.ThreadStore.MergeThreadParticipants(toUserID, fromUserID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.MergeThreadParticipants", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerThreadStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 	start := time.Now()
 

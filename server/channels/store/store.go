@@ -353,6 +353,7 @@ type ThreadStore interface {
 	DeleteMembershipsForChannel(userID, channelID string) error
 	BatchMergeThreadMembershipUserId(toUserID string, fromUserID string) error
 	BatchMoveThreadsToChannel(toChannelID string, fromChannelID string) error
+	MergeThreadParticipants(toUserID string, fromUserID string) error
 }
 
 type PostStore interface {

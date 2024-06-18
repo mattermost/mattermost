@@ -567,6 +567,24 @@ func (_m *ThreadStore) MarkAsRead(userID string, threadID string, timestamp int6
 	return r0
 }
 
+// MergeThreadParticipants provides a mock function with given fields: toUserID, fromUserID
+func (_m *ThreadStore) MergeThreadParticipants(toUserID string, fromUserID string) error {
+	ret := _m.Called(toUserID, fromUserID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MergeThreadParticipants")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toUserID, fromUserID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PermanentDeleteBatchForRetentionPolicies provides a mock function with given fields: now, globalPolicyEndTime, limit, cursor
 func (_m *ThreadStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 	ret := _m.Called(now, globalPolicyEndTime, limit, cursor)

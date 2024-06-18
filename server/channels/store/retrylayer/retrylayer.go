@@ -12869,6 +12869,27 @@ func (s *RetryLayerThreadStore) MarkAsRead(userID string, threadID string, times
 
 }
 
+func (s *RetryLayerThreadStore) MergeThreadParticipants(toUserID string, fromUserID string) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.MergeThreadParticipants(toUserID, fromUserID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerThreadStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 
 	tries := 0

@@ -1054,3 +1054,78 @@ func (s *SqlThreadStore) BatchMoveThreadsToChannel(toChannelID string, fromChann
 	}
 	return nil
 }
+
+func (s *SqlThreadStore) MergeThreadParticipants(toUserID string, fromUserID string) error {
+	since := uint64(0)
+	for {
+		opts := model.GetUserThreadsOpts{
+			PageSize: 60,
+			Since:    since,
+		}
+		// 1. Get threads for fromUser
+		threads, err := s.GetThreadsForUser(fromUserID, "", opts)
+		if err != nil {
+			return err
+		}
+
+		postIds := make([]string, 0, len(threads))
+		for _, thread := range threads {
+			if uint64(thread.LastReplyAt) > since {
+				since = uint64(thread.LastReplyAt)
+			}
+
+			postIds = append(postIds, thread.PostId)
+		}
+
+		transaction, err := s.GetMasterX().Beginx()
+		if err != nil {
+			return errors.Wrap(err, "begin_transaction")
+		}
+		defer finalizeTransactionX(transaction, &err)
+
+		var query string
+		// Remove fromUser from threads
+		fromThreadParams := map[string]any{
+			"fromUserId": fromUserID,
+			"postIds":    postIds,
+		}
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			query = "UPDATE Threads SET Participants = Participants - :fromUserId WHERE PostId IN (:postIds)"
+		} else {
+			query = "UPDATE Threads SET Participants = IFNULL(JSON_REMOVE(Participants, JSON_UNQUOTE(JSON_SEARCH(Participants, 'one', :fromUserId))), Participants) WHERE PostId IN (:postIds)"
+		}
+
+		if _, err = transaction.NamedExec(query, fromThreadParams); err != nil {
+			return errors.Wrap(err, "failed to update Posts")
+		}
+
+		// Add toUser to threads
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			userIdParam, err := jsonArray([]string{toUserID}).Value()
+			if err != nil {
+				return err
+			}
+			if s.IsBinaryParamEnabled() {
+				userIdParam = AppendBinaryFlag(userIdParam.([]byte))
+			}
+			if _, err = transaction.ExecRaw(`UPDATE Threads SET Participants = Participants || $1::jsonb WHERE PostId IN ($2) AND NOT(Participants ? $3)`, userIdParam, postIds, toUserID); err != nil {
+				return err
+			}
+		} else {
+			if _, err = transaction.Exec(`UPDATE Threads
+				SET Participants = JSON_ARRAY_INSERT(Participants, CONCAT('$[', JSON_LENGTH(Participants), ']'), ?)
+				WHERE PostId IN (?)
+				AND NOT JSON_CONTAINS(Participants, ?)`, toUserID, postIds, strconv.Quote(toUserID)); err != nil {
+				return err
+			}
+		}
+
+		if err = transaction.Commit(); err != nil {
+			return errors.Wrap(err, "commit_transaction")
+		}
+		if len(threads) < int(opts.PageSize) {
+			break
+		}
+	}
+	return nil
+}
