@@ -53,6 +53,7 @@ import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
 import {messages as customTermsOfServiceMessages, searchableStrings as customTermsOfServiceSearchableStrings} from './custom_terms_of_service_settings/custom_terms_of_service_settings';
 import CustomURLSchemesSetting from './custom_url_schemes_setting';
 import CustomThemesSetting from './custom_themes_setting';
+import AllowedThemesSetting from './allowed_themes_setting';
 import DataRetentionSettings from './data_retention_settings';
 import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
 import {searchableStrings as dataRetentionSearchableStrings} from './data_retention_settings/data_retention_settings';
@@ -1937,9 +1938,19 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+                            // TODO: Add translations here for support search in the admin console
+                            // TODO: Ensure disabled field is correctly set here
                             type: 'custom',
                             component: CustomThemesSetting,
                             key: 'ThemeSettings.CustomThemes',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                        {
+                            // TODO: Add translations here for support search in the admin console
+                            // TODO: Ensure disabled field is correctly set here
+                            type: 'custom',
+                            component: AllowedThemesSetting,
+                            key: 'ThemeSettings.AllowedThemes',
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
                         },
                         {

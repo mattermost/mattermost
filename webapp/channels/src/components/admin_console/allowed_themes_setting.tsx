@@ -1,0 +1,90 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React, {useCallback} from 'react';
+import {useIntl} from 'react-intl';
+import ReactSelect from 'react-select';
+import type {ValueType} from 'react-select';
+
+import {toTitleCase} from 'utils/utils';
+
+import {Preferences} from 'mattermost-redux/constants';
+
+import Setting from './setting';
+
+type CustomTheme = {
+    ID: string;
+    Name: string;
+    Theme: string;
+}
+
+type Option = {
+    value: string;
+    text: string;
+}
+
+type Props = {
+    id: string;
+    value: string[];
+    state: any;
+    onChange?: (id: string, themes: string[]) => void;
+    disabled?: boolean;
+    setByEnv?: boolean;
+}
+
+const AllowedThemesSetting = (props: Props) => {
+    const intl = useIntl();
+
+    const allThemes: {[key: string]: string} = {}
+    const options: Option[] = []
+    Object.keys(Preferences.THEMES).forEach((theme) => {
+        allThemes[theme] = toTitleCase(theme);;
+        options.push({value: theme, text: toTitleCase(theme)})
+    })
+    props.state['ThemeSettings.CustomThemes'].forEach((theme: CustomTheme) => {
+        allThemes[theme.ID] = theme.Name;
+        options.push({value: theme.ID, text: theme.Name})
+    })
+
+    const getOptionLabel = ({text}: { text: string}) => text;
+
+    const handleChange = useCallback((newValue: ValueType<Option>) => {
+        const values = newValue ? (newValue as Option[]).map((n) => {
+            return n.value;
+        }) : [];
+
+        if (props.onChange) {
+            props.onChange(props.id, values);
+        }
+    }, [props.id, props.onChange]);
+
+    return (
+        <Setting
+            label={intl.formatMessage({
+                id: 'admin.themes.allowed_themes.title',
+                defaultMessage: 'Allowed Themes',
+            })}
+            inputId={props.id}
+        >
+            <ReactSelect
+                id={props.id}
+                isMulti={true}
+                options={options}
+                getOptionLabel={getOptionLabel}
+                delimiter={','}
+                clearable={false}
+                isDisabled={props.disabled || props.setByEnv}
+                noResultsText={intl.formatMessage({
+                    id: 'admin.themes.allowed_themes.no_themes_found',
+                    defaultMessage: 'No themes found',
+                })}
+                onChange={handleChange}
+                value={props.value.map((theme) => {
+                    return {value: theme, text: allThemes[theme]}
+                })}
+            />
+        </Setting>
+    );
+};
+
+export default React.memo(AllowedThemesSetting);
