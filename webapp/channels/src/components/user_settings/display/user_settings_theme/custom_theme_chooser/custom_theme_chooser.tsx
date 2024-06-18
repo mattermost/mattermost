@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {createRef} from 'react';
+import styled from 'styled-components';
 import type {ChangeEvent, ClipboardEvent, MouseEvent, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
@@ -16,6 +17,52 @@ import Popover from 'components/widgets/popover';
 import Constants from 'utils/constants';
 
 import ColorChooser from '../color_chooser/color_chooser';
+
+const ThemeElementsHeader = styled.div`
+    padding: 1px 0 10px;
+    border-bottom: 1px solid;
+    margin: 10px 20px 0 0;
+    cursor: pointer;
+    font-size: em(13.5px);
+    font-weight: 600;
+
+    .fa-minus {
+        display: none;
+    }
+
+    &.open {
+        .fa-minus {
+            display: inline-block;
+        }
+
+        .fa-plus {
+            display: none;
+        }
+    }
+
+    .header__icon {
+        float: right;
+        opacity: 0.5;
+    }
+`
+
+const ThemeElementsBody = styled.div`
+    max-height: 0;
+    padding: 0 0 0 24px;
+    border-radius: 0 0 3px 3px;
+    margin: 0 20px 0 0;
+    background-color: rgba(255, 255, 255, 0.05);
+    overflow-y: hidden;
+    transition: all 0.4s ease-out;
+
+    @include pie-clearfix;
+
+    &.open {
+        max-height: 1200px;
+        padding: 24px 0 0 24px;
+        margin: 0 20px 0 0;
+    }
+`
 
 const COPY_SUCCESS_INTERVAL = 3000;
 
@@ -456,10 +503,9 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
         return (
             <div className='appearance-section pt-2'>
                 <div className='theme-elements row'>
-                    <div
+                    <ThemeElementsHeader
                         ref={this.sidebarStylesHeaderRef}
                         id='sidebarStyles'
-                        className='theme-elements__header'
                         onClick={this.toggleSidebarStyles}
                     >
                         <FormattedMessage
@@ -476,19 +522,17 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                                 title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                             />
                         </div>
-                    </div>
-                    <div
+                    </ThemeElementsHeader>
+                    <ThemeElementsBody
                         ref={this.sidebarStylesRef}
-                        className='theme-elements__body'
                     >
                         {sidebarElements}
-                    </div>
+                    </ThemeElementsBody>
                 </div>
                 <div className='theme-elements row'>
-                    <div
+                    <ThemeElementsHeader
                         ref={this.centerChannelStylesHeaderRef}
                         id='centerChannelStyles'
-                        className='theme-elements__header'
                         onClick={this.toggleCenterChannelStyles}
                     >
                         <FormattedMessage
@@ -505,20 +549,18 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                                 title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                             />
                         </div>
-                    </div>
-                    <div
+                    </ThemeElementsHeader>
+                    <ThemeElementsBody
                         ref={this.centerChannelStylesRef}
                         id='centerChannelStyles'
-                        className='theme-elements__body'
                     >
                         {centerChannelElements}
-                    </div>
+                    </ThemeElementsBody>
                 </div>
                 <div className='theme-elements row'>
-                    <div
+                    <ThemeElementsHeader
                         ref={this.linkAndButtonStylesHeaderRef}
                         id='linkAndButtonsStyles'
-                        className='theme-elements__header'
                         onClick={this.toggleLinkAndButtonStyles}
                     >
                         <FormattedMessage
@@ -535,13 +577,10 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                                 title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                             />
                         </div>
-                    </div>
-                    <div
-                        ref={this.linkAndButtonStylesRef}
-                        className='theme-elements__body'
-                    >
+                    </ThemeElementsHeader>
+                    <ThemeElementsBody ref={this.linkAndButtonStylesRef}>
                         {linkAndButtonElements}
-                    </div>
+                    </ThemeElementsBody>
                 </div>
                 <div className='row mt-3'>
                     {pasteBox}

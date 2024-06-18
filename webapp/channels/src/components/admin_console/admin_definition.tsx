@@ -52,6 +52,7 @@ import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_gue
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
 import {messages as customTermsOfServiceMessages, searchableStrings as customTermsOfServiceSearchableStrings} from './custom_terms_of_service_settings/custom_terms_of_service_settings';
 import CustomURLSchemesSetting from './custom_url_schemes_setting';
+import CustomThemesSetting from './custom_themes_setting';
 import DataRetentionSettings from './data_retention_settings';
 import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
 import {searchableStrings as dataRetentionSearchableStrings} from './data_retention_settings/data_retention_settings';
@@ -1934,6 +1935,12 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
+                        },
+                        {
+                            type: 'custom',
+                            component: CustomThemesSetting,
+                            key: 'ThemeSettings.CustomThemes',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
                         },
                         {
                             type: 'longtext',

@@ -366,52 +366,6 @@
                         }
                     }
 
-                    .theme-elements__header {
-                        padding: 1px 0 10px;
-                        border-bottom: 1px solid;
-                        margin: 10px 20px 0 0;
-                        cursor: pointer;
-                        font-size: em(13.5px);
-                        font-weight: 600;
-
-                        .fa-minus {
-                            display: none;
-                        }
-
-                        &.open {
-                            .fa-minus {
-                                display: inline-block;
-                            }
-
-                            .fa-plus {
-                                display: none;
-                            }
-                        }
-
-                        .header__icon {
-                            float: right;
-                            opacity: 0.5;
-                        }
-                    }
-
-                    .theme-elements__body {
-                        max-height: 0;
-                        padding: 0 0 0 24px;
-                        border-radius: 0 0 3px 3px;
-                        margin: 0 20px 0 0;
-                        background-color: rgba(255, 255, 255, 0.05);
-                        overflow-y: hidden;
-                        transition: all 0.4s ease-out;
-
-                        @include pie-clearfix;
-
-                        &.open {
-                            max-height: 1200px;
-                            padding: 24px 0 0 24px;
-                            margin: 0 20px 0 0;
-                        }
-                    }
-
                     .custom-label {
                         overflow: hidden;
                         width: 100%;
