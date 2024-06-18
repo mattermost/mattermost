@@ -257,6 +257,32 @@ func (_m *ClusterInterface) StopInterNodeCommunication() {
 	_m.Called()
 }
 
+// WebConnCountForUser provides a mock function with given fields: userID
+func (_m *ClusterInterface) WebConnCountForUser(userID string) (int, *model.AppError) {
+	ret := _m.Called(userID)
+
+	var r0 int
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (int, *model.AppError)); ok {
+		return rf(userID)
+	}
+	if rf, ok := ret.Get(0).(func(string) int); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 type mockConstructorTestingTNewClusterInterface interface {
 	mock.TestingT
 	Cleanup(func())
