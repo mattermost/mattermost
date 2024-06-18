@@ -7,10 +7,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/pkg/errors"
 	"net/http"
 	"os"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
