@@ -10,6 +10,8 @@ type ThemeThumbnailProps = {
     themeKey: string;
     sidebarBg: string;
     sidebarText: string;
+    sidebarHeaderBg: string;
+    sidebarHeaderTextColor: string;
     sidebarUnreadText: string;
     onlineIndicator: string;
     awayIndicator: string;
@@ -25,6 +27,8 @@ function ThemeThumbnail({
     themeKey,
     sidebarBg = '#174AB5',
     sidebarText = '#86A1D9',
+    sidebarHeaderBg = '#192a4d',
+    sidebarHeaderTextColor = '#ffffff',
     sidebarUnreadText = 'white',
     onlineIndicator = '#3DB887',
     awayIndicator = '#FFBC1F',
@@ -81,6 +85,8 @@ function ThemeThumbnail({
                     <rect x='11' y='23' width='28' height='4' rx='2'/>
                 </g>
             </g>
+            <rect style={{fill: sidebarHeaderBg}} x='0' y='0' width='112' height='10'/>
+            <rect style={{fill: sidebarHeaderTextColor}} x='4' y='3' width='25' height='4' rx='2'/>
         </svg>
     );
 }

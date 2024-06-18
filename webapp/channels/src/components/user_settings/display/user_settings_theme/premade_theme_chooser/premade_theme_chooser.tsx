@@ -55,6 +55,8 @@ const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = []}: Props) =>
                             sidebarBg={data.sidebarBg}
                             sidebarText={changeOpacity(data.sidebarText, 0.48)}
                             sidebarUnreadText={data.sidebarUnreadText}
+                            sidebarHeaderBg={data.sidebarHeaderBg}
+                            sidebarHeaderTextColor={changeOpacity(data.sidebarHeaderTextColor, 0.48)}
                             onlineIndicator={data.onlineIndicator}
                             awayIndicator={data.awayIndicator}
                             dndIndicator={data.dndIndicator}
@@ -101,6 +103,8 @@ const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = []}: Props) =>
                                 sidebarBg={premadeTheme.sidebarBg}
                                 sidebarText={changeOpacity(premadeTheme.sidebarText, 0.48)}
                                 sidebarUnreadText={premadeTheme.sidebarUnreadText}
+                                sidebarHeaderBg={premadeTheme.sidebarHeaderBg}
+                                sidebarHeaderTextColor={changeOpacity(premadeTheme.sidebarHeaderTextColor, 0.48)}
                                 onlineIndicator={premadeTheme.onlineIndicator}
                                 awayIndicator={premadeTheme.awayIndicator}
                                 dndIndicator={premadeTheme.dndIndicator}

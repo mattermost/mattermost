@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
+import styled from 'styled-components';
 
 import {Preferences} from 'mattermost-redux/constants';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
@@ -13,6 +14,45 @@ import CustomThemeChooser from 'components/user_settings/display/user_settings_t
 import {generateId} from 'utils/utils';
 
 import Setting from './setting';
+
+const CustomThemeContainer = styled.div`
+    margin-bottom: 20px;
+    border: 1px solid var(--center-channel-color-24);
+    padding: 10px;
+    background: white;
+    box-shadow: 0px 2px 3px 0px rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    .mt-3 .btn {
+        display: none;
+    }
+    .theme-elements > div:first-child {
+        margin: 10px 20px 0 20px;
+    }
+    textarea {
+        height: 230px;
+    }
+`
+
+const CustomThemeHeader = styled.div`
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    .theme-label {
+        margin-left: 10px;
+        font-size: 18px;
+        font-weight: 600;
+        flex-grow: 1;
+    }
+`
+
+const CustomThemeBody = styled.div`
+    margin-top: 10px;
+`
+
+const DeleteIcon = styled.i`
+    color: #ea6262;
+    cursor: pointer;
+`
 
 type CustomTheme = {
     ID: string;
@@ -27,9 +67,8 @@ type Props = {
     disabled?: boolean;
 }
 
-// TODO: Add i18n
-
 const CustomThemesSetting = (props: Props) => {
+    const intl = useIntl();
     const [openTheme, setOpenTheme] = React.useState<string | null>(null);
 
     const handleChange = useCallback((themes: CustomTheme[]) => {
@@ -38,37 +77,50 @@ const CustomThemesSetting = (props: Props) => {
         }
     }, [props.id, props.onChange]);
 
-    const newTheme: CustomTheme = {ID: generateId(), Name: 'New', Theme: '{}'};
+    const newTheme: CustomTheme = {ID: generateId(), Name: intl.formatMessage({id: 'admin.themes.custom_theme.new', defaultMessage: 'New Theme'}), Theme: JSON.stringify(Preferences.THEMES['denim'])};
 
     return (
         <Setting
-            label={'Brand themes'}
+            label={intl.formatMessage({
+                id: 'admin.themes.custom_theme.title',
+                defaultMessage: 'Brand themes',
+            })}
             inputId={props.id}
         >
             {props.value.map((theme: CustomTheme) => {
                 const data = {...Object.values(Preferences.THEMES)[0], ...JSON.parse(theme.Theme)}
                 data.type = theme.ID
                 return (
-                    <div className='settings-table settings-content' onClick={() => openTheme === theme.ID ? setOpenTheme(null) : setOpenTheme(theme.ID)}>
-                        <ThemeThumbnail
-                            themeKey={theme.ID}
-                            themeName={data.type}
-                            sidebarBg={data.sidebarBg}
-                            sidebarText={changeOpacity(data.sidebarText, 0.48)}
-                            sidebarUnreadText={data.sidebarUnreadText}
-                            onlineIndicator={data.onlineIndicator}
-                            awayIndicator={data.awayIndicator}
-                            dndIndicator={data.dndIndicator}
-                            centerChannelColor={changeOpacity(data.centerChannelColor, 0.16)}
-                            centerChannelBg={data.centerChannelBg}
-                            newMessageSeparator={data.newMessageSeparator}
-                            buttonBg={data.buttonBg}
-                        />
-                        {openTheme !== theme.ID &&
-                            <div className='theme-label'>{theme.Name}</div>}
+                    <CustomThemeContainer onClick={() => openTheme === theme.ID ? setOpenTheme(null) : setOpenTheme(theme.ID)}>
+                        <CustomThemeHeader>
+                            <ThemeThumbnail
+                                themeKey={theme.ID}
+                                themeName={data.type}
+                                sidebarBg={data.sidebarBg}
+                                sidebarText={changeOpacity(data.sidebarText, 0.48)}
+                                sidebarHeaderBg={data.sidebarHeaderBg}
+                                sidebarHeaderTextColor={changeOpacity(data.sidebarHeaderTextColor, 0.48)}
+                                sidebarUnreadText={data.sidebarUnreadText}
+                                onlineIndicator={data.onlineIndicator}
+                                awayIndicator={data.awayIndicator}
+                                dndIndicator={data.dndIndicator}
+                                centerChannelColor={changeOpacity(data.centerChannelColor, 0.16)}
+                                centerChannelBg={data.centerChannelBg}
+                                newMessageSeparator={data.newMessageSeparator}
+                                buttonBg={data.buttonBg}
+                            />
+                            <div className='theme-label'>{theme.Name}</div>
+                            <DeleteIcon
+                                className='icon icon-trash-can-outline'
+                                onClick={() => { handleChange(props.value.filter((t) => t.ID !== theme.ID)); setOpenTheme(null)}}
+                            />
+                            {openTheme !== theme.ID && <i className='icon icon-chevron-down'/>}
+                            {openTheme === theme.ID && <i className='icon icon-chevron-up'/>}
+                        </CustomThemeHeader>
                         {openTheme === theme.ID &&
-                            <div onClick={(e) => e.stopPropagation()}>
+                            <CustomThemeBody onClick={(e) => e.stopPropagation()}>
                                 <input
+                                    className='form-control'
                                     value={theme.Name}
                                     onChange={(e) => handleChange(props.value.map((t) => t.ID === openTheme ? {ID: t.ID, Name: e.target.value, Theme: t.Theme} : t))}
                                 />
@@ -78,21 +130,31 @@ const CustomThemesSetting = (props: Props) => {
                                         handleChange(props.value.map((t) => t.ID === openTheme ? {ID: t.ID, Name: t.Name, Theme: JSON.stringify(theme)} : t));
                                     }}
                                 />
-                                <button onClick={() => { handleChange(props.value.filter((t) => t.ID !== openTheme)); setOpenTheme(null)}}>{'Delete'}</button>
-                            </div>}
-                    </div>
+                                <button
+                                    className='btn btn-tertiary'
+                                    onClick={() => { handleChange(props.value.filter((t) => t.ID !== openTheme)); setOpenTheme(null)}}
+                                >
+                                    <FormattedMessage
+                                        id='admin.themes.custom_theme.delete'
+                                        defaultMessage='Delete'
+                                    />
+                                </button>
+                            </CustomThemeBody>}
+                    </CustomThemeContainer>
                 );
             })}
 
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleChange([...props.value, newTheme]); setOpenTheme(newTheme.ID)}}>{'+ Add custom theme'}</button>
+            <button
+                className='btn btn-tertiary'
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleChange([...props.value, newTheme]); setOpenTheme(newTheme.ID)}}
+            >
+                <FormattedMessage
+                    id='admin.themes.custom_theme.add'
+                    defaultMessage='+ Add custom theme'
+                />
+            </button>
         </Setting>
     );
-            // <ColorInput
-            //     id={props.id}
-            //     value={props.value}
-            //     onChange={handleChange}
-            //     isDisabled={props.disabled}
-            // />
 };
 
 export default React.memo(CustomThemesSetting);
