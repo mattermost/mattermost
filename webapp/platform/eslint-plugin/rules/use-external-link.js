@@ -32,6 +32,12 @@ module.exports =  {
                     return;
                 }
 
+                // Don't apply this rule to relative links
+                const href = astUtils.getPropValue(astUtils.getProp(node.attributes, 'href'));
+                if (href.startsWith('/')) {
+                    return;
+                }
+
                 context.report({
                     node,
                     message: 'Use ExternalLink component (components/external_link) for _blank target link-outs',
