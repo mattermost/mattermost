@@ -10,6 +10,7 @@ import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 import ThemeThumbnail from 'components/user_settings/display/user_settings_theme/theme_thumbnail';
 import CustomThemeChooser from 'components/user_settings/display/user_settings_theme/custom_theme_chooser/custom_theme_chooser';
+import SchemaText from 'components/admin_console/schema_text';
 
 import {generateId} from 'utils/utils';
 
@@ -79,11 +80,27 @@ const CustomThemesSetting = (props: Props) => {
 
     const newTheme: CustomTheme = {ID: generateId(), Name: intl.formatMessage({id: 'admin.themes.custom_theme.new', defaultMessage: 'New Theme'}), Theme: JSON.stringify(Preferences.THEMES['denim'])};
 
+    if (props.disabled) {
+        return (
+            <Setting
+                label={intl.formatMessage({
+                    id: 'admin.themes.custom_theme.title',
+                    defaultMessage: 'Brand themes (Enterprise):',
+                })}
+                inputId={props.id}
+            >
+                <div className='help-text'>
+                    <SchemaText text={intl.formatMessage({id: 'admin.themes.custom_theme.disabled', defaultMessage: 'Custom themes are only available if you have custom branding enable and enterprise license.'})} />
+                </div>
+            </Setting>
+        )
+    }
+
     return (
         <Setting
             label={intl.formatMessage({
                 id: 'admin.themes.custom_theme.title',
-                defaultMessage: 'Brand themes',
+                defaultMessage: 'Brand themes (Enterprise):',
             })}
             inputId={props.id}
         >
