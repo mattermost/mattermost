@@ -9,7 +9,6 @@ import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import SuggestionBox from 'components/suggestion/suggestion_box';
@@ -187,9 +186,12 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
             );
         } else {
             help = (
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='quick_switch_modal.help_no_team'
-                    defaultMessage='Type to find a channel. Use **UP/DOWN** to browse, **ENTER** to select, **ESC** to dismiss.'
+                    defaultMessage='Type to find a channel. Use <strong>UP/DOWN</strong> to browse, <strong>ENTER</strong> to select, <strong>ESC</strong> to dismiss.'
+                    values={{
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                    }}
                 />
             );
         }

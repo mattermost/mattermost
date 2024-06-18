@@ -9,8 +9,6 @@ import {General} from 'mattermost-redux/constants';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import Constants from 'utils/constants';
 
 type Props = {
@@ -84,11 +82,12 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                 </Modal.Header>
                 <Modal.Body>
                     <p>
-                        <FormattedMarkdownMessage
+                        <FormattedMessage
                             id='convert_channel.question1'
-                            defaultMessage='When you convert **{display_name}** to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.'
+                            defaultMessage='When you convert <strong>{display_name}</strong> to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.'
                             values={{
                                 display_name: channelDisplayName,
+                                strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                             }}
                         />
                     </p>
@@ -99,11 +98,12 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                         />
                     </p>
                     <p>
-                        <FormattedMarkdownMessage
+                        <FormattedMessage
                             id='convert_channel.question3'
-                            defaultMessage='Are you sure you want to convert **{display_name}** to a private channel?'
+                            defaultMessage='Are you sure you want to convert <strong>{display_name}</strong> to a private channel?'
                             values={{
                                 display_name: channelDisplayName,
+                                strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                             }}
                         />
                     </p>

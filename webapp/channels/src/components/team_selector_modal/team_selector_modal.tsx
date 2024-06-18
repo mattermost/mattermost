@@ -11,7 +11,6 @@ import type {Team} from '@mattermost/types/teams';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
@@ -287,9 +286,12 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
                         componentClass='h1'
                         id='teamSelectorModalLabel'
                     >
-                        <FormattedMarkdownMessage
+                        <FormattedMessage
                             id='add_teams_to_scheme.title'
-                            defaultMessage='Add Teams to **Team Selection** List'
+                            defaultMessage='Add Teams to <strong>Team Selection</strong> List'
+                            values={{
+                                strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                            }}
                         />
                     </Modal.Title>
                 </Modal.Header>

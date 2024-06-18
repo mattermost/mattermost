@@ -13,7 +13,6 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import CopyText from 'components/copy_text';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {Constants, DeveloperLinks, ErrorPageTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
@@ -89,10 +88,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
         tokenText = (
             <p className='word-break--all'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_command.token'
-                    defaultMessage='**Token**: {token}'
-                    values={{token: commandToken}}
+                    defaultMessage='<strong>Token</strong>: {token}'
+                    values={{
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                        token: commandToken,
+                    }}
                 />
                 <CopyText value={commandToken}/>
             </p>
@@ -126,10 +128,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
         tokenText = (
             <p className='word-break--all'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_incoming_webhook.url'
-                    defaultMessage='**URL**: {url}'
-                    values={{url: '`' + incomingHookToken + '`'}}
+                    defaultMessage='<strong>URL</strong>: {url}'
+                    values={{
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                        url: <code>{incomingHookToken}</code>,
+                    }}
                 />
                 <CopyText value={incomingHookToken}/>
             </p>
@@ -163,10 +168,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
         tokenText = (
             <p className='word-break--all'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_outgoing_webhook.token'
-                    defaultMessage='**Token**: {token}'
-                    values={{token: outgoingHookToken}}
+                    defaultMessage='<strong>Token</strong>: {token}'
+                    values={{
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                        token: outgoingHookToken,
+                    }}
                 />
                 <CopyText value={outgoingHookToken}/>
             </p>
@@ -203,10 +211,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
         helpText.push(
             <p key='add_oauth_app.clientId'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_oauth_app.clientId'
-                    defaultMessage='**Client ID**: {id}'
-                    values={{id: oauthAppToken}}
+                    defaultMessage='<strong>Client ID</strong>: {id}'
+                    values={{
+                        id: oauthAppToken,
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                    }}
                 />
                 <CopyText
                     idMessage='integrations.copy_client_id'
@@ -214,10 +225,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     value={oauthAppToken}
                 />
                 <br/>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_oauth_app.clientSecret'
-                    defaultMessage='**Client Secret**: {secret}'
-                    values={{secret: oauthAppSecret}}
+                    defaultMessage='<strong>Client Secret</strong>: {secret}'
+                    values={{
+                        secret: oauthAppSecret,
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                    }}
                 />
                 <CopyText
                     idMessage='integrations.copy_client_secret'
@@ -238,10 +252,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
 
         tokenText = (
             <p className='word-break--all'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_oauth_app.url'
-                    defaultMessage='**URL(s)**: {url}'
-                    values={{url: oauthApp.callback_urls.join(', ')}}
+                    defaultMessage='<strong>URL(s)</strong>: {url}'
+                    values={{
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                        url: oauthApp.callback_urls.join(', '),
+                    }}
                 />
             </p>
         );
@@ -279,16 +296,22 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
         helpText.push(
             <p key='add_outgoing_oauth_connection.clientId'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_outgoing_oauth_connection.clientId'
-                    defaultMessage='**Client ID**: {id}'
-                    values={{id: clientId}}
+                    defaultMessage='<strong>Client ID</strong>: {id}'
+                    values={{
+                        id: clientId,
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                    }}
                 />
                 <br/>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_outgoing_oauth_connection.clientSecret'
-                    defaultMessage='**Client Secret**: \*\*\*\*\*\*\*\*'
-                    values={{secret: clientSecret}}
+                    defaultMessage='<strong>Client Secret</strong>: \*\*\*\*\*\*\*\*'
+                    values={{
+                        secret: clientSecret,
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                    }}
                 />
             </p>,
         );
@@ -296,10 +319,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         if (outgoingOAuthConnection.grant_type === 'password') {
             helpText.push(
                 <p key='add_outgoing_oauth_connection.username'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='add_outgoing_oauth_connection.username'
-                        defaultMessage='**Username**: {username}'
-                        values={{username}}
+                        defaultMessage='<strong>Username</strong>: {username}'
+                        values={{
+                            strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                            username,
+                        }}
                     />
                     <CopyText
                         idMessage='integrations.copy_username'
@@ -307,10 +333,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                         value={username || ''}
                     />
                     <br/>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='add_outgoing_oauth_connection.password'
-                        defaultMessage='**Password**: {password}'
-                        values={{password}}
+                        defaultMessage='<strong>Password</strong>: {password}'
+                        values={{
+                            password,
+                            strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                        }}
                     />
                 </p>,
             );
@@ -319,17 +348,23 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         tokenText = (
             <>
                 <p className='word-break--all'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='add_outgoing_oauth_connection.token_url'
-                        defaultMessage='**Token URL**: `{url}`'
-                        values={{url: outgoingOAuthConnection.oauth_token_url}}
+                        defaultMessage='<strong>Token URL</strong>: {url}'
+                        values={{
+                            strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                            url: <code>{outgoingOAuthConnection.oauth_token_url}</code>,
+                        }}
                     />
                 </p>
                 <p className='word-break--all'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='add_outgoing_oauth_connection.audience_urls'
-                        defaultMessage='**Audience URL(s)**: `{url}`'
-                        values={{url: outgoingOAuthConnection.audiences.join(', ')}}
+                        defaultMessage='<strong>Audience URL(s)</strong>: {url}'
+                        values={{
+                            strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                            url: <code>{outgoingOAuthConnection.audiences.join(', ')}</code>,
+                        }}
                     />
                 </p>
             </>
@@ -347,7 +382,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
             <p>
                 <FormattedMessage
                     id='bots.manage.created.text'
-                    defaultMessage='Your bot account **{botname}** has been created successfully. Please use the following access token to connect to the bot (see [documentation](https://mattermost.com/pl/default-bot-accounts) for further details).'
+                    defaultMessage='Your bot account <strong>{botname}</strong> has been created successfully. Please use the following access token to connect to the bot (see <link>documentation</link> for further details).'
                     values={{
                         botname: bot.display_name || bot.username,
                         strong: (msg: string) => <strong>{msg}</strong>,
@@ -365,10 +400,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
         tokenText = (
             <p className='word-break--all'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='add_outgoing_webhook.token'
-                    defaultMessage='**Token**: {token}'
-                    values={{token: botToken}}
+                    defaultMessage='<strong>Token</strong>: {token}'
+                    values={{
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                        token: botToken,
+                    }}
                 />
                 <CopyText value={botToken}/>
                 <br/>

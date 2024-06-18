@@ -7,8 +7,6 @@ import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 
@@ -53,6 +51,48 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
 
     render() {
         const {canViewArchivedChannels} = this.props;
+
+        let message;
+        if (canViewArchivedChannels) {
+            message = (
+                <>
+                    <FormattedMessage
+                        id='delete_channel.viewArchived.question1'
+                        defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.'
+                    />
+                    <br/>
+                    <FormattedMessage
+                        id='delete_channel.viewArchived.question2'
+                        defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
+                        values={{
+                            display_name: this.props.channel.display_name,
+                            strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                        }}
+                    />
+                </>
+            );
+        } else {
+            message = (
+                <>
+                    <FormattedMessage
+                        id='delete_channel.question1'
+                        defaultMessage='This will archive the channel from the team and remove it from the user interface. Archived channels can be unarchived if needed again.'
+                        values={{
+                            display_name: this.props.channel.display_name,
+                        }}
+                    />
+                    <br/>
+                    <FormattedMessage
+                        id='delete_channel.question2'
+                        defaultMessage='Are you sure you wish to archive the {display_name} channel?'
+                        values={{
+                            display_name: this.props.channel.display_name,
+                        }}
+                    />
+                </>
+            );
+        }
+
         return (
             <Modal
                 dialogClassName='a11y__modal'
@@ -76,22 +116,7 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                 </Modal.Header>
                 <Modal.Body>
                     <div className='alert alert-danger'>
-                        {!canViewArchivedChannels &&
-                            <FormattedMarkdownMessage
-                                id='delete_channel.question'
-                                defaultMessage='This will archive the channel from the team and remove it from the user interface. Archived channels can be unarchived if needed again. \n \nAre you sure you wish to archive the {display_name} channel?'
-                                values={{
-                                    display_name: this.props.channel.display_name,
-                                }}
-                            />}
-                        {canViewArchivedChannels &&
-                            <FormattedMarkdownMessage
-                                id='delete_channel.viewArchived.question'
-                                defaultMessage={'This will archive the channel from the team. Channel contents will still be accessible by channel members.\n \nAre you sure you wish to archive the **{display_name}** channel?'}
-                                values={{
-                                    display_name: this.props.channel.display_name,
-                                }}
-                            />}
+                        {message}
                     </div>
                 </Modal.Body>
                 <Modal.Footer>

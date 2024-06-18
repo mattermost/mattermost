@@ -13,7 +13,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import Constants from 'utils/constants';
 import {getSiteURL} from 'utils/url';
@@ -236,9 +235,12 @@ export default class Bots extends React.PureComponent<Props, State> {
                     />
                 }
                 emptyTextSearch={
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='bots.manage.emptySearch'
-                        defaultMessage='No bot accounts match **{searchTerm}**'
+                        defaultMessage='No bot accounts match <strong>{searchTerm}</strong>'
+                        values={{
+                            strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                        }}
                     />
                 }
                 helpText={
@@ -260,11 +262,13 @@ export default class Bots extends React.PureComponent<Props, State> {
                                 ),
                             }}
                         />
-                        <FormattedMarkdownMessage
+                        <FormattedMessage
                             id='bots.manage.help2'
-                            defaultMessage={'Enable bot account creation in the [System Console]({siteURL}/admin_console/integrations/bot_accounts).'}
+                            defaultMessage={'Enable bot account creation in the <link>System Console</link>.'}
                             values={{
-                                siteURL: getSiteURL(),
+                                link: (msg: React.ReactNode) => (
+                                    <a href={getSiteURL() + '/admin_console/integrations/bot_accounts'}>{msg}</a>
+                                ),
                             }}
                         />
                     </React.Fragment>

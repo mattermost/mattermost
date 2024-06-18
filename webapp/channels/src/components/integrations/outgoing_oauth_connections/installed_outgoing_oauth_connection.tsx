@@ -8,8 +8,6 @@ import {Link} from 'react-router-dom';
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import DeleteIntegrationLink from '../delete_integration_link';
 
 export function matchesFilter(outgoingOAuthConnection: OutgoingOAuthConnection, filter?: string | null): boolean {
@@ -122,13 +120,11 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
         <>
             <div className='item-details__row'>
                 <span className='item-details__token'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='installed_integrations.client_id'
-                        defaultMessage='Client ID: **{clientId}**'
-                        values={{
-                            clientId: outgoingOAuthConnection.client_id,
-                        }}
+                        defaultMessage='Client ID: '
                     />
+                    <strong>{outgoingOAuthConnection.client_id}</strong>
                 </span>
             </div>
             <div className='item-details__row'>
@@ -143,13 +139,11 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                 <>
                     <div className='item-details__row'>
                         <span className='item-details__token'>
-                            <FormattedMarkdownMessage
+                            <FormattedMessage
                                 id='installed_outgoing_oauth_connections.username'
-                                defaultMessage='Username: **{username}**'
-                                values={{
-                                    username: outgoingOAuthConnection.credentials_username,
-                                }}
+                                defaultMessage='Username: '
                             />
+                            <strong>{outgoingOAuthConnection.credentials_username}</strong>
                         </span>
                     </div>
                     <div className='item-details__row'>

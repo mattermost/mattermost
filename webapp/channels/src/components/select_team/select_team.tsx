@@ -18,7 +18,6 @@ import AnnouncementBar from 'components/announcement_bar';
 import BackButton from 'components/common/back_button';
 import InfiniteScroll from 'components/common/infinite_scroll';
 import SiteNameAndDescription from 'components/common/site_name_and_description';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 import LearnAboutTeamsLink from 'components/main_menu/learn_about_teams_link';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
@@ -129,10 +128,14 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
             if (error.server_error_id === TEAM_MEMBERSHIP_DENIAL_ERROR_ID) {
                 if (currentUserRoles !== undefined && currentUserRoles.includes(Constants.PERMISSIONS_SYSTEM_ADMIN)) {
                     errorMsg = (
-                        <FormattedMarkdownMessage
+                        <FormattedMessage
                             id='join_team_group_constrained_denied_admin'
-                            defaultMessage={`You need to be a member of a linked group to join this team. You can add a group to this team [here](${siteURL}/admin_console/user_management/groups).`}
-                            values={{siteURL}}
+                            defaultMessage='You need to be a member of a linked group to join this team. You can add a group to this team <link>here</link>.'
+                            values={{
+                                link: (msg: React.ReactNode) => (
+                                    <a href={siteURL + '/admin_console/user_management/groups'}>{msg}</a>
+                                ),
+                            }}
                         />
                     );
                 } else {

@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import throttle from 'lodash/throttle';
 import React, {useState, useEffect, useRef, useCallback} from 'react';
 import type {FocusEvent} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {useLocation, useHistory, Route} from 'react-router-dom';
 
@@ -36,7 +36,6 @@ import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLink from 'components/external_link';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
 import type {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
@@ -891,13 +890,27 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                             )}
                             {enableSignUpWithEmail && !serverError && (
                                 <p className='signup-body-card-agreement'>
-                                    <FormattedMarkdownMessage
+                                    <FormattedMessage
                                         id='create_team.agreement'
-                                        defaultMessage='By proceeding to create your account and use {siteName}, you agree to our [Terms of Use]({TermsOfServiceLink}) and [Privacy Policy]({PrivacyPolicyLink}). If you do not agree, you cannot use {siteName}.'
+                                        defaultMessage='By proceeding to create your account and use {siteName}, you agree to our <termsLink>Terms of Use</termsLink> and <privacyLink>{PrivacyPolicyLink}</privacyLink>. If you do not agree, you cannot use {siteName}.'
                                         values={{
                                             siteName: SiteName,
-                                            TermsOfServiceLink: `!${TermsOfServiceLink}`,
-                                            PrivacyPolicyLink: `!${PrivacyPolicyLink}`,
+                                            privacyLink: (msg: React.ReactNode) => (
+                                                <ExternalLink
+                                                    href={PrivacyPolicyLink!}
+                                                    location='signup'
+                                                >
+                                                    {msg}
+                                                </ExternalLink>
+                                            ),
+                                            termsLink: (msg: React.ReactNode) => (
+                                                <ExternalLink
+                                                    href={TermsOfServiceLink!}
+                                                    location='signup'
+                                                >
+                                                    {msg}
+                                                </ExternalLink>
+                                            ),
                                         }}
                                     />
                                 </p>

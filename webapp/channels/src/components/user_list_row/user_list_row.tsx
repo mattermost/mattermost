@@ -3,6 +3,7 @@
 
 import React from 'react';
 import type {ReactNode} from 'react';
+import {FormattedMessage} from 'react-intl';
 import type {ConnectedComponent} from 'react-redux';
 import styled from 'styled-components';
 
@@ -13,7 +14,6 @@ import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import Nbsp from 'components/html_entities/nbsp';
 import ProfilePicture from 'components/profile_picture';
 import UserProfile from 'components/user_profile';
@@ -79,13 +79,15 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
     let statusProp: string | undefined;
     if (extraInfo && extraInfo.length > 0) {
         emailProp = (
-            <FormattedMarkdownMessage
-                id='admin.user_item.emailTitle'
-                defaultMessage='**Email:** {email}'
-                values={{
-                    email: user.email,
-                }}
-            />
+            <>
+                <strong>
+                    <FormattedMessage
+                        id='admin.user_item.emailTitle'
+                        defaultMessage='Email: '
+                    />
+                </strong>
+                {user.email}
+            </>
         );
         emailStyle = '';
     } else if (user.status) {

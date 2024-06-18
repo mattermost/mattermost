@@ -6,7 +6,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
@@ -225,10 +224,11 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 className='suggestion-list__no-results'
                 ref={this.contentRef}
             >
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='suggestion_list.no_matches'
-                    defaultMessage='No items match __{value}__'
+                    defaultMessage='No items match <em>{value}</em>'
                     values={{
+                        em: (msg: React.ReactNode) => <em>{msg}</em>,
                         value: this.props.pretext || '""',
                     }}
                 />

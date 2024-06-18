@@ -10,7 +10,6 @@ import type {Team} from '@mattermost/types/teams';
 
 import CopyText from 'components/copy_text';
 import FormError from 'components/form_error';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import * as Utils from 'utils/utils';
 
@@ -184,11 +183,9 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                 <span className='item-details__token'>
                     <FormattedMessage
                         id='installed_integrations.client_secret'
-                        defaultMessage='Client Secret: **{clientSecret}**'
-                        values={{
-                            clientSecret: this.state.clientSecret,
-                        }}
+                        defaultMessage='Client Secret: '
                     />
+                    <strong>{this.state.clientSecret}</strong>
                 </span>
             );
         } else {
@@ -206,13 +203,11 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
             );
             clientSecret = (
                 <span className='item-details__token'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='installed_integrations.client_secret'
-                        defaultMessage='Client Secret: **{clientSecret}**'
-                        values={{
-                            clientSecret: this.state.clientSecret,
-                        }}
+                        defaultMessage='Client Secret: '
                     />
+                    <strong>{this.state.clientSecret}</strong>
                     <CopyText
                         idMessage='integrations.copy_client_secret'
                         defaultMessage='Copy Client Secret'
@@ -290,24 +285,20 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                 <>
                     <div className='item-details__row'>
                         <span className='item-details__url word-break--all'>
-                            <FormattedMarkdownMessage
+                            <FormattedMessage
                                 id='installed_oauth_apps.is_trusted'
-                                defaultMessage='Is Trusted: **{isTrusted}**'
-                                values={{
-                                    isTrusted,
-                                }}
+                                defaultMessage='Is Trusted: '
                             />
+                            <strong>{isTrusted.toString()}</strong>
                         </span>
                     </div>
                     <div className='item-details__row'>
                         <span className='item-details__token'>
-                            <FormattedMarkdownMessage
+                            <FormattedMessage
                                 id='installed_integrations.client_id'
-                                defaultMessage='Client ID: **{clientId}**'
-                                values={{
-                                    clientId: oauthApp.id,
-                                }}
+                                defaultMessage='Client ID: '
                             />
+                            <strong>{oauthApp.id}</strong>
                             <CopyText
                                 idMessage='integrations.copy_client_id'
                                 defaultMessage='Copy Client Id'

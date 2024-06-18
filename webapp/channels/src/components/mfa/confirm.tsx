@@ -6,8 +6,6 @@ import {FormattedMessage} from 'react-intl';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -59,10 +57,12 @@ export default class Confirm extends React.PureComponent<Props> {
                     className='form-group'
                 >
                     <p>
-                        <FormattedMarkdownMessage
-                            id='mfa.confirm.complete'
-                            defaultMessage='**Set up complete!**'
-                        />
+                        <strong>
+                            <FormattedMessage
+                                id='mfa.confirm.complete'
+                                defaultMessage='Set up complete!'
+                            />
+                        </strong>
                     </p>
                     <p>
                         <FormattedMessage

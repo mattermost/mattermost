@@ -16,7 +16,6 @@ import {Client4} from 'mattermost-redux/client';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import MailIcon from 'components/widgets/icons/mail_icon';
 import MailPlusIcon from 'components/widgets/icons/mail_plus_icon';
@@ -70,11 +69,11 @@ const messages = defineMessages({
     },
     noMatchDefault: {
         id: 'widgets.users_emails_input.no_user_found_matching',
-        defaultMessage: 'No one found matching **{text}**. Enter their email to invite them.',
+        defaultMessage: 'No one found matching <strong>{text}</strong>. Enter their email to invite them.',
     },
     validAddressDefault: {
         id: 'widgets.users_emails_input.valid_email',
-        defaultMessage: 'Add **{email}**',
+        defaultMessage: 'Add <strong>{email}</strong>',
     },
 });
 
@@ -205,11 +204,13 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
     getCreateLabel = (value: string) => (
         <React.Fragment>
             <MailPlusIcon className='mail-plus-icon'/>
-            <FormattedMarkdownMessage
+            <FormattedMessage
                 key='widgets.users_emails_input.valid_email'
                 {...this.props.validAddressMessage}
-                values={{email: value}}
-                disableLinks={true}
+                values={{
+                    email: value,
+                    strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                }}
             />
         </React.Fragment>
     );
@@ -247,10 +248,12 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         return (
             <div className='users-emails-input__option users-emails-input__option--no-matches'>
                 <Msg {...props}>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         {...this.props.noMatchMessage}
-                        values={{text: inputValue}}
-                        disableLinks={true}
+                        values={{
+                            strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                            text: inputValue,
+                        }}
                     />
                 </Msg>
             </div>
@@ -522,10 +525,9 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                 {this.props.showError && (
                     <div className='InputErrorBox'>
                         <Msg>
-                            <FormattedMarkdownMessage
+                            <FormattedMessage
                                 {...this.props.errorMessage}
                                 values={this.props.errorMessageValues}
-                                disableLinks={true}
                             />
                         </Msg>
                         {this.props.extraErrorText || null}

@@ -13,7 +13,6 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SaveButton from 'components/save_button';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
@@ -264,11 +263,17 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
             ),
             confirmMessage: () => (
                 <div className='alert alert-danger'>
-                    <FormattedMarkdownMessage
-                        id='user.settings.tokens.confirmDeleteMessage'
-                        defaultMessage='Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action. \n \nAre you sure want to delete the **{description}** token?'
+                    <FormattedMessage
+                        id='user.settings.tokens.confirmDeleteMessage1'
+                        defaultMessage='Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action.'
+                    />
+                    <br/>
+                    <FormattedMessage
+                        id='user.settings.tokens.confirmDeleteMessage2'
+                        defaultMessage='Are you sure want to delete the <strong>{description}</strong> token?'
                         values={{
                             description: token.description,
+                            strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                         }}
                     />
                 </div>

@@ -134,6 +134,7 @@ export default function InviteView(props: Props) {
         showError: false,
         errorMessage: messages.exceededMaxBatch,
         errorMessageValues: {
+            strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
             text: Constants.MAX_ADD_MEMBERS_BATCH.toString(),
         },
     };
@@ -281,22 +282,22 @@ export default function InviteView(props: Props) {
 const messages = defineMessages({
     exceededMaxBatch: {
         id: 'invitation_modal.invite_members.exceeded_max_add_members_batch',
-        defaultMessage: 'No more than **{text}** people can be invited at once',
+        defaultMessage: 'No more than <strong>{text}</strong> people can be invited at once',
     },
     noUserFound: {
         id: 'invitation_modal.members.users_emails_input.no_user_found_matching',
-        defaultMessage: 'No one found matching **{text}**. Enter their email to invite them.',
+        defaultMessage: 'No one found matching <strong>{text}</strong>. Enter their email to invite them.',
     },
     noUserFoundEmailDisabled: {
         id: 'invitation_modal.members.users_emails_input.no_user_found_matching-email-disabled',
-        defaultMessage: 'No one found matching **{text}**',
+        defaultMessage: 'No one found matching <strong>{text}</strong>',
     },
     validAddressGuest: {
         id: 'invitation_modal.guests.users_emails_input.valid_email',
-        defaultMessage: 'Invite **{email}** as a guest',
+        defaultMessage: 'Invite <strong>{email}</strong> as a guest',
     },
     validAddressMember: {
         id: 'invitation_modal.members.users_emails_input.valid_email',
-        defaultMessage: 'Invite **{email}** as a team member',
+        defaultMessage: 'Invite <strong>{email}</strong> as a team member',
     },
 });

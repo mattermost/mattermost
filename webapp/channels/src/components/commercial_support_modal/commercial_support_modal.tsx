@@ -12,7 +12,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 
 import AlertBanner from 'components/alert_banner';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import ExternalLink from 'components/external_link';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import './commercial_support_modal.scss';
@@ -145,30 +145,51 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                 </Modal.Header>
                 <Modal.Body>
                     <div className='CommercialSupportModal'>
-                        <FormattedMarkdownMessage
+                        <FormattedMessage
                             id='commercial_support.description'
-                            defaultMessage={'If you\'re experiencing issues, [submit a support ticket](!{supportLink}). To help with troubleshooting, it\'s recommended to download the Support Packet below that includes more details about your Mattermost environment.'}
+                            defaultMessage={'If you\'re experiencing issues, <link>submit a support ticket</link>. To help with troubleshooting, it\'s recommended to download the Support Packet below that includes more details about your Mattermost environment.'}
                             values={{
-                                supportLink,
+                                link: (msg: React.ReactNode) => (
+                                    <ExternalLink
+                                        href={supportLink}
+                                        location='commercial_support_modal'
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
                             }}
                         />
                         {showBannerWarning &&
                             <AlertBanner
                                 mode='info'
                                 message={
-                                    <FormattedMarkdownMessage
+                                    <FormattedMessage
                                         id='commercial_support.warning.banner'
-                                        defaultMessage='Before downloading the Support Packet, set **Output Logs to File** to **true** and set **File Log Level** to **DEBUG** [here](!/admin_console/environment/logging).'
+                                        defaultMessage='Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <link>here</link>.'
+                                        values={{
+                                            link: (msg: React.ReactNode) => (
+                                                <a
+                                                    href={'/admin_console/environment/logging'}
+                                                    target='_blank'
+                                                    rel='noreferrer'
+                                                >
+                                                    {msg}
+                                                </a>
+                                            ),
+                                            strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                                        }}
                                     />
                                 }
                                 onDismiss={this.hideBannerWarning}
                             />
                         }
                         <div className='CommercialSupportModal__packet_contents_download'>
-                            <FormattedMarkdownMessage
-                                id='commercial_support.download_contents'
-                                defaultMessage={'**Select your Support Packet contents to download**'}
-                            />
+                            <strong>
+                                <FormattedMessage
+                                    id='commercial_support.download_contents'
+                                    defaultMessage={'Select your Support Packet contents to download'}
+                                />
+                            </strong>
                         </div>
                         {this.state.packetContents.map((item, index) => (
                             <div

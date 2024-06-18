@@ -12,7 +12,6 @@ import type {PluginStatusRedux} from '@mattermost/types/plugins';
 
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {localizeMessage} from 'utils/utils';
@@ -133,10 +132,20 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
     if (releaseNotesUrl) {
         messages.push(
             <p key='current'>
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='marketplace_modal.list.update_confirmation.message.current_with_release_notes'
-                    defaultMessage='You currently have {installedVersion} installed. View the [release notes](!{releaseNotesUrl}) to learn about the changes included in this update.'
-                    values={{installedVersion, releaseNotesUrl}}
+                    defaultMessage='You currently have {installedVersion} installed. View the <link>release notes</link> to learn about the changes included in this update.'
+                    values={{
+                        installedVersion,
+                        link: (msg: React.ReactNode) => (
+                            <ExternalLink
+                                href={releaseNotesUrl}
+                                location='marketplace_item_plugin'
+                            >
+                                {msg}
+                            </ExternalLink>
+                        ),
+                    }}
                 />
             </p>,
         );
@@ -167,10 +176,19 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
                     className='alert alert-warning'
                     key='warning'
                 >
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='marketplace_modal.list.update_confirmation.message.warning_major_version_with_release_notes'
-                        defaultMessage='This update may contain breaking changes. Consult the [release notes](!{releaseNotesUrl}) before upgrading.'
-                        values={{releaseNotesUrl}}
+                        defaultMessage='This update may contain breaking changes. Consult the <link>release notes</link> before upgrading.'
+                        values={{
+                            link: (msg: React.ReactNode) => (
+                                <ExternalLink
+                                    href={releaseNotesUrl}
+                                    location='marketplace_item_plugin'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        }}
                     />
                 </p>,
             );
