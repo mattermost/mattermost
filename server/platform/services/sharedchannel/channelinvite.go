@@ -226,7 +226,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 
 func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.RemoteCluster) (*model.Channel, error) {
 	if invite.Type == model.ChannelTypeDirect {
-		return scs.createDirectChannel(invite)
+		return scs.createDirectChannel(invite, rc)
 	}
 
 	channelNew := &model.Channel{
@@ -250,14 +250,62 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 	return channel, nil
 }
 
-func (scs *Service) createDirectChannel(invite channelInviteMsg) (*model.Channel, error) {
+func (scs *Service) createDirectChannel(invite channelInviteMsg, rc *model.RemoteCluster) (*model.Channel, error) {
 	if len(invite.DirectParticipantIDs) != 2 {
 		return nil, fmt.Errorf("cannot create direct channel `%s` insufficient participant count `%d`", invite.ChannelId, len(invite.DirectParticipantIDs))
 	}
 
-	channel, err := scs.app.GetOrCreateDirectChannel(request.EmptyContext(scs.server.Log()), invite.DirectParticipantIDs[0], invite.DirectParticipantIDs[1], model.WithID(invite.ChannelId))
+	user1, err := scs.server.GetStore().User().Get(context.TODO(), invite.DirectParticipantIDs[0])
 	if err != nil {
-		return nil, fmt.Errorf("cannot create direct channel `%s`: %w", invite.ChannelId, err)
+		return nil, fmt.Errorf("cannot create direct channel `%s` cannot fetch user1 (%s): %w", invite.ChannelId, invite.DirectParticipantIDs[0], err)
+	}
+
+	user2, err := scs.server.GetStore().User().Get(context.TODO(), invite.DirectParticipantIDs[1])
+	if err != nil {
+		return nil, fmt.Errorf("cannot create direct channel `%s` cannot fetch user2 (%s): %w", invite.ChannelId, invite.DirectParticipantIDs[1], err)
+	}
+
+	// determine the remote user
+	// - if both are remote then the DM channel does not belong on this server
+	// - if neither are remote then the DM channel should not be created via sync message
+	// - if only one is remote then we check visibility relative to that user
+	userRemote := user1
+	userLocal := user2
+	if !userRemote.IsRemote() {
+		userRemote = user2
+		userLocal = user1
+	}
+
+	if !userRemote.IsRemote() {
+		return nil, fmt.Errorf("cannot create direct channel `%s` remote user is not remote (%s)", invite.ChannelId, userRemote.Id)
+	}
+
+	if userLocal.IsRemote() {
+		return nil, fmt.Errorf("cannot create direct channel `%s` local user is not local (%s)", invite.ChannelId, userLocal.Id)
+	}
+
+	if userRemote.GetRemoteID() != rc.RemoteId {
+		return nil, fmt.Errorf("cannot create direct channel `%s`: %w", invite.ChannelId, ErrRemoteIDMismatch)
+	}
+
+	// ensure remote user is allowed to DM the local user
+	canSee, appErr := scs.app.UserCanSeeOtherUser(request.EmptyContext(scs.server.Log()), userRemote.Id, userLocal.Id)
+	if appErr != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "cannot check user visibility for DM creation",
+			mlog.String("user_remote", userRemote.Id),
+			mlog.String("user_local", userLocal.Id),
+			mlog.String("channel_id", invite.ChannelId),
+			mlog.Err(appErr),
+		)
+		return nil, fmt.Errorf("cannot check user visibility for DM (%s) creation: %w", invite.ChannelId, appErr)
+	}
+	if !canSee {
+		return nil, fmt.Errorf("cannot create direct channel `%s`: %w", invite.ChannelId, ErrUserDMPermission)
+	}
+
+	channel, appErr := scs.app.GetOrCreateDirectChannel(request.EmptyContext(scs.server.Log()), userRemote.Id, userLocal.Id, model.WithID(invite.ChannelId))
+	if appErr != nil {
+		return nil, fmt.Errorf("cannot create direct channel `%s`: %w", invite.ChannelId, appErr)
 	}
 
 	return channel, nil
