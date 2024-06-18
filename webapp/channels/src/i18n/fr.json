@@ -3772,6 +3772,7 @@
   "no_results.flagged_posts.title": "Aucun message sauvegardé pour le moment",
   "no_results.mentions.subtitle": "Les messages qui contiennent votre nom d'utilisateur et d'autres mots qui déclenchent des mentions apparaissent ici.",
   "no_results.mentions.title": "Aucune mention pour le moment",
+  "no_results.pinned_messages.subtitle": "Pour épingler des messages importants, ouvrez le menu contextuel sur un message et choisissez \"Épingler au canal\". Les messages épinglés seront visibles par tous dans ce canal.",
   "no_results.user_group_members.subtitle": "Il n'y a actuellement pas de membre dans ce groupe, veuillez en ajouter un.",
   "no_results.user_group_members.title": "Pas de membre pour l'instant",
   "no_results.user_groups.subtitle": "Les groupes sont des listes d'utilisateurs qui peuvent être utilisées pour les mentions et les invitations.",
