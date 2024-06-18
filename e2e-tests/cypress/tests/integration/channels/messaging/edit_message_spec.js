@@ -183,4 +183,26 @@ describe('Edit Message', () => {
             cy.get('#edit_textbox').should('have.text', message);
         });
     });
+
+    it('MM-T121_2 @mention in edit post should show warning, Editing this message with an @mention will not notify the recipient.', () => {
+        // # Post a message
+        cy.postMessage('Hello World!');
+
+        // # Hit the up arrow to open the "edit modal"
+        cy.uiGetPostTextBox().type('{uparrow}');
+
+        // # In the modal type @
+        cy.get('#edit_textbox').type(' @user');
+
+        // * Assert user autocomplete is visible
+        cy.get('#suggestionList').should('be.visible');
+
+        // // # Press the enter key
+        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{enter}');
+
+
+        // * Check if the textbox contains expected text
+        cy.get('.post-body__info').should('be.visible');
+        cy.get('.post-body__info').contains('span', "Editing this message with an '@mention' will not notify the recipient.");
+    })
 });
