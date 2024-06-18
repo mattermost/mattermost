@@ -177,7 +177,8 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		return err
 	}
 
-	// ensure the channel returned was newly created by checking for the expected channel ID.
+	// sanity check to ensure the channel returned has the expected id. Otherwise sync will not work as expected and will fail
+	// silently.
 	if invite.ChannelId != channel.Id {
 		// as of this writing, this scenario should only be possible if the invite included a DM channel invitation with a
 		// combination of two user ids (one remote, one local) that already have a DM on this server. Very unlikely unless
