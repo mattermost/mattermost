@@ -9,6 +9,7 @@ ENV PATH="/mattermost/bin:${PATH}"
 # Build Arguments
 ARG PUID=2000
 ARG PGID=2000
+
 # MM_PACKAGE build arguments controls which version of mattermost to install, defaults to latest stable enterprise
 # i.e. https://releases.mattermost.com/9.7.1/mattermost-9.7.1-linux-amd64.tar.gz
 ARG MM_PACKAGE="https://latest.mattermost.com/mattermost-enterprise-linux"
