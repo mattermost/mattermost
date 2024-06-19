@@ -2176,6 +2176,10 @@ func (s *ThemeSettings) SetDefaults() {
 	if s.AllowedThemes == nil {
 		s.AllowedThemes = []string{}
 	}
+
+	if s.CustomThemes == nil {
+		s.CustomThemes = []CustomTheme{}
+	}
 }
 
 type TeamSettings struct {
