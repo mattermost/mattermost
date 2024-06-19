@@ -508,14 +508,14 @@
 
 .post-body__info {
     display: flex;
-    gap: 4px;
-    margin-block-start: 4px;
     color:  rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
+    gap: 4px;
+    margin-block-start: 4px;
 
     &__icon{
-        padding-block-start: 1px;
         color: rgba(var(--center-channel-color-rgb), 0.64);
+        padding-block-start: 1px;
     }
 }
 
