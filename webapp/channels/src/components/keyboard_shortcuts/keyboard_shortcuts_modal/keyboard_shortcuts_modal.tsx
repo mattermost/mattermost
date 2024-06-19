@@ -125,7 +125,7 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
                         <strong><KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.mainHeader}/></strong>
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body tabIndex={0}>
                     <div className='row'>
                         <div className='col-sm-4'>
                             <div className='section'>
