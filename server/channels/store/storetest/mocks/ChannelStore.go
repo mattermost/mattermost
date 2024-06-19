@@ -534,9 +534,9 @@ func (_m *ChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([]string, 
 	return r0, r1
 }
 
-// GetAllChannelMembersForUser provides a mock function with given fields: userID, allowFromCache, includeDeleted
-func (_m *ChannelStore) GetAllChannelMembersForUser(userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
-	ret := _m.Called(userID, allowFromCache, includeDeleted)
+// GetAllChannelMembersForUser provides a mock function with given fields: ctx, userID, allowFromCache, includeDeleted
+func (_m *ChannelStore) GetAllChannelMembersForUser(ctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
+	ret := _m.Called(ctx, userID, allowFromCache, includeDeleted)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllChannelMembersForUser")
@@ -544,19 +544,19 @@ func (_m *ChannelStore) GetAllChannelMembersForUser(userID string, allowFromCach
 
 	var r0 map[string]string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, bool, bool) (map[string]string, error)); ok {
-		return rf(userID, allowFromCache, includeDeleted)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool, bool) (map[string]string, error)); ok {
+		return rf(ctx, userID, allowFromCache, includeDeleted)
 	}
-	if rf, ok := ret.Get(0).(func(string, bool, bool) map[string]string); ok {
-		r0 = rf(userID, allowFromCache, includeDeleted)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool, bool) map[string]string); ok {
+		r0 = rf(ctx, userID, allowFromCache, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, bool, bool) error); ok {
-		r1 = rf(userID, allowFromCache, includeDeleted)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, bool, bool) error); ok {
+		r1 = rf(ctx, userID, allowFromCache, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}
