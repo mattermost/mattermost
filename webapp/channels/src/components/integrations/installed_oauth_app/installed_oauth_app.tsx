@@ -214,8 +214,12 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                         }}
                     />
                     <CopyText
-                        idMessage='integrations.copy_client_secret'
-                        defaultMessage='Copy Client Secret'
+                        tooltip={
+                            <FormattedMessage
+                                id='integrations.copy_client_secret'
+                                defaultMessage='Copy Client Secret'
+                            />
+                        }
                         value={this.state.clientSecret}
                     />
                 </span>
@@ -309,8 +313,12 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                                 }}
                             />
                             <CopyText
-                                idMessage='integrations.copy_client_id'
-                                defaultMessage='Copy Client Id'
+                                tooltip={
+                                    <FormattedMessage
+                                        id='integrations.copy_client_id'
+                                        defaultMessage='Copy Client Id'
+                                    />
+                                }
                                 value={oauthApp.id}
                             />
                         </span>
