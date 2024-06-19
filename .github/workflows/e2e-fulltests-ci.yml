@@ -187,4 +187,4 @@ jobs:
       PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
       REPORT_TM4J_API_KEY: "${{ needs.generate-test-variables.outputs.TM4J_ENABLE == 'true' && secrets.MM_E2E_TM4J_API_KEY || '' }}"
-      REPORT_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_TEST_CYCLE_LINK_PREFIX }}"
+      REPORT_TM4J_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_TEST_CYCLE_LINK_PREFIX }}"
