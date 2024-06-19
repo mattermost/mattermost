@@ -41,10 +41,7 @@ describe('components/announcement_bar/default_announcement_bar', () => {
         const wrapper = renderWithContext(<AnnouncementBar message={<span>{'Lorem Ipsum'}</span>}/>);
 
         userEvent.hover(wrapper.getByText('Lorem Ipsum'));
-        userEvent.hover(wrapper.getByText('Lorem Ipsum'));
 
-        await waitFor(() => {
-            expect(screen.queryByRole('tooltip')).not.toBeNull();
-        });
+        expect(screen.findByRole('tooltip')).not.toBeNull();
     });
 });
