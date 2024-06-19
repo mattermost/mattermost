@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
@@ -11,7 +12,6 @@ import BackButton from 'components/common/back_button';
 import Logo from 'components/common/svg_images_components/logo_dark_blue_svg';
 
 import './header.scss';
-import classNames from 'classnames';
 
 export type HeaderProps = {
     alternateLink?: React.ReactElement;
