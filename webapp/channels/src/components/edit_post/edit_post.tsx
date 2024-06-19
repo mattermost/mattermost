@@ -531,7 +531,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 <div className='post-body__info'>
                     <span className='post-body__info__icon'>
                         <InformationOutlineIcon
-                            size={18}
+                            size={14}
                             color='currentColor'
                         />
                     </span>

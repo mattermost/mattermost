@@ -200,9 +200,8 @@ describe('Edit Message', () => {
         // // # Press the enter key
         cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{enter}');
 
-
         // * Check if the textbox contains expected text
         cy.get('.post-body__info').should('be.visible');
         cy.get('.post-body__info').contains('span', "Editing this message with an '@mention' will not notify the recipient.");
-    })
+    });
 });
