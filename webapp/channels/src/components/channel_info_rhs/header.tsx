@@ -7,7 +7,10 @@ import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import WithTooltip from 'components/with_tooltip';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
+
+import Constants from 'utils/constants';
 
 interface Props {
     channel: Channel;
@@ -26,6 +29,14 @@ const HeaderTitle = styled.span`
 
 const Header = ({channel, isArchived, isMobile, onClose}: Props) => {
     const {formatMessage} = useIntl();
+    const closeSidebarTooltip = (
+        <Tooltip id='closeSidebarTooltip'>
+            <FormattedMessage
+                id='rhs_header.closeSidebarTooltip'
+                defaultMessage='Close'
+            />
+        </Tooltip>
+    );
 
     return (
         <div className='sidebar--right__header'>
@@ -58,15 +69,10 @@ const Header = ({channel, isArchived, isMobile, onClose}: Props) => {
                 }
             </span>
 
-            <WithTooltip
-                id='closeSidebarTooltip'
+            <OverlayTrigger
+                delayShow={Constants.OVERLAY_TIME_DELAY}
                 placement='top'
-                title={
-                    <FormattedMessage
-                        id='rhs_header.closeSidebarTooltip'
-                        defaultMessage='Close'
-                    />
-                }
+                overlay={closeSidebarTooltip}
             >
                 <button
                     id='rhsCloseButton'
@@ -79,7 +85,7 @@ const Header = ({channel, isArchived, isMobile, onClose}: Props) => {
                         className='icon icon-close'
                     />
                 </button>
-            </WithTooltip>
+            </OverlayTrigger>
         </div>
     );
 };
