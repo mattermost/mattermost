@@ -7,7 +7,7 @@ package mocks
 import (
 	context "context"
 
-	httpservice "github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
+	httpservice "github.com/mattermost/mattermost/server/public/shared/httpservice"
 	mock "github.com/stretchr/testify/mock"
 
 	model "github.com/mattermost/mattermost/server/public/model"
