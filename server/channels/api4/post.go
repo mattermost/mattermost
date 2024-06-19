@@ -268,9 +268,9 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
-		channel, err := c.App.GetChannel(c.AppContext, channelId)
-		if err != nil {
-			c.Err = err
+		channel, appErr := c.App.GetChannel(c.AppContext, channelId)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
 		if channel.DeleteAt != 0 {
