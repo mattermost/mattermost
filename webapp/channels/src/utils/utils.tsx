@@ -60,7 +60,6 @@ import type {TextboxElement} from 'components/textbox';
 import {getHistory} from 'utils/browser_history';
 import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
-import {t} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 
@@ -1236,7 +1235,8 @@ export function getPasswordConfig(config: Partial<ClientConfig>) {
 }
 
 export function isValidPassword(password: string, passwordConfig: ReturnType<typeof getPasswordConfig>, intl?: IntlShape) {
-    let errorId = t('user.settings.security.passwordError');
+    // The translation strings used by this function are defined in admin_console/password_settings
+    let errorId = 'user.settings.security.passwordError';
     const telemetryErrorIds = [];
     let valid = true;
     const minimumLength = passwordConfig.minimumLength || Constants.MIN_PASSWORD_LENGTH;

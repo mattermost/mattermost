@@ -17,6 +17,7 @@ interface Props extends Partial<AnnouncementBarProps> {
     allowDismissal: boolean;
     text: React.ReactNode;
     onDismissal?: () => void;
+    className?: string;
 }
 
 type State = {
