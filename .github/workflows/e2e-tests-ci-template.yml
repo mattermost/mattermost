@@ -67,6 +67,10 @@ on:
         required: false
       REPORT_TM4J_TEST_CYCLE_LINK_PREFIX:
         required: false
+      CWS_URL:
+        required: false
+      CWS_EXTRA_HTTP_HEADERS:
+        required: false
 
 jobs:
   update-initial-status:
@@ -253,6 +257,8 @@ jobs:
       BUILD_ID: "${{ inputs.BUILD_ID }}"
       CI_BASE_URL: "http://localhost:8065/?worker_index=${{ matrix.worker_index }}"
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
+      CWS_URL: "${{ secrets.CWS_URL }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -337,8 +343,6 @@ jobs:
           MM_ENV: "${{ inputs.MM_ENV }}"
           TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
           TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
-          CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
-          CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
         run: |
           make publish-report
 
