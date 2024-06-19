@@ -14,7 +14,7 @@ import Constants from 'utils/constants';
 
 import {SecurityTab} from './user_settings_security';
 
-jest.mock('utils/utils', () => {
+jest.mock('utils/password', () => {
     const original = jest.requireActual('utils/utils');
     return {...original, isValidPassword: () => ({valid: true})};
 });
