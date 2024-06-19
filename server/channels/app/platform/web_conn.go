@@ -61,15 +61,17 @@ type pluginWSPostedHook struct {
 }
 
 type WebConnConfig struct {
-	WebSocket    *websocket.Conn
-	Session      model.Session
-	TFunc        i18n.TranslateFunc
-	Locale       string
-	ConnectionID string
-	Active       bool
-	ReuseCount   int
-	OriginClient string
-	PostedAck    bool
+	WebSocket     *websocket.Conn
+	Session       model.Session
+	TFunc         i18n.TranslateFunc
+	Locale        string
+	ConnectionID  string
+	Active        bool
+	ReuseCount    int
+	OriginClient  string
+	PostedAck     bool
+	RemoteAddress string
+	XForwardedFor string
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int
@@ -121,6 +123,10 @@ type WebConn struct {
 
 	// The client type behind the connection (i.e. web, desktop or mobile)
 	originClient string
+	// The remote address from the original HTTP Upgrade request
+	remoteAddress string
+	// The X-Forwarded-For HTTP header value from the origina HTTP Upgrade request
+	xForwardedFor string
 
 	activeChannelID                 atomic.Value
 	activeTeamID                    atomic.Value
@@ -245,6 +251,8 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		lastLogTimeSlow:    time.Now(),
 		lastLogTimeFull:    time.Now(),
 		originClient:       cfg.OriginClient,
+		remoteAddress:      cfg.RemoteAddress,
+		xForwardedFor:      cfg.XForwardedFor,
 	}
 	wc.Active.Store(cfg.Active)
 
@@ -478,6 +486,12 @@ func (wc *WebConn) readPump() {
 		if session := wc.GetSession(); session != nil {
 			clonedReq.Session.Id = session.Id
 		}
+
+		if clonedReq.Data == nil {
+			clonedReq.Data = map[string]any{}
+		}
+		clonedReq.Data[model.WebSocketRemoteAddr] = wc.remoteAddress
+		clonedReq.Data[model.WebSocketXForwardedFor] = wc.xForwardedFor
 
 		wc.pluginPosted <- pluginWSPostedHook{wc.GetConnectionID(), wc.UserId, clonedReq}
 	}
