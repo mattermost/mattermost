@@ -19,9 +19,9 @@ import Constants from 'utils/constants';
 import ColorChooser from '../color_chooser/color_chooser';
 
 const ThemeElementsHeader = styled.div`
-    padding: 10px 0 10px;
+    padding: 10px 8px 10px 0;
     border-bottom: var(--border-default);
-    margin: 0px 20px 0 0;
+    margin: 0;
     cursor: pointer;
     font-size: em(13.5px);
     font-weight: 600;
@@ -297,15 +297,6 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
             return;
         }
         node.classList.toggle('open');
-
-        // set overflow after animation, so the colorchooser is fully shown
-        node.ontransitionend = () => {
-            if (node.classList.contains('open')) {
-                node.style.overflowY = 'inherit';
-            } else {
-                node.style.overflowY = 'hidden';
-            }
-        };
     }
 
     onCodeThemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
