@@ -24,7 +24,6 @@
             @include link;
 
             display: flex;
-            margin-top: 12px;
             color: rgba(var(--center-channel-color-rgb), 0.75);
             font-family: 'Metropolis';
             font-size: 20px;
@@ -70,6 +69,12 @@
 
         a {
             @include link;
+        }
+    }
+
+    &.has-custom-site-name {
+        .header-logo-link ~ .header-logo-link {
+            margin-top: 12px;
         }
     }
 
