@@ -7,11 +7,13 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
+import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
+
 import {oauthToEmail} from 'actions/admin_actions.jsx';
 
 import Constants from 'utils/constants';
-import {isValidPassword, localizeMessage, toTitleCase} from 'utils/utils';
-import type {getPasswordConfig} from 'utils/utils';
+import {isValidPassword} from 'utils/password';
+import {localizeMessage, toTitleCase} from 'utils/utils';
 
 import ErrorLabel from './error_label';
 
@@ -19,7 +21,7 @@ type Props = {
     currentType: string | null;
     email: string | null;
     siteName?: string;
-    passwordConfig?: ReturnType<typeof getPasswordConfig>;
+    passwordConfig?: PasswordConfig;
 }
 
 const OAuthToEmail = (props: Props) => {

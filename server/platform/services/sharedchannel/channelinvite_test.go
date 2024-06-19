@@ -141,7 +141,9 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			Payload: payload,
 		}
 		mockChannelStore := mocks.ChannelStore{}
-		channel := &model.Channel{}
+		channel := &model.Channel{
+			Id: invitation.ChannelId,
+		}
 
 		mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, &store.ErrNotFound{})
 		mockStore.On("Channel").Return(&mockChannelStore)
@@ -204,7 +206,9 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 				}
 				mockChannelStore := mocks.ChannelStore{}
 				mockSharedChannelStore := mocks.SharedChannelStore{}
-				channel := &model.Channel{}
+				channel := &model.Channel{
+					Id: invitation.ChannelId,
+				}
 
 				mockUserStore := mocks.UserStore{}
 				mockUserStore.On("Get", mockTypeContext, tc.user1.Id).
@@ -213,6 +217,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 					Return(tc.user2, nil)
 
 				mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, errors.New("boom"))
+				mockChannelStore.On("GetByName", "", mockTypeString, true).Return(nil, &store.ErrNotFound{})
+
 				mockSharedChannelStore.On("Save", mock.Anything).Return(nil, nil)
 				mockSharedChannelStore.On("SaveRemote", mock.Anything).Return(nil, nil)
 				mockStore.On("Channel").Return(&mockChannelStore)
