@@ -11,6 +11,7 @@ import BackButton from 'components/common/back_button';
 import Logo from 'components/common/svg_images_components/logo_dark_blue_svg';
 
 import './header.scss';
+import classNames from 'classnames';
 
 export type HeaderProps = {
     alternateLink?: React.ReactElement;
@@ -39,7 +40,7 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
     }
 
     return (
-        <div className={'hfroute-header' + (freeBanner ? ' has-free-banner' : '') + (title ? ' has-custom-site-name' : '')}>
+        <div className={classNames('hfroute-header', {'has-free-banner': freeBanner, 'has-custom-site-name': title})}>
             <div className='header-main'>
                 <div>
                     {freeBanner &&
