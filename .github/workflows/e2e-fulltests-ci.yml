@@ -58,6 +58,7 @@ jobs:
             curl -fsSL -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" -H "Authorization: Bearer ${{ github.token }}" "${{ github.api_url }}/repos/${{ github.repository }}/pulls/${PR_NUMBER}" -o pr.json
             echo "commit_sha=$(jq -r .head.sha <pr.json)" >> $GITHUB_OUTPUT
             echo "BRANCH=server-pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
+            # For reference, the real branch name may be retrievable as follows:
             #echo "BRANCH=$(jq -r .head.ref <pr.json)" >> $GITHUB_OUTPUT
           else
             echo "commit_sha=$(git rev-parse --verify HEAD)" >> $GITHUB_OUTPUT
