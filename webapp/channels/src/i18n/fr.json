@@ -4593,6 +4593,7 @@
   "user.settings.display.language": "Langue",
   "user.settings.display.lastActiveDesc": "Lorsqu'il est activé, les autres utilisateurs verront quand vous avez été actif pour la dernière fois.",
   "user.settings.display.lastActiveDisplay": "Partager la dernière heure d'activité",
+  "user.settings.display.lastActiveOff": "Désactivé",
   "user.settings.display.linkPreviewDesc": "Lorsque disponible, le premier lien web du message affichera un aperçu du contenu du site web en dessous du message.",
   "user.settings.display.linkPreviewDisplay": "Aperçus des liens de site web",
   "user.settings.display.linkPreviewOff": "Désactivé",
