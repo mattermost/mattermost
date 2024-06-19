@@ -31,10 +31,8 @@ on:
         required: false
         default: false
       SERVER:
-        type: choice
-        options:
-        - onprem
-        - cloud
+        type: string # Valid values are: onprem, cloud
+        required: false
         default: onprem
       ENABLED_DOCKER_SERVICES:
         type: string
