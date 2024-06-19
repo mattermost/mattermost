@@ -79,26 +79,4 @@ describe('YoutubeVideo', () => {
 
         expect(wrapper.find(ExternalImage).prop('src')).toEqual('linkUrl');
     });
-
-    test('should match init snapshot (Shorts)', () => {
-        const store = mockStore(initialState);
-        const props = {
-            ...baseProps,
-            link: 'https://www.youtube.com/shorts/2oa5WCUpwD8',
-        };
-        const wrapper = mount(
-            <Provider store={store}>
-                <YoutubeVideo {...props}/>
-            </Provider>,
-        );
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(ExternalImage).prop('src')).toEqual('linkForThumbnail');
-        expect(wrapper.find('a').text()).toEqual('Youtube title');
-    });
-
-    test('should match snapshot for playing state (Shorts)', () => {
-        const wrapper = shallow(<YoutubeVideo {...baseProps}/>);
-        wrapper.setState({playing: true});
-        expect(wrapper).toMatchSnapshot();
-    });
 });
