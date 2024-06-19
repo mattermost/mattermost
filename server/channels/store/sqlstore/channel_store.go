@@ -4234,7 +4234,7 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 	return &team, nil
 }
 
-func (s SqlChannelStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+func (s SqlChannelStore) BatchMergeCreatorId(toUserID, fromUserID string) error {
 	for {
 		var query string
 		if s.DriverName() == "postgres" {
@@ -4332,8 +4332,8 @@ func (s SqlChannelStore) MigrateChannelRecordsToNewUser(channel *model.Channel, 
 	return nil
 }
 
-// This function returns ChannelMember records from firstChannelID that also have a membership in secondChannelID.
-func (s *SqlChannelStore) GetChannelMembersWithDualMemberships(firstChannelID string, secondChannelID string, offset int, limit int) ([]*model.ChannelMember, error) {
+// This returns ChannelMember records from firstChannelID that also have a membership in secondChannelID.
+func (s *SqlChannelStore) GetChannelMembersWithDualMemberships(firstChannelID, secondChannelID string, offset, limit int) ([]*model.ChannelMember, error) {
 	query := `SELECT
 		*
 	FROM

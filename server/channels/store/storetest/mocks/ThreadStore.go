@@ -33,6 +33,24 @@ func (_m *ThreadStore) BatchMergeThreadMembershipUserId(toUserID string, fromUse
 	return r0
 }
 
+// BatchMergeThreadParticipants provides a mock function with given fields: toUserID, fromUserID
+func (_m *ThreadStore) BatchMergeThreadParticipants(toUserID string, fromUserID string) error {
+	ret := _m.Called(toUserID, fromUserID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchMergeThreadParticipants")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(toUserID, fromUserID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // BatchMoveThreadsToChannel provides a mock function with given fields: toChannelID, fromChannelID
 func (_m *ThreadStore) BatchMoveThreadsToChannel(toChannelID string, fromChannelID string) error {
 	ret := _m.Called(toChannelID, fromChannelID)
@@ -560,24 +578,6 @@ func (_m *ThreadStore) MarkAsRead(userID string, threadID string, timestamp int6
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, int64) error); ok {
 		r0 = rf(userID, threadID, timestamp)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// MergeThreadParticipants provides a mock function with given fields: toUserID, fromUserID
-func (_m *ThreadStore) MergeThreadParticipants(toUserID string, fromUserID string) error {
-	ret := _m.Called(toUserID, fromUserID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for MergeThreadParticipants")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(toUserID, fromUserID)
 	} else {
 		r0 = ret.Error(0)
 	}

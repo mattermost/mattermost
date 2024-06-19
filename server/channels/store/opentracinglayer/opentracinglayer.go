@@ -561,7 +561,7 @@ func (s *OpenTracingLayerBotStore) GetAll(options *model.BotGetOptions) ([]*mode
 	return result, err
 }
 
-func (s *OpenTracingLayerBotStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+func (s *OpenTracingLayerBotStore) MergeOwnerId(toOwnerID string, fromOwnerID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.MergeOwnerId")
 	s.Root.Store.SetContext(newCtx)
@@ -570,7 +570,7 @@ func (s *OpenTracingLayerBotStore) MergeOwnerId(toOwnerId string, fromOwnerId st
 	}()
 
 	defer span.Finish()
-	err := s.BotStore.MergeOwnerId(toOwnerId, fromOwnerId)
+	err := s.BotStore.MergeOwnerId(toOwnerID, fromOwnerID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -2851,7 +2851,7 @@ func (s *OpenTracingLayerChannelBookmarkStore) GetBookmarksForChannelSince(chann
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelBookmarkStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+func (s *OpenTracingLayerChannelBookmarkStore) MergeOwnerId(toOwnerID string, fromOwnerID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelBookmarkStore.MergeOwnerId")
 	s.Root.Store.SetContext(newCtx)
@@ -2860,7 +2860,7 @@ func (s *OpenTracingLayerChannelBookmarkStore) MergeOwnerId(toOwnerId string, fr
 	}()
 
 	defer span.Finish()
-	err := s.ChannelBookmarkStore.MergeOwnerId(toOwnerId, fromOwnerId)
+	err := s.ChannelBookmarkStore.MergeOwnerId(toOwnerID, fromOwnerID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -6418,7 +6418,7 @@ func (s *OpenTracingLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamID str
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId string) error {
+func (s *OpenTracingLayerPostStore) BatchMergePostAndFileUserId(toUserID string, fromUserID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.BatchMergePostAndFileUserId")
 	s.Root.Store.SetContext(newCtx)
@@ -6427,7 +6427,7 @@ func (s *OpenTracingLayerPostStore) BatchMergePostAndFileUserId(toUserId string,
 	}()
 
 	defer span.Finish()
-	err := s.PostStore.BatchMergePostAndFileUserId(toUserId, fromUserId)
+	err := s.PostStore.BatchMergePostAndFileUserId(toUserID, fromUserID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7756,7 +7756,7 @@ func (s *OpenTracingLayerProductNoticesStore) View(userID string, notices []stri
 	return err
 }
 
-func (s *OpenTracingLayerReactionStore) BatchMergeUserId(toUserId string, fromUserId string) error {
+func (s *OpenTracingLayerReactionStore) BatchMergeUserId(toUserID string, fromUserID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.BatchMergeUserId")
 	s.Root.Store.SetContext(newCtx)
@@ -7765,7 +7765,7 @@ func (s *OpenTracingLayerReactionStore) BatchMergeUserId(toUserId string, fromUs
 	}()
 
 	defer span.Finish()
-	err := s.ReactionStore.BatchMergeUserId(toUserId, fromUserId)
+	err := s.ReactionStore.BatchMergeUserId(toUserID, fromUserID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -10860,6 +10860,24 @@ func (s *OpenTracingLayerThreadStore) BatchMergeThreadMembershipUserId(toUserID 
 	return err
 }
 
+func (s *OpenTracingLayerThreadStore) BatchMergeThreadParticipants(toUserID string, fromUserID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.BatchMergeThreadParticipants")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ThreadStore.BatchMergeThreadParticipants(toUserID, fromUserID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerThreadStore) BatchMoveThreadsToChannel(toChannelID string, fromChannelID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.BatchMoveThreadsToChannel")
@@ -11230,24 +11248,6 @@ func (s *OpenTracingLayerThreadStore) MarkAsRead(userID string, threadID string,
 
 	defer span.Finish()
 	err := s.ThreadStore.MarkAsRead(userID, threadID, timestamp)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return err
-}
-
-func (s *OpenTracingLayerThreadStore) MergeThreadParticipants(toUserID string, fromUserID string) error {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.MergeThreadParticipants")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	err := s.ThreadStore.MergeThreadParticipants(toUserID, fromUserID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

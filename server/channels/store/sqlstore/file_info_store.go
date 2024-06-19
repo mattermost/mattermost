@@ -783,7 +783,7 @@ func (fs *SqlFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
 	return createAt, nil
 }
 
-func (s *SqlFileInfoStore) BatchMoveFilesToChannel(toChannelID string, fromChannelID string) error {
+func (s *SqlFileInfoStore) BatchMoveFilesToChannel(toChannelID, fromChannelID string) error {
 	for {
 		var query string
 		if s.DriverName() == "postgres" {

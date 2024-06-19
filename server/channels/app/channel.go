@@ -3847,13 +3847,13 @@ func (a *App) MergeChannelMemberRecords(rctx request.CTX, toChannelID, fromChann
 	return nil
 }
 
-func (a *App) MergeChannelMemberStatsForDifferentUsers(rctx request.CTX, toUserId string, fromUserId string, toChannelID string, fromChannelID string) *model.AppError {
-	toChannelMembers, err := a.Srv().Store().Channel().GetMembersByIds(toChannelID, []string{toUserId})
+func (a *App) MergeChannelMemberStatsForDifferentUsers(rctx request.CTX, toUserID, fromUserID, toChannelID, fromChannelID string) *model.AppError {
+	toChannelMembers, err := a.Srv().Store().Channel().GetMembersByIds(toChannelID, []string{toUserID})
 	if err != nil {
 		return model.NewAppError("MergeChannelMemberStatsForDifferentUsers", "app.channel.MergeChannelMemberStatsForDifferentUsers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	fromChannelMembers, err := a.Srv().Store().Channel().GetMembersByIds(fromChannelID, []string{fromUserId})
+	fromChannelMembers, err := a.Srv().Store().Channel().GetMembersByIds(fromChannelID, []string{fromUserID})
 	if err != nil {
 		return model.NewAppError("MergeChannelMemberStatsForDifferentUsers", "app.channel.MergeChannelMemberStatsForDifferentUsers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3875,7 +3875,7 @@ func (a *App) MergeChannelMemberStatsForDifferentUsers(rctx request.CTX, toUserI
 		return nil
 	}
 
-	rctx.Logger().Info("MergeChannelMemberStatsForDifferentUsers: failed to find channel members", mlog.String("toUserId", toUserId), mlog.String("fromUserId", fromUserId), mlog.String("toChannelID", toChannelID), mlog.String("fromChannelID", fromChannelID))
+	rctx.Logger().Info("MergeChannelMemberStatsForDifferentUsers: failed to find channel members", mlog.String("toUserID", toUserID), mlog.String("fromUserID", fromUserID), mlog.String("toChannelID", toChannelID), mlog.String("fromChannelID", fromChannelID))
 
 	return nil
 }

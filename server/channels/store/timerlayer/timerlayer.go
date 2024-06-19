@@ -551,10 +551,10 @@ func (s *TimerLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 	return result, err
 }
 
-func (s *TimerLayerBotStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+func (s *TimerLayerBotStore) MergeOwnerId(toOwnerID string, fromOwnerID string) error {
 	start := time.Now()
 
-	err := s.BotStore.MergeOwnerId(toOwnerId, fromOwnerId)
+	err := s.BotStore.MergeOwnerId(toOwnerID, fromOwnerID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2622,10 +2622,10 @@ func (s *TimerLayerChannelBookmarkStore) GetBookmarksForChannelSince(channelId s
 	return result, err
 }
 
-func (s *TimerLayerChannelBookmarkStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+func (s *TimerLayerChannelBookmarkStore) MergeOwnerId(toOwnerID string, fromOwnerID string) error {
 	start := time.Now()
 
-	err := s.ChannelBookmarkStore.MergeOwnerId(toOwnerId, fromOwnerId)
+	err := s.ChannelBookmarkStore.MergeOwnerId(toOwnerID, fromOwnerID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5803,10 +5803,10 @@ func (s *TimerLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamID string) (
 	return result, err
 }
 
-func (s *TimerLayerPostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId string) error {
+func (s *TimerLayerPostStore) BatchMergePostAndFileUserId(toUserID string, fromUserID string) error {
 	start := time.Now()
 
-	err := s.PostStore.BatchMergePostAndFileUserId(toUserId, fromUserId)
+	err := s.PostStore.BatchMergePostAndFileUserId(toUserID, fromUserID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7001,10 +7001,10 @@ func (s *TimerLayerProductNoticesStore) View(userID string, notices []string) er
 	return err
 }
 
-func (s *TimerLayerReactionStore) BatchMergeUserId(toUserId string, fromUserId string) error {
+func (s *TimerLayerReactionStore) BatchMergeUserId(toUserID string, fromUserID string) error {
 	start := time.Now()
 
-	err := s.ReactionStore.BatchMergeUserId(toUserId, fromUserId)
+	err := s.ReactionStore.BatchMergeUserId(toUserID, fromUserID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -9767,6 +9767,22 @@ func (s *TimerLayerThreadStore) BatchMergeThreadMembershipUserId(toUserID string
 	return err
 }
 
+func (s *TimerLayerThreadStore) BatchMergeThreadParticipants(toUserID string, fromUserID string) error {
+	start := time.Now()
+
+	err := s.ThreadStore.BatchMergeThreadParticipants(toUserID, fromUserID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.BatchMergeThreadParticipants", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerThreadStore) BatchMoveThreadsToChannel(toChannelID string, fromChannelID string) error {
 	start := time.Now()
 
@@ -10099,22 +10115,6 @@ func (s *TimerLayerThreadStore) MarkAsRead(userID string, threadID string, times
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.MarkAsRead", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerThreadStore) MergeThreadParticipants(toUserID string, fromUserID string) error {
-	start := time.Now()
-
-	err := s.ThreadStore.MergeThreadParticipants(toUserID, fromUserID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.MergeThreadParticipants", success, elapsed)
 	}
 	return err
 }

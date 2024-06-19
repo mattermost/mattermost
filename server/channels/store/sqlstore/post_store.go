@@ -3254,13 +3254,13 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 	return meta, nil
 }
 
-func (s *SqlPostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId string) error {
+func (s *SqlPostStore) BatchMergePostAndFileUserId(toUserID, fromUserID string) error {
 	// Attempt to move all posts and files
 	for {
 		var postIds []string
-		err := s.GetReplicaX().Select(&postIds, "SELECT Id FROM Posts WHERE UserId = ? AND Type = '' LIMIT 1000", fromUserId)
+		err := s.GetReplicaX().Select(&postIds, "SELECT Id FROM Posts WHERE UserId = ? AND Type = '' LIMIT 1000", fromUserID)
 		if err != nil {
-			return errors.Wrapf(err, "failed to find Posts with userId=%s", fromUserId)
+			return errors.Wrapf(err, "failed to find Posts with userId=%s", fromUserID)
 		}
 
 		if len(postIds) == 0 {
@@ -3275,7 +3275,7 @@ func (s *SqlPostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId s
 
 		postsQuery := s.getQueryBuilder().
 			Update("Posts").
-			Set("UserId", toUserId).
+			Set("UserId", toUserID).
 			Where(
 				sq.Or{
 					sq.Eq{"Id": postIds},
@@ -3287,7 +3287,7 @@ func (s *SqlPostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId s
 
 		fileInfoQuery := s.getQueryBuilder().
 			Update("FileInfo").
-			Set("CreatorId", toUserId).
+			Set("CreatorId", toUserID).
 			Where(
 				sq.Or{
 					sq.Eq{"PostId": postIds},
@@ -3305,7 +3305,7 @@ func (s *SqlPostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId s
 	return nil
 }
 
-func (s *SqlPostStore) BatchMovePostsToChannel(toChannelID string, fromChannelID string) error {
+func (s *SqlPostStore) BatchMovePostsToChannel(toChannelID, fromChannelID string) error {
 	for {
 		var query string
 		if s.DriverName() == "postgres" {

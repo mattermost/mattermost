@@ -398,7 +398,7 @@ func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, error) {
 	return count, nil
 }
 
-func (s SqlWebhookStore) MergeIncomingWebhookUserId(toUserID string, fromUserID string) error {
+func (s SqlWebhookStore) MergeIncomingWebhookUserId(toUserID, fromUserID string) error {
 	query := "UPDATE IncomingWebhooks SET UserId = ? WHERE UserId = ?"
 	_, err := s.GetMasterX().Exec(query, toUserID, fromUserID)
 	if err != nil {
@@ -408,7 +408,7 @@ func (s SqlWebhookStore) MergeIncomingWebhookUserId(toUserID string, fromUserID 
 	return nil
 }
 
-func (s SqlWebhookStore) MergeOutgoingWebhookUserId(toUserID string, fromUserID string) error {
+func (s SqlWebhookStore) MergeOutgoingWebhookUserId(toUserID, fromUserID string) error {
 	query := "UPDATE OutgoingWebhooks SET CreatorId = ? WHERE CreatorId = ?"
 	_, err := s.GetMasterX().Exec(query, toUserID, fromUserID)
 	if err != nil {

@@ -454,7 +454,7 @@ func updatePostForReactionsOnInsert(transaction *sqlxTxWrapper, postId string) e
 	return err
 }
 
-func (s *SqlReactionStore) BatchMergeUserId(toUserId string, fromUserId string) error {
+func (s *SqlReactionStore) BatchMergeUserId(toUserID, fromUserID string) error {
 	for {
 		var query string
 
@@ -465,7 +465,7 @@ func (s *SqlReactionStore) BatchMergeUserId(toUserId string, fromUserId string) 
 			query = "UPDATE Reactions SET UserId = ? WHERE UserId = ? LIMIT 1000"
 		}
 
-		sqlResult, err := s.GetMasterX().Exec(query, toUserId, fromUserId)
+		sqlResult, err := s.GetMasterX().Exec(query, toUserID, fromUserID)
 		if err != nil {
 			return errors.Wrap(err, "failed to update reactions")
 		}
@@ -483,7 +483,7 @@ func (s *SqlReactionStore) BatchMergeUserId(toUserId string, fromUserId string) 
 	return nil
 }
 
-func (s *SqlReactionStore) BatchMoveReactionsToChannel(toChannelID string, fromChannelID string) error {
+func (s *SqlReactionStore) BatchMoveReactionsToChannel(toChannelID, fromChannelID string) error {
 	channelParams := map[string]any{
 		"toChannelId":   toChannelID,
 		"fromChannelId": fromChannelID,

@@ -988,7 +988,7 @@ func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.Threa
 	return unreadReplies, nil
 }
 
-func (s *SqlThreadStore) BatchMergeThreadMembershipUserId(toUserID string, fromUserID string) error {
+func (s *SqlThreadStore) BatchMergeThreadMembershipUserId(toUserID, fromUserID string) error {
 	userParams := map[string]any{
 		"toUserId":   toUserID,
 		"fromUserId": fromUserID,
@@ -1024,7 +1024,7 @@ func (s *SqlThreadStore) BatchMergeThreadMembershipUserId(toUserID string, fromU
 	return nil
 }
 
-func (s *SqlThreadStore) BatchMoveThreadsToChannel(toChannelID string, fromChannelID string) error {
+func (s *SqlThreadStore) BatchMoveThreadsToChannel(toChannelID, fromChannelID string) error {
 	channelParams := map[string]any{
 		"toChannelId":   toChannelID,
 		"fromChannelId": fromChannelID,
@@ -1055,7 +1055,7 @@ func (s *SqlThreadStore) BatchMoveThreadsToChannel(toChannelID string, fromChann
 	return nil
 }
 
-func (s *SqlThreadStore) MergeThreadParticipants(toUserID string, fromUserID string) error {
+func (s *SqlThreadStore) BatchMergeThreadParticipants(toUserID, fromUserID string) error {
 	since := uint64(0)
 	for {
 		opts := model.GetUserThreadsOpts{

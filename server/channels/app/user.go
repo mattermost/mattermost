@@ -2930,7 +2930,7 @@ func (a *App) getAllSystemAdmins() ([]*model.User, *model.AppError) {
 	return a.GetUsersFromProfiles(userOptions)
 }
 
-func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId string) error {
+func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserID, fromUserID string) error {
 	offset := 0
 
 	for {
@@ -2939,16 +2939,16 @@ func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId
 		// []toUserDMChannel.Name
 		keys := make([]string, 0, 100)
 
-		fromUserDmChannels, err := a.Srv().Store().Channel().GetChannelsByTypeForUser(fromUserId, model.ChannelTypeDirect, offset, 100)
+		fromUserDmChannels, err := a.Srv().Store().Channel().GetChannelsByTypeForUser(fromUserID, model.ChannelTypeDirect, offset, 100)
 		if err != nil {
-			return errors.Wrapf(err, "failed to get dm channels for user %s", fromUserId)
+			return errors.Wrapf(err, "failed to get dm channels for user %s", fromUserID)
 		}
 
 		for _, fromUserDmChannel := range fromUserDmChannels {
-			// Get the other user id in the DM channel (not fromUserId)
-			otherUserIdInDMChannel := fromUserDmChannel.GetOtherUserIdForDM(fromUserId)
+			// Get the other user id in the DM channel (not fromUserID)
+			otherUserIdInDMChannel := fromUserDmChannel.GetOtherUserIdForDM(fromUserID)
 			// Construct the channel name of the DM channel for the toUser
-			channelName := model.GetDMNameFromIds(toUserId, otherUserIdInDMChannel)
+			channelName := model.GetDMNameFromIds(toUserID, otherUserIdInDMChannel)
 			keys = append(keys, channelName)
 			// Map the toUser DM channel name to the fromUser DM channel so we can match them up for merging later on
 			channelNameMap[channelName] = fromUserDmChannel
@@ -2957,7 +2957,7 @@ func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId
 		// Fetch all the toUser DM channels where fromUser also has a DM with the same user
 		toUserDmChannels, err := a.Srv().Store().Channel().GetByNames("", keys, true)
 		if err != nil {
-			return errors.Wrapf(err, "failed to get dm channels for user %s", toUserId)
+			return errors.Wrapf(err, "failed to get dm channels for user %s", toUserID)
 		}
 
 		for _, toUserDmChannel := range toUserDmChannels {
@@ -2967,18 +2967,18 @@ func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserId string, fromUserId
 			// kick off channel merges for toUserDmChannel and fromUserDmChannel
 			a.MergeChannels(rctx, toUserDmChannel, fromUserDmChannel)
 			// Handle special case of user merge where we need to merge the stats of 2 different users/channel members
-			a.MergeChannelMemberStatsForDifferentUsers(rctx, toUserId, fromUserId, toUserDmChannel.Id, fromUserDmChannel.Id)
+			a.MergeChannelMemberStatsForDifferentUsers(rctx, toUserID, fromUserID, toUserDmChannel.Id, fromUserDmChannel.Id)
 		}
 
 		// channelNameMap now only contains channels that are unique to fromUser
 		for newChannelName, channel := range channelNameMap {
-			// update channel information to use toUserId
+			// update channel information to use toUserID
 			channel.Name = newChannelName
-			if channel.CreatorId == fromUserId {
-				channel.CreatorId = toUserId
+			if channel.CreatorId == fromUserID {
+				channel.CreatorId = toUserID
 			}
-			rctx.Logger().Info("MergeUsers: Batch merging DM channel unique to fromUser.", mlog.String("from_user_id", fromUserId), mlog.String("channel_id", channel.Id))
-			err = a.Srv().Store().Channel().MigrateChannelRecordsToNewUser(channel, toUserId, fromUserId)
+			rctx.Logger().Info("MergeUsers: Batch merging DM channel unique to fromUser.", mlog.String("from_user_id", fromUserID), mlog.String("channel_id", channel.Id))
+			err = a.Srv().Store().Channel().MigrateChannelRecordsToNewUser(channel, toUserID, fromUserID)
 			if err != nil {
 				return errors.Wrapf(err, "failed to migrate channel records for channel %s", channel.Id)
 			}
@@ -3086,7 +3086,7 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_reactions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	err = a.Srv().Store().Thread().MergeThreadParticipants(toUser.Id, fromUser.Id)
+	err = a.Srv().Store().Thread().BatchMergeThreadParticipants(toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.merge_thread_participants.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

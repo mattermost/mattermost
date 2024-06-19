@@ -156,7 +156,7 @@ func (es SqlEmojiStore) getBy(c request.CTX, what, key string) (*model.Emoji, er
 	return &emoji, nil
 }
 
-func (es SqlEmojiStore) BatchMergeCreatorId(toUserID string, fromUserID string) error {
+func (es SqlEmojiStore) BatchMergeCreatorId(toUserID, fromUserID string) error {
 	for {
 		var query string
 		if es.DriverName() == "postgres" {

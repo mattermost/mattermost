@@ -308,11 +308,11 @@ type ChannelStore interface {
 	SetShared(channelId string, shared bool) error
 	// GetTeamForChannel returns the team for a given channelID.
 	GetTeamForChannel(channelID string) (*model.Team, error)
-	BatchMergeCreatorId(toUserID string, fromUserID string) error
+	BatchMergeCreatorId(toUserID, fromUserID string) error
 
 	GetChannelsByTypeForUser(userID string, channelType model.ChannelType, offset int, limit int) ([]*model.Channel, error)
-	MigrateChannelRecordsToNewUser(channel *model.Channel, toUserID string, fromUserID string) error
-	GetChannelMembersWithDualMemberships(firstChannelID string, secondChannelID string, offset int, limit int) ([]*model.ChannelMember, error)
+	MigrateChannelRecordsToNewUser(channel *model.Channel, toUserID, fromUserID string) error
+	GetChannelMembersWithDualMemberships(firstChannelID, secondChannelID string, offset, limit int) ([]*model.ChannelMember, error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -351,9 +351,9 @@ type ThreadStore interface {
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error)
 	DeleteMembershipsForChannel(userID, channelID string) error
-	BatchMergeThreadMembershipUserId(toUserID string, fromUserID string) error
-	BatchMoveThreadsToChannel(toChannelID string, fromChannelID string) error
-	MergeThreadParticipants(toUserID string, fromUserID string) error
+	BatchMergeThreadMembershipUserId(toUserID, fromUserID string) error
+	BatchMoveThreadsToChannel(toChannelID, fromChannelID string) error
+	BatchMergeThreadParticipants(toUserID, fromUserID string) error
 }
 
 type PostStore interface {
@@ -406,8 +406,8 @@ type PostStore interface {
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
-	BatchMergePostAndFileUserId(toUserId string, fromUserId string) error
-	BatchMovePostsToChannel(toChannelID string, fromChannelID string) error
+	BatchMergePostAndFileUserId(toUserID, fromUserID string) error
+	BatchMovePostsToChannel(toChannelID, fromChannelID string) error
 }
 
 type UserStore interface {
@@ -500,7 +500,7 @@ type BotStore interface {
 	Save(bot *model.Bot) (*model.Bot, error)
 	Update(bot *model.Bot) (*model.Bot, error)
 	PermanentDelete(userID string) error
-	MergeOwnerId(toOwnerId string, fromOwnerId string) error
+	MergeOwnerId(toOwnerID, fromOwnerID string) error
 }
 
 type SessionStore interface {
@@ -630,8 +630,8 @@ type WebhookStore interface {
 	AnalyticsOutgoingCount(teamID string) (int64, error)
 	InvalidateWebhookCache(webhook string)
 	ClearCaches()
-	MergeIncomingWebhookUserId(toUserID string, fromUserID string) error
-	MergeOutgoingWebhookUserId(toUserID string, fromUserID string) error
+	MergeIncomingWebhookUserId(toUserID, fromUserID string) error
+	MergeOutgoingWebhookUserId(toUserID, fromUserID string) error
 }
 
 type CommandStore interface {
@@ -698,7 +698,7 @@ type EmojiStore interface {
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, timestamp int64) error
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
-	BatchMergeCreatorId(toUserID string, fromUserID string) error
+	BatchMergeCreatorId(toUserID, fromUserID string) error
 }
 
 type StatusStore interface {
@@ -735,7 +735,7 @@ type FileInfoStore interface {
 	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
 	// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
 	GetUptoNSizeFileTime(n int64) (int64, error)
-	BatchMoveFilesToChannel(toChannelID string, fromChannelID string) error
+	BatchMoveFilesToChannel(toChannelID, fromChannelID string) error
 }
 
 type UploadSessionStore interface {
@@ -759,8 +759,8 @@ type ReactionStore interface {
 	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteByUser(userID string) error
-	BatchMergeUserId(toUserId string, fromUserId string) error
-	BatchMoveReactionsToChannel(toChannelID string, fromChannelID string) error
+	BatchMergeUserId(toUserID, fromUserID string) error
+	BatchMoveReactionsToChannel(toChannelID, fromChannelID string) error
 }
 
 type JobStore interface {
@@ -978,7 +978,7 @@ type NotifyAdminStore interface {
 	Get(trial bool) ([]*model.NotifyAdminData, error)
 	DeleteBefore(trial bool, now int64) error
 	Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error
-	MergeUserId(toUserID string, fromUserID string) error
+	MergeUserId(toUserID, fromUserID string) error
 }
 
 type SharedChannelStore interface {
@@ -1054,7 +1054,7 @@ type ChannelBookmarkStore interface {
 	UpdateSortOrder(bookmarkId, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error)
 	Delete(bookmarkId string, deleteFile bool) error
 	GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error)
-	MergeOwnerId(toOwnerId string, fromOwnerId string) error
+	MergeOwnerId(toOwnerID, fromOwnerID string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

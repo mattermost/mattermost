@@ -596,11 +596,11 @@ func (s *RetryLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 
 }
 
-func (s *RetryLayerBotStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+func (s *RetryLayerBotStore) MergeOwnerId(toOwnerID string, fromOwnerID string) error {
 
 	tries := 0
 	for {
-		err := s.BotStore.MergeOwnerId(toOwnerId, fromOwnerId)
+		err := s.BotStore.MergeOwnerId(toOwnerID, fromOwnerID)
 		if err == nil {
 			return nil
 		}
@@ -3176,11 +3176,11 @@ func (s *RetryLayerChannelBookmarkStore) GetBookmarksForChannelSince(channelId s
 
 }
 
-func (s *RetryLayerChannelBookmarkStore) MergeOwnerId(toOwnerId string, fromOwnerId string) error {
+func (s *RetryLayerChannelBookmarkStore) MergeOwnerId(toOwnerID string, fromOwnerID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelBookmarkStore.MergeOwnerId(toOwnerId, fromOwnerId)
+		err := s.ChannelBookmarkStore.MergeOwnerId(toOwnerID, fromOwnerID)
 		if err == nil {
 			return nil
 		}
@@ -7310,11 +7310,11 @@ func (s *RetryLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamID string) (
 
 }
 
-func (s *RetryLayerPostStore) BatchMergePostAndFileUserId(toUserId string, fromUserId string) error {
+func (s *RetryLayerPostStore) BatchMergePostAndFileUserId(toUserID string, fromUserID string) error {
 
 	tries := 0
 	for {
-		err := s.PostStore.BatchMergePostAndFileUserId(toUserId, fromUserId)
+		err := s.PostStore.BatchMergePostAndFileUserId(toUserID, fromUserID)
 		if err == nil {
 			return nil
 		}
@@ -8825,11 +8825,11 @@ func (s *RetryLayerProductNoticesStore) View(userID string, notices []string) er
 
 }
 
-func (s *RetryLayerReactionStore) BatchMergeUserId(toUserId string, fromUserId string) error {
+func (s *RetryLayerReactionStore) BatchMergeUserId(toUserID string, fromUserID string) error {
 
 	tries := 0
 	for {
-		err := s.ReactionStore.BatchMergeUserId(toUserId, fromUserId)
+		err := s.ReactionStore.BatchMergeUserId(toUserID, fromUserID)
 		if err == nil {
 			return nil
 		}
@@ -12428,6 +12428,27 @@ func (s *RetryLayerThreadStore) BatchMergeThreadMembershipUserId(toUserID string
 
 }
 
+func (s *RetryLayerThreadStore) BatchMergeThreadParticipants(toUserID string, fromUserID string) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.BatchMergeThreadParticipants(toUserID, fromUserID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerThreadStore) BatchMoveThreadsToChannel(toChannelID string, fromChannelID string) error {
 
 	tries := 0
@@ -12853,27 +12874,6 @@ func (s *RetryLayerThreadStore) MarkAsRead(userID string, threadID string, times
 	tries := 0
 	for {
 		err := s.ThreadStore.MarkAsRead(userID, threadID, timestamp)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerThreadStore) MergeThreadParticipants(toUserID string, fromUserID string) error {
-
-	tries := 0
-	for {
-		err := s.ThreadStore.MergeThreadParticipants(toUserID, fromUserID)
 		if err == nil {
 			return nil
 		}
