@@ -17,42 +17,74 @@ import {generateId} from 'utils/utils';
 import Setting from './setting';
 
 const CustomThemeContainer = styled.div`
-    margin-bottom: 20px;
-    border: 1px solid var(--center-channel-color-24);
-    padding: 10px;
+    margin-bottom: 12px;
+    border: var(--border-default);
     background: white;
-    box-shadow: 0px 2px 3px 0px rgba(0, 0, 0, 0.08);
-    border-radius: 4px;
+    box-shadow: var(--elevation-1);
+    border-radius: var(--radius-s);
+
     .mt-3 .btn {
         display: none;
     }
-    .theme-elements > div:first-child {
-        margin: 10px 20px 0 20px;
-    }
+
     textarea {
         height: 230px;
+    }
+
+    &:hover {
+        box-shadow: var(--elevation-2);
     }
 `;
 
 const CustomThemeHeader = styled.div`
+    padding: 12px;
     display: flex;
     align-items: center;
     cursor: pointer;
+    border-bottom: var(--border-light);
+
     .theme-label {
-        margin-left: 10px;
-        font-size: 18px;
+        margin-left: 16px;
         font-weight: 600;
         flex-grow: 1;
+    }
+
+    .theme-thumbnail {
+        border-radius: var(--radius-s);
+        border: var(--border-default);
+        width: 85px;
+        height: 64px;
+        overflow: hidden;
     }
 `;
 
 const CustomThemeBody = styled.div`
-    margin-top: 10px;
+    padding: 24px;
+
+    .appearance-section {
+        margin-top: 8px;
+
+        .theme-elements {
+            margin: 0;
+
+            > div {
+                margin-right: 0;
+            }
+
+            .form-group {
+                margin: 0;
+                padding: 0 20px 20px 0;
+
+                .color-input {
+                    width: auto;
+                }
+            }
+        }
+    }
 `;
 
 const DeleteIcon = styled.i`
-    color: #ea6262;
-    cursor: pointer;
+    color: var(--error-text);
 `;
 
 type CustomTheme = {
@@ -113,32 +145,44 @@ const CustomThemesSetting = (props: Props) => {
                         onClick={() => (openTheme === theme.ID ? setOpenTheme(null) : setOpenTheme(theme.ID))}
                     >
                         <CustomThemeHeader>
-                            <ThemeThumbnail
-                                themeKey={theme.ID}
-                                themeName={data.type}
-                                sidebarBg={data.sidebarBg}
-                                sidebarText={changeOpacity(data.sidebarText, 0.48)}
-                                sidebarHeaderBg={data.sidebarHeaderBg}
-                                sidebarHeaderTextColor={changeOpacity(data.sidebarHeaderTextColor, 0.48)}
-                                sidebarUnreadText={data.sidebarUnreadText}
-                                onlineIndicator={data.onlineIndicator}
-                                awayIndicator={data.awayIndicator}
-                                dndIndicator={data.dndIndicator}
-                                centerChannelColor={changeOpacity(data.centerChannelColor, 0.16)}
-                                centerChannelBg={data.centerChannelBg}
-                                newMessageSeparator={data.newMessageSeparator}
-                                buttonBg={data.buttonBg}
-                            />
+                            <div className="theme-thumbnail">
+                                <ThemeThumbnail
+                                    width={85}
+                                    height={64}
+                                    themeKey={theme.ID}
+                                    themeName={data.type}
+                                    sidebarBg={data.sidebarBg}
+                                    sidebarText={changeOpacity(data.sidebarText, 0.48)}
+                                    sidebarHeaderBg={data.sidebarHeaderBg}
+                                    sidebarHeaderTextColor={changeOpacity(data.sidebarHeaderTextColor, 0.48)}
+                                    sidebarUnreadText={data.sidebarUnreadText}
+                                    onlineIndicator={data.onlineIndicator}
+                                    awayIndicator={data.awayIndicator}
+                                    dndIndicator={data.dndIndicator}
+                                    centerChannelColor={changeOpacity(data.centerChannelColor, 0.16)}
+                                    centerChannelBg={data.centerChannelBg}
+                                    newMessageSeparator={data.newMessageSeparator}
+                                    buttonBg={data.buttonBg}
+                                />
+                            </div>
                             <div className='theme-label'>{theme.Name}</div>
-                            <DeleteIcon
-                                className='icon icon-trash-can-outline'
+                            <button
+                                className="btn btn-sm btn-icon"
                                 onClick={() => {
                                     handleChange(props.value.filter((t) => t.ID !== theme.ID));
                                     setOpenTheme(null);
                                 }}
-                            />
-                            {openTheme !== theme.ID && <i className='icon icon-chevron-down'/>}
-                            {openTheme === theme.ID && <i className='icon icon-chevron-up'/>}
+                            >
+                                <DeleteIcon
+                                    className='icon icon-trash-can-outline'
+                                />
+                            </button>
+                            <button
+                                className='btn btn-sm btn-icon'
+                            >
+                                {openTheme !== theme.ID && <i className='icon icon-chevron-down'/>}
+                                {openTheme === theme.ID && <i className='icon icon-chevron-up'/>}
+                            </button>
                         </CustomThemeHeader>
                         {openTheme === theme.ID &&
                         <CustomThemeBody onClick={(e) => e.stopPropagation()}>
@@ -153,18 +197,6 @@ const CustomThemesSetting = (props: Props) => {
                                     handleChange(props.value.map((t) => (t.ID === openTheme ? {ID: t.ID, Name: t.Name, Theme: JSON.stringify(theme)} : t)));
                                 }}
                             />
-                            <button
-                                className='btn btn-tertiary'
-                                onClick={() => {
-                                    handleChange(props.value.filter((t) => t.ID !== openTheme));
-                                    setOpenTheme(null);
-                                }}
-                            >
-                                <FormattedMessage
-                                    id='admin.themes.custom_theme.delete'
-                                    defaultMessage='Delete'
-                                />
-                            </button>
                         </CustomThemeBody>}
                     </CustomThemeContainer>
                 );

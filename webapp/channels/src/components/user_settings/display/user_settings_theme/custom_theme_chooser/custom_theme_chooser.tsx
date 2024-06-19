@@ -19,9 +19,9 @@ import Constants from 'utils/constants';
 import ColorChooser from '../color_chooser/color_chooser';
 
 const ThemeElementsHeader = styled.div`
-    padding: 1px 0 10px;
-    border-bottom: 1px solid;
-    margin: 10px 20px 0 0;
+    padding: 10px 0 10px;
+    border-bottom: var(--border-default);
+    margin: 0px 20px 0 0;
     cursor: pointer;
     font-size: em(13.5px);
     font-weight: 600;
@@ -48,9 +48,8 @@ const ThemeElementsHeader = styled.div`
 
 const ThemeElementsBody = styled.div`
     max-height: 0;
-    padding: 0 0 0 24px;
+    padding: 0 20px;
     border-radius: 0 0 3px 3px;
-    margin: 0 20px 0 0;
     background-color: rgba(255, 255, 255, 0.05);
     overflow-y: hidden;
     transition: all 0.4s ease-out;
@@ -58,9 +57,10 @@ const ThemeElementsBody = styled.div`
     @include pie-clearfix;
 
     &.open {
+        padding: 20px;
         max-height: 1200px;
-        padding: 24px 0 0 24px;
-        margin: 0 20px 0 0;
+        margin: 0;
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
     }
 `;
 
