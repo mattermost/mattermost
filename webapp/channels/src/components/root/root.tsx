@@ -348,6 +348,8 @@ export default class Root extends React.PureComponent<Props, State> {
                 prevProps.history.push('/terms_of_service');
             }
         }
+
+        // TODO: Remove this to their own components
         if (
             this.props.shouldShowAppBar !== prevProps.shouldShowAppBar ||
             this.props.rhsIsOpen !== prevProps.rhsIsOpen ||
@@ -382,14 +384,14 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     initiateMeRequests = async () => {
-        const {config, isMeLoaded} = await this.props.actions.loadConfigAndMe();
+        const result = await this.props.actions.loadConfigAndMe();
 
-        if (isMeLoaded && this.props.location.pathname === '/') {
+        if (result && result.isMeLoaded && this.props.location.pathname === '/') {
             this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history);
         }
 
-        if (config) {
-            this.onConfigLoaded(config);
+        if (result && result.config) {
+            this.onConfigLoaded(result.config);
             this.setState({configLoaded: true});
         }
     };
@@ -414,6 +416,7 @@ export default class Root extends React.PureComponent<Props, State> {
         this.props.actions.handleLoginLogoutSignal(e);
     };
 
+    // TODO: Remove this to their own components
     setRootMeta = () => {
         const root = document.getElementById('root')!;
 
