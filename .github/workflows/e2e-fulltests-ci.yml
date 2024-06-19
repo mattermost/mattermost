@@ -77,7 +77,7 @@ jobs:
     outputs:
       status_check_context: "${{ steps.generate.outputs.status_check_context }}"
       workers_number: "${{ steps.generate.outputs.workers_number }}"
-      server_uppercase: "${{ steps.generate.outpus.server_uppercase }}" # Required for license selection
+      server_uppercase: "${{ steps.generate.outputs.server_uppercase }}" # Required for license selection
       SERVER: "${{ steps.generate.outputs.SERVER }}"
       ENABLED_DOCKER_SERVICES: "${{ steps.generate.outputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ steps.generate.outputs.TEST_FILTER }}"
@@ -137,7 +137,7 @@ jobs:
               echo "TM4J_ENABLE=true" >> $GITHUB_OUTPUT
               ;;
             *)
-              # TODO implement other test types, in the future
+              # TODO implement release testing, in the future
               echo "Fatal: unimplemented test type. Aborting."
               exit 1
           esac
