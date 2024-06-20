@@ -109,8 +109,12 @@ type MetricsInterface interface {
 	ObserveClientInteractionToNextPaint(platform, agent string, elapsed float64)
 	ObserveClientCumulativeLayoutShift(platform, agent string, elapsed float64)
 	IncrementClientLongTasks(platform, agent string, inc float64)
+	ObserveClientPageLoadDuration(platform, agent string, elapsed float64)
 	ObserveClientChannelSwitchDuration(platform, agent string, elapsed float64)
 	ObserveClientTeamSwitchDuration(platform, agent string, elapsed float64)
 	ObserveClientRHSLoadDuration(platform, agent string, elapsed float64)
 	ObserveGlobalThreadsLoadDuration(platform, agent string, elapsed float64)
+	ObserveMobileClientLoadDuration(platform string, elapsed float64)
+	ObserveMobileClientChannelSwitchDuration(platform string, elapsed float64)
+	ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64)
 }
