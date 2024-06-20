@@ -33,9 +33,15 @@ describe('PerformanceReporter', () => {
 
         const testMarkA = performance.mark('testMarkA');
         const testMarkB = performance.mark('testMarkB');
+
+        const timeA = Date.now();
         measureAndReport('testMeasureA', 'testMarkA', 'testMarkB');
 
+        await waitForObservations();
+
         const testMarkC = performance.mark('testMarkC');
+
+        const timeBC = Date.now();
         measureAndReport('testMeasureB', 'testMarkA', 'testMarkC');
         measureAndReport('testMeasureC', 'testMarkB', 'testMarkC');
 
@@ -49,26 +55,27 @@ describe('PerformanceReporter', () => {
         expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/client_perf');
         const report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
-            start: performance.timeOrigin + testMarkA.startTime,
-            end: performance.timeOrigin + testMarkB.startTime,
             histograms: [
                 {
                     metric: 'testMeasureA',
                     value: testMarkB.startTime - testMarkA.startTime,
-                    timestamp: performance.timeOrigin + testMarkA.startTime,
                 },
                 {
                     metric: 'testMeasureB',
                     value: testMarkC.startTime - testMarkA.startTime,
-                    timestamp: performance.timeOrigin + testMarkA.startTime,
                 },
                 {
                     metric: 'testMeasureC',
                     value: testMarkC.startTime - testMarkB.startTime,
-                    timestamp: performance.timeOrigin + testMarkB.startTime,
                 },
             ],
         });
+        expect(report.start).toEqual(report.histograms[0].timestamp);
+        expect(report.end).toEqual(report.histograms[2].timestamp);
+        expect(report.histograms[0].timestamp).toBeGreaterThanOrEqual(timeA);
+        expect(report.histograms[0].timestamp).toBeLessThanOrEqual(timeBC);
+        expect(report.histograms[1].timestamp).toBeGreaterThanOrEqual(timeBC);
+        expect(report.histograms[2].timestamp).toBeGreaterThanOrEqual(timeBC);
 
         reporter.disconnect();
     });
