@@ -119,9 +119,8 @@ jobs:
             NONE | PR)
               echo "status_check_context=E2E Tests/test${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
               echo "workers_number=20" >> $GITHUB_OUTPUT
-              echo "ENABLED_DOCKER_SERVICES=postgres inbucket minio openldap elasticsearch keycloak" >> $GITHUB_OUTPUT
               echo "TEST_FILTER=$TEST_FILTER_PR" >> $GITHUB_OUTPUT
-              echo "BUILD_ID=${BUILD_ID_PREFIX}-pr-onprem-ent" >> $GITHUB_OUTPUT
+              echo "BUILD_ID=${BUILD_ID_PREFIX}-${REPORT_TYPE@L}-${SERVER}-ent" >> $GITHUB_OUTPUT
               ;;
             MASTER | MASTER_UNSTABLE | CLOUD | CLOUD_UNSTABLE)
               IS_TEST_UNSTABLE=$(sed -n -E 's/^.*(UNSTABLE).*$/\1/p' <<< "$REPORT_TYPE") # Variable is UNSTABLE if report type is for unstable tests
@@ -131,8 +130,7 @@ jobs:
               TEST_FILTER_VARIABLE="TEST_FILTER_DAILY_${SERVER@U}"
               BUILD_ID_SUFFIX="${IS_TEST_UNSTABLE:+unstable-}daily-${SERVER}-ent"
               echo "status_check_context=E2E Tests/test-${BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
-              echo "workers_number=20" >> $GITHUB_OUTPUT
-              echo "ENABLED_DOCKER_SERVICES=postgres inbucket minio openldap elasticsearch keycloak" >> $GITHUB_OUTPUT
+              echo "workers_number=10" >> $GITHUB_OUTPUT # Daily tests are not time critical, and it's more efficient to run on fewer workers
               echo "TEST_FILTER=${!TEST_FILTER_VARIABLE} ${IS_TEST_UNSTABLE:+--invert}" >> $GITHUB_OUTPUT
               echo "BUILD_ID=${BUILD_ID_PREFIX}-${BUILD_ID_SUFFIX}" >> $GITHUB_OUTPUT
               echo "TM4J_ENABLE=true" >> $GITHUB_OUTPUT
@@ -144,6 +142,7 @@ jobs:
           esac
           echo "SERVER=${SERVER}" >> $GITHUB_OUTPUT
           echo "server_uppercase=${SERVER@U}" >> $GITHUB_OUTPUT
+          echo "ENABLED_DOCKER_SERVICES=postgres inbucket minio openldap elasticsearch keycloak" >> $GITHUB_OUTPUT
       - name: ci/notify-user
         run: |
           if [ -n "$PR_NUMBER" ]; then
