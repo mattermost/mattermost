@@ -60,7 +60,7 @@ build-v4: node_modules playbooks
 	cd server && go run . $(V4_YAML)
 
 	@node_modules/.bin/swagger-cli validate $(V4_YAML)
-	@node_modules/.bin/redoc-cli -t ./v4/html/ssr_template.hbs build ./v4/html/static/mattermost-openapi-v4.yaml -o ./v4/html/index.html --options.noAutoAuth  --options.suppressWarnings
+	@node_modules/.bin/redocly -t ./v4/html/ssr_template.hbs build-docs ./v4/html/static/mattermost-openapi-v4.yaml -o ./v4/html/index.html
 	@echo Complete
 
 node_modules: package.json $(wildcard package-lock.json)
@@ -72,7 +72,7 @@ node_modules: package.json $(wildcard package-lock.json)
 run:
 	@echo Starting redoc server
 
-	@node_modules/.bin/redoc-cli -t ./v4/html/ssr_template.hbs serve ./v4/html/static/mattermost-openapi-v4.yaml --options.noAutoAuth  --options.suppressWarnings  --ssr
+	@node_modules/.bin/redocly preview-docs ./v4/html/static/mattermost-openapi-v4.yaml
 
 clean:
 	@echo Cleaning
