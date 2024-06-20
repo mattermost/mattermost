@@ -42,6 +42,11 @@ const LoginSignupBlockStyled = styled.div<LoginSignupBlockProps>`
     &&&&& input::placeholder {
         color: ${(props) => props.textColor};
     }
+    &&&&& .Input___error,
+    &&&&& .Input___error i,
+    &&&&& .Input___error span {
+        color: var(--error-text);
+    }
 
     &&&&& #password_toggle {
         color: ${(props) => props.textColor};
@@ -56,16 +61,18 @@ const LoginSignupBlockStyled = styled.div<LoginSignupBlockProps>`
         color: ${(props) => props.textColor};
         border-color: ${(props) => tinycolor(props.textColor).setAlpha(0.16).toRgbString()};
         background: ${(props) => props.background};
-    }
+        &:hover {
+            border-color: ${(props) => tinycolor(props.textColor).setAlpha(0.24).toRgbString()};
+        }
+        &:focus-within {
+            border-color: ${(props) => props.linkColor};
+            color: ${(props) => props.linkColor};
+            box-shadow: inset 0 0 0 1px ${(props) => props.linkColor};
+        }
 
-    &&&&& fieldset:hover {
-        border-color: ${(props) => tinycolor(props.textColor).setAlpha(0.24).toRgbString()};
-    }
-
-    &&&&& fieldset:focus-within {
-        border-color: ${(props) => props.linkColor};
-        color: ${(props) => props.linkColor};
-        box-shadow: inset 0 0 0 1px ${(props) => props.linkColor};
+        &.Input_fieldset___error {
+            border-color: var(--error-text);
+        }
     }
     &&&&& span {
         color: ${(props) => props.textColor};
@@ -75,6 +82,10 @@ const LoginSignupBlockStyled = styled.div<LoginSignupBlockProps>`
     }
     &&&&& i {
         color: ${(props) => props.textColor + '8F'};
+    }
+    &&&&&& .AlertBanner__body,
+    &&&&&& .AlertBanner__title {
+        color: ${(props) => props.textColor};
     }
 `;
 

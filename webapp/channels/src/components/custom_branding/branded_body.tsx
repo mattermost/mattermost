@@ -14,7 +14,7 @@ type BrandedBodyProps = {
 }
 
 const BrandedBodyStyled = styled.div<BrandedBodyProps>`
-    &&&&&, &&&&& h1, &&&&& div {
+    &&&&&, &&&&& h1 {
         color: ${(props) => props.textColor};
     }
     &&&&& p {
