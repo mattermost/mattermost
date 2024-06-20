@@ -761,16 +761,20 @@ func TestMoveThread(t *testing.T) {
 	basicUser2 := th.BasicUser2
 	basicUser3 := th.CreateUser()
 
-	// Create a new public channel to move the post to
-	publicChannel, resp, err := client.CreateChannel(ctx, &model.Channel{
-		TeamId:      th.BasicTeam.Id,
-		Name:        "test-public-channel",
-		DisplayName: "Test Public Channel",
-		Type:        model.ChannelTypeOpen,
-	})
-	require.NoError(t, err)
-	require.NotNil(t, resp)
-	require.NotNil(t, publicChannel)
+	// Helper function to create a new public channel to move the post to
+	createPublicChannel := func(teamId, name, displayName string) *model.Channel {
+		channel, resp, err := client.CreateChannel(ctx, &model.Channel{
+			TeamId:      teamId,
+			Name:        name,
+			DisplayName: displayName,
+			Type:        model.ChannelTypeOpen,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, channel)
+
+		return channel
+	}
 
 	// Create a new private channel to move the post to
 	privateChannel, resp, err := client.CreateChannel(ctx, &model.Channel{
@@ -795,6 +799,9 @@ func TestMoveThread(t *testing.T) {
 	require.NotNil(t, resp)
 	require.NotNil(t, gmChannel)
 	t.Run("Move to public channel", func(t *testing.T) {
+		// Create a public channel
+		publicChannel := createPublicChannel(th.BasicTeam.Id, "test-public-channel", "Test Public Channel")
+
 		// Create a new post to move
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -970,6 +977,53 @@ func TestMoveThread(t *testing.T) {
 		require.Equal(t, newPost2.Message, posts.Posts[posts.Order[1]].Message)
 		require.Equal(t, newPost.Message, posts.Posts[posts.Order[2]].Message)
 		require.Equal(t, rootPost.Message, posts.Posts[posts.Order[3]].Message)
+	})
+
+	t.Run("Move thread when permitted role is channel admin", func(t *testing.T) {
+		// Create public channel
+		publicChannel := createPublicChannel(th.BasicTeam.Id, "test-public-channel-admin", "Test Public Channel Admin")
+
+		// Set permitted role as channel admin
+		enabled := true
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings = model.WranglerSettings{MoveThreadToAnotherTeamEnable: &enabled,
+				PermittedWranglerRoles: []string{model.PermissionsChannelAdmin}}
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings = model.WranglerSettings{}
+		})
+
+		// Login as channel admin and add to channel
+		th.LoginTeamAdmin()
+		th.AddUserToChannel(th.TeamAdminUser, publicChannel)
+		defer th.LoginBasic()
+
+		// Create a new post to move
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test post",
+		}
+		newPost, resp, err := client.CreatePost(ctx, post)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, newPost)
+
+		// Move the post to the public channel
+		moveThreadParams := &model.MoveThreadParams{
+			ChannelId: publicChannel.Id,
+		}
+		resp, err = client.MoveThread(ctx, newPost.Id, moveThreadParams)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Check that the post was moved to the public channel
+		posts, resp, err := client.GetPostsForChannel(ctx, publicChannel.Id, 0, 100, "", true, false)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, posts)
+		// There should be 2 posts, the system join message for the user who moved it joining the channel, and the post we moved
+		require.Equal(t, 2, len(posts.Posts))
+		require.Equal(t, newPost.Message, posts.Posts[posts.Order[0]].Message)
 	})
 }
 
