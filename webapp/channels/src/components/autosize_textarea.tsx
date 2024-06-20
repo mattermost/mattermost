@@ -25,7 +25,6 @@ const styles = {
         overflow: 'hidden',
     },
     reference: {
-        display: 'inline-block',
         height: 'auto',
         width: 'auto',
     },
