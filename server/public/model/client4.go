@@ -8680,6 +8680,20 @@ func (c *Client4) GetAncillaryPermissions(ctx context.Context, subsectionPermiss
 	return returnedPermissions, BuildResponse(r), nil
 }
 
+func (c *Client4) GetAncillaryPermissionsPost(ctx context.Context, subsectionPermissions []string) ([]string, *Response, error) {
+	var returnedPermissions []string
+	url := fmt.Sprintf("%s/ancillary", c.permissionsRoute())
+	m := map[string]string{"subsection_permissions": strings.Join(subsectionPermissions, ",")}
+	r, err := c.DoAPIPost(ctx, url, MapToJSON(m))
+	if err != nil {
+		return returnedPermissions, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	json.NewDecoder(r.Body).Decode(&returnedPermissions)
+	return returnedPermissions, BuildResponse(r), nil
+}
+
 func (c *Client4) GetUsersWithInvalidEmails(ctx context.Context, page, perPage int) ([]*User, *Response, error) {
 	query := fmt.Sprintf("/invalid_emails?page=%v&per_page=%v", page, perPage)
 	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, "")
