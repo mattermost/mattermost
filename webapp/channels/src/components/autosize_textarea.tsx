@@ -27,7 +27,11 @@ const styles = {
     reference: {
         height: 'auto',
         width: 'auto',
-    },
+        display: 'inline-block',
+        position: 'relative',
+        transform: 'translateY(-100%)',
+        wordBreak: 'break-word'
+    } as CSSProperties,
     placeholder: {
         overflow: 'hidden',
         textOverflow: 'ellipsis',
