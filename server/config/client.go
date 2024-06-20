@@ -188,7 +188,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 		if *license.Features.Cluster {
 			props["EnableMetrics"] = strconv.FormatBool(*c.MetricsSettings.Enable)
-			props["EnableClientMetrics"] = strconv.FormatBool(c.FeatureFlags.ClientMetrics && *c.MetricsSettings.EnableClientMetrics)
+			props["EnableClientMetrics"] = strconv.FormatBool(*c.MetricsSettings.Enable && *c.MetricsSettings.EnableClientMetrics)
 			props["EnableNotificationMetrics"] = strconv.FormatBool(c.FeatureFlags.NotificationMonitoring && *c.MetricsSettings.EnableNotificationMetrics)
 		}
 
