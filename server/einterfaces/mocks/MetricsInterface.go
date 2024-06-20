@@ -363,6 +363,21 @@ func (_m *MetricsInterface) ObserveGlobalThreadsLoadDuration(platform string, ag
 	_m.Called(platform, agent, elapsed)
 }
 
+// ObserveMobileClientChannelSwitchDuration provides a mock function with given fields: platform, elapsed
+func (_m *MetricsInterface) ObserveMobileClientChannelSwitchDuration(platform string, elapsed float64) {
+	_m.Called(platform, elapsed)
+}
+
+// ObserveMobileClientLoadDuration provides a mock function with given fields: platform, elapsed
+func (_m *MetricsInterface) ObserveMobileClientLoadDuration(platform string, elapsed float64) {
+	_m.Called(platform, elapsed)
+}
+
+// ObserveMobileClientTeamSwitchDuration provides a mock function with given fields: platform, elapsed
+func (_m *MetricsInterface) ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64) {
+	_m.Called(platform, elapsed)
+}
+
 // ObservePluginAPIDuration provides a mock function with given fields: pluginID, apiName, success, elapsed
 func (_m *MetricsInterface) ObservePluginAPIDuration(pluginID string, apiName string, success bool, elapsed float64) {
 	_m.Called(pluginID, apiName, success, elapsed)
