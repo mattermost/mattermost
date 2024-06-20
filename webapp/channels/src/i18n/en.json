@@ -3299,7 +3299,7 @@
   "copied.message": "Copied",
   "copy.code.message": "Copy code",
   "copy.text.message": "Copy text",
-  "copyTextTooltip": "Copy",
+  "copyTextTooltip.copy": "Copy",
   "create_category_modal.create": "Create",
   "create_category_modal.createCategory": "Create New Category",
   "create_comment.addComment": "Reply to this thread...",
