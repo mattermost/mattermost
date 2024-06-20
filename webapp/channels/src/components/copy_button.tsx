@@ -4,18 +4,16 @@
 import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
 import {Tooltip} from 'react-bootstrap';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import OverlayTrigger from 'components/overlay_trigger';
 
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 import {copyToClipboard} from 'utils/utils';
 
 type Props = {
     content: string;
-    beforeCopyText?: string;
-    afterCopyText?: string;
+    isForText?: boolean;
     placement?: string;
     className?: string;
 };
@@ -41,26 +39,18 @@ const CopyButton: React.FC<Props> = (props: Props) => {
         copyToClipboard(props.content);
     };
 
-    const getId = () => {
-        if (isCopied) {
-            return t('copied.message');
-        }
-        return props.beforeCopyText ? t('copy.text.message') : t('copy.code.message');
-    };
-
-    const getDefaultMessage = () => {
-        if (isCopied) {
-            return props.afterCopyText;
-        }
-        return props.beforeCopyText ?? 'Copy code';
-    };
+    let tooltipMessage;
+    if (isCopied) {
+        tooltipMessage = messages.copied;
+    } else if (props.isForText) {
+        tooltipMessage = messages.copyText;
+    } else {
+        tooltipMessage = messages.copyCode;
+    }
 
     const tooltip = (
         <Tooltip id='copyButton'>
-            <FormattedMessage
-                id={getId()}
-                defaultMessage={getDefaultMessage()}
-            />
+            <FormattedMessage {...tooltipMessage}/>
         </Tooltip>
     );
 
@@ -70,13 +60,13 @@ const CopyButton: React.FC<Props> = (props: Props) => {
         <OverlayTrigger
             shouldUpdatePosition={true}
             delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement={props.placement}
+            placement={props.placement ?? 'top'}
             overlay={tooltip}
         >
             <span
                 className={spanClassName}
                 onClick={copyText}
-                aria-label={intl.formatMessage({id: getId(), defaultMessage: getDefaultMessage()})}
+                aria-label={intl.formatMessage(tooltipMessage)}
                 role='button'
             >
                 {!isCopied &&
@@ -94,9 +84,19 @@ const CopyButton: React.FC<Props> = (props: Props) => {
     );
 };
 
-CopyButton.defaultProps = {
-    afterCopyText: 'Copied',
-    placement: 'top',
-};
+const messages = defineMessages({
+    copied: {
+        id: 'copied.message',
+        defaultMessage: 'Copied',
+    },
+    copyCode: {
+        id: 'copy.code.message',
+        defaultMessage: 'Copy code',
+    },
+    copyText: {
+        id: 'copy.text.message',
+        defaultMessage: 'Copy text',
+    },
+});
 
 export default CopyButton;

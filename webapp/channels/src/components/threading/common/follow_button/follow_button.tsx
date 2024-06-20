@@ -6,8 +6,6 @@ import React, {memo} from 'react';
 import type {ComponentProps} from 'react';
 import {useIntl} from 'react-intl';
 
-import {t} from 'utils/i18n';
-
 import Button from '../button';
 
 type Props = {
@@ -26,11 +24,11 @@ function FollowButton({
             disabled={Boolean(props.disabled)}
             isActive={isFollowing ?? false}
         >
-            {formatMessage(isFollowing ? {
-                id: t('threading.following'),
+            {isFollowing ? formatMessage({
+                id: 'threading.following',
                 defaultMessage: 'Following',
-            } : {
-                id: t('threading.notFollowing'),
+            }) : formatMessage({
+                id: 'threading.notFollowing',
                 defaultMessage: 'Follow',
             })}
         </Button>
