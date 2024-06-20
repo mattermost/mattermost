@@ -594,10 +594,12 @@ const PostComponent = (props: Props): JSX.Element => {
                                 {post.props && post.props.card &&
                                     <WithTooltip
                                         id='post_info.info.view_additional_info'
-                                        title={{
-                                            id: 'post_info.info.view_additional_info',
-                                            defaultMessage: 'View additional info',
-                                        }}
+                                        title={
+                                            <FormattedMessage
+                                                id='post_info.info.view_additional_info'
+                                                defaultMessage='View additional info'
+                                            />
+                                        }
                                         placement='top'
                                     >
                                         <button
