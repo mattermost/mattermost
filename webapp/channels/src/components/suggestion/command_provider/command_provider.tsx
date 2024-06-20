@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessages} from 'react-intl';
 import type {Store} from 'redux';
 
 import {DockWindowIcon} from '@mattermost/compass-icons/components';
@@ -288,3 +289,10 @@ export default class CommandProvider extends Provider {
         return matches.findIndex((match) => match.Complete === complete) !== -1;
     }
 }
+
+defineMessages({
+    commandsDivider: {
+        id: 'suggestion.commands',
+        defaultMessage: 'Commands',
+    },
+});
