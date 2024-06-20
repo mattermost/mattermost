@@ -1597,18 +1597,10 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 		return nil, err
 	}
 
-	// We are sending separate websocket events to the user added and to the channel
-	// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members
-	// There is likely some issue syncing these that needs to be looked at, but this is the current fix.
-	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", map[string]bool{user.Id: true}, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
 	message.Add("user_id", user.Id)
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
-
-	userMessage := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, user.Id, nil, "")
-	userMessage.Add("user_id", user.Id)
-	userMessage.Add("team_id", channel.TeamId)
-	a.Publish(userMessage)
 
 	return newMember, nil
 }
