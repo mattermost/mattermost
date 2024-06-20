@@ -1218,6 +1218,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "page_load",
 			Help:      "The amount of time from when the browser starts loading the web app until when the web app's load event has finished (seconds)",
+			Buckets:   []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 40},
 		},
 		[]string{"platform", "agent"},
 	)
