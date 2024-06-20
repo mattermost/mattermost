@@ -34,7 +34,7 @@ const CopyText = ({
             title={
                 tooltip || (
                     <FormattedMessage
-                        id='copyTextTooltip'
+                        id='copyTextTooltip.copy'
                         defaultMessage='Copy'
                     />
                 )
