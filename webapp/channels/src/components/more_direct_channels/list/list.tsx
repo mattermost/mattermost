@@ -69,8 +69,8 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
     }, [props.currentUserId]);
 
     const handleCreateChannel = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-        e.preventDefault()
-        props.handleHide()
+        e.preventDefault();
+        props.handleHide();
         dispatch(openModal({modalId: ModalIdentifiers.NEW_CHANNEL_MODAL, dialogType: NewChannelModal}));
     };
 
