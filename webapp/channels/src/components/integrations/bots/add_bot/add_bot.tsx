@@ -17,9 +17,8 @@ import * as UserUtils from 'mattermost-redux/utils/user_utils';
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
-import OverlayTrigger from 'components/overlay_trigger';
 import SpinnerButton from 'components/spinner_button';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import BotDefaultIcon from 'images/bot_default_icon.png';
 import {getHistory} from 'utils/browser_history';
@@ -423,17 +422,15 @@ export default class AddBot extends React.PureComponent<Props, State> {
 
         let imageURL = '';
         let removeImageIcon: JSX.Element | null = (
-            <OverlayTrigger
-                delayShow={Constants.OVERLAY_TIME_DELAY}
+            <WithTooltip
+                id='removeIcon'
                 placement='right'
-                overlay={(
-                    <Tooltip id='removeIcon'>
-                        <FormattedMessage
-                            id='bot.remove_profile_picture'
-                            defaultMessage='Remove Bot Icon'
-                        />
-                    </Tooltip>
-                )}
+                title={
+                    <FormattedMessage
+                        id='bot.remove_profile_picture'
+                        defaultMessage='Remove Bot Icon'
+                    />
+                }
             >
                 <a
                     className={'bot-profile__remove'}
@@ -441,7 +438,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                 >
                     <span>{'×'}</span>
                 </a>
-            </OverlayTrigger>
+            </WithTooltip>
         );
         let imageStyles;
         if (this.props.bot && !this.state.pictureFile) {
