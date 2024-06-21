@@ -36,14 +36,11 @@ func appendAncillaryPermissions(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func appendAncillaryPermissionsPost(c *Context, w http.ResponseWriter, r *http.Request) {
-	bodyMap := model.MapFromJSON(r.Body)
-	keys, ok := bodyMap["subsection_permissions"]
-	if !ok || len(keys) < 1 {
-		c.SetInvalidURLParam("subsection_permissions")
+	permissions, err := model.NonSortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("appendAncillaryPermissionsPost", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-
-	permissions := strings.Split(keys, ",")
 	b, err := json.Marshal(model.AddAncillaryPermissions(permissions))
 	if err != nil {
 		c.SetJSONEncodingError(err)
