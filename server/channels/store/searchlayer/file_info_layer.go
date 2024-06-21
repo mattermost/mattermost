@@ -132,6 +132,14 @@ func (s SearchFileInfoStore) DeleteForPost(rctx request.CTX, postId string) (str
 	return result, err
 }
 
+func (s SearchFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postId string) error {
+	err := s.FileInfoStore.PermanentDeleteForPost(rctx, postId)
+	if err == nil {
+		s.deleteFileIndexForPost(rctx, postId)
+	}
+	return err
+}
+
 func (s SearchFileInfoStore) PermanentDelete(rctx request.CTX, fileId string) error {
 	err := s.FileInfoStore.PermanentDelete(rctx, fileId)
 	if err == nil {

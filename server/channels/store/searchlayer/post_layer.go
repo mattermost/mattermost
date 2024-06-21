@@ -122,6 +122,22 @@ func (s SearchPostStore) Delete(rctx request.CTX, postId string, date int64, del
 	return err
 }
 
+func (s SearchPostStore) PermanentDeletePost(rctx request.CTX, postID string) error {
+	err := s.PostStore.PermanentDeletePost(rctx, postID)
+	if err == nil {
+		opts := model.GetPostsOptions{
+			SkipFetchThreads: true,
+		}
+		postList, err2 := s.PostStore.Get(context.Background(), postID, opts, "", map[string]bool{})
+		if postList != nil && len(postList.Order) > 0 {
+			if err2 != nil {
+				s.deletePostIndex(rctx, postList.Posts[postList.Order[0]])
+			}
+		}
+	}
+	return err
+}
+
 func (s SearchPostStore) PermanentDeleteByUser(rctx request.CTX, userID string) error {
 	err := s.PostStore.PermanentDeleteByUser(rctx, userID)
 	if err == nil {

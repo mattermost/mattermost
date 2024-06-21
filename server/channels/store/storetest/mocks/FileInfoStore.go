@@ -469,6 +469,24 @@ func (_m *FileInfoStore) PermanentDeleteByUser(ctx request.CTX, userID string) (
 	return r0, r1
 }
 
+// PermanentDeleteForPost provides a mock function with given fields: c, postID
+func (_m *FileInfoStore) PermanentDeleteForPost(c request.CTX, postID string) error {
+	ret := _m.Called(c, postID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteForPost")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(c, postID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: ctx, info
 func (_m *FileInfoStore) Save(ctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 	ret := _m.Called(ctx, info)

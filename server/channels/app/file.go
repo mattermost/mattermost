@@ -1594,3 +1594,54 @@ func getFileExtFromMimeType(mimeType string) string {
 	}
 	return "jpg"
 }
+
+func (a *App) PermanentDeleteFilesByPost(c request.CTX, postID string) *model.AppError {
+	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, false, true, false)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			c.Logger().Warn("No files found for post", mlog.String("post_id", postID))
+			return nil
+		default:
+			return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	a.RemoveFilesFromFileStore(c, fileInfos)
+
+	err = a.Srv().Store().FileInfo().PermanentDeleteForPost(c, postID)
+	if err != nil {
+		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.permanent_delete_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (a *App) RemoveFilesFromFileStore(c request.CTX, fileInfos []*model.FileInfo) {
+	for _, info := range fileInfos {
+		res, appErr := a.FileExists(info.Path)
+		if appErr != nil {
+			c.Logger().Warn(
+				"Error checking existence of file",
+				mlog.String("path", info.Path),
+				mlog.Err(appErr),
+			)
+			continue
+		}
+
+		if !res {
+			c.Logger().Warn("File not found", mlog.String("path", info.Path))
+			continue
+		}
+
+		appErr = a.RemoveFile(info.Path)
+
+		if appErr != nil {
+			c.Logger().Warn(
+				"Unable to remove file",
+				mlog.String("path", info.Path),
+				mlog.Err(appErr),
+			)
+		}
+	}
+}
