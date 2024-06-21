@@ -2992,6 +2992,35 @@ func (a *App) BatchMergeDmChannels(rctx request.CTX, toUserID, fromUserID string
 	return nil
 }
 
+func (a *App) BatchMergeGmChannels(rctx request.CTX, toUser, fromUser *model.User) error {
+	offset := 0
+	toUserID := toUser.Id
+	fromUserID := fromUser.Id
+
+	for {
+		fromUserGmChannels, err := a.Srv().Store().Channel().GetChannelsByTypeForUser(fromUserID, model.ChannelTypeGroup, offset, 100)
+		if err != nil {
+			return errors.Wrapf(err, "failed to get gm channels for user %s", fromUserID)
+		}
+
+		// channelNameMap now only contains channels that are unique to fromUser
+		for _, channel := range fromUserGmChannels {
+			rctx.Logger().Info("MergeUsers: migrating GM channel.", mlog.String("from_user_id", fromUserID), mlog.String("channel_id", channel.Id))
+			// TODO: race condition with totalMsgCount etc
+			err = a.Srv().Store().Channel().MigrateChannelRecordsToNewUser(channel, toUserID, fromUserID)
+			if err != nil {
+				return errors.Wrapf(err, "failed to migrate channel records for channel %s", channel.Id)
+			}
+		}
+
+		if len(fromUserGmChannels) < 100 {
+			break
+		}
+		offset += 100
+	}
+	return nil
+}
+
 func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeOpts) *model.AppError {
 	toUser, appErr := a.GetUser(opts.ToUserId)
 	if appErr != nil {
@@ -3018,6 +3047,12 @@ func (a *App) MergeUsers(rctx request.CTX, job *model.Job, opts model.UserMergeO
 	err = a.BatchMergeDmChannels(rctx, toUser.Id, fromUser.Id)
 	if err != nil {
 		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_dm_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	rctx.Logger().Info("MergeUsers: Batch merging GM channels")
+	err = a.BatchMergeGmChannels(rctx, toUser, fromUser)
+	if err != nil {
+		return model.NewAppError("MergeUsers", "app.user.merge_users.batch_merge_gm_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	rctx.Logger().Info("MergeUsers: Merging bot ownerIds")

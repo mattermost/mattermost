@@ -3762,6 +3762,7 @@ func (a *App) MergeChannels(rctx request.CTX, toChannel *model.Channel, fromChan
 		return err
 	}
 
+	// TODO: race condition
 	toChannel.TotalMsgCount += fromChannel.TotalMsgCount
 	toChannel.TotalMsgCountRoot += fromChannel.TotalMsgCountRoot
 	if fromChannel.LastPostAt > toChannel.LastPostAt {
@@ -3823,6 +3824,7 @@ func (a *App) MergeChannelMemberRecords(rctx request.CTX, toChannelID, fromChann
 		// Update channel member record in the to channel with field changes
 		for _, toChannelMember := range toChannelMembers {
 			if fromChannelMember, ok := channelMemberMap[toChannelMember.UserId]; ok {
+				// TODO: race condition
 				toChannelMember.MsgCount += fromChannelMember.MsgCount
 				toChannelMember.MentionCount += fromChannelMember.MentionCount
 				toChannelMember.MentionCountRoot += fromChannelMember.MentionCountRoot
@@ -3862,6 +3864,7 @@ func (a *App) MergeChannelMemberStatsForDifferentUsers(rctx request.CTX, toUserI
 		toChannelMember := toChannelMembers[0]
 		fromChannelMember := fromChannelMembers[0]
 
+		// TODO: race condition
 		toChannelMember.MsgCount += fromChannelMember.MsgCount
 		toChannelMember.MentionCount += fromChannelMember.MentionCount
 		toChannelMember.MentionCountRoot += fromChannelMember.MentionCountRoot
