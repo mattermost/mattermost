@@ -2643,7 +2643,7 @@
   "admin.team_settings.description": "管理团队设定。",
   "admin.team_settings.groupsPageTitle": "{siteName} 团队",
   "admin.team_settings.team_detail.archive_confirm.button": "归档",
-  "admin.team_settings.team_detail.archive_confirm.message": "归档将从用户界面中删除该团队，但其内容仍保留在数据库中，并且仍可通过 API 访问。您确定要保存并归档此团队吗？",
+  "admin.team_settings.team_detail.archive_confirm.message": "归档将从用户界面中移除该团队，但其内容仍保留在数据库中，并且仍可通过 API 访问。您确定要保存并归档此团队吗？",
   "admin.team_settings.team_detail.archive_confirm.title": "保存并归档团队",
   "admin.team_settings.team_detail.group_configuration": "团队配置",
   "admin.team_settings.team_detail.groupsDescription": "组成员将会加入到团队。",
