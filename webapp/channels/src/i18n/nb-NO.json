@@ -149,6 +149,7 @@
   "add_oauth_app.clientSecret": "**Client Secret**: {secret}",
   "add_oauth_app.description.help": "Beskriv OAuth 2.0-applikasjonen din.",
   "add_oauth_app.descriptionRequired": "Beskrivelsen av OAuth 2.0-applikasjonen din er obligatorisk.",
+  "add_oauth_app.doneHelp": "OAuth 2.0-appen din er konfigurert. Bruk følgende klient-ID og klienthemmelighet når du ber om autorisasjon for applikasjonen din (detaljer på <link>oAuth 2.0-applikasjoner</link>).",
   "add_oauth_app.header": "Нэмэх",
   "add_oauth_app.name.help": "Angi visningsnavnet til OAuth 2.0-applikasjonen. Du kan bruke opptil 64 tegn.",
   "add_oauth_app.nameRequired": "Navn på OAuth 2.0-applikasjonen kreves.",
