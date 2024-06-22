@@ -129,8 +129,10 @@ type Routes struct {
 	Exports *mux.Router // 'api/v4/exports'
 	Export  *mux.Router // 'api/v4/exports/{export_name:.+\\.zip}'
 
-	RemoteCluster  *mux.Router // 'api/v4/remotecluster'
-	SharedChannels *mux.Router // 'api/v4/sharedchannels'
+	RemoteCluster        *mux.Router // 'api/v4/remotecluster'
+	SharedChannels       *mux.Router // 'api/v4/sharedchannels'
+	ChannelForRemote     *mux.Router // 'api/v4/remotecluster/{remote_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}'
+	SharedChannelRemotes *mux.Router // 'api/v4/remotecluster/{remote_id:[A-Za-z0-9]+}/sharedchannelremotes'
 
 	Permissions *mux.Router // 'api/v4/permissions'
 
@@ -265,6 +267,8 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.RemoteCluster = api.BaseRoutes.APIRoot.PathPrefix("/remotecluster").Subrouter()
 	api.BaseRoutes.SharedChannels = api.BaseRoutes.APIRoot.PathPrefix("/sharedchannels").Subrouter()
+	api.BaseRoutes.SharedChannelRemotes = api.BaseRoutes.RemoteCluster.PathPrefix("/{remote_id:[A-Za-z0-9]+}/sharedchannelremotes").Subrouter()
+	api.BaseRoutes.ChannelForRemote = api.BaseRoutes.RemoteCluster.PathPrefix("/{remote_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.BaseRoutes.Permissions = api.BaseRoutes.APIRoot.PathPrefix("/permissions").Subrouter()
 

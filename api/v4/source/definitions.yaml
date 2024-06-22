@@ -3532,6 +3532,44 @@ components:
           description: The time in milliseconds a remote cluster was last pinged successfully
           type: integer
           format: int64
+    SharedChannelRemote:
+      type: object
+      properties:
+        id:
+          description: The id of the shared channel remote
+          type: string
+        channel_id:
+          description: The id of the channel
+          type: string
+        creator_id:
+          description: Id of the user that invited the remote to share the channel
+          type: string
+        create_at:
+          description: Time in milliseconds that the remote was invited to the channel
+          type: integer
+        update_at:
+          description: Time in milliseconds that the shared channel remote record was last updated
+          type: integer
+        is_invite_accepted:
+          description: Indicates if the invite has been accepted by the remote
+          type: boolean
+        is_invite_confirmed:
+          description: Indicates if the invite has been confirmed by the remote
+          type: boolean
+        remote_id:
+          description: Id of the remote cluster that the channel is shared with
+          type: string
+        last_post_update_at:
+          description: Time in milliseconds of the last post in the channel that was synchronized with the remote update_at
+          type: integer
+        last_post_id:
+          description: Id of the last post in the channel that was synchronized with the remote
+          type: string
+        last_post_create_at:
+          description: Time in milliseconds of the last post in the channel that was synchronized with the remote create_at
+          type: string
+        last_post_create_id:
+          type: string
     SystemStatusResponse:
       type: object
       properties:

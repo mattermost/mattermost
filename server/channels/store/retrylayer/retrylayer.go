@@ -10379,11 +10379,11 @@ func (s *RetryLayerSharedChannelStore) GetRemoteForUser(remoteId string, userId 
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+func (s *RetryLayerSharedChannelStore) GetRemotes(offset int, limit int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.GetRemotes(opts)
+		result, err := s.SharedChannelStore.GetRemotes(offset, limit, opts)
 		if err == nil {
 			return result, nil
 		}

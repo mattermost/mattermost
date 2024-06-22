@@ -159,8 +159,10 @@ func (s SqlSharedChannelStore) GetAll(offset, limit int, opts model.SharedChanne
 		return nil, err
 	}
 
-	query := s.getSharedChannelsQuery(opts, false)
-	query = query.OrderBy("sc.ShareDisplayName, sc.ShareName").Limit(safeLimit).Offset(safeOffset)
+	query := s.getSharedChannelsQuery(opts, false).
+		OrderBy("sc.ShareDisplayName, sc.ShareName").
+		Limit(safeLimit).
+		Offset(safeOffset)
 
 	squery, args, err := query.ToSql()
 	if err != nil {
@@ -459,7 +461,14 @@ func (s SqlSharedChannelStore) GetRemoteByIds(channelId string, remoteId string)
 }
 
 // GetRemotes fetches all shared channel remotes associated with channel_id.
-func (s SqlSharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+func (s SqlSharedChannelStore) GetRemotes(offset, limit int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+	if offset < 0 {
+		return nil, errors.New("offset must be a positive integer")
+	}
+	if limit < 0 {
+		return nil, errors.New("limit must be a positive integer")
+	}
+
 	remotes := []*model.SharedChannelRemote{}
 
 	query := s.getQueryBuilder().
@@ -477,6 +486,8 @@ func (s SqlSharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOp
 	if !opts.InclUnconfirmed {
 		query = query.Where(sq.Eq{"IsInviteConfirmed": true})
 	}
+
+	query = query.Offset(uint64(offset)).Limit(uint64(limit))
 
 	squery, args, err := query.ToSql()
 	if err != nil {
