@@ -3477,6 +3477,7 @@
   "edit_post.action_buttons.save": "Save",
   "edit_post.editPost": "Edit the post...",
   "edit_post.helper_text": "<strong>{key}ENTER</strong> to Save, <strong>ESC</strong> to Cancel",
+  "edit_post.no_notification_trigger_on_mention": "Editing this message with an '@mention' will not notify the recipient.",
   "edit_post.time_limit_button.for_n_seconds": "For {n} seconds",
   "edit_post.time_limit_button.no_limit": "Anytime",
   "edit_post.time_limit_modal.description": "Setting a time limit **applies to all users** who have the \"Edit Post\" permissions in any permission scheme.",
