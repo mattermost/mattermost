@@ -26,15 +26,14 @@ const LatexBlock = ({
         });
     }, []);
 
-    render(): React.ReactNode {
-        if (!this.props.enableLatex || this.state.katex === undefined) {
-            return (
-                <CodeBlock
-                    code={this.props.content}
-                    language='latex'
-                />
-            );
-        }
+    if (!enableLatex || katex === undefined) {
+        return (
+            <CodeBlock
+                code={content}
+                language='latex'
+            />
+        );
+    }
 
     try {
         const katexOptions: KatexOptions = {
