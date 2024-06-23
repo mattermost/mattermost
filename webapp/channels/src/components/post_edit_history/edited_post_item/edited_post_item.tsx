@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
+import type {MouseEvent} from 'react';
 import React, {memo, useCallback, useState} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
@@ -180,6 +181,11 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
         </Tooltip>
     );
 
+    const handleRestoreClick = (e: MouseEvent) => {
+        e.stopPropagation();
+        openRestorePostModal();
+    };
+
     const restoreButton = isCurrent ? null : (
         <OverlayTrigger
             trigger={['hover', 'focus']}
@@ -191,10 +197,9 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                 className='edit-post-history__icon__button restore-icon'
                 size={'sm'}
                 icon={'restore'}
-                onClick={openRestorePostModal}
+                onClick={handleRestoreClick}
                 compact={true}
                 aria-label={formatMessage(itemMessages.ariaLabelMessage)}
-                onMouseDown={(e) => e.stopPropagation()}
             />
         </OverlayTrigger>
     );
