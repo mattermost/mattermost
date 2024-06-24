@@ -88,6 +88,15 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         id="admin.systemUserDetail.teamList.header.role"
       />
     </div>
+    <div
+      className="AbstractList__header-label"
+      key="3"
+      style={
+        Object {
+          "width": "150px",
+        }
+      }
+    />
   </div>
   <div
     className="AbstractList__body"
@@ -322,6 +331,15 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         id="admin.systemUserDetail.teamList.header.role"
       />
     </div>
+    <div
+      className="AbstractList__header-label"
+      key="3"
+      style={
+        Object {
+          "width": "150px",
+        }
+      }
+    />
   </div>
   <div
     className="AbstractList__body"
@@ -556,6 +574,15 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         id="admin.systemUserDetail.teamList.header.role"
       />
     </div>
+    <div
+      className="AbstractList__header-label"
+      key="3"
+      style={
+        Object {
+          "width": "150px",
+        }
+      }
+    />
   </div>
   <div
     className="AbstractList__body"
