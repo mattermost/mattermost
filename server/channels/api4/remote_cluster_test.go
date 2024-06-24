@@ -429,7 +429,7 @@ func TestGetRemoteCluster(t *testing.T) {
 		require.Empty(t, fetchedRC)
 	})
 
-	t.Run("shoulr return a sanitized remote cluster", func(t *testing.T) {
+	t.Run("should return a sanitized remote cluster", func(t *testing.T) {
 		fetchedRC, resp, err := th.SystemAdminClient.GetRemoteCluster(context.Background(), rc.RemoteId)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
