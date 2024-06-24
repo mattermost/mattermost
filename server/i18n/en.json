@@ -4144,7 +4144,7 @@
   },
   {
     "id": "api.user.update_password.password_hash.app_error",
-    "translation": ""
+    "translation": "There was an internal error saving the password."
   },
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
@@ -9760,11 +9760,11 @@
   },
   {
     "id": "model.user.pre_save.password_hash.app_error",
-    "translation": ""
+    "translation": "There was an internal error saving the password."
   },
   {
     "id": "model.user.pre_save.password_too_long.app_error",
-    "translation": ""
+    "translation": "Your password must contain no more than 72 characters."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
