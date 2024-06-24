@@ -65,6 +65,8 @@ func init() {
 	PostListCmd.Flags().BoolP("follow", "f", false, "Output appended data as new messages are posted to the channel")
 	PostListCmd.Flags().StringP("since", "s", "", "List messages posted after a certain time (ISO 8601)")
 
+	PostDeleteCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the post and a DB backup has been performed")
+
 	PostCmd.AddCommand(
 		PostCreateCmd,
 		PostListCmd,
@@ -230,16 +232,23 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func deletePostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	var multiErr *multierror.Error
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		if err := getConfirmation("Are you sure you want to delete the posts specified?", true); err != nil {
+			return err
+		}
+	}
 	for _, postID := range args {
 		isValidId := model.IsValidId(postID)
 		if !isValidId {
-			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid post ID: %s", postID))
+			printer.PrintError(fmt.Sprintf("Invalid postID: %s", postID))
 			continue
 		}
 		if _, err := c.PermanentDeletePost(context.TODO(), postID); err != nil {
-			multiErr = multierror.Append(multiErr, err)
+			printer.PrintError(fmt.Sprintf("Error deleting post: %s. Error: %s", postID, err.Error()))
+			continue
 		}
+		printer.Print(fmt.Sprintf("%s successfully deleted", postID))
 	}
-	return multiErr.ErrorOrNil()
+	return nil
 }

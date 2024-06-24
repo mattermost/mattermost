@@ -629,10 +629,10 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	}
 
 	if permanent {
-		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
+		if *c.App.Config().ServiceSettings.EnableAPIPostDeletion {
 			err = c.App.PermanentDeletePost(c.AppContext, post, c.AppContext.Session().UserId)
 		} else {
-			err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+			err = model.NewAppError("deletePost", "api.post.delete_post.not_enabled.app_error", nil, "postId="+post.Id, http.StatusUnauthorized)
 		}
 	} else {
 		_, err = c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
