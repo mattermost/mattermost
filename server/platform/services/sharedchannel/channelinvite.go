@@ -262,7 +262,7 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 	if teamId == "" {
 		teams, err := scs.server.GetStore().Team().GetAllPage(0, 1, nil)
 		if err != nil {
-			return nil, fmt.Errorf("cannot get team to create the channel `%s`: %w", invite.ChannelId, err)
+			return nil, false, fmt.Errorf("cannot get team to create the channel `%s`: %w", invite.ChannelId, err)
 		}
 		teamId = teams[0].Id
 	}
