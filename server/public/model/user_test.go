@@ -5,10 +5,11 @@ package model
 
 import (
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strings"
 	"testing"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/stretchr/testify/assert"
