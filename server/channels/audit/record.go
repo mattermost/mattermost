@@ -122,24 +122,9 @@ func (rec *Record) AddErrorDesc(description string) {
 	rec.Error.Description = description
 }
 
-// AddEventActor adds the new data in eventActorPatch to the audit record's Actor
-func (rec *Record) AddEventActor(eventActorPatch EventActor) {
-	// Manually merge because the structs are not using pointers, so we can't differentiate between
-	// an intentionally blank string and a default zero-value string. (If we were using pointers, we
-	// could use utils.Merge)
-	if eventActorPatch.UserId != "" {
-		rec.Actor.UserId = eventActorPatch.UserId
-	}
-	if eventActorPatch.SessionId != "" {
-		rec.Actor.SessionId = eventActorPatch.SessionId
-	}
-	if eventActorPatch.IpAddress != "" {
-		rec.Actor.IpAddress = eventActorPatch.IpAddress
-	}
-	if eventActorPatch.Client != "" {
-		rec.Actor.Client = eventActorPatch.Client
-	}
-	if eventActorPatch.XForwardedFor != "" {
-		rec.Actor.XForwardedFor = eventActorPatch.XForwardedFor
-	}
+// AddToEventActor adds the userId and sessionId to the audit record's Actor. Intended for when the
+// initial call to context.MakeAuditRecord did not have the userId and sessionId available.
+func (rec *Record) AddToEventActor(userId, sessionId string) {
+	rec.Actor.UserId = userId
+	rec.Actor.SessionId = sessionId
 }
