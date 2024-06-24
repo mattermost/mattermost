@@ -4143,6 +4143,10 @@
     "translation": "Update password failed because the user is logged in through an OAuth service."
   },
   {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": ""
+  },
+  {
     "id": "api.user.update_password.user_and_hashed.app_error",
     "translation": "Only system administrators can set already-hashed passwords."
   },
@@ -9753,6 +9757,14 @@
   {
     "id": "model.user.is_valid.username.app_error",
     "translation": "Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \".\", \"-\", and \"_\"."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": ""
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
