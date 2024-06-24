@@ -14,14 +14,13 @@ import (
 // AcceptInvitation is called when accepting an invitation to connect with a remote cluster.
 func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName, creatorId string, teamId string, siteURL string) (*model.RemoteCluster, error) {
 	rc := &model.RemoteCluster{
-		RemoteId:     invite.RemoteId,
-		RemoteTeamId: invite.RemoteTeamId,
-		Name:         name,
-		DisplayName:  displayName,
-		Token:        model.NewId(),
-		RemoteToken:  invite.Token,
-		SiteURL:      invite.SiteURL,
-		CreatorId:    creatorId,
+		RemoteId:    invite.RemoteId,
+		Name:        name,
+		DisplayName: displayName,
+		Token:       model.NewId(),
+		RemoteToken: invite.Token,
+		SiteURL:     invite.SiteURL,
+		CreatorId:   creatorId,
 	}
 
 	rcSaved, err := rcs.server.GetStore().RemoteCluster().Save(rc)
@@ -63,10 +62,9 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 
 func makeConfirmFrame(rc *model.RemoteCluster, teamId string, siteURL string) (*model.RemoteClusterFrame, error) {
 	confirm := model.RemoteClusterInvite{
-		RemoteId:     rc.RemoteId,
-		RemoteTeamId: teamId,
-		SiteURL:      siteURL,
-		Token:        rc.Token,
+		RemoteId: rc.RemoteId,
+		SiteURL:  siteURL,
+		Token:    rc.Token,
 	}
 	confirmRaw, err := json.Marshal(confirm)
 	if err != nil {
