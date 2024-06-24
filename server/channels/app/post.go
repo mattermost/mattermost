@@ -2614,7 +2614,6 @@ func (a *App) PermanentDeletePost(c request.CTX, post *model.Post, deleteByID st
 		return model.NewAppError("PermanentDeletePost", "app.post.permanent_delete_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	post.Message = ""
 	appErr = a.AfterPostDeletionCleanUp(c, post, deleteByID)
 	if appErr != nil {
 		return appErr
@@ -2635,6 +2634,8 @@ func (a *App) AfterPostDeletionCleanUp(c request.CTX, post *model.Post, deleteBy
 		}
 	}
 
+	// We should not re-send the message contents of a deleted message
+	post.Message = ""
 	postJSON, err := json.Marshal(post)
 	if err != nil {
 		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)

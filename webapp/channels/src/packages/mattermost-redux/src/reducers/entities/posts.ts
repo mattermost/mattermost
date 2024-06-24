@@ -194,6 +194,7 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: AnyAction
             [post.id]: {
                 ...state[post.id],
                 state: Posts.POST_DELETED,
+                message: '',
                 file_ids: [],
                 has_reactions: false,
             },

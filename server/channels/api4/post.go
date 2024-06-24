@@ -603,7 +603,12 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
 	audit.AddEventParameter(auditRec, "permanent", permanent)
 
-	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	includeDeleted := false
+	if permanent {
+		includeDeleted = true
+	}
+
+	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
 	if err != nil {
 		c.SetPermissionError(model.PermissionDeletePost)
 		return

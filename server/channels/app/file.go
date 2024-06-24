@@ -1619,29 +1619,39 @@ func (a *App) PermanentDeleteFilesByPost(c request.CTX, postID string) *model.Ap
 
 func (a *App) RemoveFilesFromFileStore(c request.CTX, fileInfos []*model.FileInfo) {
 	for _, info := range fileInfos {
-		res, appErr := a.FileExists(info.Path)
-		if appErr != nil {
-			c.Logger().Warn(
-				"Error checking existence of file",
-				mlog.String("path", info.Path),
-				mlog.Err(appErr),
-			)
-			continue
+		a.RemoveFileFromFileStore(c, info.Path)
+		if info.PreviewPath != "" {
+			a.RemoveFileFromFileStore(c, info.PreviewPath)
 		}
-
-		if !res {
-			c.Logger().Warn("File not found", mlog.String("path", info.Path))
-			continue
+		if info.ThumbnailPath != "" {
+			a.RemoveFileFromFileStore(c, info.ThumbnailPath)
 		}
+	}
+}
 
-		appErr = a.RemoveFile(info.Path)
+func (a *App) RemoveFileFromFileStore(c request.CTX, path string) {
+	res, appErr := a.FileExists(path)
+	if appErr != nil {
+		c.Logger().Warn(
+			"Error checking existence of file",
+			mlog.String("path", path),
+			mlog.Err(appErr),
+		)
+		return
+	}
 
-		if appErr != nil {
-			c.Logger().Warn(
-				"Unable to remove file",
-				mlog.String("path", info.Path),
-				mlog.Err(appErr),
-			)
-		}
+	if !res {
+		c.Logger().Warn("File not found", mlog.String("path", path))
+		return
+	}
+
+	appErr = a.RemoveFile(path)
+	if appErr != nil {
+		c.Logger().Warn(
+			"Unable to remove file",
+			mlog.String("path", path),
+			mlog.Err(appErr),
+		)
+		return
 	}
 }

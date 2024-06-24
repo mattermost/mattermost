@@ -41,6 +41,16 @@ var PostListCmd = &cobra.Command{
 	RunE: withClient(postListCmdF),
 }
 
+var PostDeleteCmd = &cobra.Command{
+	Use:   "delete [posts]",
+	Short: "Permanently delete a post",
+	Long: `Permanently delete some posts.
+Permanently deletes one or multiple posts along with all related information including files from the database.`,
+	Example: "  post delete postId1",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(deletePostsCmdF),
+}
+
 const (
 	ISO8601Layout  = "2006-01-02T15:04:05-07:00"
 	PostTimeFormat = "2006-01-02 15:04:05-07:00"
@@ -58,6 +68,7 @@ func init() {
 	PostCmd.AddCommand(
 		PostCreateCmd,
 		PostListCmd,
+		PostDeleteCmd,
 	)
 
 	RootCmd.AddCommand(PostCmd)
@@ -213,6 +224,21 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 					printPost(c, post, usernames, showIds, showTimestamp)
 				}
 			}
+		}
+	}
+	return multiErr.ErrorOrNil()
+}
+
+func deletePostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var multiErr *multierror.Error
+	for _, postID := range args {
+		isValidId := model.IsValidId(postID)
+		if !isValidId {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid post ID: %s", postID))
+			continue
+		}
+		if _, err := c.PermanentDeletePost(context.TODO(), postID); err != nil {
+			multiErr = multierror.Append(multiErr, err)
 		}
 	}
 	return multiErr.ErrorOrNil()
