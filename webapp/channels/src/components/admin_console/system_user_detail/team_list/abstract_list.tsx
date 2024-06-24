@@ -104,15 +104,19 @@ export default class AbstractList extends React.PureComponent<Props, State> {
         if (this.props.data.length > 0) {
             return (
                 <div className='AbstractList__header'>
-                    {this.props.headerLabels.map((headerLabel, id) => (
-                        <div
-                            key={id}
-                            className='AbstractList__header-label'
-                            style={headerLabel.style}
-                        >
-                            <FormattedMessage {...headerLabel.label}/>
-                        </div>
-                    ))}
+                    {this.props.headerLabels.map((headerLabel, id) => {
+                        const key = id;
+                        const message = headerLabel.label ? <FormattedMessage {...headerLabel.label}/> : '';
+                        return (
+                            <div
+                                key={key}
+                                className='AbstractList__header-label'
+                                style={headerLabel.style}
+                            >
+                                {message}
+                            </div>
+                        );
+                    })}
                 </div>
             );
         }
