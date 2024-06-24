@@ -49,7 +49,7 @@ func TestUserDeepCopy(t *testing.T) {
 func TestUserPreSave(t *testing.T) {
 	user := User{Password: "test"}
 	err := user.PreSave()
-	require.NoError(t, err)
+	require.Nil(t, err)
 	user.Etag(true, true)
 	assert.NotNil(t, user.Timezone, "Timezone is nil")
 	assert.Equal(t, user.Timezone["useAutomaticTimezone"], "true", "Timezone is not set to default")
