@@ -4206,6 +4206,7 @@
   "multiselect.list.notFound": "No results found matching <b>{searchQuery}</b>",
   "multiselect.loading": "Loading...",
   "multiselect.maxGroupMembers": "No more than 256 members can be added to a group at once.",
+  "multiselect.maxPeople": "Use ↑↓ to browse, ↵ to select. You can't add more than 7 people. Please <a>create a channel</a> to include more people. ",
   "multiselect.numGroupsRemaining": "Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {group} other {groups}}. ",
   "multiselect.numMembers": "{memberOptions, number} of {totalCount, number} members",
   "multiselect.numPeopleRemaining": "Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. ",

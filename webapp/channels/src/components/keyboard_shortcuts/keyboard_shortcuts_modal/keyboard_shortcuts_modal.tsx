@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -84,6 +84,7 @@ interface Props {
 
 const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
     const [show, setShow] = useState(true);
+    const contentRef = useRef<HTMLDivElement>(null);
 
     const {formatMessage} = useIntl();
 
@@ -103,6 +104,10 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
             );
         });
     };
+
+    useEffect(() => {
+        contentRef.current?.focus();
+    }, []);
 
     return (
         <Modal
@@ -125,7 +130,11 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
                         <strong><KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.mainHeader}/></strong>
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body tabIndex={0}>
+                    <div
+                        tabIndex={-1}
+                        ref={contentRef}
+                    />
                     <div className='row'>
                         <div className='col-sm-4'>
                             <div className='section'>
