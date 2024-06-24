@@ -17,40 +17,46 @@ interface Props {
 
 const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
     const leftArrow = (
-        <WithTooltip 
-            id='close-icon-tooltip' 
+        <WithTooltip
+            key='previewArrowLeft'
+            id='close-icon-tooltip'
             title={
                 <FormattedMessage
                     id='generic.close'
                     defaultMessage='Close'
                 />
-            } 
-            placement='bottom'>
-                <button id='previewArrowLeft'
-                    className='file_preview_modal_main_nav__prev'
-                    onClick={props.handlePrev}
-                >
-                    <i className='icon icon-chevron-left'/>
-                </button>                         
+            }
+            placement='bottom'
+        >
+            <button
+                id='previewArrowLeft'
+                className='file_preview_modal_main_nav__prev'
+                onClick={props.handlePrev}
+            >
+                <i className='icon icon-chevron-left'/>
+            </button>
         </WithTooltip>
     );
 
     const rightArrow = (
-        <WithTooltip 
-            id='close-icon-tooltip' 
+        <WithTooltip
+            key='publicLink'
+            id='close-icon-tooltip'
             title={
                 <FormattedMessage
                     id='generic.next'
                     defaultMessage='Next'
                 />
-            } 
-            placement='bottom'>
-                <button id='previewArrowRight'
-                    className='file_preview_modal_main_nav__next'
-                    onClick={props.handleNext}
-                >
-                    <i className='icon icon-chevron-right'/>
-                </button>                         
+            }
+            placement='bottom'
+        >
+            <button
+                id='previewArrowRight'
+                className='file_preview_modal_main_nav__next'
+                onClick={props.handleNext}
+            >
+                <i className='icon icon-chevron-right'/>
+            </button>
         </WithTooltip>
     );
     return (
