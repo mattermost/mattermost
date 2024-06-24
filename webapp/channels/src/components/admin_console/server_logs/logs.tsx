@@ -12,6 +12,7 @@ import type {
     LogServerNames,
 } from '@mattermost/types/admin';
 
+import Toggle from 'components/toggle';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import LogList from './log_list';
@@ -41,6 +42,7 @@ type State = {
     page: number;
     perPage: number;
     loadingPlain: boolean;
+    isLocalFormattedView: boolean;
 };
 
 const messages = defineMessages({
@@ -67,6 +69,7 @@ export default class Logs extends React.PureComponent<Props, State> {
             page: 0,
             perPage: 1000,
             loadingPlain: true,
+            isLocalFormattedView: !this.props.isPlainLogs,
         };
     }
 
@@ -78,8 +81,20 @@ export default class Logs extends React.PureComponent<Props, State> {
         }
     }
 
+    toggleMode = () => {
+        this.setState({
+            isLocalFormattedView: !this.state.isLocalFormattedView,
+        }, () => {
+            if (this.state.isLocalFormattedView) {
+                this.reload();
+            } else {
+                this.reloadPlain();
+            }
+        });
+    };
+
     componentDidUpdate(prevProps: Props, prevState: State) {
-        if (this.state.page !== prevState.page && this.props.isPlainLogs) {
+        if (this.state.page !== prevState.page && this.state.isLocalFormattedView) {
             this.reloadPlain();
         }
     }
@@ -104,12 +119,12 @@ export default class Logs extends React.PureComponent<Props, State> {
     };
 
     reloadPlain = async () => {
-        this.setState({loadingPlain: true});
+        this.setState({loadingLogs: true});
         await this.props.actions.getPlainLogs(
             this.state.page,
             this.state.perPage,
         );
-        this.setState({loadingPlain: false});
+        this.setState({loadingLogs: false});
     };
 
     onSearchChange = (search: string) => {
@@ -137,32 +152,16 @@ export default class Logs extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const content = this.props.isPlainLogs ? (
-            <>
-                <div className='banner'>
-                    <div className='banner__content'>
-                        <FormattedMessage {...messages.bannerDesc}/>
-                    </div>
-                </div>
-                <button
-                    type='submit'
-                    className='btn btn-primary'
-                    onClick={this.reloadPlain}
-                >
-                    <FormattedMessage
-                        id='admin.logs.ReloadLogs'
-                        defaultMessage='Reload Logs'
-                    />
-                </button>
-                <PlainLogList
-                    logs={this.props.plainLogs}
-                    nextPage={this.nextPage}
-                    previousPage={this.previousPage}
-                    page={this.state.page}
-                    perPage={this.state.perPage}
+        const ToggleView = (
+            <div className='logs-banner'>
+                <Toggle
+                    onText='Formatted'
+                    offText='Plain'
+                    toggled={this.state.isLocalFormattedView}
+                    onToggle={this.toggleMode}
                 />
-            </>
-        ) : (
+            </div>);
+        const content = this.state.isLocalFormattedView ? (
             <>
                 <div className='logs-banner'>
                     <div className='banner'>
@@ -180,6 +179,7 @@ export default class Logs extends React.PureComponent<Props, State> {
                             defaultMessage='Reload Logs'
                         />
                     </button>
+                    {ToggleView}
                 </div>
                 <LogList
                     loading={this.state.loadingLogs}
@@ -193,6 +193,34 @@ export default class Logs extends React.PureComponent<Props, State> {
                         logLevels: this.state.logLevels,
                         serverNames: this.state.serverNames,
                     }}
+                />
+            </>
+        ) : (
+            <>
+                <div className='logs-banner'>
+                    <div className='banner'>
+                        <div className='banner__content'>
+                            <FormattedMessage {...messages.bannerDesc}/>
+                        </div>
+                    </div>
+                    <button
+                        type='submit'
+                        className='btn btn-primary'
+                        onClick={this.reloadPlain}
+                    >
+                        <FormattedMessage
+                            id='admin.logs.ReloadLogs'
+                            defaultMessage='Reload Logs'
+                        />
+                    </button>
+                    {ToggleView}
+                </div>
+                <PlainLogList
+                    logs={this.props.plainLogs}
+                    nextPage={this.nextPage}
+                    previousPage={this.previousPage}
+                    page={this.state.page}
+                    perPage={this.state.perPage}
                 />
             </>
         );
