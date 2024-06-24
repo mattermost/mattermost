@@ -92,7 +92,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         };
 
         const PreReleaseFeaturesLocal = JSON.parse(JSON.stringify(PreReleaseFeatures));
-        delete PreReleaseFeaturesLocal.MARKDOWN_PREVIEW;
         const preReleaseFeaturesKeys = Object.keys(PreReleaseFeaturesLocal);
 
         let enabledFeatures = 0;
