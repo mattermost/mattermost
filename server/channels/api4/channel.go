@@ -726,10 +726,6 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = model.NewAppError("getChannelsMemberCount", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(sortErr)
 		return
 	}
-	if len(channelIDs) > maxListSize {
-		c.SetInvalidParam("channel_ids")
-		return
-	}
 
 	channels, err := c.App.GetChannels(c.AppContext, channelIDs)
 	if err != nil {
@@ -1732,15 +1728,11 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	props := model.StringInterfaceFromJSON(r.Body)
 
-	var userIds []string
-	interfaceIds, ok := props["user_ids"].([]interface{})
+	userIds, ok := props["user_ids"].([]string)
 	if ok {
-		if len(interfaceIds) > maxListSize {
+		if len(userIds) > maxListSize {
 			c.SetInvalidParam("user_ids")
 			return
-		}
-		for _, userId := range interfaceIds {
-			userIds = append(userIds, userId.(string))
 		}
 	} else {
 		userId, ok2 := props["user_id"].(string)
@@ -1830,6 +1822,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		defer c.LogAuditRec(auditRec)
 		audit.AddEventParameter(auditRec, "user_id", userId)
 		audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
+		audit.AddEventParameter(auditRec, "post_root_id", postRootId)
 
 		member := &model.ChannelMember{
 			ChannelId: c.Params.ChannelId,
@@ -1845,7 +1838,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			// user is already a member, go to next
-			c.Logger.Warn("Error adding channel member, user already a channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
+			c.Logger.Warn("User is already a channel member, skipping", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
 			newChannelMembers = append(newChannelMembers, *existingMember)
 			continue
 		}

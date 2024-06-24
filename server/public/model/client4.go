@@ -3731,8 +3731,8 @@ func (c *Client4) AddChannelMember(ctx context.Context, channelId, userId string
 }
 
 // AddChannelMembers adds users to a channel and return an array of channel members.
-func (c *Client4) AddChannelMembers(ctx context.Context, channelId string, userIds []string) ([]*ChannelMember, *Response, error) {
-	requestBody := map[string]any{"user_ids": userIds}
+func (c *Client4) AddChannelMembers(ctx context.Context, channelId, postRootId string, userIds []string) ([]*ChannelMember, *Response, error) {
+	requestBody := map[string]any{"user_ids": userIds, "post_root_id": postRootId}
 	r, err := c.DoAPIPost(ctx, c.channelMembersRoute(channelId)+"", StringInterfaceToJSON(requestBody))
 	if err != nil {
 		return nil, BuildResponse(r), err
