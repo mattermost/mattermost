@@ -20,9 +20,11 @@ import (
 
 func TestAudit_LogRecord(t *testing.T) {
 	userId := model.NewId()
+	sessionId := model.NewId()
 	testCases := []struct {
 		description  string
 		auditLogFunc func(audit Audit)
+		replacer     *strings.Replacer
 		expectedLogs []string
 	}{
 		{
@@ -31,6 +33,7 @@ func TestAudit_LogRecord(t *testing.T) {
 				rec := Record{}
 				audit.LogRecord(mlog.LvlAuditAPI, rec)
 			},
+			nil,
 			[]string{
 				`{"timestamp":0,"level":"audit-api","msg":"","event_name":"","status":"","actor":{"user_id":"","session_id":"","client":"","ip_address":"","x_forwarded_for":""},"event":{"parameters":null,"prior_state":null,"resulting_state":null,"object_type":""},"meta":null,"error":{}}`,
 			},
@@ -54,8 +57,41 @@ func TestAudit_LogRecord(t *testing.T) {
 
 				audit.LogRecord(mlog.LvlAuditAPI, rec)
 			},
+			strings.NewReplacer("_____USERID_____", userId),
 			[]string{
-				strings.Replace(`{"timestamp":0,"level":"audit-api","msg":"","event_name":"User.Update","status":"success","actor":{"user_id":"","session_id":"","client":"","ip_address":"","x_forwarded_for":""},"event":{"parameters":null,"prior_state":{"allow_marketing":false,"auth_service":"","bot_description":"","bot_last_icon_update":0,"create_at":0,"delete_at":0,"disable_welcome_email":false,"email":"","email_verified":false,"failed_attempts":0,"id":"_____USERID_____","is_bot":false,"last_activity_at":0,"last_password_update":0,"last_picture_update":0,"locale":"","mfa_active":false,"notify_props":null,"position":"","props":null,"remote_id":null,"roles":"","terms_of_service_create_at":0,"terms_of_service_id":"","timezone":null,"update_at":0,"username":"TestABC"},"resulting_state":{"allow_marketing":false,"auth_service":"","bot_description":"","bot_last_icon_update":0,"create_at":0,"delete_at":0,"disable_welcome_email":false,"email":"","email_verified":false,"failed_attempts":0,"id":"_____USERID_____","is_bot":false,"last_activity_at":0,"last_password_update":0,"last_picture_update":0,"locale":"","mfa_active":false,"notify_props":null,"position":"","props":null,"remote_id":null,"roles":"","terms_of_service_create_at":0,"terms_of_service_id":"","timezone":null,"update_at":0,"username":"TestDEF"},"object_type":"user"},"meta":null,"error":{}}`, "_____USERID_____", userId, -1),
+				`{"timestamp":0,"level":"audit-api","msg":"","event_name":"User.Update","status":"success","actor":{"user_id":"","session_id":"","client":"","ip_address":"","x_forwarded_for":""},"event":{"parameters":null,"prior_state":{"allow_marketing":false,"auth_service":"","bot_description":"","bot_last_icon_update":0,"create_at":0,"delete_at":0,"disable_welcome_email":false,"email":"","email_verified":false,"failed_attempts":0,"id":"_____USERID_____","is_bot":false,"last_activity_at":0,"last_password_update":0,"last_picture_update":0,"locale":"","mfa_active":false,"notify_props":null,"position":"","props":null,"remote_id":null,"roles":"","terms_of_service_create_at":0,"terms_of_service_id":"","timezone":null,"update_at":0,"username":"TestABC"},"resulting_state":{"allow_marketing":false,"auth_service":"","bot_description":"","bot_last_icon_update":0,"create_at":0,"delete_at":0,"disable_welcome_email":false,"email":"","email_verified":false,"failed_attempts":0,"id":"_____USERID_____","is_bot":false,"last_activity_at":0,"last_password_update":0,"last_picture_update":0,"locale":"","mfa_active":false,"notify_props":null,"position":"","props":null,"remote_id":null,"roles":"","terms_of_service_create_at":0,"terms_of_service_id":"","timezone":null,"update_at":0,"username":"TestDEF"},"object_type":"user"},"meta":null,"error":{}}`,
+			},
+		},
+		{
+			"update actor, no error",
+			func(audit Audit) {
+
+				usr := &model.User{}
+				usr.Id = userId
+				usr.Username = "TestABC"
+				usr.Password = "hello_world"
+
+				rec := Record{Actor: EventActor{
+					IpAddress: "10.0.0.239",
+				}}
+				rec.AddEventObjectType("user")
+				rec.EventName = "User.Update"
+				rec.AddEventPriorState(usr)
+
+				usr.Username = "TestDEF"
+				rec.AddEventResultState(usr)
+				rec.Success()
+
+				audit.LogRecord(mlog.LvlAuditAPI, rec)
+
+				rec.AddEventActor(EventActor{UserId: userId, SessionId: sessionId})
+
+				audit.LogRecord(mlog.LvlAuditAPI, rec)
+			},
+			strings.NewReplacer("_____USERID_____", userId, "_____SESSIONID_____", sessionId),
+			[]string{
+				`{"timestamp":0,"level":"audit-api","msg":"","event_name":"User.Update","status":"success","actor":{"user_id":"","session_id":"","client":"","ip_address":"10.0.0.239","x_forwarded_for":""},"event":{"parameters":null,"prior_state":{"allow_marketing":false,"auth_service":"","bot_description":"","bot_last_icon_update":0,"create_at":0,"delete_at":0,"disable_welcome_email":false,"email":"","email_verified":false,"failed_attempts":0,"id":"_____USERID_____","is_bot":false,"last_activity_at":0,"last_password_update":0,"last_picture_update":0,"locale":"","mfa_active":false,"notify_props":null,"position":"","props":null,"remote_id":null,"roles":"","terms_of_service_create_at":0,"terms_of_service_id":"","timezone":null,"update_at":0,"username":"TestABC"},"resulting_state":{"allow_marketing":false,"auth_service":"","bot_description":"","bot_last_icon_update":0,"create_at":0,"delete_at":0,"disable_welcome_email":false,"email":"","email_verified":false,"failed_attempts":0,"id":"_____USERID_____","is_bot":false,"last_activity_at":0,"last_password_update":0,"last_picture_update":0,"locale":"","mfa_active":false,"notify_props":null,"position":"","props":null,"remote_id":null,"roles":"","terms_of_service_create_at":0,"terms_of_service_id":"","timezone":null,"update_at":0,"username":"TestDEF"},"object_type":"user"},"meta":null,"error":{}}`,
+				`{"timestamp":0,"level":"audit-api","msg":"","event_name":"User.Update","status":"success","actor":{"user_id":"_____USERID_____","session_id":"_____SESSIONID_____","client":"","ip_address":"10.0.0.239","x_forwarded_for":""},"event":{"parameters":null,"prior_state":{"allow_marketing":false,"auth_service":"","bot_description":"","bot_last_icon_update":0,"create_at":0,"delete_at":0,"disable_welcome_email":false,"email":"","email_verified":false,"failed_attempts":0,"id":"_____USERID_____","is_bot":false,"last_activity_at":0,"last_password_update":0,"last_picture_update":0,"locale":"","mfa_active":false,"notify_props":null,"position":"","props":null,"remote_id":null,"roles":"","terms_of_service_create_at":0,"terms_of_service_id":"","timezone":null,"update_at":0,"username":"TestABC"},"resulting_state":{"allow_marketing":false,"auth_service":"","bot_description":"","bot_last_icon_update":0,"create_at":0,"delete_at":0,"disable_welcome_email":false,"email":"","email_verified":false,"failed_attempts":0,"id":"_____USERID_____","is_bot":false,"last_activity_at":0,"last_password_update":0,"last_picture_update":0,"locale":"","mfa_active":false,"notify_props":null,"position":"","props":null,"remote_id":null,"roles":"","terms_of_service_create_at":0,"terms_of_service_id":"","timezone":null,"update_at":0,"username":"TestDEF"},"object_type":"user"},"meta":null,"error":{}}`,
 			},
 		},
 	}
@@ -96,7 +132,15 @@ func TestAudit_LogRecord(t *testing.T) {
 
 			actual := strings.TrimSpace(string(logs))
 			actual = reTs.ReplaceAllString(actual, `"timestamp":0`)
-			require.ElementsMatch(t, testCase.expectedLogs, strings.Split(actual, "\n"))
+			var expected []string
+			if testCase.replacer != nil {
+				for _, s := range testCase.expectedLogs {
+					expected = append(expected, testCase.replacer.Replace(s))
+				}
+			} else {
+				expected = testCase.expectedLogs
+			}
+			require.ElementsMatch(t, expected, strings.Split(actual, "\n"))
 		})
 	}
 }
