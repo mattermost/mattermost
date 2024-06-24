@@ -65,7 +65,6 @@ func TestAudit_LogRecord(t *testing.T) {
 		{
 			"update actor, no error",
 			func(audit Audit) {
-
 				usr := &model.User{}
 				usr.Id = userId
 				usr.Username = "TestABC"
