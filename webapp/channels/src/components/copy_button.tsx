@@ -5,9 +5,9 @@ import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
-import WithTooltip from './with_tooltip';
-
 import {copyToClipboard} from 'utils/utils';
+
+import WithTooltip from './with_tooltip';
 
 type Props = {
     content: string;
@@ -47,15 +47,15 @@ const CopyButton: React.FC<Props> = (props: Props) => {
     }
 
     const tooltipText = (
-        <FormattedMessage {...tooltipMessage} />
-    )
+        <FormattedMessage {...tooltipMessage}/>
+    );
 
     const spanClassName = classNames('post-code__clipboard', props.className);
 
     return (
-        <WithTooltip 
-            id='copyButton.text' 
-            placement={props.placement ?? 'top'}  
+        <WithTooltip
+            id='copyButton.text'
+            placement={props.placement ?? 'top'}
             title={tooltipText}
         >
             <span
