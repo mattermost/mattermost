@@ -28,40 +28,19 @@ type State = {
     noticesData: ProductNotices;
 }
 
-const noticesData = [
-    {
-        id: 1231,
-        "title": "Mattermost 9.9 is here!",
-        "description": "Mattermost v9.9 includes multiple new improvements and bug fixes, including new client-side performance metrics. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) only takes a few minutes.",
-        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/server_upgrade.png",
-        "actionText": "Learn more",
-        "actionParam": "https://docs.mattermost.com/deploy/mattermost-changelog.html",
-        sysAdminOnly: false,
-        teamAdminonly: false,
-    },
-    {
-        id: 12313,
-        "title": "Mattermost 9.9 is here!",
-        "description": "Mattermost v9.9 includes multiple new improvements and bug fixes, including new client-side performance metrics. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) only takes a few minutes.",
-        "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/server_upgrade.png",
-        "actionText": "Learn more",
-        "actionParam": "https://docs.mattermost.com/deploy/mattermost-changelog.html",
-    }
-]
-
 export default class ProductNoticesModal extends React.PureComponent<Props, State> {
     clearDataTimer?: number;
     constructor(props: Props) {
         super(props);
         this.state = {
             presentNoticeIndex: 0,
-            noticesData: noticesData,
+            noticesData: [],
         };
         this.clearDataTimer = undefined;
     }
 
     public componentDidMount() {
-        // this.fetchNoticesData();
+        this.fetchNoticesData();
     }
 
     public componentDidUpdate(prevProps: Props) {
@@ -96,16 +75,16 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
             clientVersion = getDesktopVersion();
         }
 
-        // const {data} = await this.props.actions.getInProductNotices(currentTeamId, client, clientVersion);
-        // if (data) {
-        //     this.setState({
-        //         noticesData: data,
-        //     });
-        //     if (data.length) {
-        //         const presentNoticeInfo = this.state.noticesData[this.state.presentNoticeIndex];
-        //         this.props.actions.updateNoticesAsViewed([presentNoticeInfo.id]);
-        //     }
-        // }
+        const {data} = await this.props.actions.getInProductNotices(currentTeamId, client, clientVersion);
+        if (data) {
+            this.setState({
+                noticesData: data,
+            });
+            if (data.length) {
+                const presentNoticeInfo = this.state.noticesData[this.state.presentNoticeIndex];
+                this.props.actions.updateNoticesAsViewed([presentNoticeInfo.id]);
+            }
+        }
     }
 
     private confirmButtonText(presentNoticeInfo: ProductNotice) {
