@@ -67,6 +67,7 @@ export default class PerformanceReporter {
     private observer: PerformanceObserver;
     private reportTimeout: number | undefined;
 
+    // These values are protected instead of private so that they can be modified by unit tests
     protected reportPeriodBase = 60 * 1000;
     protected reportPeriodJitter = 15 * 1000;
 
@@ -125,7 +126,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: Measure.PageLoad,
             value: entries[0].duration,
-            timestamp: performance.timeOrigin + entries[0].startTime,
+            timestamp: Date.now(),
         });
     }
 
@@ -161,7 +162,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: entry.name,
             value: entry.duration,
-            timestamp: performance.timeOrigin + entry.startTime,
+            timestamp: Date.now(),
         });
     }
 
@@ -186,7 +187,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: metric.name,
             value: metric.value,
-            timestamp: performance.timeOrigin + performance.now(),
+            timestamp: Date.now(),
         });
     }
 
@@ -298,12 +299,16 @@ export default class PerformanceReporter {
         const url = this.client.getClientMetricsRoute();
         const data = JSON.stringify(report);
 
-        const beaconSent = navigator.sendBeacon(url, data);
+        const beaconSent = this.sendBeacon(url, data);
 
         if (!beaconSent) {
             // The data couldn't be queued as a beacon for some reason, so fall back to sending an immediate fetch
             fetch(url, {method: 'POST', body: data});
         }
+    }
+
+    protected sendBeacon(url: string | URL, data?: BodyInit | null | undefined): boolean {
+        return navigator.sendBeacon(url, data);
     }
 }
 

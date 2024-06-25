@@ -356,25 +356,14 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
             onClick={[Function]}
             onTouchEnd={[Function]}
           >
-            <OverlayTrigger
-              defaultOverlayShown={false}
-              delayShow={400}
-              overlay={
-                <Tooltip
-                  id="InputClearTooltip"
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Clear"
-                    id="input.clear"
-                  />
-                </Tooltip>
-              }
+            <WithTooltip
+              id="InputClearTooltip"
               placement="left"
-              trigger={
-                Array [
-                  "hover",
-                  "focus",
-                ]
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Clear"
+                  id="input.clear"
+                />
               }
             >
               <span
@@ -385,7 +374,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
                   className="icon icon-close-circle"
                 />
               </span>
-            </OverlayTrigger>
+            </WithTooltip>
           </div>
         </span>
         <Memo(ExpiryTime)
@@ -2309,25 +2298,14 @@ exports[`components/StatusDropdown should show clear status button when custom s
             onClick={[Function]}
             onTouchEnd={[Function]}
           >
-            <OverlayTrigger
-              defaultOverlayShown={false}
-              delayShow={400}
-              overlay={
-                <Tooltip
-                  id="InputClearTooltip"
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Clear"
-                    id="input.clear"
-                  />
-                </Tooltip>
-              }
+            <WithTooltip
+              id="InputClearTooltip"
               placement="left"
-              trigger={
-                Array [
-                  "hover",
-                  "focus",
-                ]
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Clear"
+                  id="input.clear"
+                />
               }
             >
               <span
@@ -2338,7 +2316,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
                   className="icon icon-close-circle"
                 />
               </span>
-            </OverlayTrigger>
+            </WithTooltip>
           </div>
         </span>
         <Memo(ExpiryTime)

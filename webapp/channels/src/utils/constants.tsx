@@ -8,6 +8,7 @@ import solarizedLightCSS from 'highlight.js/styles/base16/solarized-light.css';
 import githubCSS from 'highlight.js/styles/github.css';
 import monokaiCSS from 'highlight.js/styles/monokai.css';
 import keyMirror from 'key-mirror';
+import {defineMessage, defineMessages} from 'react-intl';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
 
@@ -29,7 +30,6 @@ import monokaiIcon from 'images/themes/code_themes/monokai.png';
 import solarizedDarkIcon from 'images/themes/code_themes/solarized-dark.png';
 import solarizedLightIcon from 'images/themes/code_themes/solarized-light.png';
 import logoWebhook from 'images/webhook_icon.jpg';
-import {t} from 'utils/i18n';
 
 export const SettingsTypes = {
     TYPE_TEXT: 'text' as const,
@@ -913,15 +913,51 @@ export const AnnouncementBarTypes = {
 };
 
 export const AnnouncementBarMessages = {
-    EMAIL_VERIFICATION_REQUIRED: t('announcement_bar.error.email_verification_required'),
-    EMAIL_VERIFIED: t('announcement_bar.notification.email_verified'),
-    LICENSE_EXPIRED: t('announcement_bar.error.license_expired'),
-    LICENSE_EXPIRING: t('announcement_bar.error.license_expiring'),
-    LICENSE_PAST_GRACE: t('announcement_bar.error.past_grace'),
-    PREVIEW_MODE: t('announcement_bar.error.preview_mode'),
-    WEBSOCKET_PORT_ERROR: t('channel_loader.socketError'),
-    TRIAL_LICENSE_EXPIRING: t('announcement_bar.error.trial_license_expiring'),
+    EMAIL_VERIFICATION_REQUIRED: 'announcement_bar.error.email_verification_required',
+    EMAIL_VERIFIED: 'announcement_bar.notification.email_verified',
+    LICENSE_EXPIRED: 'announcement_bar.error.license_expired',
+    LICENSE_EXPIRING: 'announcement_bar.error.license_expiring',
+    LICENSE_PAST_GRACE: 'announcement_bar.error.past_grace',
+    PREVIEW_MODE: 'announcement_bar.error.preview_mode',
+    WEBSOCKET_PORT_ERROR: 'channel_loader.socketError',
+    TRIAL_LICENSE_EXPIRING: 'announcement_bar.error.trial_license_expiring',
 };
+
+// These messages correspond to AnnouncementBarMessages above
+defineMessages({
+    emailVerificationRequired: {
+        id: 'announcement_bar.error.email_verification_required',
+        defaultMessage: 'Check your email inbox to verify the address.',
+    },
+    emailVerified: {
+        id: 'announcement_bar.notification.email_verified',
+        defaultMessage: 'Email verified',
+    },
+    licenseExpired: {
+        id: 'announcement_bar.error.license_expired',
+        defaultMessage: '{licenseSku} license is expired and some features may be disabled.',
+    },
+    licenseExpiring: {
+        id: 'announcement_bar.error.license_expiring',
+        defaultMessage: '{licenseSku} license expires on {date, date, long}.',
+    },
+    pastGrace: {
+        id: 'announcement_bar.error.past_grace',
+        defaultMessage: '{licenseSku} license is expired and some features may be disabled. Please contact your System Administrator for details.',
+    },
+    previewMode: {
+        id: 'announcement_bar.error.preview_mode',
+        defaultMessage: 'Preview Mode: Email notifications have not been configured.',
+    },
+    socketError: {
+        id: 'channel_loader.socketError',
+        defaultMessage: 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to [check WebSocket port](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).',
+    },
+    trialLicenseExpiring: {
+        id: 'announcement_bar.error.trial_license_expiring',
+        defaultMessage: 'There are {days} days left on your free trial.',
+    },
+});
 
 export const VerifyEmailErrors = {
     FAILED_EMAIL_VERIFICATION: 'failed_email_verification',
@@ -2070,42 +2106,24 @@ export const WindowSizes = {
 
 export const AcceptedProfileImageTypes = ['image/jpeg', 'image/png', 'image/bmp'];
 
-export const searchHintOptions = [{searchTerm: 'From:', message: {id: t('search_list_option.from'), defaultMessage: 'Messages from a user'}},
-    {searchTerm: 'In:', message: {id: t('search_list_option.in'), defaultMessage: 'Messages in a channel'}},
-    {searchTerm: 'On:', message: {id: t('search_list_option.on'), defaultMessage: 'Messages on a date'}},
-    {searchTerm: 'Before:', message: {id: t('search_list_option.before'), defaultMessage: 'Messages before a date'}},
-    {searchTerm: 'After:', message: {id: t('search_list_option.after'), defaultMessage: 'Messages after a date'}},
-    {searchTerm: '-', message: {id: t('search_list_option.exclude'), defaultMessage: 'Exclude search terms'}, additionalDisplay: '—'},
-    {searchTerm: '""', message: {id: t('search_list_option.phrases'), defaultMessage: 'Messages with phrases'}},
+export const searchHintOptions = [{searchTerm: 'From:', message: defineMessage({id: 'search_list_option.from', defaultMessage: 'Messages from a user'})},
+    {searchTerm: 'In:', message: defineMessage({id: 'search_list_option.in', defaultMessage: 'Messages in a channel'})},
+    {searchTerm: 'On:', message: defineMessage({id: 'search_list_option.on', defaultMessage: 'Messages on a date'})},
+    {searchTerm: 'Before:', message: defineMessage({id: 'search_list_option.before', defaultMessage: 'Messages before a date'})},
+    {searchTerm: 'After:', message: defineMessage({id: 'search_list_option.after', defaultMessage: 'Messages after a date'})},
+    {searchTerm: '-', message: defineMessage({id: 'search_list_option.exclude', defaultMessage: 'Exclude search terms'}), additionalDisplay: '—'},
+    {searchTerm: '""', message: defineMessage({id: 'search_list_option.phrases', defaultMessage: 'Messages with phrases'})},
 ];
 
-export const searchFilesHintOptions = [{searchTerm: 'From:', message: {id: t('search_files_list_option.from'), defaultMessage: 'Files from a user'}},
-    {searchTerm: 'In:', message: {id: t('search_files_list_option.in'), defaultMessage: 'Files in a channel'}},
-    {searchTerm: 'On:', message: {id: t('search_files_list_option.on'), defaultMessage: 'Files on a date'}},
-    {searchTerm: 'Before:', message: {id: t('search_files_list_option.before'), defaultMessage: 'Files before a date'}},
-    {searchTerm: 'After:', message: {id: t('search_files_list_option.after'), defaultMessage: 'Files after a date'}},
-    {searchTerm: 'Ext:', message: {id: t('search_files_list_option.ext'), defaultMessage: 'Files with a extension'}},
-    {searchTerm: '-', message: {id: t('search_files_list_option.exclude'), defaultMessage: 'Exclude search terms'}, additionalDisplay: '—'},
-    {searchTerm: '""', message: {id: t('search_files_list_option.phrases'), defaultMessage: 'Files with phrases'}},
+export const searchFilesHintOptions = [{searchTerm: 'From:', message: defineMessage({id: 'search_files_list_option.from', defaultMessage: 'Files from a user'})},
+    {searchTerm: 'In:', message: defineMessage({id: 'search_files_list_option.in', defaultMessage: 'Files in a channel'})},
+    {searchTerm: 'On:', message: defineMessage({id: 'search_files_list_option.on', defaultMessage: 'Files on a date'})},
+    {searchTerm: 'Before:', message: defineMessage({id: 'search_files_list_option.before', defaultMessage: 'Files before a date'})},
+    {searchTerm: 'After:', message: defineMessage({id: 'search_files_list_option.after', defaultMessage: 'Files after a date'})},
+    {searchTerm: 'Ext:', message: defineMessage({id: 'search_files_list_option.ext', defaultMessage: 'Files with a extension'})},
+    {searchTerm: '-', message: defineMessage({id: 'search_files_list_option.exclude', defaultMessage: 'Exclude search terms'}), additionalDisplay: '—'},
+    {searchTerm: '""', message: defineMessage({id: 'search_files_list_option.phrases', defaultMessage: 'Files with phrases'})},
 ];
-
-// adding these rtranslations here so the weblate CI step will not fail with empty translation strings
-t('suggestion.archive');
-t('suggestion.mention.channels');
-t('suggestion.mention.morechannels');
-t('suggestion.mention.unread.channels');
-t('suggestion.mention.unread');
-t('suggestion.mention.members');
-t('suggestion.mention.moremembers');
-t('suggestion.mention.nonmembers');
-t('suggestion.mention.private.channels');
-t('suggestion.mention.recent.channels');
-t('suggestion.mention.special');
-t('suggestion.mention.groups');
-t('suggestion.search.public');
-t('suggestion.search.group');
-t('suggestion.commands');
-t('suggestion.emoji');
 
 const {
     DONT_CLEAR,
@@ -2118,40 +2136,41 @@ const {
     CUSTOM_DATE_TIME,
 } = CustomStatusDuration;
 
-export const durationValues = {
+export const durationValues = defineMessages({
     [DONT_CLEAR]: {
-        id: t('custom_status.expiry_dropdown.dont_clear'),
+        id: 'custom_status.expiry_dropdown.dont_clear',
         defaultMessage: "Don't clear",
     },
     [THIRTY_MINUTES]: {
-        id: t('custom_status.expiry_dropdown.thirty_minutes'),
+        id: 'custom_status.expiry_dropdown.thirty_minutes',
         defaultMessage: '30 minutes',
     },
     [ONE_HOUR]: {
-        id: t('custom_status.expiry_dropdown.one_hour'),
+        id: 'custom_status.expiry_dropdown.one_hour',
         defaultMessage: '1 hour',
     },
     [FOUR_HOURS]: {
-        id: t('custom_status.expiry_dropdown.four_hours'),
+        id: 'custom_status.expiry_dropdown.four_hours',
         defaultMessage: '4 hours',
     },
     [TODAY]: {
-        id: t('custom_status.expiry_dropdown.today'),
+        id: 'custom_status.expiry_dropdown.today',
         defaultMessage: 'Today',
     },
     [THIS_WEEK]: {
-        id: t('custom_status.expiry_dropdown.this_week'),
+        id: 'custom_status.expiry_dropdown.this_week',
         defaultMessage: 'This week',
     },
     [DATE_AND_TIME]: {
-        id: t('custom_status.expiry_dropdown.date_and_time'),
+        id: 'custom_status.expiry_dropdown.date_and_time',
         defaultMessage: 'Custom Date and Time',
     },
     [CUSTOM_DATE_TIME]: {
-        id: t('custom_status.expiry_dropdown.date_and_time'),
+        id: 'custom_status.expiry_dropdown.date_and_time',
         defaultMessage: 'Custom Date and Time',
     },
-};
+});
+
 export enum ClaimErrors {
     MFA_VALIDATE_TOKEN_AUTHENTICATE = 'mfa.validate_token.authenticate.app_error',
     ENT_LDAP_LOGIN_USER_NOT_REGISTERED = 'ent.ldap.do_login.user_not_registered.app_error',
