@@ -7,9 +7,9 @@ BEGIN
   LOOP
     WITH table_holder AS (
       SELECT id FROM roles
-        WHERE Permissions ~~ '%manage_team%'
+        WHERE Permissions ~ 'manage_team($|\s)'
             AND Permissions !~~ '%sysconsole_write_user_management_teams%'
-            AND (Permissions ~~ '%sysconsole_write_user_management_chanels%'
+            AND (Permissions ~~ '%sysconsole_write_user_management_channels%'
             OR Permissions ~~ '%sysconsole_write_user_management_groups%')
         ORDER BY id ASC limit 100
     )
