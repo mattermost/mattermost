@@ -657,7 +657,10 @@ func (u *User) SanitizeInput(isAdmin bool) {
 		u.AuthService = ""
 		u.EmailVerified = false
 	}
+	u.Id = ""
 	u.RemoteId = NewString("")
+	u.CreateAt = 0
+	u.UpdateAt = 0
 	u.DeleteAt = 0
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
@@ -665,6 +668,11 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	u.MfaActive = false
 	u.MfaSecret = ""
 	u.Email = strings.TrimSpace(u.Email)
+	u.Roles = ""
+	u.LastActivityAt = 0
+	u.IsBot = false
+	u.BotDescription = ""
+	u.BotLastIconUpdate = 0
 }
 
 func (u *User) ClearNonProfileFields() {
