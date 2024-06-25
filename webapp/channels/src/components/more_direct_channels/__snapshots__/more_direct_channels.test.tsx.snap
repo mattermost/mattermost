@@ -57,6 +57,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
       addValue={[Function]}
       currentUserId="current_user_id"
       handleDelete={[Function]}
+      handleHide={[Function]}
       handlePageChange={[Function]}
       handleSubmit={[Function]}
       isExistingChannel={false}
@@ -347,6 +348,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
       addValue={[Function]}
       currentUserId="current_user_id"
       handleDelete={[Function]}
+      handleHide={[Function]}
       handlePageChange={[Function]}
       handleSubmit={[Function]}
       isExistingChannel={false}
