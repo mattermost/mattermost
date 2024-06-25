@@ -6,21 +6,55 @@ package api4
 import (
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+)
+
+const (
+	loginImageType     = "image.png"
+	lightThemeLogoType = "light-logo.png"
+	darkThemeLogoType  = "dark-logo.png"
+	faviconLogoType    = "favicon.png"
+	backgroundLogoType = "background.png"
 )
 
 func (api *API) InitBrand() {
 	api.BaseRoutes.Brand.Handle("/image", api.APIHandlerTrustRequester(getBrandImage)).Methods("GET")
 	api.BaseRoutes.Brand.Handle("/image", api.APISessionRequired(uploadBrandImage, handlerParamFileAPI)).Methods("POST")
 	api.BaseRoutes.Brand.Handle("/image", api.APISessionRequired(deleteBrandImage)).Methods("DELETE")
+	api.BaseRoutes.Brand.Handle("/light-logo", api.APIHandlerTrustRequester(getBrandImage)).Methods("GET")
+	api.BaseRoutes.Brand.Handle("/light-logo", api.APISessionRequired(uploadBrandImage, handlerParamFileAPI)).Methods("POST")
+	api.BaseRoutes.Brand.Handle("/light-logo", api.APISessionRequired(deleteBrandImage)).Methods("DELETE")
+	api.BaseRoutes.Brand.Handle("/dark-logo", api.APIHandlerTrustRequester(getBrandImage)).Methods("GET")
+	api.BaseRoutes.Brand.Handle("/dark-logo", api.APISessionRequired(uploadBrandImage, handlerParamFileAPI)).Methods("POST")
+	api.BaseRoutes.Brand.Handle("/dark-logo", api.APISessionRequired(deleteBrandImage)).Methods("DELETE")
+	api.BaseRoutes.Brand.Handle("/favicon", api.APIHandlerTrustRequester(getBrandImage)).Methods("GET")
+	api.BaseRoutes.Brand.Handle("/favicon", api.APISessionRequired(uploadBrandImage, handlerParamFileAPI)).Methods("POST")
+	api.BaseRoutes.Brand.Handle("/favicon", api.APISessionRequired(deleteBrandImage)).Methods("DELETE")
+	api.BaseRoutes.Brand.Handle("/background", api.APIHandlerTrustRequester(getBrandImage)).Methods("GET")
+	api.BaseRoutes.Brand.Handle("/background", api.APISessionRequired(uploadBrandImage, handlerParamFileAPI)).Methods("POST")
+	api.BaseRoutes.Brand.Handle("/background", api.APISessionRequired(deleteBrandImage)).Methods("DELETE")
+}
+
+func getImageType(r *http.Request) string {
+	// No permission check required
+	if strings.HasSuffix(r.URL.Path, "/light-logo") {
+		return lightThemeLogoType
+	} else if strings.HasSuffix(r.URL.Path, "/dark-logo") {
+		return darkThemeLogoType
+	} else if strings.HasSuffix(r.URL.Path, "/favicon") {
+		return faviconLogoType
+	} else if strings.HasSuffix(r.URL.Path, "/background") {
+		return backgroundLogoType
+	}
+	return loginImageType
 }
 
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	// No permission check required
-
-	img, err := c.App.GetBrandImage(c.AppContext)
+	imageType := getImageType(r)
+	img, err := c.App.GetBrandImage(c.AppContext, imageType)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(nil)
@@ -65,7 +99,8 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.SaveBrandImage(c.AppContext, imageArray[0]); err != nil {
+	imageType := getImageType(r)
+	if err := c.App.SaveBrandImage(c.AppContext, imageArray[0], imageType); err != nil {
 		c.Err = err
 		return
 	}
@@ -86,7 +121,8 @@ func deleteBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.DeleteBrandImage(c.AppContext); err != nil {
+	imageType := getImageType(r)
+	if err := c.App.DeleteBrandImage(c.AppContext, imageType); err != nil {
 		c.Err = err
 		return
 	}

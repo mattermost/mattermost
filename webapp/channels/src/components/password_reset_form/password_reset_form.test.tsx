@@ -1,42 +1,68 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {fireEvent, render, act, waitFor} from '@testing-library/react';
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {resetUserPassword} from 'mattermost-redux/actions/users';
+
+import {withIntl} from 'tests/helpers/intl-test-helper';
 
 import PasswordResetForm from './password_reset_form';
 
+const mockDispatch = jest.fn().mockResolvedValue(Promise.resolve({data: true}));
+const mockLocation = jest.fn();
+let mockState: any;
+
+jest.mock('mattermost-redux/actions/users', () => ({
+    resetUserPassword: jest.fn().mockResolvedValue(Promise.resolve({data: true})),
+}));
+
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom') as typeof import('react-router-dom'),
+    useLocation: () => mockLocation(),
+    useHistory: () => ({
+        push: jest.fn(),
+    }),
+}));
+
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux') as typeof import('react-redux'),
+    useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
+    useDispatch: () => mockDispatch,
+}));
+
 describe('components/PasswordResetForm', () => {
-    const baseProps = {
-        location: {
-            search: '',
-        },
-        siteName: 'Mattermost',
-        actions: {
-            resetUserPassword: jest.fn().mockResolvedValue({data: true}),
+    mockState = {
+        entities: {
+            general: {
+                config: {
+                    SiteName: 'Mattermost',
+                },
+            },
         },
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallow(<PasswordResetForm {...baseProps}/>);
+        mockLocation.mockReturnValue({search: '?token='});
+        const wrapper = shallow(<PasswordResetForm/>);
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should call the resetUserPassword() action on submit', () => {
-        const props = {
-            ...baseProps,
-            location: {
-                search: '?token=TOKEN',
-            },
-        };
+    it('should call the resetUserPassword() action on submit', async () => {
+        mockLocation.mockReturnValue({search: '?token=TOKEN'});
 
-        const wrapper = mountWithIntl(<PasswordResetForm {...props}/>);
+        const wrapper = render(withIntl(<PasswordResetForm/>));
+        const inputElement = wrapper.getByTestId('resetPasswordInput');
 
-        (wrapper.find('input[type="password"]').first().instance() as unknown as HTMLInputElement).value = 'PASSWORD';
-        wrapper.find('form').simulate('submit', {preventDefault: () => {}});
+        act(() => {
+            fireEvent.change(inputElement, {target: {value: 'PASSWORD'}});
+        });
 
-        expect(props.actions.resetUserPassword).toHaveBeenCalledWith('TOKEN', 'PASSWORD');
+        await act(async () => {
+            fireEvent.click(wrapper.getByRole('button'));
+            await waitFor(() => expect(resetUserPassword).toHaveBeenCalledWith('TOKEN', 'PASSWORD'));
+        });
     });
 });

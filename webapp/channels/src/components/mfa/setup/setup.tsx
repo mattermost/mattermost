@@ -3,17 +3,65 @@
 
 import React from 'react';
 import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import styled from 'styled-components';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import BrandedButton from 'components/custom_branding/branded_button';
+import BrandedInput from 'components/custom_branding/branded_input';
 import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
+import logoImage from 'images/logo.png';
 import * as Utils from 'utils/utils';
 
 type MFAControllerState = {
     enforceMultifactorAuthentication: boolean;
 };
+
+const MfaSetupContainer = styled.div`
+    display: flex;
+    ol {
+        list-style: none;
+        counter-reset: item;
+        position: relative;
+        li {
+            counter-increment: item;
+            margin-left: 36px;
+            margin-bottom: 24px;
+        }
+        li:before {
+            content: counter(item);
+            position: absolute;
+            left: 20px;
+            background: #f2f2f2;
+            border-radius: 100%;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            text-align: center;
+            line-height: 26px;
+            font-weight: 600;
+            justify-content: center;
+        }
+    }
+`;
+
+const QRContainer = styled.div`
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #e7e7e7;
+    background: white;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    justify-content: center;
+    img {
+        margin-bottom: 16px;
+    }
+`;
 
 type Props = {
 
@@ -146,89 +194,114 @@ class Setup extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div>
-                <form
-                    onSubmit={this.submit}
-                    className={formClass}
-                >
-                    {mfaRequired}
-                    <p>
-                        <FormattedMessage
-                            id='mfa.setup.step1'
-                            defaultMessage='<strong>Step 1: </strong>On your phone, download Google Authenticator from <linkiTunes>iTunes</linkiTunes> or <linkGooglePlay>Google Play</linkGooglePlay>'
-                            values={{
-                                strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
-                                linkiTunes: (msg: React.ReactNode) => (
-                                    <ExternalLink
-                                        href='https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8'
-                                        location='mfa_setup'
+            <div className='signup-team__container mfa'>
+                <h1>
+                    <FormattedMessage
+                        id='mfa.setupTitle'
+                        defaultMessage='Scan the QR Code in Authenticator app'
+                    />
+                </h1>
+                <h3>
+                    <FormattedMessage
+                        id='mfa.setupSubTitle'
+                        defaultMessage='Setup Multi-factor Authentication'
+                    />
+                </h3>
+                <img
+                    alt={'signup team logo'}
+                    className='signup-team-logo'
+                    src={logoImage}
+                />
+                <div id='mfa'>
+                    <MfaSetupContainer>
+                        <QRContainer>
+                            <div>
+                                <img
+                                    alt={'qr code image'}
+                                    style={style.qrCode}
+                                    src={'data:image/png;base64,' + this.state.qrCode}
+                                />
+                            </div>
+                            <div>
+                                <FormattedMessage
+                                    id='mfa.setup.secret'
+                                    defaultMessage='Secret: {secret}'
+                                    values={{
+                                        secret: this.state.secret,
+                                    }}
+                                />
+                            </div>
+                        </QRContainer>
+                        <form
+                            onSubmit={this.submit}
+                            className={formClass}
+                        >
+                            {mfaRequired}
+                            <ol>
+                                <li>
+                                    <FormattedMessage
+                                        id='mfa.setup.step1'
+                                        defaultMessage='On your phone, download Google Authenticator from <linkiTunes>iTunes</linkiTunes> or <linkGooglePlay>Google Play</linkGooglePlay>'
+                                        values={{
+                                            strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                                            linkiTunes: (msg: React.ReactNode) => (
+                                                <ExternalLink
+                                                    href='https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8'
+                                                    location='mfa_setup'
+                                                >
+                                                    {msg}
+                                                </ExternalLink>
+                                            ),
+                                            linkGooglePlay: (msg: React.ReactNode) => (
+                                                <ExternalLink
+                                                    href='https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en'
+                                                    location='mfa_setup'
+                                                >
+                                                    {msg}
+                                                </ExternalLink>
+                                            ),
+                                        }}
+                                    />
+                                </li>
+                                <li>
+                                    <FormattedMarkdownMessage
+                                        id='mfa.setup.step2'
+                                        defaultMessage='Use Google Authenticator to scan this QR code, or manually type in the secret key'
+                                    />
+                                </li>
+                                <li>
+                                    <FormattedMarkdownMessage
+                                        id='mfa.setup.step3'
+                                        defaultMessage='Enter the code generated by Google Authenticator'
+                                    />
+                                </li>
+                            </ol>
+                            <div className='input-line'>
+                                <BrandedInput>
+                                    <Input
+                                        ref={this.input}
+                                        className='form-control'
+                                        placeholder={this.props.intl.formatMessage({id: 'mfa.setup.code', defaultMessage: 'MFA Code'})}
+                                        autoFocus={true}
+                                        inputSize={SIZE.LARGE}
+                                    />
+                                </BrandedInput>
+                                <BrandedButton>
+                                    <button
+                                        type='submit'
+                                        className='btn btn-primary'
                                     >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                                linkGooglePlay: (msg: React.ReactNode) => (
-                                    <ExternalLink
-                                        href='https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en'
-                                        location='mfa_setup'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            }}
-                        />
-                    </p>
-                    <p>
-                        <FormattedMarkdownMessage
-                            id='mfa.setup.step2'
-                            defaultMessage='**Step 2: **Use Google Authenticator to scan this QR code, or manually type in the secret key'
-                        />
-                    </p>
-                    <div className='form-group'>
-                        <div className='col-sm-12'>
-                            <img
-                                alt={'qr code image'}
-                                style={style.qrCode}
-                                src={'data:image/png;base64,' + this.state.qrCode}
-                            />
-                        </div>
-                    </div>
-                    <br/>
-                    <div className='form-group'>
-                        <p className='col-sm-12'>
-                            <FormattedMessage
-                                id='mfa.setup.secret'
-                                defaultMessage='Secret: {secret}'
-                                values={{
-                                    secret: this.state.secret,
-                                }}
-                            />
-                        </p>
-                    </div>
-                    <p>
-                        <FormattedMarkdownMessage
-                            id='mfa.setup.step3'
-                            defaultMessage='**Step 3: **Enter the code generated by Google Authenticator'
-                        />
-                    </p>
-                    <p>
-                        <input
-                            ref={this.input}
-                            className='form-control'
-                            placeholder={this.props.intl.formatMessage({id: 'mfa.setup.code', defaultMessage: 'MFA Code'})}
-                            autoFocus={true}
-                        />
-                    </p>
-                    {errorContent}
-                    <button
-                        type='submit'
-                        className='btn btn-primary'
-                    >
-                        <FormattedMessage
-                            id='mfa.setup.save'
-                            defaultMessage='Save'
-                        />
-                    </button>
-                </form>
+                                        <FormattedMessage
+                                            id='mfa.setup.save'
+                                            defaultMessage='Save'
+                                        />
+                                    </button>
+                                </BrandedButton>
+                            </div>
+                            {errorContent}
+                        </form>
+                    </MfaSetupContainer>
+                </div>
             </div>
         );
     }

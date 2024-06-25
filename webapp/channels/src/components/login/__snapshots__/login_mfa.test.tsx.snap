@@ -7,29 +7,33 @@ exports[`components/login/LoginMfa should match snapshot 1`] = `
     <div
       className="login-mfa-form"
     >
-      <ForwardRef
-        autoFocus={true}
-        containerClassName="login-mfa-form-input"
-        disabled={false}
-        inputSize="large"
-        name="token"
-        onChange={[Function]}
-        placeholder="Enter MFA Token"
-        type="text"
-        value=""
-      />
+      <BrandedInput>
+        <ForwardRef
+          autoFocus={true}
+          containerClassName="login-mfa-form-input"
+          disabled={false}
+          inputSize="large"
+          name="token"
+          onChange={[Function]}
+          placeholder="Enter MFA Token"
+          type="text"
+          value=""
+        />
+      </BrandedInput>
       <div
         className="login-mfa-form-button-container"
       >
-        <SaveButton
-          btnClass=""
-          defaultMessage="Submit"
-          disabled={true}
-          extraClasses="login-mfa-form-button-submit large"
-          onClick={[Function]}
-          saving={false}
-          savingMessage="Logging in…"
-        />
+        <BrandedButton>
+          <SaveButton
+            btnClass=""
+            defaultMessage="Submit"
+            disabled={true}
+            extraClasses="login-mfa-form-button-submit large"
+            onClick={[Function]}
+            saving={false}
+            savingMessage="Logging in…"
+          />
+        </BrandedButton>
       </div>
     </div>
   }

@@ -2152,11 +2152,18 @@ func (s *AnnouncementSettings) SetDefaults() {
 	}
 }
 
+type CustomTheme struct {
+	ID    string
+	Name  string
+	Theme string
+}
+
 type ThemeSettings struct {
 	EnableThemeSelection *bool   `access:"experimental_features"`
 	DefaultTheme         *string `access:"experimental_features"`
 	AllowCustomThemes    *bool   `access:"experimental_features"`
 	AllowedThemes        []string
+	CustomThemes         []CustomTheme `access:"experimental_features"`
 }
 
 func (s *ThemeSettings) SetDefaults() {
@@ -2175,22 +2182,36 @@ func (s *ThemeSettings) SetDefaults() {
 	if s.AllowedThemes == nil {
 		s.AllowedThemes = []string{}
 	}
+
+	if s.CustomThemes == nil {
+		s.CustomThemes = []CustomTheme{}
+	}
 }
 
 type TeamSettings struct {
-	SiteName                        *string `access:"site_customization"`
-	MaxUsersPerTeam                 *int    `access:"site_users_and_teams"`
-	EnableJoinLeaveMessageByDefault *bool   `access:"site_users_and_teams"`
-	EnableUserCreation              *bool   `access:"authentication_signup"`
-	EnableOpenServer                *bool   `access:"authentication_signup"`
-	EnableUserDeactivation          *bool   `access:"experimental_features"`
-	RestrictCreationToDomains       *string `access:"authentication_signup"` // telemetry: none
-	EnableCustomUserStatuses        *bool   `access:"site_users_and_teams"`
-	EnableCustomBrand               *bool   `access:"site_customization"`
-	CustomBrandText                 *string `access:"site_customization"`
-	CustomDescriptionText           *string `access:"site_customization"`
-	RestrictDirectMessage           *string `access:"site_users_and_teams"`
-	EnableLastActiveTime            *bool   `access:"site_users_and_teams"`
+	SiteName                           *string `access:"site_customization"`
+	MaxUsersPerTeam                    *int    `access:"site_users_and_teams"`
+	EnableJoinLeaveMessageByDefault    *bool   `access:"site_users_and_teams"`
+	EnableUserCreation                 *bool   `access:"authentication_signup"`
+	EnableOpenServer                   *bool   `access:"authentication_signup"`
+	EnableUserDeactivation             *bool   `access:"experimental_features"`
+	RestrictCreationToDomains          *string `access:"authentication_signup"` // telemetry: none
+	EnableCustomUserStatuses           *bool   `access:"site_users_and_teams"`
+	EnableCustomBrand                  *bool   `access:"site_customization"`
+	CustomBrandText                    *string `access:"site_customization"`
+	CustomDescriptionText              *string `access:"site_customization"`
+	CustomBrandHeading                 *string `access:"site_customization"`
+	CustomBrandColorBackground         *string `access:"site_customization"`
+	CustomBrandColorText               *string `access:"site_customization"`
+	CustomBrandColorLoginContainer     *string `access:"site_customization"`
+	CustomBrandColorLoginContainerText *string `access:"site_customization"`
+	CustomBrandColorButtonBackground   *string `access:"site_customization"`
+	CustomBrandColorButtonText         *string `access:"site_customization"`
+	CustomBrandBackgroundImage         *string `access:"site_customization"`
+	CustomBrandCSS                     *string `access:"site_customization"`
+	CustomBrandShowFooter              *bool   `access:"site_customization"`
+	RestrictDirectMessage              *string `access:"site_users_and_teams"`
+	EnableLastActiveTime               *bool   `access:"site_users_and_teams"`
 	// In seconds.
 	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
 	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
@@ -2251,6 +2272,46 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.CustomDescriptionText == nil {
 		s.CustomDescriptionText = NewString(TeamSettingsDefaultCustomDescriptionText)
+	}
+
+	if s.CustomBrandHeading == nil {
+		s.CustomBrandHeading = NewString("")
+	}
+
+	if s.CustomBrandColorBackground == nil {
+		s.CustomBrandColorBackground = NewString("")
+	}
+
+	if s.CustomBrandColorText == nil {
+		s.CustomBrandColorText = NewString("")
+	}
+
+	if s.CustomBrandColorLoginContainer == nil {
+		s.CustomBrandColorLoginContainer = NewString("")
+	}
+
+	if s.CustomBrandColorLoginContainerText == nil {
+		s.CustomBrandColorLoginContainerText = NewString("")
+	}
+
+	if s.CustomBrandColorButtonBackground == nil {
+		s.CustomBrandColorButtonBackground = NewString("")
+	}
+
+	if s.CustomBrandColorButtonText == nil {
+		s.CustomBrandColorButtonText = NewString("")
+	}
+
+	if s.CustomBrandBackgroundImage == nil {
+		s.CustomBrandBackgroundImage = NewString("")
+	}
+
+	if s.CustomBrandCSS == nil {
+		s.CustomBrandCSS = NewString("")
+	}
+
+	if s.CustomBrandShowFooter == nil {
+		s.CustomBrandShowFooter = NewBool(true)
 	}
 
 	if s.RestrictDirectMessage == nil {

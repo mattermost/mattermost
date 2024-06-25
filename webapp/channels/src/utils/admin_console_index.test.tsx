@@ -36,7 +36,6 @@ describe('AdminConsoleIndex.generateIndex', () => {
             'environment/rate_limiting',
         ]);
         expect(idx.search('characters')).toEqual([
-            'site_config/customization',
             'authentication/password',
         ]);
         expect(idx.search('caracteres')).toEqual([]);
