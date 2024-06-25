@@ -8,7 +8,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 
 import {Constants} from 'utils/constants';
 
-import WithTooltip from './with_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     className?: string;
