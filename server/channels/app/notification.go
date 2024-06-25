@@ -1102,8 +1102,8 @@ func max(a, b int64) int64 {
 }
 
 func (a *App) userAllowsEmail(c request.CTX, user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
-	// if user is a bot account, then we do not send email
-	if user.IsBot {
+	// if user is a bot account or remote, then we do not send email
+	if user.IsBot || user.IsRemote() {
 		return false
 	}
 
