@@ -1083,20 +1083,22 @@ func (s *SqlThreadStore) BatchMergeThreadParticipants(toUserID, fromUserID strin
 		}
 		defer finalizeTransactionX(transaction, &err)
 
-		var query string
+		var query sq.UpdateBuilder
 		// Remove fromUser from threads
-		fromThreadParams := map[string]any{
-			"fromUserId": fromUserID,
-			"postIds":    postIds,
-		}
 		if s.DriverName() == model.DatabaseDriverPostgres {
-			query = "UPDATE Threads SET Participants = Participants - :fromUserId WHERE PostId IN (:postIds)"
+			query = s.getQueryBuilder().
+				Update("Threads").
+				Set("Participants", sq.Expr("Participants - ?", fromUserID)).
+				Where(sq.Eq{"PostId": postIds})
 		} else {
-			query = "UPDATE Threads SET Participants = IFNULL(JSON_REMOVE(Participants, JSON_UNQUOTE(JSON_SEARCH(Participants, 'one', :fromUserId))), Participants) WHERE PostId IN (:postIds)"
+			query = s.getQueryBuilder().
+				Update("Threads").
+				Set("Participants", sq.Expr("IFNULL(JSON_REMOVE(Participants, JSON_UNQUOTE(JSON_SEARCH(Participants, 'one', ?))), Participants)", fromUserID)).
+				Where(sq.Eq{"PostId": postIds})
 		}
 
-		if _, err = transaction.NamedExec(query, fromThreadParams); err != nil {
-			return errors.Wrap(err, "failed to update Posts")
+		if _, err = transaction.ExecBuilder(query); err != nil {
+			return errors.Wrap(err, "failed to remove fromUser from threads")
 		}
 
 		// Add toUser to threads
@@ -1112,11 +1114,15 @@ func (s *SqlThreadStore) BatchMergeThreadParticipants(toUserID, fromUserID strin
 				return err
 			}
 		} else {
-			if _, err = transaction.Exec(`UPDATE Threads
-				SET Participants = JSON_ARRAY_INSERT(Participants, CONCAT('$[', JSON_LENGTH(Participants), ']'), ?)
-				WHERE PostId IN (?)
-				AND NOT JSON_CONTAINS(Participants, ?)`, toUserID, postIds, strconv.Quote(toUserID)); err != nil {
-				return err
+			q := s.getQueryBuilder().
+				Update("Threads").
+				Set("Participants", sq.Expr("JSON_ARRAY_INSERT(Participants, CONCAT('$[', JSON_LENGTH(Participants), ']'), ?)", toUserID)).
+				Where(sq.And{
+					sq.Eq{"PostId": postIds},
+					sq.Expr("NOT JSON_CONTAINS(Participants, ?)", strconv.Quote(toUserID)),
+				})
+			if _, err = transaction.ExecBuilder(q); err != nil {
+				return errors.Wrap(err, "failed to add toUser to threads")
 			}
 		}
 
