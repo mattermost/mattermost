@@ -19,12 +19,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mattermost/mattermost-api-reference.git"
+    "url": "https://github.com/mattermost/mattermost.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/mattermost/mattermost-api-reference/issues"
+    "url": "https://github.com/mattermost/mattermost/issues"
   },
-  "homepage": "https://github.com/mattermost/mattermost-api-reference#readme"
+  "homepage": "https://api.mattermost.com/"
 }
