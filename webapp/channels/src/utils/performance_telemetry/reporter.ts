@@ -298,12 +298,21 @@ export default class PerformanceReporter {
         const url = this.client.getClientMetricsRoute();
         const data = JSON.stringify(report);
 
-        const beaconSent = navigator.sendBeacon(url, data);
+        const beaconSent = this.sendBeacon(url, data);
 
         if (!beaconSent) {
             // The data couldn't be queued as a beacon for some reason, so fall back to sending an immediate fetch
             fetch(url, {method: 'POST', body: data});
         }
+    }
+
+    protected sendBeacon(url: string | URL, data?: BodyInit | null | undefined): boolean {
+        // Confirm that sendBeacon exists because it doesn't on Firefox with certain settings enabled
+        if (!navigator.sendBeacon) {
+            return false;
+        }
+
+        return navigator.sendBeacon(url, data);
     }
 }
 
