@@ -27,7 +27,8 @@ import {a11yFocus, localizeMessage} from 'utils/utils';
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
 
-const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
+type PreReleaseFeaturesType = Record<string, {label: string; description: string}>;
+const PreReleaseFeatures: PreReleaseFeaturesType = Constants.PRE_RELEASE_FEATURES;
 
 type Settings = {
     [key: string]: string | undefined;
@@ -62,7 +63,7 @@ export type Props = {
 };
 
 type State = {
-    preReleaseFeatures: typeof PreReleaseFeatures;
+    preReleaseFeatures: PreReleaseFeaturesType;
     settings: Settings;
     enabledFeatures: number;
     isSaving: boolean;
@@ -91,7 +92,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         };
 
         const PreReleaseFeaturesLocal = JSON.parse(JSON.stringify(PreReleaseFeatures));
-        delete PreReleaseFeaturesLocal.MARKDOWN_PREVIEW;
         const preReleaseFeaturesKeys = Object.keys(PreReleaseFeaturesLocal);
 
         let enabledFeatures = 0;
@@ -708,7 +708,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             const inputs = [];
 
             this.state.preReleaseFeaturesKeys.forEach((key) => {
-                const feature = this.state.preReleaseFeatures[key as keyof typeof PreReleaseFeatures];
+                const feature = this.state.preReleaseFeatures[key as keyof PreReleaseFeaturesType];
                 inputs.push(
                     <div key={'advancedPreviewFeatures_' + feature.label}>
                         <div className='checkbox'>
