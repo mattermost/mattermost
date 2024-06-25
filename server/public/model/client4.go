@@ -5862,6 +5862,20 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
+// Download logs as mattermost.log file
+func (c *Client4) DownloadLogs(ctx context.Context) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, "/logs/download", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("DownloadLogs", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
+	}
+
+	return data, BuildResponse(r), nil
+}
+
 // PostLog is a convenience Web Service call so clients can log messages into
 // the server-side logs. For example we typically log javascript error messages
 // into the server-side. It returns the log message if the logging was successful.
