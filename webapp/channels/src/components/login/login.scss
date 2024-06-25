@@ -8,6 +8,7 @@
     flex-direction: column;
     padding-bottom: 32px;
     margin: auto;
+    margin-bottom: 80px;
 
     .login-body-action {
         display: flex;
@@ -41,16 +42,16 @@
             display: flex;
             width: 540px;
             flex-flow: column;
-            align-self: flex-start;
 
             .login-body-message-title {
-                padding-right: 24px;
+                padding-right: 0px;
+                margin-top: 0;
                 color: var(--title-color-indigo-500);
                 font-family: Metropolis;
-                font-size: 80px;
+                font-size: 76px;
                 font-weight: 600;
                 letter-spacing: -0.01em;
-                line-height: 88px;
+                line-height: 82px;
             }
 
             .login-body-message-svg {
@@ -82,12 +83,8 @@
                     max-height: 240px;
                     align-self: self-start;
                     border-radius: 8px;
-                    margin-bottom: 28px;
+                    margin-bottom: 24px;
                 }
-            }
-
-            &.with-alternate-link {
-                margin-top: 40px;
             }
         }
 
@@ -102,6 +99,10 @@
 
             &.with-error {
                 @include shake-horizontally;
+            }
+
+            fieldset {
+                background-color: var(--center-channel-bg);
             }
 
             .login-body-card-content {
@@ -231,7 +232,6 @@
 
         .login-body-message .login-body-message-title {
             padding-right: 80px;
-            margin-top: 48px;
         }
     }
 }
@@ -280,7 +280,7 @@
                 box-shadow: none;
 
                 .login-body-card-content {
-                    padding: 16px 24px;
+                    padding: 24px 24px;
 
                     .login-body-card-title {
                         display: none;
@@ -293,11 +293,6 @@
                     .login-body-card-form {
                         .login-body-card-form-input {
                             margin-top: 0;
-                        }
-
-                        .login-body-card-form-input,
-                        .login-body-card-form-password-input {
-                            background-color: var(--center-channel-bg);
                         }
                     }
                 }

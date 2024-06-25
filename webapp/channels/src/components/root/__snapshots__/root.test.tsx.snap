@@ -18,11 +18,11 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       component={[Function]}
       path="/access_problem"
     />
-    <HFTRoute
+    <HFRoute
       component={[Function]}
       path="/reset_password"
     />
-    <HFTRoute
+    <HFRoute
       component={[Function]}
       path="/reset_password_complete"
     />
@@ -74,7 +74,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       component={[Function]}
       path="/create_team"
     />
-    <LoggedInRoute
+    <LoggedInHFRoute
       component={[Function]}
       path="/mfa"
     />

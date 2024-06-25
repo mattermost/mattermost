@@ -395,8 +395,40 @@ export default class Client4 {
         return `${this.getBaseRoute()}/brand`;
     }
 
+    getLightLogoRoute() {
+        return `${this.getBaseRoute()}/brand/light-logo`;
+    }
+
+    getDarkLogoRoute() {
+        return `${this.getBaseRoute()}/brand/dark-logo`;
+    }
+
+    getBackgroundRoute() {
+        return `${this.getBaseRoute()}/brand/background`;
+    }
+
+    getFaviconRoute() {
+        return `${this.getBaseRoute()}/brand/favicon`;
+    }
+
     getBrandImageUrl(timestamp: string) {
         return `${this.getBrandRoute()}/image?t=${timestamp}`;
+    }
+
+    getCustomLightLogoUrl(timestamp: string) {
+        return `${this.getBrandRoute()}/light-logo?t=${timestamp}`;
+    }
+
+    getCustomDarkLogoUrl(timestamp: string) {
+        return `${this.getBrandRoute()}/dark-logo?t=${timestamp}`;
+    }
+
+    getCustomBackgroundUrl(timestamp: string) {
+        return `${this.getBrandRoute()}/background?t=${timestamp}`;
+    }
+
+    getCustomFaviconUrl(timestamp: string) {
+        return `${this.getBrandRoute()}/favicon?t=${timestamp}`;
     }
 
     getDataRetentionRoute() {
@@ -3194,6 +3226,90 @@ export default class Client4 {
     deleteBrandImage = () => {
         return this.doFetch<StatusOK>(
             `${this.getBrandRoute()}/image`,
+            {method: 'delete'},
+        );
+    };
+
+    uploadLightLogoImage = (imageData: File) => {
+        const formData = new FormData();
+        formData.append('image', imageData);
+        const request: any = {
+            method: 'post',
+            body: formData,
+        };
+
+        return this.doFetch<StatusOK>(
+            `${this.getLightLogoRoute()}`,
+            request,
+        );
+    };
+
+    deleteLightLogoImage = () => {
+        return this.doFetch<StatusOK>(
+            `${this.getLightLogoRoute()}`,
+            {method: 'delete'},
+        );
+    };
+
+    uploadDarkLogoImage = (imageData: File) => {
+        const formData = new FormData();
+        formData.append('image', imageData);
+        const request: any = {
+            method: 'post',
+            body: formData,
+        };
+
+        return this.doFetch<StatusOK>(
+            `${this.getDarkLogoRoute()}`,
+            request,
+        );
+    };
+
+    deleteDarkLogoImage = () => {
+        return this.doFetch<StatusOK>(
+            `${this.getDarkLogoRoute()}`,
+            {method: 'delete'},
+        );
+    };
+
+    uploadBackgroundImage = (imageData: File) => {
+        const formData = new FormData();
+        formData.append('image', imageData);
+        const request: any = {
+            method: 'post',
+            body: formData,
+        };
+
+        return this.doFetch<StatusOK>(
+            `${this.getBackgroundRoute()}`,
+            request,
+        );
+    };
+
+    deleteBackgroundImage = () => {
+        return this.doFetch<StatusOK>(
+            `${this.getBackgroundRoute()}`,
+            {method: 'delete'},
+        );
+    };
+
+    uploadFaviconImage = (imageData: File) => {
+        const formData = new FormData();
+        formData.append('image', imageData);
+        const request: any = {
+            method: 'post',
+            body: formData,
+        };
+
+        return this.doFetch<StatusOK>(
+            `${this.getFaviconRoute()}`,
+            request,
+        );
+    };
+
+    deleteFaviconImage = () => {
+        return this.doFetch<StatusOK>(
+            `${this.getFaviconRoute()}`,
             {method: 'delete'},
         );
     };

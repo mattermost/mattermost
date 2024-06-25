@@ -1,156 +1,220 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import throttle from 'lodash/throttle';
+import React, {useState, useCallback, useEffect} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
+import {useLocation, useHistory} from 'react-router-dom';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import {sendPasswordResetEmail} from 'mattermost-redux/actions/users';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
-import BackButton from 'components/common/back_button';
+import ManWithMailBox from 'components/common/svg_images_components/man_with_mailbox_svg';
+import WomanWithLock from 'components/common/svg_images_components/woman_with_lock_svg';
+import BrandedButton from 'components/custom_branding/branded_button';
+import BrandedInput from 'components/custom_branding/branded_input';
+import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
+import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
-export interface Props {
-    actions: {
-        sendPasswordResetEmail: (email: string) => Promise<ActionResult>;
-    };
-    intl: IntlShape;
+const MOBILE_SCREEN_WIDTH = 1200;
+
+type Props = {
+    onCustomizeHeader?: CustomizeHeaderType;
 }
 
-interface State {
-    error: React.ReactNode;
-    updateText: React.ReactNode;
-}
+const PasswordResetSendLink = ({onCustomizeHeader}: Props) => {
+    const [errorText, setErrorText] = useState<React.ReactNode>(null);
+    const [linkSent, setLinkSent] = useState<boolean>(false);
+    const [email, setEmail] = useState<string>('');
+    const dispatch = useDispatch();
+    const intl = useIntl();
+    const history = useHistory();
+    const [isMobileView, setIsMobileView] = useState(false);
+    const {search} = useLocation();
 
-export class PasswordResetSendLink extends React.PureComponent<Props, State> {
-    state = {
-        error: null,
-        updateText: null,
-    };
-    resetForm = React.createRef<HTMLFormElement>();
-    emailInput = React.createRef<HTMLInputElement>();
-
-    handleSendLink = async (e: React.FormEvent) => {
+    const handleSendLink = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const email = this.emailInput.current!.value.trim().toLowerCase();
-        if (!email || !isEmail(email)) {
-            this.setState({
-                error: (
-                    <FormattedMessage
-                        id='password_send.error'
-                        defaultMessage='Please enter a valid email address.'
-                    />
-                ),
-            });
+        const emailClean = email.trim().toLowerCase();
+        if (!email || !isEmail(emailClean)) {
+            setErrorText((
+                <FormattedMessage
+                    id='password_send.error'
+                    defaultMessage='Please enter a valid email address.'
+                />
+            ));
             return;
         }
 
         // End of error checking clear error
-        this.setState({error: null});
+        setErrorText(null);
 
-        const {data, error} = await this.props.actions.sendPasswordResetEmail(email);
+        const {data, error} = await dispatch(sendPasswordResetEmail(emailClean));
         if (data) {
-            this.setState({
-                error: null,
-                updateText: (
-                    <div
-                        id='passwordResetEmailSent'
-                        className='reset-form alert alert-success'
-                    >
-                        <FormattedMessage
-                            id='password_send.link'
-                            defaultMessage='If the account exists, a password reset email will be sent to:'
-                        />
-                        <div>
-                            <b>{email}</b>
-                        </div>
-                        <br/>
-                        <FormattedMessage
-                            id='password_send.checkInbox'
-                            defaultMessage='Please check your inbox.'
-                        />
-                    </div>
-                ),
-            });
-            if (this.resetForm.current) {
-                this.resetForm.current.hidden = true;
-            }
+            setErrorText(null);
+            setLinkSent(true);
         } else if (error) {
-            this.setState({
-                error: error.message,
-                updateText: null,
+            setErrorText(error.message);
+            setLinkSent(false);
+        }
+    }, [email, sendPasswordResetEmail]);
+
+    const handleHeaderBackButtonOnClick = useCallback(() => {
+        history.goBack();
+    }, [history]);
+
+    const getAlternateLink = useCallback(() => (
+        <AlternateLinkLayout
+            className='signup-body-alternate-link'
+            alternateMessage={intl.formatMessage({
+                id: 'signup_user_completed.haveAccount',
+                defaultMessage: 'Already have an account?',
+            })}
+            alternateLinkPath='/login'
+            alternateLinkLabel={intl.formatMessage({
+                id: 'signup_user_completed.signIn',
+                defaultMessage: 'Log in',
+            })}
+        />
+    ), []);
+
+    useEffect(() => {
+        if (onCustomizeHeader) {
+            onCustomizeHeader({
+                onBackButtonClick: handleHeaderBackButtonOnClick,
+                alternateLink: isMobileView ? getAlternateLink() : undefined,
             });
         }
-    };
+    }, [onCustomizeHeader, handleHeaderBackButtonOnClick, isMobileView, getAlternateLink, search]);
 
-    render() {
-        let error = null;
-        if (this.state.error) {
-            error = (
-                <div className='form-group has-error'>
-                    <label className='control-label'>{this.state.error}</label>
-                </div>
-            );
-        }
+    const onWindowResize = throttle(() => {
+        setIsMobileView(window.innerWidth < MOBILE_SCREEN_WIDTH);
+    }, 100);
 
-        let formClass = 'form-group';
-        if (error) {
-            formClass += ' has-error';
-        }
+    useEffect(() => {
+        onWindowResize();
+        window.addEventListener('resize', onWindowResize);
+        return () => {
+            window.removeEventListener('resize', onWindowResize);
+        };
+    }, []);
 
+    let errorNode = null;
+    if (errorText) {
+        errorNode = (
+            <div className='form-group has-error'>
+                <label className='control-label'>{errorText}</label>
+            </div>
+        );
+    }
+
+    let formClass = 'form-group';
+    if (errorNode) {
+        formClass += ' has-error';
+    }
+    if (linkSent) {
         return (
             <div>
-                <BackButton/>
                 <div className='col-sm-12'>
-                    <div className='signup-team__container'>
+                    <div className='signup-team__container reset-password'>
+                        <ManWithMailBox/>
                         <FormattedMessage
-                            id='password_send.title'
+                            id='password_send.title_link_send'
                             tagName='h1'
-                            defaultMessage='Password Reset'
+                            defaultMessage='Reset Link Sent'
                         />
-                        {this.state.updateText}
-                        <form
-                            onSubmit={this.handleSendLink}
-                            ref={this.resetForm}
-                        >
+                        <div id='passwordResetEmailSent'>
+                            <FormattedMessage
+                                id='password_send.link'
+                                defaultMessage='If the account exists, a password reset email will be sent to:'
+                            />
+                            <br/>
                             <p>
-                                <FormattedMessage
-                                    id='password_send.description'
-                                    defaultMessage='To reset your password, enter the email address you used to sign up'
-                                />
+                                <b>{email}</b>
                             </p>
-                            <div className={formClass}>
-                                <input
-                                    id='passwordResetEmailInput'
-                                    type='email'
-                                    className='form-control'
-                                    name='email'
-                                    placeholder={this.props.intl.formatMessage({
-                                        id: 'password_send.email',
-                                        defaultMessage: 'Email',
-                                    })}
-                                    ref={this.emailInput}
-                                    spellCheck='false'
-                                    autoFocus={true}
-                                />
-                            </div>
-                            {error}
+                        </div>
+                        <BrandedButton>
                             <button
-                                id='passwordResetButton'
+                                id='passwordResetReturnToLoginButton'
+                                data-testid='returnToLogin'
                                 type='submit'
                                 className='btn btn-primary'
+                                onClick={handleHeaderBackButtonOnClick}
                             >
                                 <FormattedMessage
-                                    id='password_send.reset'
-                                    defaultMessage='Reset my password'
+                                    id='password_send.return_to_login'
+                                    defaultMessage='Return to Log In'
                                 />
                             </button>
-                        </form>
+                        </BrandedButton>
                     </div>
                 </div>
             </div>
         );
     }
-}
 
-export default injectIntl(PasswordResetSendLink);
+    return (
+        <div>
+            <div className='col-sm-12'>
+                <div className='signup-team__container reset-password'>
+                    <WomanWithLock/>
+
+                    <FormattedMessage
+                        id='password_send.title'
+                        tagName='h1'
+                        defaultMessage='Reset Your Password'
+                    />
+
+                    <form onSubmit={handleSendLink}>
+                        <p>
+                            <FormattedMessage
+                                id='password_send.description'
+                                defaultMessage='To reset your password, enter the email address you used to sign up'
+                            />
+                        </p>
+                        <div className='input-line'>
+                            <div className={formClass}>
+                                <BrandedInput>
+                                    <Input
+                                        id='passwordResetEmailInput'
+                                        data-testid='email'
+                                        type='email'
+                                        className='form-control'
+                                        name='email'
+                                        placeholder={intl.formatMessage({
+                                            id: 'password_send.email',
+                                            defaultMessage: 'Enter email address',
+                                        })}
+                                        inputSize={SIZE.LARGE}
+                                        spellCheck='false'
+                                        autoFocus={true}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        value={email}
+                                    />
+                                </BrandedInput>
+                            </div>
+                            <BrandedButton>
+                                <button
+                                    id='passwordResetButton'
+                                    type='submit'
+                                    data-testid='reset-button'
+                                    className='btn btn-primary'
+                                >
+                                    <FormattedMessage
+                                        id='password_send.reset'
+                                        defaultMessage='Reset'
+                                    />
+                                </button>
+                            </BrandedButton>
+                        </div>
+                        {errorNode}
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default PasswordResetSendLink;

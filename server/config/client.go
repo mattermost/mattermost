@@ -8,11 +8,12 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 // GenerateClientConfig renders the given configuration for a client.
-func GenerateClientConfig(c *model.Config, telemetryID string, license *model.License) map[string]string {
-	props := GenerateLimitedClientConfig(c, telemetryID, license)
+func GenerateClientConfig(c *model.Config, telemetryID string, license *model.License, fileStore filestore.FileBackend) map[string]string {
+	props := GenerateLimitedClientConfig(c, telemetryID, license, fileStore)
 
 	props["EnableCustomUserStatuses"] = strconv.FormatBool(*c.TeamSettings.EnableCustomUserStatuses)
 	props["EnableLastActiveTime"] = strconv.FormatBool(*c.TeamSettings.EnableLastActiveTime)
@@ -232,7 +233,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 }
 
 // GenerateLimitedClientConfig renders the given configuration for an untrusted client.
-func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *model.License) map[string]string {
+func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *model.License, fileStore filestore.FileBackend) map[string]string {
 	props := make(map[string]string)
 
 	props["Version"] = model.CurrentVersion
@@ -311,9 +312,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["PasswordEnableForgotLink"] = strconv.FormatBool(*c.PasswordSettings.EnableForgotLink)
 
 	// Set default values for all options that require a license.
-	props["EnableCustomBrand"] = "false"
-	props["CustomBrandText"] = ""
-	props["CustomDescriptionText"] = ""
 	props["EnableLdap"] = "false"
 	props["LdapLoginFieldName"] = ""
 	props["LdapLoginButtonColor"] = ""
@@ -333,6 +331,22 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
+	props["CustomBrandHeading"] = ""
+	props["CustomBrandHasLogo"] = "false"
+	props["CustomBrandHasBackground"] = "false"
+	props["CustomBrandHasBrand"] = "false"
+	if *c.TeamSettings.EnableCustomBrand {
+		fileExists, _ := fileStore.FileExists("brand/image.png")
+		props["CustomBrandHasBrand"] = strconv.FormatBool(fileExists)
+	}
+	props["CustomBrandColorBackground"] = ""
+	props["CustomBrandColorText"] = ""
+	props["CustomBrandColorLoginContainer"] = ""
+	props["CustomBrandColorLoginContainerText"] = ""
+	props["CustomBrandColorButtonBackground"] = ""
+	props["CustomBrandColorButtonText"] = ""
+	props["CustomBrandBackgroundImage"] = ""
+	props["CustomBrandShowFooter"] = "true"
 	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 	props["EnforceMultifactorAuthentication"] = "false"
 	props["EnableGuestAccounts"] = strconv.FormatBool(*c.GuestAccountsSettings.Enable)
@@ -384,6 +398,22 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["OpenIdButtonColor"] = *c.OpenIdSettings.ButtonColor
 			props["OpenIdButtonText"] = *c.OpenIdSettings.ButtonText
 		}
+
+		// Custom branding
+		props["CustomBrandHeading"] = *c.TeamSettings.CustomBrandHeading
+		props["CustomBrandColorBackground"] = *c.TeamSettings.CustomBrandColorBackground
+		props["CustomBrandColorText"] = *c.TeamSettings.CustomBrandColorText
+		props["CustomBrandColorLoginContainer"] = *c.TeamSettings.CustomBrandColorLoginContainer
+		props["CustomBrandColorLoginContainerText"] = *c.TeamSettings.CustomBrandColorLoginContainerText
+		props["CustomBrandColorButtonBackground"] = *c.TeamSettings.CustomBrandColorButtonBackground
+		props["CustomBrandColorButtonText"] = *c.TeamSettings.CustomBrandColorButtonText
+		props["CustomBrandBackgroundImage"] = *c.TeamSettings.CustomBrandBackgroundImage
+		props["CustomBrandShowFooter"] = strconv.FormatBool(*c.TeamSettings.CustomBrandShowFooter)
+		fileExists, _ := fileStore.FileExists("brand/light-logo.png")
+		fileExists2, _ := fileStore.FileExists("brand/dark-logo.png")
+		props["CustomBrandHasLogo"] = strconv.FormatBool(fileExists && fileExists2)
+		fileExists, _ = fileStore.FileExists("brand/favicon.png")
+		props["CustomBrandHasBackground"] = strconv.FormatBool(fileExists)
 	}
 
 	for key, value := range c.FeatureFlags.ToMap() {

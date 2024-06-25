@@ -12,6 +12,8 @@ import {sendVerificationEmail} from 'mattermost-redux/actions/users';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import ManWithMailboxSVG from 'components/common/svg_images_components/man_with_mailbox_svg';
+import BrandedBody from 'components/custom_branding/branded_body';
+import BrandedButton from 'components/custom_branding/branded_button';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import SaveButton from 'components/save_button';
 
@@ -64,7 +66,7 @@ const ShouldVerifyEmail = () => {
     };
 
     return (
-        <div className='should-verify-body'>
+        <BrandedBody className='should-verify-body'>
             <div className='should-verify-body-content'>
                 <ColumnLayout
                     title={formatMessage({id: 'email_verify.almost', defaultMessage: 'You’re almost done!'})}
@@ -73,20 +75,24 @@ const ShouldVerifyEmail = () => {
                     extraContent={(
                         <div className='should-verify-body-content-extra'>
                             <div className='should-verify-body-content-buttons'>
-                                <SaveButton
-                                    extraClasses='should-verify-body-content-button-resend large'
-                                    saving={isWaiting}
-                                    disabled={!email}
-                                    onClick={handleResendButtonOnClick}
-                                    defaultMessage={formatMessage({id: 'email_verify.resend', defaultMessage: 'Resend Email'})}
-                                    savingMessage={formatMessage({id: 'email_verify.sending', defaultMessage: 'Sending email…'})}
-                                />
-                                <button
-                                    className='should-verify-body-content-button-return'
-                                    onClick={handleReturnButtonOnClick}
-                                >
-                                    {formatMessage({id: 'email_verify.return', defaultMessage: 'Return to log in'})}
-                                </button>
+                                <BrandedButton>
+                                    <SaveButton
+                                        extraClasses='should-verify-body-content-button-resend large'
+                                        saving={isWaiting}
+                                        disabled={!email}
+                                        onClick={handleResendButtonOnClick}
+                                        defaultMessage={formatMessage({id: 'email_verify.resend', defaultMessage: 'Resend Email'})}
+                                        savingMessage={formatMessage({id: 'email_verify.sending', defaultMessage: 'Sending email…'})}
+                                    />
+                                </BrandedButton>
+                                <BrandedButton>
+                                    <button
+                                        className='should-verify-body-content-button-return'
+                                        onClick={handleReturnButtonOnClick}
+                                    >
+                                        {formatMessage({id: 'email_verify.return', defaultMessage: 'Return to log in'})}
+                                    </button>
+                                </BrandedButton>
                             </div>
                             <div className={classNames('should-verify-body-content-message', resendStatus)}>
                                 <i
@@ -113,7 +119,7 @@ const ShouldVerifyEmail = () => {
                     )}
                 />
             </div>
-        </div>
+        </BrandedBody>
     );
 };
 

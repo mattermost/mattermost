@@ -20,11 +20,14 @@
         align-items: center;
         justify-content: space-between;
 
+        .custom-branding-logo {
+            height: 30px;
+        }
+
         .header-logo-link {
             @include link;
 
             display: flex;
-            margin-top: 12px;
             color: rgba(var(--center-channel-color-rgb), 0.75);
             font-family: 'Metropolis';
             font-size: 20px;
@@ -62,8 +65,7 @@
 
     .header-back-button {
         position: absolute;
-        top: unset;
-        bottom: 0;
+        top: 80px;
         width: auto;
         padding: 0 0 0 40px;
         background: none;

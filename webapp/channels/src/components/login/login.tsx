@@ -29,6 +29,9 @@ import AlertBanner from 'components/alert_banner';
 import type {ModeType, AlertBannerProps} from 'components/alert_banner';
 import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
 import WomanWithChatsSVG from 'components/common/svg_images_components/woman_with_chats_svg';
+import BrandedBody from 'components/custom_branding/branded_body';
+import BrandedButton from 'components/custom_branding/branded_button';
+import LoginSignupBlock from 'components/custom_branding/login_signup_block';
 import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLink from 'components/external_link';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
@@ -95,6 +98,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         SamlLoginButtonText,
         EnableCustomBrand,
         CustomBrandText,
+        CustomBrandHeading,
+        CustomBrandHasBrand,
         CustomDescriptionText,
         SiteName,
         ExperimentalPrimaryTeam,
@@ -707,7 +712,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     };
 
     const getCardTitle = () => {
-        if (CustomDescriptionText) {
+        if (enableCustomBrand && CustomDescriptionText) {
             return CustomDescriptionText;
         }
 
@@ -809,21 +814,28 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                         'login-body-message',
                         {
                             'custom-branding': enableCustomBrand,
-                            'with-brand-image': enableCustomBrand && !brandImageError,
+                            'with-brand-image': enableCustomBrand && CustomBrandHasBrand === 'true' && !brandImageError,
                             'with-alternate-link': showSignup && !isMobileView,
                         },
                     )}
                 >
-                    {enableCustomBrand && !brandImageError ? (
+                    {enableCustomBrand && CustomBrandHasBrand === 'true' && !brandImageError && (
                         <img
                             className={classNames('login-body-custom-branding-image')}
                             alt='brand image'
                             src={Client4.getBrandImageUrl('0')}
                             onError={handleBrandImageError}
                         />
-                    ) : (
+                    )}
+
+                    {(!enableCustomBrand || CustomBrandHeading === '') && (
                         <h1 className='login-body-message-title'>
                             {formatMessage({id: 'login.title', defaultMessage: 'Log in to your account'})}
+                        </h1>
+                    )}
+                    {enableCustomBrand && CustomBrandHeading !== '' && (
+                        <h1 className='login-body-message-title'>
+                            {CustomBrandHeading}
                         </h1>
                     )}
                     {getMessageSubtitle()}
@@ -835,7 +847,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 </div>
                 <div className='login-body-action'>
                     {!isMobileView && getAlternateLink()}
-                    <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
+                    <LoginSignupBlock className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             className='login-body-card-content'
                             tabIndex={0}
@@ -882,13 +894,15 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             disabled={isWaiting}
                                         />
                                         {getResetPasswordLink()}
-                                        <SaveButton
-                                            extraClasses='login-body-card-form-button-submit large'
-                                            saving={isWaiting}
-                                            onClick={preSubmit}
-                                            defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
-                                            savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
-                                        />
+                                        <BrandedButton>
+                                            <SaveButton
+                                                extraClasses='login-body-card-form-button-submit large'
+                                                saving={isWaiting}
+                                                onClick={preSubmit}
+                                                defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
+                                                savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
+                                            />
+                                        </BrandedButton>
                                     </div>
                                 </form>
                             )}
@@ -911,7 +925,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                 </div>
                             )}
                         </div>
-                    </div>
+                    </LoginSignupBlock>
                 </div>
             </>
         );
@@ -919,9 +933,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     return (
         <div className='login-body'>
-            <div className='login-body-content'>
+            <BrandedBody className='login-body-content'>
                 {getContent()}
-            </div>
+            </BrandedBody>
         </div>
     );
 };

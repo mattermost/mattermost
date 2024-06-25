@@ -1,85 +1,85 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, {useState, useMemo, useEffect, useCallback} from 'react';
+import {useSelector} from 'react-redux';
+
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import BrowserStore from 'stores/browser_store';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import GetAppDesktopSvg from 'components/common/svg_images_components/get-app-desktop_svg';
+import GetAppMobileSvg from 'components/common/svg_images_components/get-app-mobile_svg';
+import BrandedLanding from 'components/custom_branding/branded_landing';
 
-import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
-import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
-import MattermostLogoSvg from 'images/logo.svg';
 import {LandingPreferenceTypes} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
-type Props = {
-    defaultTheme: any;
-    desktopAppLink?: string;
-    iosAppLink?: string;
-    androidAppLink?: string;
-    siteUrl?: string;
-    siteName?: string;
-    brandImageUrl?: string;
-    enableCustomBrand: boolean;
-}
+import DialogBody from './dialog_body';
+import Header from './header';
 
-type State = {
-    rememberChecked: boolean;
-    redirectPage: boolean;
-    location: string;
-    nativeLocation: string;
-    brandImageError: boolean;
-    navigating: boolean;
-}
+const LinkingLandingPage = () => {
+    const [location, setLocation] = useState('');
+    const [rememberChecked, setRememberChecked] = useState(false);
 
-export default class LinkingLandingPage extends PureComponent<Props, State> {
-    constructor(props: Props) {
-        super(props);
+    const {
+        AppDownloadLink,
+        IosAppDownloadLink,
+        AndroidAppDownloadLink,
+        SiteURL,
+    } = useSelector(getConfig);
 
-        const location = window.location.href.replace('/landing#', '');
+    const theme = useSelector(getTheme);
 
-        this.state = {
-            rememberChecked: false,
-            redirectPage: false,
-            location,
-            nativeLocation: location.replace(/^(https|http)/, 'mattermost'),
-            brandImageError: false,
-            navigating: false,
-        };
+    const nativeLocation = useMemo(() => location.replace(/^(https|http)/, 'mattermost'), [location]);
 
+    const isMobile = useMemo(() => UserAgent.isMobile(), []);
+
+    useEffect(() => {
+        setLocation(window.location.href.replace('/landing#', ''));
         if (!BrowserStore.hasSeenLandingPage()) {
             BrowserStore.setLandingPageSeen(true);
         }
-    }
+        Utils.applyTheme(theme);
+    }, []);
 
-    componentDidMount() {
-        Utils.applyTheme(this.props.defaultTheme);
-        if (this.checkLandingPreferenceApp()) {
-            this.openMattermostApp();
+    const handleChecked = useCallback((value: boolean) => {
+        setRememberChecked(value);
+
+        // If it was checked, and now we're unchecking it, clear the preference
+        if (!value) {
+            BrowserStore.clearLandingPreference(SiteURL);
         }
+    }, []);
 
-        window.addEventListener('beforeunload', this.clearLandingPreferenceIfNotChecked);
-    }
-
-    componentWillUnmount() {
-        window.removeEventListener('beforeunload', this.clearLandingPreferenceIfNotChecked);
-    }
-
-    clearLandingPreferenceIfNotChecked = () => {
-        if (!this.state.navigating && !this.state.rememberChecked) {
-            BrowserStore.clearLandingPreference(this.props.siteUrl);
-        }
-    };
-
-    checkLandingPreferenceBrowser = () => {
-        const landingPreference = BrowserStore.getLandingPreference(this.props.siteUrl);
+    const checkLandingPreferenceBrowser = () => {
+        const landingPreference = BrowserStore.getLandingPreference(SiteURL);
         return landingPreference && landingPreference === LandingPreferenceTypes.BROWSER;
     };
 
-    isEmbedded = () => {
+    const setPreference = (pref: string, clearIfNotChecked?: boolean) => {
+        if (!rememberChecked) {
+            if (clearIfNotChecked) {
+                BrowserStore.clearLandingPreference(SiteURL);
+            }
+            return;
+        }
+
+        switch (pref) {
+        case LandingPreferenceTypes.MATTERMOSTAPP:
+            BrowserStore.setLandingPreferenceToMattermostApp(SiteURL);
+            break;
+        case LandingPreferenceTypes.BROWSER:
+            BrowserStore.setLandingPreferenceToBrowser(SiteURL);
+            break;
+        default:
+            break;
+        }
+    };
+
+    const isEmbedded = () => {
         // this cookie is set by any plugin that facilitates iframe embedding (e.g. mattermost-plugin-msteams-sync).
         const cookieName = 'MMEMBED';
         const cookies = document.cookie.split(';');
@@ -93,366 +93,53 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         return false;
     };
 
-    checkLandingPreferenceApp = () => {
-        const landingPreference = BrowserStore.getLandingPreference(this.props.siteUrl);
-        return landingPreference && landingPreference === LandingPreferenceTypes.MATTERMOSTAPP;
+    const openInBrowser = () => {
+        setPreference(LandingPreferenceTypes.BROWSER);
+        window.location.href = location;
     };
 
-    handleChecked = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({rememberChecked: e.target.checked});
-
-        // If it was checked, and now we're unchecking it, clear the preference
-        if (!e.target.checked) {
-            BrowserStore.clearLandingPreference(this.props.siteUrl);
-        }
-    };
-
-    setPreference = (pref: string, clearIfNotChecked?: boolean) => {
-        if (!this.state.rememberChecked) {
-            if (clearIfNotChecked) {
-                BrowserStore.clearLandingPreference(this.props.siteUrl);
-            }
-            return;
-        }
-
-        switch (pref) {
-        case LandingPreferenceTypes.MATTERMOSTAPP:
-            BrowserStore.setLandingPreferenceToMattermostApp(this.props.siteUrl);
-            break;
-        case LandingPreferenceTypes.BROWSER:
-            BrowserStore.setLandingPreferenceToBrowser(this.props.siteUrl);
-            break;
-        default:
-            break;
-        }
-    };
-
-    openMattermostApp = () => {
-        this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP);
-        this.setState({redirectPage: true});
-        window.location.href = this.state.nativeLocation;
-    };
-
-    openInBrowser = () => {
-        this.setPreference(LandingPreferenceTypes.BROWSER);
-        window.location.href = this.state.location;
-    };
-
-    renderSystemDialogMessage = () => {
-        const isMobile = UserAgent.isMobile();
-
-        if (isMobile) {
-            return (
-                <FormattedMessage
-                    id='get_app.systemDialogMessageMobile'
-                    defaultMessage='View in App'
-                />
-            );
-        }
-
-        return (
-            <FormattedMessage
-                id='get_app.systemDialogMessage'
-                defaultMessage='View in Desktop App'
-            />
-        );
-    };
-
-    renderGoNativeAppMessage = () => {
-        return (
-            <a
-                href={UserAgent.isMobile() ? '#' : this.state.nativeLocation}
-                onMouseDown={() => {
-                    this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
-                }}
-                onClick={() => {
-                    this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
-                    this.setState({redirectPage: true, navigating: true});
-                    if (UserAgent.isMobile()) {
-                        if (UserAgent.isAndroidWeb()) {
-                            const timeout = setTimeout(() => {
-                                window.location.replace(this.getDownloadLink()!);
-                            }, 2000);
-                            window.addEventListener('blur', () => {
-                                clearTimeout(timeout);
-                            });
-                        }
-                        window.location.replace(this.state.nativeLocation);
-                    }
-                }}
-                className='btn btn-primary btn-lg get-app__download'
-            >
-                {this.renderSystemDialogMessage()}
-            </a>
-        );
-    };
-
-    getDownloadLink = () => {
+    const getDownloadLink = () => {
         if (UserAgent.isIosWeb()) {
-            return this.props.iosAppLink;
+            return IosAppDownloadLink;
         } else if (UserAgent.isAndroidWeb()) {
-            return this.props.androidAppLink;
+            return AndroidAppDownloadLink;
         }
 
-        return this.props.desktopAppLink;
+        return AppDownloadLink;
     };
 
-    handleBrandImageError = () => {
-        this.setState({brandImageError: true});
-    };
-
-    renderGraphic = () => {
-        const isMobile = UserAgent.isMobile();
-
-        if (isMobile) {
-            return (
-                <img src={mobileImg}/>
-            );
-        }
-
-        return (
-            <img src={desktopImg}/>
-        );
-    };
-
-    renderDownloadLinkText = () => {
-        const isMobile = UserAgent.isMobile();
-
-        if (isMobile) {
-            return (
-                <FormattedMessage
-                    id='get_app.dontHaveTheMobileApp'
-                    defaultMessage={'Don\'t have the Mobile App?'}
-                />
-            );
-        }
-
-        return (
-            <FormattedMessage
-                id='get_app.dontHaveTheDesktopApp'
-                defaultMessage={'Don\'t have the Desktop App?'}
-            />
-        );
-    };
-
-    renderDownloadLinkSection = () => {
-        const downloadLink = this.getDownloadLink();
-
-        if (this.state.redirectPage) {
-            return (
-                <div className='get-app__download-link'>
-                    <FormattedMarkdownMessage
-                        id='get_app.openLinkInBrowser'
-                        defaultMessage='Or, [open this link in your browser.](!{link})'
-                        values={{
-                            link: this.state.location,
-                        }}
-                    />
-                </div>
-            );
-        } else if (downloadLink) {
-            return (
-                <div className='get-app__download-link'>
-                    {this.renderDownloadLinkText()}
-                    {'\u00A0'}
-                    <br/>
-                    <a href={downloadLink}>
-                        <FormattedMessage
-                            id='get_app.downloadTheAppNow'
-                            defaultMessage='Download the app now.'
-                        />
-                    </a>
-                </div>
-            );
-        }
-
+    if (checkLandingPreferenceBrowser() || isEmbedded()) {
+        openInBrowser();
         return null;
-    };
-
-    renderDialogHeader = () => {
-        const downloadLink = this.getDownloadLink();
-        const isMobile = UserAgent.isMobile();
-
-        let openingLink = (
-            <FormattedMessage
-                id='get_app.openingLink'
-                defaultMessage='Opening link in Mattermost...'
-            />
-        );
-        if (this.props.enableCustomBrand) {
-            openingLink = (
-                <FormattedMessage
-                    id='get_app.openingLinkWhiteLabel'
-                    defaultMessage='Opening link in {appName}...'
-                    values={{
-                        appName: this.props.siteName || 'Mattermost',
-                    }}
-                />
-            );
-        }
-
-        if (this.state.redirectPage) {
-            return (
-                <h1 className='get-app__launching'>
-                    {openingLink}
-                    <div className={`get-app__alternative${this.state.redirectPage ? ' redirect-page' : ''}`}>
-                        <FormattedMessage
-                            id='get_app.redirectedInMoments'
-                            defaultMessage='You will be redirected in a few moments.'
-                        />
-                        <br/>
-                        {this.renderDownloadLinkText()}
-                        {'\u00A0'}
-                        <br className='mobile-only'/>
-                        <a href={downloadLink}>
-                            <FormattedMessage
-                                id='get_app.downloadTheAppNow'
-                                defaultMessage='Download the app now.'
-                            />
-                        </a>
-                    </div>
-                </h1>
-            );
-        }
-
-        let viewApp = (
-            <FormattedMessage
-                id='get_app.ifNothingPrompts'
-                defaultMessage='You can view {siteName} in the desktop app or continue in your web browser.'
-                values={{
-                    siteName: this.props.enableCustomBrand ? '' : ' Mattermost',
-                }}
-            />
-        );
-        if (isMobile) {
-            viewApp = (
-                <FormattedMessage
-                    id='get_app.ifNothingPromptsMobile'
-                    defaultMessage='You can view {siteName} in the mobile app or continue in your web browser.'
-                    values={{
-                        siteName: this.props.enableCustomBrand ? '' : ' Mattermost',
-                    }}
-                />
-            );
-        }
-
-        return (
-            <div className='get-app__launching'>
-                <FormattedMessage
-                    id='get_app.launching'
-                    tagName='h1'
-                    defaultMessage='Where would you like to view this?'
-                />
-                <div className='get-app__alternative'>
-                    {viewApp}
-                </div>
-            </div>
-        );
-    };
-
-    renderDialogBody = () => {
-        if (this.state.redirectPage) {
-            return (
-                <div className='get-app__dialog-body'>
-                    {this.renderDialogHeader()}
-                    {this.renderDownloadLinkSection()}
-                </div>
-            );
-        }
-
-        return (
-            <div className='get-app__dialog-body'>
-                {this.renderDialogHeader()}
-                <div className='get-app__buttons'>
-                    {this.renderGoNativeAppMessage()}
-                    <a
-                        href={this.state.location}
-                        onMouseDown={() => {
-                            this.setPreference(LandingPreferenceTypes.BROWSER, true);
-                        }}
-                        onClick={() => {
-                            this.setPreference(LandingPreferenceTypes.BROWSER, true);
-                            this.setState({navigating: true});
-                        }}
-                        className='btn btn-tertiary btn-lg'
-                    >
-                        <FormattedMessage
-                            id='get_app.continueToBrowser'
-                            defaultMessage='View in Browser'
-                        />
-                    </a>
-                </div>
-                <label className='get-app__preference'>
-                    <input
-                        type='checkbox'
-                        checked={this.state.rememberChecked}
-                        className='get-app__checkbox'
-                        onChange={this.handleChecked}
-                    />
-                    <FormattedMessage
-                        id='get_app.rememberMyPreference'
-                        defaultMessage='Remember my preference'
-                    />
-                </label>
-                {this.renderDownloadLinkSection()}
-            </div>
-        );
-    };
-
-    renderHeader = () => {
-        let header = (
-            <div className='get-app__header'>
-                <img
-                    src={MattermostLogoSvg}
-                    className='get-app__logo'
-                />
-            </div>
-        );
-        if (this.props.enableCustomBrand && this.props.brandImageUrl) {
-            let customLogo;
-            if (this.props.brandImageUrl && !this.state.brandImageError) {
-                customLogo = (
-                    <img
-                        src={this.props.brandImageUrl}
-                        onError={this.handleBrandImageError}
-                        className='get-app__custom-logo'
-                    />
-                );
-            }
-
-            header = (
-                <div className='get-app__header'>
-                    {customLogo}
-                    <div className='get-app__custom-site-name'>
-                        <span>{this.props.siteName}</span>
-                    </div>
-                </div>
-            );
-        }
-
-        return header;
-    };
-
-    render() {
-        const isMobile = UserAgent.isMobile();
-
-        if (this.checkLandingPreferenceBrowser() || this.isEmbedded()) {
-            this.openInBrowser();
-            return null;
-        }
-
-        return (
-            <div className='get-app'>
-                {this.renderHeader()}
-                <div className='get-app__dialog'>
-                    <div
-                        className={`get-app__graphic ${isMobile ? 'mobile' : ''}`}
-                    >
-                        {this.renderGraphic()}
-                    </div>
-                    {this.renderDialogBody()}
-                </div>
-            </div>
-        );
     }
-}
+
+    return (
+        <BrandedLanding className='get-app'>
+            <Header/>
+            <div className='get-app__dialog'>
+                <div
+                    className={`get-app__graphic ${isMobile ? 'mobile' : ''}`}
+                >
+                    {isMobile ? (
+                        <GetAppMobileSvg
+                            width={362}
+                            height={600}
+                        />
+                    ) : <GetAppDesktopSvg/> }
+                </div>
+                <DialogBody
+                    siteUrl={SiteURL}
+                    downloadLink={getDownloadLink() || ''}
+                    isMobile={isMobile}
+                    nativeLocation={nativeLocation}
+                    setPreference={setPreference}
+                    location={location}
+                    onChecked={handleChecked}
+                    rememberChecked={rememberChecked}
+                />
+            </div>
+        </BrandedLanding>
+    );
+};
+
+export default LinkingLandingPage;

@@ -172,8 +172,8 @@ export async function oauthToEmail(currentService, email, password, success, err
     }
 }
 
-export async function uploadBrandImage(brandImage, success, error) {
-    const {data, error: err} = await dispatch(AdminActions.uploadBrandImage(brandImage));
+export async function uploadBrandImage(image, success, error) {
+    const {data, error: err} = await dispatch(AdminActions.uploadBrandImage(image));
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -183,6 +183,78 @@ export async function uploadBrandImage(brandImage, success, error) {
 
 export async function deleteBrandImage(success, error) {
     const {data, error: err} = await dispatch(AdminActions.deleteBrandImage());
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function uploadLightLogoImage(image, success, error) {
+    const {data, error: err} = await dispatch(AdminActions.uploadLightLogoImage(image));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function deleteLightLogoImage(success, error) {
+    const {data, error: err} = await dispatch(AdminActions.deleteLightLogoImage());
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function uploadDarkLogoImage(image, success, error) {
+    const {data, error: err} = await dispatch(AdminActions.uploadDarkLogoImage(image));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function deleteDarkLogoImage(success, error) {
+    const {data, error: err} = await dispatch(AdminActions.deleteDarkLogoImage());
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function uploadBackgroundImage(image, success, error) {
+    const {data, error: err} = await dispatch(AdminActions.uploadBackgroundImage(image));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function deleteBackgroundImage(success, error) {
+    const {data, error: err} = await dispatch(AdminActions.deleteBackgroundImage());
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function uploadFaviconImage(image, success, error) {
+    const {data, error: err} = await dispatch(AdminActions.uploadFaviconImage(image));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function deleteFaviconImage(success, error) {
+    const {data, error: err} = await dispatch(AdminActions.deleteFaviconImage());
     if (data && success) {
         success(data);
     } else if (err && error) {

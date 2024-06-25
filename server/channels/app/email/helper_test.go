@@ -16,13 +16,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost/server/v8/config"
+	cfg "github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
 type TestHelper struct {
 	service     *Service
-	configStore *config.Store
+	configStore *cfg.Store
 	store       store.Store
 	workspace   string
 
@@ -69,7 +70,7 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 		panic(err)
 	}
 
-	configStore := config.NewTestMemoryStore()
+	configStore := cfg.NewTestMemoryStore()
 
 	config := configStore.Get()
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
@@ -118,10 +119,18 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	}()
 
 	service := &Service{
-		store:              s,
-		userService:        us,
-		license:            licenseFn,
-		config:             configStore.Get,
+		store:       s,
+		userService: us,
+		license:     licenseFn,
+		config:      configStore.Get,
+		clientConfig: func() map[string]string {
+			fileBackendSettings := filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, false, false)
+			filebackend, err := filestore.NewFileBackend(fileBackendSettings)
+			if err != nil {
+				return map[string]string{}
+			}
+			return cfg.GenerateClientConfig(config, "", licenseFn(), filebackend)
+		},
 		templatesContainer: htmlTemplateWatcher,
 	}
 
