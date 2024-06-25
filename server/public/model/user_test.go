@@ -9,9 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func TestUserDeepCopy(t *testing.T) {
@@ -115,6 +116,13 @@ func TestUserIsValid(t *testing.T) {
 
 	user.FirstName = ""
 	user.LastName = ""
+	require.Nil(t, user.IsValid())
+
+	user.Email = NewId()
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
+
+	user.RemoteId = NewString(NewId())
 	require.Nil(t, user.IsValid())
 
 	user.FirstName = strings.Repeat("a", 65)
