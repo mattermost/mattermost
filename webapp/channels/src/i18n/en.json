@@ -1455,6 +1455,7 @@
   "admin.logs.bannerDesc": "To look up users by User ID or Token ID, go to User Management > Users and paste the ID into the search filter.",
   "admin.logs.caller": "Caller",
   "admin.logs.Debug": "Debug",
+  "admin.logs.DownloadLogs": "Download Logs",
   "admin.logs.Error": "Error",
   "admin.logs.fullEvent": "Full log event",
   "admin.logs.Info": "Info",

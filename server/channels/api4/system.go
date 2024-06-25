@@ -50,6 +50,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/logs/download", api.APISessionRequired(downloadLogs)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/logs/query", api.APISessionRequired(queryLogs)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST")
 
@@ -412,6 +413,36 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "logs_per_page", c.Params.LogsPerPage)
 
 	w.Write([]byte(model.ArrayToJSON(lines)))
+}
+
+func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("downloadLogs", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("downloadLogs", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetLogs) {
+		c.SetPermissionError(model.PermissionGetLogs)
+		return
+	}
+
+	fileData, err := c.App.GetMattermostLog(c.AppContext)
+	if err != nil {
+		c.Err = model.NewAppError("downloadLogs", "api.system.logs.download_bytes_buffer.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	reader := bytes.NewReader(fileData.Body)
+	web.WriteFileResponse("mattermost.log",
+		"text/plain",
+		int64(len(fileData.Body)),
+		time.Now(),
+		*c.App.Config().ServiceSettings.WebserverMode,
+		reader,
+		true,
+		w,
+		r)
 }
 
 func postLog(c *Context, w http.ResponseWriter, r *http.Request) {

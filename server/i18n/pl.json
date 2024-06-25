@@ -10042,5 +10042,17 @@
   {
     "id": "app.user.save.groupname.app_error",
     "translation": "Nie można ustalić, czy ta nazwa użytkownika już istnieje"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Nieprawidłowy zestaw statusów"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "Nie masz uprawnień do zarządzania tym typem zadania"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Nie można zaktualizować statusu zadania. Ustawiono nieprawidłowy status"
   }
 ]
