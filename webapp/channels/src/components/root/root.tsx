@@ -158,7 +158,7 @@ type Props = {
 } & RouteComponentProps
 
 interface State {
-    configLoaded?: boolean;
+    isConfigLoaded?: boolean;
 }
 
 export default class Root extends React.PureComponent<Props, State> {
@@ -196,7 +196,7 @@ export default class Root extends React.PureComponent<Props, State> {
         });
 
         this.state = {
-            configLoaded: false,
+            isConfigLoaded: false,
         };
 
         this.a11yController = new A11yController();
@@ -349,7 +349,6 @@ export default class Root extends React.PureComponent<Props, State> {
             }
         }
 
-        // TODO: Remove this to their own components
         if (
             this.props.shouldShowAppBar !== prevProps.shouldShowAppBar ||
             this.props.rhsIsOpen !== prevProps.rhsIsOpen ||
@@ -392,7 +391,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (result && result.config) {
             this.onConfigLoaded(result.config);
-            this.setState({configLoaded: true});
+            this.setState({isConfigLoaded: true});
         }
     };
 
@@ -416,7 +415,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.props.actions.handleLoginLogoutSignal(e);
     };
 
-    // TODO: Remove this to their own components
     setRootMeta = () => {
         const root = document.getElementById('root')!;
 
@@ -430,7 +428,7 @@ export default class Root extends React.PureComponent<Props, State> {
     };
 
     render() {
-        if (!this.state.configLoaded) {
+        if (!this.state.isConfigLoaded) {
             return <div/>;
         }
 
