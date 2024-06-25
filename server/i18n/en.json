@@ -5084,7 +5084,7 @@
   },
   {
     "id": "app.import.custom_status.error",
-    "translation": "Unable to marshal custom status"
+    "translation": "Unable to set custom status."
   },
   {
     "id": "app.import.emoji.bad_file.error",
