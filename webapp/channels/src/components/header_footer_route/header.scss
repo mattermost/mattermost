@@ -24,7 +24,6 @@
             @include link;
 
             display: flex;
-            margin-top: 12px;
             color: rgba(var(--center-channel-color-rgb), 0.75);
             font-family: 'Metropolis';
             font-size: 20px;
@@ -63,13 +62,25 @@
     .header-back-button {
         position: absolute;
         top: unset;
-        bottom: 0;
+        bottom: -8px;
         width: auto;
         padding: 0 0 0 40px;
         background: none;
 
         a {
             @include link;
+        }
+    }
+
+    &.has-custom-site-name {
+        .header-logo-link ~ .header-logo-link {
+            margin-top: 12px;
+        }
+    }
+
+    &.has-free-banner.has-custom-site-name {
+        .header-back-button {
+            bottom: -20px;
         }
     }
 }
