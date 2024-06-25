@@ -1925,12 +1925,7 @@ export const Constants = {
         COMMAND_SUGGESTION_USER: 'user',
     },
     FeatureTogglePrefix: 'feature_enabled_',
-    PRE_RELEASE_FEATURES: {
-        MARKDOWN_PREVIEW: {
-            label: 'markdown_preview', // github issue: https://github.com/mattermost/platform/pull/1389
-            description: 'Show markdown preview option in message input box',
-        },
-    },
+    PRE_RELEASE_FEATURES: {},
     OVERLAY_TIME_DELAY_SMALL: 100,
     OVERLAY_TIME_DELAY: 400,
     OVERLAY_DEFAULT_TRIGGER: ['hover', 'focus'],
