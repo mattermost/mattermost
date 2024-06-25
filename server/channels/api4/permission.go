@@ -12,9 +12,7 @@ import (
 )
 
 func (api *API) InitPermissions() {
-	// to be deprecated
 	api.BaseRoutes.Permissions.Handle("/ancillary", api.APISessionRequired(appendAncillaryPermissions)).Methods("GET")
-	api.BaseRoutes.Permissions.Handle("/ancillary", api.APISessionRequired(appendAncillaryPermissionsPost)).Methods("POST")
 }
 
 func appendAncillaryPermissions(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -26,21 +24,6 @@ func appendAncillaryPermissions(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	permissions := strings.Split(keys[0], ",")
-	b, err := json.Marshal(model.AddAncillaryPermissions(permissions))
-	if err != nil {
-		c.SetJSONEncodingError(err)
-		return
-	}
-
-	w.Write(b)
-}
-
-func appendAncillaryPermissionsPost(c *Context, w http.ResponseWriter, r *http.Request) {
-	permissions, err := model.NonSortedArrayFromJSON(r.Body)
-	if err != nil {
-		c.Err = model.NewAppError("appendAncillaryPermissionsPost", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
 	b, err := json.Marshal(model.AddAncillaryPermissions(permissions))
 	if err != nil {
 		c.SetJSONEncodingError(err)

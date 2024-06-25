@@ -4068,8 +4068,8 @@ export default class Client4 {
 
     getAncillaryPermissions = (subsectionPermissions: string[]) => {
         return this.doFetch<string[]>(
-            `${this.getPermissionsRoute()}/ancillary`,
-            {method: 'post', body: JSON.stringify(subsectionPermissions)},
+            `${this.getPermissionsRoute()}/ancillary?subsection_permissions=${subsectionPermissions.join(',')}`,
+            {method: 'get'},
         );
     };
 
