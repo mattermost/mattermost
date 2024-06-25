@@ -346,7 +346,7 @@ func (u *User) IsValid() *AppError {
 		}
 	}
 
-	if len(u.Email) > UserEmailMaxLength || u.Email == "" || !IsValidEmail(u.Email) {
+	if len(u.Email) > UserEmailMaxLength || u.Email == "" || (!IsValidEmail(u.Email) && !u.IsRemote()) {
 		return InvalidUserError("email", u.Id, u.Email)
 	}
 
