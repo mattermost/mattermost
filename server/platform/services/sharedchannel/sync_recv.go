@@ -254,8 +254,8 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 	user = sanitizeUserForSync(user)
 
 	// save the original username and email in props
-	user.SetProp(KeyRemoteUsername, user.Username)
-	user.SetProp(KeyRemoteEmail, user.Email)
+	user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
+	user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
 
 	// Apply a suffix to the username until it is unique. Collisions will be quite
 	// rare since we are joining a username that is unique at a remote site with a unique
