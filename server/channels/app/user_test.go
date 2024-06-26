@@ -1210,6 +1210,153 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 	})
 }
 
+func TestPasswordChangeSessionTermination(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("user-initiated password change with termination enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.ServiceSettings.TerminateSessionsOnPasswordChange = true
+		})
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser2.Id
+		th.Context.Session().Id = session.Id
+
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		require.Nil(t, err)
+
+		session, err = th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		require.False(t, session.IsExpired())
+
+		session2, err = th.App.GetSession(session2.Token)
+		require.Error(t, err)
+		require.Nil(t, session2)
+
+		// Cleanup
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		require.Nil(t, err)
+		th.Context.Session().UserId = ""
+		th.Context.Session().Id = ""
+	})
+
+	t.Run("user-initiated password change with termination disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.ServiceSettings.TerminateSessionsOnPasswordChange = false
+		})
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser2.Id
+		th.Context.Session().Id = session.Id
+
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		require.Nil(t, err)
+
+		session, err = th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		require.False(t, session.IsExpired())
+
+		session2, err = th.App.GetSession(session2.Token)
+		require.Nil(t, err)
+		require.False(t, session2.IsExpired())
+
+		// Cleanup
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		require.Nil(t, err)
+		th.Context.Session().UserId = ""
+		th.Context.Session().Id = ""
+	})
+
+	t.Run("admin-initiated password change with termination enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.ServiceSettings.TerminateSessionsOnPasswordChange = true
+		})
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		require.Nil(t, err)
+
+		session, err = th.App.GetSession(session.Token)
+		require.Error(t, err)
+		require.Nil(t, session)
+
+		session2, err = th.App.GetSession(session2.Token)
+		require.Error(t, err)
+		require.Nil(t, session2)
+
+		// Cleanup
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		require.Nil(t, err)
+	})
+
+	t.Run("admin-initiated password change with termination disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.ServiceSettings.TerminateSessionsOnPasswordChange = false
+		})
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		require.Nil(t, err)
+
+		session, err = th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		require.False(t, session.IsExpired())
+
+		session2, err = th.App.GetSession(session2.Token)
+		require.Nil(t, err)
+		require.False(t, session2.IsExpired())
+
+		// Cleanup
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		require.Nil(t, err)
+	})
+}
+
 func TestGetViewUsersRestrictions(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1687,6 +1834,49 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 	// Test bad role.
 	_, err = th.App.UpdateUserRolesWithUser(th.Context, user, "does not exist", false)
 	require.NotNil(t, err)
+
+	//Test reset to User role
+	user, err = th.App.UpdateUserRolesWithUser(th.Context, user, model.SystemUserRoleId, false)
+	require.Nil(t, err)
+	assert.Equal(t, user.Roles, model.SystemUserRoleId)
+}
+
+func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
+	// InitBasic is used to let the first CreateUser call not be
+	// a system_admin
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Cannot remove if only admin", func(t *testing.T) {
+		// Attempt to downgrade sysadmin.
+		user, appErr := th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.NotNil(t, appErr)
+		require.Nil(t, user)
+	})
+
+	t.Run("Cannot remove if only non-Bot admin", func(t *testing.T) {
+		bot := th.CreateBot()
+		user, appErr := th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+
+		// Attempt to downgrade sysadmin.
+		user, appErr = th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.NotNil(t, appErr)
+		require.Nil(t, user)
+	})
+
+	t.Run("Can remove if not only non-Bot admin", func(t *testing.T) {
+		systemAdminUser2 := th.CreateUser()
+		user, appErr := th.App.UpdateUserRoles(th.Context, systemAdminUser2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+
+		// Attempt to downgrade sysadmin.
+		user, appErr = th.App.UpdateUserRolesWithUser(th.Context, th.SystemAdminUser, model.SystemUserRoleId, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+	})
 }
 
 func TestDeactivateMfa(t *testing.T) {
@@ -2033,12 +2223,8 @@ func TestCreateUserOrGuest(t *testing.T) {
 		mockUserStore := storemocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(12000), nil)
 
-		mockPostStore := storemocks.PostStore{}
-		mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(int64(1000), nil)
-
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockStore.On("User").Return(&mockUserStore)
-		mockStore.On("Post").Return(&mockPostStore)
 
 		user := &model.User{
 			Email:         "TestCreateUserOrGuest@example.com",
@@ -2151,12 +2337,8 @@ func userCreationMocks(t *testing.T, th *TestHelper, userID string, activeUserCo
 	mockProductNoticeStore := storemocks.ProductNoticesStore{}
 	mockProductNoticeStore.On("View", userID, mock.Anything).Return(nil)
 
-	mockPostStore := storemocks.PostStore{}
-	mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(int64(1000), nil)
-
 	mockStore := th.App.Srv().Store().(*storemocks.Store)
 	mockStore.On("User").Return(&mockUserStore)
-	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("Group").Return(&mockGroupStore)
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("Preference").Return(&mockPreferencesStore)

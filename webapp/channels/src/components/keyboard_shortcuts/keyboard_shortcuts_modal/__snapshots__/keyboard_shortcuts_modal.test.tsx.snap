@@ -65,7 +65,11 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
     <ModalBody
       bsClass="modal-body"
       componentClass="div"
+      tabIndex={0}
     >
+      <div
+        tabIndex={-1}
+      />
       <div
         className="row"
       >
@@ -708,7 +712,11 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
     <ModalBody
       bsClass="modal-body"
       componentClass="div"
+      tabIndex={0}
     >
+      <div
+        tabIndex={-1}
+      />
       <div
         className="row"
       >
