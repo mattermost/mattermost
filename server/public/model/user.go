@@ -673,6 +673,9 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	u.IsBot = false
 	u.BotDescription = ""
 	u.BotLastIconUpdate = 0
+	u.TermsOfServiceId = ""
+	u.TermsOfServiceCreateAt = 0
+	u.LastLogin = 0
 }
 
 func (u *User) ClearNonProfileFields() {
