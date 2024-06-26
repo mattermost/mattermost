@@ -1343,3 +1343,29 @@ func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID s
 func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID string) error {
 	return api.app.UninviteRemoteFromChannel(channelID, remoteID)
 }
+
+func (api *PluginAPI) GenerateSupportMetadata(pluginMeta map[string]any) (*model.Metadata, error) {
+	if api.GetLicense() == nil {
+		return nil, errors.New("a license is required to generate a support metadata")
+	}
+
+	if pluginMeta == nil {
+		pluginMeta = make(map[string]any)
+	}
+	// we override the plugin_id and version fields from the manifest
+	pluginMeta["plugin_id"] = api.manifest.Id
+	pluginMeta["plugin_version"] = api.manifest.Version
+
+	md := model.Metadata{
+		Version:       model.CurrentMetadataVersion,
+		Type:          model.PluginMetadata,
+		GenereatedAt:  model.GetMillis(),
+		ServerVersion: model.CurrentVersion,
+		ServerID:      api.GetTelemetryId(),
+		LicenseID:     api.GetLicense().Id,
+		CustomerID:    api.GetLicense().Customer.Id,
+		Extras:        pluginMeta,
+	}
+
+	return &md, nil
+}
