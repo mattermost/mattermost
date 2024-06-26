@@ -215,7 +215,6 @@ func TestUserSanitizeInput(t *testing.T) {
 	require.Equal(t, "firstname", user.FirstName)
 	require.Equal(t, "lastname", user.LastName)
 	require.Equal(t, "position", user.Position)
-
 }
 
 func HasExpectedUserIsValidError(err *AppError, fieldName, userId string, fieldValue any) bool {
