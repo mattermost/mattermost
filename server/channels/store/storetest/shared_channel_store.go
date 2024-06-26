@@ -698,13 +698,12 @@ func testHasRemote(t *testing.T, rctx request.CTX, ss store.Store) {
 
 func testGetRemoteForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	// add remotes, and users to simulated shared channels.
-	teamId := model.NewId()
 	channel, err := createSharedTestChannel(ss, rctx, "share_test_channel", true, nil)
 	require.NoError(t, err)
 	remotes := []*model.RemoteCluster{
-		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test_Remote_1"},
-		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test_Remote_2"},
-		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test_Remote_3"},
+		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), Name: "Test_Remote_1"},
+		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), Name: "Test_Remote_2"},
+		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), Name: "Test_Remote_3"},
 	}
 	for _, rc := range remotes {
 		_, err := ss.RemoteCluster().Save(rc)

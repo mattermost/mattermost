@@ -491,6 +491,10 @@ export default class Client4 {
         return `${this.getLimitsRoute()}/server`;
     }
 
+    getClientMetricsRoute() {
+        return `${this.getBaseRoute()}/client_perf`;
+    }
+
     getCSRFFromCookie() {
         if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
             const cookies = document.cookie.split(';');
@@ -1804,6 +1808,16 @@ export default class Client4 {
         return this.doFetch<ChannelMembership[]>(
             `${this.getChannelMembersRoute(channelId)}/ids`,
             {method: 'post', body: JSON.stringify(userIds)},
+        );
+    };
+
+    addToChannels = (userIds: string[], channelId: string, postRootId = '') => {
+        this.trackEvent('api', 'api_channels_add_members', {channel_id: channelId});
+
+        const members = {user_ids: userIds, channel_id: channelId, post_root_id: postRootId};
+        return this.doFetch<ChannelMembership[]>(
+            `${this.getChannelMembersRoute(channelId)}`,
+            {method: 'post', body: JSON.stringify(members)},
         );
     };
 

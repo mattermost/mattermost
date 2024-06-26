@@ -1102,8 +1102,8 @@ func max(a, b int64) int64 {
 }
 
 func (a *App) userAllowsEmail(c request.CTX, user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
-	// if user is a bot account, then we do not send email
-	if user.IsBot {
+	// if user is a bot account or remote, then we do not send email
+	if user.IsBot || user.IsRemote() {
 		return false
 	}
 
@@ -1736,11 +1736,7 @@ func ShouldAckWebsocketNotification(channelType model.ChannelType, userNotificat
 }
 
 func (a *App) CountNotification(notificationType model.NotificationType) {
-	if a.Metrics() == nil {
-		return
-	}
-
-	if !a.Config().FeatureFlags.NotificationMonitoring {
+	if a.notificationMetricsDisabled() {
 		return
 	}
 
@@ -1748,11 +1744,7 @@ func (a *App) CountNotification(notificationType model.NotificationType) {
 }
 
 func (a *App) CountNotificationAck(notificationType model.NotificationType) {
-	if a.Metrics() == nil {
-		return
-	}
-
-	if !a.Config().FeatureFlags.NotificationMonitoring {
+	if a.notificationMetricsDisabled() {
 		return
 	}
 
@@ -1764,11 +1756,7 @@ func (a *App) CountNotificationReason(
 	notificationType model.NotificationType,
 	notificationReason model.NotificationReason,
 ) {
-	if a.Metrics() == nil {
-		return
-	}
-
-	if !a.Config().FeatureFlags.NotificationMonitoring {
+	if a.notificationMetricsDisabled() {
 		return
 	}
 
@@ -1782,4 +1770,16 @@ func (a *App) CountNotificationReason(
 	case model.NotificationStatusUnsupported:
 		a.Metrics().IncrementNotificationUnsupportedCounter(notificationType, notificationReason)
 	}
+}
+
+func (a *App) notificationMetricsDisabled() bool {
+	if a.Metrics() == nil {
+		return true
+	}
+
+	if a.Config().FeatureFlags.NotificationMonitoring && *a.Config().MetricsSettings.EnableNotificationMetrics {
+		return false
+	}
+
+	return true
 }
