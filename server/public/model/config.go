@@ -341,6 +341,7 @@ type ServiceSettings struct {
 	CorsDebug                           *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
 	AllowCookiesForSubdomains           *bool    `access:"write_restrictable,cloud_restrictable"`
 	ExtendSessionLengthWithActivity     *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	TerminateSessionsOnPasswordChange   *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 
 	// Deprecated
 	SessionLengthWebInDays  *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -629,6 +630,11 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	// Must be manually enabled for existing installations.
 	if s.ExtendSessionLengthWithActivity == nil {
 		s.ExtendSessionLengthWithActivity = NewBool(!isUpdate)
+	}
+
+	// Must be manually enabled for existing installations.
+	if s.TerminateSessionsOnPasswordChange == nil {
+		s.TerminateSessionsOnPasswordChange = NewBool(!isUpdate)
 	}
 
 	if s.SessionLengthWebInDays == nil {

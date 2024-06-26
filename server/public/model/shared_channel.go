@@ -19,6 +19,7 @@ const (
 var (
 	ErrChannelAlreadyShared = errors.New("channel is already shared")
 	ErrChannelHomedOnRemote = errors.New("channel is homed on a remote cluster")
+	ErrChannelAlreadyExists = errors.New("channel already exists")
 )
 
 // SharedChannel represents a channel that can be synchronized with a remote cluster.

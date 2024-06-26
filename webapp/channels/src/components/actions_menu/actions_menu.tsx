@@ -3,9 +3,8 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {Tooltip} from 'react-bootstrap';
-import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Post} from '@mattermost/types/posts';
@@ -15,21 +14,21 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import OverlayTrigger from 'components/overlay_trigger';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
-import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import type {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import WithTooltip from 'components/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import {createCallContext} from 'utils/apps';
-import {Locations, Constants, ModalIdentifiers} from 'utils/constants';
+import {Constants, Locations, ModalIdentifiers} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
-import type {HandleBindingClick, PostEphemeralCallResponseForPost, OpenAppsModal} from 'types/apps';
+import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
 import type {PluginComponent} from 'types/store/plugins';
 
 import './actions_menu.scss';
@@ -112,18 +111,6 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         this.buttonRef = React.createRef<HTMLButtonElement>();
     }
 
-    tooltip = (
-        <Tooltip
-            id='actions-menu-icon-tooltip'
-            className='hidden-xs'
-        >
-            <FormattedMessage
-                id='post_info.tooltip.actions'
-                defaultMessage='Message actions'
-            />
-        </Tooltip>
-    );
-
     componentDidUpdate(prevProps: Props) {
         if (this.props.isMenuOpen && !prevProps.isMenuOpen) {
             this.fetchBindings();
@@ -131,7 +118,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
     }
 
     static getDerivedStateFromProps(props: Props) {
-        const state: Partial<State> = { };
+        const state: Partial<State> = {};
         if (props.appBindings) {
             state.appBindings = props.appBindings;
         }
@@ -387,12 +374,15 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 open={this.props.isMenuOpen}
                 onToggle={this.handleDropdownOpened}
             >
-                <OverlayTrigger
-                    className='hidden-xs'
-                    delayShow={500}
+                <WithTooltip
+                    id={`${this.props.location}_${this.props.post.id}_tooltip`}
+                    title={
+                        <FormattedMessage
+                            id='post_info.tooltip.actions'
+                            defaultMessage='Message actions'
+                        />
+                    }
                     placement='top'
-                    overlay={this.tooltip}
-                    rootClose={true}
                 >
                     <button
                         key='more-actions-button'
@@ -407,7 +397,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     >
                         <i className={'icon icon-apps'}/>
                     </button>
-                </OverlayTrigger>
+                </WithTooltip>
                 <Menu
                     id={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
                     openLeft={true}
@@ -417,7 +407,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 >
                     {menuItems}
                 </Menu>
-            </MenuWrapper>
+            </MenuWrapper >
         );
     }
 }

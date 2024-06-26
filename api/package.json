@@ -4,10 +4,15 @@
   "description": "This respository holds the API reference available at [https://api.mattermost.com](https://api.mattermost.com).",
   "main": "index.js",
   "dependencies": {
-    "redoc-cli": "0.13.17",
+    "@redocly/cli": "^1.13.0",
     "swagger-cli": "4.0.4",
     "sync-fetch": "0.4.1",
     "yaml": "2.1.1"
+  },
+  "overrides": {
+    "redoc": {
+      "react-tabs": "^6.0.0"
+    }
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
