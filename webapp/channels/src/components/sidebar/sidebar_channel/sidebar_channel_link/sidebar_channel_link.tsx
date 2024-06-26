@@ -80,13 +80,11 @@ type State = {
 
 export default class SidebarChannelLink extends React.PureComponent<Props, State> {
     labelRef: React.RefObject<HTMLDivElement>;
-    gmItemRef: React.RefObject<HTMLDivElement>;
 
     constructor(props: Props) {
         super(props);
 
         this.labelRef = React.createRef();
-        this.gmItemRef = React.createRef();
 
         this.state = {
             isMenuOpen: false,
@@ -105,7 +103,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
     }
 
     enableToolTipIfNeeded = (): void => {
-        const element = this.gmItemRef.current || this.labelRef.current;
+        const element = this.labelRef.current;
         const showTooltip = element && element.offsetWidth < element.scrollWidth;
         this.setState({showTooltip: Boolean(showTooltip)});
     };
@@ -133,7 +131,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
     };
 
     // Bootstrap adds the attr dynamically, removing it to prevent a11y readout
-    removeTooltipLink = (): void => this.gmItemRef.current?.removeAttribute?.('aria-describedby');
+    removeTooltipLink = (): void => this.labelRef.current?.removeAttribute?.('aria-describedby');
 
     handleChannelClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
         mark(Mark.ChannelLinkClicked);
@@ -195,7 +193,10 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         }
 
         let labelElement: JSX.Element = (
-            <span className='SidebarChannelLinkLabel'>
+            <span
+                ref={this.labelRef}
+                className='SidebarChannelLinkLabel'
+            >
                 {wrapEmojis(label)}
             </span>
         );
@@ -212,12 +213,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                     overlay={displayNameToolTip}
                     onEntering={this.removeTooltipLink}
                 >
-                    <div
-                        className='truncated'
-                        ref={this.gmItemRef}
-                    >
-                        {labelElement}
-                    </div>
+                    {labelElement}
                 </OverlayTrigger>
             );
         }
@@ -231,7 +227,6 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                 }}
                 emojiStyle={{
                     marginTop: -4,
-                    marginLeft: 6,
                     marginBottom: 0,
                     opacity: 0.8,
                 }}
@@ -246,7 +241,6 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                 />
                 <div
                     className='SidebarChannelLinkLabel_wrapper'
-                    ref={this.labelRef}
                 >
                     {labelElement}
                     {customStatus}

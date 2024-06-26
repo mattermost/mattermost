@@ -231,7 +231,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     }
 
     handleSubmit = async () => {
-        const data: UserNotifyProps = {} as UserNotifyProps;
+        const data: UserNotifyProps = {...this.props.user.notify_props};
         data.email = this.state.enableEmail;
         data.desktop_sound = this.state.desktopSound;
         data.calls_desktop_sound = this.state.callsDesktopSound;
@@ -985,6 +985,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                 values={{
                                     a: (chunks: string) => ((
                                         <ExternalLink
+                                            location='user_settings_notifications'
                                             href='https://mattermost.com/pl/about-notifications'
                                             className='btn btn-link'
                                         >

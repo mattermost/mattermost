@@ -34,7 +34,7 @@ import Constants, {
     Preferences,
     RHSStates,
 } from 'utils/constants';
-import {t} from 'utils/i18n';
+import {Mark} from 'utils/performance_telemetry';
 
 import type {GlobalState} from 'types/store';
 
@@ -67,10 +67,15 @@ const GlobalThreadsLink = () => {
     const showTutorialTrigger = isFeatureEnabled && crtTutorialTrigger === Constants.CrtTutorialTriggerSteps.START && !appHaveOpenModal && Boolean(threadsCount) && threadsCount.total >= 1;
     const openThreads = useCallback((e) => {
         e.stopPropagation();
+
         trackEvent('crt', 'go_to_global_threads');
+
+        performance.mark(Mark.GlobalThreadsLinkClicked);
+
         if (showTutorialTrigger) {
             dispatch(openModal({modalId: ModalIdentifiers.COLLAPSED_REPLY_THREADS_MODAL, dialogType: CollapsedReplyThreadsModal, dialogProps: {}}));
         }
+
         if (rhsOpen && rhsState === RHSStates.EDIT_HISTORY) {
             dispatch(closeRightHandSide());
         }
@@ -113,7 +118,7 @@ const GlobalThreadsLink = () => {
                     </span>
                     <div className='SidebarChannelLinkLabel_wrapper'>
                         <span className='SidebarChannelLinkLabel sidebar-item__name'>
-                            {formatMessage({id: t('globalThreads.sidebarLink'), defaultMessage: 'Threads'})}
+                            {formatMessage({id: 'globalThreads.sidebarLink', defaultMessage: 'Threads'})}
                         </span>
                     </div>
                     {counts?.total_unread_mentions > 0 && (
