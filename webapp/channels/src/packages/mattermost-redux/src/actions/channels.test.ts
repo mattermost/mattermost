@@ -1347,6 +1347,90 @@ describe('Actions.Channels', () => {
         expect(stats[channelId].member_count >= 2).toBeTruthy();
     });
 
+    it('addChannelMembers', async () => {
+        const channelId = TestHelper.basicChannel!.id;
+
+        nock(Client4.getBaseRoute()).
+            post(`/channels/${TestHelper.basicChannel!.id}/members`).
+            reply(201, {channel_id: TestHelper.basicChannel!.id, roles: 'channel_user', user_id: TestHelper.basicUser!.id});
+
+        await store.dispatch(Actions.joinChannel(TestHelper.basicUser!.id, TestHelper.basicTeam!.id, channelId));
+
+        nock(Client4.getBaseRoute()).
+            get(`/channels/${TestHelper.basicChannel!.id}/stats?exclude_files_count=true`).
+            reply(200, {channel_id: TestHelper.basicChannel!.id, member_count: 1});
+
+        await store.dispatch(Actions.getChannelStats(channelId));
+
+        let state = store.getState();
+        let {stats} = state.entities.channels;
+        expect(stats).toBeTruthy();
+
+        // stats for channel
+        expect(stats[channelId]).toBeTruthy();
+
+        // member count for channel
+        expect(stats[channelId].member_count).toBeTruthy();
+
+        // incorrect member count for channel
+        expect(stats[channelId].member_count >= 1).toBeTruthy();
+
+        nock(Client4.getBaseRoute()).
+            post('/users').
+            query(true).
+            reply(201, TestHelper.fakeUserWithId());
+        const user = await TestHelper.basicClient4!.createUser(
+            TestHelper.fakeUser(),
+            '',
+            '',
+            TestHelper.basicTeam!.invite_id,
+        );
+
+        nock(Client4.getBaseRoute()).
+            post('/users').
+            query(true).
+            reply(201, TestHelper.fakeUserWithId());
+        const user2 = await TestHelper.basicClient4!.createUser(
+            TestHelper.fakeUser(),
+            '',
+            '',
+            TestHelper.basicTeam!.invite_id,
+        );
+
+        nock(Client4.getBaseRoute()).
+            post(`/channels/${TestHelper.basicChannel!.id}/members`).
+            reply(201, [{channel_id: TestHelper.basicChannel!.id, roles: 'channel_user', user_id: user.id},
+                {channel_id: TestHelper.basicChannel!.id, roles: 'channel_user', user_id: user2.id}]);
+
+        await store.dispatch(Actions.addChannelMembers(channelId, [user.id, user2.id]));
+
+        state = store.getState();
+
+        const {profilesInChannel, profilesNotInChannel} = state.entities.users;
+        const channel = profilesInChannel[channelId];
+        const notChannel = profilesNotInChannel[channelId];
+        expect(channel).toBeTruthy();
+        expect(notChannel).toBeTruthy();
+        expect(channel.has(user.id)).toBeTruthy();
+        expect(channel.has(user2.id)).toBeTruthy();
+
+        // user should not present in profilesNotInChannel
+        expect(notChannel.has(user.id)).toEqual(false);
+        expect(notChannel.has(user2.id)).toEqual(false);
+
+        stats = state.entities.channels.stats;
+        expect(stats).toBeTruthy();
+
+        // stats for channel
+        expect(stats[channelId]).toBeTruthy();
+
+        // member count for channel
+        expect(stats[channelId].member_count).toBeTruthy();
+
+        // incorrect member count for channel
+        expect(stats[channelId].member_count >= 3).toBeTruthy();
+    });
+
     it('removeChannelMember', async () => {
         const channelId = TestHelper.basicChannel!.id;
 
