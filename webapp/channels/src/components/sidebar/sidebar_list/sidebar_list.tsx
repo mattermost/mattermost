@@ -111,8 +111,6 @@ type State = {
     autoHide: boolean;
 };
 
-let mouseMoveTimeout: NodeJS.Timeout;
-
 // scrollMargin is the margin at the edge of the channel list that we leave when scrolling to a channel.
 const scrollMargin = 10;
 
@@ -128,6 +126,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
     scrollbar: React.RefObject<Scrollbars>;
     animate: SpringSystem;
     scrollAnimation: Spring;
+    channelsListScrollTimeout: NodeJS.Timeout | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -136,7 +135,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
         this.state = {
             showTopUnread: false,
             showBottomUnread: false,
-            autoHide: false,
+            autoHide: true,
         };
         this.scrollbar = React.createRef();
 
@@ -466,14 +465,18 @@ export default class SidebarList extends React.PureComponent<Props, State> {
         this.props.actions.stopDragging();
     };
 
-    showScrollbarOnMouseMove = () => {
-        clearTimeout(mouseMoveTimeout);
+    showChannelListScrollbar = () => {
+        if (this.channelsListScrollTimeout !== null) {
+            clearTimeout(this.channelsListScrollTimeout);
+        }
 
         this.setState({autoHide: false});
+    };
 
-        mouseMoveTimeout = setTimeout(() => {
+    hideChannelListScrollbar = () => {
+        this.channelsListScrollTimeout = setTimeout(() => {
             this.setState({autoHide: true});
-        }, 500);
+        }, 300);
     };
 
     render() {
@@ -577,7 +580,8 @@ export default class SidebarList extends React.PureComponent<Props, State> {
                         content={below}
                     />
                     <div
-                        onMouseMove={this.showScrollbarOnMouseMove}
+                        onPointerLeave={this.hideChannelListScrollbar}
+                        onPointerOver={this.showChannelListScrollbar}
                     >
                         <Scrollbars
                             ref={this.scrollbar}
