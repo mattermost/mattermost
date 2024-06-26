@@ -1349,23 +1349,10 @@ func (api *PluginAPI) GenerateSupportMetadata(pluginMeta map[string]any) (*model
 		return nil, errors.New("a license is required to generate a support metadata")
 	}
 
-	if pluginMeta == nil {
-		pluginMeta = make(map[string]any)
-	}
-	// we override the plugin_id and version fields from the manifest
-	pluginMeta["plugin_id"] = api.manifest.Id
-	pluginMeta["plugin_version"] = api.manifest.Version
-
-	md := model.Metadata{
-		Version:       model.CurrentMetadataVersion,
-		Type:          model.PluginMetadata,
-		GenereatedAt:  model.GetMillis(),
-		ServerVersion: model.CurrentVersion,
-		ServerID:      api.GetTelemetryId(),
-		LicenseID:     api.GetLicense().Id,
-		CustomerID:    api.GetLicense().Customer.Id,
-		Extras:        pluginMeta,
+	md, err := model.GeneratePluginMetadata(api.manifest, api.GetLicense(), api.GetTelemetryId(), pluginMeta)
+	if err != nil {
+		return nil, err
 	}
 
-	return &md, nil
+	return md, nil
 }

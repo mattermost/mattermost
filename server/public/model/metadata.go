@@ -87,3 +87,33 @@ func ParseMetadata(b []byte) (*Metadata, error) {
 		return nil, fmt.Errorf("unsupported metadata version: %d", v.Version)
 	}
 }
+
+// GeneratePluginMetadata is a utility function to generate a plugin metadata for support packets.
+// It will construct it from the manifest, license and so on. The plugin_id and plugin_version will be
+// used from the manifest.
+func GeneratePluginMetadata(manifest *Manifest, license *License, serverID string, pluginMeta map[string]any) (*Metadata, error) {
+	if pluginMeta == nil {
+		pluginMeta = make(map[string]any)
+	}
+
+	// we override the plugin_id and version fields from the manifest
+	pluginMeta["plugin_id"] = manifest.Id
+	pluginMeta["plugin_version"] = manifest.Version
+
+	md := Metadata{
+		Version:       CurrentMetadataVersion,
+		Type:          PluginMetadata,
+		GenereatedAt:  GetMillis(),
+		ServerVersion: CurrentVersion,
+		ServerID:      serverID,
+		LicenseID:     license.Id,
+		CustomerID:    license.Customer.Id,
+		Extras:        pluginMeta,
+	}
+
+	if err := md.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid metadata: %w", err)
+	}
+
+	return &md, nil
+}
