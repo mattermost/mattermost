@@ -51,7 +51,7 @@ func (bm *Bitmask) UnsetBit(flag Bitmask) {
 
 type RemoteCluster struct {
 	RemoteId     string  `json:"remote_id"`
-	RemoteTeamId string  `json:"remote_team_id"`
+	RemoteTeamId string  `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
 	Name         string  `json:"name"`
 	DisplayName  string  `json:"display_name"`
 	SiteURL      string  `json:"site_url"`
@@ -312,7 +312,7 @@ type RemoteClusterPing struct {
 // RemoteClusterInvite represents an invitation to establish a simple trust with a remote cluster.
 type RemoteClusterInvite struct {
 	RemoteId     string `json:"remote_id"`
-	RemoteTeamId string `json:"remote_team_id"`
+	RemoteTeamId string `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
 	SiteURL      string `json:"site_url"`
 	Token        string `json:"token"`
 }
