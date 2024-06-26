@@ -30,6 +30,18 @@ func TestValidate(t *testing.T) {
 			expectErr: false,
 		},
 		{
+			name: "Valid Metadata without license",
+			metadata: Metadata{
+				Version:       1,
+				Type:          ServerMetadata,
+				GeneratedAt:   1622569200,
+				ServerVersion: "5.33.3",
+				ServerID:      NewId(),
+				Extras:        map[string]interface{}{"key": "value"},
+			},
+			expectErr: false,
+		},
+		{
 			name: "Invalid Version",
 			metadata: Metadata{
 				Version:       0,

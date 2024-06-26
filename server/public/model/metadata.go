@@ -48,11 +48,11 @@ func (md *Metadata) Validate() error {
 		return fmt.Errorf("server id is not a valid id %q", md.ServerID)
 	}
 
-	if !IsValidId(md.LicenseID) {
+	if !IsValidId(md.LicenseID) && md.LicenseID != "" {
 		return fmt.Errorf("license id is not a valid id %q", md.LicenseID)
 	}
 
-	if !IsValidId(md.CustomerID) {
+	if !IsValidId(md.CustomerID) && md.CustomerID != "" {
 		return fmt.Errorf("customer id is not a valid id %q", md.CustomerID)
 	}
 
@@ -106,9 +106,12 @@ func GeneratePluginMetadata(manifest *Manifest, license *License, serverID strin
 		GeneratedAt:   GetMillis(),
 		ServerVersion: CurrentVersion,
 		ServerID:      serverID,
-		LicenseID:     license.Id,
-		CustomerID:    license.Customer.Id,
 		Extras:        pluginMeta,
+	}
+
+	if license != nil {
+		md.LicenseID = license.Id
+		md.CustomerID = license.Customer.Id
 	}
 
 	if err := md.Validate(); err != nil {
