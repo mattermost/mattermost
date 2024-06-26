@@ -135,6 +135,36 @@ describe('channels', () => {
         });
     });
 
+    describe('ADD_CHANNEL_MEMBER_SUCCESS', () => {
+        const state = deepFreeze(channelsReducer({
+            stats: {
+                channel1: {
+                    id: 'channel1',
+                    member_count: 1,
+                },
+            },
+        }, {}));
+        test('should increment by 1 default', () => {
+            const nextState = channelsReducer(state, {
+                type: ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS,
+                id: 'channel1',
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.stats.channel1.member_count).toEqual(2);
+        });
+        test('should increment by number passed', () => {
+            const nextState = channelsReducer(state, {
+                type: ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS,
+                id: 'channel1',
+                count: 100,
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.stats.channel1.member_count).toEqual(101);
+        });
+    });
+
     describe('REMOVE_MEMBER_FROM_CHANNEL', () => {
         test('should remove the channel member', () => {
             const state = deepFreeze(channelsReducer({
