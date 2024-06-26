@@ -13,21 +13,16 @@ describe('components/announcement_bar/default_announcement_bar', () => {
         HTMLElement.prototype,
         'offsetWidth',
     ) as PropertyDescriptor;
-    const originalScrollWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'scrollWidth') as PropertyDescriptor;
 
     beforeAll(() => {
         Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
             configurable: true,
             value: 20,
         });
-        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {
-            configurable: true, value: 200,
-        });
     });
 
     afterAll(() => {
         Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
-        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', originalScrollWidth);
     });
 
     test('should not show tooltip by default', () => {
