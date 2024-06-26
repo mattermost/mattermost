@@ -22,7 +22,7 @@ type Metadata struct {
 	// Required Fields
 	Version       int          `json:"version"`
 	Type          MetadataType `json:"type"`
-	GenereatedAt  int64        `json:"generated_at"`
+	GeneratedAt   int64        `json:"generated_at"`
 	ServerVersion string       `json:"server_version"`
 	ServerID      string       `json:"server_id"`
 	LicenseID     string       `json:"license_id"`
@@ -103,7 +103,7 @@ func GeneratePluginMetadata(manifest *Manifest, license *License, serverID strin
 	md := Metadata{
 		Version:       CurrentMetadataVersion,
 		Type:          PluginMetadata,
-		GenereatedAt:  GetMillis(),
+		GeneratedAt:   GetMillis(),
 		ServerVersion: CurrentVersion,
 		ServerID:      serverID,
 		LicenseID:     license.Id,

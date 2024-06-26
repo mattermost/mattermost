@@ -20,7 +20,7 @@ func TestValidate(t *testing.T) {
 			metadata: Metadata{
 				Version:       1,
 				Type:          ServerMetadata,
-				GenereatedAt:  1622569200,
+				GeneratedAt:   1622569200,
 				ServerVersion: "5.33.3",
 				ServerID:      NewId(),
 				LicenseID:     NewId(),
@@ -34,7 +34,7 @@ func TestValidate(t *testing.T) {
 			metadata: Metadata{
 				Version:       0,
 				Type:          ServerMetadata,
-				GenereatedAt:  1622569200,
+				GeneratedAt:   1622569200,
 				ServerVersion: "5.33.3",
 				ServerID:      NewId(),
 				LicenseID:     NewId(),
@@ -47,7 +47,7 @@ func TestValidate(t *testing.T) {
 			metadata: Metadata{
 				Version:       1,
 				Type:          "invalid-type",
-				GenereatedAt:  1622569200,
+				GeneratedAt:   1622569200,
 				ServerVersion: "5.33.3",
 				ServerID:      NewId(),
 				LicenseID:     NewId(),
@@ -60,7 +60,7 @@ func TestValidate(t *testing.T) {
 			metadata: Metadata{
 				Version:       1,
 				Type:          ServerMetadata,
-				GenereatedAt:  1622569200,
+				GeneratedAt:   1622569200,
 				ServerVersion: "invalid-version",
 				ServerID:      "valid-server-id",
 				LicenseID:     "valid-license-id",
@@ -73,7 +73,7 @@ func TestValidate(t *testing.T) {
 			metadata: Metadata{
 				Version:       1,
 				Type:          ServerMetadata,
-				GenereatedAt:  1622569200,
+				GeneratedAt:   1622569200,
 				ServerVersion: "5.33.3",
 				ServerID:      "",
 				LicenseID:     NewId(),
