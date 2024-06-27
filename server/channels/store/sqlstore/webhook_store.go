@@ -352,15 +352,19 @@ func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.Out
 	return hook, nil
 }
 
-func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) (int64, error) {
+func (s SqlWebhookStore) AnalyticsIncomingCount(teamID string, userID string) (int64, error) {
 	queryBuilder :=
 		s.getQueryBuilder().
 			Select("COUNT(*)").
 			From("IncomingWebhooks").
 			Where("DeleteAt = 0")
 
-	if teamId != "" {
-		queryBuilder = queryBuilder.Where("TeamId", teamId)
+	if teamID != "" {
+		queryBuilder = queryBuilder.Where(sq.Eq{"TeamId": teamID})
+	}
+
+	if userID != "" {
+		queryBuilder = queryBuilder.Where(sq.Eq{"UserId": userID})
 	}
 
 	queryString, args, err := queryBuilder.ToSql()

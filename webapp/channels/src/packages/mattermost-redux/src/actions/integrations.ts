@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {Command, CommandArgs, DialogSubmission, IncomingWebhook, OAuthApp, OutgoingOAuthConnection, OutgoingWebhook, SubmitDialogResponse} from '@mattermost/types/integrations';
+import type {Command, CommandArgs, DialogSubmission, IncomingWebhook, IncomingWebhooksWithCount, OAuthApp, OutgoingOAuthConnection, OutgoingWebhook, SubmitDialogResponse} from '@mattermost/types/integrations';
 
 import {IntegrationTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -16,6 +16,7 @@ import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 import {General} from '../constants';
+import {AnyAction} from 'redux';
 
 export function createIncomingHook(hook: IncomingWebhook) {
     return bindClientFunc({
@@ -37,16 +38,33 @@ export function getIncomingHook(hookId: string) {
     });
 }
 
-export function getIncomingHooks(teamId = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
-    return bindClientFunc({
-        clientFunc: Client4.getIncomingWebhooks,
-        onSuccess: [IntegrationTypes.RECEIVED_INCOMING_HOOKS],
-        params: [
-            teamId,
-            page,
-            perPage,
-        ],
-    });
+export function getIncomingHooks(teamId = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, includeTotalCount = false): ActionFuncAsync<IncomingWebhook[] | IncomingWebhooksWithCount> {
+    return async (dispatch, getState) => {
+        let data;
+
+        try {
+            data = await Client4.getIncomingWebhooks(teamId, page, perPage, includeTotalCount);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        let actions: AnyAction[] = [{
+            type: IntegrationTypes.RECEIVED_INCOMING_HOOKS,
+            data: includeTotalCount ? (data as IncomingWebhooksWithCount).incoming_webhooks : data
+        }]
+
+        if (includeTotalCount) {
+            actions.push({
+                type: IntegrationTypes.RECEIVED_INCOMING_HOOKS_TOTAL_COUNT,
+                data: (data as IncomingWebhooksWithCount).total_count
+            })
+        }
+
+        dispatch(batchActions(actions));
+        return {data};
+    }
 }
 
 export function removeIncomingHook(hookId: string): ActionFuncAsync {

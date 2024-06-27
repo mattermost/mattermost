@@ -1,0 +1,27 @@
+@use 'sass:color';
+
+@import 'utils/variables';
+
+#searchInput {
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.backstage-footer {
+    display: flex;
+    height: auto;
+    flex-direction: row;
+    padding: 8px;
+    border-left: 1px solid $light-gray;
+    border-bottom: 1px solid $light-gray;
+    border-right: 1px solid $light-gray;
+    background: $white;
+    color: rgba(0, 0, 0, 0.5);
+    font-size: 1.1em;
+    text-align: right;
+
+    .backstage-footer__cell {
+        width: 100%;
+        text-align: right;
+    }
+}

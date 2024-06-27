@@ -29,7 +29,7 @@ func TestGetTrueUpProfile(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 
 	mockWebhookStore := mocks.WebhookStore{}
-	mockWebhookStore.On("AnalyticsIncomingCount", mock.Anything).Return(int64(1), nil)
+	mockWebhookStore.On("AnalyticsIncomingCount", mock.Anything, mock.Anything).Return(int64(1), nil)
 	mockWebhookStore.On("AnalyticsOutgoingCount", mock.Anything).Return(int64(1), nil)
 	mockStore.On("Webhook").Return(&mockWebhookStore)
 

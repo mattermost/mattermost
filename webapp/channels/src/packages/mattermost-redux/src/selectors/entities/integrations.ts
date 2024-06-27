@@ -14,6 +14,10 @@ export function getIncomingHooks(state: GlobalState) {
     return state.entities.integrations.incomingHooks;
 }
 
+export function getIncomingHooksTotalCount(state: GlobalState) {
+    return state.entities.integrations.incomingHooksTotalCount;
+}
+
 export function getOutgoingHooks(state: GlobalState) {
     return state.entities.integrations.outgoingHooks;
 }

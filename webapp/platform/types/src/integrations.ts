@@ -19,6 +19,11 @@ export type IncomingWebhook = {
     channel_locked: boolean;
 };
 
+export type IncomingWebhooksWithCount = {
+    incoming_webhooks: IncomingWebhook[];
+    total_count: number;
+};
+
 export type OutgoingWebhook = {
     id: string;
     token: string;

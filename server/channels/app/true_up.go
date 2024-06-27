@@ -72,7 +72,7 @@ func (a *App) getTrueUpProfile() (*model.TrueUpReviewProfile, error) {
 	}
 
 	// Webhook, calls, boards, and playbook counts
-	incomingWebhookCount, err := a.Srv().Store().Webhook().AnalyticsIncomingCount("")
+	incomingWebhookCount, err := a.Srv().Store().Webhook().AnalyticsIncomingCount("", "")
 	if err != nil {
 		return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.webhook_in_count_fail", nil, "Could not get the total incoming webhook count", http.StatusInternalServerError)
 	}

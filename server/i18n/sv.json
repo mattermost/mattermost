@@ -1272,6 +1272,10 @@
     "translation": "Kunde inte ta fram webhooken."
   },
   {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Kunde inte ta fram webhooken."
+  },
+  {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
     "translation": "Kunde inte ta fram webhooken."
   },

@@ -4,11 +4,16 @@
 import React, {useState} from 'react';
 import type {ChangeEvent, ReactNode} from 'react';
 import {Link} from 'react-router-dom';
+import {FormattedMessage} from 'react-intl';
 
 import LoadingScreen from 'components/loading_screen';
+import NextIcon from 'components/widgets/icons/fa_next_icon';
+import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/fa_search_icon';
 
 import {localizeMessage} from 'utils/utils';
+
+import './backstage_list.scss'
 
 type Props = {
     children?: ReactNode | ((filter: string) => void);
@@ -21,7 +26,30 @@ type Props = {
     helpText?: ReactNode;
     loading: boolean;
     searchPlaceholder?: string;
+    nextPage?: () => void;
+    previousPage?: () => void;
+    page?: number;
+    pageSize?: number;
+    total?: number;
 };
+
+const getPaging = (remainingProps: Props, childCount: number, hasFilter: boolean) => {
+    let page = (hasFilter || !remainingProps.page) ? 0 : remainingProps.page;
+    let pageSize = (hasFilter || !remainingProps.pageSize) ? childCount : remainingProps.pageSize;
+    let total = (hasFilter || !remainingProps.total) ? childCount : remainingProps.total;
+
+    let startCount = (page * pageSize) + 1;
+    let endCount = (page + 1) * pageSize;
+    endCount = endCount > total ? total : endCount;
+    if (endCount === 0) {
+        startCount = 0;
+    }
+
+    let isFirstPage = startCount <= 1;
+    let isLastPage = endCount >= total;
+
+    return {startCount, endCount, total, isFirstPage, isLastPage};
+}
 
 const BackstageList = ({searchPlaceholder = localizeMessage('backstage_list.search', 'Search'), ...remainingProps}: Props) => {
     const [filter, setFilter] = useState('');
@@ -31,6 +59,7 @@ const BackstageList = ({searchPlaceholder = localizeMessage('backstage_list.sear
     const filterLowered = filter.toLowerCase();
 
     let children;
+    let childCount = 0;
     if (remainingProps.loading) {
         children = <LoadingScreen/>;
     } else {
@@ -61,6 +90,8 @@ const BackstageList = ({searchPlaceholder = localizeMessage('backstage_list.sear
                     </div>
                 );
             }
+        } else {
+            childCount = children.length;
         }
     }
 
@@ -85,6 +116,19 @@ const BackstageList = ({searchPlaceholder = localizeMessage('backstage_list.sear
         );
     }
 
+    const hasFilter = filter.length > 0;
+    const {startCount, endCount, total, isFirstPage, isLastPage} = getPaging(remainingProps, childCount, hasFilter);
+    let childrenToDisplay = childCount > 0 ? children.slice(startCount - 1, endCount) : children;
+
+    let previousPageFn = remainingProps.previousPage;
+    let nextPageFn = remainingProps.nextPage;
+    if (isFirstPage) {
+        previousPageFn = () => {};
+    }
+    if (isLastPage) {
+        nextPageFn = () => {};
+    }
+
     return (
         <div className='backstage-content'>
             <div className='backstage-header'>
@@ -102,7 +146,6 @@ const BackstageList = ({searchPlaceholder = localizeMessage('backstage_list.sear
                         placeholder={searchPlaceholder}
                         value={filter}
                         onChange={updateFilter}
-                        style={style.search}
                         id='searchInput'
                     />
                 </div>
@@ -111,14 +154,37 @@ const BackstageList = ({searchPlaceholder = localizeMessage('backstage_list.sear
                 {remainingProps.helpText}
             </span>
             <div className='backstage-list'>
-                {children}
+                {childrenToDisplay}
+            </div>
+            <div className='backstage-footer'>
+                <div className='backstage-footer__cell'>
+                    <FormattedMessage
+                        id='backstage_list.paginatorCount'
+                        defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
+                        values={{
+                            startCount,
+                            endCount,
+                            total,
+                        }}
+                    />
+                    <button
+                        type='button'
+                        className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (isFirstPage ? 'disabled' : '')}
+                        onClick={previousPageFn}
+                    >
+                        <PreviousIcon/>
+                    </button>
+                    <button
+                        type='button'
+                        className={'btn btn-quaternary btn-icon btn-sm next ' + (isLastPage ? 'disabled' : '')}
+                        onClick={nextPageFn}
+                    >
+                        <NextIcon/>
+                    </button>
+                </div>
             </div>
         </div>
     );
-};
-
-const style = {
-    search: {flexGrow: 0, flexShrink: 0},
 };
 
 export default BackstageList;
