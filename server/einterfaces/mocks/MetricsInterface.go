@@ -313,9 +313,9 @@ func (_m *MetricsInterface) ObserveClientFirstContentfulPaint(platform string, a
 	_m.Called(platform, agent, elapsed)
 }
 
-// ObserveClientInteractionToNextPaint provides a mock function with given fields: platform, agent, elapsed
-func (_m *MetricsInterface) ObserveClientInteractionToNextPaint(platform string, agent string, elapsed float64) {
-	_m.Called(platform, agent, elapsed)
+// ObserveClientInteractionToNextPaint provides a mock function with given fields: platform, agent, interaction, elapsed
+func (_m *MetricsInterface) ObserveClientInteractionToNextPaint(platform string, agent string, interaction string, elapsed float64) {
+	_m.Called(platform, agent, interaction, elapsed)
 }
 
 // ObserveClientLargestContentfulPaint provides a mock function with given fields: platform, agent, region, elapsed

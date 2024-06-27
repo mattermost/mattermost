@@ -38,7 +38,8 @@ var (
 	acceptedPlatforms        = sliceToMapKey("linux", "macos", "ios", "android", "windows", "other")
 	acceptedAgents           = sliceToMapKey("desktop", "firefox", "chrome", "safari", "edge", "other")
 
-	AcceptedLCPRegions = sliceToMapKey(
+	AcceptedInteractions = sliceToMapKey("keyboard", "pointer", "other")
+	AcceptedLCPRegions   = sliceToMapKey(
 		"post",
 		"post-textbox",
 		"channel-sidebar",

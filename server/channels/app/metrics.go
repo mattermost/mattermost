@@ -38,7 +38,12 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 				h.Value/1000,
 			)
 		case model.ClientInteractionToNextPaint:
-			a.Metrics().ObserveClientInteractionToNextPaint(commonLabels["platform"], commonLabels["agent"], h.Value/1000)
+			a.Metrics().ObserveClientInteractionToNextPaint(
+				commonLabels["platform"],
+				commonLabels["agent"],
+				h.GetLabelValue("interaction", model.AcceptedInteractions, "other"),
+				h.Value/1000,
+			)
 		case model.ClientCumulativeLayoutShift:
 			a.Metrics().ObserveClientCumulativeLayoutShift(commonLabels["platform"], commonLabels["agent"], h.Value)
 		case model.ClientPageLoadDuration:

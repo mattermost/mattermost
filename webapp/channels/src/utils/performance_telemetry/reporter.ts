@@ -3,7 +3,7 @@
 
 import type {Store} from 'redux';
 import {onCLS, onFCP, onINP, onLCP, onTTFB} from 'web-vitals/attribution';
-import type {LCPMetricWithAttribution, Metric} from 'web-vitals/attribution';
+import type {INPMetricWithAttribution, LCPMetricWithAttribution, Metric} from 'web-vitals/attribution';
 
 import type {Client4} from '@mattermost/client';
 
@@ -191,7 +191,8 @@ export default class PerformanceReporter {
     }
 
     private handleWebVital(metric: Metric) {
-        let labels;
+        let labels: Record<string, string> | undefined;
+
         if (isLCPMetric(metric)) {
             const selector = metric.attribution?.element;
             const element = selector ? document.querySelector(selector) : null;
@@ -201,6 +202,10 @@ export default class PerformanceReporter {
                     region: identifyElementRegion(element),
                 };
             }
+        } else if (isINPMetric(metric)) {
+            labels = {
+                interaction: metric.attribution?.interactionType,
+            };
         }
 
         this.histogramMeasures.push({
@@ -351,4 +356,8 @@ function isPerformanceMeasure(entry: PerformanceEntry): entry is PerformanceMeas
 
 function isLCPMetric(entry: Metric): entry is LCPMetricWithAttribution {
     return entry.name === 'LCP';
+}
+
+function isINPMetric(entry: Metric): entry is INPMetricWithAttribution {
+    return entry.name === 'INP';
 }
