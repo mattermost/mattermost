@@ -1175,7 +1175,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			// Extend the range of buckets for this while we get a better idea of the expected range of this metric is
 			Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20},
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "region"},
 	)
 	m.Registry.MustRegister(m.ClientLargestContentfulPaint)
 
@@ -1770,8 +1770,8 @@ func (mi *MetricsInterfaceImpl) ObserveClientFirstContentfulPaint(platform, agen
 	mi.ClientFirstContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientLargestContentfulPaint(platform, agent string, elapsed float64) {
-	mi.ClientLargestContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientLargestContentfulPaint(platform, agent, region string, elapsed float64) {
+	mi.ClientLargestContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "region": region}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientInteractionToNextPaint(platform, agent string, elapsed float64) {

@@ -105,7 +105,7 @@ type MetricsInterface interface {
 
 	ObserveClientTimeToFirstByte(platform, agent string, elapsed float64)
 	ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64)
-	ObserveClientLargestContentfulPaint(platform, agent string, elapsed float64)
+	ObserveClientLargestContentfulPaint(platform, agent, region string, elapsed float64)
 	ObserveClientInteractionToNextPaint(platform, agent string, elapsed float64)
 	ObserveClientCumulativeLayoutShift(platform, agent string, elapsed float64)
 	IncrementClientLongTasks(platform, agent string, inc float64)
