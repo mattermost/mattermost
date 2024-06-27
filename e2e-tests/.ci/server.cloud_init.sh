@@ -15,7 +15,7 @@ MME2E_ENVCHECK_MSG="variable required for initializing cloud tests, but is empty
 : "${CWS_URL:?$MME2E_ENVCHECK_MSG}"
 : "${MM_LICENSE:?$MME2E_ENVCHECK_MSG}"
 
-response=$(curl -X POST "${CWS_URL}/api/v1/internal/tests/create-customer?sku=cloud-enterprise&is_paid=true")
+response=$(curl -fsSL -X POST -H @- "${CWS_URL}/api/v1/tests/create-customer?sku=cloud-enterprise&is_paid=true" <<<"${CWS_EXTRA_HTTP_HEADERS:-}")
 MM_CUSTOMER_ID=$(echo "$response" | jq -r .customer_id)
 MM_CLOUD_API_KEY=$(echo "$response" | jq -r .api_key)
 MM_CLOUD_INSTALLATION_ID=$(echo "$response" | jq -r .installation_id)
