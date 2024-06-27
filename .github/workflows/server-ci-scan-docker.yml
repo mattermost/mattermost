@@ -1,4 +1,4 @@
-name: Server CI Artifacts
+name: Server CI Artifacts Scan
 
 on:
   workflow_dispatch:
