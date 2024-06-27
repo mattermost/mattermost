@@ -79,7 +79,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ConsumePostHook = false
 	f.CloudAnnualRenewals = false
 	f.CloudDedicatedExportUI = false
-	f.ChannelBookmarks = true
+	f.ChannelBookmarks = false
 	f.WebSocketEventScope = false
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = false
