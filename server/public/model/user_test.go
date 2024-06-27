@@ -154,7 +154,6 @@ func TestUserIsValid(t *testing.T) {
 
 func TestUserSanitizeInput(t *testing.T) {
 	user := User{}
-	user.Id = NewId()
 	user.CreateAt = GetMillis()
 	user.UpdateAt = GetMillis()
 	user.DeleteAt = GetMillis()
@@ -189,7 +188,6 @@ func TestUserSanitizeInput(t *testing.T) {
 	require.Equal(t, NewString(""), user.AuthData)
 	require.Equal(t, "", user.AuthService)
 	require.False(t, user.EmailVerified)
-	require.Equal(t, "", user.Id)
 	require.Equal(t, NewString(""), user.RemoteId)
 	require.Equal(t, int64(0), user.CreateAt)
 	require.Equal(t, int64(0), user.UpdateAt)
