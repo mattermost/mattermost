@@ -9,6 +9,7 @@ import * as actions from 'actions/status_actions';
 
 import mockStore from 'tests/test_store';
 import Constants from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
@@ -40,6 +41,9 @@ describe('ChannelController', () => {
                     config: {
                         EnableUserStatuses: 'false',
                     },
+                },
+                preferences: {
+                    myPreferences: TestHelper.getPreferencesMock(),
                 },
             },
         } as unknown as GlobalState;
