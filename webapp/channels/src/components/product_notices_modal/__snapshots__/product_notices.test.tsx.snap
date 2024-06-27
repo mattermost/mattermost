@@ -7,6 +7,7 @@ exports[`ProductNoticesModal Match snapshot for single notice 1`] = `
   bodyPadding={true}
   cancelButtonText={null}
   className="productNotices"
+  compassDesign={true}
   confirmButtonText={
     <span>
       Download
@@ -56,6 +57,7 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
     </React.Fragment>
   }
   className="productNotices"
+  compassDesign={true}
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Done"
@@ -125,6 +127,7 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
   bodyPadding={true}
   cancelButtonText={null}
   className="productNotices"
+  compassDesign={true}
   confirmButtonText={
     <React.Fragment>
       <Memo(MemoizedFormattedMessage)

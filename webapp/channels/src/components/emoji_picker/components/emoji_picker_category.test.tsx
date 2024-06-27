@@ -11,14 +11,16 @@ import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import EmojiPickerCategory from './emoji_picker_category';
 import type {Props} from './emoji_picker_category';
 
-const categoryMessage = 'categoryMessage';
+const categoryMessage = 'category name';
 const defaultProps: Props = {
     category: {
-        className: 'categoryClass',
-        emojiIds: ['emojiId'],
-        id: 'categoryId',
-        message: categoryMessage,
         name: 'recent',
+        emojiIds: ['emojiId'],
+        iconClassName: 'categoryClass',
+        label: {
+            id: 'categoryId',
+            defaultMessage: categoryMessage,
+        },
     } as Category,
     categoryRowIndex: 0,
     selected: false,

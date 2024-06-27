@@ -490,6 +490,10 @@ func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushRespons
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("response returned error code: %d", resp.StatusCode)
+	}
+
 	var pushResponse model.PushResponse
 	if err := json.NewDecoder(resp.Body).Decode(&pushResponse); err != nil {
 		return nil, fmt.Errorf("failed to decode from JSON: %w", err)
@@ -561,6 +565,10 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		return fmt.Errorf("failed to send: %w", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("response returned error code: %d", resp.StatusCode)
+	}
 
 	// Reading the body to completion.
 	_, err = io.Copy(io.Discard, resp.Body)

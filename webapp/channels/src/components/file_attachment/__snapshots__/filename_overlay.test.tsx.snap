@@ -1,23 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/file_attachment/FilenameOverlay should match snapshot, compact display 1`] = `
-<OverlayTrigger
-  defaultOverlayShown={false}
-  delayShow={1000}
-  overlay={
-    <Tooltip
-      id="file-name__tooltip"
-    >
-      test_filename
-    </Tooltip>
-  }
+<WithTooltip
+  id="file-name__tooltip"
   placement="top"
-  trigger={
-    Array [
-      "hover",
-      "focus",
-    ]
-  }
+  title="test_filename"
 >
   <a
     className="post-image__name"
@@ -30,7 +17,7 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, compa
     />
     test_filename
   </a>
-</OverlayTrigger>
+</WithTooltip>
 `;
 
 exports[`components/file_attachment/FilenameOverlay should match snapshot, standard but not downloadable 1`] = `
@@ -45,23 +32,10 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, stand
 <div
   className="post-image__name"
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={1000}
-    overlay={
-      <Tooltip
-        id="file-name__tooltip"
-      >
-        Download
-      </Tooltip>
-    }
+  <WithTooltip
+    id="file-name__tooltip"
     placement="top"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+    title="Download"
   >
     <ForwardRef
       aria-label="download"
@@ -71,7 +45,7 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, stand
     >
       test_filename
     </ForwardRef>
-  </OverlayTrigger>
+  </WithTooltip>
 </div>
 `;
 
@@ -79,23 +53,10 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, with 
 <div
   className="post-image__name"
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={1000}
-    overlay={
-      <Tooltip
-        id="file-name__tooltip"
-      >
-        Download
-      </Tooltip>
-    }
+  <WithTooltip
+    id="file-name__tooltip"
     placement="top"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+    title="Download"
   >
     <ForwardRef
       aria-label="download"
@@ -105,6 +66,6 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, with 
     >
       <AttachmentIcon />
     </ForwardRef>
-  </OverlayTrigger>
+  </WithTooltip>
 </div>
 `;
