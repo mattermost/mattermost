@@ -229,7 +229,7 @@ type ChannelStore interface {
 	GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
 	GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
-	GetAllChannelMembersForUser(userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
+	GetAllChannelMembersForUser(ctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
 	InvalidateAllChannelMembersForUser(userID string)
 	GetAllChannelMembersNotifyPropsForChannel(channelID string, allowFromCache bool) (map[string]model.StringMap, error)
@@ -422,7 +422,7 @@ type UserStore interface {
 	GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfilesInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, error)
-	GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error)
+	GetAllProfilesInChannel(rctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error)
 	GetProfilesNotInChannel(teamID string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 	GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
@@ -740,6 +740,7 @@ type ReactionStore interface {
 	ExistsOnPost(postId string, emojiName string) (bool, error)
 	DeleteAllWithEmojiName(emojiName string) error
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
+	GetSingle(userID, postID, remoteID, emojiName string) (*model.Reaction, error)
 	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteByUser(userID string) error
@@ -760,6 +761,7 @@ type JobStore interface {
 	GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error)
 	GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error)
 	GetAllByStatus(c request.CTX, status string) ([]*model.Job, error)
+	GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, offset int, limit int) ([]*model.Job, error)
 	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error)
 	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
 	GetCountByStatusAndType(status string, jobType string) (int64, error)

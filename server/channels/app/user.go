@@ -1226,10 +1226,10 @@ func (a *App) isUniqueToGroupNames(val string) *model.AppError {
 	var notFoundErr *store.ErrNotFound
 	group, err := a.Srv().Store().Group().GetByName(val, model.GroupSearchOpts{})
 	if err != nil && !errors.As(err, &notFoundErr) {
-		return model.NewAppError("isUniqueToGroupNames", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("isUniqueToGroupNames", "app.user.save.groupname.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if group != nil {
-		return model.NewAppError("isUniqueToGroupNames", model.NoTranslation, nil, fmt.Sprintf("group name %s exists", val), http.StatusBadRequest)
+		return model.NewAppError("isUniqueToGroupNames", "app.user.save.username_exists.app_error", nil, fmt.Sprintf("group name %s exists", val), http.StatusBadRequest)
 	}
 	return nil
 }
@@ -1452,6 +1452,31 @@ func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword str
 	}
 
 	a.InvalidateCacheForUser(user.Id)
+
+	if *a.Config().ServiceSettings.TerminateSessionsOnPasswordChange {
+		// Get currently active sessions if request is user-initiated to retain it
+		currentSession := ""
+		if rctx.Session() != nil && rctx.Session().UserId == user.Id {
+			currentSession = rctx.Session().Id
+		}
+
+		sessions, err := a.GetSessions(rctx, user.Id)
+		if err != nil {
+			return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		// Revoke all but current session
+		for _, session := range sessions {
+			if session.Id == currentSession {
+				continue
+			}
+
+			err := a.RevokeSessionById(rctx, session.Id)
+			if err != nil {
+				return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+	}
 
 	return nil
 }
@@ -2388,7 +2413,7 @@ func (a *App) GetViewUsersRestrictions(c request.CTX, userID string) (*model.Vie
 		}
 	}
 
-	userChannelMembers, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(userID, true, true)
+	userChannelMembers, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(c, userID, true, true)
 	if err != nil {
 		return nil, model.NewAppError("GetViewUsersRestrictions", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

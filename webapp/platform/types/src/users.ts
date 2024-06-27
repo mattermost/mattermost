@@ -28,6 +28,8 @@ export type UserNotifyProps = {
     push_threads?: 'default' | 'all' | 'mention' | 'none';
     auto_responder_active?: 'true' | 'false';
     auto_responder_message?: string;
+    calls_mobile_sound?: 'true' | 'false' | '';
+    calls_mobile_notification_sound?: 'Dynamic' | 'Calm' | 'Urgent' | 'Cheerful' | '';
 };
 
 export type UserProfile = {
