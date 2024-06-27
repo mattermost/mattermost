@@ -1233,6 +1233,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user.SanitizeInput(c.IsSystemAdmin())
 	audit.AddEventParameterAuditable(auditRec, "user", &user)
 	// The user being updated in the payload must be the same one as indicated in the URL.
 	if user.Id != c.Params.UserId {

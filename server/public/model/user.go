@@ -657,7 +657,6 @@ func (u *User) SanitizeInput(isAdmin bool) {
 		u.AuthService = ""
 		u.EmailVerified = false
 	}
-	u.Id = ""
 	u.RemoteId = NewString("")
 	u.CreateAt = 0
 	u.UpdateAt = 0
@@ -676,6 +675,8 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	u.TermsOfServiceId = ""
 	u.TermsOfServiceCreateAt = 0
 	u.LastLogin = 0
+	u.AllowMarketing = false
+	u.DisableWelcomeEmail = false
 }
 
 func (u *User) ClearNonProfileFields() {
