@@ -83,7 +83,8 @@ func TestAudit_LogRecord(t *testing.T) {
 
 				audit.LogRecord(mlog.LvlAuditAPI, rec)
 
-				rec.AddToEventActor(userId, sessionId)
+				rec.AddUserToEventActor(userId)
+				rec.AddSessionToEventActor(sessionId)
 
 				audit.LogRecord(mlog.LvlAuditAPI, rec)
 			},

@@ -122,9 +122,14 @@ func (rec *Record) AddErrorDesc(description string) {
 	rec.Error.Description = description
 }
 
-// AddToEventActor adds the userId and sessionId to the audit record's Actor. Intended for when the
-// initial call to context.MakeAuditRecord did not have the userId and sessionId available.
-func (rec *Record) AddToEventActor(userId, sessionId string) {
+// AddUserToEventActor adds the userId to the audit record's Actor. Intended for when the
+// initial call to context.MakeAuditRecord did not have the userId available.
+func (rec *Record) AddUserToEventActor(userId string) {
 	rec.Actor.UserId = userId
+}
+
+// AddSessionToEventActor adds the sessionId to the audit record's Actor. Intended for when the
+// initial call to context.MakeAuditRecord did not have the sessionId available.
+func (rec *Record) AddSessionToEventActor(sessionId string) {
 	rec.Actor.SessionId = sessionId
 }
