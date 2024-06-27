@@ -5,7 +5,6 @@ package metrics
 
 import (
 	"database/sql"
-	"fmt"
 	"math"
 	"net/url"
 	"os"
@@ -1731,12 +1730,9 @@ func (mi *MetricsInterfaceImpl) SetReplicaLagTime(node string, value float64) {
 }
 
 func normalizeNotificationPlatform(platform string) string {
-	fmt.Printf("================================= %s\n", platform)
 	switch platform {
-	case "apple_rn-v2":
+	case "apple_rn-v2", "apple_rnbeta-v2":
 		return "ios"
-	case "apple_rnbeta-v2":
-		return "ios_beta"
 	case "android_rn-v2":
 		return "android"
 	default:
