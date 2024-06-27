@@ -1731,9 +1731,9 @@ func (mi *MetricsInterfaceImpl) SetReplicaLagTime(node string, value float64) {
 
 func normalizeNotificationPlatform(platform string) string {
 	switch platform {
-	case "apple_rn-v2", "apple_rnbeta-v2":
+	case "apple_rn-v2", "apple_rnbeta-v2", "ios":
 		return "ios"
-	case "android_rn-v2":
+	case "android_rn-v2", "android":
 		return "android"
 	default:
 		return "unknown"
