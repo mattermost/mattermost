@@ -25,7 +25,7 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, setSelect
     const dispatch = useDispatch();
 
     const [providerResults, setProviderResults] = useState<ProviderResult<unknown>|null>(null);
-    const [suggestionsHeader, setSuggestionsHeader] = useState<React.ReactNode>(null);
+    const [suggestionsHeader, setSuggestionsHeader] = useState<React.ReactNode>(<span/>);
 
     const suggestionProviders = useRef<Provider[]>([
         new SearchDateProvider(),
@@ -46,7 +46,7 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, setSelect
             res.terms = res.terms.slice(0, 10);
             setProviderResults(res);
             setSelectedOption(0);
-            setSuggestionsHeader(null);
+            setSuggestionsHeader(<span/>);
         });
         suggestionProviders.current[1].handlePretextChanged(searchTerms, (res: ProviderResult<unknown>) => {
             res.component = SearchChannelSuggestion;
