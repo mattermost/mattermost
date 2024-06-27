@@ -10,20 +10,20 @@ const elementIdentifiers = [
 
     // Post list
     ['post__content', 'post'],
-    ['create_post', 'post-textbox'],
+    ['create_post', 'post_textbox'],
 
     // LHS
-    ['SidebarContainer', 'channel-sidebar'],
-    ['team-sidebar', 'team-sidebar'],
+    ['SidebarContainer', 'channel_sidebar'],
+    ['team-sidebar', 'team_sidebar'],
 
     // Header
-    ['channel-header', 'channel-header'],
-    ['global-header', 'global-header'],
-    ['announcement-bar', 'announcement-bar'],
+    ['channel-header', 'channel_header'],
+    ['global-header', 'global_header'],
+    ['announcement-bar', 'announcement_bar'],
 
     // Areas of the app
-    ['channel_view', 'center-channel'],
-    ['modal-content', 'modal-content'],
+    ['channel_view', 'center_channel'],
+    ['modal-content', 'modal_content'],
 ] as const satisfies Array<[string, string]>;
 
 export type ElementIdentifier = 'other' | typeof elementIdentifiers[number][1];

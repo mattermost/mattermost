@@ -41,14 +41,14 @@ var (
 	AcceptedInteractions = sliceToMapKey("keyboard", "pointer", "other")
 	AcceptedLCPRegions   = sliceToMapKey(
 		"post",
-		"post-textbox",
-		"channel-sidebar",
-		"team-sidebar",
-		"channel-header",
-		"global-header",
-		"announcement-bar",
-		"center-channel",
-		"modal-content",
+		"post_textbox",
+		"channel_sidebar",
+		"team_sidebar",
+		"channel_header",
+		"global_header",
+		"announcement_bar",
+		"center_channel",
+		"modal_content",
 		"other",
 	)
 )
