@@ -1307,8 +1307,8 @@ type API interface {
 	// Minimum server version: 9.8
 	UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError)
 
-	// GenerateSupportMetadata generates a the metadata for a support packet.
-	// pluginMeta is the values that plugin can insert into a standard support packet metadata.
+	// GenerateSupportMetadata generates the metadata for a support packet.
+	// pluginMeta should contain the values that plugin wants to insert into a standard support packet metadata.
 	//
 	// @tag Metadata
 	// Minimum server version: 9.10
