@@ -16,7 +16,7 @@ Instructions, tl;dr: create a local branch with your E2E test changes, then open
 
 Instructions, detailed:
 1. (optional, undefined variables are set to sane defaults) Create the `.ci/env` file, and populate it with the variables you need out of the following list:
-  * `SERVER`: either `self-hosted` (default) or `cloud`.
+  * `SERVER`: either `onprem` (default) or `cloud`.
   * `CWS_URL` (mandatory when `SERVER=cloud`, only used in such case): when spinning up a cloud-like test server that communicates with a test instance of a customer web server.
   * `TEST`: either `cypress` (default), `playwright`, or `none` (to avoid creating the cypress/playwright sidecar containers, e.g. if you only want to launch a server instance)
   * `ENABLED_DOCKER_SERVICES`: a space-separated list of services to start alongside the server. Default to `postgres inbucket`, for smoke test purposes and for lightweight and faster start-up time. Depending on the test requirement being worked on, you may want to override as needed, as such:
@@ -27,6 +27,7 @@ Instructions, detailed:
   * The following variables, which will be passed over to the cypress container: `BRANCH`, `BUILD_ID`, `CI_BASE_URL`, `BROWSER`, `AUTOMATION_DASHBOARD_URL` and `AUTOMATION_DASHBOARD_TOKEN`
   * The `SERVER_IMAGE` variable can also be set if you want to select a custom mattermost-server image. If not specified, the value of the `SERVER_IMAGE_DEFAULT` variable defined in file `.ci/.e2erc` is used.
   * The `TEST_FILTER` variable can also be set, to customize which tests you want Cypress to run. If not specified, only the smoke tests will run. Please check the `e2e-tests/cypress/run_tests.js` file for details about its format.
+  * More variables may be required to configure reporting and cloud interactions. Check the content of the `.ci/report.publish.sh` and `.ci/server.cloud_*.sh` scripts for reference.
 2. (optional) `make start-dashboard && make generate-test-cycle`: start the automation dashboard in the background, and initiate a test cycle on it, for the given `BUILD_ID`
   * NB: the `BUILD_ID` value should stay the same across the `make generate-test-cycle` command, and the subsequent `make` (see next step). If you need to initiate a new test cycle on the same dashboard, you'll need to change the `BUILD_ID` value and rerun both `make generate-test-cycle` and `make`.
   * Note that part of the dashboard functionality assumes the `BUILD_ID` to have a certain format (see [here](https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23) for details). This is not relevant for local running, but it's important to note in the testing pipelines.

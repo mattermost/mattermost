@@ -140,16 +140,6 @@
         fill: currentColor;
     }
 
-    &__icon {
-        display: inline-flex;
-        width: 100%;
-        height: 100%;
-        align-items: center;
-        justify-content: center;
-        font-family: "compass-icons";
-        font-size: 18px;
-    }
-
     &__cell {
         position: relative;
         display: flex;

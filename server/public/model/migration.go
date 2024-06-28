@@ -48,4 +48,5 @@ const (
 	MigrationKeyAddOutgoingOAuthConnectionsPermissions = "add_outgoing_oauth_connections_permissions"
 	MigrationKeyAddChannelBookmarksPermissions         = "add_channel_bookmarks_permissions"
 	MigrationKeyDeleteDmsPreferences                   = "delete_dms_preferences_migration"
+	MigrationKeyAddManageJobAncillaryPermissions       = "add_manage_jobs_ancillary_permissions"
 )
