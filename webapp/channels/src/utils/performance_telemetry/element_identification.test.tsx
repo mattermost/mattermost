@@ -128,7 +128,6 @@ describe('identifyElementRegion', () => {
             },
             {
                 history,
-                replaceGlobalStore: true,
             },
         );
 

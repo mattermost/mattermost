@@ -31,7 +31,6 @@ export type FullContextOptions = {
     useMockedStore?: boolean;
     pluginReducers?: string[];
     history?: History<unknown>;
-    replaceGlobalStore?: boolean;
 }
 
 export const renderWithContext = (
@@ -43,7 +42,6 @@ export const renderWithContext = (
         intlMessages: partialOptions?.intlMessages,
         locale: partialOptions?.locale ?? 'en',
         useMockedStore: partialOptions?.useMockedStore ?? false,
-        replaceGlobalStore: partialOptions?.replaceGlobalStore ?? false,
     };
 
     const testStore = configureOrMockStore(initialState, options.useMockedStore, partialOptions?.pluginReducers);
@@ -75,9 +73,7 @@ export const renderWithContext = (
         );
     }
 
-    if (options.replaceGlobalStore) {
-        replaceGlobalStore(() => renderState.store);
-    }
+    replaceGlobalStore(() => renderState.store);
 
     const results = render(component, {wrapper: WrapComponent});
 
