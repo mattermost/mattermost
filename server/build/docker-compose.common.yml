@@ -64,9 +64,9 @@ services:
     networks:
       - mm-test
     environment:
-      MINIO_ACCESS_KEY: minioaccesskey
-      MINIO_SECRET_KEY: miniosecretkey
-      MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
+      MINIO_ROOT_USER: minioaccesskey
+      MINIO_ROOT_PASSWORD: miniosecretkey
+      MINIO_KMS_SECRET_KEY: my-minio-key:OSMM+vkKUTCvQs9YL/CVMIMt43HFhkUpqJxTmGl6rYw=
   inbucket:
     image: "inbucket/inbucket:stable"
     restart: always
