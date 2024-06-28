@@ -164,7 +164,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
 
         const announcementIcon = () => {
             return this.props.showLinkAsButton &&
-            (this.props.showCloseButton ? <div className='content__icon'>{'\uF5D6'}</div> : <div className='content__icon'>{'\uF02A'}</div>);
+            (this.props.showCloseButton ? <i className='icon icon-alert-circle-outline'/> : <i className='icon icon-alert-outline'/>);
         };
 
         return (
