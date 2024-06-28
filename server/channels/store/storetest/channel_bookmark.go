@@ -434,9 +434,10 @@ func testDeleteChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		err = ss.ChannelBookmark().Delete(bookmark2.Id, true)
 		assert.NoError(t, err)
 
-		fileAfterDelete, err := ss.FileInfo().Get(file.Id)
-		assert.NoError(t, err)
-		assert.NotEqual(t, fileAfterDelete.DeleteAt, 0)
+		_, err = ss.FileInfo().Get(file.Id)
+		assert.Error(t, err)
+		var nfErr *store.ErrNotFound
+		assert.ErrorAs(t, err, &nfErr)
 
 		bookmarks, err := ss.ChannelBookmark().GetBookmarksForChannelSince(channelId, now)
 		assert.NoError(t, err)
