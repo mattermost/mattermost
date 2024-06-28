@@ -1596,7 +1596,7 @@ func getFileExtFromMimeType(mimeType string) string {
 }
 
 func (a *App) PermanentDeleteFilesByPost(c request.CTX, postID string) *model.AppError {
-	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, false, true, false)
+	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, false, true, true)
 	if err != nil {
 		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

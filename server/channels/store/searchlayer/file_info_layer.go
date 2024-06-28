@@ -124,18 +124,32 @@ func (s SearchFileInfoStore) AttachToPost(rctx request.CTX, fileId, postId, chan
 	return err
 }
 
-func (s SearchFileInfoStore) DeleteForPost(rctx request.CTX, postId string) (string, error) {
-	result, err := s.FileInfoStore.DeleteForPost(rctx, postId)
+func (s SearchFileInfoStore) DeleteForPost(rctx request.CTX, postID string) (string, error) {
+	// temporary workaround because deleteFileIndexForPost is not working due to the post_id no being indexed with the file
+	files, err := s.FileInfoStore.GetForPost(postID, false, true, true)
+	if err != nil {
+		return "", err
+	}
+	result, err := s.FileInfoStore.DeleteForPost(rctx, postID)
 	if err == nil {
-		s.deleteFileIndexForPost(rctx, postId)
+		for _, file := range files {
+			s.deleteFileIndex(rctx, file.Id)
+		}
 	}
 	return result, err
 }
 
-func (s SearchFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postId string) error {
-	err := s.FileInfoStore.PermanentDeleteForPost(rctx, postId)
+func (s SearchFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
+	// temporary workaround because deleteFileIndexForPost is not working due to the post_id no being indexed with the file
+	files, err := s.FileInfoStore.GetForPost(postID, false, true, true)
+	if err != nil {
+		return err
+	}
+	err = s.FileInfoStore.PermanentDeleteForPost(rctx, postID)
 	if err == nil {
-		s.deleteFileIndexForPost(rctx, postId)
+		for _, file := range files {
+			s.deleteFileIndex(rctx, file.Id)
+		}
 	}
 	return err
 }
