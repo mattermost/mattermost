@@ -21,7 +21,7 @@ type SystemService struct {
 }
 
 const (
-	PacketMetadataFileName = "server_metadata.yaml"
+	PacketMetadataFileName = "packet_metadata.yaml"
 )
 
 // GetManifest returns the manifest from the plugin bundle.
