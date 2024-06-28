@@ -646,25 +646,25 @@ func (s *Server) doDeleteOrphanDraftsMigration(c request.CTX) error {
 	return nil
 }
 
-func (s *Server) doDeleteDmsPreferencesMigration(c request.CTX) {
+func (s *Server) doDeleteDmsPreferencesMigration(c request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteDmsPreferences); err == nil {
-		return
+		return nil
 	}
 
 	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteDmsPreferencesMigration, model.JobStatusPending)
 	if err != nil {
-		mlog.Fatal("failed to get jobs by type and status", mlog.Err(err))
-		return
+		return fmt.Errorf("failed to get jobs by type and status: %w", err)
 	}
 	if len(jobs) > 0 {
-		return
+		return nil
 	}
 
 	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteDmsPreferencesMigration, nil); appErr != nil {
-		mlog.Fatal("failed to start job for deleting dm preferences", mlog.Err(appErr))
-		return
+		return fmt.Errorf("failed to start job for deleting dm preferences: %w", appErr)
 	}
+
+	return nil
 }
 
 func (a *App) DoAppMigrations() {
