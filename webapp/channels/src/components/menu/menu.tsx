@@ -64,11 +64,25 @@ type MenuProps = {
     width?: string;
 }
 
+const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'};
+const defaultTransformOrigin = {vertical: 'top', horizontal: 'left'};
+
+type VerticalOrigin = 'top' | 'center' | 'bottom';
+type HorizontalOrigin = 'left' | 'center' | 'right';
+
 interface Props {
     menuButton: MenuButtonProps;
     menuButtonTooltip?: MenuButtonTooltipProps;
     menu: MenuProps;
     children: ReactNode[];
+    anchorOrigin?: {
+        vertical: VerticalOrigin;
+        horizontal: HorizontalOrigin;
+    };
+    transformOrigin?: {
+        vertical: VerticalOrigin;
+        horizontal: HorizontalOrigin;
+    };
 }
 
 /**
@@ -236,6 +250,8 @@ export function Menu(props: Props) {
                     onKeyDown={handleMenuKeyDown}
                     className={A11yClassNames.POPUP}
                     width={props.menu.width}
+                    anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
+                    transformOrigin={props.transformOrigin || defaultTransformOrigin}
                     disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
                     MenuListProps={{
                         id: props.menu.id,
