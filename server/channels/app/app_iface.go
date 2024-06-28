@@ -981,7 +981,7 @@ type AppIface interface {
 	PermanentDeleteAllUsers(c request.CTX) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
 	PermanentDeleteFilesByPost(c request.CTX, postID string) *model.AppError
-	PermanentDeletePost(c request.CTX, post *model.Post, deleteByID string) *model.AppError
+	PermanentDeletePost(c request.CTX, postID, deleteByID string) *model.AppError
 	PermanentDeleteTeam(c request.CTX, team *model.Team) *model.AppError
 	PermanentDeleteTeamId(c request.CTX, teamID string) *model.AppError
 	PermanentDeleteUser(c request.CTX, user *model.User) *model.AppError
@@ -1018,6 +1018,7 @@ type AppIface interface {
 	RemoveDirectory(path string) *model.AppError
 	RemoveExportFile(path string) *model.AppError
 	RemoveFile(path string) *model.AppError
+	RemoveFileFromFileStore(c request.CTX, path string)
 	RemoveFilesFromFileStore(c request.CTX, fileInfos []*model.FileInfo)
 	RemoveLdapPrivateCertificate() *model.AppError
 	RemoveLdapPublicCertificate() *model.AppError

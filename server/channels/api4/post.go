@@ -635,7 +635,7 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	if permanent {
 		if *c.App.Config().ServiceSettings.EnableAPIPostDeletion {
-			err = c.App.PermanentDeletePost(c.AppContext, post, c.AppContext.Session().UserId)
+			err = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
 		} else {
 			err = model.NewAppError("deletePost", "api.post.delete_post.not_enabled.app_error", nil, "postId="+post.Id, http.StatusUnauthorized)
 		}

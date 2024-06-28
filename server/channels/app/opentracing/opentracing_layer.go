@@ -13574,7 +13574,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteFilesByPost(c request.CTX, postID s
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PermanentDeletePost(c request.CTX, post *model.Post, deleteByID string) *model.AppError {
+func (a *OpenTracingAppLayer) PermanentDeletePost(c request.CTX, postID string, deleteByID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeletePost")
 
@@ -13586,7 +13586,7 @@ func (a *OpenTracingAppLayer) PermanentDeletePost(c request.CTX, post *model.Pos
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PermanentDeletePost(c, post, deleteByID)
+	resultVar0 := a.app.PermanentDeletePost(c, postID, deleteByID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -14430,6 +14430,21 @@ func (a *OpenTracingAppLayer) RemoveFile(path string) *model.AppError {
 	}
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) RemoveFileFromFileStore(c request.CTX, path string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveFileFromFileStore")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.RemoveFileFromFileStore(c, path)
 }
 
 func (a *OpenTracingAppLayer) RemoveFilesFromFileStore(c request.CTX, fileInfos []*model.FileInfo) {

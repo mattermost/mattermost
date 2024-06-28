@@ -1598,21 +1598,21 @@ func getFileExtFromMimeType(mimeType string) string {
 func (a *App) PermanentDeleteFilesByPost(c request.CTX, postID string) *model.AppError {
 	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, false, true, false)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			c.Logger().Warn("No files found for post", mlog.String("post_id", postID))
-			return nil
-		default:
-			return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	if len(fileInfos) == 0 {
+		c.Logger().Info("No files found for post", mlog.String("post_id", postID))
+		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError)
+	}
+
 	a.RemoveFilesFromFileStore(c, fileInfos)
 
 	err = a.Srv().Store().FileInfo().PermanentDeleteForPost(c, postID)
 	if err != nil {
 		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.permanent_delete_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 
 	return nil
 }

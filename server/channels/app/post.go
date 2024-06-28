@@ -2603,18 +2603,25 @@ func (a *App) MoveThread(c request.CTX, postID string, sourceChannelID, channelI
 	return nil
 }
 
-func (a *App) PermanentDeletePost(c request.CTX, post *model.Post, deleteByID string) *model.AppError {
-	appErr := a.PermanentDeleteFilesByPost(c, post.Id)
-	if appErr != nil {
-		return appErr
+func (a *App) PermanentDeletePost(c request.CTX, postID, deleteByID string) *model.AppError {
+	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(c), postID, true)
+	if err != nil {
+		return model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	err := a.Srv().Store().Post().PermanentDeletePost(c, post.Id)
+	if len(post.FileIds) > 0 {
+		appErr := a.PermanentDeleteFilesByPost(c, post.Id)
+		if appErr != nil {
+			return appErr
+		}
+	}
+
+	err = a.Srv().Store().Post().PermanentDeletePost(c, post.Id)
 	if err != nil {
 		return model.NewAppError("PermanentDeletePost", "app.post.permanent_delete_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	appErr = a.AfterPostDeletionCleanUp(c, post, deleteByID)
+	appErr := a.AfterPostDeletionCleanUp(c, post, deleteByID)
 	if appErr != nil {
 		return appErr
 	}

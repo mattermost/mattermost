@@ -13,7 +13,7 @@ import (
 
 func (api *API) InitPostLocal() {
 	api.BaseRoutes.Post.Handle("", api.APILocal(getPost)).Methods("GET")
-	api.BaseRoutes.Post.Handle("", api.APILocal(deletePost)).Methods("DELETE")
+	api.BaseRoutes.Post.Handle("", api.APILocal(localDeletePost)).Methods("DELETE")
 
 	api.BaseRoutes.PostsForChannel.Handle("", api.APILocal(getPostsForChannel)).Methods("GET")
 }
@@ -45,7 +45,7 @@ func localDeletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("post")
 
 	if permanent {
-		err = c.App.PermanentDeletePost(c.AppContext, post, c.AppContext.Session().UserId)
+		err = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
 	} else {
 		_, err = c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
 	}
