@@ -2,11 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {screen} from '@testing-library/react';
+import { act } from 'tests/react_testing_utils';
 import React from 'react';
 
 import LatexBlock from 'components/latex_block/latex_block';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+
+const actImmediate = () =>
+    act(
+        () =>
+            new Promise<void>((resolve) => {
+                setImmediate(() => {
+                    resolve();
+                });
+            }),
+    );
 
 describe('components/LatexBlock', () => {
     const defaultProps = {
@@ -27,10 +38,12 @@ describe('components/LatexBlock', () => {
             enableLatex: false,
         };
 
-        renderWithContext(<LatexBlock {...props}/>);
-        const wrapper = await screen.findAllByTestId('latex-disabled');
-        expect(wrapper.length).toBe(1);
-        expect(wrapper.at(0)).toMatchSnapshot();
+        const { container } = renderWithContext(<LatexBlock {...props}/>);
+
+        expect(screen.getByText('LaTeX')).toBeInTheDocument();
+        expect(container.querySelector('.post-code__line-numbers')).toBeInTheDocument();
+
+        await actImmediate();
     });
 
     test('error in katex', async () => {
