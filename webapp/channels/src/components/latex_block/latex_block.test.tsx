@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {screen} from '@testing-library/react';
-import { act } from 'tests/react_testing_utils';
 import React from 'react';
 
 import LatexBlock from 'components/latex_block/latex_block';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext} from 'tests/react_testing_utils';
 
 const actImmediate = () =>
     act(
@@ -38,7 +37,7 @@ describe('components/LatexBlock', () => {
             enableLatex: false,
         };
 
-        const { container } = renderWithContext(<LatexBlock {...props}/>);
+        const {container} = renderWithContext(<LatexBlock {...props}/>);
 
         expect(screen.getByText('LaTeX')).toBeInTheDocument();
         expect(container.querySelector('.post-code__line-numbers')).toBeInTheDocument();
