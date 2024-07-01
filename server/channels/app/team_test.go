@@ -1555,6 +1555,54 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
 	})
+
+	t.Run("it should return error when inviting a deactivated email account", func(t *testing.T) {
+		var err *model.AppError
+
+		team := th.CreateTeam()
+		channel := th.CreateChannel(th.Context, team)
+		defer func() {
+			th.App.PermanentDeleteChannel(th.Context, channel)
+			th.App.PermanentDeleteTeam(th.Context, team)
+		}()
+
+		_, _, err = th.App.AddUserToTeam(th.Context, team.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		deactivatedUser := th.CreateUser()
+		_, _, err = th.App.AddUserToTeam(th.Context, team.Id, deactivatedUser.Id, "")
+		require.Nil(t, err)
+		_, err = th.App.AddUserToChannel(th.Context, deactivatedUser, channel, false)
+		require.Nil(t, err)
+		channelMembers, err := th.App.GetChannelMembersPage(th.Context, channel.Id, 0, 10000000)
+		require.Nil(t, err)
+		require.Len(t, channelMembers, 2)
+		_, err = th.App.UpdateActive(th.Context, deactivatedUser, false)
+		require.Nil(t, err)
+
+		emailServiceMock := emailmocks.ServiceInterface{}
+		memberInvite := &model.MemberInvite{
+			Emails: []string{deactivatedUser.Email},
+		}
+		emailServiceMock.On("SendInviteEmails",
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			memberInvite.Emails,
+			"",
+			mock.Anything,
+			true,
+			false,
+			false,
+		).Once().Return(email.SendMailError)
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Error)
+	})
 }
 
 func TestInviteGuestsToChannelsGracefully(t *testing.T) {
