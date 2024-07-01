@@ -10,7 +10,7 @@ exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should
     <CompletedWrapper>
       <img
         alt="completed tasks image"
-        src={null}
+        src=""
       />
       <h2>
         <MemoizedFormattedMessage

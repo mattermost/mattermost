@@ -46,6 +46,8 @@ jest.mock('@mui/styled-engine', () => {
     return styledEngineSc;
 });
 
+global.ResizeObserver = require('resize-observer-polyfill');
+
 // isDependencyWarning returns true when the given console.warn message is coming from a dependency using deprecated
 // React lifecycle methods.
 function isDependencyWarning(params: string[]) {

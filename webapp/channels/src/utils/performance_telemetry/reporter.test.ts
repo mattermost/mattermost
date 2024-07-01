@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import nock from 'nock';
-import {onCLS, onFCP, onINP, onLCP, onTTFB} from 'web-vitals';
+import {onCLS, onFCP, onINP, onLCP, onTTFB} from 'web-vitals/attribution';
 
 import {Client4} from '@mattermost/client';
 
@@ -15,7 +15,7 @@ import PerformanceReporter from './reporter';
 
 import {markAndReport, measureAndReport} from '.';
 
-jest.mock('web-vitals');
+jest.mock('web-vitals/attribution');
 
 const siteUrl = 'http://localhost:8065';
 
@@ -197,7 +197,7 @@ describe('PerformanceReporter', () => {
         const onINPCallback = (onINP as jest.Mock).mock.calls[0][0];
         onINPCallback({name: 'INP', value: 200});
         const onLCPCallback = (onLCP as jest.Mock).mock.calls[0][0];
-        onLCPCallback({name: 'LCP', value: 2500});
+        onLCPCallback({name: 'LCP', value: 2500, entries: []});
         const onTTFBCallback = (onTTFB as jest.Mock).mock.calls[0][0];
         onTTFBCallback({name: 'TTFB', value: 800});
 

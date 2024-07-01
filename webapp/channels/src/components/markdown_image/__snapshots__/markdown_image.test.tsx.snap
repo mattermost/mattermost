@@ -90,7 +90,7 @@ exports[`components/MarkdownImage should render a link if the source is unsafe 1
   <img
     alt="test image"
     className="markdown-inline-img broken-image"
-    src={null}
+    src=""
   />
 </div>
 `;

@@ -217,8 +217,8 @@ export function haveIChannelPermission(state: GlobalState, teamId: string | unde
         return true;
     }
 
-    if (channelId) {
-        return getMyPermissionsByChannel(state)[channelId]?.has(permission);
+    if (channelId && getMyPermissionsByChannel(state)[channelId]?.has(permission)) {
+        return true;
     }
 
     return false;

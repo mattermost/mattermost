@@ -79,7 +79,7 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             <img
               alt="bot image"
               className="bot-img"
-              src={null}
+              src=""
               style={
                 Object {
                   "transform": "",

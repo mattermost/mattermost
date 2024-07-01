@@ -10,8 +10,6 @@ import {Locations} from 'utils/constants';
 import FormattingBar from './formatting_bar';
 import * as Hooks from './hooks';
 
-global.ResizeObserver = require('resize-observer-polyfill');
-
 jest.mock('./hooks');
 
 const {splitFormattingBarControls} = jest.requireActual('./hooks');

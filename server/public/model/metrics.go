@@ -37,6 +37,20 @@ var (
 	performanceReportVersion = semver.MustParse("0.1.0")
 	acceptedPlatforms        = sliceToMapKey("linux", "macos", "ios", "android", "windows", "other")
 	acceptedAgents           = sliceToMapKey("desktop", "firefox", "chrome", "safari", "edge", "other")
+
+	AcceptedInteractions = sliceToMapKey("keyboard", "pointer", "other")
+	AcceptedLCPRegions   = sliceToMapKey(
+		"post",
+		"post_textbox",
+		"channel_sidebar",
+		"team_sidebar",
+		"channel_header",
+		"global_header",
+		"announcement_bar",
+		"center_channel",
+		"modal_content",
+		"other",
+	)
 )
 
 type MetricSample struct {
@@ -44,6 +58,10 @@ type MetricSample struct {
 	Value     float64           `json:"value"`
 	Timestamp float64           `json:"timestamp,omitempty"`
 	Labels    map[string]string `json:"labels,omitempty"`
+}
+
+func (s *MetricSample) GetLabelValue(name string, acceptedValues map[string]any, defaultValue string) string {
+	return processLabel(s.Labels, name, acceptedValues, defaultValue)
 }
 
 // PerformanceReport is a set of samples collected from a client
@@ -84,37 +102,25 @@ func (r *PerformanceReport) IsValid() error {
 }
 
 func (r *PerformanceReport) ProcessLabels() map[string]string {
-	var platform, agent string
-	var ok bool
-
-	// check if the platform is specified
-	platform, ok = r.Labels["platform"]
-	if !ok {
-		platform = "other"
-	}
-	platform = strings.ToLower(platform)
-
-	// check if platform is one of the accepted platforms
-	_, ok = acceptedPlatforms[platform]
-	if !ok {
-		platform = "other"
-	}
-
-	// check if the agent is specified
-	agent, ok = r.Labels["agent"]
-	if !ok {
-		agent = "other"
-	}
-	agent = strings.ToLower(agent)
-
-	// check if agent is one of the accepted agents
-	_, ok = acceptedAgents[agent]
-	if !ok {
-		agent = "other"
-	}
-
 	return map[string]string{
-		"platform": platform,
-		"agent":    agent,
+		"platform": processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
+		"agent":    processLabel(r.Labels, "agent", acceptedAgents, "other"),
 	}
+}
+
+func processLabel(labels map[string]string, name string, acceptedValues map[string]any, defaultValue string) string {
+	// check if the label is specified
+	value, ok := labels[name]
+	if !ok {
+		return defaultValue
+	}
+	value = strings.ToLower(value)
+
+	// check if the value is one that we accept
+	_, ok = acceptedValues[value]
+	if !ok {
+		return defaultValue
+	}
+
+	return value
 }
