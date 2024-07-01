@@ -16,6 +16,8 @@ const (
 	CurrentMetadataVersion int        = 1
 	SupportPacketType      PacketType = "support-packet"
 	PluginPacketType       PacketType = "plugin-packet"
+
+	PacketMetadataFileName = "metadata.yaml"
 )
 
 type PacketMetadata struct {

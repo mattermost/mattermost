@@ -20,10 +20,6 @@ type SystemService struct {
 	api plugin.API
 }
 
-const (
-	PacketMetadataFileName = "packet_metadata.yaml"
-)
-
 // GetManifest returns the manifest from the plugin bundle.
 //
 // Minimum server version: 5.10
@@ -170,7 +166,7 @@ func (s *SystemService) GeneratePacketMetadata(path string, pluginMeta map[strin
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get packet metadata")
 	}
-	filePath := filePath.Join(path, PacketMetadataFileName)
+	filePath := filePath.Join(path, model.PacketMetadataFileName)
 	f, err := os.Create(filePath)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to create packet metadata file")
