@@ -37,7 +37,7 @@ func appendAncillaryPermissions(c *Context, w http.ResponseWriter, r *http.Reque
 
 func appendAncillaryPermissionsPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	permissions, err := model.NonSortedArrayFromJSON(r.Body)
-	if err != nil {
+	if err != nil || len(permissions) < 1 {
 		c.Err = model.NewAppError("appendAncillaryPermissionsPost", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}

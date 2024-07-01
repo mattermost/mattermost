@@ -8683,22 +8683,8 @@ func (c *Client4) GetRemoteClusterInfo(ctx context.Context, remoteID string) (Re
 
 func (c *Client4) GetAncillaryPermissions(ctx context.Context, subsectionPermissions []string) ([]string, *Response, error) {
 	var returnedPermissions []string
-	url := fmt.Sprintf("%s/ancillary?subsection_permissions=%s", c.permissionsRoute(), strings.Join(subsectionPermissions, ","))
-	r, err := c.DoAPIGet(ctx, url, "")
-	if err != nil {
-		return returnedPermissions, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	json.NewDecoder(r.Body).Decode(&returnedPermissions)
-	return returnedPermissions, BuildResponse(r), nil
-}
-
-func (c *Client4) GetAncillaryPermissionsPost(ctx context.Context, subsectionPermissions []string) ([]string, *Response, error) {
-	var returnedPermissions []string
 	url := fmt.Sprintf("%s/ancillary", c.permissionsRoute())
-	m := map[string]string{"subsection_permissions": strings.Join(subsectionPermissions, ",")}
-	r, err := c.DoAPIPost(ctx, url, MapToJSON(m))
+	r, err := c.DoAPIPost(ctx, url, ArrayToJSON(subsectionPermissions))
 	if err != nil {
 		return returnedPermissions, BuildResponse(r), err
 	}
