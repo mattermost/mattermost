@@ -98,8 +98,7 @@ func TestGenerateCustomerPacketMetadata(t *testing.T) {
 	customerID := model.NewId()
 	telemetryID := model.NewId()
 	t.Run("happy path", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
+		api := plugintest.NewAPI(t)
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		dir := generateManifest(t)
@@ -118,7 +117,9 @@ func TestGenerateCustomerPacketMetadata(t *testing.T) {
 
 		f, err := os.Open(filePath)
 		require.NoError(t, err)
-		defer f.Close()
+		t.Cleanup(func() {
+			require.NoError(t, f.Close())
+		})
 
 		var md model.PacketMetadata
 		err = yaml.NewDecoder(f).Decode(&md)
@@ -150,7 +151,6 @@ func generateManifest(t *testing.T) string {
 	})
 
 	tmpfn := filepath.Join(dir, "plugin.json")
-	//nolint:gosec //only used in tests
 	f, err := os.Create(tmpfn)
 	require.NoError(t, err)
 	err = json.NewEncoder(f).Encode(manifest)
