@@ -15,13 +15,6 @@ exports[`components/LatexBlock error in katex 1`] = `
 </div>
 `;
 
-exports[`components/LatexBlock latex is disabled 1`] = `
-<CodeBlock
-  code="\`\`\`latex e^{i\\\\pi} + 1 = 0\`\`\`"
-  language="latex"
-/>
-`;
-
 exports[`components/LatexBlock should match snapshot 1`] = `
 <div
   class="post-body--code tex"
