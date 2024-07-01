@@ -3,7 +3,7 @@
 exports[`EmojiPickerCategory should match snapshot 1`] = `
 <DocumentFragment>
   <a
-    aria-label="categoryId"
+    aria-label="category name"
     class="emoji-picker__category"
     href="#"
   >

@@ -2177,6 +2177,10 @@
     "translation": "The job types of a job you are trying to retrieve does not contain permissions"
   },
   {
+    "id": "api.job.status.invalid",
+    "translation": "Invalid status set"
+  },
+  {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
     "translation": "The job type of the job you are trying to create is invalid"
   },
@@ -2187,6 +2191,10 @@
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "The job type you are trying to download is not supported at the moment"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "You do not have permission to manage this job type"
   },
   {
     "id": "api.ldap_group.not_found",
@@ -2929,6 +2937,10 @@
   {
     "id": "api.system.id_loaded.not_available.app_error",
     "translation": "ID Loaded Push Notifications are not configured or supported on this server."
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Failed to write logs to buffer"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -5671,6 +5683,10 @@
     "translation": "Unable to update the job."
   },
   {
+    "id": "app.job.update_status.app_error",
+    "translation": "Unable to update job status. Invalid status set"
+  },
+  {
     "id": "app.last_accessible_file.app_error",
     "translation": "Error fetching last accessible file"
   },
@@ -6829,6 +6845,10 @@
   {
     "id": "app.user.save.existing.app_error",
     "translation": "Must call update for existing user."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Unable to determine if that username already exists"
   },
   {
     "id": "app.user.save.username_exists.app_error",

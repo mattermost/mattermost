@@ -4,6 +4,7 @@
 import AdminTypes from './admin';
 import AppsTypes from './apps';
 import BotTypes from './bots';
+import ChannelBookmarkTypes from './channel_bookmarks';
 import ChannelCategoryTypes from './channel_categories';
 import ChannelTypes from './channels';
 import CloudTypes from './cloud';
@@ -55,4 +56,5 @@ export {
     HostedCustomerTypes,
     DraftTypes,
     PlaybookType,
+    ChannelBookmarkTypes,
 };
