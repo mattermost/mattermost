@@ -191,7 +191,7 @@ func (a *App) CreateRemoteClusterInvite(remoteId, siteURL, token, password strin
 
 	encrypted, err := invite.Encrypt(password)
 	if err != nil {
-		return "", model.NewAppError("CreateInvite", "api.remote_cluster.encrypt_invite_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", model.NewAppError("CreateRemoteClusterInvite", "api.remote_cluster.encrypt_invite_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return base64.URLEncoding.EncodeToString(encrypted), nil
@@ -200,12 +200,12 @@ func (a *App) CreateRemoteClusterInvite(remoteId, siteURL, token, password strin
 func (a *App) DecryptRemoteClusterInvite(inviteCode, password string) (*model.RemoteClusterInvite, *model.AppError) {
 	decoded, err := base64.URLEncoding.DecodeString(inviteCode)
 	if err != nil {
-		return nil, model.NewAppError("DecodeRemoteClusterInvite", "api.remote_cluster.base64_decode_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, model.NewAppError("DecryptRemoteClusterInvite", "api.remote_cluster.base64_decode_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	invite := &model.RemoteClusterInvite{}
 	if dErr := invite.Decrypt(decoded, password); dErr != nil {
-		return nil, model.NewAppError("DecodeRemoteClusterInvite", "api.remote_cluster.invite_decrypt_error", nil, "", http.StatusBadRequest).Wrap(dErr)
+		return nil, model.NewAppError("DecryptRemoteClusterInvite", "api.remote_cluster.invite_decrypt_error", nil, "", http.StatusBadRequest).Wrap(dErr)
 	}
 
 	return invite, nil
