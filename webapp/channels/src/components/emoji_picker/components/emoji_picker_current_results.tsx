@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import throttle from 'lodash/throttle';
-import React, {forwardRef, memo, useCallback} from 'react';
+import React, {forwardRef, memo, useCallback,useRef,useEffect} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {FixedSizeList} from 'react-window';
 import type {ListItemKeySelector, ListOnScrollProps} from 'react-window';
@@ -16,6 +16,7 @@ import EmojiPickerCategoryOrEmojiRow from 'components/emoji_picker/components/em
 import {ITEM_HEIGHT, EMOJI_ROWS_OVERSCAN_COUNT, EMOJI_CONTAINER_HEIGHT, CUSTOM_EMOJIS_PER_PAGE, EMOJI_SCROLL_THROTTLE_DELAY} from 'components/emoji_picker/constants';
 import type {CategoryOrEmojiRow, EmojiCursor} from 'components/emoji_picker/types';
 import {isCategoryHeaderRow} from 'components/emoji_picker/utils';
+import list from 'components/more_direct_channels/list';
 
 interface Props {
     categoryOrEmojisRows: CategoryOrEmojiRow[];
@@ -34,6 +35,8 @@ interface Props {
 
 const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOrEmojisRows, isFiltering, activeCategory, cursorRowIndex, cursorEmojiId, customEmojisEnabled, customEmojiPage, setActiveCategory, onEmojiClick, onEmojiMouseOver, getCustomEmojis, incrementEmojiPickerPage}: Props, ref) => {
     // Function to create unique key for each row
+    const listRef = useRef<FixedSizeList<CategoryOrEmojiRow[]> | null>(null)
+    const scrollPositionRef = useRef(0)
     const getItemKey = (index: Parameters<ListItemKeySelector>[0], rowsData: Parameters<ListItemKeySelector<CategoryOrEmojiRow[]>>[1]) => {
         const data = rowsData[index];
 
@@ -51,6 +54,7 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
         if (isFiltering) {
             return;
         }
+        scrollPositionRef.current = scrollOffset;
 
         const approxRowsFromTop = Math.ceil(scrollOffset / ITEM_HEIGHT);
         const closestCategory = categoryOrEmojisRows?.[approxRowsFromTop]?.items[0]?.categoryName;
@@ -85,6 +89,12 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
 
         incrementEmojiPickerPage();
     };
+    useEffect(() => {
+        if(listRef.current){
+            listRef.current.scrollTo(scrollPositionRef.current)
+        }
+    }, [categoryOrEmojisRows])
+    
 
     return (
         <div
@@ -102,7 +112,10 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
                         >
                             {({onItemsRendered, ref}) => (
                                 <FixedSizeList
-                                    ref={ref}
+                                    ref={(el)=>{
+                                        listRef.current = el;
+                                        ref(el)
+                                    }}
                                     onItemsRendered={onItemsRendered}
                                     height={height}
                                     width={width}
