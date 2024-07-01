@@ -704,7 +704,7 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 }
 
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
-	post, appErr := api.app.GetSinglePost(postID, false)
+	post, appErr := api.app.GetSinglePost(api.ctx, postID, false)
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -1342,4 +1342,13 @@ func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID s
 
 func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID string) error {
 	return api.app.UninviteRemoteFromChannel(channelID, remoteID)
+}
+
+func (api *PluginAPI) GenerateSupportMetadata(pluginMeta map[string]any) (*model.Metadata, error) {
+	md, err := model.GeneratePluginMetadata(api.manifest, api.GetLicense(), api.GetTelemetryId(), pluginMeta)
+	if err != nil {
+		return nil, err
+	}
+
+	return md, nil
 }

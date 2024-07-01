@@ -52,7 +52,7 @@ func testSaveAcknowledgementForPost(t *testing.T) {
 		_, err = th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		post, err = th.App.GetSinglePost(post.Id, false)
+		post, err = th.App.GetSinglePost(th.Context, post.Id, false)
 		require.Nil(t, err)
 
 		require.Greater(t, post.UpdateAt, oldUpdateAt)
@@ -91,7 +91,7 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 		_, err := th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		post, err = th.App.GetSinglePost(post.Id, false)
+		post, err = th.App.GetSinglePost(th.Context, post.Id, false)
 		require.Nil(t, err)
 
 		oldUpdateAt := post.UpdateAt
@@ -99,7 +99,7 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 		err = th.App.DeleteAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		post, err = th.App.GetSinglePost(post.Id, false)
+		post, err = th.App.GetSinglePost(th.Context, post.Id, false)
 		require.Nil(t, err)
 
 		require.Greater(t, post.UpdateAt, oldUpdateAt)

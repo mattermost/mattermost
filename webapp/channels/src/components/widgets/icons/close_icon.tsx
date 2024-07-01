@@ -4,8 +4,6 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import {t} from 'utils/i18n';
-
 export default function CloseIcon(props: React.HTMLAttributes<HTMLSpanElement>) {
     const {formatMessage} = useIntl();
     return (
@@ -15,7 +13,7 @@ export default function CloseIcon(props: React.HTMLAttributes<HTMLSpanElement>) 
                 height='24px'
                 viewBox='0 0 24 24'
                 role='img'
-                aria-label={formatMessage({id: t('generic_icons.close'), defaultMessage: 'Close Icon'})}
+                aria-label={formatMessage({id: 'generic_icons.close', defaultMessage: 'Close Icon'})}
             >
                 <path
                     fillRule='nonzero'

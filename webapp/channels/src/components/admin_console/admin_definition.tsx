@@ -771,6 +771,13 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                         {
+                            type: 'number',
+                            key: 'ServiceSettings.MaximumPayloadSizeBytes',
+                            label: defineMessage({id: 'admin.service.maximumPayloadSize', defaultMessage: 'Maximum Payload Size (Bytes):'}),
+                            help_text: defineMessage({id: 'admin.service.maximumPayloadSizeDescription', defaultMessage: 'The maximum number of bytes allowed in the payload of incoming HTTP calls'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                        },
+                        {
                             type: 'dropdown',
                             key: 'ServiceSettings.WebserverMode',
                             label: defineMessage({id: 'admin.webserverModeTitle', defaultMessage: 'Webserver Mode:'}),
@@ -1808,7 +1815,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.PERFORMANCE_MONITORING)),
                                 it.configIsFalse('MetricsSettings', 'Enable'),
                             ),
-                            isHidden: it.configIsFalse('FeatureFlags', 'ClientMetrics'),
                         },
                         {
                             type: 'text',
@@ -6145,6 +6151,15 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                                 it.stateIsFalse('ServiceSettings.EnableUserTypingMessages'),
                             ),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalSettings.UsersStatusAndProfileFetchingPollIntervalMilliseconds',
+                            label: defineMessage({id: 'admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.title', defaultMessage: 'User\'s Status and Profile Fetching Poll Interval:'}),
+                            help_text: defineMessage({id: 'admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.desc', defaultMessage: 'The number of milliseconds to wait between fetching user statuses and profiles periodically.'}),
+                            help_text_markdown: false,
+                            placeholder: defineMessage({id: 'admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.example', defaultMessage: 'E.g.: "5000"'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
                             type: 'text',

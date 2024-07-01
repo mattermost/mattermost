@@ -8,9 +8,7 @@ import type {Dispatch} from 'redux';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {switchLdapToEmail} from 'mattermost-redux/actions/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-import {getPasswordConfig} from 'utils/utils';
+import {getConfig, getPasswordConfig} from 'mattermost-redux/selectors/entities/general';
 
 import ClaimController from './claim_controller';
 
@@ -22,7 +20,7 @@ function mapStateToProps(state: GlobalState) {
     return {
         siteName,
         ldapLoginFieldName,
-        passwordConfig: getPasswordConfig(config),
+        passwordConfig: getPasswordConfig(state),
     };
 }
 

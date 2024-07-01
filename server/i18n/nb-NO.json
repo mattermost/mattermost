@@ -82,5 +82,17 @@
   {
     "id": "April",
     "translation": "April"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Du kan ikke fjerne en anerkjennelse i en arkivert kanal."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Du kan ikke slette en anerkjennelse etter at det har gått 5 minutter."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Du kan ikke gi en anerkjennelse i en arkivert kanal."
   }
 ]

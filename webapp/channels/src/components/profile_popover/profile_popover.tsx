@@ -37,6 +37,7 @@ import ProfilePopoverTitle from './profile_popover_title';
 
 import './profile_popover.scss';
 
+const PLUGGABLE_COMPONENT_NAME_PROFILE_POPOVER = 'PopoverUserAttributes';
 export interface Props {
     userId: string;
     src: string;
@@ -47,11 +48,6 @@ export interface Props {
     returnFocus?: () => void;
     overwriteIcon?: string;
     overwriteName?: string;
-}
-
-function getDefaultChannelId(state: GlobalState) {
-    const selectedPost = getSelectedPost(state);
-    return selectedPost.exists ? selectedPost.channel_id : getCurrentChannelId(state);
 }
 
 /**
@@ -183,13 +179,15 @@ const ProfilePopover = ({
                     haveOverrideProp={haveOverrideProp}
                     isBot={user.is_bot}
                 />
-                <Pluggable
-                    pluggableName='PopoverUserAttributes'
-                    user={user}
-                    hide={hide}
-                    status={hideStatus ? null : status}
-                    fromWebhook={fromWebhook}
-                />
+                <div className='user-profile-popover-pluggables'>
+                    <Pluggable
+                        pluggableName={PLUGGABLE_COMPONENT_NAME_PROFILE_POPOVER}
+                        user={user}
+                        hide={hide}
+                        status={hideStatus ? null : status}
+                        fromWebhook={fromWebhook}
+                    />
+                </div>
                 <ProfilePopoverTimezone
                     currentUserTimezone={currentUserTimezone}
                     profileUserTimezone={user.timezone}
@@ -238,5 +236,10 @@ const ProfilePopover = ({
         </>
     );
 };
+
+function getDefaultChannelId(state: GlobalState) {
+    const selectedPost = getSelectedPost(state);
+    return selectedPost.exists ? selectedPost.channel_id : getCurrentChannelId(state);
+}
 
 export default React.memo(ProfilePopover);
