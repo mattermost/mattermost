@@ -10025,5 +10025,29 @@
   {
     "id": "store.sql_team.save_team.existing.app_error",
     "translation": "A team with this URL already exists."
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Invalid status set"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Unable to update job status. Invalid status set"
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Error determining number of System Admin accounts."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Cannot demote last System Admin."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Unable to determine if that username already exists"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "You do not have permission to manage this job type"
   }
 ]

@@ -10020,5 +10020,29 @@
   {
     "id": "ent.compliance.csv.seek.appError",
     "translation": "无法找到导出文件以开始导出。"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "设置了无效的状态"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "您没有管理此任务类型的权限"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "无法更新任务状态。设置了无效的状态"
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "判断系统管理员账号数量时出错。"
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "无法降级最后一个系统管理员。"
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "无法判断该用户名是否已存在"
   }
 ]
