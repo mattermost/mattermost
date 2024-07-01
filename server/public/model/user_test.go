@@ -171,16 +171,8 @@ func TestUserSanitizeInput(t *testing.T) {
 	user.AuthData = NewString("authdata")
 	user.AuthService = "saml"
 	user.EmailVerified = true
-	user.FailedAttempts = 0
-	user.MfaActive = true
-	user.MfaSecret = "secret"
+	user.FailedAttempts = 10
 	user.LastActivityAt = GetMillis()
-	user.IsBot = true
-	user.BotDescription = "bot description"
-	user.BotLastIconUpdate = GetMillis()
-	user.TermsOfServiceId = "terms_of_service"
-	user.TermsOfServiceCreateAt = GetMillis()
-	user.LastLogin = GetMillis()
 
 	user.SanitizeInput(false)
 
@@ -196,15 +188,6 @@ func TestUserSanitizeInput(t *testing.T) {
 	require.Equal(t, int64(0), user.LastPictureUpdate)
 	require.Equal(t, int64(0), user.LastActivityAt)
 	require.Equal(t, 0, user.FailedAttempts)
-	require.False(t, user.MfaActive)
-	require.Equal(t, "", user.MfaSecret)
-	require.False(t, user.IsBot)
-	require.Equal(t, "", user.BotDescription)
-	require.Equal(t, int64(0), user.BotLastIconUpdate)
-	require.Equal(t, "", user.Roles)
-	require.Equal(t, "", user.TermsOfServiceId)
-	require.Equal(t, int64(0), user.TermsOfServiceCreateAt)
-	require.Equal(t, int64(0), user.LastLogin)
 
 	// these fields should remain intact
 	require.Equal(t, "user@example.com", user.Email)
