@@ -1,25 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo, memo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
+import {isCustomStatusEnabled, isCustomStatusExpired, makeGetCustomStatus} from 'selectors/views/custom_status';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 
-import Constants from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
 import ExpiryTime from './expiry_time';
-import WithTooltip from 'components/with_tooltip';
 
 interface Props {
     emojiSize?: number;
@@ -68,10 +65,10 @@ function CustomStatusEmoji({
 
     return (
         <WithTooltip
-            id="postEmoji__tooltip"
+            id='postEmoji__tooltip'
             title={
                 <>
-                    <div className="custom-status">
+                    <div className='custom-status'>
                         {/* <RenderEmoji
                             emojiName={customStatus.emoji}
                             size={14}
@@ -91,19 +88,19 @@ function CustomStatusEmoji({
                     {customStatus.expires_at &&
                         customStatus.duration !==
                             CustomStatusDuration.DONT_CLEAR && (
-                            <div>
+                        <div>
                                 <ExpiryTime
-                                    time={customStatus.expires_at}
-                                    timezone={timezone}
-                                    className="custom-status-expiry"
-                                />
+                                time={customStatus.expires_at}
+                                timezone={timezone}
+                                className='custom-status-expiry'
+                            />
                             </div>
-                        )}
+                    )}
                 </>
             }
             emoji={customStatus.emoji}
-            emojiStyle="large"
-            placement="bottom"
+            emojiStyle='large'
+            placement='bottom'
         >
             <span style={spanStyle}>{statusEmoji}</span>
         </WithTooltip>
