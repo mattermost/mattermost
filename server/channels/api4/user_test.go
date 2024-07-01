@@ -72,6 +72,7 @@ func TestCreateUser(t *testing.T) {
 	require.Equal(t, int64(0), ruser.DeleteAt, "did not reset deleteAt")
 	require.NotEqual(t, user.UpdateAt, ruser.UpdateAt, "did not reset updateAt")
 	require.NotEqual(t, user.CreateAt, ruser.CreateAt, "did not reset createAt")
+	require.NotEqual(t, user.LastActivityAt, ruser.LastActivityAt, "did not reset LastActivityAt")
 
 	CheckUserSanitization(t, ruser)
 
