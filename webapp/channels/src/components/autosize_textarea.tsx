@@ -30,7 +30,7 @@ const styles = {
         display: 'inline-block',
         position: 'relative',
         transform: 'translateY(-100%)',
-        wordBreak: 'break-word'
+        wordBreak: 'break-word',
     } as CSSProperties,
     placeholder: {
         overflow: 'hidden',
