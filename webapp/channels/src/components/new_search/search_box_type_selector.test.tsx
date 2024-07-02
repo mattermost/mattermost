@@ -36,7 +36,6 @@ describe('components/new_search/SearchBoxTypeSelector', () => {
     });
 
     test('on plugin option clicked should call the setSearchType', () => {
-        renderWithContext(<SearchBoxTypeSelector {...baseProps}/>);
         renderWithContext(
             <SearchBoxTypeSelector {...baseProps}/>,
             {plugins: {components: {SearchButtons: [{component: (() => <pre>{'test'}</pre>) as React.ComponentType, pluginId: 'test-id'}]}}},
