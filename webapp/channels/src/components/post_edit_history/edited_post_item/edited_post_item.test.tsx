@@ -1,18 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import { render, screen, fireEvent} from '@testing-library/react';
 import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import EditedPostItem from './edited_post_item';
 
 import RestorePostModal from '../restore_post_modal';
+
 
 describe('components/post_edit_history/edited_post_item', () => {
     const baseProps: ComponentProps<typeof EditedPostItem> = {
@@ -46,10 +49,16 @@ describe('components/post_edit_history/edited_post_item', () => {
         expect(wrapper).toMatchSnapshot();
     });
     test('clicking on the restore button should call openRestorePostModal', () => {
-        const wrapper = shallow(<EditedPostItem {...baseProps}/>);
+        const wrapper = shallow(
+            <CompassThemeProvider theme={{}}>
+                <EditedPostItem {...baseProps} />
+            </CompassThemeProvider>
+        );
 
         // find the button with restore icon and click it
-        wrapper.find('ForwardRef').filterWhere((button) => button.prop('icon') === 'restore').simulate('click');
+        const restoreButton = wrapper.find('ForwardRef[icon="restore"]').first();
+        restoreButton.simulate('click', { stopPropagation: jest.fn()});
+
         expect(baseProps.actions.openModal).toHaveBeenCalledWith(
             expect.objectContaining({
                 modalId: ModalIdentifiers.RESTORE_POST_MODAL,
