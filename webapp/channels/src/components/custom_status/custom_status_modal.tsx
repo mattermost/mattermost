@@ -206,7 +206,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         case FOUR_HOURS:
             return moment().add(4, 'hours').seconds(0).milliseconds(0).toISOString();
         case TODAY:
-            return moment().endOf('day').toISOString();
+            return moment().add(1, 'day').set({hour: 8, minute: 0}).toISOString();
         case THIS_WEEK:
             return moment().endOf('week').toISOString();
         case DATE_AND_TIME:
