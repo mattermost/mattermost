@@ -1,22 +1,34 @@
-.. _mmctl_post:
+.. _mmctl_post_delete:
 
-mmctl post
-----------
+mmctl post delete
+-----------------
 
-Management of posts
+Permanently delete a post
 
 Synopsis
 ~~~~~~~~
 
 
-Management of posts
+Permanently delete some posts.
+Permanently deletes one or multiple posts along with all related information including files from the database.
+
+::
+
+  mmctl post delete [posts] [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    post delete postId1
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for post
+  -h, --help   help for delete
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,8 +48,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl post create <mmctl_post_create.rst>`_ 	 - Create a post
-* `mmctl post delete <mmctl_post_delete.rst>`_ 	 - Permanently delete a post
-* `mmctl post list <mmctl_post_list.rst>`_ 	 - List posts for a channel
+* `mmctl post <mmctl_post.rst>`_ 	 - Management of posts
 

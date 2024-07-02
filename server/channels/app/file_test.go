@@ -727,3 +727,47 @@ func TestSetFileSearchableContent(t *testing.T) {
 	require.Nil(t, appErr)
 	assert.Equal(t, 1, len(result.Order))
 }
+
+func TestPermanentDeleteFilesByPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should delete files for post", func(t *testing.T) {
+		// Create a post with a file attachment.
+		teamID := th.BasicTeam.Id
+		channelID := th.BasicChannel.Id
+		userID := th.BasicUser.Id
+		filename := "test"
+		data := []byte("abcd")
+
+		info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
+		require.Nil(t, err)
+		defer func() {
+			th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
+			th.App.RemoveFile(info1.Path)
+		}()
+
+		post := &model.Post{
+			Message:       "asd",
+			ChannelId:     channelID,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        userID,
+			CreateAt:      0,
+			FileIds:       []string{info1.Id},
+		}
+
+		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		assert.Nil(t, err)
+
+		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
+		require.Nil(t, err)
+
+		_, err = th.App.GetFileInfo(th.Context, info1.Id)
+		require.NotNil(t, err)
+	})
+
+	t.Run("should not delete files for post that doesn't exist", func(t *testing.T) {
+		err := th.App.PermanentDeleteFilesByPost(th.Context, "postId1")
+		require.NotNil(t, err)
+	})
+}

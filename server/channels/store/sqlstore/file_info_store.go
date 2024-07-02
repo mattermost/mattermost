@@ -455,6 +455,13 @@ func (fs SqlFileInfoStore) DeleteForPost(rctx request.CTX, postId string) (strin
 	return postId, nil
 }
 
+func (fs SqlFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
+	if _, err := fs.GetMasterX().Exec(`DELETE FROM FileInfo WHERE PostId = ?`, postID); err != nil {
+		return errors.Wrapf(err, "failed to delete FileInfo with PostId=%s", postID)
+	}
+	return nil
+}
+
 func (fs SqlFileInfoStore) PermanentDelete(rctx request.CTX, fileId string) error {
 	if _, err := fs.GetMasterX().Exec(`DELETE FROM FileInfo WHERE Id = ?`, fileId); err != nil {
 		return errors.Wrapf(err, "failed to delete FileInfo with id=%s", fileId)
