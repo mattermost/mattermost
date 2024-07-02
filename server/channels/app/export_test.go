@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -572,6 +573,40 @@ func TestExportPostWithProps(t *testing.T) {
 	assert.ElementsMatch(t, dmMembers, *posts[1].ChannelMembers)
 	assert.Contains(t, posts[0].Props["attachments"].([]any)[0], "footer")
 	assert.Contains(t, posts[1].Props["attachments"].([]any)[0], "footer")
+}
+
+func TestExportUserCustomStatus(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+
+	cs := &model.CustomStatus{
+		Emoji:     "palm_tree",
+		Text:      "on a vacation",
+		Duration:  "this_week",
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+	appErr := th1.App.SetCustomStatus(th1.Context, th1.BasicUser.Id, cs)
+	require.Nil(t, appErr)
+
+	uname := th1.BasicUser.Username
+
+	var b bytes.Buffer
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+	require.Nil(t, appErr)
+
+	th1.TearDown()
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+
+	appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+	require.Nil(t, appErr)
+	assert.Equal(t, 0, i)
+
+	gotUser, err := th2.Server.Store().User().GetByUsername(uname)
+	require.NoError(t, err)
+	gotCs := gotUser.GetCustomStatus()
+	require.Equal(t, cs.Emoji, gotCs.Emoji)
+	require.Equal(t, cs.Text, gotCs.Text)
 }
 
 func TestExportDMPostWithSelf(t *testing.T) {

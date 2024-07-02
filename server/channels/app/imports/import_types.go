@@ -85,7 +85,8 @@ type UserImportData struct {
 	TutorialStep        *string `json:"tutorial_step,omitempty"`
 	EmailInterval       *string `json:"email_interval,omitempty"`
 
-	NotifyProps *UserNotifyPropsImportData `json:"notify_props,omitempty"`
+	NotifyProps  *UserNotifyPropsImportData `json:"notify_props,omitempty"`
+	CustomStatus *model.CustomStatus        `json:"custom_status,omitempty"`
 }
 
 type UserNotifyPropsImportData struct {

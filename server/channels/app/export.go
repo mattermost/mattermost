@@ -469,6 +469,11 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 
 			userLine.User.NotifyProps = a.buildUserNotifyProps(user.NotifyProps)
 
+			// Adding custom status
+			if cs := user.GetCustomStatus(); cs != nil {
+				userLine.User.CustomStatus = cs
+			}
+
 			// Do the Team Memberships.
 			members, err := a.buildUserTeamAndChannelMemberships(ctx, user.Id, includeArchivedChannels)
 			if err != nil {
