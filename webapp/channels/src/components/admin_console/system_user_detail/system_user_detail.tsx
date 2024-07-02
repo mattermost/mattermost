@@ -6,6 +6,8 @@ import type {ChangeEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
+import {Constants, ModalIdentifiers} from 'utils/constants';
+import {toTitleCase} from 'utils/utils';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -29,12 +31,12 @@ import EmailIcon from 'components/widgets/icons/email_icon';
 import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import {toTitleCase} from 'utils/utils';
-
 import type {PropsFromRedux} from './index';
 
 import './system_user_detail.scss';
+import type {ModalData} from 'types/actions';
+
+import UserSettingsModal from 'components/user_settings/modal';
 
 export type Params = {
     user_id?: UserProfile['id'];
@@ -284,6 +286,16 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({showTeamSelectorModal: false});
     };
 
+    toggleOpenManageUserSettingsModal = () => {
+        this.props.openModal({
+            modalId: ModalIdentifiers.USER_SETTINGS,
+            dialogType: UserSettingsModal,
+            dialogProps: {
+                isContentProductSettings: true,
+            },
+        });
+    };
+
     render() {
         return (
             <div className='SystemUserDetail wrapper--fixed'>
@@ -385,6 +397,16 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                             />
                                         </button>
                                     )}
+
+                                    <button
+                                        className='manageUserSettingsBtn btn btn-tertiary'
+                                        onClick={this.toggleOpenManageUserSettingsModal}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.user_item.manageSettings'
+                                            defaultMessage='Manage User Settings'
+                                        />
+                                    </button>
                                 </>
                             }
                         />

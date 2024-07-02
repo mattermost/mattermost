@@ -2705,6 +2705,7 @@
   "admin.user_item.remoteUser": "Remote user",
   "admin.user_item.resetMfa": "Remove MFA",
   "admin.user_item.resetPwd": "Reset Password",
+  "admin.user_item.manageSettings": "Manage User Settings",
   "admin.user_item.sysAdmin": "System Admin",
   "admin.user_item.teamAdmin": "Team Admin",
   "admin.user_item.teamMember": "Team Member",
