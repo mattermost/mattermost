@@ -7,6 +7,7 @@ export type ClientConfig = {
     AllowCustomThemes: string;
     AllowSyncedDrafts: string;
     AllowedThemes: string;
+    AlwaysShowTeamSidebar: string;
     AndroidAppDownloadLink: string;
     AndroidLatestVersion: string;
     AndroidMinVersion: string;
@@ -389,6 +390,7 @@ export type ServiceSettings = {
     AllowSyncedDrafts: boolean;
     AllowPersistentNotifications: boolean;
     AllowPersistentNotificationsForGuests: boolean;
+    AlwaysShowTeamSidebar: boolean;
     PersistentNotificationIntervalMinutes: number;
     PersistentNotificationMaxCount: number;
     PersistentNotificationMaxRecipients: number;
