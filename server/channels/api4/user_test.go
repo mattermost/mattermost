@@ -36,13 +36,27 @@ func TestCreateUser(t *testing.T) {
 	defer th.TearDown()
 
 	user := model.User{
-		Email:         th.GenerateTestEmail(),
-		Nickname:      "Corey Hulen",
-		Password:      "hello1",
-		Username:      GenerateTestUsername(),
-		Roles:         model.SystemAdminRoleId + " " + model.SystemUserRoleId,
-		EmailVerified: true,
-		DeleteAt:      1,
+		Id:       model.NewId(),
+		Email:    th.GenerateTestEmail(),
+		Nickname: "Corey Hulen",
+		Password: "hello1",
+		Username: GenerateTestUsername(),
+	}
+	_, resp, err := th.Client.CreateUser(context.Background(), &user)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	user = model.User{
+		Email:          th.GenerateTestEmail(),
+		Nickname:       "Corey Hulen",
+		Password:       "hello1",
+		Username:       GenerateTestUsername(),
+		Roles:          model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+		EmailVerified:  true,
+		DeleteAt:       1,
+		CreateAt:       1,
+		UpdateAt:       1,
+		LastActivityAt: 1,
 	}
 
 	ruser, resp, err := th.Client.CreateUser(context.Background(), &user)
@@ -56,6 +70,9 @@ func TestCreateUser(t *testing.T) {
 	require.Equal(t, user.Nickname, ruser.Nickname, "nickname didn't match")
 	require.Equal(t, model.SystemUserRoleId, ruser.Roles, "did not clear roles")
 	require.Equal(t, int64(0), ruser.DeleteAt, "did not reset deleteAt")
+	require.NotEqual(t, user.UpdateAt, ruser.UpdateAt, "did not reset updateAt")
+	require.NotEqual(t, user.CreateAt, ruser.CreateAt, "did not reset createAt")
+	require.NotEqual(t, user.LastActivityAt, ruser.LastActivityAt, "did not reset LastActivityAt")
 
 	CheckUserSanitization(t, ruser)
 
