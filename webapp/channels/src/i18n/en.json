@@ -2814,6 +2814,7 @@
   "api.channel.add_member.added": "{addedUsername} added to the channel by {username}.",
   "api.channel.delete_channel.archived": "{username} archived the channel.",
   "api.channel.group_message_converted_to.private_channel": "{convertedBy} created this channel from a group message with {gmMembers}.",
+  "api.channel.group_message_converted_to.someone": "Someone",
   "api.channel.guest_join_channel.post_and_forget": "{username} joined the channel as a guest.",
   "api.channel.join_channel.post_and_forget": "{username} joined the channel.",
   "api.channel.leave.left": "{username} left the channel.",
