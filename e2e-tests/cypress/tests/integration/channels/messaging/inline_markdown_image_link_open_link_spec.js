@@ -20,7 +20,7 @@ describe('Messaging', () => {
     });
 
     it('MM-T188 - Inline markdown image that is a link, opens the link', () => {
-        const linkUrl = 'https://www.google.com';
+        const linkUrl = 'https://example.com/';
         const imageUrl = 'https://docs.mattermost.com/_images/icon-76x76.png';
         const label = 'Build Status';
         const baseUrl = Cypress.config('baseUrl');
