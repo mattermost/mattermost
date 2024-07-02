@@ -116,7 +116,6 @@ func init() {
 			PermissionPromoteGuest,
 		},
 		PermissionSysconsoleWriteUserManagementChannels.Id: {
-			PermissionManageTeam,
 			PermissionManagePublicChannelProperties,
 			PermissionManagePrivateChannelProperties,
 			PermissionManagePrivateChannelMembers,
@@ -136,7 +135,6 @@ func init() {
 			PermissionAddUserToTeam,
 		},
 		PermissionSysconsoleWriteUserManagementGroups.Id: {
-			PermissionManageTeam,
 			PermissionManagePrivateChannelMembers,
 			PermissionManagePublicChannelMembers,
 			PermissionConvertPublicChannelToPrivate,
