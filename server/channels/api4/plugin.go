@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	// Maximum number of bytes to hold in memory when reading plugin file, NOT the maximum plugin size
+	// MaxPluginMemory is the maximum number of bytes to hold in memory when reading a plugin bundle.
 	MaxPluginMemory = 50 * 1024 * 1024
 )
 
