@@ -738,7 +738,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		err := deleteUsersCmdF(c, cmd, []string{emailArg})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArg), printer.GetErrorLines()[0])
