@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChangeEvent, FormEvent, HTMLProps} from 'react';
+import type {CSSProperties, ChangeEvent, FormEvent, HTMLProps} from 'react';
 import React, {useRef, useEffect, useCallback} from 'react';
 
 import type {Intersection} from '@mattermost/types/utilities';
@@ -25,10 +25,13 @@ const styles = {
         overflow: 'hidden',
     },
     reference: {
-        display: 'inline-block',
         height: 'auto',
         width: 'auto',
-    },
+        display: 'inline-block',
+        position: 'relative',
+        transform: 'translateY(-100%)',
+        wordBreak: 'break-word',
+    } as CSSProperties,
     placeholder: {
         overflow: 'hidden',
         textOverflow: 'ellipsis',
@@ -39,6 +42,9 @@ const styles = {
         background: 'none',
         borderColor: 'transparent',
     },
+    textArea: {
+        overflowY: 'auto',
+    } as CSSProperties,
 };
 
 const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
@@ -168,6 +174,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
                 onInput={onInput}
                 value={value}
                 defaultValue={defaultValue}
+                style={styles.textArea}
             />
             <div style={styles.container}>
                 <div

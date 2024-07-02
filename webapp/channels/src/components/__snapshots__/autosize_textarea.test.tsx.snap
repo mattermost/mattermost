@@ -26,6 +26,11 @@ exports[`components/AutosizeTextarea should match snapshot, init 1`] = `
     id="autosize_textarea"
     role="textbox"
     rows={1}
+    style={
+      Object {
+        "overflowY": "auto",
+      }
+    }
   />
   <div
     style={
@@ -44,7 +49,10 @@ exports[`components/AutosizeTextarea should match snapshot, init 1`] = `
         Object {
           "display": "inline-block",
           "height": "auto",
+          "position": "relative",
+          "transform": "translateY(-100%)",
           "width": "auto",
+          "wordBreak": "break-word",
         }
       }
     />
