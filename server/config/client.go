@@ -125,7 +125,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DefaultTheme"] = ""
 	props["AllowCustomThemes"] = "true"
 	props["AllowedThemes"] = "denim,sapphire,quartz,indigo,onyx"
-	props["CustomThemes"] = ""
+	props["CustomThemes"] = "[]"
 	props["DataRetentionEnableMessageDeletion"] = "false"
 	props["DataRetentionMessageRetentionHours"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"

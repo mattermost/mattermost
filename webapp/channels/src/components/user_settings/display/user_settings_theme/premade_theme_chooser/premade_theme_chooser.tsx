@@ -25,7 +25,7 @@ const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = []}: Props) =>
 
     const config = useSelector(getConfig);
 
-    const customThemes = JSON.parse(config.CustomThemes);
+    const customThemes = JSON.parse(config.CustomThemes || '[]');
     customThemes.forEach((customTheme: any) => {
         if (hasAllowedThemes && allowedThemes.indexOf(customTheme.ID) < 0) {
             return;
