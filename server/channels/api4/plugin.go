@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -20,7 +21,8 @@ import (
 )
 
 const (
-	MaximumPluginFileSize = 50 * 1024 * 1024
+	// MaxPluginMemory is the maximum number of bytes to hold in memory when reading a plugin bundle.
+	MaxPluginMemory = 50 * 1024 * 1024
 )
 
 func (api *API) InitPlugin() {
@@ -57,7 +59,13 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(MaximumPluginFileSize); err != nil {
+	if err := r.ParseMultipartForm(MaxPluginMemory); err != nil {
+		if err.Error() == "http: request body too large" {
+			c.Err = model.NewAppError("uploadPlugin", "api.plugin.upload.file_too_large.app_error", map[string]any{
+				"SiteURL": strings.TrimRight(c.App.GetSiteURL(), "/"),
+			}, "", http.StatusRequestEntityTooLarge)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
