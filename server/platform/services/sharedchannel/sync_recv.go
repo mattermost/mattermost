@@ -254,8 +254,8 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 	user = sanitizeUserForSync(user)
 
 	// save the original username and email in props
-	user.SetProp(KeyRemoteUsername, user.Username)
-	user.SetProp(KeyRemoteEmail, user.Email)
+	user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
+	user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
 
 	// Apply a suffix to the username until it is unique. Collisions will be quite
 	// rare since we are joining a username that is unique at a remote site with a unique
@@ -300,8 +300,8 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 	// preserve existing real username/email since Patch will over-write them;
 	// the real username/email in props can be updated if they don't contain colons,
 	// meaning the update is coming from the user's origin server (not munged).
-	realUsername, _ := user.GetProp(KeyRemoteUsername)
-	realEmail, _ := user.GetProp(KeyRemoteEmail)
+	realUsername, _ := user.GetProp(model.UserPropsKeyRemoteUsername)
+	realEmail, _ := user.GetProp(model.UserPropsKeyRemoteEmail)
 
 	if patch.Username != nil && !strings.Contains(*patch.Username, ":") {
 		realUsername = *patch.Username
@@ -312,8 +312,8 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 
 	user.Patch(patch)
 	user = sanitizeUserForSync(user)
-	user.SetProp(KeyRemoteUsername, realUsername)
-	user.SetProp(KeyRemoteEmail, realEmail)
+	user.SetProp(model.UserPropsKeyRemoteUsername, realUsername)
+	user.SetProp(model.UserPropsKeyRemoteEmail, realEmail)
 
 	// Apply a suffix to the username until it is unique.
 	for i := 1; i <= MaxUpsertRetries; i++ {
