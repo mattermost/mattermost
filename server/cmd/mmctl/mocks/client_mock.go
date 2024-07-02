@@ -478,6 +478,21 @@ func (mr *MockClientMockRecorder) DisablePlugin(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisablePlugin", reflect.TypeOf((*MockClient)(nil).DisablePlugin), arg0, arg1)
 }
 
+// DoAPIDelete mocks base method.
+func (m *MockClient) DoAPIDelete(arg0 context.Context, arg1 string) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DoAPIDelete", arg0, arg1)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DoAPIDelete indicates an expected call of DoAPIDelete.
+func (mr *MockClientMockRecorder) DoAPIDelete(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoAPIDelete", reflect.TypeOf((*MockClient)(nil).DoAPIDelete), arg0, arg1)
+}
+
 // DoAPIPost mocks base method.
 func (m *MockClient) DoAPIPost(arg0 context.Context, arg1, arg2 string) (*http.Response, error) {
 	m.ctrl.T.Helper()
