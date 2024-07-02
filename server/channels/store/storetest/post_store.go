@@ -4280,7 +4280,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	require.NoError(t, nErr)
 
 	u1 := model.User{}
-	u1.Username = model.NewId()
+	u1.Username = model.NewUsername()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
 	_, err = ss.User().Save(rctx, &u1)
@@ -4978,7 +4978,7 @@ func testGetPostReminderMetadata(t *testing.T, rctx request.CTX, ss store.Store,
 
 	u1 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 		Locale:   "es",
 	}
 

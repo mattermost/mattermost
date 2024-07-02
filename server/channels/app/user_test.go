@@ -497,7 +497,7 @@ func TestCreateUserConflict(t *testing.T) {
 
 	user := &model.User{
 		Email:    "test@localhost",
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	user, err := th.App.Srv().Store().User().Save(th.Context, user)
 	require.NoError(t, err)
@@ -513,7 +513,7 @@ func TestCreateUserConflict(t *testing.T) {
 	// Same email
 	user = &model.User{
 		Email:    "test@localhost",
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	_, err = th.App.Srv().Store().User().Save(th.Context, user)
 	require.Error(t, err)
@@ -565,7 +565,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		// Create bot user
 		botuser := model.User{
 			Email:    "botuser@localhost",
-			Username: model.NewId(),
+			Username: model.NewUsername(),
 			IsBot:    true,
 		}
 		_, nErr := th.App.Srv().Store().User().Save(th.Context, &botuser)
@@ -608,7 +608,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		// Create bot user
 		botuser := model.User{
 			Email:    "botuser@localhost",
-			Username: model.NewId(),
+			Username: model.NewUsername(),
 			IsBot:    true,
 		}
 		_, nErr := th.App.Srv().Store().User().Save(th.Context, &botuser)
@@ -1921,7 +1921,7 @@ func TestPatchUser(t *testing.T) {
 
 	t.Run("Patch username with a new username", func(t *testing.T) {
 		u, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
-			Username: model.NewString(model.NewId()),
+			Username: model.NewString(model.NewUsername()),
 		}, true)
 
 		require.Nil(t, err)
