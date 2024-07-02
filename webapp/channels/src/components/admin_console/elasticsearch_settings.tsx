@@ -24,6 +24,7 @@ import TextSetting from './text_setting';
 
 interface State extends BaseState {
     connectionUrl: string;
+    backend: string;
     skipTLSVerification: boolean;
     ca: string;
     clientCert: string;
@@ -50,6 +51,7 @@ export const messages = defineMessages({
     enableIndexingDescription: {id: 'admin.elasticsearch.enableIndexingDescription', defaultMessage: 'When true, indexing of new posts occurs automatically. Search queries will use database search until "Enable Elasticsearch for search queries" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>'},
     connectionUrlTitle: {id: 'admin.elasticsearch.connectionUrlTitle', defaultMessage: 'Server Connection Address:'},
     connectionUrlDescription: {id: 'admin.elasticsearch.connectionUrlDescription', defaultMessage: 'The address of the Elasticsearch server. <link>Please see documentation with server setup instructions.</link>'},
+    backendTitle: {id: 'admin.elasticsearch.backendTitle', defaultMessage: 'Backend type:'},
     skipTLSVerificationTitle: {id: 'admin.elasticsearch.skipTLSVerificationTitle', defaultMessage: 'Skip TLS Verification:'},
     skipTLSVerificationDescription: {id: 'admin.elasticsearch.skipTLSVerificationDescription', defaultMessage: 'When true, Mattermost will not require the Elasticsearch certificate to be signed by a trusted Certificate Authority.'},
     usernameTitle: {id: 'admin.elasticsearch.usernameTitle', defaultMessage: 'Server Username:'},
@@ -100,6 +102,7 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
 export default class ElasticsearchSettings extends AdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.ElasticsearchSettings.ConnectionURL = this.state.connectionUrl;
+        config.ElasticsearchSettings.Backend = this.state.backend;
         config.ElasticsearchSettings.SkipTLSVerification = this.state.skipTLSVerification;
         config.ElasticsearchSettings.CA = this.state.ca;
         config.ElasticsearchSettings.ClientCert = this.state.clientCert;
@@ -118,6 +121,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
     getStateFromConfig(config: AdminConfig) {
         return {
             connectionUrl: config.ElasticsearchSettings.ConnectionURL,
+            backend: config.ElasticsearchSettings.Backend,
             skipTLSVerification: config.ElasticsearchSettings.SkipTLSVerification,
             ca: config.ElasticsearchSettings.CA,
             clientCert: config.ElasticsearchSettings.ClientCert,
@@ -150,7 +154,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
             }
         }
 
-        if (id === 'connectionUrl' || id === 'skipTLSVerification' || id === 'username' || id === 'password' || id === 'sniff' || id === 'ca' || id === 'clientCert' || id === 'clientKey') {
+        if (id === 'connectionUrl' || id === 'backend' || id === 'skipTLSVerification' || id === 'username' || id === 'password' || id === 'sniff' || id === 'ca' || id === 'clientCert' || id === 'clientKey') {
             this.setState({
                 configTested: false,
                 canSave: false,
@@ -260,6 +264,23 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.EnableIndexing')}
                     disabled={this.props.isDisabled}
+                />
+                <TextSetting
+                    id='backend'
+                    label={
+                        <FormattedMessage {...messages.backendTitle}/>
+                    }
+                    placeholder={defineMessage({id: 'admin.elasticsearch.backendExample', defaultMessage: 'E.g.: "elasticsearch"'})}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.elasticsearch.backendDescription'
+                            defaultMessage='The type of the search backend.'
+                        />
+                    }
+                    value={this.state.backend}
+                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    onChange={this.handleSettingChanged}
+                    setByEnv={this.isSetByEnv('ElasticsearchSettings.Backend')}
                 />
                 <TextSetting
                     id='connectionUrl'
