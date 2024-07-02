@@ -10028,5 +10028,9 @@
   {
     "id": "app.user.update.lastAdmin.app_error",
     "translation": "最後のシステム管理者を降格することはできません。"
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "そのユーザー名がすでに存在するか判断できませんでした"
   }
 ]

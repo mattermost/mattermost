@@ -30,8 +30,6 @@ const (
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
-	KeyRemoteUsername            = "RemoteUsername"
-	KeyRemoteEmail               = "RemoteEmail"
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
@@ -55,6 +53,7 @@ type AppIface interface {
 	SendEphemeralPost(c request.CTX, userId string, post *model.Post) *model.Post
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
 	GetOrCreateDirectChannel(c request.CTX, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
+	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
 	AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError

@@ -1210,6 +1210,153 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 	})
 }
 
+func TestPasswordChangeSessionTermination(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("user-initiated password change with termination enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.ServiceSettings.TerminateSessionsOnPasswordChange = true
+		})
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser2.Id
+		th.Context.Session().Id = session.Id
+
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		require.Nil(t, err)
+
+		session, err = th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		require.False(t, session.IsExpired())
+
+		session2, err = th.App.GetSession(session2.Token)
+		require.Error(t, err)
+		require.Nil(t, session2)
+
+		// Cleanup
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		require.Nil(t, err)
+		th.Context.Session().UserId = ""
+		th.Context.Session().Id = ""
+	})
+
+	t.Run("user-initiated password change with termination disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.ServiceSettings.TerminateSessionsOnPasswordChange = false
+		})
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser2.Id
+		th.Context.Session().Id = session.Id
+
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		require.Nil(t, err)
+
+		session, err = th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		require.False(t, session.IsExpired())
+
+		session2, err = th.App.GetSession(session2.Token)
+		require.Nil(t, err)
+		require.False(t, session2.IsExpired())
+
+		// Cleanup
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		require.Nil(t, err)
+		th.Context.Session().UserId = ""
+		th.Context.Session().Id = ""
+	})
+
+	t.Run("admin-initiated password change with termination enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.ServiceSettings.TerminateSessionsOnPasswordChange = true
+		})
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		require.Nil(t, err)
+
+		session, err = th.App.GetSession(session.Token)
+		require.Error(t, err)
+		require.Nil(t, session)
+
+		session2, err = th.App.GetSession(session2.Token)
+		require.Error(t, err)
+		require.Nil(t, session2)
+
+		// Cleanup
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		require.Nil(t, err)
+	})
+
+	t.Run("admin-initiated password change with termination disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.ServiceSettings.TerminateSessionsOnPasswordChange = false
+		})
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
+
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		require.Nil(t, err)
+
+		session, err = th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		require.False(t, session.IsExpired())
+
+		session2, err = th.App.GetSession(session2.Token)
+		require.Nil(t, err)
+		require.False(t, session2.IsExpired())
+
+		// Cleanup
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		require.Nil(t, err)
+	})
+}
+
 func TestGetViewUsersRestrictions(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

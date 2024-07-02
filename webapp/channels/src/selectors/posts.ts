@@ -11,7 +11,7 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {moveThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getCurrentUserRoles} from 'mattermost-redux/selectors/entities/users';
 
 import {arePreviewsCollapsed} from 'selectors/preferences';
 import {getGlobalItem} from 'selectors/storage';
@@ -64,10 +64,11 @@ export function makeCanWrangler() {
         'makeCanWrangler',
         getConfig,
         getCurrentUser,
+        getCurrentUserRoles,
         moveThreadsEnabled,
         (_state: GlobalState, channelType: Channel['type']) => channelType,
         (_state: GlobalState, _channelType: Channel['type'], replyCount: number) => replyCount,
-        (config: Partial<ClientConfig>, user: UserProfile, enabled: boolean, channelType: Channel['type'], replyCount: number) => {
+        (config: Partial<ClientConfig>, user: UserProfile, userRoles: string, enabled: boolean, channelType: Channel['type'], replyCount: number) => {
             if (!enabled) {
                 return false;
             }
@@ -90,8 +91,8 @@ export function makeCanWrangler() {
                 allowedEmailDomains = WranglerAllowedEmailDomain?.split(',') || [];
             }
 
-            if (permittedUsers.length > 0 && !user.roles.includes('system_admin')) {
-                const roles = user.roles.split(' ');
+            if (permittedUsers.length > 0 && !userRoles.includes('system_admin')) {
+                const roles = userRoles.split(' ');
                 const hasRole = roles.some((role) => permittedUsers.includes(role));
                 if (!hasRole) {
                     return false;
