@@ -317,7 +317,6 @@ func (s *SqlChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) err
 			From("ChannelBookmarks").
 			Where(sq.And{
 				sq.Eq{"Id": bookmarkId},
-				sq.Eq{"DeleteAt": 0},
 			})
 
 		fileQuery, fileArgs, fileErr := s.getQueryBuilder().

@@ -434,6 +434,11 @@ func testDeleteChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		err = ss.ChannelBookmark().Delete(bookmark2.Id, true)
 		assert.NoError(t, err)
 
+		_, err = ss.FileInfo().Get(file.Id)
+		assert.Error(t, err)
+		var nfErr *store.ErrNotFound
+		assert.ErrorAs(t, err, &nfErr)
+
 		bookmarks, err := ss.ChannelBookmark().GetBookmarksForChannelSince(channelId, now)
 		assert.NoError(t, err)
 		assert.Len(t, bookmarks, 2) // we have two as the deleted record also gets returned for sync'ing purposes
