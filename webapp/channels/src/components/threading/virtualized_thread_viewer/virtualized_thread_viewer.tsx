@@ -26,6 +26,7 @@ import type {FakePost} from 'types/store/rhs';
 
 import CreateComment from './create_comment';
 import Row from './thread_viewer_row';
+import './virtualized_thread_viewer.scss';
 
 type Props = {
     currentUserId: string;
@@ -58,9 +59,11 @@ type State = {
 
 const virtListStyles = {
     position: 'absolute',
-    top: '0',
-    height: '100%',
-    willChange: 'auto',
+    willChange: 'transform',
+    overflowY: 'auto',
+    overflowAnchor: 'none',
+    bottom: '0px',
+    maxHeight: '100%',
 };
 
 const innerStyles = {
@@ -350,19 +353,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             a11yIndex++;
         }
 
-        if (isCreateComment(itemId)) {
-            return (
-                <CreateComment
-                    placeholder={this.props.inputPlaceholder}
-                    isThreadView={this.props.isThreadView}
-                    latestPostId={this.props.lastPost.id}
-                    ref={this.postCreateContainerRef}
-                    teammate={this.props.directTeammate}
-                    threadId={this.props.selected.id}
-                />
-            );
-        }
-
         return (
             <div
                 style={style}
@@ -424,7 +414,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         const {topRhsPostId} = this.state;
 
         return (
-            <>
+            <div className='virtual-list__ctr'>
                 {this.props.isMobileView && topRhsPostId && !this.props.useRelativeTimestamp && (
                     <FloatingTimestamp
                         isRhsPost={true}
@@ -469,7 +459,15 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                         )}
                     </AutoSizer>
                 </div>
-            </>
+                <CreateComment
+                    placeholder={this.props.inputPlaceholder}
+                    isThreadView={this.props.isThreadView}
+                    latestPostId={this.props.lastPost.id}
+                    ref={this.postCreateContainerRef}
+                    teammate={this.props.directTeammate}
+                    threadId={this.props.selected.id}
+                />
+            </div>
         );
     }
 }
