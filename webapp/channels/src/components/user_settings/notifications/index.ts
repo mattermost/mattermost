@@ -17,7 +17,10 @@ import type {GlobalState} from 'types/store';
 import UserSettingsNotifications from './user_settings_notifications';
 
 const mapStateToProps = (state: GlobalState) => {
+    // server config, related to server configuration, not the user
     const config = getConfig(state);
+
+    console.log({clientConfig: config});
 
     const sendPushNotifications = config.SendPushNotifications === 'true';
     const enableAutoResponder = config.ExperimentalEnableAutomaticReplies === 'true';

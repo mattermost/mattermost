@@ -34,7 +34,6 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import type {PropsFromRedux} from './index';
 
 import './system_user_detail.scss';
-import type {ModalData} from 'types/actions';
 
 import UserSettingsModal from 'components/user_settings/modal';
 
@@ -287,11 +286,18 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     toggleOpenManageUserSettingsModal = () => {
+        // LOL
+        if (!this.state.user) {
+            return;
+        }
+
         this.props.openModal({
             modalId: ModalIdentifiers.USER_SETTINGS,
             dialogType: UserSettingsModal,
             dialogProps: {
                 isContentProductSettings: true,
+                currentUser: this.state.user,
+                adminMode: true,
             },
         });
     };

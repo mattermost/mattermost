@@ -21,11 +21,15 @@ import {stopTryNotificationRing} from 'utils/notification_sounds';
 
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 
-export type Props = {
-    currentUser: UserProfile;
+export type OwnProps = {
+    adminMode?: boolean;
+    currentUser?: UserProfile;
+    isContentProductSettings: boolean;
+}
+
+export type Props = OwnProps & {
     onExited: () => void;
     intl: IntlShape;
-    isContentProductSettings: boolean;
     actions: {
         sendVerificationEmail: (email: string) => Promise<ActionResult>;
     };
@@ -49,6 +53,11 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
 
     constructor(props: Props) {
         super(props);
+
+        console.log({
+            adminMode: this.props.adminMode,
+            currentUser: this.props.currentUser,
+        });
 
         this.state = {
             active_tab: props.isContentProductSettings ? 'notifications' : 'profile',

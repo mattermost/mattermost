@@ -18,14 +18,16 @@ import type {GlobalState} from 'types/store';
 
 const UserSettingsModalAsync = makeAsyncComponent('UserSettingsModal', lazy(() => import('./user_settings_modal')));
 
-function mapStateToProps(state: GlobalState) {
+import type {OwnProps} from './user_settings_modal';
+
+function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);
 
     const sendEmailNotifications = config.SendEmailNotifications === 'true';
     const requireEmailVerification = config.RequireEmailVerification === 'true';
 
     return {
-        currentUser: getCurrentUser(state),
+        currentUser: ownProps.adminMode ? ownProps.currentUser : getCurrentUser(state),
         sendEmailNotifications,
         requireEmailVerification,
         pluginSettings: getPluginUserSettings(state),
