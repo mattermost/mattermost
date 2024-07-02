@@ -18,13 +18,16 @@ exports[`components/AutosizeTextarea should match snapshot, init 1`] = `
       }
     }
   />
+  <label
+    className="sr-only"
+    id="autosize_textarea-label"
+  />
   <textarea
-    aria-label=""
+    aria-labelledby="autosize_textarea-label"
     data-testid="autosize_textarea"
     dir="auto"
     height={0}
     id="autosize_textarea"
-    role="textbox"
     rows={1}
   />
   <div

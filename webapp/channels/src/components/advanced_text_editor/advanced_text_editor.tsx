@@ -51,6 +51,7 @@ import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
 
+
 import './advanced_text_editor.scss';
 
 const KeyCodes = Constants.KeyCodes;
@@ -683,6 +684,12 @@ const AdvanceTextEditor = ({
                         className='AdvancedTextEditor__cell a11y__region'
                     >
                         {labels}
+                        <label
+                            id={`advancedTextEditorLabel-${location}`}
+                            className='sr-only'
+                        >
+                            {formatMessage({id: 'channelView.login.successfull', defaultMessage: 'Login Successfull'}) + ' ' + ariaLabelMessageInput}
+                            </label>
                         <Textbox
                             hasLabels={Boolean(labels)}
                             suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
