@@ -377,9 +377,20 @@ func configPatchCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		return err
 	}
 
+	// get original plugin map
+	var pluginConfig map[string]map[string]any
+	if config.PluginSettings.Plugins != nil {
+		pluginConfig = (config.Clone()).PluginSettings.Plugins
+	}
+
+	// apply path onto the existing config
 	if jErr := json.Unmarshal(configBytes, config); jErr != nil {
 		return jErr
 	}
+
+	// merge config plugin map on top of the original, and assign the
+	// result to the config key
+	config.PluginSettings.Plugins = MergePluginConfigs(pluginConfig, config.PluginSettings.Plugins)
 
 	newConfig, _, err := c.PatchConfig(context.TODO(), config)
 	if err != nil {

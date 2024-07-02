@@ -20,7 +20,8 @@ import (
 )
 
 const (
-	configFilePayload = "{\"TeamSettings\": {\"SiteName\": \"ADifferentName\"}}"
+	configFilePayload       = "{\"TeamSettings\": {\"SiteName\": \"ADifferentName\"}}"
+	configFilePluginPayload = "{\"PluginSettings\": {\"Plugins\": {\"plugin.1\": {\"new\": \"key\", \"existing\": \"replacement\"}, \"plugin.2\": {\"this is\": \"new\"}}}}"
 )
 
 func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
@@ -589,17 +590,24 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 	tmpFile, err := os.CreateTemp(os.TempDir(), "config_*.json")
-	s.Require().Nil(err)
+	s.Require().NoError(err)
 
 	invalidFile, err := os.CreateTemp(os.TempDir(), "invalid_config_*.json")
-	s.Require().Nil(err)
+	s.Require().NoError(err)
+
+	pluginFile, err := os.CreateTemp(os.TempDir(), "plugin_config_*.json")
+	s.Require().NoError(err)
 
 	_, err = tmpFile.Write([]byte(configFilePayload))
-	s.Require().Nil(err)
+	s.Require().NoError(err)
+
+	_, err = pluginFile.Write([]byte(configFilePluginPayload))
+	s.Require().NoError(err)
 
 	defer func() {
 		os.Remove(tmpFile.Name())
 		os.Remove(invalidFile.Name())
+		os.Remove(pluginFile.Name())
 	}()
 
 	s.Run("Patch config with a valid file", func() {
@@ -630,6 +638,46 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], inputConfig)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Correctly patch with a valid file that affects plugins", func() {
+		printer.Clean()
+		defaultConfig := &model.Config{}
+		defaultConfig.SetDefaults()
+		defaultConfig.PluginSettings.Plugins = map[string]map[string]any{
+			"plugin.1": {
+				"existing": "value",
+			},
+		}
+		expectedPluginConfig := map[string]map[string]any{
+			"plugin.1": {
+				"new":      "key",
+				"existing": "replacement",
+			},
+			"plugin.2": {
+				"this is": "new",
+			},
+		}
+		expectedConfig := &model.Config{}
+		expectedConfig.SetDefaults()
+		expectedConfig.PluginSettings.Plugins = expectedPluginConfig
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(defaultConfig, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			PatchConfig(context.TODO(), expectedConfig).
+			Return(expectedConfig, &model.Response{}, nil).
+			Times(1)
+
+		err = configPatchCmdF(s.client, &cobra.Command{}, []string{pluginFile.Name()})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], expectedConfig)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
