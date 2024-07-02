@@ -222,6 +222,17 @@ describe('User Management', () => {
         cy.url().should('contain', '/login');
     });
 
+    it("MM-58840 Users - can't navigate to invalid URL", () => {
+        // # Login as sysadmin.
+        cy.apiLogin(sysadmin);
+
+        // # Visit the invalid URL.
+        cy.visit('/admin_console/user_management/user/invalid');
+
+        // * Verify that the user is redirected to the default page.
+        cy.url().should('include', '/admin_console/about/license');
+    });
+
     function resetUserEmail(oldEmail, newEmail, errorMsg) {
         cy.visit('/admin_console/user_management/users');
 
