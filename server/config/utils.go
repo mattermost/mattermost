@@ -22,47 +22,98 @@ func marshalConfig(cfg *model.Config) ([]byte, error) {
 }
 
 // desanitize replaces fake settings with their actual values.
-func desanitize(actual, target *model.Config) {
-	if target.LdapSettings.BindPassword != nil && *target.LdapSettings.BindPassword == model.FakeSetting {
-		*target.LdapSettings.BindPassword = *actual.LdapSettings.BindPassword
+func desanitizeConfigMap(actual, target map[string]interface{}, rules model.SanitizeConfigRules, currentPath string) {
+	for key, value := range target {
+		// Construct the new path
+		newPath := key
+		if currentPath != "" {
+			newPath = currentPath + "." + key
+		}
+
+		switch v := value.(type) {
+		case map[string]interface{}:
+			if actualMap, ok := actual[key].(map[string]interface{}); ok {
+				desanitizeConfigMap(actualMap, v, rules, newPath)
+			}
+		case []interface{}:
+			if actualSlice, ok := actual[key].([]interface{}); ok {
+				for i, item := range v {
+					if itemMap, ok := item.(map[string]interface{}); ok {
+						if actualItemMap, ok := actualSlice[i].(map[string]interface{}); ok {
+							desanitizeConfigMap(actualItemMap, itemMap, rules, newPath)
+						}
+					} else if str, ok := item.(string); ok && str == model.FakeSetting {
+						if actualStr, ok := actualSlice[i].(string); ok {
+							v[i] = actualStr
+						}
+					}
+				}
+			}
+		case string:
+			if v == model.FakeSetting {
+				if actualStr, ok := actual[key].(string); ok {
+					target[key] = actualStr
+				}
+			}
+		default:
+			continue
+		}
+	}
+}
+
+// desanitize replaces fake settings with their actual values.
+func desanitize(actual, target *model.Config) error {
+	rules := model.SanitizeConfigRules{
+		Contains:   []string{"password", "secret", "key", "keyid", "email"},
+		StartsWith: []string{"key", "password", "email"},
+		EndsWith:   []string{"key", "keyid", "id", "email"},
 	}
 
-	if *target.FileSettings.PublicLinkSalt == model.FakeSetting {
+	// Marshal the config structs to JSON and back to map
+	var actualMap, targetMap map[string]interface{}
+	data, err := json.Marshal(actual)
+	if err != nil {
+		return fmt.Errorf("failed to marshal actual config: %w", err)
+	}
+	if err = json.Unmarshal(data, &actualMap); err != nil {
+		return fmt.Errorf("failed to unmarshal actual config: %w", err)
+	}
+
+	data, err = json.Marshal(target)
+	if err != nil {
+		return fmt.Errorf("failed to marshal target config: %w", err)
+	}
+	if err = json.Unmarshal(data, &targetMap); err != nil {
+		return fmt.Errorf("failed to unmarshal target config: %w", err)
+	}
+
+	// Desanitize the map
+	desanitizeConfigMap(actualMap, targetMap, rules, "")
+
+	// Marshal the map back to JSON and into struct
+	data, err = json.Marshal(targetMap)
+	if err != nil {
+		return fmt.Errorf("failed to marshal targetMap config: %w", err)
+	}
+	if err = json.Unmarshal(data, target); err != nil {
+		return fmt.Errorf("failed to unmarshal target config: %w", err)
+	}
+
+	// Desanitize other fields not matching the sanitization rules
+	if target.FileSettings.PublicLinkSalt != nil && *target.FileSettings.PublicLinkSalt == model.FakeSetting {
 		*target.FileSettings.PublicLinkSalt = *actual.FileSettings.PublicLinkSalt
 	}
-	if *target.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting {
-		target.FileSettings.AmazonS3SecretAccessKey = actual.FileSettings.AmazonS3SecretAccessKey
+
+	if target.FileSettings.AmazonS3Bucket != nil && *target.FileSettings.AmazonS3Bucket == model.FakeSetting {
+		*target.FileSettings.AmazonS3Bucket = *actual.FileSettings.AmazonS3Bucket
 	}
 
-	if *target.EmailSettings.SMTPPassword == model.FakeSetting {
-		target.EmailSettings.SMTPPassword = actual.EmailSettings.SMTPPassword
+	if target.ElasticsearchSettings.ConnectionURL != nil && *target.ElasticsearchSettings.ConnectionURL == model.FakeSetting {
+		*target.ElasticsearchSettings.ConnectionURL = *actual.ElasticsearchSettings.ConnectionURL
 	}
 
-	if *target.GitLabSettings.Secret == model.FakeSetting {
-		target.GitLabSettings.Secret = actual.GitLabSettings.Secret
-	}
-
-	if target.GoogleSettings.Secret != nil && *target.GoogleSettings.Secret == model.FakeSetting {
-		target.GoogleSettings.Secret = actual.GoogleSettings.Secret
-	}
-
-	if target.Office365Settings.Secret != nil && *target.Office365Settings.Secret == model.FakeSetting {
-		target.Office365Settings.Secret = actual.Office365Settings.Secret
-	}
-
-	if target.OpenIdSettings.Secret != nil && *target.OpenIdSettings.Secret == model.FakeSetting {
-		target.OpenIdSettings.Secret = actual.OpenIdSettings.Secret
-	}
-
-	if *target.SqlSettings.DataSource == model.FakeSetting {
+	if target.SqlSettings.DataSource != nil && *target.SqlSettings.DataSource == model.FakeSetting {
 		*target.SqlSettings.DataSource = *actual.SqlSettings.DataSource
-	}
-	if *target.SqlSettings.AtRestEncryptKey == model.FakeSetting {
-		target.SqlSettings.AtRestEncryptKey = actual.SqlSettings.AtRestEncryptKey
-	}
-
-	if *target.ElasticsearchSettings.Password == model.FakeSetting {
-		*target.ElasticsearchSettings.Password = *actual.ElasticsearchSettings.Password
 	}
 
 	if len(target.SqlSettings.DataSourceReplicas) == len(actual.SqlSettings.DataSourceReplicas) {
@@ -81,13 +132,19 @@ func desanitize(actual, target *model.Config) {
 		}
 	}
 
-	if *target.MessageExportSettings.GlobalRelaySettings.SMTPPassword == model.FakeSetting {
-		*target.MessageExportSettings.GlobalRelaySettings.SMTPPassword = *actual.MessageExportSettings.GlobalRelaySettings.SMTPPassword
+	if len(target.SqlSettings.ReplicaLagSettings) == len(actual.SqlSettings.ReplicaLagSettings) {
+		for i := range target.SqlSettings.ReplicaLagSettings {
+			if target.SqlSettings.ReplicaLagSettings[i].DataSource != nil && *target.SqlSettings.ReplicaLagSettings[i].DataSource == model.FakeSetting {
+				*target.SqlSettings.ReplicaLagSettings[i].DataSource = *actual.SqlSettings.ReplicaLagSettings[i].DataSource
+			}
+		}
 	}
 
-	if *target.ServiceSettings.SplitKey == model.FakeSetting {
-		*target.ServiceSettings.SplitKey = *actual.ServiceSettings.SplitKey
+	if target.ServiceSettings.AllowedUntrustedInternalConnections != nil && *target.ServiceSettings.AllowedUntrustedInternalConnections == model.FakeSetting {
+		*target.ServiceSettings.AllowedUntrustedInternalConnections = *actual.ServiceSettings.AllowedUntrustedInternalConnections
 	}
+
+	return nil
 }
 
 // fixConfig patches invalid or missing data in the configuration.
