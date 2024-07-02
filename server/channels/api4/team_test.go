@@ -956,6 +956,11 @@ func TestRegenerateTeamInviteId(t *testing.T) {
 	assert.NotEqual(t, team.InviteId, rteam.InviteId)
 	assert.NotEqual(t, team.InviteId, "")
 	assert.Equal(t, rteam.Email, "")
+
+	manager := th.SystemManagerClient
+	th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.SystemManagerRoleId)
+	_, _, err = manager.RegenerateTeamInviteId(context.Background(), team.Id)
+	require.Error(t, err)
 }
 
 func TestSoftDeleteTeam(t *testing.T) {

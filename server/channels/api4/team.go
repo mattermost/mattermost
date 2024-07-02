@@ -398,6 +398,10 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.SetPermissionError(model.PermissionManageTeam)
 		return
 	}
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteUser) {
+		c.SetPermissionError(model.PermissionInviteUser)
+		return
+	}
 
 	auditRec := c.MakeAuditRecord("regenerateTeamInviteId", audit.Fail)
 	audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
