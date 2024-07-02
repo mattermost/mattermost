@@ -2302,3 +2302,11 @@ label {
         font-size: 16px;
     }
 }
+
+@media screen and (max-width: 540px) {
+    .modal-body {
+        >input {
+            margin: 2px 2px 22px 0;
+        }
+    }
+}
