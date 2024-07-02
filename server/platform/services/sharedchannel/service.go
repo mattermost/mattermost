@@ -30,8 +30,6 @@ const (
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
-	KeyRemoteUsername            = "RemoteUsername"
-	KeyRemoteEmail               = "RemoteEmail"
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.

@@ -11,6 +11,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	UserPropsKeyRemoteUsername = "RemoteUsername"
+	UserPropsKeyRemoteEmail    = "RemoteEmail"
+)
+
 var (
 	ErrChannelAlreadyShared = errors.New("channel is already shared")
 	ErrChannelHomedOnRemote = errors.New("channel is homed on a remote cluster")
