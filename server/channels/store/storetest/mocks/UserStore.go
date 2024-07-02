@@ -479,9 +479,9 @@ func (_m *UserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.Use
 	return r0, r1
 }
 
-// GetAllProfilesInChannel provides a mock function with given fields: ctx, channelID, allowFromCache
-func (_m *UserStore) GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error) {
-	ret := _m.Called(ctx, channelID, allowFromCache)
+// GetAllProfilesInChannel provides a mock function with given fields: rctx, channelID, allowFromCache
+func (_m *UserStore) GetAllProfilesInChannel(rctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error) {
+	ret := _m.Called(rctx, channelID, allowFromCache)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllProfilesInChannel")
@@ -490,10 +490,10 @@ func (_m *UserStore) GetAllProfilesInChannel(ctx context.Context, channelID stri
 	var r0 map[string]*model.User
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, bool) (map[string]*model.User, error)); ok {
-		return rf(ctx, channelID, allowFromCache)
+		return rf(rctx, channelID, allowFromCache)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, bool) map[string]*model.User); ok {
-		r0 = rf(ctx, channelID, allowFromCache)
+		r0 = rf(rctx, channelID, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]*model.User)
@@ -501,7 +501,7 @@ func (_m *UserStore) GetAllProfilesInChannel(ctx context.Context, channelID stri
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
-		r1 = rf(ctx, channelID, allowFromCache)
+		r1 = rf(rctx, channelID, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}

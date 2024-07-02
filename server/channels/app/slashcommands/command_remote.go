@@ -145,10 +145,9 @@ func (rp *RemoteProvider) doCreate(a *app.App, args *model.CommandArgs, margs ma
 
 	// Display the encrypted invitation
 	invite := &model.RemoteClusterInvite{
-		RemoteId:     rcSaved.RemoteId,
-		RemoteTeamId: args.TeamId,
-		SiteURL:      url,
-		Token:        rcSaved.Token,
+		RemoteId: rcSaved.RemoteId,
+		SiteURL:  url,
+		Token:    rcSaved.Token,
 	}
 	encrypted, err := invite.Encrypt(password)
 	if err != nil {
