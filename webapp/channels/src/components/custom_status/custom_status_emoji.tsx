@@ -11,7 +11,6 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {isCustomStatusEnabled, isCustomStatusExpired, makeGetCustomStatus} from 'selectors/views/custom_status';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-
 import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
@@ -31,7 +30,6 @@ interface Props {
 function CustomStatusEmoji({
     emojiSize = 16,
     showTooltip = false,
-    tooltipDirection = 'top',
     spanStyle = {},
     emojiStyle = {
         marginLeft: 4,
@@ -69,13 +67,6 @@ function CustomStatusEmoji({
             title={
                 <>
                     <div className='custom-status'>
-                        {/* <RenderEmoji
-                            emojiName={customStatus.emoji}
-                            size={14}
-                            emojiStyle={{
-                                marginTop: 2,
-                            }}
-                        /> */}
                         {customStatus.text && (
                             <span
                                 className='custom-status-text'
@@ -89,12 +80,12 @@ function CustomStatusEmoji({
                         customStatus.duration !==
                             CustomStatusDuration.DONT_CLEAR && (
                         <div>
-                                <ExpiryTime
-                                time={customStatus.expires_at}
-                                timezone={timezone}
-                                className='custom-status-expiry'
-                            />
-                            </div>
+                            <ExpiryTime
+                            time={customStatus.expires_at}
+                            timezone={timezone}
+                            className='custom-status-expiry'
+                        />
+                        </div>
                     )}
                 </>
             }
