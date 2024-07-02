@@ -23,14 +23,6 @@ jest.mock('mattermost-redux/client', () => {
     };
 });
 
-jest.mock('utils/user_agent', () => {
-    const original = jest.requireActual('utils/user_agent');
-    return {
-        ...original,
-        isIos: jest.fn().mockReturnValue(true),
-    };
-});
-
 describe('components/SuggestionBox', () => {
     const baseProps = {
         listComponent: SuggestionList,
@@ -82,37 +74,6 @@ describe('components/SuggestionBox', () => {
         expect(instance.handleEmitClearSuggestions).not.toBeCalled();
         expect(wrapper.state('focused')).toEqual(true);
         expect(onBlur).not.toBeCalled();
-
-        // test for iOS agent
-        instance.handleFocusOut({});
-        expect(instance.handleEmitClearSuggestions).not.toBeCalled();
-        expect(wrapper.state('focused')).toEqual(true);
-        expect(onBlur).not.toBeCalled();
-
-        instance.handleFocusOut({relatedTarget});
-        expect(instance.handleEmitClearSuggestions).toBeCalledTimes(1);
-        expect(wrapper.state('focused')).toEqual(false);
-        expect(onBlur).toBeCalledTimes(1);
-    });
-
-    test('should force pretext change on context change', () => {
-        const wrapper = shallow(
-            <SuggestionBox
-                {...baseProps}
-            />,
-        );
-        const instance = wrapper.instance();
-        instance.handlePretextChanged = jest.fn();
-        instance.getTextbox = jest.fn().mockReturnValue({value: 'value'});
-
-        wrapper.setProps({...baseProps});
-        expect(instance.handlePretextChanged).not.toBeCalled();
-
-        wrapper.setProps({...baseProps, contextId: 'new'});
-        expect(instance.handlePretextChanged).toBeCalledWith('value');
-
-        wrapper.setProps({...baseProps, contextId: 'new'});
-        expect(instance.handlePretextChanged.mock.calls.length).toBe(1);
     });
 
     test('should force pretext change after text has been cleared by parent', async () => {

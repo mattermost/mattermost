@@ -5,10 +5,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import QuickInput from 'components/quick_input';
+import SuggestionDate from 'components/suggestion/suggestion_date';
 
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
@@ -32,11 +32,6 @@ export default class SuggestionBox extends React.PureComponent {
          * The input component to render (it is passed through props to the QuickInput)
          */
         inputComponent: PropTypes.elementType,
-
-        /**
-         * The date component to render
-         */
-        dateComponent: PropTypes.any,
 
         /**
          * The value of in the input
@@ -96,8 +91,6 @@ export default class SuggestionBox extends React.PureComponent {
         onKeyPress: PropTypes.func,
         onComposition: PropTypes.func,
 
-        onSearchTypeSelected: PropTypes.func,
-
         /**
          * Function called when an item is selected
          */
@@ -127,12 +120,6 @@ export default class SuggestionBox extends React.PureComponent {
          * If true, replace all input in the suggestion box with the selected option after a select, defaults to false
          */
         replaceAllInputOnSelect: PropTypes.bool,
-
-        /**
-         * An optional, opaque identifier that distinguishes the context in which the suggestion
-         * box is rendered. This allows the reused component to otherwise respond to changes.
-         */
-        contextId: PropTypes.string,
 
         /**
          * Allows parent to access received suggestions
@@ -228,23 +215,15 @@ export default class SuggestionBox extends React.PureComponent {
     }
 
     componentDidMount() {
-        this.handlePretextChanged(this.pretext);
+        this.handlePretextChanged(this.inputRef.current?.value ?? '');
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate() {
         const {value} = this.props;
 
         // Post was just submitted, update pretext property.
         if (value === '' && this.pretext !== value) {
             this.handlePretextChanged(value);
-            return;
-        }
-
-        if (prevProps.contextId !== this.props.contextId) {
-            const textbox = this.getTextbox();
-            const pretext = textbox.value.substring(0, textbox.selectionEnd).toLowerCase();
-
-            this.handlePretextChanged(pretext);
         }
     }
 
@@ -260,11 +239,9 @@ export default class SuggestionBox extends React.PureComponent {
         return this.inputRef.current;
     };
 
-    handleEmitClearSuggestions = (delay = 0) => {
-        setTimeout(() => {
-            this.clear();
-            this.handlePretextChanged('');
-        }, delay);
+    handleEmitClearSuggestions = () => {
+        this.clear();
+        this.handlePretextChanged('');
     };
 
     preventSuggestionListClose = () => {
@@ -280,12 +257,6 @@ export default class SuggestionBox extends React.PureComponent {
         // Focus is switching TO e.relatedTarget, so only treat this as a blur event if we're not switching
         // between children (like from the textbox to the suggestion list)
         if (this.container.contains(e.relatedTarget)) {
-            return;
-        }
-
-        if (UserAgent.isIos() && !e.relatedTarget) {
-            // On Safari and iOS classic app, the autocomplete stays open
-            // when you tap outside of the post textbox or search box.
             return;
         }
 
@@ -766,7 +737,6 @@ export default class SuggestionBox extends React.PureComponent {
 
     render() {
         const {
-            dateComponent,
             listComponent,
             listPosition,
             renderNoResults,
@@ -794,7 +764,6 @@ export default class SuggestionBox extends React.PureComponent {
         Reflect.deleteProperty(props, 'containerClass');
         Reflect.deleteProperty(props, 'replaceAllInputOnSelect');
         Reflect.deleteProperty(props, 'renderDividers');
-        Reflect.deleteProperty(props, 'contextId');
         Reflect.deleteProperty(props, 'forceSuggestionsWhenBlur');
         Reflect.deleteProperty(props, 'onSuggestionsReceived');
         Reflect.deleteProperty(props, 'actions');
@@ -803,7 +772,6 @@ export default class SuggestionBox extends React.PureComponent {
 
         // This needs to be upper case so React doesn't think it's an html tag
         const SuggestionListComponent = listComponent;
-        const SuggestionDateComponent = dateComponent;
 
         return (
             <div
@@ -849,7 +817,7 @@ export default class SuggestionBox extends React.PureComponent {
                     />
                 )}
                 {(this.props.openWhenEmpty || this.props.value.length >= this.props.requiredCharacters) && this.state.presentationType === 'date' &&
-                    <SuggestionDateComponent
+                    <SuggestionDate
                         items={this.state.items}
                         terms={this.state.terms}
                         components={this.state.components}
