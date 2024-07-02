@@ -165,9 +165,14 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 	allowInsecureTLS := viper.GetBool("insecure-tls-version")
 
 	url := strings.TrimRight(args[0], "/")
-	method := MethodPassword
-
 	ctx := context.TODO()
+
+	err = validateSiteURL(ctx, url)
+	if err != nil {
+		return err
+	}
+
+	method := MethodPassword
 
 	if name == "" {
 		reader := bufio.NewReader(os.Stdin)
