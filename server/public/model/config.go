@@ -2173,7 +2173,7 @@ func (s *ThemeSettings) SetDefaults() {
 		s.AllowCustomThemes = NewBool(true)
 	}
 
-	if s.AllowedThemes == nil {
+	if len(s.AllowedThemes) == 0 {
 		s.AllowedThemes = []string{"denim", "sapphire", "quartz", "indigo", "onyx"}
 	}
 
