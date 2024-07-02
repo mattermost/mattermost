@@ -637,6 +637,7 @@ func (u *User) Sanitize(options map[string]bool) {
 
 	if len(options) != 0 && !options["email"] {
 		u.Email = ""
+		delete(u.Props, UserPropsKeyRemoteEmail)
 	}
 	if len(options) != 0 && !options["fullname"] {
 		u.FirstName = ""
