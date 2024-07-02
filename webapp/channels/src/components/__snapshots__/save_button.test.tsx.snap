@@ -17,19 +17,17 @@ exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
       />
     }
   >
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Save"
-        id="save_button.save"
-      />
-    </span>
+    <MemoizedFormattedMessage
+      defaultMessage="Save"
+      id="save_button.save"
+    />
   </Memo(LoadingWrapper)>
 </button>
 `;
 
 exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
 <button
-  className="btn btn-primary "
+  className="btn btn-primary"
   data-testid="saveSetting"
   disabled={false}
   id="saveSetting"
@@ -44,19 +42,17 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
       />
     }
   >
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Save"
-        id="save_button.save"
-      />
-    </span>
+    <MemoizedFormattedMessage
+      defaultMessage="Save"
+      id="save_button.save"
+    />
   </Memo(LoadingWrapper)>
 </button>
 `;
 
 exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
 <button
-  className="btn btn-primary "
+  className="btn btn-primary"
   data-testid="saveSetting"
   disabled={false}
   id="saveSetting"
@@ -71,16 +67,14 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
       />
     }
   >
-    <span>
-      Go
-    </span>
+    Go
   </Memo(LoadingWrapper)>
 </button>
 `;
 
 exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
 <button
-  className="btn btn-primary "
+  className="btn btn-primary"
   data-testid="saveSetting"
   disabled={true}
   id="saveSetting"
@@ -95,19 +89,17 @@ exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
       />
     }
   >
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Save"
-        id="save_button.save"
-      />
-    </span>
+    <MemoizedFormattedMessage
+      defaultMessage="Save"
+      id="save_button.save"
+    />
   </Memo(LoadingWrapper)>
 </button>
 `;
 
 exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
 <button
-  className="btn btn-primary "
+  className="btn btn-primary"
   data-testid="saveSetting"
   disabled={true}
   id="saveSetting"
@@ -117,12 +109,10 @@ exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
     loading={true}
     text="Saving Config..."
   >
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Save"
-        id="save_button.save"
-      />
-    </span>
+    <MemoizedFormattedMessage
+      defaultMessage="Save"
+      id="save_button.save"
+    />
   </Memo(LoadingWrapper)>
 </button>
 `;

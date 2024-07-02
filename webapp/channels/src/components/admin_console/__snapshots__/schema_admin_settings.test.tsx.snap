@@ -704,16 +704,8 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
   <div
     className="admin-console-save"
   >
-    <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
+    <Memo(SaveButton)
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage="Saving Config..."
