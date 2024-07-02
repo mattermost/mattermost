@@ -315,3 +315,52 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 
 	return rowsAffected, nil
 }
+
+func (s SqlPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
+	var query string
+	if s.DriverName() == "postgres" {
+		query = `DELETE FROM Preferences
+		WHERE (userid, category, name) IN (
+			SELECT userid, category, name 
+			FROM preferences 
+			WHERE category = 'sidebar_settings' 
+			AND name = 'limit_visible_dms_gms'
+			AND (SUBSTRING(
+			  CONCAT('000000000000000', value), 
+			  LENGTH(value) + 1, 
+			  15
+			) > '000000000000040'
+			OR SUBSTRING(
+				CONCAT('000000000000000', value), 
+				LENGTH(value) + 1, 
+				15
+			  ) < '000000000000001'
+			) 
+			LIMIT 100
+		)`
+	} else {
+		query = `DELETE FROM Preferences
+		WHERE category = 'sidebar_settings' AND name = 'limit_visible_dms_gms'
+		AND (SUBSTRING(
+		  CONCAT('000000000000000', value), 
+		  LENGTH(value) + 1, 
+		  15
+		) > '000000000000040'
+		OR SUBSTRING(
+			CONCAT('000000000000000', value), 
+			LENGTH(value) + 1, 
+			15
+		  ) < '000000000000001'
+		)
+		LIMIT 100`
+	}
+	result, err := s.GetMasterX().Exec(query)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete Preference")
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "unable to get rows affected")
+	}
+	return rowsAffected, nil
+}

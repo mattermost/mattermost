@@ -24,6 +24,7 @@ func TestPreferenceStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("PreferenceDeleteCategory", func(t *testing.T) { testPreferenceDeleteCategory(t, rctx, ss) })
 	t.Run("PreferenceDeleteCategoryAndName", func(t *testing.T) { testPreferenceDeleteCategoryAndName(t, rctx, ss) })
 	t.Run("PreferenceDeleteOrphanedRows", func(t *testing.T) { testPreferenceDeleteOrphanedRows(t, rctx, ss) })
+	t.Run("PreferenceDeleteInvalidVisibleDmsGms", func(t *testing.T) { testDeleteInvalidVisibleDmsGms(t, rctx, ss) })
 }
 
 func testPreferenceSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -400,4 +401,73 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, rctx request.CTX, ss store.S
 
 	_, nErr = ss.Preference().Get(userId, category, preference2.Name)
 	assert.NoError(t, nErr, "newer preference should not have been deleted")
+}
+
+func testDeleteInvalidVisibleDmsGms(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId1 := model.NewId()
+	userId2 := model.NewId()
+	userId3 := model.NewId()
+	userId4 := model.NewId()
+	category := model.PreferenceCategorySidebarSettings
+	name := model.PreferenceLimitVisibleDmsGms
+
+	preferences := model.Preferences{
+		{
+			UserId:   userId1,
+			Category: category,
+			Name:     name,
+			Value:    "10000",
+		},
+		{
+			UserId:   userId2,
+			Category: category,
+			Name:     name,
+			Value:    "40",
+		},
+		{
+			UserId:   userId3,
+			Category: category,
+			Name:     name,
+			Value:    "invalid",
+		},
+		{
+			UserId:   model.NewId(),
+			Category: category,
+			Name:     name,
+			Value:    "-10",
+		},
+		{
+			UserId:   model.NewId(),
+			Category: category,
+			Name:     name,
+			Value:    "0",
+		},
+		{
+			UserId:   model.NewId(),
+			Category: category,
+			Name:     name,
+			Value:    "00000",
+		},
+		{
+			UserId:   userId4,
+			Category: category,
+			Name:     name,
+			Value:    "20",
+		},
+	}
+
+	err := ss.Preference().Save(preferences)
+	require.NoError(t, err)
+
+	count, err := ss.Preference().DeleteInvalidVisibleDmsGms()
+	require.NoError(t, err)
+	assert.Equal(t, int64(5), count)
+
+	preference, err := ss.Preference().Get(userId2, category, name)
+	require.NoError(t, err)
+	require.Equal(t, &preferences[1], preference)
+
+	preference, err = ss.Preference().Get(userId4, category, name)
+	require.NoError(t, err)
+	require.Equal(t, &preferences[6], preference)
 }

@@ -6665,6 +6665,22 @@ func (s *TimerLayerPreferenceStore) DeleteCategoryAndName(category string, name 
 	return err
 }
 
+func (s *TimerLayerPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
+	start := time.Now()
+
+	result, err := s.PreferenceStore.DeleteInvalidVisibleDmsGms()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.DeleteInvalidVisibleDmsGms", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error) {
 	start := time.Now()
 

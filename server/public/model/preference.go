@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -61,7 +62,9 @@ const (
 	PreferenceEmailIntervalHourAsSeconds     = "3600"
 	PreferenceCloudUserEphemeralInfo         = "cloud_user_ephemeral_info"
 
-	MaxPreferenceValueLength = 20000
+	PreferenceLimitVisibleDmsGms         = "limit_visible_dms_gms"
+	PreferenceMaxLimitVisibleDmsGmsValue = 40
+	MaxPreferenceValueLength             = 20000
 )
 
 type Preference struct {
@@ -94,6 +97,13 @@ func (o *Preference) IsValid() *AppError {
 		var unused map[string]string
 		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&unused); err != nil {
 			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest).Wrap(err)
+		}
+	}
+
+	if o.Category == PreferenceCategorySidebarSettings && o.Name == PreferenceLimitVisibleDmsGms {
+		visibleDmsGmsValue, convErr := strconv.Atoi(o.Value)
+		if convErr != nil || visibleDmsGmsValue < 1 || visibleDmsGmsValue > PreferenceMaxLimitVisibleDmsGmsValue {
+			return NewAppError("Preference.IsValid", "model.preference.is_valid.limit_visible_dms_gms.app_error", nil, "value="+o.Value, http.StatusBadRequest)
 		}
 	}
 

@@ -4964,7 +4964,6 @@
   "sidebar_right_menu.console": "System Console",
   "sidebar_right_menu.flagged": "Saved messages",
   "sidebar_right_menu.recentMentions": "Recent Mentions",
-  "sidebar.allDirectMessages": "All direct messages",
   "sidebar.createDirectMessage": "Write a direct message",
   "sidebar.createUserGroup": "Create New User Group",
   "sidebar.directchannel.you": "{displayname} (you)",

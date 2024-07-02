@@ -70,6 +70,34 @@ func TestPreferenceIsValid(t *testing.T) {
 
 		require.Nil(t, preference.IsValid())
 	})
+
+	t.Run("limit_visible_dms_gms has a valid value", func(t *testing.T) {
+		preference.Category = PreferenceCategorySidebarSettings
+		preference.Name = PreferenceLimitVisibleDmsGms
+		preference.Value = "40"
+		require.Nil(t, preference.IsValid())
+	})
+
+	t.Run("limit_visible_dms_gms has a value greater than PreferenceMaxLimitVisibleDmsGmsValue", func(t *testing.T) {
+		preference.Category = PreferenceCategorySidebarSettings
+		preference.Name = PreferenceLimitVisibleDmsGms
+		preference.Value = "10000"
+		require.NotNil(t, preference.IsValid())
+	})
+
+	t.Run("limit_visible_dms_gms has an invalid value", func(t *testing.T) {
+		preference.Category = PreferenceCategorySidebarSettings
+		preference.Name = PreferenceLimitVisibleDmsGms
+		preference.Value = "one thousand"
+		require.NotNil(t, preference.IsValid())
+	})
+
+	t.Run("limit_visible_dms_gms has a negative number", func(t *testing.T) {
+		preference.Category = PreferenceCategorySidebarSettings
+		preference.Name = PreferenceLimitVisibleDmsGms
+		preference.Value = "-10"
+		require.NotNil(t, preference.IsValid())
+	})
 }
 
 func TestPreferencePreUpdate(t *testing.T) {
