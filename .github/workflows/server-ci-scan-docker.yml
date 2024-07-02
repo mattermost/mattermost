@@ -1,0 +1,31 @@
+name: Server CI Artifacts Scan
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'shatoscan'
+        required: true
+
+jobs:
+  test-scan:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download Wiz CLI
+        run: |
+          curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
+          ./wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
+        env:
+          WIZ_CLIENT_ID: ${{ secrets.WIZ_DEVOPS_CLIENT_ID }}
+          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_DEVOPS_CLIENT_SECRET }}
+
+      - name: cd/scan-image
+        run: |
+          ./wizcli docker scan --image mattermostdevelopment/mattermost-team-edition:${{ github.event.inputs.sha }} -f sarif > results_image_scan.sarif
+        continue-on-error: true
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results_image_scan.sarif
+
