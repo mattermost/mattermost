@@ -312,6 +312,10 @@ store-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir channels/store --name ".*Store" --output channels/store/storetest/mocks --note 'Regenerate this file using `make store-mocks`.'
 
+cache-mocks:
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+	$(GOBIN)/mockery --dir platform/services/cache --all --output platform/services/cache/mocks --note 'Regenerate this file using `make cache-mocks`.'
+
 telemetry-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
 	$(GOBIN)/mockery --dir platform/services/telemetry --all --output platform/services/telemetry/mocks --note 'Regenerate this file using `make telemetry-mocks`.'
@@ -373,7 +377,7 @@ mmctl-mocks: ## Creates mocks for mmctl
 pluginapi: ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
 
-mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public
+mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
 
 layers: app-layers store-layers pluginapi
 
@@ -398,7 +402,6 @@ endif
 endif
 
 check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
-
 
 gotestsum:
 	$(GO) install gotest.tools/gotestsum@v1.11.0

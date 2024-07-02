@@ -74,8 +74,9 @@ var clearCacheMessageData = []byte("")
 
 type LocalCacheStore struct {
 	store.Store
-	metrics einterfaces.MetricsInterface
-	cluster einterfaces.ClusterInterface
+	cacheType string
+	metrics   einterfaces.MetricsInterface
+	cluster   einterfaces.ClusterInterface
 
 	reaction      LocalCacheReactionStore
 	reactionCache cache.Cache
@@ -125,9 +126,10 @@ type LocalCacheStore struct {
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider) (localCacheStore LocalCacheStore, err error) {
 	localCacheStore = LocalCacheStore{
-		Store:   baseStore,
-		cluster: cluster,
-		metrics: metrics,
+		Store:     baseStore,
+		cluster:   cluster,
+		metrics:   metrics,
+		cacheType: cacheProvider.Type(),
 	}
 	// Reactions
 	if localCacheStore.reactionCache, err = cacheProvider.NewCache(&cache.CacheOptions{
@@ -251,9 +253,10 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
+
 	if localCacheStore.channelMembersForUserCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   AllChannelMembersForUserCacheSize,
-		Name:                   "ChannnelMembersForUser",
+		Name:                   "ChannelMembersForUser",
 		DefaultExpiry:          AllChannelMembersForUserCacheDuration,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForUser,
 	}); err != nil {
@@ -445,7 +448,7 @@ func (s LocalCacheStore) DropAllTables() {
 
 func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string, props map[string]string) {
 	cache.Remove(key)
-	if s.cluster != nil {
+	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.ClusterSendBestEffort,
@@ -478,7 +481,7 @@ func (s *LocalCacheStore) doStandardReadCache(cache cache.Cache, key string, val
 
 func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {
 	cache.Purge()
-	if s.cluster != nil {
+	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.ClusterSendBestEffort,

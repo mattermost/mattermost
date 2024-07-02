@@ -161,7 +161,7 @@ func TestNewCache_Striped(t *testing.T) {
 func TestConnectClose(t *testing.T) {
 	p := NewProvider()
 
-	err := p.Connect()
+	_, err := p.Connect()
 	require.NoError(t, err)
 
 	err = p.Close()
