@@ -77,7 +77,11 @@ type Props = {
 
 const SearchInput = ({searchTerms, searchType, setSearchTerms, onKeyDown, focus}: Props, inputRef: React.Ref<HTMLInputElement>) => {
     const intl = useIntl();
-    let searchPlaceholder = intl.formatMessage({id: 'search_bar.search_messages', defaultMessage: 'Search messages'});
+    let searchPlaceholder = intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'});
+
+    if (searchType === 'messages' || searchType === '') {
+        searchPlaceholder = intl.formatMessage({id: 'search_bar.search_messages', defaultMessage: 'Search messages'});
+    }
     if (searchType === 'files') {
         searchPlaceholder = intl.formatMessage({id: 'search_bar.search_files', defaultMessage: 'Search files'});
     }
