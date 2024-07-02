@@ -2794,36 +2794,6 @@ func (_m *ChannelStore) Update(ctx request.CTX, channel *model.Channel) (*model.
 	return r0, r1
 }
 
-// UpdateLastViewedAt provides a mock function with given fields: channelIds, userID
-func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userID string) (map[string]int64, error) {
-	ret := _m.Called(channelIds, userID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateLastViewedAt")
-	}
-
-	var r0 map[string]int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func([]string, string) (map[string]int64, error)); ok {
-		return rf(channelIds, userID)
-	}
-	if rf, ok := ret.Get(0).(func([]string, string) map[string]int64); ok {
-		r0 = rf(channelIds, userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]int64)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
-		r1 = rf(channelIds, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // UpdateLastViewedAtPost provides a mock function with given fields: unreadPost, userID, mentionCount, mentionCountRoot, urgentMentionCount, setUnreadCountRoot
 func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, urgentMentionCount int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
 	ret := _m.Called(unreadPost, userID, mentionCount, mentionCountRoot, urgentMentionCount, setUnreadCountRoot)
@@ -2847,6 +2817,36 @@ func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID st
 
 	if rf, ok := ret.Get(1).(func(*model.Post, string, int, int, int, bool) error); ok {
 		r1 = rf(unreadPost, userID, mentionCount, mentionCountRoot, urgentMentionCount, setUnreadCountRoot)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateLastViewedAtToNow provides a mock function with given fields: channelIds, userID, now
+func (_m *ChannelStore) UpdateLastViewedAtToNow(channelIds []string, userID string, now int64) (map[string]int64, error) {
+	ret := _m.Called(channelIds, userID, now)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateLastViewedAtToNow")
+	}
+
+	var r0 map[string]int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string, string, int64) (map[string]int64, error)); ok {
+		return rf(channelIds, userID, now)
+	}
+	if rf, ok := ret.Get(0).(func([]string, string, int64) map[string]int64); ok {
+		r0 = rf(channelIds, userID, now)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]int64)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string, string, int64) error); ok {
+		r1 = rf(channelIds, userID, now)
 	} else {
 		r1 = ret.Error(1)
 	}

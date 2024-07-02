@@ -298,62 +298,6 @@ describe('makeFilterAutoclosedDMs', () => {
             expect(filterAutoclosedDMs(state, [dmChannel1, gmChannel1, gmChannel2, dmChannel2, dmChannel3], CategoryTypes.DIRECT_MESSAGES)).toEqual([dmChannel1, dmChannel2]);
         });
     });
-
-    test('should consider approximate view time and open time preferences for most recently viewed channel', () => {
-        const filterAutoclosedDMs = Selectors.makeFilterAutoclosedDMs();
-
-        const dmChannel1 = ch({id: 'dmChannel1', type: General.DM_CHANNEL, name: `${currentUser.id}__${tigerKing.id}`});
-        const dmChannel2 = ch({id: 'dmChannel2', type: General.DM_CHANNEL, name: `${currentUser.id}__${bojackHorseman.id}`});
-        const dmChannel3 = ch({id: 'dmChannel3', type: General.DM_CHANNEL, name: `${currentUser.id}__${jeffWinger.id}`});
-
-        let state = mergeObjects(baseState, {
-            entities: {
-                channels: {
-                    channels: {
-                        dmChannel1,
-                        dmChannel2,
-                        dmChannel3,
-                    },
-                    myMembers: {
-                        [dmChannel1.id]: {last_viewed_at: 1000},
-                        [dmChannel2.id]: {last_viewed_at: 500},
-                        [dmChannel3.id]: {last_viewed_at: 0},
-                    },
-                },
-                preferences: {
-                    myPreferences: {
-                        [getPreferenceKey(Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS)]: {value: '2'},
-                    },
-                },
-            },
-        });
-
-        expect(filterAutoclosedDMs(state, [dmChannel1, dmChannel2, dmChannel3], CategoryTypes.DIRECT_MESSAGES)).toEqual([dmChannel1, dmChannel2]);
-
-        state = mergeObjects(state, {
-            entities: {
-                preferences: {
-                    myPreferences: {
-                        [getPreferenceKey(Preferences.CATEGORY_CHANNEL_OPEN_TIME, dmChannel3.id)]: {value: '3000'},
-                    },
-                },
-            },
-        });
-
-        expect(filterAutoclosedDMs(state, [dmChannel1, dmChannel2, dmChannel3], CategoryTypes.DIRECT_MESSAGES)).toEqual([dmChannel1, dmChannel3]);
-
-        state = mergeObjects(state, {
-            entities: {
-                preferences: {
-                    myPreferences: {
-                        [getPreferenceKey(Preferences.CATEGORY_CHANNEL_APPROXIMATE_VIEW_TIME, dmChannel2.id)]: {value: '2000'},
-                    },
-                },
-            },
-        });
-
-        expect(filterAutoclosedDMs(state, [dmChannel1, dmChannel2, dmChannel3], CategoryTypes.DIRECT_MESSAGES)).toEqual([dmChannel2, dmChannel3]);
-    });
 });
 
 describe('makeFilterManuallyClosedDMs', () => {

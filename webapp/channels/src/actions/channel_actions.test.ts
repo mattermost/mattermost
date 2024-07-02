@@ -194,16 +194,6 @@ describe('Actions.Channel', () => {
                         ],
                         type: 'RECEIVED_PREFERENCES',
                     },
-                    {
-                        data: [
-                            {
-                                category: 'channel_open_time',
-                                name: 'current_user_id__existingId',
-                                value: '0',
-                            },
-                        ],
-                        type: 'RECEIVED_PREFERENCES',
-                    },
                 ],
                 type: 'BATCHING_REDUCER.BATCH',
             },
@@ -214,12 +204,6 @@ describe('Actions.Channel', () => {
                         name: 'existingId',
                         user_id: 'current_user_id',
                         value: 'true',
-                    },
-                    {
-                        category: 'channel_open_time',
-                        name: 'current_user_id__existingId',
-                        user_id: 'current_user_id',
-                        value: '0',
                     },
                 ],
                 type: 'RECEIVED_PREFERENCES',

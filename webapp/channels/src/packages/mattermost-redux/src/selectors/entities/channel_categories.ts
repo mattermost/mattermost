@@ -111,18 +111,8 @@ export function makeFilterAutoclosedDMs(): (state: GlobalState, channels: Channe
                 return channels;
             }
 
-            const getTimestampFromPrefs = (category: string, name: string) => {
-                const pref = myPreferences[getPreferenceKey(category, name)];
-                return parseInt(pref ? pref.value! : '0', 10);
-            };
             const getLastViewedAt = (channel: Channel) => {
-                // The server only ever sets the last_viewed_at to the time of the last post in channel, so we may need
-                // to use the preferences added for the previous version of autoclosing DMs.
-                return Math.max(
-                    myMembers[channel.id]?.last_viewed_at,
-                    getTimestampFromPrefs(Preferences.CATEGORY_CHANNEL_APPROXIMATE_VIEW_TIME, channel.id),
-                    getTimestampFromPrefs(Preferences.CATEGORY_CHANNEL_OPEN_TIME, channel.id),
-                );
+                return myMembers[channel.id]?.last_viewed_at;
             };
 
             let unreadCount = 0;
@@ -144,7 +134,7 @@ export function makeFilterAutoclosedDMs(): (state: GlobalState, channels: Channe
                     const teammateId = getUserIdFromChannelName(currentUserId, channel.name);
                     const teammate = profiles[teammateId];
 
-                    const lastViewedAt = getLastViewedAt(channel);
+                    const lastViewedAt = myMembers[channel.id]?.last_viewed_at;
 
                     if (!teammate || teammate.delete_at > lastViewedAt) {
                         return false;

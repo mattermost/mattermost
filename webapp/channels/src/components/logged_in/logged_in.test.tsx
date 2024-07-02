@@ -37,7 +37,6 @@ describe('components/logged_in/LoggedIn', () => {
         actions: {
             autoUpdateTimezone: jest.fn(),
             getChannelURLAction: jest.fn(),
-            updateApproximateViewTime: jest.fn(),
         },
         isCurrentChannelManuallyUnread: false,
         showTermsOfService: false,

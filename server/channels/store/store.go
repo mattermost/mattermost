@@ -249,7 +249,7 @@ type ChannelStore interface {
 	RemoveMembers(ctx request.CTX, channelID string, userIds []string) error
 	PermanentDeleteMembersByUser(ctx request.CTX, userID string) error
 	PermanentDeleteMembersByChannel(ctx request.CTX, channelID string) error
-	UpdateLastViewedAt(channelIds []string, userID string) (map[string]int64, error)
+	UpdateLastViewedAtToNow(channelIds []string, userID string, now int64) (map[string]int64, error)
 	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot, urgentMentionCount int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error)
 	CountPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, int, error)
 	CountUrgentPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, error)

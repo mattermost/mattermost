@@ -129,7 +129,6 @@ export function createDirectChannel(userId: string, otherUserId: string): Action
 
         const preferences = [
             {user_id: userId, category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: otherUserId, value: 'true'},
-            {user_id: userId, category: Preferences.CATEGORY_CHANNEL_OPEN_TIME, name: created.id, value: new Date().getTime().toString()},
         ];
 
         dispatch(savePreferences(userId, preferences));
@@ -171,7 +170,6 @@ export function markGroupChannelOpen(channelId: string): ActionFuncAsync {
 
         const preferences: PreferenceType[] = [
             {user_id: currentUserId, category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW, name: channelId, value: 'true'},
-            {user_id: currentUserId, category: Preferences.CATEGORY_CHANNEL_OPEN_TIME, name: channelId, value: new Date().getTime().toString()},
         ];
 
         return dispatch(savePreferences(currentUserId, preferences));
@@ -683,24 +681,6 @@ export function unarchiveChannel(channelId: string): ActionFuncAsync {
     };
 }
 
-export function updateApproximateViewTime(channelId: string): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        const {currentUserId} = getState().entities.users;
-
-        const {myPreferences} = getState().entities.preferences;
-
-        const viewTimePref = myPreferences[`${Preferences.CATEGORY_CHANNEL_APPROXIMATE_VIEW_TIME}--${channelId}`];
-        const viewTime = viewTimePref ? parseInt(viewTimePref.value!, 10) : 0;
-        if (viewTime < new Date().getTime() - (3 * 60 * 60 * 1000)) {
-            const preferences = [
-                {user_id: currentUserId, category: Preferences.CATEGORY_CHANNEL_APPROXIMATE_VIEW_TIME, name: channelId, value: new Date().getTime().toString()},
-            ];
-            dispatch(savePreferences(currentUserId, preferences));
-        }
-        return {data: true};
-    };
-}
-
 export function unsetActiveChannelOnServer(): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
@@ -1114,11 +1094,8 @@ export function removeChannelMember(channelId: string, userId: string): ActionFu
     };
 }
 
-export function markChannelAsRead(channelId: string, skipUpdateViewTime = false): ActionFunc {
+export function markChannelAsRead(channelId: string): ActionFunc {
     return (dispatch, getState) => {
-        if (skipUpdateViewTime) {
-            dispatch(updateApproximateViewTime(channelId));
-        }
         dispatch(markChannelAsViewedOnServer(channelId));
 
         const actions = actionsToMarkChannelAsRead(getState, channelId);
