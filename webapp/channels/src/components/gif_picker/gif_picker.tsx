@@ -13,6 +13,7 @@ const GIF_MARGIN_ENDS = 12;
 
 type Props = {
     filter: string;
+    stickers: boolean;
     onGifClick?: (gif: string) => void;
     handleFilterChange: (filter: string) => void;
     getRootPickerNode: () => HTMLDivElement | null;
@@ -43,6 +44,7 @@ const GifPicker = (props: Props) => {
                 width={pickerWidth}
                 filter={props.filter}
                 onClick={handleItemClick}
+                stickers={props.stickers}
             />
         </div>
     );
