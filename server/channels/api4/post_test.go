@@ -1774,6 +1774,8 @@ func TestGetPostsForChannel(t *testing.T) {
 		require.Equal(t, post2.Id, posts.Order[2], "wrong order")
 		require.Equal(t, post1.Id, posts.Order[3], "wrong order")
 
+		require.Nil(t, posts.HasNext, "HasNext should not be returned")
+
 		posts, resp, _ = c.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 3, resp.Etag, false, false)
 		CheckEtag(t, posts, resp)
 
