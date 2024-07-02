@@ -145,7 +145,7 @@ const CustomThemesSetting = (props: Props) => {
                         onClick={() => (openTheme === theme.ID ? setOpenTheme(null) : setOpenTheme(theme.ID))}
                     >
                         <CustomThemeHeader>
-                            <div className="theme-thumbnail">
+                            <div className='theme-thumbnail'>
                                 <ThemeThumbnail
                                     width={85}
                                     height={64}
@@ -167,7 +167,7 @@ const CustomThemesSetting = (props: Props) => {
                             </div>
                             <div className='theme-label'>{theme.Name}</div>
                             <button
-                                className="btn btn-sm btn-icon"
+                                className='btn btn-sm btn-icon'
                                 onClick={() => {
                                     handleChange(props.value.filter((t) => t.ID !== theme.ID));
                                     setOpenTheme(null);

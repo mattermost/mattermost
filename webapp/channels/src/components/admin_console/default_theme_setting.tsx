@@ -49,14 +49,14 @@ const DefaultThemeSetting = (props: Props) => {
                 options.push({value: theme.ID, text: theme.Name});
             }
         });
-        return options
+        return options;
     }, [customThemes, allowedThemes]);
 
     useEffect(() => {
         if (props.onChange && props.state['ThemeSettings.AllowedThemes'].indexOf(props.value) === -1) {
             props.onChange(props.id, props.state['ThemeSettings.AllowedThemes'][0]);
         }
-    }, [props.value, props.state['ThemeSettings.AllowedThemes']])
+    }, [props.value, props.state['ThemeSettings.AllowedThemes']]);
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         if (props.onChange) {

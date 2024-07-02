@@ -48,17 +48,17 @@ const AllowedThemesSetting = (props: Props) => {
             allThemes[theme.ID] = theme.Name;
             options.push({value: theme.ID, text: theme.Name});
         });
-        return [options, allThemes]
+        return [options, allThemes];
     }, [props.state['ThemeSettings.CustomThemes']]);
 
     const getOptionLabel = ({text}: { text: string}) => text;
 
     useEffect(() => {
-        const values = props.value.filter((value) => allThemes[value])
+        const values = props.value.filter((value) => allThemes[value]);
         if (props.onChange && values.length !== props.value.length) {
             props.onChange(props.id, values);
         }
-    }, [allThemes])
+    }, [allThemes]);
 
     const handleChange = useCallback((newValue: ValueType<Option>) => {
         const values = newValue ? (newValue as Option[]).map((n) => {
