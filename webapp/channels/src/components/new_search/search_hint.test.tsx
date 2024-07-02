@@ -18,52 +18,52 @@ describe('components/new_search/SearchHint', () => {
         isDate: false,
     };
 
-    test('should match snapshot on search messages empty string', () => {
+    test('should have the right hint options on search messages empty string', () => {
         renderWithContext(<SearchHint {...baseProps}/>)
         expect(screen.getByText("From:")).toBeInTheDocument();
         expect(screen.queryByText("Ext:")).not.toBeInTheDocument();
     });
 
-    test('should match snapshot on search messages with not empty string not ended with space', () => {
+    test('should suggest to hit enter to search on search messages with not empty string not ended with space', () => {
         const props = {...baseProps, searchTerms: 'test'};
         renderWithContext(<SearchHint {...props}/>)
         expect(screen.getByText("Press Enter to search")).toBeInTheDocument();
     });
 
-    test('should match snapshot on search messages with not empty string ended with space', () => {
+    test('should have the right hint options on search messages with not empty string ended with space', () => {
         const props = {...baseProps, searchTerms: 'test '};
         renderWithContext(<SearchHint {...props}/>)
         expect(screen.getByText("From:")).toBeInTheDocument();
         expect(screen.queryByText("Ext:")).not.toBeInTheDocument();
     });
 
-    test('should match snapshot on search files empty string', () => {
+    test('should have the right hint options on search files empty string', () => {
         const props = {...baseProps, searchType: 'files'};
         renderWithContext(<SearchHint {...props}/>)
         expect(screen.getByText("From:")).toBeInTheDocument();
         expect(screen.queryByText("Ext:")).toBeInTheDocument();
     });
 
-    test('should match snapshot on search files with not empty string not ended with space', () => {
+    test('should suggest to hit enter to search on search files with not empty string not ended with space', () => {
         const props = {...baseProps, searchType: 'files', searchTerms: 'test'};
         renderWithContext(<SearchHint {...props}/>)
         expect(screen.getByText("Press Enter to search")).toBeInTheDocument();
     });
 
-    test('should match snapshot on search files with not empty string ended with space', () => {
+    test('should have the right hint options on search files with not empty string ended with space', () => {
         const props = {...baseProps, searchType: 'files', searchTerms: 'test '};
         renderWithContext(<SearchHint {...props}/>)
         expect(screen.getByText("From:")).toBeInTheDocument();
         expect(screen.getByText("Ext:")).toBeInTheDocument();
     });
 
-    test('should match snapshot on search if is date', () => {
+    test('should be empty on search if is date', () => {
         const props = {...baseProps, isDate: true};
         const { asFragment } = renderWithContext(<SearchHint {...props}/>)
         expect(asFragment()).toMatchInlineSnapshot(`<DocumentFragment />`);
     });
 
-    test('should match snapshot on search if has selected option', () => {
+    test('should suggest to hit enter to select on search if has selected option', () => {
         const props = {...baseProps, hasSelectedOption: true};
         renderWithContext(<SearchHint {...props}/>);
         expect(screen.getByText("Press Enter to select")).toBeInTheDocument();
