@@ -533,7 +533,7 @@ type RemoteClusterStore interface {
 	Delete(remoteClusterId string) (bool, error)
 	Get(remoteClusterId string) (*model.RemoteCluster, error)
 	GetByPluginID(pluginID string) (*model.RemoteCluster, error)
-	GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
+	GetAll(offset, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
 	UpdateTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error)
 	SetLastPingAt(remoteClusterId string) error
 }
@@ -979,7 +979,7 @@ type SharedChannelStore interface {
 	HasRemote(channelID string, remoteId string) (bool, error)
 	GetRemoteForUser(remoteId string, userId string) (*model.RemoteCluster, error)
 	GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
-	GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
+	GetRemotes(offset, limit int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
 	UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
 	DeleteRemote(remoteId string) (bool, error)
 	GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)

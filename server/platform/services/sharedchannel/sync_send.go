@@ -104,7 +104,7 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 	opts := model.SharedChannelRemoteFilterOpts{
 		RemoteId: rc.RemoteId,
 	}
-	scrs, err := scs.server.GetStore().SharedChannel().GetRemotes(opts)
+	scrs, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 999999, opts)
 	if err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to fetch shared channel remotes",
 			mlog.String("remote", rc.DisplayName),
@@ -258,7 +258,7 @@ func (scs *Service) processTask(task syncTask) error {
 			InChannel:     task.channelID,
 			OnlyConfirmed: true,
 		}
-		remotes, err := scs.server.GetStore().RemoteCluster().GetAll(filter)
+		remotes, err := scs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
 		if err != nil {
 			return err
 		}
@@ -270,7 +270,7 @@ func (scs *Service) processTask(task syncTask) error {
 		filter = model.RemoteClusterQueryFilter{
 			RequireOptions: model.BitflagOptionAutoInvited,
 		}
-		remotesAutoInvited, err := scs.server.GetStore().RemoteCluster().GetAll(filter)
+		remotesAutoInvited, err := scs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
 		if err != nil {
 			return err
 		}

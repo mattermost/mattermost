@@ -88,7 +88,7 @@ func handleContentSync(ps *PlatformService, syncService SharedChannelServiceIFac
 			OnlyConfirmed:  true,
 			RequireOptions: model.BitflagOptionAutoShareDMs,
 		}
-		remotes, err := ps.Store.RemoteCluster().GetAll(filter) // empty list returned if none found,  no error
+		remotes, err := ps.Store.RemoteCluster().GetAll(0, 999999, filter) // empty list returned if none found,  no error
 		if err != nil {
 			return fmt.Errorf("cannot fetch remote clusters: %w", err)
 		}

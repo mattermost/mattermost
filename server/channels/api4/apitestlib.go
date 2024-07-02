@@ -1086,6 +1086,11 @@ func CheckCreatedStatus(tb testing.TB, resp *model.Response) {
 	checkHTTPStatus(tb, resp, http.StatusCreated)
 }
 
+func CheckNoContentStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusNoContent)
+}
+
 func CheckForbiddenStatus(tb testing.TB, resp *model.Response) {
 	tb.Helper()
 	checkHTTPStatus(tb, resp, http.StatusForbidden)
@@ -1104,6 +1109,11 @@ func CheckNotFoundStatus(tb testing.TB, resp *model.Response) {
 func CheckBadRequestStatus(tb testing.TB, resp *model.Response) {
 	tb.Helper()
 	checkHTTPStatus(tb, resp, http.StatusBadRequest)
+}
+
+func CheckUnprocessableEntityStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusUnprocessableEntity)
 }
 
 func CheckNotImplementedStatus(tb testing.TB, resp *model.Response) {
