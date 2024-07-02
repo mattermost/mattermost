@@ -1,19 +1,20 @@
 .AdminSidebarHeader {
-    background: #333;
 
     > div {
         &:first-child {
             position: relative;
             display: flex;
             align-items: center;
-            padding: 10px;
+            padding: 18px 20px;
             cursor: pointer;
+            gap: 8px;
         }
 
         > img {
             width: 36px;
             height: 36px;
             border-radius: 36px;
+            margin-left: -4px;
         }
 
         .header__info {
@@ -22,44 +23,47 @@
             position: relative;
             width: 100%;
             flex-grow: 1;
-            padding: 3px 15px 0 8px;
-            color: $white;
+            color: --sys-sidebar-text-rgb;
 
             .team__name {
+                display: flex;
                 overflow: hidden;
                 max-width: 100%;
-                font-size: 14px;
+                font-family: Metropolis, sans-serif;
+                font-size: 16px;
                 font-weight: 600;
+                line-height: 20px;
                 text-decoration: none;
                 text-overflow: ellipsis;
                 white-space: nowrap;
             }
 
             .user__name {
+                color: rgba(var(--sys-sidebar-text-rgb), 0.64);
                 font-weight: 400;
-                opacity: 0.8;
+                line-height: 16px;
             }
         }
 
         .menu-icon {
-            margin-right: 10px;
-            fill: $white;
-            opacity: 0.8;
+            padding: 8px;
+            margin-right: -8px;
+            fill: rgba(var(--sys-sidebar-text-rgb), 0.56);
+
         }
 
         &:hover {
-            .user__name,
-            .menu-icon {
-                opacity: 1;
-            }
+            background-color: rgba(var(--sys-sidebar-text-rgb), 0.08);
 
-            > div > img {
-                opacity: 0.8;
+            .menu-icon {
+                fill: rgba(var(--sys-sidebar-text-rgb), 0.75);
             }
         }
     }
 
     .Menu {
-        margin-left: 16px;
+        position: absolute;
+        top: 60px;
+        left: 16px;
     }
 }
