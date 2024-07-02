@@ -50,9 +50,7 @@ const GlobalSearchNav = (): JSX.Element => {
             flex={1}
             alignment='center'
         >
-            <NewSearch
-                enableFindShortcut={true}
-            />
+            <NewSearch/>
         </Flex>
     );
 };

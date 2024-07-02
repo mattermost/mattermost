@@ -28,10 +28,6 @@ import type {GlobalState} from 'types/store';
 
 import SearchBox from './search_box';
 
-type Props = {
-    enableFindShortcut: boolean;
-}
-
 const PopoverStyled = styled(Popover)`
     min-width: 600px;
     left: -90px;
@@ -63,7 +59,7 @@ const NewSearchContainer = styled.div`
     }
 `;
 
-const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
+const NewSearch = (): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
     const pluginSearch = useSelector((state: GlobalState) => state.plugins.components.SearchButtons);
@@ -73,10 +69,6 @@ const NewSearch = ({enableFindShortcut}: Props): JSX.Element => {
     const searchBoxRef = useRef<HTMLDivElement|null>(null);
 
     useEffect(() => {
-        if (!enableFindShortcut) {
-            return undefined;
-        }
-
         const isDesktop = isDesktopApp() && isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), '4.7.0');
 
         const handleKeyDown = (e: KeyboardEvent) => {
