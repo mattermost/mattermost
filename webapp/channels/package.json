@@ -80,6 +80,7 @@
     "react-virtualized-auto-sizer": "1.0.7",
     "react-window": "1.8.8",
     "react-window-infinite-loader": "1.0.8",
+    "react-zoom-pan-pinch": "3.4.4",
     "rebound": "0.1.0",
     "redux": "4.2.0",
     "redux-batched-actions": "0.5.0",
