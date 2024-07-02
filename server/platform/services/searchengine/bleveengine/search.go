@@ -709,7 +709,15 @@ func (b *BleveEngine) SearchFiles(channels model.ChannelList, searchParams []*mo
 
 		if params.Terms != "" {
 			terms := []string{}
-			for _, term := range strings.Split(params.Terms, " ") {
+
+			// Separate Terms into exactPhraseTerms(quoted string) and normalTerms(non-quoted string)
+			// Add asterisk character after each term of the normalTerms to perform wildcard search
+			wildcardAddedNormalTerms := params.GetWildcardAddedNormalTerms()
+			exactPhraseTerms := params.GetExactPhraseTerms()
+
+			parsedTerms := strings.TrimSpace(wildcardAddedNormalTerms + " " + exactPhraseTerms)
+
+			for _, term := range strings.Fields(parsedTerms) {
 				if strings.HasSuffix(term, "*") {
 					nameQ := bleve.NewWildcardQuery(term)
 					nameQ.SetField("Name")
