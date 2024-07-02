@@ -2043,6 +2043,8 @@
   "admin.reporting.workspace_optimization.configuration.file_storage.cta": "Config file storage",
   "admin.reporting.workspace_optimization.configuration.file_storage.description": "Check your file storage settings to ensure your Mattermost workspace has access to the configured file storage.",
   "admin.reporting.workspace_optimization.configuration.file_storage.title": "File storage access is faulty.",
+  "admin.reporting.workspace_optimization.configuration.root_status.description": "Running Mattermost as root is not recommended. Please use a non-root user.",
+  "admin.reporting.workspace_optimization.configuration.root_status.title": "Mattermost is running as root",
   "admin.reporting.workspace_optimization.configuration.session_length.cta": "Configure session length",
   "admin.reporting.workspace_optimization.configuration.session_length.description": "Your session length is set to the default of 30 days. A longer session length provides convenience, and a shorter session provides tighter security. We recommend adjusting this based on your organization's security policies.",
   "admin.reporting.workspace_optimization.configuration.session_length.title": "Session lengths is set to default",
