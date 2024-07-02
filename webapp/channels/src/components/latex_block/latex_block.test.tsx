@@ -1,12 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import React from 'react';
 
 import LatexBlock from 'components/latex_block/latex_block';
 
-import {withIntl} from 'tests/helpers/intl-test-helper';
+import {act, renderWithContext} from 'tests/react_testing_utils';
+
+const actImmediate = () =>
+    act(
+        () =>
+            new Promise<void>((resolve) => {
+                setImmediate(() => {
+                    resolve();
+                });
+            }),
+    );
 
 describe('components/LatexBlock', () => {
     const defaultProps = {
@@ -15,7 +25,7 @@ describe('components/LatexBlock', () => {
     };
 
     test('should match snapshot', async () => {
-        render(<LatexBlock {...defaultProps}/>);
+        renderWithContext(<LatexBlock {...defaultProps}/>);
         const wrapper = await screen.findAllByTestId('latex-enabled');
         expect(wrapper.length).toBe(1);
         expect(wrapper.at(0)).toMatchSnapshot();
@@ -27,10 +37,12 @@ describe('components/LatexBlock', () => {
             enableLatex: false,
         };
 
-        render(<LatexBlock {...props}/>);
-        const wrapper = await screen.findAllByTestId('latex-disabled');
-        expect(wrapper.length).toBe(1);
-        expect(wrapper.at(0)).toMatchSnapshot();
+        const {container} = renderWithContext(<LatexBlock {...props}/>);
+
+        expect(screen.getByText('LaTeX')).toBeInTheDocument();
+        expect(container.querySelector('.post-code__line-numbers')).toBeInTheDocument();
+
+        await actImmediate();
     });
 
     test('error in katex', async () => {
@@ -39,7 +51,7 @@ describe('components/LatexBlock', () => {
             enableLatex: true,
         };
 
-        render(withIntl(<LatexBlock {...props}/>));
+        renderWithContext(<LatexBlock {...props}/>);
         const wrapper = await screen.findAllByTestId('latex-enabled');
         expect(wrapper.length).toBe(1);
         expect(wrapper.at(0)).toMatchSnapshot();

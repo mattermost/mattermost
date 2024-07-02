@@ -5,6 +5,8 @@ import type {KatexOptions} from 'katex';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import CodeBlock from 'components/code_block/code_block';
+
 type Katex = typeof import('katex');
 
 type Props = {
@@ -26,12 +28,10 @@ const LatexBlock = ({
 
     if (!enableLatex || katex === undefined) {
         return (
-            <div
-                className='post-body--code tex'
-                data-testid='latex-disabled'
-            >
-                {content}
-            </div>
+            <CodeBlock
+                code={content}
+                language='latex'
+            />
         );
     }
 
