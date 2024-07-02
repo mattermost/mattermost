@@ -61,7 +61,7 @@ describe('components/admin_console/CustomPluginSettings', () => {
                         placeholder: 'e.g. some setting',
                     },
                     {
-                        key: 'settingc',
+                        key: 'settingC',
                         display_name: 'Setting Three',
                         type: 'dropdown',
                         default: 'option1',
@@ -113,7 +113,7 @@ describe('components/admin_console/CustomPluginSettings', () => {
                     testplugin: {
                         settinga: 'fsdsdg',
                         settingb: false,
-                        settingc: 'option3',
+                        settingC: 'option3',
                         settingd: 'option1',
                         settinge: 'Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23',
                         settingf: '3xz3r6n7dtbbmgref3yw4zg7sr',
@@ -128,7 +128,7 @@ describe('components/admin_console/CustomPluginSettings', () => {
             const escapedPluginId = escapePathPart(plugin.id);
             return {
                 ...setting,
-                key: 'PluginSettings.Plugins.' + escapedPluginId + '.' + setting.key.toLowerCase(),
+                key: 'PluginSettings.Plugins.' + escapedPluginId + '.' + setting.key,
                 label: setting.display_name,
             } as AdminDefinitionSetting;
         });

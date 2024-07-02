@@ -331,7 +331,7 @@ function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string,
         }
 
         const pluginId = action.data.pluginId;
-        const key = action.data.key.toLowerCase();
+        const key = action.data.key;
 
         const nextState = {...state};
         let nextArray: Record<string, AdminConsolePluginComponent> = {};

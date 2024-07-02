@@ -45,7 +45,7 @@ describe('Actions.Admin', () => {
         store.dispatch(Actions.registerAdminConsoleCustomSetting('plugin-id', 'settingA', React.Component, {showTitle: true}));
         expect(store.getState().plugins.adminConsoleCustomComponents).toEqual(
             {'plugin-id': {
-                settinga: {
+                settingA: {
                     key: 'settingA',
                     pluginId: 'plugin-id',
                     component: React.Component,

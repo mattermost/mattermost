@@ -47,7 +47,7 @@ function makeGetPluginSchema() {
             let settings: Array<Partial<AdminDefinitionSetting>> = [];
             if (plugin.settings_schema && plugin.settings_schema.settings) {
                 settings = plugin.settings_schema.settings.map((setting) => {
-                    const key = setting.key.toLowerCase();
+                    const key = setting.key;
                     let component = null;
                     let bannerType = '';
                     let type = setting.type;

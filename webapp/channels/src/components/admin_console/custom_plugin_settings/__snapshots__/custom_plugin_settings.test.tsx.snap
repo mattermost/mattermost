@@ -80,8 +80,8 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 text="This is some help text for the dropdown field."
               />
             }
-            id="settingc"
-            key="testplugin_dropdown_settingc"
+            id="settingC"
+            key="testplugin_dropdown_settingC"
             label="Setting Three"
             onChange={[Function]}
             setByEnv={false}
@@ -380,8 +380,8 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                 text="This is some help text for the dropdown field."
               />
             }
-            id="PluginSettings.Plugins.testplugin.settingc"
-            key="testplugin_dropdown_PluginSettings.Plugins.testplugin.settingc"
+            id="PluginSettings.Plugins.testplugin.settingC"
+            key="testplugin_dropdown_PluginSettings.Plugins.testplugin.settingC"
             label="Setting Three"
             onChange={[Function]}
             setByEnv={false}
