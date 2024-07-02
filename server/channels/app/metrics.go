@@ -5,7 +5,12 @@ package app
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+)
+
+const (
+	ClientPageLoadDurationDebugLogThresholdSeconds = 20
 )
 
 func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.PerformanceReport) *model.AppError {
@@ -24,6 +29,8 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 		}
 	}
 
+	debugLogsEnabled := a.Config().MetricsSettings.ExperimentalClientDebugLogs != nil && *a.Config().MetricsSettings.ExperimentalClientDebugLogs
+
 	for _, h := range report.Histograms {
 		switch h.Metric {
 		case model.ClientTimeToFirstByte:
@@ -37,7 +44,12 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 		case model.ClientCumulativeLayoutShift:
 			a.Metrics().ObserveClientCumulativeLayoutShift(commonLabels["platform"], commonLabels["agent"], h.Value)
 		case model.ClientPageLoadDuration:
-			a.Metrics().ObserveClientPageLoadDuration(commonLabels["platform"], commonLabels["agent"], h.Value/1000)
+			{
+				a.Metrics().ObserveClientPageLoadDuration(commonLabels["platform"], commonLabels["agent"], h.Value/1000)
+				if debugLogsEnabled && h.Value/1000 > ClientPageLoadDurationDebugLogThresholdSeconds {
+					rctx.Logger().Debug("client performance event above threshold", mlog.String("name", model.ClientPageLoadDuration), mlog.Float("duration", h.Value/1000))
+				}
+			}
 		case model.ClientChannelSwitchDuration:
 			a.Metrics().ObserveClientChannelSwitchDuration(commonLabels["platform"], commonLabels["agent"], h.Value/1000)
 		case model.ClientTeamSwitchDuration:
