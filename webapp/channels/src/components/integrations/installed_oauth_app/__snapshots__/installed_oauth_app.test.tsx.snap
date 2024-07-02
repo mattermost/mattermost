@@ -112,8 +112,12 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
           }
         />
         <Memo(CopyText)
-          defaultMessage="Copy Client Id"
-          idMessage="integrations.copy_client_id"
+          tooltip={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Copy Client Id"
+              id="integrations.copy_client_id"
+            />
+          }
           value="facxd9wpzpbpfp8pad78xj75pr"
         />
       </span>
@@ -340,8 +344,12 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
           }
         />
         <Memo(CopyText)
-          defaultMessage="Copy Client Id"
-          idMessage="integrations.copy_client_id"
+          tooltip={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Copy Client Id"
+              id="integrations.copy_client_id"
+            />
+          }
           value="facxd9wpzpbpfp8pad78xj75pr"
         />
       </span>
@@ -515,8 +523,12 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, when o
           }
         />
         <Memo(CopyText)
-          defaultMessage="Copy Client Id"
-          idMessage="integrations.copy_client_id"
+          tooltip={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Copy Client Id"
+              id="integrations.copy_client_id"
+            />
+          }
           value="facxd9wpzpbpfp8pad78xj75pr"
         />
       </span>
