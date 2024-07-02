@@ -36,6 +36,7 @@ import {
     sortByUsername,
     isGuest,
     applyRolesFilters,
+    filterProfilesStartingWithTermOrPositionMatchingWithTerm,
 } from 'mattermost-redux/utils/user_utils';
 
 export {getCurrentUser, getCurrentUserId, getUsers};
@@ -502,7 +503,7 @@ export function makeSearchProfilesInChannel() {
 }
 
 export function searchProfilesInCurrentChannel(state: GlobalState, term: string, skipCurrent = false): UserProfile[] {
-    const profiles = filterProfilesStartingWithTerm(getProfilesInCurrentChannel(state), term);
+    const profiles = filterProfilesStartingWithTermOrPositionMatchingWithTerm(getProfilesInCurrentChannel(state), term);
 
     if (skipCurrent) {
         removeCurrentUserFromList(profiles, getCurrentUserId(state));
