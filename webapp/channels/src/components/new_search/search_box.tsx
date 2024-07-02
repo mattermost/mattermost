@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef, forwardRef, useCallback} from 'react';
+import React, {useState, useRef, forwardRef, useCallback, useEffect} from 'react';
 import styled from 'styled-components';
 
 import Constants from 'utils/constants';
@@ -114,6 +114,12 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             }, 0);
         }
     }, []);
+
+    useEffect(() => {
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [searchType])
 
     return (
         <SearchBoxContainer ref={ref}>
