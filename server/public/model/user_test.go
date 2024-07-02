@@ -384,3 +384,22 @@ func TestValidateCustomStatus(t *testing.T) {
 		assert.True(t, user0.ValidateCustomStatus())
 	})
 }
+
+func TestSanitizeProfile(t *testing.T) {
+	t.Run("should correctly sanitize email and remote email", func(t *testing.T) {
+		user := &User{
+			Email: "john@doe.com",
+			Props: StringMap{UserPropsKeyRemoteEmail: "remote@doe.com"},
+		}
+
+		user.SanitizeProfile(nil)
+
+		require.Equal(t, "john@doe.com", user.Email)
+		require.Equal(t, "remote@doe.com", user.Props[UserPropsKeyRemoteEmail])
+
+		user.SanitizeProfile(map[string]bool{"email": false})
+
+		require.Empty(t, user.Email)
+		require.Empty(t, user.Props[UserPropsKeyRemoteEmail])
+	})
+}
