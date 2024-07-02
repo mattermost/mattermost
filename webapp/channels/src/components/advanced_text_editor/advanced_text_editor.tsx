@@ -4,13 +4,17 @@
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
+
+import {getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -33,7 +37,7 @@ import type TextboxClass from 'components/textbox/textbox';
 import Tooltip from 'components/tooltip';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
-import Constants, {Locations} from 'utils/constants';
+import Constants, {Locations, UserStatuses} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {pasteHandler} from 'utils/paste';
@@ -41,11 +45,14 @@ import {isWithinCodeBlock} from 'utils/post_utils';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
+import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
+import DoNotDisturbWarning from './do_not_disturb_warning';
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
 import {IconContainer} from './formatting_bar/formatting_icon';
+import RemoteUserHour from './remote_user_hour';
 import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
@@ -198,6 +205,28 @@ const AdvanceTextEditor = ({
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [showFormattingSpacer, setShowFormattingSpacer] = useState(shouldShowPreview);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
+
+    let showDndWarning = false;
+    let showRemoteUserHour = false;
+    let teammateId = '';
+    const post = useSelector((state: GlobalState) => getPost(state, postId));
+    const postChannel = useSelector((state: GlobalState) => getDirectChannel(state, post?.channel_id));
+    let channel = currentChannel;
+    if (postChannel) {
+        channel = postChannel;
+    }
+    if (channel && channel.type === 'D') {
+        teammateId = channel.teammate_id || '';
+    }
+    const teammateStatus = useSelector((state: GlobalState) => getStatusForUserId(state, teammateId));
+    const teammate = useSelector((state: GlobalState) => getUser(state, teammateId));
+
+    if (teammate && teammateId !== '' && teammateStatus === UserStatuses.DND) {
+        showDndWarning = true;
+    }
+    if (!showDndWarning && teammate && teammateId !== '') {
+        showRemoteUserHour = true;
+    }
 
     const isNonFormattedPaste = useRef(false);
     const timeoutId = useRef<number>();
@@ -651,6 +680,13 @@ const AdvanceTextEditor = ({
 
     return (
         <>
+            {showDndWarning && <DoNotDisturbWarning displayName={currentChannel?.display_name || ''}/>}
+            {showRemoteUserHour && (
+                <RemoteUserHour
+                    teammate={teammate}
+                    displayName={currentChannel?.display_name || ''}
+                />
+            )}
             <div
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,

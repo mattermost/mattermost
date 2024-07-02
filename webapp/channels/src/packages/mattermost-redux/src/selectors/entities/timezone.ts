@@ -10,7 +10,7 @@ import {getTimezoneLabel, getUserCurrentTimezone} from 'mattermost-redux/utils/t
 
 import {getCurrentUser} from './common';
 
-function getTimezoneForUserProfile(profile: UserProfile) {
+export function getTimezoneForUserProfile(profile: UserProfile) {
     if (profile && profile.timezone) {
         return {
             ...profile.timezone,
