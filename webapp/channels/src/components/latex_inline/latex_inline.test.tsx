@@ -6,7 +6,7 @@ import React from 'react';
 
 import LatexInline from 'components/latex_inline/latex_inline';
 
-describe('components/LatexBlock', () => {
+describe('components/LatexInline', () => {
     const defaultProps = {
         content: 'e^{i\\pi} + 1 = 0',
         enableInlineLatex: true,
@@ -14,7 +14,6 @@ describe('components/LatexBlock', () => {
 
     test('should match snapshot', async () => {
         const wrapper = shallow(<LatexInline {...defaultProps}/>);
-        await import('katex'); //manually import katex
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -25,7 +24,6 @@ describe('components/LatexBlock', () => {
         };
 
         const wrapper = shallow(<LatexInline {...props}/>);
-        await import('katex'); //manually import katex
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -36,7 +34,6 @@ describe('components/LatexBlock', () => {
         };
 
         const wrapper = shallow(<LatexInline {...props}/>);
-        await import('katex'); //manually import katex
         expect(wrapper).toMatchSnapshot();
     });
 });
