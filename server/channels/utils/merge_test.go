@@ -1104,6 +1104,18 @@ func TestMergeWithVeryComplexStruct(t *testing.T) {
 		assert.Equal(t, patch, *merged)
 	})
 
+	t.Run("blank string in patch overwrites base string b/c empty string is not nil", func(t *testing.T) {
+		setupStructs(t)
+
+		patch.S = ""
+
+		merged, err := mergeTestStructs(base, patch)
+		require.NoError(t, err)
+
+		assert.NotEqual(t, base, *merged)
+		assert.Equal(t, patch, *merged)
+	})
+
 	t.Run("nil values in patch are ignored", func(t *testing.T) {
 		setupStructs(t)
 
