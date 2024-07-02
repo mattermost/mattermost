@@ -119,6 +119,43 @@ func (s *hooksRPCServer) ExecuteCommand(args *Z_ExecuteCommandArgs, returns *Z_E
 }
 
 func init() {
+	hookNameToId["ExecutePostAction"] = ExecutePostActionID
+}
+
+type Z_ExecutePostActionArgs struct {
+	A *Context
+	B string
+	C *model.PostActionIntegrationRequest
+}
+
+type Z_ExecutePostActionReturns struct {
+	A model.PostActionIntegrationResponse
+	B *model.AppError
+}
+
+func (g *hooksRPCClient) ExecutePostAction(c *Context, handle string, actionRequest *model.PostActionIntegrationRequest) (model.PostActionIntegrationResponse, *model.AppError) {
+	_args := &Z_ExecutePostActionArgs{c, handle, actionRequest}
+	_returns := &Z_ExecutePostActionReturns{}
+	if g.implemented[ExecutePostActionID] {
+		if err := g.client.Call("Plugin.ExecutePostAction", _args, _returns); err != nil {
+			g.log.Error("RPC call ExecutePostAction to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) ExecutePostAction(args *Z_ExecutePostActionArgs, returns *Z_ExecutePostActionReturns) error {
+	if hook, ok := s.impl.(interface {
+		ExecutePostAction(c *Context, handle string, actionRequest *model.PostActionIntegrationRequest) (model.PostActionIntegrationResponse, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.ExecutePostAction(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("Hook ExecutePostAction called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
 	hookNameToId["UserHasBeenCreated"] = UserHasBeenCreatedID
 }
 

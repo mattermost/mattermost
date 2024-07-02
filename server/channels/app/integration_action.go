@@ -228,28 +228,67 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		return "", appErr
 	}
 
-	requestJSON, err := json.Marshal(upstreamRequest)
-	if err != nil {
-		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
-	defer cancel()
-	resp, appErr := a.DoActionRequest(c.WithContext(ctx), upstreamURL, requestJSON)
-	if appErr != nil {
-		return "", appErr
-	}
-	defer resp.Body.Close()
-
 	var response model.PostActionIntegrationResponse
-	respBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-	}
+	if strings.HasPrefix(upstreamURL, "rpc://") {
+		u := strings.TrimPrefix(upstreamURL, "rpc://")
+		// format is <plugin_id>/<handleName>
+		parts := strings.Split(u, "/")
+		if len(parts) != 2 {
+			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "invalid plugin handle", http.StatusBadRequest)
+		}
+		pluginID := parts[0]
+		handleName := parts[1]
 
-	if len(respBytes) > 0 {
-		if err = json.Unmarshal(respBytes, &response); err != nil {
+		pluginsEnvironment := a.GetPluginsEnvironment()
+		if pluginsEnvironment == nil {
+			return "", model.NewAppError("DoPostActionWithCookie", "model.plugin_postaction.error.app_error", nil, "err=Plugins are not enabled", http.StatusInternalServerError)
+		}
+
+		// Checking if plugin is working or not
+		if err := pluginsEnvironment.PerformHealthCheck(pluginID); err != nil {
+			return "", model.NewAppError("DoPostActionWithCookie", "model.plugin_postaction.error.app_error", nil, "err= Plugin has recently crashed: "+pluginID, http.StatusInternalServerError)
+		}
+
+		pluginHooks, err := pluginsEnvironment.HooksForPlugin(pluginID)
+		if err != nil {
+			return "", model.NewAppError("DoPostActionWithCookie", "model.plugin_postaction.error.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+		}
+
+		response, appErr = pluginHooks.ExecutePostAction(pluginContext(c), handleName, upstreamRequest)
+
+		// Checking if plugin crashed after running the command
+		if err := pluginsEnvironment.PerformHealthCheck(pluginID); err != nil {
+			errMessage := fmt.Sprintf("err= Plugin %s crashed due to the post action", pluginID)
+			return "", model.NewAppError("ExecutePluginCommand", "model.plugin_postaction.error.app_error", map[string]any{"PluginId": pluginID}, errMessage, http.StatusInternalServerError)
+		}
+		if appErr != nil && (appErr.StatusCode < 100 || appErr.StatusCode > 999) {
+			c.Logger().Warn("Invalid status code returned from plugin. Converting to internal server error.", mlog.String("plugin_id", pluginID), mlog.Int("status_code", appErr.StatusCode))
+			appErr.StatusCode = http.StatusInternalServerError
+		}
+	} else {
+		requestJSON, err := json.Marshal(upstreamRequest)
+		if err != nil {
+			return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+		defer cancel()
+		var resp *http.Response
+		resp, appErr = a.DoActionRequest(c.WithContext(ctx), upstreamURL, requestJSON)
+		if appErr != nil {
+			return "", appErr
+		}
+		defer resp.Body.Close()
+
+		respBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
 			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+
+		if len(respBytes) > 0 {
+			if err = json.Unmarshal(respBytes, &response); err != nil {
+				return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
 		}
 	}
 

@@ -68,6 +68,13 @@ func (hooks *hooksTimerLayer) ExecuteCommand(c *Context, args *model.CommandArgs
 	return _returnsA, _returnsB
 }
 
+func (hooks *hooksTimerLayer) ExecutePostAction(c *Context, handle string, actionRequest *model.PostActionIntegrationRequest) (model.PostActionIntegrationResponse, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.ExecutePostAction(c, handle, actionRequest)
+	hooks.recordTime(startTime, "ExecutePostAction", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (hooks *hooksTimerLayer) UserHasBeenCreated(c *Context, user *model.User) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.UserHasBeenCreated(c, user)

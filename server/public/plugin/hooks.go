@@ -61,6 +61,7 @@ const (
 	OnSharedChannelsAttachmentSyncMsgID       = 43
 	OnSharedChannelsProfileImageSyncMsgID     = 44
 	GenerateSupportDataID                     = 45
+	ExecutePostActionID                       = 46
 	TotalHooksID                              = iota
 )
 
@@ -116,6 +117,11 @@ type Hooks interface {
 	//
 	// Minimum server version: 5.2
 	ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+
+	// ExecutePostAction executes a post action on the plugin
+	//
+	// Minimum server version: TBD
+	ExecutePostAction(c *Context, handle string, actionRequest *model.PostActionIntegrationRequest) (model.PostActionIntegrationResponse, *model.AppError)
 
 	// UserHasBeenCreated is invoked after a user was created.
 	//
