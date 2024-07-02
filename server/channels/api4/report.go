@@ -21,8 +21,12 @@ func (api *API) InitReports() {
 }
 
 func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !(c.IsSystemAdmin()) {
-		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
+	permissions := []*model.Permission{
+		model.PermissionSysconsoleReadUserManagementGroups,
+		model.PermissionSysconsoleReadUserManagementChannels,
+	}
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), permissions) {
+		c.SetPermissionError(permissions...)
 		return
 	}
 
