@@ -19,7 +19,8 @@ import SearchDateProvider from 'components/suggestion/search_date_provider';
 import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
 import SearchUserProvider, {SearchUserSuggestion} from 'components/suggestion/search_user_provider';
 
-import {SearchFileExtensionProvider, SearchFileExtensionSuggestion} from './extension_suggestions';
+import SearchFileExtensionSuggestion from './extension_suggestions';
+import {SearchFileExtensionProvider} from './extension_suggestions_provider';
 
 const useSearchSuggestions = (searchType: string, searchTerms: string, setSelectedOption: (idx: number) => void): [ProviderResult<unknown>|null, React.ReactNode] => {
     const dispatch = useDispatch();
