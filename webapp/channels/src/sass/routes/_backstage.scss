@@ -50,7 +50,7 @@
         list-style: none;
     }
 
-    > ul {
+    >ul {
         @include clearfix;
         border-radius: 2px;
 
@@ -60,7 +60,7 @@
 }
 
 .backstage-sidebar__category {
-    + .backstage-sidebar__category {
+    +.backstage-sidebar__category {
         .category-title {
             border-top: none;
         }
@@ -199,6 +199,12 @@
     background-color: $white;
 }
 
+.backstage-list__hint {
+    display: block;
+    margin: 1em 0;
+    color: $dark-gray;
+}
+
 .backstage-list__help {
     display: block;
     margin: 1em 0;
@@ -220,7 +226,7 @@
         text-overflow: ellipsis;
     }
 
-    .item-details__row + .item-details__row {
+    .item-details__row+.item-details__row {
         @include clearfix;
 
         text-overflow: ellipsis;
@@ -240,6 +246,7 @@
     .item-details__trigger-words,
     .item-details__trigger-when,
     .item-details__url,
+    .item-details__channel_name,
     .item-details__creation {
         display: inline-block;
         margin-top: 10px;
@@ -299,7 +306,7 @@
         color: $dark-gray;
         font-size: 0.95em;
 
-        & + .form__help {
+        &+.form__help {
             margin-top: 0.4em;
         }
     }
@@ -591,7 +598,7 @@
 .outgoing-oauth-audience-match-message-container {
     height: 27px;
 
-    > span {
+    >span {
         position: absolute;
         top: 45px;
     }
@@ -602,6 +609,7 @@
 }
 
 #confirmModal.integrations-backstage-modal {
+
     #confirmModalLabel,
     #confirmModalBody {
         color: rgb(51, 51, 51);
