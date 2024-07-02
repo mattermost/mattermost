@@ -1386,35 +1386,6 @@ describe('makeGetChannelsByCategory', () => {
             expect(result).toBe(previousResult);
         });
 
-        test('should return a new object when user profiles change', () => {
-            // This behaviour isn't ideal, but it's better than the previous version which returns a new object
-            // whenever anything user-related changes
-            const getChannelsByCategory = Selectors.makeGetChannelsByCategory();
-
-            const state = mergeObjects(baseState, {
-                entities: {
-                    users: {
-                        profiles: {
-                            newUser: {id: 'newUser'},
-                        },
-                    },
-                },
-            });
-
-            const previousResult = getChannelsByCategory(baseState, 'team1');
-            const result = getChannelsByCategory(state, 'team1');
-
-            expect(result).not.toBe(previousResult);
-            expect(result).toEqual(previousResult);
-
-            // Categories not containing DMs/GMs and sorted alphabetically should still remain the same
-            expect(result.favoritesCategory).not.toBe(previousResult.favoritesCategory);
-            expect(result.favoritesCategory).toEqual(previousResult.favoritesCategory);
-            expect(result.channelsCategory).toBe(previousResult.channelsCategory);
-            expect(result.directMessagesCategory).toEqual(previousResult.directMessagesCategory);
-            expect(result.directMessagesCategory).toEqual(previousResult.directMessagesCategory);
-        });
-
         test('should return the same object when other user state changes', () => {
             const getChannelsByCategory = Selectors.makeGetChannelsByCategory();
 

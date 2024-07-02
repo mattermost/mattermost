@@ -8,7 +8,6 @@ import type {Channel} from '@mattermost/types/channels';
 
 import {favoriteChannel, unfavoriteChannel, markMultipleChannelsAsRead} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
 import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getMyChannelMemberships, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -17,9 +16,7 @@ import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
 import {unmuteChannel, muteChannel} from 'actions/channel_actions';
 import {markMostRecentPostInChannelAsUnread} from 'actions/post_actions';
-import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {openModal} from 'actions/views/modals';
-import {getCategoriesForCurrentTeam, getDisplayedChannels} from 'selectors/views/channel_sidebar';
 
 import {getSiteURL} from 'utils/url';
 
@@ -41,27 +38,19 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
     let managePublicChannelMembers = false;
     let managePrivateChannelMembers = false;
-    let categories;
-    let currentCategory;
 
     if (currentTeam) {
         managePublicChannelMembers = haveIChannelPermission(state, currentTeam.id, ownProps.channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS);
         managePrivateChannelMembers = haveIChannelPermission(state, currentTeam.id, ownProps.channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS);
-        categories = getCategoriesForCurrentTeam(state);
-        currentCategory = getCategoryInTeamWithChannel(state, currentTeam.id, ownProps.channel.id);
     }
 
     return {
         currentUserId: getCurrentUserId(state),
-        categories,
-        currentCategory,
         isFavorite: isFavoriteChannel(state, ownProps.channel.id),
         isMuted: isChannelMuted(member),
         channelLink: `${getSiteURL()}${ownProps.channelLink}`,
         managePublicChannelMembers,
         managePrivateChannelMembers,
-        displayedChannels: getDisplayedChannels(state),
-        multiSelectedChannelIds: state.views.channelSidebar.multiSelectedChannelIds,
     };
 }
 
@@ -73,7 +62,6 @@ const mapDispatchToProps = {
     muteChannel,
     unmuteChannel,
     openModal,
-    addChannelsInSidebar,
 };
 
 const connector = connect(mapStateToProps, mapDispatchToProps);
