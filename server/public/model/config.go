@@ -2174,12 +2174,19 @@ func (s *ThemeSettings) SetDefaults() {
 	}
 
 	if s.AllowedThemes == nil {
-		s.AllowedThemes = []string{}
+		s.AllowedThemes = []string{"denim", "sapphire", "quartz", "indigo", "onyx"}
 	}
 
 	if s.CustomThemes == nil {
 		s.CustomThemes = []CustomTheme{}
 	}
+}
+
+func (s *ThemeSettings) isValid() *AppError {
+	if len(s.AllowedThemes) == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.theme.allowed_themes.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
 }
 
 type TeamSettings struct {
@@ -3733,6 +3740,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.WranglerSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.ThemeSettings.isValid(); appErr != nil {
 		return appErr
 	}
 

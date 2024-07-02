@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {ValueType} from 'react-select';
@@ -37,18 +37,28 @@ type Props = {
 const AllowedThemesSetting = (props: Props) => {
     const intl = useIntl();
 
-    const allThemes: {[key: string]: string} = {};
-    const options: Option[] = [];
-    Object.keys(Preferences.THEMES).forEach((theme) => {
-        allThemes[theme] = toTitleCase(theme);
-        options.push({value: theme, text: toTitleCase(theme)});
-    });
-    props.state['ThemeSettings.CustomThemes'].forEach((theme: CustomTheme) => {
-        allThemes[theme.ID] = theme.Name;
-        options.push({value: theme.ID, text: theme.Name});
-    });
+    const [options, allThemes] = useMemo(() => {
+        const allThemes: {[key: string]: string} = {};
+        const options: Option[] = [];
+        Object.keys(Preferences.THEMES).forEach((theme) => {
+            allThemes[theme] = toTitleCase(theme);
+            options.push({value: theme, text: toTitleCase(theme)});
+        });
+        props.state['ThemeSettings.CustomThemes'].forEach((theme: CustomTheme) => {
+            allThemes[theme.ID] = theme.Name;
+            options.push({value: theme.ID, text: theme.Name});
+        });
+        return [options, allThemes]
+    }, [props.state['ThemeSettings.CustomThemes']]);
 
     const getOptionLabel = ({text}: { text: string}) => text;
+
+    useEffect(() => {
+        const values = props.value.filter((value) => allThemes[value])
+        if (props.onChange && values.length !== props.value.length) {
+            props.onChange(props.id, values);
+        }
+    }, [allThemes])
 
     const handleChange = useCallback((newValue: ValueType<Option>) => {
         const values = newValue ? (newValue as Option[]).map((n) => {
@@ -58,13 +68,13 @@ const AllowedThemesSetting = (props: Props) => {
         if (props.onChange) {
             props.onChange(props.id, values);
         }
-    }, [props.id, props.onChange]);
+    }, [props.id, props.onChange, allThemes]);
 
     return (
         <Setting
             label={intl.formatMessage({
                 id: 'admin.themes.allowed_themes.title',
-                defaultMessage: 'Allowed Themes',
+                defaultMessage: 'Allowed Themes (Enterprise):',
             })}
             inputId={props.id}
         >

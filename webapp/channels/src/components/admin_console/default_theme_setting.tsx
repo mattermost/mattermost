@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 
 import {Preferences} from 'mattermost-redux/constants';
@@ -34,14 +34,29 @@ type Props = {
 
 const DefaultThemeSetting = (props: Props) => {
     const intl = useIntl();
+    const customThemes = props.state['ThemeSettings.CustomThemes'];
+    const allowedThemes = props.state['ThemeSettings.AllowedThemes'];
 
-    const options: Option[] = [];
-    Object.keys(Preferences.THEMES).forEach((theme) => {
-        options.push({value: theme, text: toTitleCase(theme)});
-    });
-    props.state['ThemeSettings.CustomThemes'].forEach((theme: CustomTheme) => {
-        options.push({value: theme.ID, text: theme.Name});
-    });
+    const options = useMemo(() => {
+        const options: Option[] = [];
+        Object.keys(Preferences.THEMES).forEach((theme) => {
+            if (allowedThemes.indexOf(theme) !== -1) {
+                options.push({value: theme, text: toTitleCase(theme)});
+            }
+        });
+        customThemes.forEach((theme: CustomTheme) => {
+            if (allowedThemes.indexOf(theme.ID) !== -1) {
+                options.push({value: theme.ID, text: theme.Name});
+            }
+        });
+        return options
+    }, [customThemes, allowedThemes]);
+
+    useEffect(() => {
+        if (props.onChange && props.state['ThemeSettings.AllowedThemes'].indexOf(props.value) === -1) {
+            props.onChange(props.id, props.state['ThemeSettings.AllowedThemes'][0]);
+        }
+    }, [props.value, props.state['ThemeSettings.AllowedThemes']])
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         if (props.onChange) {
@@ -53,19 +68,20 @@ const DefaultThemeSetting = (props: Props) => {
         <Setting
             label={intl.formatMessage({
                 id: 'admin.themes.default_theme.title',
-                defaultMessage: 'Default Theme',
+                defaultMessage: 'Default Theme (Enterprise):',
             })}
             inputId={props.id}
         >
             <select
                 onChange={handleChange}
                 className='form-control'
+                disabled={props.disabled}
+                value={props.value}
             >
                 {options.map((option) => (
                     <option
                         key={option.value}
                         value={option.value}
-                        selected={props.value === option.value}
                     >
                         {option.text}
                     </option>

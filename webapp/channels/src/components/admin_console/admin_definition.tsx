@@ -1935,6 +1935,8 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'CustomBrandImage',
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.not(it.licensed),
+                                it.licensedForSku('starter'),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
                         },
@@ -1945,7 +1947,12 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'custom',
                             component: CustomThemesSetting,
                             key: 'ThemeSettings.CustomThemes',
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.not(it.licensed),
+                                it.licensedForSku('starter'),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
                         },
                         {
 
@@ -1954,33 +1961,38 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'custom',
                             component: AllowedThemesSetting,
                             key: 'ThemeSettings.AllowedThemes',
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.not(it.licensed),
+                                it.licensedForSku('starter'),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
                         },
                         {
                             type: 'bool',
                             key: 'ThemeSettings.EnableThemeSelection',
-                            label: defineMessage({id: 'admin.experimental.enableThemeSelection.title', defaultMessage: 'Enable Theme Selection:'}),
+                            label: defineMessage({id: 'admin.experimental.enableThemeSelection.title', defaultMessage: 'Enable Theme Selection (Enterprise):'}),
                             help_text: defineMessage({id: 'admin.experimental.enableThemeSelection.desc', defaultMessage: 'Enables the **Display > Theme** tab in Settings so users can select their theme.'}),
                             help_text_markdown: true,
-                            isHidden: it.any(
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.not(it.licensed),
                                 it.licensedForSku('starter'),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
                             type: 'bool',
                             key: 'ThemeSettings.AllowCustomThemes',
-                            label: defineMessage({id: 'admin.experimental.allowCustomThemes.title', defaultMessage: 'Allow Custom Themes:'}),
+                            label: defineMessage({id: 'admin.experimental.allowCustomThemes.title', defaultMessage: 'Allow Custom Themes (Enterprise):'}),
                             help_text: defineMessage({id: 'admin.experimental.allowCustomThemes.desc', defaultMessage: 'Enables the **Display > Theme > Custom Theme** section in Settings.'}),
                             help_text_markdown: true,
-                            isHidden: it.any(
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.not(it.licensed),
                                 it.licensedForSku('starter'),
-                            ),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                                 it.stateIsFalse('ThemeSettings.EnableThemeSelection'),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
                         },
                         {
@@ -1990,12 +2002,12 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'custom',
                             key: 'ThemeSettings.DefaultTheme',
                             component: DefaultThemeSetting,
-
-                            // isHidden: it.any(
-                            //     it.not(it.licensed),
-                            //     it.licensedForSku('starter'),
-                            // ),
-                            // isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.not(it.licensed),
+                                it.licensedForSku('starter'),
+                                it.stateIsFalse('TeamSettings.EnableCustomBrand'),
+                            ),
                         },
                         {
                             type: 'longtext',
