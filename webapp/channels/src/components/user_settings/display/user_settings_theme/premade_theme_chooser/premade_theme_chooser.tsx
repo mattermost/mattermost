@@ -31,6 +31,7 @@ const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = []}: Props) =>
             return;
         }
         const data = {...Object.values(Preferences.THEMES)[0], ...JSON.parse(customTheme.Theme)};
+        data.ID = customTheme.ID;
         data.type = customTheme.ID;
 
         let activeClass = '';
