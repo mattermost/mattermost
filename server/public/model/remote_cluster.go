@@ -126,6 +126,37 @@ func (rc *RemoteCluster) IsValid() *AppError {
 	return nil
 }
 
+func (rc *RemoteCluster) Sanitize() {
+	rc.Token = ""
+	rc.RemoteToken = ""
+}
+
+type RemoteClusterPatch struct {
+	DisplayName *string `json:"display_name"`
+}
+
+func (rcp *RemoteClusterPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"display_name": rcp.DisplayName,
+	}
+}
+
+func (rc *RemoteCluster) Patch(patch *RemoteClusterPatch) {
+	if patch.DisplayName != nil {
+		rc.DisplayName = *patch.DisplayName
+	}
+}
+
+type RemoteClusterWithPassword struct {
+	*RemoteCluster
+	Password string `json:"password"`
+}
+
+type RemoteClusterWithInvite struct {
+	RemoteCluster *RemoteCluster `json:"remote_cluster"`
+	Invite        string         `json:"invite"`
+}
+
 func newIDFromBytes(b []byte) string {
 	hash := md5.New()
 	_, _ = hash.Write(b)
@@ -393,6 +424,13 @@ func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error
 	return json.Unmarshal(plain, &rci)
 }
 
+type RemoteClusterAcceptInvite struct {
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+	Invite      string `json:"invite"`
+	Password    string `json:"password"`
+}
+
 // RemoteClusterQueryFilter provides filter criteria for RemoteClusterStore.GetAll
 type RemoteClusterQueryFilter struct {
 	ExcludeOffline bool
@@ -403,5 +441,6 @@ type RemoteClusterQueryFilter struct {
 	OnlyConfirmed  bool
 	PluginID       string
 	OnlyPlugins    bool
+	ExcludePlugins bool
 	RequireOptions Bitmask
 }

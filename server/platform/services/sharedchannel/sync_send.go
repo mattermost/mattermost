@@ -258,7 +258,7 @@ func (scs *Service) processTask(task syncTask) error {
 			InChannel:     task.channelID,
 			OnlyConfirmed: true,
 		}
-		remotes, err := scs.server.GetStore().RemoteCluster().GetAll(filter)
+		remotes, err := scs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
 		if err != nil {
 			return err
 		}
@@ -270,7 +270,7 @@ func (scs *Service) processTask(task syncTask) error {
 		filter = model.RemoteClusterQueryFilter{
 			RequireOptions: model.BitflagOptionAutoInvited,
 		}
-		remotesAutoInvited, err := scs.server.GetStore().RemoteCluster().GetAll(filter)
+		remotesAutoInvited, err := scs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
 		if err != nil {
 			return err
 		}

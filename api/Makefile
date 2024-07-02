@@ -40,6 +40,7 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/roles.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/schemes.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/service_terms.yaml >> $(V4_YAML)
+	@cat $(V4_SRC)/remoteclusters.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/sharedchannels.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/reactions.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/actions.yaml >> $(V4_YAML)
