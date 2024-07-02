@@ -43,6 +43,43 @@ type ProcessingInstruction = {
     processNode: (node: any, children?: any, index?: number) => any;
 }
 
+/**
+ * Try to get the imagesMetadata from a specific imageSrc
+ * by testing different imageSrcs: proxied by api, decoded
+ */
+export const getImageMetadata = (imagesMetadata: Options['imagesMetadata'], imageSrc: any) => {
+    const imageSrcs = [imageSrc];
+
+    // If imageMetadata is not an object, or imageSrc not a string, return immediatly
+    if (typeof imagesMetadata !== 'object' || imagesMetadata === null || typeof imageSrc !== 'string') {
+        return undefined;
+    }
+
+    // If an image src is in the form of /api/v4/image?url=[PROXIED_LOCATION] it's being proxied by the api
+    if ((/\/api\/v4\/image\?/).test(imageSrc)) {
+        const params = new URLSearchParams(imageSrc.slice(imageSrc.indexOf('?')));
+        const proxiedSrc = params.get('url');
+        if (typeof proxiedSrc === 'string') {
+            // Extract the proxied src and add it to the list of potential imageSrcs
+            imageSrcs.push(proxiedSrc);
+
+            // Ampersand are sometimes encoded as &amp;
+            if ((/&amp;/).test(proxiedSrc)) {
+                imageSrcs.push(proxiedSrc.replace(/&amp;/g, '&'));
+            }
+        }
+    }
+
+    // If any imageSrc is found in the imagesMetada dictionnary, return it
+    for (const src of imageSrcs) {
+        if (typeof imagesMetadata[src] === 'object') {
+            return imagesMetadata[src];
+        }
+    }
+
+    return imagesMetadata[imageSrc];
+};
+
 /*
  * Converts HTML to React components using html-to-react.
  * The following options can be specified:
@@ -212,7 +249,7 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
                 return (
                     <MarkdownImage
                         className={className}
-                        imageMetadata={options.imagesMetadata && options.imagesMetadata[attribs.src]}
+                        imageMetadata={getImageMetadata(options.imagesMetadata, attribs.src)}
                         {...attribs}
                         {...options.imageProps}
                         postId={options.postId}
