@@ -959,7 +959,7 @@ func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
 		require.Equal(t, "40", pref.Value, "Value was not updated")
 	})
 
-	t.Run("Update limit_visible_dms_gms to a value above PreferenceMaxLimitVisibleDmsGmsValue", func(t *testing.T) {
+	t.Run("Update limit_visible_dms_gms to a value greater PreferenceMaxLimitVisibleDmsGmsValue", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client

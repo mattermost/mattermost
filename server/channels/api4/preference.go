@@ -6,7 +6,6 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -125,14 +124,6 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannelContent) {
 				c.SetPermissionError(model.PermissionReadChannelContent)
-				return
-			}
-		}
-
-		if pref.Category == model.PreferenceCategorySidebarSettings && pref.Name == model.PreferenceLimitVisibleDmsGms {
-			visibleDmsGmsValue, convErr := strconv.Atoi(pref.Value)
-			if convErr != nil || visibleDmsGmsValue < 1 || visibleDmsGmsValue > model.PreferenceMaxLimitVisibleDmsGmsValue {
-				c.SetInvalidParam("preference.value")
 				return
 			}
 		}
