@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import Bot from './bot';
 import Emoji from './emoji';
 import Files from './files';
 import General from './general';
@@ -16,4 +17,20 @@ import Threads from './threads';
 import Users from './users';
 import WebsocketEvents from './websocket';
 
-export {General, Preferences, Posts, Files, RequestStatus, WebsocketEvents, Teams, Stats, Permissions, Emoji, Plugins, Users, Roles, Threads};
+export {
+    Bot,
+    Emoji,
+    Files,
+    General,
+    Permissions,
+    Plugins,
+    Posts,
+    Preferences,
+    RequestStatus,
+    Roles,
+    Stats,
+    Teams,
+    Threads,
+    Users,
+    WebsocketEvents,
+};
