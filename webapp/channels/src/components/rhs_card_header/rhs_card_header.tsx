@@ -8,6 +8,7 @@ import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import OverlayTrigger from 'components/overlay_trigger';
+import WithTooltip from 'components/with_tooltip';
 import Tooltip from 'components/tooltip';
 
 import Constants, {RHSStates} from 'utils/constants';
@@ -130,7 +131,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
 
         if (backToResultsTooltip) {
             back = (
-                <OverlayTrigger
+                <WithTooltip
                     delayShow={Constants.OVERLAY_TIME_DELAY}
                     placement='top'
                     overlay={backToResultsTooltip}
@@ -144,7 +145,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
                             className='icon icon-arrow-back-ios'
                         />
                     </button>
-                </OverlayTrigger>
+                </WithTooltip>
             );
         }
 
@@ -158,7 +159,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
                     />
                 </span>
                 <div className='pull-right'>
-                    <OverlayTrigger
+                    <WithTooltip
                         delayShow={Constants.OVERLAY_TIME_DELAY}
                         placement='bottom'
                         overlay={this.props.isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
@@ -178,8 +179,8 @@ class RhsCardHeader extends React.PureComponent<Props> {
                                 aria-label={this.props.intl.formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
                             />
                         </button>
-                    </OverlayTrigger>
-                    <OverlayTrigger
+                    </WithTooltip>
+                    <WithTooltip
                         delayShow={Constants.OVERLAY_TIME_DELAY}
                         placement='top'
                         overlay={closeSidebarTooltip}
@@ -195,7 +196,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
                                 aria-label={this.props.intl.formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                             />
                         </button>
-                    </OverlayTrigger>
+                    </WithTooltip>
                 </div>
             </div>
         );
