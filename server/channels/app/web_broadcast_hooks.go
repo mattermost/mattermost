@@ -139,7 +139,7 @@ func incrementWebsocketCounter(wc *platform.WebConn) {
 		return
 	}
 
-	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket)
+	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket, "")
 }
 
 // getTypedArg returns a correctly typed hook argument with the given key, reinterpreting the type using JSON encoding

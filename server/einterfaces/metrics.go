@@ -96,12 +96,12 @@ type MetricsInterface interface {
 	SetReplicaLagAbsolute(node string, value float64)
 	SetReplicaLagTime(node string, value float64)
 
-	IncrementNotificationCounter(notificationType model.NotificationType)
-	IncrementNotificationAckCounter(notificationType model.NotificationType)
-	IncrementNotificationSuccessCounter(notificationType model.NotificationType)
-	IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason)
-	IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason)
-	IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason)
+	IncrementNotificationCounter(notificationType model.NotificationType, platform string)
+	IncrementNotificationAckCounter(notificationType model.NotificationType, platform string)
+	IncrementNotificationSuccessCounter(notificationType model.NotificationType, platform string)
+	IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason, platform string)
+	IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string)
+	IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string)
 
 	ObserveClientTimeToFirstByte(platform, agent string, elapsed float64)
 	ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64)
