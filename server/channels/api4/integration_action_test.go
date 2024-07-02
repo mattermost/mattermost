@@ -334,7 +334,7 @@ func TestSubmitDialog(t *testing.T) {
 	submit.ChannelId = model.NewId()
 	submitResp, resp, err = client.SubmitInteractiveDialog(context.Background(), submit)
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 	assert.Nil(t, submitResp)
 
 	submit.URL = ts.URL
