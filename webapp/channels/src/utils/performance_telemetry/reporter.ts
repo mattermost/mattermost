@@ -308,6 +308,11 @@ export default class PerformanceReporter {
     }
 
     protected sendBeacon(url: string | URL, data?: BodyInit | null | undefined): boolean {
+        // Confirm that sendBeacon exists because it doesn't on Firefox with certain settings enabled
+        if (!navigator.sendBeacon) {
+            return false;
+        }
+
         return navigator.sendBeacon(url, data);
     }
 }
