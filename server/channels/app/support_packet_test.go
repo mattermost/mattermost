@@ -347,7 +347,7 @@ func TestGetMattermostLog(t *testing.T) {
 		*cfg.LogSettings.EnableFile = false
 	})
 
-	fileData, err := th.App.getMattermostLog(th.Context)
+	fileData, err := th.App.GetMattermostLog(th.Context)
 	assert.Nil(t, fileData)
 	assert.ErrorContains(t, err, "Unable to retrieve mattermost.log because LogSettings: EnableFile is set to false")
 
@@ -367,7 +367,7 @@ func TestGetMattermostLog(t *testing.T) {
 	logLocation := config.GetLogFileLocation(dir)
 
 	// There is no mattermost.log file yet, so this fails
-	fileData, err = th.App.getMattermostLog(th.Context)
+	fileData, err = th.App.GetMattermostLog(th.Context)
 	assert.Nil(t, fileData)
 	assert.ErrorContains(t, err, "failed read mattermost log file at path "+logLocation)
 
@@ -376,7 +376,7 @@ func TestGetMattermostLog(t *testing.T) {
 	err = os.WriteFile(logLocation, d1, 0777)
 	require.NoError(t, err)
 
-	fileData, err = th.App.getMattermostLog(th.Context)
+	fileData, err = th.App.GetMattermostLog(th.Context)
 	require.NoError(t, err)
 	require.NotNil(t, fileData)
 	assert.Equal(t, "mattermost.log", fileData.Filename)

@@ -346,7 +346,7 @@ func (u *User) IsValid() *AppError {
 		}
 	}
 
-	if len(u.Email) > UserEmailMaxLength || u.Email == "" || !IsValidEmail(u.Email) {
+	if len(u.Email) > UserEmailMaxLength || u.Email == "" || (!IsValidEmail(u.Email) && !u.IsRemote()) {
 		return InvalidUserError("email", u.Id, u.Email)
 	}
 
@@ -637,6 +637,7 @@ func (u *User) Sanitize(options map[string]bool) {
 
 	if len(options) != 0 && !options["email"] {
 		u.Email = ""
+		delete(u.Props, UserPropsKeyRemoteEmail)
 	}
 	if len(options) != 0 && !options["fullname"] {
 		u.FirstName = ""
@@ -657,6 +658,7 @@ func (u *User) SanitizeInput(isAdmin bool) {
 		u.AuthService = ""
 		u.EmailVerified = false
 	}
+	u.RemoteId = NewString("")
 	u.DeleteAt = 0
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0

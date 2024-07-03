@@ -3,7 +3,7 @@
 
 /* eslint-disable @mattermost/use-external-link */
 
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
@@ -25,11 +25,11 @@ type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
     rel?: string;
     onClick?: (event: React.MouseEvent<HTMLElement>) => void;
     queryParams?: ExternalLinkQueryParams;
-    location?: string;
+    location: string;
     children: React.ReactNode;
 };
 
-export default function ExternalLink(props: Props) {
+const ExternalLink = forwardRef<HTMLAnchorElement, Props>((props, ref) => {
     const userId = useSelector(getCurrentUserId);
     const config = useSelector(getConfig);
     const license = useSelector(getLicense);
@@ -70,6 +70,7 @@ export default function ExternalLink(props: Props) {
     return (
         <a
             {...props}
+            ref={ref}
             target={props.target || '_blank'}
             rel={props.rel || 'noopener noreferrer'}
             onClick={handleClick}
@@ -78,4 +79,6 @@ export default function ExternalLink(props: Props) {
             {props.children}
         </a>
     );
-}
+});
+
+export default ExternalLink;

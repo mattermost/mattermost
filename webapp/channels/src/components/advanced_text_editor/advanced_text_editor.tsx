@@ -105,11 +105,11 @@ const AdvanceTextEditor = ({
     const isFormattingBarHidden = useSelector((state: GlobalState) => getBool(state, Preferences.ADVANCED_TEXT_EDITOR, isRHS ? AdvancedTextEditorConst.COMMENT : AdvancedTextEditorConst.POST));
     const canPost = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
-        return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST);
+        return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST) : false;
     });
     const useChannelMentions = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
-        return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
+        return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS) : false;
     });
     const showSendTutorialTip = useSelector((state: GlobalState) => {
         // We don't show the tutorial tip neither on RHS nor Thread view
@@ -147,6 +147,7 @@ const AdvanceTextEditor = ({
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
 
     const readOnlyChannel = !canPost;
+    const hasDraftMessage = Boolean(draft.message);
 
     const handleShowPreview = useCallback(() => {
         setShowPreview((prev) => !prev);
@@ -300,7 +301,7 @@ const AdvanceTextEditor = ({
 
         const maxWidth = editorBodyRef.current.offsetWidth - editorActionsRef.current.offsetWidth;
 
-        if (!draft.message) {
+        if (!hasDraftMessage) {
             // if we do not have a message we can just render the default state
             setShowFormattingSpacer(false);
             return;
@@ -311,7 +312,7 @@ const AdvanceTextEditor = ({
         } else {
             setShowFormattingSpacer(false);
         }
-    }, [Boolean(draft.message)]);
+    }, [hasDraftMessage]);
 
     const handleMouseUpKeyUp = useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
         setCaretPosition((e.target as TextboxElement).selectionStart || 0);
@@ -341,10 +342,10 @@ const AdvanceTextEditor = ({
 
     // Handle width change when there is no message.
     useEffect(() => {
-        if (!draft.message) {
+        if (!hasDraftMessage) {
             handleWidthChange(0);
         }
-    }, [Boolean(draft.message)]);
+    }, [hasDraftMessage, handleWidthChange]);
 
     // Clear timeout on unmount
     useEffect(() => {
@@ -612,7 +613,7 @@ const AdvanceTextEditor = ({
             <div
                 id='postCreateFooter'
                 role='form'
-                className={classNames('AdvancedTextEditor__footer', {'AdvancedTextEditor__footer--has-error': postError || serverError})}
+                className='AdvancedTextEditor__footer'
             >
                 {postError && (
                     <label className={classNames('post-error', {errorClass})}>

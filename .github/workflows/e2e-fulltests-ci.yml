@@ -30,7 +30,7 @@ on:
         default: NONE
 
 concurrency:
-  group: "${{ github.workflow }}-${{ inputs.PR_NUMBER || inputs.ref }}"
+  group: "${{ github.workflow }}-${{ inputs.REPORT_TYPE }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
   cancel-in-progress: true
 
 jobs:
@@ -58,31 +58,53 @@ jobs:
             curl -fsSL -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" -H "Authorization: Bearer ${{ github.token }}" "${{ github.api_url }}/repos/${{ github.repository }}/pulls/${PR_NUMBER}" -o pr.json
             echo "commit_sha=$(jq -r .head.sha <pr.json)" >> $GITHUB_OUTPUT
             echo "BRANCH=server-pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
+            # For reference, the real branch name may be retrievable as follows:
             #echo "BRANCH=$(jq -r .head.ref <pr.json)" >> $GITHUB_OUTPUT
           else
             echo "commit_sha=$(git rev-parse --verify HEAD)" >> $GITHUB_OUTPUT
             echo "BRANCH=${{ inputs.ref || github.sha }}" >> $GITHUB_OUTPUT
           fi
+
   generate-test-variables:
     runs-on: ubuntu-22.04
     needs:
       - resolve-ref
+    permissions:
+      issues: write
+      pull-requests: write
     defaults:
       run:
         shell: bash
     outputs:
       status_check_context: "${{ steps.generate.outputs.status_check_context }}"
       workers_number: "${{ steps.generate.outputs.workers_number }}"
+      server_uppercase: "${{ steps.generate.outputs.server_uppercase }}" # Required for license selection
+      SERVER: "${{ steps.generate.outputs.SERVER }}"
       ENABLED_DOCKER_SERVICES: "${{ steps.generate.outputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ steps.generate.outputs.TEST_FILTER }}"
       BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"
+      TM4J_ENABLE: "${{ steps.generate.outputs.TM4J_ENABLE }}"
     env:
+      GH_TOKEN: "${{ github.token }}"
+      PR_NUMBER: "${{ inputs.PR_NUMBER || '' }}"
+      REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"
       # We could exclude the @smoke group for PRs, but then we wouldn't have it in the report
       TEST_FILTER_PR: >-
         --stage="@prod"
         --excludeGroup="@te_only,@cloud_only,@high_availability"
         --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap"
         --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
+      TEST_FILTER_DAILY_ONPREM: >-
+        --stage="@prod"
+        --excludeGroup="@te_only,@cloud_only,@high_availability"
+        --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap,@playbooks"
+        --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
+      TEST_FILTER_DAILY_CLOUD: >-
+        --stage="@prod"
+        --excludeGroup="@not_cloud,@cloud_trial,@e20_only,@te_only,@high_availability,@license_removal"
+        --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap,@playbooks"
+        --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa"
+      MM_ENV: "${{ inputs.MM_ENV || '' }}"
     steps:
       - name: ci/generate-test-variables
         id: generate
@@ -91,19 +113,49 @@ jobs:
           # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
           # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
           BUILD_ID_PREFIX="${{ github.run_id }}_${{ github.run_attempt }}-${COMMIT_SHA::7}"
-          case "${{ inputs.REPORT_TYPE }}" in
+          MM_ENV_HASH=$(md5sum -z <<<"$MM_ENV" | cut -c-8)
+          SERVER=onprem
+          case "$REPORT_TYPE" in
             NONE | PR)
-              echo "status_check_context=E2E Tests/test" >> $GITHUB_OUTPUT
+              echo "status_check_context=E2E Tests/test${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
               echo "workers_number=20" >> $GITHUB_OUTPUT
-              echo "ENABLED_DOCKER_SERVICES=postgres inbucket minio openldap elasticsearch keycloak" >> $GITHUB_OUTPUT
               echo "TEST_FILTER=$TEST_FILTER_PR" >> $GITHUB_OUTPUT
-              echo "BUILD_ID=${BUILD_ID_PREFIX}-pr-onprem-ent" >> $GITHUB_OUTPUT
+              echo "BUILD_ID=${BUILD_ID_PREFIX}-${REPORT_TYPE@L}-${SERVER}-ent" >> $GITHUB_OUTPUT
+              ;;
+            MASTER | MASTER_UNSTABLE | CLOUD | CLOUD_UNSTABLE)
+              IS_TEST_UNSTABLE=$(sed -n -E 's/^.*(UNSTABLE).*$/\1/p' <<< "$REPORT_TYPE") # Variable is UNSTABLE if report type is for unstable tests
+              if grep -q CLOUD <<<$REPORT_TYPE; then
+                SERVER=cloud
+              fi
+              TEST_FILTER_VARIABLE="TEST_FILTER_DAILY_${SERVER@U}"
+              BUILD_ID_SUFFIX="${IS_TEST_UNSTABLE:+unstable-}daily-${SERVER}-ent"
+              echo "status_check_context=E2E Tests/test-${BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
+              echo "workers_number=10" >> $GITHUB_OUTPUT # Daily tests are not time critical, and it's more efficient to run on fewer workers
+              echo "TEST_FILTER=${!TEST_FILTER_VARIABLE} ${IS_TEST_UNSTABLE:+--invert}" >> $GITHUB_OUTPUT
+              echo "BUILD_ID=${BUILD_ID_PREFIX}-${BUILD_ID_SUFFIX}" >> $GITHUB_OUTPUT
+              echo "TM4J_ENABLE=true" >> $GITHUB_OUTPUT
               ;;
             *)
-              # TODO implement other test types, in the future
+              # TODO implement release testing, in the future
               echo "Fatal: unimplemented test type. Aborting."
               exit 1
           esac
+          echo "SERVER=${SERVER}" >> $GITHUB_OUTPUT
+          echo "server_uppercase=${SERVER@U}" >> $GITHUB_OUTPUT
+          echo "ENABLED_DOCKER_SERVICES=postgres inbucket minio openldap elasticsearch keycloak" >> $GITHUB_OUTPUT
+      - name: ci/notify-user
+        run: |
+          if [ -n "$PR_NUMBER" ]; then
+            WORKFLOW_RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            CYCLE_URL="https://automation-dashboard.vercel.app/cycle/${{ github.run_id }}"
+            gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
+          E2E test run is starting for commit \`${{ needs.resolve-ref.outputs.commit_sha }}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
+          You can check its progress by either:
+          - Looking at the corresponding commit status, which will be available in a few moments: \`${{ steps.generate.outputs.status_check_context }}\`.
+          - Looking at the [E2E test's Workflow Run]($WORKFLOW_RUN_URL), with Run ID \`${{ github.run_id }}\`.
+          - Looking at the [E2E test's Cycle on the Automation Dashboard]($CYCLE_URL).
+          EOF
+          fi
 
   e2e-fulltest:
     needs:
@@ -121,6 +173,7 @@ jobs:
       testcase_failure_fatal: false
       run_preflight_checks: false
       enable_reporting: true
+      SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
       ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
@@ -128,11 +181,12 @@ jobs:
       BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
       REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"
     secrets:
-      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
       PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
-      ### These are disabled until release tests are implemented
-      #REPORT_TM4J_API_KEY: "${{ secrets.MM_E2E_TM4J_API_KEY }}"
-      #REPORT_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_TEST_CYCLE_LINK_PREFIX }}"
+      REPORT_TM4J_API_KEY: "${{ needs.generate-test-variables.outputs.TM4J_ENABLE == 'true' && secrets.MM_E2E_TM4J_API_KEY || '' }}"
+      REPORT_TM4J_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_TEST_CYCLE_LINK_PREFIX }}"
+      CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"

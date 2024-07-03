@@ -178,7 +178,8 @@ const (
 	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/pl/android-app/"
 	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/pl/ios-app/"
 
-	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds = 5000
+	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds                       = 5000
+	ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPollIntervalMilliseconds = 3000
 
 	AnalyticsSettingsDefaultMaxUsersForStatistics = 2500
 
@@ -340,6 +341,7 @@ type ServiceSettings struct {
 	CorsDebug                           *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
 	AllowCookiesForSubdomains           *bool    `access:"write_restrictable,cloud_restrictable"`
 	ExtendSessionLengthWithActivity     *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	TerminateSessionsOnPasswordChange   *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 
 	// Deprecated
 	SessionLengthWebInDays  *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -403,7 +405,6 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
-	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 	UniqueEmojiReactionLimitPerPost                   *int    `access:"site_posts"`
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
@@ -629,6 +630,11 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	// Must be manually enabled for existing installations.
 	if s.ExtendSessionLengthWithActivity == nil {
 		s.ExtendSessionLengthWithActivity = NewBool(!isUpdate)
+	}
+
+	// Must be manually enabled for existing installations.
+	if s.TerminateSessionsOnPasswordChange == nil {
+		s.TerminateSessionsOnPasswordChange = NewBool(!isUpdate)
 	}
 
 	if s.SessionLengthWebInDays == nil {
@@ -903,10 +909,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.AllowSyncedDrafts = NewBool(true)
 	}
 
-	if s.SelfHostedPurchase == nil {
-		s.SelfHostedPurchase = NewBool(true)
-	}
-
 	if s.UniqueEmojiReactionLimitPerPost == nil {
 		s.UniqueEmojiReactionLimitPerPost = NewInt(ServiceSettingsDefaultUniqueReactionsPerPost)
 	}
@@ -985,9 +987,11 @@ func (s *ClusterSettings) SetDefaults() {
 }
 
 type MetricsSettings struct {
-	Enable           *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
-	BlockProfileRate *int    `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
-	ListenAddress    *string `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"` // telemetry: none
+	Enable                    *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
+	BlockProfileRate          *int    `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
+	ListenAddress             *string `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableClientMetrics       *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
+	EnableNotificationMetrics *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
 }
 
 func (s *MetricsSettings) SetDefaults() {
@@ -1002,18 +1006,28 @@ func (s *MetricsSettings) SetDefaults() {
 	if s.BlockProfileRate == nil {
 		s.BlockProfileRate = NewInt(0)
 	}
+
+	if s.EnableClientMetrics == nil {
+		s.EnableClientMetrics = NewBool(true)
+	}
+
+	if s.EnableNotificationMetrics == nil {
+		s.EnableNotificationMetrics = NewBool(true)
+	}
 }
 
 type ExperimentalSettings struct {
-	ClientSideCertEnable            *bool   `access:"experimental_features,cloud_restrictable"`
-	ClientSideCertCheck             *string `access:"experimental_features,cloud_restrictable"`
-	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
-	EnableSharedChannels            *bool   `access:"experimental_features"`
-	EnableRemoteClusterService      *bool   `access:"experimental_features"`
-	DisableAppBar                   *bool   `access:"experimental_features"`
-	DisableRefetchingOnBrowserFocus *bool   `access:"experimental_features"`
-	DelayChannelAutocomplete        *bool   `access:"experimental_features"`
+	ClientSideCertEnable                                  *bool   `access:"experimental_features,cloud_restrictable"`
+	ClientSideCertCheck                                   *string `access:"experimental_features,cloud_restrictable"`
+	LinkMetadataTimeoutMilliseconds                       *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	RestrictSystemAdmin                                   *bool   `access:"experimental_features,write_restrictable"`
+	EnableSharedChannels                                  *bool   `access:"experimental_features"`
+	EnableRemoteClusterService                            *bool   `access:"experimental_features"`
+	DisableAppBar                                         *bool   `access:"experimental_features"`
+	DisableRefetchingOnBrowserFocus                       *bool   `access:"experimental_features"`
+	DelayChannelAutocomplete                              *bool   `access:"experimental_features"`
+	DisableWakeUpReconnectHandler                         *bool   `access:"experimental_features"`
+	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1051,6 +1065,14 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.DelayChannelAutocomplete == nil {
 		s.DelayChannelAutocomplete = NewBool(false)
+	}
+
+	if s.DisableWakeUpReconnectHandler == nil {
+		s.DisableWakeUpReconnectHandler = NewBool(false)
+	}
+
+	if s.UsersStatusAndProfileFetchingPollIntervalMilliseconds == nil {
+		s.UsersStatusAndProfileFetchingPollIntervalMilliseconds = NewInt64(ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPollIntervalMilliseconds)
 	}
 }
 
@@ -1395,7 +1417,7 @@ type ExperimentalAuditSettings struct {
 	FileMaxBackups        *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileCompress          *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileMaxQueueSize      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	AdvancedLoggingJSON   json.RawMessage `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingJSON   json.RawMessage `access:"experimental_features,write_restrictable"`
 	AdvancedLoggingConfig *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 

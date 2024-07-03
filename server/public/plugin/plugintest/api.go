@@ -891,6 +891,36 @@ func (_m *API) ExtendSessionExpiry(sessionID string, newExpiry int64) *model.App
 	return r0
 }
 
+// GenerateSupportMetadata provides a mock function with given fields: pluginMeta
+func (_m *API) GenerateSupportMetadata(pluginMeta map[string]interface{}) (*model.Metadata, error) {
+	ret := _m.Called(pluginMeta)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GenerateSupportMetadata")
+	}
+
+	var r0 *model.Metadata
+	var r1 error
+	if rf, ok := ret.Get(0).(func(map[string]interface{}) (*model.Metadata, error)); ok {
+		return rf(pluginMeta)
+	}
+	if rf, ok := ret.Get(0).(func(map[string]interface{}) *model.Metadata); ok {
+		r0 = rf(pluginMeta)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Metadata)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(map[string]interface{}) error); ok {
+		r1 = rf(pluginMeta)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetBot provides a mock function with given fields: botUserId, includeDeleted
 func (_m *API) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
 	ret := _m.Called(botUserId, includeDeleted)
@@ -3055,6 +3085,38 @@ func (_m *API) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.Ap
 
 	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) *model.AppError); ok {
 		r1 = rf(options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetUsersByIds provides a mock function with given fields: userIDs
+func (_m *API) GetUsersByIds(userIDs []string) ([]*model.User, *model.AppError) {
+	ret := _m.Called(userIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUsersByIds")
+	}
+
+	var r0 []*model.User
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func([]string) ([]*model.User, *model.AppError)); ok {
+		return rf(userIDs)
+	}
+	if rf, ok := ret.Get(0).(func([]string) []*model.User); ok {
+		r0 = rf(userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+		r1 = rf(userIDs)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

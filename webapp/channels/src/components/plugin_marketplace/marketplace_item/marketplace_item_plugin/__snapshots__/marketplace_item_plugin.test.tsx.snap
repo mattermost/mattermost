@@ -1006,7 +1006,7 @@ exports[`components/MarketplaceItemPlugin UpdateDetails should render with relea
         releaseNotesUrl="http://example.com/release"
         version="0.0.2"
       >
-        <ExternalLink
+        <ForwardRef
           href="http://example.com/release"
           location="marketplace_item_plugin"
         >
@@ -1019,7 +1019,7 @@ exports[`components/MarketplaceItemPlugin UpdateDetails should render with relea
           >
             0.0.2
           </a>
-        </ExternalLink>
+        </ForwardRef>
       </UpdateVersion>
        - 
       <b>

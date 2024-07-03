@@ -5352,10 +5352,6 @@
     "translation": "Impossibile trovato la versione del server Elasticsearch."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "errore durante la cancellazione delle appartenenze a squadre o canali"
-  },
-  {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Limite Dimensione Superato. Controllare [dimensione massima pagina](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
@@ -5614,10 +5610,6 @@
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Aggiornamento membro squadra invalido: Un utente deve essere ospite o utente ma non entrambi."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Rinnova licenza"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
@@ -6440,10 +6432,6 @@
     "translation": "Raggiunto timeout nel lavoro di sincronizzazione AD/LDAP."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Cluster API non trovate."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " ha allegato un file."
   },
@@ -6980,10 +6968,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": " "
-  },
-  {
     "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
     "translation": " "
   },
@@ -7025,10 +7009,6 @@
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
-    "translation": " "
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
     "translation": " "
   },
   {
@@ -7128,10 +7108,6 @@
     "translation": " "
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": " "
-  },
-  {
     "id": "app.import.generate_password.app_error",
     "translation": " "
   },
@@ -7173,10 +7149,6 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.copyright",
     "translation": " "
   },
   {
@@ -7344,10 +7316,6 @@
     "translation": " "
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.custom_status.disabled",
     "translation": " "
   },
@@ -7504,15 +7472,7 @@
     "translation": " "
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.no_license",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
     "translation": " "
   },
   {
@@ -7576,23 +7536,11 @@
     "translation": " "
   },
   {
-    "id": "api.templates.payment_failed.title",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": " "
-  },
-  {
     "id": "api.config.patch_config.diff.app_error",
     "translation": " "
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
     "translation": " "
   },
   {
@@ -7664,10 +7612,6 @@
     "translation": " "
   },
   {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.user.invalidate_verify_email_tokens_delete.error",
     "translation": " "
   },
@@ -7704,14 +7648,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.payment_failed.info1",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": " "
-  },
-  {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
     "translation": " "
   },
@@ -7736,10 +7672,6 @@
     "translation": " "
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": " "
-  },
-  {
     "id": "app.notification.body.thread_channel.subTitle",
     "translation": " "
   },
@@ -7753,10 +7685,6 @@
   },
   {
     "id": "api.custom_groups.must_be_referenceable",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
     "translation": " "
   },
   {
@@ -8044,10 +7972,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": " "
-  },
-  {
     "id": "api.templates.cloud_welcome_email.subtitle",
     "translation": " "
   },
@@ -8212,10 +8136,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.payment_failed.subject",
-    "translation": " "
-  },
-  {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": " "
   },
@@ -8364,10 +8284,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": " "
-  },
-  {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": " "
   },
@@ -8385,10 +8301,6 @@
   },
   {
     "id": "app.user.permanent_delete.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
     "translation": " "
   },
   {
@@ -8461,10 +8373,6 @@
   },
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
     "translation": " "
   },
   {
@@ -8585,10 +8493,6 @@
   },
   {
     "id": "bleveengine.create_file_index.error",
-    "translation": " "
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
     "translation": " "
   },
   {
@@ -8769,14 +8673,6 @@
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
     "translation": " "
   },
   {

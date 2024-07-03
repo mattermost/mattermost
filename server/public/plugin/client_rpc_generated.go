@@ -1665,6 +1665,35 @@ func (s *apiRPCServer) GetUsers(args *Z_GetUsersArgs, returns *Z_GetUsersReturns
 	return nil
 }
 
+type Z_GetUsersByIdsArgs struct {
+	A []string
+}
+
+type Z_GetUsersByIdsReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetUsersByIds(userIDs []string) ([]*model.User, *model.AppError) {
+	_args := &Z_GetUsersByIdsArgs{userIDs}
+	_returns := &Z_GetUsersByIdsReturns{}
+	if err := g.client.Call("Plugin.GetUsersByIds", _args, _returns); err != nil {
+		log.Printf("RPC call to GetUsersByIds API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetUsersByIds(args *Z_GetUsersByIdsArgs, returns *Z_GetUsersByIdsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetUsersByIds(userIDs []string) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetUsersByIds(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetUsersByIds called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetUserArgs struct {
 	A string
 }
@@ -6598,6 +6627,36 @@ func (s *apiRPCServer) UpdateUserRoles(args *Z_UpdateUserRolesArgs, returns *Z_U
 		returns.A, returns.B = hook.UpdateUserRoles(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API UpdateUserRoles called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GenerateSupportMetadataArgs struct {
+	A map[string]any
+}
+
+type Z_GenerateSupportMetadataReturns struct {
+	A *model.Metadata
+	B error
+}
+
+func (g *apiRPCClient) GenerateSupportMetadata(pluginMeta map[string]any) (*model.Metadata, error) {
+	_args := &Z_GenerateSupportMetadataArgs{pluginMeta}
+	_returns := &Z_GenerateSupportMetadataReturns{}
+	if err := g.client.Call("Plugin.GenerateSupportMetadata", _args, _returns); err != nil {
+		log.Printf("RPC call to GenerateSupportMetadata API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GenerateSupportMetadata(args *Z_GenerateSupportMetadataArgs, returns *Z_GenerateSupportMetadataReturns) error {
+	if hook, ok := s.impl.(interface {
+		GenerateSupportMetadata(pluginMeta map[string]any) (*model.Metadata, error)
+	}); ok {
+		returns.A, returns.B = hook.GenerateSupportMetadata(args.A)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API GenerateSupportMetadata called but not implemented."))
 	}
 	return nil
 }

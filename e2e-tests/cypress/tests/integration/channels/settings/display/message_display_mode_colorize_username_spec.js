@@ -141,7 +141,7 @@ function goToMessageDisplaySetting() {
     // # Go to Settings modal - Display section - Message Display
     cy.uiOpenSettingsModal('Display').within(() => {
         cy.get('#displayButton').scrollIntoView().click();
-        cy.get('#message_displayEdit').should('be.visible');
+        cy.get('#message_displayEdit').scrollIntoView().should('be.visible');
         cy.get('#message_displayEdit').click();
     });
 }
