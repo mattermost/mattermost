@@ -6,6 +6,8 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+
 import type {GlobalState} from 'types/store';
 
 const SearchTypeSelectorContainer = styled.div`
@@ -47,7 +49,11 @@ type Props = {
 }
 
 const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
-    const SearchPluginButtons = useSelector((state: GlobalState) => state.plugins.components.SearchButtons) || [];
+    const license = useSelector(getLicense);
+    let SearchPluginButtons = useSelector((state: GlobalState) => state.plugins.components.SearchButtons) || [];
+    if (license.IsLicensed !== 'true') {
+        SearchPluginButtons = [];
+    }
     return (
         <SearchTypeSelectorContainer>
             <SearchTypeItem

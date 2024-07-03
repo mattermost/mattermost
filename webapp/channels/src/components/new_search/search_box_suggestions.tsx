@@ -7,6 +7,8 @@ import styled from 'styled-components';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+
 import type {ProviderResult} from 'components/suggestion/provider';
 import type {SuggestionProps} from 'components/suggestion/suggestion';
 
@@ -40,7 +42,11 @@ type Props = {
 }
 
 const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, suggestionsHeader, providerResults, selectedOption, setSelectedOption, focus, onSearch}: Props) => {
-    const SearchPluginSuggestions = useSelector((state: GlobalState) => state.plugins.components.SearchSuggestions) || [];
+    const license = useSelector(getLicense);
+    let SearchPluginSuggestions = useSelector((state: GlobalState) => state.plugins.components.SearchSuggestions) || [];
+    if (license.IsLicensed !== 'true') {
+        SearchPluginSuggestions = [];
+    }
 
     if ((searchType === '' || searchType === 'messages' || searchType === 'files') && providerResults) {
         return (

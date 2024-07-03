@@ -87,11 +87,27 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         expect(baseProps.setSelectedOption).toHaveBeenCalledWith(0);
     });
 
+    test('should not show the plugin suggestions without license', () => {
+        const props = {...baseProps, searchType: 'test-id', searchTerms: 'test-search-terms'};
+        renderWithContext(
+            <SearchBoxSuggestions {...props}/>,
+            {
+                plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},
+                entities: {general: {license: {IsLicensed: 'false'}}},
+            },
+        );
+        expect(screen.queryByText('Plugin suggestion')).not.toBeInTheDocument();
+        expect(screen.queryByText('test-search-terms')).not.toBeInTheDocument();
+    });
+
     test('should show the plugin suggestions', () => {
         const props = {...baseProps, searchType: 'test-id', searchTerms: 'test-search-terms'};
         renderWithContext(
             <SearchBoxSuggestions {...props}/>,
-            {plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}}},
+            {
+                plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},
+                entities: {general: {license: {IsLicensed: 'true'}}},
+            },
         );
         expect(screen.getByText('Plugin suggestion')).toBeInTheDocument();
         expect(screen.getByText('test-search-terms')).toBeInTheDocument();
@@ -101,7 +117,10 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         const props = {...baseProps, searchType: 'test-id', searchTerms: 'something from:t'};
         renderWithContext(
             <SearchBoxSuggestions {...props}/>,
-            {plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}}},
+            {
+                plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},
+                entities: {general: {license: {IsLicensed: 'true'}}},
+            },
         );
         screen.getByText('onChangeSearch').click();
         expect(baseProps.setSearchTerms).toHaveBeenCalledWith('something from:test ');
@@ -112,7 +131,10 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         const props = {...baseProps, searchType: 'test-id', searchTerms: 'something from:t'};
         renderWithContext(
             <SearchBoxSuggestions {...props}/>,
-            {plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}}},
+            {
+                plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},
+                entities: {general: {license: {IsLicensed: 'true'}}},
+            },
         );
         screen.getByText('onRunSearch').click();
         expect(baseProps.onSearch).toHaveBeenCalledWith('test-id', 'something from:t');

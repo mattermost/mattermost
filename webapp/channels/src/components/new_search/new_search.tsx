@@ -7,6 +7,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
 
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {
     updateSearchTerms,
@@ -62,7 +63,11 @@ const NewSearchContainer = styled.div`
 const NewSearch = (): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
-    const pluginSearch = useSelector((state: GlobalState) => state.plugins.components.SearchButtons);
+    const license = useSelector(getLicense);
+    let pluginSearch = useSelector((state: GlobalState) => state.plugins.components.SearchButtons);
+    if (license.IsLicensed !== 'true') {
+        pluginSearch = [];
+    }
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
     const [currentChannel, setCurrentChannel] = useState('');

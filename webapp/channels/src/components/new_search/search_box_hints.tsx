@@ -4,6 +4,8 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
+
 import type {ProviderResult} from 'components/suggestion/provider';
 import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
 
@@ -21,7 +23,11 @@ type Props = {
 }
 
 const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResults, selectedOption, focus}: Props) => {
-    const SearchPluginHints = useSelector((state: GlobalState) => state.plugins.components.SearchHints) || [];
+    const license = useSelector(getLicense);
+    let SearchPluginHints = useSelector((state: GlobalState) => state.plugins.components.SearchHints) || [];
+    if (license.IsLicensed !== 'true') {
+        SearchPluginHints = [];
+    }
 
     if (searchType === '' || searchType === 'messages' || searchType === 'files') {
         return (
