@@ -115,7 +115,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func postDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	postID := args[0]
 
-	if _, err := c.DoAPIDelete(context.TODO(), "/posts/"+postID); err != nil {
+	if _, err := c.DeletePost(context.TODO(), postID); err != nil {
 		return fmt.Errorf("could not delete post: %s", err.Error())
 	}
 
