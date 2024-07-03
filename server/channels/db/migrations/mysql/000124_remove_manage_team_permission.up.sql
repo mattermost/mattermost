@@ -1,4 +1,4 @@
-CREATE PROCEDURE RemoveUuploadFilePermission()
+CREATE PROCEDURE RemoveUploadFilePermission()
 BEGIN
     updateRoles: LOOP
         -- update affected rows
@@ -17,5 +17,5 @@ BEGIN
     END LOOP updateRoles;
 END;
 
-CALL RemoveUuploadFilePermission();
-DROP PROCEDURE IF EXISTS RemoveUuploadFilePermission;
+CALL RemoveUploadFilePermission();
+DROP PROCEDURE IF EXISTS RemoveUploadFilePermission;
