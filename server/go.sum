@@ -11,8 +11,7 @@ dmitri.shuralyov.com/state v0.0.0-20180228185332-28bcc343414c/go.mod h1:0PRwlb0D
 git.apache.org/thrift.git v0.0.0-20180902110319-2566ecd5d999/go.mod h1:fPE2ZNJGynbRyZ4dJvy6G277gSllfV2HJqblrnkyeyg=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
-github.com/HdrHistogram/hdrhistogram-go v0.9.0 h1:dpujRju0R4M/QZzcnR1LH1qm+TVG3UzkWdp5tH1WMcg=
-github.com/HdrHistogram/hdrhistogram-go v0.9.0/go.mod h1:nxrse8/Tzg2tg3DZcZjm6qEclQKK70g0KxO61gFFZD4=
+github.com/HdrHistogram/hdrhistogram-go v1.1.2 h1:5IcZpTvzydCQeHzK4Ef/D5rrSqwxob0t8PQPMybUNFM=
 github.com/JalfResi/justext v0.0.0-20221106200834-be571e3e3052 h1:8T2zMbhLBbH9514PIQVHdsGhypMrsB4CxwbldKA9sBA=
 github.com/JalfResi/justext v0.0.0-20221106200834-be571e3e3052/go.mod h1:0SURuH1rsE8aVWvutuMZghRNrNrYEUzibzJfhEYR8L0=
 github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0rYXWg0=
@@ -350,8 +349,7 @@ github.com/mailru/easyjson v0.7.7 h1:UGYAvKxe3sBsEDzO8ZeWOSlIQfWFlxbzLZe7hwFURr0
 github.com/mailru/easyjson v0.7.7/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
 github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404 h1:Khvh6waxG1cHc4Cz5ef9n3XVCxRWpAKUtqg9PJl5+y8=
 github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404/go.mod h1:RyS7FDNQlzF1PsjbJWHRI35exqaKGSO9qD4iv8QjE34=
-github.com/mattermost/gosaml2 v0.8.0 h1:nkYiByawqwJ7KncK1LDWKwTx5aRarBTQsmH+XcCVsWQ=
-github.com/mattermost/gosaml2 v0.8.0/go.mod h1:1nMAdE2Psxaz+pj79Oytayi+hC3aZUi3SmJQlIe+sLM=
+github.com/mattermost/gosaml2 v0.8.1-0.20220428161029-8c99721fdec4 h1:y102PXr0vul3Dcw1xP4fs6R3lFL2kyLsC3qI6lsgCVQ=
 github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956 h1:Y1Tu/swM31pVwwb2BTCsOdamENjjWCI6qmfHLbk6OZI=
 github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956/go.mod h1:SRl30Lb7/QoYyohYeVBuqYvvmXSZJxZgiV3Zf6VbxjI=
 github.com/mattermost/logr/v2 v2.0.21 h1:CMHsP+nrbRlEC4g7BwOk1GAnMtHkniFhlSQPXy52be4=

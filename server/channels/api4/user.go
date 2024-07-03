@@ -1944,8 +1944,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.AppContext = c.AppContext.WithSession(session)
 
 	c.LogAuditWithUserId(user.Id, "success")
-	auditRec.AddUserToEventActor(user.Id)
-	auditRec.AddSessionToEventActor(session.Id)
 
 	if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
