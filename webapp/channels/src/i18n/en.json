@@ -3956,7 +3956,6 @@
   "installed_incoming_webhooks.hint": "Search by title of the webhook or by associated channel. Examples: \"My Webhook Title\", \"town-square\", or \"Town Square\".",
   "installed_incoming_webhooks.search": "Search Incoming Webhooks",
   "installed_incoming_webhooks.unknown_channel": "A Private Webhook",
-  "installed_incoming_webhooks.unknown_webHook": "A Private Webhook",
   "installed_integrations.audience_urls": "Audience URLs: {urls}",
   "installed_integrations.callback_urls": "Callback URLs: {urls}",
   "installed_integrations.channel_name": "Channel: {name}",

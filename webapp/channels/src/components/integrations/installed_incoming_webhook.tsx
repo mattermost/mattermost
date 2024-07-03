@@ -97,7 +97,7 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
         } else {
             displayName = (
                 <FormattedMessage
-                    id='installed_incoming_webhooks.unknown_webHook'
+                    id='installed_incoming_webhooks.unknown_channel'
                     defaultMessage='A Private Webhook'
                 />
             );
