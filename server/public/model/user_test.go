@@ -9,9 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func TestUserDeepCopy(t *testing.T) {
@@ -115,6 +116,13 @@ func TestUserIsValid(t *testing.T) {
 
 	user.FirstName = ""
 	user.LastName = ""
+	require.Nil(t, user.IsValid())
+
+	user.Email = NewId()
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
+
+	user.RemoteId = NewString(NewId())
 	require.Nil(t, user.IsValid())
 
 	user.FirstName = strings.Repeat("a", 65)
@@ -374,5 +382,24 @@ func TestValidateCustomStatus(t *testing.T) {
 
 		user0.Props[UserPropsKeyCustomStatus] = "{\"wrong\": \"hello\"}"
 		assert.True(t, user0.ValidateCustomStatus())
+	})
+}
+
+func TestSanitizeProfile(t *testing.T) {
+	t.Run("should correctly sanitize email and remote email", func(t *testing.T) {
+		user := &User{
+			Email: "john@doe.com",
+			Props: StringMap{UserPropsKeyRemoteEmail: "remote@doe.com"},
+		}
+
+		user.SanitizeProfile(nil)
+
+		require.Equal(t, "john@doe.com", user.Email)
+		require.Equal(t, "remote@doe.com", user.Props[UserPropsKeyRemoteEmail])
+
+		user.SanitizeProfile(map[string]bool{"email": false})
+
+		require.Empty(t, user.Email)
+		require.Empty(t, user.Props[UserPropsKeyRemoteEmail])
 	})
 }

@@ -272,6 +272,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 handleDelete={this.handleDelete}
                 handlePageChange={this.handlePageChange}
                 handleSubmit={this.handleSubmit}
+                handleHide={this.handleHide}
                 isExistingChannel={this.props.isExistingChannel}
                 loading={this.state.loadingUsers}
                 saving={this.state.saving}
