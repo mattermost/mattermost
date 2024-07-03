@@ -14,6 +14,7 @@ import NotificationsTab from './notifications';
 import PluginTab from './plugin';
 import SecurityTab from './security';
 import SidebarTab from './sidebar';
+import {PreferencesType} from "@mattermost/types/lib/preferences";
 
 export type Props = {
     user: UserProfile;
@@ -26,6 +27,8 @@ export type Props = {
     setEnforceFocus: () => void;
     setRequireConfirm: () => void;
     pluginSettings: {[tabName: string]: PluginConfiguration};
+    userPreferences?: PreferencesType;
+    adminMode?: boolean;
 };
 
 export default function UserSettings(props: Props) {
@@ -78,6 +81,8 @@ export default function UserSettings(props: Props) {
                     collapseModal={props.collapseModal}
                     setEnforceFocus={props.setEnforceFocus}
                     setRequireConfirm={props.setRequireConfirm}
+                    adminMode={props.adminMode}
+                    userPreferences={props.userPreferences}
                 />
             </div>
         );
@@ -89,6 +94,9 @@ export default function UserSettings(props: Props) {
                     updateSection={props.updateSection}
                     closeModal={props.closeModal}
                     collapseModal={props.collapseModal}
+                    adminMode={props.adminMode}
+                    currentUserId={props.user.id}
+                    userPreferences={props.userPreferences}
                 />
             </div>
         );
@@ -100,6 +108,9 @@ export default function UserSettings(props: Props) {
                     updateSection={props.updateSection}
                     closeModal={props.closeModal}
                     collapseModal={props.collapseModal}
+                    adminMode={props.adminMode}
+                    currentUser={props.user}
+                    userPreferences={props.userPreferences}
                 />
             </div>
         );

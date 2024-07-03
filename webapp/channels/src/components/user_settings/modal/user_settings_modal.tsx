@@ -6,7 +6,11 @@ import {Modal} from 'react-bootstrap';
 import ReactDOM from 'react-dom';
 import {injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
+import Constants from 'utils/constants';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
+import {stopTryNotificationRing} from 'utils/notification_sounds';
 
+import type {PreferencesType} from '@mattermost/types/lib/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -15,16 +19,13 @@ import ConfirmModal from 'components/confirm_modal';
 import SettingsSidebar from 'components/settings_sidebar';
 import UserSettings from 'components/user_settings';
 
-import Constants from 'utils/constants';
-import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
-import {stopTryNotificationRing} from 'utils/notification_sounds';
-
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 
 export type OwnProps = {
     adminMode?: boolean;
     currentUser?: UserProfile;
     isContentProductSettings: boolean;
+    userPreferences?: PreferencesType;
 }
 
 export type Props = OwnProps & {
@@ -345,6 +346,8 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                                 }
                                 pluginSettings={this.props.pluginSettings}
                                 user={this.props.currentUser}
+                                adminMode={this.props.adminMode}
+                                userPreferences={this.props.userPreferences}
                             />
                         </div>
                     </div>

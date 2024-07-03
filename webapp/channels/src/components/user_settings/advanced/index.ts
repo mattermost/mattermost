@@ -4,20 +4,26 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
+import {Preferences} from 'utils/constants';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {updateUserActive, revokeAllSessionsForUser} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {get, getUnreadScrollPositionPreference, makeGetCategory, syncedDraftsAreAllowed} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    get,
+    getFromPreferences,
+    getUnreadScrollPositionPreference,
+    makeGetCategory,
+    syncedDraftsAreAllowed,
+} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-
-import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+import type {OwnProps} from './user_settings_advanced';
 import AdvancedSettingsDisplay from './user_settings_advanced';
 
-function makeMapStateToProps() {
+function makeMapStateToProps(state: GlobalState, props: OwnProps) {
     const getAdvancedSettingsCategory = makeGetCategory();
 
     return (state: GlobalState) => {
@@ -27,14 +33,34 @@ function makeMapStateToProps() {
         const enableUserDeactivation = config.EnableUserDeactivation === 'true';
         const enableJoinLeaveMessage = config.EnableJoinLeaveMessageByDefault === 'true';
 
+        let sendOnCtrlEnter: string;
+        let codeBlockOnCtrlEnter: string;
+        let formatting: string;
+        let joinLeave: string;
+        let syncDrafts: string;
+
+        if (props.adminMode && props.userPreferences) {
+            sendOnCtrlEnter = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', 'false');
+            codeBlockOnCtrlEnter = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', 'true');
+            formatting = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true');
+            joinLeave = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', enableJoinLeaveMessage.toString());
+            syncDrafts = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'sync_drafts', 'true');
+        } else {
+            sendOnCtrlEnter = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', 'false');
+            codeBlockOnCtrlEnter = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', 'true');
+            formatting = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true');
+            joinLeave = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', enableJoinLeaveMessage.toString());
+            syncDrafts = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'sync_drafts', 'true');
+        }
+
         return {
             advancedSettingsCategory: getAdvancedSettingsCategory(state, Preferences.CATEGORY_ADVANCED_SETTINGS),
-            sendOnCtrlEnter: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', 'false'),
-            codeBlockOnCtrlEnter: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', 'true'),
-            formatting: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true'),
-            joinLeave: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', enableJoinLeaveMessage.toString()),
-            syncDrafts: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'sync_drafts', 'true'),
-            currentUser: getCurrentUser(state),
+            sendOnCtrlEnter,
+            codeBlockOnCtrlEnter,
+            formatting,
+            joinLeave,
+            syncDrafts,
+            currentUser: props.adminMode && props.currentUser ? props.currentUser : getCurrentUser(state),
             unreadScrollPosition: getUnreadScrollPositionPreference(state),
             enablePreviewFeatures,
             enableUserDeactivation,

@@ -37,6 +37,12 @@ import './system_user_detail.scss';
 
 import UserSettingsModal from 'components/user_settings/modal';
 
+import {Client4} from 'mattermost-redux/client';
+import {PreferencesType, PreferenceType} from "@mattermost/types/lib/preferences";
+import {raw} from "concurrently/dist/src/defaults";
+import {PreferenceTypes} from "mattermost-redux/action_types";
+import {getPreferenceKey} from "mattermost-redux/utils/preference_utils";
+
 export type Params = {
     user_id?: UserProfile['id'];
 };
@@ -285,11 +291,17 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({showTeamSelectorModal: false});
     };
 
-    toggleOpenManageUserSettingsModal = () => {
+    toggleOpenManageUserSettingsModal = async () => {
         // LOL
         if (!this.state.user) {
             return;
         }
+
+        const userPreferences: PreferencesType = {};
+        const rawUserPreferences: PreferencesType[] = await Client4.getUserPreferences(this.state.user.id);
+        rawUserPreferences.forEach((preference: PreferenceType) => {
+            userPreferences[getPreferenceKey(preference.category, preference.name)] = preference;
+        });
 
         this.props.openModal({
             modalId: ModalIdentifiers.USER_SETTINGS,
@@ -298,6 +310,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 isContentProductSettings: true,
                 currentUser: this.state.user,
                 adminMode: true,
+                userPreferences,
             },
         });
     };

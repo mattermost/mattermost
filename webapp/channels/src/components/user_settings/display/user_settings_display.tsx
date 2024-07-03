@@ -154,6 +154,8 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     };
 
     constructor(props: Props) {
+        console.log('CCCC');
+
         super(props);
 
         this.state = {

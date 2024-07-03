@@ -14,6 +14,7 @@ import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {bindClientFunc} from './helpers';
 
 import {Preferences} from '../constants';
+import Client from "e2e-tests/playwright/support/server/client";
 
 export function deletePreferences(userId: string, preferences: PreferenceType[]): ActionFuncAsync {
     return async (dispatch, getState) => {

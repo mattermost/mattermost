@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {CollapsedThreads} from '@mattermost/types/config';
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Preferences} from 'mattermost-redux/constants';
@@ -25,6 +25,16 @@ export function get(state: GlobalState, category: string, name: string, defaultV
     }
 
     return prefs[key].value;
+}
+
+export function getFromPreferences(preferences: PreferencesType, category: string, name: string, defaultValue: any = '') {
+    const key = getPreferenceKey(category, name);
+
+    if (!(key in preferences)) {
+        return defaultValue;
+    }
+
+    return preferences[key].value;
 }
 
 export function getBool(state: GlobalState, category: string, name: string, defaultValue = false): boolean {
@@ -180,25 +190,34 @@ export function makeGetStyleFromTheme<Style>(): (state: GlobalState, getStyleFro
     );
 }
 
+export function calculateUserShouldShowUnreadsCategory(userPreferences: PreferencesType, serverDefault?: string): boolean {
+    const userPreference = getFromPreferences(userPreferences, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_UNREAD_SECTION);
+    const oldUserPreference = getFromPreferences(userPreferences, Preferences.CATEGORY_SIDEBAR_SETTINGS, '');
+
+    return calculateShouldShowUnreadsCategory(userPreference, oldUserPreference, serverDefault);
+}
+
+export function calculateShouldShowUnreadsCategory(userPreference: string, oldUserPreference: string, serverDefault?: string): boolean {
+    // Prefer the show_unread_section user preference over the previous version
+    if (userPreference) {
+        return userPreference === 'true';
+    }
+
+    if (oldUserPreference) {
+        return JSON.parse(oldUserPreference).unreads_at_top === 'true';
+    }
+
+    // The user setting is not set, so use the system default
+    return serverDefault === General.DEFAULT_ON;
+}
+
 // shouldShowUnreadsCategory returns true if the user has unereads grouped separately with the new sidebar enabled.
 export const shouldShowUnreadsCategory: (state: GlobalState) => boolean = createSelector(
     'shouldShowUnreadsCategory',
     (state: GlobalState) => get(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_UNREAD_SECTION),
     (state: GlobalState) => get(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, ''),
     (state: GlobalState) => getConfig(state).ExperimentalGroupUnreadChannels,
-    (userPreference, oldUserPreference, serverDefault) => {
-        // Prefer the show_unread_section user preference over the previous version
-        if (userPreference) {
-            return userPreference === 'true';
-        }
-
-        if (oldUserPreference) {
-            return JSON.parse(oldUserPreference).unreads_at_top === 'true';
-        }
-
-        // The user setting is not set, so use the system default
-        return serverDefault === General.DEFAULT_ON;
-    },
+    calculateShouldShowUnreadsCategory,
 );
 
 export function getUnreadScrollPositionPreference(state: GlobalState): string {
@@ -262,6 +281,12 @@ export function syncedDraftsAreAllowedAndEnabled(state: GlobalState): boolean {
 export function getVisibleDmGmLimit(state: GlobalState) {
     const defaultLimit = 40;
     return getInt(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit);
+}
+
+export function getUserVisibleDmGmLimit(userPreferences: PreferencesType) {
+    const defaultLimit = 40;
+    const value = getFromPreferences(userPreferences, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS, defaultLimit);
+    return parseInt(value, 10);
 }
 
 export function onboardingTourTipsEnabled(state: GlobalState): boolean {

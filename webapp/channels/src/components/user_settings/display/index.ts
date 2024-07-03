@@ -1,25 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {getLanguages, isLanguageAvailable} from 'i18n/i18n';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 import timezones from 'timezones.json';
+import {Preferences} from 'utils/constants';
 
 import {CollapsedThreads} from '@mattermost/types/config';
+import type {PreferencesType} from '@mattermost/types/lib/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {updateMe} from 'mattermost-redux/actions/users';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {get, isCollapsedThreadsAllowed, getCollapsedThreadsPreference} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTimezoneFull, getCurrentTimezoneLabel} from 'mattermost-redux/selectors/entities/timezone';
+import {
+    get,
+    isCollapsedThreadsAllowed,
+    getCollapsedThreadsPreference,
+    getFromPreferences
+} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    generateCurrentTimezoneLabel,
+    getCurrentTimezoneFull,
+    getCurrentTimezoneLabel,
+    getTimezoneForUserProfile
+} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
-
-import {getLanguages, isLanguageAvailable} from 'i18n/i18n';
-import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -27,16 +37,18 @@ import UserSettingsDisplay from './user_settings_display';
 
 type OwnProps = {
     user: UserProfile;
+    adminMode?: boolean;
+    userPreferences?: PreferencesType;
 }
 
 export function makeMapStateToProps() {
     return (state: GlobalState, props: OwnProps) => {
         const config = getConfig(state);
         const currentUserId = getCurrentUserId(state);
-        const userTimezone = getCurrentTimezoneFull(state);
+        const userTimezone = props.adminMode ? getTimezoneForUserProfile(props.user) : getCurrentTimezoneFull(state);
         const automaticTimezoneNotSet = userTimezone && userTimezone.useAutomaticTimezone && !userTimezone.automaticTimezone;
         const shouldAutoUpdateTimezone = !userTimezone || automaticTimezoneNotSet;
-        const timezoneLabel = getCurrentTimezoneLabel(state);
+        const timezoneLabel = props.adminMode ? generateCurrentTimezoneLabel(getUserCurrentTimezone(userTimezone)) : getCurrentTimezoneLabel(state);
         const allowCustomThemes = config.AllowCustomThemes === 'true';
         const enableLinkPreviews = config.EnableLinkPreviews === 'true';
         const enableThemeSelection = config.EnableThemeSelection === 'true';
@@ -55,6 +67,58 @@ export function makeMapStateToProps() {
             userLocale = config.DefaultClientLocale as string;
         }
 
+        let availabilityStatusOnPosts: string;
+        let militaryTime: string;
+        let teammateNameDisplay: string;
+        let channelDisplayMode: string;
+        let messageDisplay: string;
+        let colorizeUsernames: string;
+        let collapseDisplay: string;
+        let clickToReply: string;
+        let linkPreviewDisplay: string;
+        let oneClickReactionsOnPosts: string;
+
+        console.log({userPreferences: props.userPreferences});
+
+        if (props.adminMode) {
+            console.log('AAAAAAA');
+            availabilityStatusOnPosts = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AVAILABILITY_STATUS_ON_POSTS, Preferences.AVAILABILITY_STATUS_ON_POSTS_DEFAULT);
+            militaryTime = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, Preferences.USE_MILITARY_TIME_DEFAULT);
+            teammateNameDisplay = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT, configTeammateNameDisplay);
+            channelDisplayMode = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT);
+            messageDisplay = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT);
+            colorizeUsernames = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT);
+            collapseDisplay = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, Preferences.COLLAPSE_DISPLAY_DEFAULT);
+            clickToReply = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CLICK_TO_REPLY, Preferences.CLICK_TO_REPLY_DEFAULT);
+            linkPreviewDisplay = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY, Preferences.LINK_PREVIEW_DISPLAY_DEFAULT);
+            oneClickReactionsOnPosts = getFromPreferences(props.userPreferences, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT);
+        } else {
+            console.log('BBBBBBBBB');
+            availabilityStatusOnPosts = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AVAILABILITY_STATUS_ON_POSTS, Preferences.AVAILABILITY_STATUS_ON_POSTS_DEFAULT);
+            militaryTime = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, Preferences.USE_MILITARY_TIME_DEFAULT);
+            teammateNameDisplay = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT, configTeammateNameDisplay);
+            channelDisplayMode = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT);
+            messageDisplay = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT);
+            colorizeUsernames = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT);
+            collapseDisplay = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, Preferences.COLLAPSE_DISPLAY_DEFAULT);
+            clickToReply = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CLICK_TO_REPLY, Preferences.CLICK_TO_REPLY_DEFAULT);
+            linkPreviewDisplay = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY, Preferences.LINK_PREVIEW_DISPLAY_DEFAULT);
+            oneClickReactionsOnPosts = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT);
+        }
+
+        console.log({
+            availabilityStatusOnPosts,
+            militaryTime,
+            teammateNameDisplay,
+            channelDisplayMode,
+            messageDisplay,
+            colorizeUsernames,
+            collapseDisplay,
+            clickToReply,
+            linkPreviewDisplay,
+            oneClickReactionsOnPosts,
+        });
+
         return {
             lockTeammateNameDisplay,
             allowCustomThemes,
@@ -67,19 +131,19 @@ export function makeMapStateToProps() {
             timezoneLabel,
             userTimezone,
             shouldAutoUpdateTimezone,
-            currentUserTimezone: getUserCurrentTimezone(userTimezone) as string,
-            availabilityStatusOnPosts: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AVAILABILITY_STATUS_ON_POSTS, Preferences.AVAILABILITY_STATUS_ON_POSTS_DEFAULT),
-            militaryTime: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, Preferences.USE_MILITARY_TIME_DEFAULT),
-            teammateNameDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT, configTeammateNameDisplay),
-            channelDisplayMode: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT),
-            messageDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT),
-            colorizeUsernames: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT),
-            collapseDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, Preferences.COLLAPSE_DISPLAY_DEFAULT),
             collapsedReplyThreadsAllowUserPreference: isCollapsedThreadsAllowed(state) && getConfig(state).CollapsedThreads !== CollapsedThreads.ALWAYS_ON,
             collapsedReplyThreads: getCollapsedThreadsPreference(state),
-            clickToReply: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CLICK_TO_REPLY, Preferences.CLICK_TO_REPLY_DEFAULT),
-            linkPreviewDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY, Preferences.LINK_PREVIEW_DISPLAY_DEFAULT),
-            oneClickReactionsOnPosts: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT),
+            currentUserTimezone: getUserCurrentTimezone(userTimezone) as string,
+            availabilityStatusOnPosts,
+            militaryTime,
+            teammateNameDisplay,
+            channelDisplayMode,
+            messageDisplay,
+            colorizeUsernames,
+            collapseDisplay,
+            clickToReply,
+            linkPreviewDisplay,
+            oneClickReactionsOnPosts,
             emojiPickerEnabled,
             lastActiveDisplay,
             lastActiveTimeEnabled,
