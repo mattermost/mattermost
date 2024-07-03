@@ -35,6 +35,9 @@ const useGroups = (
 
     const canUseLDAPGroupMentions = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
+        if (!channel) {
+            return false;
+        }
         const license = getLicense(state);
         const isLDAPEnabled = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
         return isLDAPEnabled && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
@@ -42,11 +45,17 @@ const useGroups = (
 
     const canUseCustomGroupMentions = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
+        if (!channel) {
+            return false;
+        }
         return isCustomGroupsEnabled(state) && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_GROUP_MENTIONS);
     });
 
     const groupsWithAllowReference = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
+        if (!channel) {
+            return null;
+        }
         return canUseLDAPGroupMentions || canUseCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, channel.team_id, channel.id) : null;
     });
 

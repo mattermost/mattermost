@@ -72,12 +72,15 @@ const useSubmit = (
     const [errorClass, setErrorClass] = useState<string | null>(null);
     const isDirectOrGroup = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
+        if (!channel) {
+            return false;
+        }
         return channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL;
     });
 
     const channel = useSelector((state: GlobalState) => {
         return getChannel(state, channelId);
-    }); // TODO: TRY TO AVOID THIS
+    });
 
     const isRootDeleted = useSelector((state: GlobalState) => {
         if (!postId) {
@@ -99,6 +102,9 @@ const useSubmit = (
     });
     const useChannelMentions = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
+        if (!channel) {
+            return false;
+        }
         return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
     });
 
@@ -198,6 +204,9 @@ const useSubmit = (
     }, [doSubmit, dispatch]);
 
     const handleSubmit = useCallback(async (e: React.FormEvent, submittingDraft = draft) => {
+        if (!channel) {
+            return;
+        }
         e.preventDefault();
         setShowPreview(false);
         isDraftSubmitting.current = true;
@@ -260,7 +269,7 @@ const useSubmit = (
             const editChannelHeaderModalData = {
                 modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
                 dialogType: EditChannelHeaderModal,
-                dialogProps: {channel}, // TODO: Figure out how to not depend on the channel
+                dialogProps: {channel},
             };
 
             dispatch(openModal(editChannelHeaderModalData));
@@ -277,7 +286,7 @@ const useSubmit = (
             const editChannelPurposeModalData = {
                 modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
                 dialogType: EditChannelPurposeModal,
-                dialogProps: {channel}, // TODO: Figure out how to not depend on the channel
+                dialogProps: {channel},
             };
 
             dispatch(openModal(editChannelPurposeModalData));

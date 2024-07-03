@@ -13,7 +13,7 @@ import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis'
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 import {
-    getLatestPostIdToReact,
+    getLatestInteractablePostId,
     getLatestPostToEdit,
     getPost,
     makeGetPostIdsForThread,
@@ -77,6 +77,9 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft):
         } as unknown as Post;
 
         const channel = getChannel(state, channelId);
+        if (!channel) {
+            return {error: new Error('cannot find channel')};
+        }
         const useChannelMentions = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
         if (!useChannelMentions && containsAtChannel(post.message, {checkAllMentions: true})) {
             post.props.mentionHighlightDisabled = true;
@@ -188,7 +191,7 @@ export function onSubmit(draft: PostDraft, options: {ignoreSlash?: boolean}): Ac
         const emojiMap = new EmojiMap(emojis);
 
         if (isReaction && emojiMap.has(isReaction[2])) {
-            const latestPostId = getLatestPostIdToReact(state, channelId, rootId);
+            const latestPostId = getLatestInteractablePostId(state, channelId, rootId);
             if (latestPostId) {
                 dispatch(PostActions.submitReaction(latestPostId, isReaction[1], isReaction[2]));
             }

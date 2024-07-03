@@ -22,7 +22,7 @@ import type {
 import {General, Posts, Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+import {getCurrentChannelId, getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -269,7 +269,7 @@ function formatPostInChannel(post: Post, previousPost: Post | undefined | null, 
     };
 }
 
-export function getLatestPostIdToReact(state: GlobalState, channelId: string, rootId = '') {
+export function getLatestInteractablePostId(state: GlobalState, channelId: string, rootId = '') {
     const postsIds = rootId ? getPostsInThread(state)[rootId] : getPostIdsInChannel(state, channelId);
     if (!postsIds) {
         return '';
@@ -288,6 +288,14 @@ export function getLatestPostIdToReact(state: GlobalState, channelId: string, ro
         }
 
         if (post.delete_at) {
+            continue;
+        }
+
+        if (isPostEphemeral(post)) {
+            continue;
+        }
+
+        if (isSystemMessage(post)) {
             continue;
         }
 
@@ -322,9 +330,10 @@ export function getLatestPostToEdit(state: GlobalState, channelId: string, rootI
     return '';
 }
 
+export const getLatestReplyablePostId: (state: GlobalState) => Post['id'] = (state) => getLatestInteractablePostId(state, getCurrentChannelId(state));
+
 // makeGetPostsInChannel creates a selector that returns up to the given number of posts loaded at the bottom of the
 // given channel. It does not include older posts such as those loaded by viewing a thread or a permalink.
-
 export function makeGetPostsInChannel(): (state: GlobalState, channelId: Channel['id'], numPosts: number) => PostWithFormatData[] | undefined | null {
     return createSelector(
         'makeGetPostsInChannel',
@@ -576,50 +585,6 @@ export const getMostRecentPostIdInChannel: (state: GlobalState, channelId: Chann
 
         // return the most recent message in the channel
         return postIdsInChannel[0];
-    },
-);
-
-export const getLatestReplyablePostId: (state: GlobalState) => Post['id'] = createSelector(
-    'getLatestReplyablePostId',
-    getPostsInCurrentChannel,
-    (posts) => {
-        if (!posts) {
-            return '';
-        }
-
-        const latestReplyablePost = posts.find((post) => post.state !== Posts.POST_DELETED && !isSystemMessage(post) && !isPostEphemeral(post));
-        if (!latestReplyablePost) {
-            return '';
-        }
-
-        return latestReplyablePost.id;
-    },
-);
-
-export const getCurrentUsersLatestPost: (state: GlobalState, postId: Post['id']) => PostWithFormatData | undefined | null = createSelector(
-    'getCurrentUsersLatestPost',
-    getPostsInCurrentChannel,
-    getCurrentUser,
-    (state: GlobalState, rootId: string) => rootId,
-    (posts, currentUser, rootId) => {
-        if (!posts) {
-            return null;
-        }
-
-        const lastPost = posts.find((post) => {
-            // don't edit webhook posts, deleted posts, or system messages
-            if (post.user_id !== currentUser.id || (post.props && post.props.from_webhook) || post.state === Posts.POST_DELETED || isSystemMessage(post) || isPostEphemeral(post) || isPostPendingOrFailed(post)) {
-                return false;
-            }
-
-            if (rootId) {
-                return post.root_id === rootId || post.id === rootId;
-            }
-
-            return true;
-        });
-
-        return lastPost;
     },
 );
 
