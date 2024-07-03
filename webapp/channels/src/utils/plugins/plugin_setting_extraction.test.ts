@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PluginConfiguration} from 'types/plugins/user_settings';
+import type {PluginConfiguration, PluginConfigurationRadioSetting, PluginConfigurationSection} from 'types/plugins/user_settings';
 
 import {extractPluginConfiguration} from './plugin_setting_extraction';
 
@@ -87,9 +87,13 @@ describe('plugin setting extraction', () => {
         const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections).toHaveLength(2);
-        expect(res?.sections[0].settings).toHaveLength(2);
-        expect(res?.sections[1].settings).toHaveLength(1);
-        expect(res?.sections[0].settings[0].options).toHaveLength(2);
+
+        const sections = res?.sections as PluginConfigurationSection[];
+        expect(sections[0].settings).toHaveLength(2);
+        expect(sections[1].settings).toHaveLength(1);
+
+        const setting = sections[0].settings[0] as PluginConfigurationRadioSetting;
+        expect(setting.options).toHaveLength(2);
     });
 
     it('id gets overridden', () => {
@@ -122,14 +126,18 @@ describe('plugin setting extraction', () => {
         const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections).toHaveLength(2);
-        expect(res?.sections[0].disabled).toBe(config.sections[0].disabled);
-        expect(res?.sections[0].title).toBe(config.sections[0].title);
-        expect(res?.sections[0].onSubmit).toBe(config.sections[0].onSubmit);
-        expect(res?.sections[0].settings).toHaveLength(config.sections[0].settings.length);
-        expect(res?.sections[1].disabled).toBe(config.sections[1].disabled);
-        expect(res?.sections[1].title).toBe(config.sections[1].title);
-        expect(res?.sections[1].onSubmit).toBe(config.sections[1].onSubmit);
-        expect(res?.sections[1].settings).toHaveLength(config.sections[1].settings.length);
+
+        const sections = res?.sections as PluginConfigurationSection[];
+        const configSections = config.sections as PluginConfigurationSection[];
+
+        expect(sections[0].disabled).toBe(configSections[0].disabled);
+        expect(sections[0].title).toBe(configSections[0].title);
+        expect(sections[0].onSubmit).toBe(configSections[0].onSubmit);
+        expect(sections[0].settings).toHaveLength(configSections[0].settings.length);
+        expect(sections[1].disabled).toBe(configSections[1].disabled);
+        expect(sections[1].title).toBe(configSections[1].title);
+        expect(sections[1].onSubmit).toBe(configSections[1].onSubmit);
+        expect(sections[1].settings).toHaveLength(configSections[1].settings.length);
     });
 
     it('reject configs without name', () => {
@@ -161,12 +169,14 @@ describe('plugin setting extraction', () => {
         config.sections[0].settings[0].type = '';
         let res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(res?.sections[0].settings).toHaveLength(1);
+
+        const sections = res?.sections as PluginConfigurationSection[];
+        expect(sections[0].settings).toHaveLength(1);
 
         delete config.sections[0].settings[0].type;
         res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(res?.sections[0].settings).toHaveLength(1);
+        expect(sections[0].settings).toHaveLength(1);
     });
 
     it('filter out settings without a name', () => {
@@ -174,12 +184,16 @@ describe('plugin setting extraction', () => {
         config.sections[0].settings[0].name = '';
         let res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(res?.sections[0].settings).toHaveLength(1);
+
+        let sections = res?.sections as PluginConfigurationSection[];
+        expect(sections[0].settings).toHaveLength(1);
 
         delete config.sections[0].settings[0].name;
         res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(res?.sections[0].settings).toHaveLength(1);
+
+        sections = res?.sections as PluginConfigurationSection[];
+        expect(sections[0].settings).toHaveLength(1);
     });
 
     it('filter out settings without a default value', () => {
@@ -187,12 +201,16 @@ describe('plugin setting extraction', () => {
         config.sections[0].settings[0].default = '';
         let res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(res?.sections[0].settings).toHaveLength(1);
+
+        let sections = res?.sections as PluginConfigurationSection[];
+        expect(sections[0].settings).toHaveLength(1);
 
         delete config.sections[0].settings[0].default;
         res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(res?.sections[0].settings).toHaveLength(1);
+
+        sections = res?.sections as PluginConfigurationSection[];
+        expect(sections[0].settings).toHaveLength(1);
     });
 
     it('filter out radio options without a text', () => {
@@ -200,12 +218,18 @@ describe('plugin setting extraction', () => {
         config.sections[0].settings[0].options[0].text = '';
         let res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(res?.sections[0].settings[0].options).toHaveLength(1);
+
+        let sections = res?.sections as PluginConfigurationSection[];
+        let settings = sections[0].settings as PluginConfigurationRadioSetting[];
+        expect(settings[0].options).toHaveLength(1);
 
         delete config.sections[0].settings[0].options[0].text;
         res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(res?.sections[0].settings[0].options).toHaveLength(1);
+
+        sections = res?.sections as PluginConfigurationSection[];
+        settings = sections[0].settings as PluginConfigurationRadioSetting[];
+        expect(settings[0].options).toHaveLength(1);
     });
 
     it('filter out radio options without a value', () => {
@@ -213,12 +237,18 @@ describe('plugin setting extraction', () => {
         config.sections[0].settings[0].options[0].value = '';
         let res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(res?.sections[0].settings[0].options).toHaveLength(1);
+
+        let sections = res?.sections as PluginConfigurationSection[];
+        let settings = sections[0].settings as PluginConfigurationRadioSetting[];
+        expect(settings[0].options).toHaveLength(1);
 
         delete config.sections[0].settings[0].options[0].value;
         res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(res?.sections[0].settings[0].options).toHaveLength(1);
+
+        sections = res?.sections as PluginConfigurationSection[];
+        settings = sections[0].settings as PluginConfigurationRadioSetting[];
+        expect(settings[0].options).toHaveLength(1);
     });
 
     it('reject configs without valid sections', () => {
@@ -242,8 +272,13 @@ describe('plugin setting extraction', () => {
 
     it('filter out sections without valid settings', () => {
         const config = getFullExample();
-        config.sections[0].settings[0].options = [];
-        config.sections[0].settings[1].options = [];
+        if ('settings' in config.sections[0] && 'options' in config.sections[0].settings[0]) {
+            config.sections[0].settings[0].options = [];
+        }
+
+        if ('settings' in config.sections[0] && 'options' in config.sections[0].settings[1]) {
+            config.sections[0].settings[1].options = [];
+        }
         const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections).toHaveLength(1);
@@ -251,19 +286,23 @@ describe('plugin setting extraction', () => {
 
     it('filter out invalid settings', () => {
         const config = getFullExample();
-        config.sections[0].settings[0].options = [];
+        if ('settings' in config.sections[0] && 'options' in config.sections[0].settings[0]) {
+            config.sections[0].settings[0].options = [];
+        }
         const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(res?.sections[0].settings).toHaveLength(1);
+        expect((res?.sections[0] as PluginConfigurationSection).settings).toHaveLength(1);
     });
 
     it('filter out radio settings without valid options', () => {
         const config = getFullExample();
-        config.sections[0].settings[0].options[0].value = '';
-        config.sections[0].settings[0].options[1].value = '';
+        if ('settings' in config.sections[0] && 'options' in config.sections[0].settings[0]) {
+            config.sections[0].settings[0].options[0].value = '';
+            config.sections[0].settings[0].options[1].value = '';
+        }
         const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(res?.sections[0].settings).toHaveLength(1);
+        expect((res?.sections[0] as PluginConfigurationSection).settings).toHaveLength(1);
     });
 
     it('filter out ill defined action', () => {
@@ -332,6 +371,6 @@ describe('plugin setting extraction', () => {
         config.sections[0].settings[0].type = 'newType';
         const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(res?.sections[0].settings).toHaveLength(1);
+        expect((res?.sections[0] as PluginConfigurationSection).settings).toHaveLength(1);
     });
 });

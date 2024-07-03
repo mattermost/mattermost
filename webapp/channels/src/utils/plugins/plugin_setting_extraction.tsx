@@ -1,7 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {BasePluginConfigurationSetting, PluginConfiguration, PluginConfigurationAction, PluginConfigurationRadioSetting, PluginConfigurationRadioSettingOption, PluginConfigurationSection} from 'types/plugins/user_settings';
+import React from 'react';
+
+import type {
+    BasePluginConfigurationSetting,
+    PluginConfiguration,
+    PluginConfigurationAction,
+    PluginConfigurationRadioSetting,
+    PluginConfigurationRadioSettingOption,
+    PluginConfigurationSection,
+    PluginConfigurationCustomSetting,
+} from 'types/plugins/user_settings';
 
 export function extractPluginConfiguration(pluginConfiguration: unknown, pluginId: string) {
     if (!pluginConfiguration) {
@@ -106,6 +116,17 @@ function extractPluginConfigurationSection(section: unknown) {
         return undefined;
     }
 
+    if ('component' in section) {
+        if (!section.component || typeof section.component !== 'function' || !React.isValidElement(section.component())) {
+            return undefined;
+        }
+
+        return {
+            title: section.title,
+            component: section.component as React.ComponentType,
+        };
+    }
+
     if (!('settings' in section) || !Array.isArray(section.settings)) {
         return undefined;
     }
@@ -203,9 +224,30 @@ function extractPluginConfigurationSetting(setting: unknown) {
     switch (setting.type) {
     case 'radio':
         return extractPluginConfigurationRadioSetting(setting, res);
+    case 'custom':
+        return extractPluginConfigurationCustomSetting(setting, res);
     default:
         return undefined;
     }
+}
+
+function extractPluginConfigurationCustomSetting(setting: unknown, base: BasePluginConfigurationSetting) {
+    if (!setting || typeof setting !== 'object') {
+        return undefined;
+    }
+
+    if (!('component' in setting) || !setting.component ||
+        typeof setting.component !== 'function' || !React.isValidElement(setting.component())) {
+        return undefined;
+    }
+
+    const res: PluginConfigurationCustomSetting = {
+        ...base,
+        type: 'custom',
+        component: setting.component as React.ComponentType,
+    };
+
+    return res;
 }
 
 function extractPluginConfigurationRadioSetting(setting: unknown, base: BasePluginConfigurationSetting) {

@@ -87,6 +87,9 @@ const PluginSetting = ({
                     informChange={onSettingChanged}
                     pluginId={pluginId}
                 />);
+        } else if (setting.type === 'custom') {
+            const CustomComponent = setting.component;
+            inputs.push(<CustomComponent key={setting.name}/>);
         }
     }
 
@@ -101,7 +104,6 @@ const PluginSetting = ({
                 inputs={inputs}
                 submit={updateSetting}
                 updateSection={updateSection}
-
             />
         );
     }
