@@ -39,7 +39,7 @@ require (
 	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 	github.com/lib/pq v1.10.9
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
-	github.com/mattermost/gosaml2 v0.8.1-0.20220428161029-8c99721fdec4
+	github.com/mattermost/gosaml2 v0.8.0
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
 	github.com/mattermost/logr/v2 v2.0.21
 	github.com/mattermost/mattermost/server/public v0.1.4
