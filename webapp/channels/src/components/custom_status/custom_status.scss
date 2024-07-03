@@ -267,8 +267,7 @@
     }
 
     .custom-status {
-        display: flex;
-        justify-content: center;
+        display: inline-block;
 
         &-expiry {
             font-weight: 400;
