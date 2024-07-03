@@ -2939,6 +2939,10 @@
     "translation": "ID Loaded Push Notifications are not configured or supported on this server."
   },
   {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Failed to write logs to buffer"
+  },
+  {
     "id": "api.system.logs.invalidFilter",
     "translation": "Invalid log filter"
   },
