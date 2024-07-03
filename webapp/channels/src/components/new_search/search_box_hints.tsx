@@ -4,20 +4,20 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
-import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
 import type {ProviderResult} from 'components/suggestion/provider';
+import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
 
 import type {GlobalState} from 'types/store';
 
 import SearchHints from './search_hint';
 
 type Props = {
-    searchTerms: string
-    setSearchTerms: (searchTerms: string) => void
-    searchType: string
-    selectedOption: number
-    providerResults: ProviderResult<unknown>|null,
-    focus: (pos: number) => void
+    searchTerms: string;
+    setSearchTerms: (searchTerms: string) => void;
+    searchType: string;
+    selectedOption: number;
+    providerResults: ProviderResult<unknown>|null;
+    focus: (pos: number) => void;
 }
 
 const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResults, selectedOption, focus}: Props) => {

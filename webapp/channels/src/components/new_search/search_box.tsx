@@ -119,7 +119,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
         if (inputRef.current) {
             inputRef.current.focus();
         }
-    }, [searchType])
+    }, [searchType]);
 
     return (
         <SearchBoxContainer ref={ref}>

@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+
 import {
     renderWithContext,
     screen,
     fireEvent,
 } from 'tests/react_testing_utils';
-import React from 'react';
 
 import SearchBoxSuggestions from './search_box_suggestions';
 
@@ -22,7 +23,7 @@ const TestProviderResultComponent = ({item, term, matchedPretext, isSelection, o
             <span>{matchedPretext}</span>
         </div>
     );
-}
+};
 
 const TestPluginProviderComponent = ({searchTerms, onChangeSearch, onRunSearch}: any) => {
     return (
@@ -33,7 +34,7 @@ const TestPluginProviderComponent = ({searchTerms, onChangeSearch, onRunSearch}:
             <span onClick={() => onRunSearch(searchTerms)}>{'onRunSearch'}</span>
         </div>
     );
-}
+};
 
 describe('components/new_search/SearchBoxSuggestions', () => {
     const baseProps = {
@@ -54,36 +55,36 @@ describe('components/new_search/SearchBoxSuggestions', () => {
     };
 
     test('should show the suggestions and the suggestion header on messages', () => {
-        renderWithContext(<SearchBoxSuggestions {...baseProps}/>)
-        expect(screen.getByText("Test Header")).toBeInTheDocument();
-        expect(screen.getByText("test-username1")).toBeInTheDocument();
-        expect(screen.getByText("user1")).toBeInTheDocument();
-        expect(screen.getByText("test-username2")).toBeInTheDocument();
-        expect(screen.getByText("user2")).toBeInTheDocument();
+        renderWithContext(<SearchBoxSuggestions {...baseProps}/>);
+        expect(screen.getByText('Test Header')).toBeInTheDocument();
+        expect(screen.getByText('test-username1')).toBeInTheDocument();
+        expect(screen.getByText('user1')).toBeInTheDocument();
+        expect(screen.getByText('test-username2')).toBeInTheDocument();
+        expect(screen.getByText('user2')).toBeInTheDocument();
     });
 
     test('should change the search term and focus on click', () => {
-        renderWithContext(<SearchBoxSuggestions {...baseProps}/>)
-        fireEvent.click(screen.getByText("test-username1"));
+        renderWithContext(<SearchBoxSuggestions {...baseProps}/>);
+        fireEvent.click(screen.getByText('test-username1'));
         expect(baseProps.setSearchTerms).toHaveBeenCalledWith('test-username1 ');
         expect(baseProps.focus).toHaveBeenCalledWith(15);
     });
 
     test('should change the search term and focus on click with matchedPretext and previous text', () => {
         const props = {...baseProps, searchTerms: 'something from:test-user', providerResults: {...baseProps.providerResults, matchedPretext: 'test-user'}};
-        renderWithContext(<SearchBoxSuggestions {...props}/>)
-        fireEvent.click(screen.getByText("test-username1"));
+        renderWithContext(<SearchBoxSuggestions {...props}/>);
+        fireEvent.click(screen.getByText('test-username1'));
         expect(baseProps.setSearchTerms).toHaveBeenCalledWith('something from:test-username1 ');
         expect(baseProps.focus).toHaveBeenCalledWith(30);
     });
 
     test('should change the selected option on mousemove', () => {
         const props = {...baseProps};
-        renderWithContext(<SearchBoxSuggestions {...props}/>)
-        fireEvent.mouseMove(screen.getByText("test-username2"));
-        expect(baseProps.setSelectedOption).toHaveBeenCalledWith(1)
-        fireEvent.mouseMove(screen.getByText("test-username1"));
-        expect(baseProps.setSelectedOption).toHaveBeenCalledWith(0)
+        renderWithContext(<SearchBoxSuggestions {...props}/>);
+        fireEvent.mouseMove(screen.getByText('test-username2'));
+        expect(baseProps.setSelectedOption).toHaveBeenCalledWith(1);
+        fireEvent.mouseMove(screen.getByText('test-username1'));
+        expect(baseProps.setSelectedOption).toHaveBeenCalledWith(0);
     });
 
     test('should show the plugin suggestions', () => {
@@ -92,8 +93,8 @@ describe('components/new_search/SearchBoxSuggestions', () => {
             <SearchBoxSuggestions {...props}/>,
             {plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}}},
         );
-        expect(screen.getByText("Plugin suggestion")).toBeInTheDocument();
-        expect(screen.getByText("test-search-terms")).toBeInTheDocument();
+        expect(screen.getByText('Plugin suggestion')).toBeInTheDocument();
+        expect(screen.getByText('test-search-terms')).toBeInTheDocument();
     });
 
     test('should on search change change the search term and focus', () => {
@@ -102,7 +103,7 @@ describe('components/new_search/SearchBoxSuggestions', () => {
             <SearchBoxSuggestions {...props}/>,
             {plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}}},
         );
-        screen.getByText("onChangeSearch").click()
+        screen.getByText('onChangeSearch').click();
         expect(baseProps.setSearchTerms).toHaveBeenCalledWith('something from:test ');
         expect(baseProps.focus).toHaveBeenCalledWith(20);
     });
@@ -113,7 +114,7 @@ describe('components/new_search/SearchBoxSuggestions', () => {
             <SearchBoxSuggestions {...props}/>,
             {plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}}},
         );
-        screen.getByText("onRunSearch").click()
+        screen.getByText('onRunSearch').click();
         expect(baseProps.onSearch).toHaveBeenCalledWith('test-id', 'something from:t');
     });
 });

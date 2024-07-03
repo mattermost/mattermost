@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+
 import {
     renderWithContext,
     screen,
     fireEvent,
 } from 'tests/react_testing_utils';
-import React from 'react';
 
 import SearchBoxHints from './search_box_hints';
 
@@ -22,7 +23,7 @@ const TestProviderResultComponent = ({item, term, matchedPretext, isSelection, o
             <span>{matchedPretext}</span>
         </div>
     );
-}
+};
 
 const TestPluginProviderComponent = ({searchTerms, onChangeSearch}: any) => {
     return (
@@ -32,7 +33,7 @@ const TestPluginProviderComponent = ({searchTerms, onChangeSearch}: any) => {
             <span onClick={() => onChangeSearch('test', 't')}>{'onChangeSearch'}</span>
         </div>
     );
-}
+};
 
 describe('components/new_search/SearchBoxHints', () => {
     const baseProps = {
@@ -50,21 +51,21 @@ describe('components/new_search/SearchBoxHints', () => {
     };
 
     test('should show the hints for messages', () => {
-        renderWithContext(<SearchBoxHints {...baseProps}/>)
-        expect(screen.getByText("From:")).toBeInTheDocument();
+        renderWithContext(<SearchBoxHints {...baseProps}/>);
+        expect(screen.getByText('From:')).toBeInTheDocument();
     });
 
     test('should change the search term and focus on click', () => {
-        renderWithContext(<SearchBoxHints {...baseProps}/>)
-        fireEvent.click(screen.getByText("From:"));
+        renderWithContext(<SearchBoxHints {...baseProps}/>);
+        fireEvent.click(screen.getByText('From:'));
         expect(baseProps.setSearchTerms).toHaveBeenCalledWith('From:');
         expect(baseProps.focus).toHaveBeenCalledWith(5);
     });
 
     test('should set the selected option if it is passed from the parent', () => {
         const props = {...baseProps, selectedOption: 1};
-        renderWithContext(<SearchBoxHints {...props}/>)
-        expect(screen.getByText("Press Enter to select")).toBeInTheDocument();
+        renderWithContext(<SearchBoxHints {...props}/>);
+        expect(screen.getByText('Press Enter to select')).toBeInTheDocument();
     });
 
     test('should show the plugin suggestions', () => {
@@ -73,8 +74,8 @@ describe('components/new_search/SearchBoxHints', () => {
             <SearchBoxHints {...props}/>,
             {plugins: {components: {SearchHints: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}}},
         );
-        expect(screen.getByText("Plugin suggestion")).toBeInTheDocument();
-        expect(screen.getByText("test-search-terms")).toBeInTheDocument();
+        expect(screen.getByText('Plugin suggestion')).toBeInTheDocument();
+        expect(screen.getByText('test-search-terms')).toBeInTheDocument();
     });
 
     test('should on search change change the search term and focus', () => {
@@ -83,7 +84,7 @@ describe('components/new_search/SearchBoxHints', () => {
             <SearchBoxHints {...props}/>,
             {plugins: {components: {SearchHints: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}}},
         );
-        screen.getByText("onChangeSearch").click()
+        screen.getByText('onChangeSearch').click();
         expect(baseProps.setSearchTerms).toHaveBeenCalledWith('something from:test ');
         expect(baseProps.focus).toHaveBeenCalledWith(20);
     });
