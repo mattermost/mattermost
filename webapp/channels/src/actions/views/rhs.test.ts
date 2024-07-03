@@ -221,7 +221,8 @@ describe('rhs view actions', () => {
 
             // timezone offset in seconds
             let timeZoneOffset = getBrowserUtcOffset() * 60;
-            if (timeZoneOffset === -0) {
+            // Avoid problems with negative cero
+            if (timeZoneOffset === 0) {
                 timeZoneOffset = 0;
             }
 
