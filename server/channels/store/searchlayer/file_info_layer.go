@@ -65,6 +65,7 @@ func (s SearchFileInfoStore) deleteFileIndexForUser(rctx request.CTX, userID str
 	}
 }
 
+//nolint:unused // Temporarily unused until the post_id is indexed with the file
 func (s SearchFileInfoStore) deleteFileIndexForPost(rctx request.CTX, postID string) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
@@ -125,7 +126,7 @@ func (s SearchFileInfoStore) AttachToPost(rctx request.CTX, fileId, postId, chan
 }
 
 func (s SearchFileInfoStore) DeleteForPost(rctx request.CTX, postID string) (string, error) {
-	// temporary workaround because deleteFileIndexForPost is not working due to the post_id no being indexed with the file
+	// temporary workaround because deleteFileIndexForPost is not working due to the post_id not being indexed with the file
 	files, err := s.FileInfoStore.GetForPost(postID, false, true, true)
 	if err != nil {
 		return "", err
@@ -140,7 +141,7 @@ func (s SearchFileInfoStore) DeleteForPost(rctx request.CTX, postID string) (str
 }
 
 func (s SearchFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
-	// temporary workaround because deleteFileIndexForPost is not working due to the post_id no being indexed with the file
+	// temporary workaround because deleteFileIndexForPost is not working due to the post_id not being indexed with the file
 	files, err := s.FileInfoStore.GetForPost(postID, false, true, true)
 	if err != nil {
 		return err

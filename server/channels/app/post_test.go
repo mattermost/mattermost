@@ -3542,7 +3542,7 @@ func TestPermanentDeletePost(t *testing.T) {
 		data := []byte("abcd")
 
 		info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
-		require.Nil(t, err)
+		assert.Nil(t, err)
 
 		post := &model.Post{
 			Message:       "asd",
@@ -3596,7 +3596,7 @@ func TestPermanentDeletePost(t *testing.T) {
 		assert.Nil(t, err)
 
 		infos, sErr := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
-		require.Nil(t, sErr)
+		require.NoError(t, sErr)
 		assert.Len(t, infos, 1)
 
 		// Soft delete the post.
@@ -3615,7 +3615,7 @@ func TestPermanentDeletePost(t *testing.T) {
 		assert.NotNil(t, err)
 
 		infos, sErr = th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
-		require.Nil(t, sErr)
+		require.NoError(t, sErr)
 		assert.Len(t, infos, 0)
 	})
 }

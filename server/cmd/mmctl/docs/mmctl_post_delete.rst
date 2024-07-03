@@ -28,7 +28,8 @@ Options
 
 ::
 
-  -h, --help   help for delete
+      --confirm   Confirm you really want to delete the post and a DB backup has been performed
+  -h, --help      help for delete
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

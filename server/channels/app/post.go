@@ -1373,8 +1373,7 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 	}
 
 	if channel.DeleteAt != 0 {
-		appErr := model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
-		return nil, appErr
+		return nil, model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
 	}
 
 	err = a.Srv().Store().Post().Delete(c, postID, model.GetMillis(), deleteByID)
