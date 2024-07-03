@@ -24,7 +24,7 @@ func (a *App) NotifySessionsExpired() error {
 	// Get all mobile sessions that expired within the last hour.
 	sessions, err := a.ch.srv.Store().Session().GetSessionsExpired(OneHourMillis, true, true)
 	if err != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonFetchError, "")
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Cannot get sessions expired",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("status", model.NotificationStatusError),

@@ -1735,6 +1735,8 @@ func normalizeNotificationPlatform(platform string) string {
 		return "ios"
 	case "android_rn-v2", "android":
 		return "android"
+	case model.NotificationNoPlatform:
+		return model.NotificationNoPlatform
 	default:
 		return "unknown"
 	}
