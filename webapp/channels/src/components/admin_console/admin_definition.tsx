@@ -1924,12 +1924,7 @@ const AdminDefinition: AdminDefinitionType = {
                             component: BrandImageSetting,
                             key: 'CustomBrandLightLogoImage',
                             isDisabled: it.any(
-                                it.not(
-                                    it.any(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
-                                        it.licensedForSku(LicenseSkus.Professional),
-                                    ),
-                                ),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
@@ -1939,12 +1934,7 @@ const AdminDefinition: AdminDefinitionType = {
                             component: BrandImageSetting,
                             key: 'CustomBrandDarkLogoImage',
                             isDisabled: it.any(
-                                it.not(
-                                    it.any(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
-                                        it.licensedForSku(LicenseSkus.Professional),
-                                    ),
-                                ),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
@@ -1954,12 +1944,7 @@ const AdminDefinition: AdminDefinitionType = {
                             component: BrandImageSetting,
                             key: 'CustomBrandFaviconImage',
                             isDisabled: it.any(
-                                it.not(
-                                    it.any(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
-                                        it.licensedForSku(LicenseSkus.Professional),
-                                    ),
-                                ),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
@@ -1970,12 +1955,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.team.brandHeadingTitle', defaultMessage: 'Login page heading (Enterprise):'}),
                             help_text: defineMessage({id: 'admin.team.brandHeadingDescription', defaultMessage: 'When left empty, the login page heading will be "Log in to your account"'}),
                             isDisabled: it.any(
-                                it.not(
-                                    it.any(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
-                                        it.licensedForSku(LicenseSkus.Professional),
-                                    ),
-                                ),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
@@ -2012,12 +1992,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'TeamSettings.CustomBrandColorText',
                             label: defineMessage({id: 'admin.team.brandColorTextTitle', defaultMessage: 'Login page text color (Enterprise):'}),
                             isDisabled: it.any(
-                                it.not(
-                                    it.any(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
-                                        it.licensedForSku(LicenseSkus.Professional),
-                                    ),
-                                ),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
@@ -2027,12 +2002,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'TeamSettings.CustomBrandColorBackground',
                             label: defineMessage({id: 'admin.team.brandColorBackgroundTitle', defaultMessage: 'Login page background color (Enterprise):'}),
                             isDisabled: it.any(
-                                it.not(
-                                    it.any(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
-                                        it.licensedForSku(LicenseSkus.Professional),
-                                    ),
-                                ),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
@@ -2042,12 +2012,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'TeamSettings.CustomBrandColorLoginContainer',
                             label: defineMessage({id: 'admin.team.brandColorLoginContainerTitle', defaultMessage: 'Login container background color (Enterprise):'}),
                             isDisabled: it.any(
-                                it.not(
-                                    it.any(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
-                                        it.licensedForSku(LicenseSkus.Professional),
-                                    ),
-                                ),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
@@ -2057,12 +2022,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'TeamSettings.CustomBrandColorLoginContainerText',
                             label: defineMessage({id: 'admin.team.brandColorLoginContainerTextTitle', defaultMessage: 'Login container text color (Enterprise):'}),
                             isDisabled: it.any(
-                                it.not(
-                                    it.any(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
-                                        it.licensedForSku(LicenseSkus.Professional),
-                                    ),
-                                ),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
@@ -2072,12 +2032,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'TeamSettings.CustomBrandColorButtonBackground',
                             label: defineMessage({id: 'admin.team.brandColorButtonBackgroundTitle', defaultMessage: 'Login page button background color (Enterprise):'}),
                             isDisabled: it.any(
-                                it.not(
-                                    it.any(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
-                                        it.licensedForSku(LicenseSkus.Professional),
-                                    ),
-                                ),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
@@ -2087,12 +2042,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'TeamSettings.CustomBrandColorButtonText',
                             label: defineMessage({id: 'admin.team.brandColorButtonTextTitle', defaultMessage: 'Login page button text color (Enterprise):'}),
                             isDisabled: it.any(
-                                it.not(
-                                    it.any(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
-                                        it.licensedForSku(LicenseSkus.Professional),
-                                    ),
-                                ),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
@@ -2102,12 +2052,7 @@ const AdminDefinition: AdminDefinitionType = {
                             component: BrandImageSetting,
                             key: 'CustomBrandBackgroundImage',
                             isDisabled: it.any(
-                                it.not(
-                                    it.any(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
-                                        it.licensedForSku(LicenseSkus.Professional),
-                                    ),
-                                ),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
@@ -2118,12 +2063,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.team.brandCssTitle', defaultMessage: 'Custom Css (Enterprise):'}),
                             help_text: defineMessage({id: 'admin.team.brandCssDescription', defaultMessage: 'Enter custom CSS rules to override the styles.'}),
                             isDisabled: it.any(
-                                it.not(
-                                    it.any(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
-                                        it.licensedForSku(LicenseSkus.Professional),
-                                    ),
-                                ),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
@@ -2134,12 +2074,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.team.brandShowFooterTitle', defaultMessage: 'Show footer links on login page (Enterprise):'}),
                             help_text: defineMessage({id: 'admin.team.brandShowFooterDescription', defaultMessage: 'When turned on, privacy plicy, terms of use, help, and about links will show on the login page.'}),
                             isDisabled: it.any(
-                                it.not(
-                                    it.any(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
-                                        it.licensedForSku(LicenseSkus.Professional),
-                                    ),
-                                ),
+                                it.not(it.licensedForSku(LicenseSkus.Enterprise)),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                                 it.stateIsFalse('TeamSettings.EnableCustomBrand'),
                             ),
