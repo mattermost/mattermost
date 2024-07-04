@@ -197,7 +197,7 @@ func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
 
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
 	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
-	ps.invalidateWebConnSessionCacheForUser(userID)
+	ps.ClearUserSessionCache(userID)
 
 	ps.Store.User().InvalidateProfilesInChannelCacheByUser(userID)
 	ps.Store.User().InvalidateProfileCacheForUser(userID)
