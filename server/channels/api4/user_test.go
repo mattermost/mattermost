@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -3875,10 +3876,11 @@ func TestLogin(t *testing.T) {
 		ruser, appErr := th.App.CreateUser(th.Context, &user)
 		require.Nil(t, appErr)
 
+		// remote user cannot reset password
 		_, err := th.SystemAdminClient.UpdateUserPassword(context.Background(), ruser.Id, "", "password")
-		require.NoError(t, err)
+		require.Error(t, err)
 
-		_, _, err = th.Client.Login(context.Background(), ruser.Email, "password")
+		_, _, err = th.Client.Login(context.Background(), ruser.Email, "hello1")
 		CheckErrorID(t, err, "api.user.login.remote_users.login.error")
 	})
 
@@ -4631,6 +4633,26 @@ func TestCreateUserAccessToken(t *testing.T) {
 		defer func() { th.Client.AuthToken = oldSessionToken }()
 
 		assertToken(t, th, rtoken, th.BasicUser.Id)
+	})
+
+	t.Run("create user access token for remote user as a system admin", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+		// make a remote user
+		remoteUser, appErr := th.App.CreateUser(request.TestContext(t), &model.User{
+			Username: "remoteuser",
+			RemoteId: model.NewString(model.NewId()),
+			Password: model.NewId(),
+			Email:    "remoteuser@example.com",
+		})
+		require.Nil(t, appErr)
+
+		_, resp, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), remoteUser.Id, "test token")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp) // remote users are not allowed to have access tokens
 	})
 
 	t.Run("create access token as oauth session", func(t *testing.T) {

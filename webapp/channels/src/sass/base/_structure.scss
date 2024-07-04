@@ -116,6 +116,7 @@ body.app__body #root {
     --columns: min-content minmax(385px, 1fr) min-content;
     grid-template:
         "announcement announcement announcement" min-content
+        "admin-announcement admin-announcement admin-announcement" min-content
         "header header header" min-content
         "team-sidebar main app-sidebar"
         "footer footer footer" min-content / var(--columns);
@@ -131,6 +132,7 @@ body.app__body #root {
         padding-right: 0;
         grid-template:
             'announcement announcement' min-content
+            'admin-announcement admin-announcement' min-content
             'header header' min-content
             'lhs center'
             'footer footer' min-content
@@ -145,6 +147,10 @@ body.app__body #root {
 
     .announcement-bar {
         grid-area: announcement;
+    }
+
+    .announcement-bar.admin-announcement {
+        grid-area: admin-announcement;
     }
 
     #global-header {

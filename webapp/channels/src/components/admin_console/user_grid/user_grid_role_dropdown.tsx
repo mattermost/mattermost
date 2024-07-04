@@ -8,13 +8,11 @@ import type {ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import WithTooltip from 'components/with_tooltip';
 
-import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 export type BaseMembership = {
@@ -133,27 +131,23 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
         const ariaLabel = this.getAriaLabel();
 
         if (currentRole === 'shared_member') {
-            const sharedTooltip = (
-                <Tooltip id='sharedTooltip'>
-                    <FormattedMessage
-                        id='shared_user_indicator.tooltip'
-                        defaultMessage='From trusted organizations'
-                    />
-                </Tooltip>
-            );
-
             return (
                 <div className='more-modal__shared-actions'>
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                    <WithTooltip
+                        id='userGridDropdown.sharedUserIndicator.tooltip'
                         placement='bottom'
-                        overlay={sharedTooltip}
+                        title={
+                            <FormattedMessage
+                                id='shared_user_indicator.tooltip'
+                                defaultMessage='From trusted organizations'
+                            />
+                        }
                     >
                         <span>
                             {localizedRole}
                             <i className='shared-user-icon icon-circle-multiple-outline'/>
                         </span>
-                    </OverlayTrigger>
+                    </WithTooltip>
                 </div>
             );
         }
