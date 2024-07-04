@@ -22,6 +22,7 @@ import UserSettings from 'components/user_settings';
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 
 export type OwnProps = {
+    userID: string;
     adminMode?: boolean;
     currentUser?: UserProfile;
     isContentProductSettings: boolean;

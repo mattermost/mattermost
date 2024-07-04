@@ -310,7 +310,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             dialogType: UserSettingsModal,
             dialogProps: {
                 isContentProductSettings: true,
-                currentUser: this.state.user,
+                // currentUser: this.state.user,
+                userID: this.state.user.id,
                 adminMode: true,
                 userPreferences,
             },
@@ -318,6 +319,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     render() {
+        console.log({email: this.state.user?.email});
+
         return (
             <div className='SystemUserDetail wrapper--fixed'>
                 <AdminHeader withBackButton={true}>

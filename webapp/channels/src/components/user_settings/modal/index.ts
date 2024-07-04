@@ -8,7 +8,7 @@ import type {Dispatch} from 'redux';
 
 import {sendVerificationEmail} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUser, getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {getPluginUserSettings} from 'selectors/plugins';
 
@@ -27,7 +27,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const requireEmailVerification = config.RequireEmailVerification === 'true';
 
     return {
-        currentUser: ownProps.adminMode ? ownProps.currentUser : getCurrentUser(state),
+        currentUser: ownProps.adminMode ? getUser(state, ownProps.userID) : getCurrentUser(state),
         sendEmailNotifications,
         requireEmailVerification,
         pluginSettings: getPluginUserSettings(state),
