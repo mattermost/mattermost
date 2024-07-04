@@ -10,10 +10,11 @@ import IconButton from '@mattermost/compass-components/components/icon-button'; 
 import {closeRightHandSide, showFlaggedPosts} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
+import WithTooltip from 'components/with_tooltip';
+
 import {RHSStates} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
-import WithTooltip from 'components/with_tooltip';
 
 const SavedPostsButton = (): JSX.Element | null => {
     const {formatMessage} = useIntl();
@@ -32,10 +33,12 @@ const SavedPostsButton = (): JSX.Element | null => {
     return (
         <WithTooltip
             id='recentMentions'
-            title={<FormattedMessage
-                id='channel_header.flagged'
-                defaultMessage='Saved messages'
-            />}
+            title={
+                <FormattedMessage
+                    id='channel_header.flagged'
+                    defaultMessage='Saved messages'
+                />
+            }
             placement='bottom'
         >
             <IconButton
