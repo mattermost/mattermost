@@ -6,6 +6,7 @@ import {connect} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
+import {getUserPreferences} from 'mattermost-redux/actions/preferences';
 import {addUserToTeam} from 'mattermost-redux/actions/teams';
 import {updateUserActive, getUser, patchUser, updateUserMfa} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -31,6 +32,7 @@ const mapDispatchToProps = {
     addUserToTeam,
     setNavigationBlocked,
     openModal,
+    getUserPreferences,
 };
 const connector = connect(mapStateToProps, mapDispatchToProps);
 

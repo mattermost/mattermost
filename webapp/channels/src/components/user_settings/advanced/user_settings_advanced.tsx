@@ -165,7 +165,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     };
 
     handleSubmit = async (settings: string[]): Promise<void> => {
-        if (!currentUser) {
+        if (!this.props.currentUser) {
             return;
         }
 

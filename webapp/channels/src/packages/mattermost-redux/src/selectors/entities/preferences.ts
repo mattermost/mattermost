@@ -16,6 +16,10 @@ export function getMyPreferences(state: GlobalState): { [x: string]: PreferenceT
     return state.entities.preferences.myPreferences;
 }
 
+export function getUserPreferences(state: GlobalState, userID: string): { [x: string]: PreferenceType } {
+    return state.entities.preferences.userPreferences[userID];
+}
+
 export function get(state: GlobalState, category: string, name: string, defaultValue: any = '') {
     const key = getPreferenceKey(category, name);
     const prefs = getMyPreferences(state);

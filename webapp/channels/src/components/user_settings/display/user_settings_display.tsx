@@ -228,6 +228,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     };
 
     handleSubmit = async () => {
+        console.log('handle submit called....');
         const userId = this.props.user.id;
 
         const timePreference = {

@@ -8,6 +8,7 @@ import type {Dispatch} from 'redux';
 
 import {sendVerificationEmail} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getUserPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {getPluginUserSettings} from 'selectors/plugins';
@@ -28,6 +29,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
     return {
         currentUser: ownProps.adminMode ? getUser(state, ownProps.userID) : getCurrentUser(state),
+        userPreferences: ownProps.adminMode ? getUserPreferences(state, ownProps.userID) : undefined,
         sendEmailNotifications,
         requireEmailVerification,
         pluginSettings: getPluginUserSettings(state),

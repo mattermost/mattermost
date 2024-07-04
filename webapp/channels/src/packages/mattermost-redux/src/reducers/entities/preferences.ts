@@ -24,6 +24,24 @@ function setAllPreferences(preferences: PreferenceType[]): any {
     return nextState;
 }
 
+function setAllUserPreferences(preferences: PreferenceType[]): any {
+    const nextState: any = {};
+    if (preferences.length === 0) {
+        return nextState;
+    }
+
+    const userID = preferences[0].user_id;
+    nextState[userID] = {};
+
+    if (preferences) {
+        for (const preference of preferences) {
+            nextState[userID][getKey(preference)] = preference;
+        }
+    }
+
+    return nextState;
+}
+
 function myPreferences(state: Record<string, PreferenceType> = {}, action: AnyAction) {
     switch (action.type) {
     case PreferenceTypes.RECEIVED_ALL_PREFERENCES:
@@ -62,8 +80,21 @@ function myPreferences(state: Record<string, PreferenceType> = {}, action: AnyAc
     }
 }
 
+function userPreferences(state: Record<string, PreferenceType> = {}, action: AnyAction) {
+    switch (action.type) {
+    case PreferenceTypes.RECEIVED_USER_PREFERENCES:
+        return setAllUserPreferences(action.data);
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
 
     // object where the key is the category-name and has the corresponding value
     myPreferences,
+    userPreferences,
 });

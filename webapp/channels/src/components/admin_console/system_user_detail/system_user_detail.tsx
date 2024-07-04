@@ -10,6 +10,8 @@ import {Constants, ModalIdentifiers} from 'utils/constants';
 import {toTitleCase} from 'utils/utils';
 
 import type {ServerError} from '@mattermost/types/errors';
+import type {PreferenceType} from '@mattermost/types/lib/preferences';
+import {PreferencesType} from '@mattermost/types/lib/preferences';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -38,10 +40,12 @@ import './system_user_detail.scss';
 import UserSettingsModal from 'components/user_settings/modal';
 
 import {Client4} from 'mattermost-redux/client';
-import {PreferencesType, PreferenceType} from "@mattermost/types/lib/preferences";
-import {raw} from "concurrently/dist/src/defaults";
-import {PreferenceTypes} from "mattermost-redux/action_types";
-import {getPreferenceKey} from "mattermost-redux/utils/preference_utils";
+
+import {raw} from 'concurrently/dist/src/defaults';
+
+import {PreferenceTypes} from 'mattermost-redux/action_types';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+import {getUserPreferences} from 'mattermost-redux/actions/preferences';
 
 export type Params = {
     user_id?: UserProfile['id'];
@@ -299,21 +303,47 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         console.log({user: this.state.user});
 
-        const userPreferences: PreferencesType = {};
-        const rawUserPreferences: PreferencesType[] = await Client4.getUserPreferences(this.state.user.id);
-        rawUserPreferences.forEach((preference: PreferenceType) => {
-            userPreferences[getPreferenceKey(preference.category, preference.name)] = preference;
-        });
+        // const userPreferences: PreferencesType = {};
+        // const rawUserPreferences: PreferencesType[] = await Client4.getUserPreferences(this.state.user.id);
+        // rawUserPreferences.forEach((preference: PreferenceType) => {
+        //     userPreferences[getPreferenceKey(preference.category, preference.name)] = preference;
+        // });
+
+        try {
+            const {data, error} = await this.props.getUserPreferences(this.state.user.id) as ActionResult<PreferenceType, ServerError>;
+            if (!data) {
+                throw new Error(error ? error.message : 'Unknown error');
+            }
+        } catch (error) {
+            console.log('SystemUserDetails-toggleOpenManageUserSettingsModal: ', error); // eslint-disable-line no-console
+
+            this.setState({
+                isLoading: false,
+                error: this.props.intl.formatMessage({id: 'admin.user_item.userNotFound', defaultMessage: 'Cannot load User'}),
+            });
+        }
+
+        // if (data) {
+        //     this.setState({
+        //         user: data,
+        //         emailField: data.email, // Set emailField to the email of the user for editing purposes
+        //         isLoading: false,
+        //     });
+        // } else {
+        //     throw new Error(error ? error.message : 'Unknown error');
+        // }
 
         this.props.openModal({
             modalId: ModalIdentifiers.USER_SETTINGS,
             dialogType: UserSettingsModal,
             dialogProps: {
                 isContentProductSettings: true,
+
                 // currentUser: this.state.user,
+                // userPreferences,
+
                 userID: this.state.user.id,
                 adminMode: true,
-                userPreferences,
             },
         });
     };

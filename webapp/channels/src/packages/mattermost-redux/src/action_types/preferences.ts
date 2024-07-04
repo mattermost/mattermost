@@ -7,4 +7,5 @@ export default keyMirror({
     RECEIVED_PREFERENCES: null,
     RECEIVED_ALL_PREFERENCES: null,
     DELETED_PREFERENCES: null,
+    RECEIVED_USER_PREFERENCES: null,
 });
