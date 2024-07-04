@@ -10,7 +10,7 @@ import IconButton from '@mattermost/compass-components/components/icon-button'; 
 import {closeRightHandSide, showFlaggedPosts} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
-import Constants, {RHSStates} from 'utils/constants';
+import {RHSStates} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 import WithTooltip from 'components/with_tooltip';
