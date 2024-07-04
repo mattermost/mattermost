@@ -297,6 +297,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             return;
         }
 
+        console.log({user: this.state.user});
+
         const userPreferences: PreferencesType = {};
         const rawUserPreferences: PreferencesType[] = await Client4.getUserPreferences(this.state.user.id);
         rawUserPreferences.forEach((preference: PreferenceType) => {

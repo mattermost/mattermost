@@ -240,6 +240,22 @@ export function getCollapsedThreadsPreference(state: GlobalState): string {
     );
 }
 
+export function getCollapsedThreadsPreferenceFromPreferences(state: GlobalState, userPreferences: PreferencesType): string {
+    const configValue = getConfig(state)?.CollapsedThreads;
+    let preferenceDefault = Preferences.COLLAPSED_REPLY_THREADS_OFF;
+
+    if (configValue === CollapsedThreads.DEFAULT_ON || configValue === CollapsedThreads.ALWAYS_ON) {
+        preferenceDefault = Preferences.COLLAPSED_REPLY_THREADS_ON;
+    }
+
+    return getFromPreferences(
+        userPreferences,
+        Preferences.CATEGORY_DISPLAY_SETTINGS,
+        Preferences.COLLAPSED_REPLY_THREADS,
+        preferenceDefault,
+    );
+}
+
 export function isCollapsedThreadsAllowed(state: GlobalState): boolean {
     return Boolean(getConfig(state)) && getConfig(state).CollapsedThreads !== undefined && getConfig(state).CollapsedThreads !== CollapsedThreads.DISABLED;
 }
@@ -247,6 +263,13 @@ export function isCollapsedThreadsAllowed(state: GlobalState): boolean {
 export function isCollapsedThreadsEnabled(state: GlobalState): boolean {
     const isAllowed = isCollapsedThreadsAllowed(state);
     const userPreference = getCollapsedThreadsPreference(state);
+
+    return isAllowed && (userPreference === Preferences.COLLAPSED_REPLY_THREADS_ON || getConfig(state).CollapsedThreads === CollapsedThreads.ALWAYS_ON);
+}
+
+export function isCollapsedThreadsEnabledForUser(state: GlobalState, userPreferences: PreferencesType): boolean {
+    const isAllowed = isCollapsedThreadsAllowed(state);
+    const userPreference = getCollapsedThreadsPreferenceFromPreferences(state, userPreferences);
 
     return isAllowed && (userPreference === Preferences.COLLAPSED_REPLY_THREADS_ON || getConfig(state).CollapsedThreads === CollapsedThreads.ALWAYS_ON);
 }

@@ -67,6 +67,8 @@ export default function UserSettings(props: Props) {
                     updateSection={props.updateSection}
                     closeModal={props.closeModal}
                     collapseModal={props.collapseModal}
+                    adminMode={props.adminMode}
+                    userPreferences={props.userPreferences}
                 />
             </div>
         );
