@@ -322,10 +322,6 @@ func (m *Manifest) IsValid() error {
 	return nil
 }
 
-func (m *Manifest) GetPluginID() string {
-	return m.Id
-}
-
 func (s *PluginSettingsSchema) isValid() error {
 	for _, setting := range s.Settings {
 		err := setting.isValid()
