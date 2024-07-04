@@ -47,7 +47,7 @@ const SavedPostsButton = (): JSX.Element | null => {
                 compact={true}
                 aria-expanded={rhsState === RHSStates.FLAG}
                 aria-controls='searchContainer' // Must be changed if the ID of the container changes
-                aria-label={formatMessage({ id: 'channel_header.flagged', defaultMessage: 'Saved messages' })}
+                aria-label={formatMessage({id: 'channel_header.flagged', defaultMessage: 'Saved messages'})}
             />
         </WithTooltip>
     );
