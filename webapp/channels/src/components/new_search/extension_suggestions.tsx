@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {useIntl, defineMessages} from 'react-intl';
 import styled from 'styled-components';
 
 import type {SuggestionProps} from 'components/suggestion/suggestion';
@@ -46,101 +46,59 @@ const ExtensionText = styled.span`
     margin-left: 4px;
 `;
 
+const messages: Record<string, {id: string; defaultMessage: string}> = defineMessages({
+    pdf: {
+        id: 'file_type.pdf',
+        defaultMessage: 'Acrobat',
+    },
+    word: {
+        id: 'file_type.word',
+        defaultMessage: 'Word Document',
+    },
+    image: {
+        id: 'file_type.image',
+        defaultMessage: 'Image',
+    },
+    audio: {
+        id: 'file_type.audio',
+        defaultMessage: 'Audio',
+    },
+    video: {
+        id: 'file_type.video',
+        defaultMessage: 'Video',
+    },
+    presentation: {
+        id: 'file_type.presentation',
+        defaultMessage: 'Powerpoint Presentation',
+    },
+    spreadsheet: {
+        id: 'file_type.spreadsheet',
+        defaultMessage: 'Excel spreadsheet',
+    },
+    code: {
+        id: 'file_type.code',
+        defaultMessage: 'Code file',
+    },
+    patch: {
+        id: 'file_type.patch',
+        defaultMessage: 'Patch file',
+    },
+    svg: {
+        id: 'file_type.svg',
+        defaultMessage: 'Vector graphics',
+    },
+    text: {
+        id: 'file_type.text',
+        defaultMessage: 'Text file',
+    },
+});
+
 const SearchFileExtensionSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<ExtensionItem>>((props, ref) => {
+    const intl = useIntl();
     const {item} = props;
 
     let labelName: React.ReactNode = item.type;
-
-    switch (item.type) {
-    case 'pdf':
-        labelName = (
-            <FormattedMessage
-                id='file_type.pdf'
-                defaultMessage='Acrobat'
-            />
-        );
-        break;
-    case 'word':
-        labelName = (
-            <FormattedMessage
-                id='file_type.word'
-                defaultMessage='Word Document'
-            />
-        );
-        break;
-    case 'image':
-        labelName = (
-            <FormattedMessage
-                id='file_type.image'
-                defaultMessage='Image'
-            />
-        );
-        break;
-    case 'audio':
-        labelName = (
-            <FormattedMessage
-                id='file_type.audio'
-                defaultMessage='Audio'
-            />
-        );
-        break;
-    case 'video':
-        labelName = (
-            <FormattedMessage
-                id='file_type.video'
-                defaultMessage='Video'
-            />
-        );
-        break;
-    case 'presentation':
-        labelName = (
-            <FormattedMessage
-                id='file_type.presentation'
-                defaultMessage='Powerpoint Presentation'
-            />
-        );
-        break;
-    case 'spreadsheet':
-        labelName = (
-            <FormattedMessage
-                id='file_type.spreadsheet'
-                defaultMessage='Excel spreadsheet'
-            />
-        );
-        break;
-    case 'code':
-        labelName = (
-            <FormattedMessage
-                id='file_type.code'
-                defaultMessage='Code file'
-            />
-        );
-        break;
-    case 'patch':
-        labelName = (
-            <FormattedMessage
-                id='file_type.patch'
-                defaultMessage='Patch file'
-            />
-        );
-        break;
-    case 'svg':
-        labelName = (
-            <FormattedMessage
-                id='file_type.svg'
-                defaultMessage='Vector graphics'
-            />
-        );
-        break;
-    case 'text':
-        labelName = (
-            <FormattedMessage
-                id='file_type.text'
-                defaultMessage='Text file'
-            />
-        );
-        break;
-    }
+    labelName = messages[item.type] ? intl.formatMessage(messages[item.type]) : item.type;
 
     return (
         <SearchFileExtensionSuggestionContainer
