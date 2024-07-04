@@ -1458,6 +1458,7 @@
   "admin.log.logLevel": "Nivå",
   "admin.logs.Alllevels": "Alla nivåer",
   "admin.logs.Debug": "Felsökning",
+  "admin.logs.DownloadLogs": "Ladda ner loggar",
   "admin.logs.Error": "Fel",
   "admin.logs.Info": "Info",
   "admin.logs.ReloadLogs": "Uppdatera loggen",
