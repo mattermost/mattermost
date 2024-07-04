@@ -8,7 +8,7 @@ import {Link} from 'react-router-dom';
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 
 import DeleteIntegrationLink from 'components/integrations/delete_integration_link';
-import InstalledIncomingWebhook from 'components/integrations/installed_incoming_webhook';
+import InstalledIncomingWebhook, {matchesFilter} from 'components/integrations/installed_incoming_webhook';
 
 describe('components/integrations/InstalledIncomingWebhook', () => {
     const incomingWebhook: IncomingWebhook = {
@@ -29,7 +29,7 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
     const teamId = 'testteamid';
 
     test('should match snapshot', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
+        function emptyFunction() { } //eslint-disable-line no-empty-function
 
         const wrapper = shallow<InstalledIncomingWebhook>(
             <InstalledIncomingWebhook
@@ -78,7 +78,7 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
     });
 
     test('should not have edit and delete actions if user does not have permissions to change', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
+        function emptyFunction() { } //eslint-disable-line no-empty-function
 
         const wrapper = shallow<InstalledIncomingWebhook>(
             <InstalledIncomingWebhook
@@ -127,7 +127,7 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
     });
 
     test('should have edit and delete actions if user can change webhook', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
+        function emptyFunction() { } //eslint-disable-line no-empty-function
 
         const wrapper = shallow<InstalledIncomingWebhook>(
             <InstalledIncomingWebhook
@@ -177,7 +177,7 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
     });
 
     test('Should have the same name and description on view as it has in incomingWebhook', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
+        function emptyFunction() { } //eslint-disable-line no-empty-function
 
         const wrapper = shallow<InstalledIncomingWebhook>(
             <InstalledIncomingWebhook
@@ -228,7 +228,7 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
     });
 
     test('Should not display description as it is null', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
+        function emptyFunction() { } //eslint-disable-line no-empty-function
         const newIncomingWebhook: IncomingWebhook = {...incomingWebhook, description: ''};
         const wrapper = shallow<InstalledIncomingWebhook>(
             <InstalledIncomingWebhook
@@ -277,7 +277,7 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
     });
 
     test('Should not render any nodes as there are no filtered results', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
+        function emptyFunction() { } //eslint-disable-line no-empty-function
         const wrapper = shallow<InstalledIncomingWebhook>(
             <InstalledIncomingWebhook
                 key={1}
@@ -326,7 +326,7 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
     });
 
     test('Should render a webhook item as filtered result is true', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
+        function emptyFunction() { } //eslint-disable-line no-empty-function
         const wrapper = shallow<InstalledIncomingWebhook>(
             <InstalledIncomingWebhook
                 key={1}
@@ -372,5 +372,103 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
             />,
         );
         expect(wrapper.find('.item-details').exists()).toBe(true);
+    });
+
+    test('Webhooks should have the associated channel', () => {
+        function emptyFunction() { } //eslint-disable-line no-empty-function
+        const wrapper = shallow<IncomingWebhook>(
+            <InstalledIncomingWebhook
+                key={1}
+                incomingWebhook={incomingWebhook}
+                onDelete={emptyFunction}
+                creator={{username: 'creator'}}
+                filter={'buil'}
+                canChange={true}
+                team={{
+                    id: teamId,
+                    name: 'test',
+                    create_at: 1502455422406,
+                    delete_at: 0,
+                    update_at: 1502455422406,
+                    type: 'O',
+                    display_name: 'name',
+                    scheme_id: 'id',
+                    allow_open_invite: false,
+                    group_constrained: false,
+                    description: '',
+                    email: '',
+                    company_name: '',
+                    allowed_domains: '',
+                    invite_id: '',
+                }}
+                channel={{
+                    id: '1jiw9kphbjrntfyrm7xpdcya4o',
+                    name: 'town-square',
+                    create_at: 1502455422406,
+                    delete_at: 0,
+                    update_at: 1502455422406,
+                    team_id: teamId,
+                    type: 'O',
+                    display_name: 'Town Square',
+                    header: 'header',
+                    purpose: 'purpose',
+                    last_post_at: 0,
+                    last_root_post_at: 0,
+                    creator_id: 'id',
+                    scheme_id: 'id',
+                    group_constrained: false,
+                }}
+            />);
+        expect(wrapper.find('.item-details__channel_name').exists()).toBe(true);
+    });
+
+    test('matchesFilter should return true as it allows filter by channel display_name', () => {
+        const result = matchesFilter(
+            incomingWebhook,
+            {
+                id: '1jiw9kphbjrntfyrm7xpdcya4o',
+                name: 'town-square',
+                create_at: 1502455422406,
+                delete_at: 0,
+                update_at: 1502455422406,
+                team_id: teamId,
+                type: 'O',
+                display_name: 'TS Display Name',
+                header: 'header',
+                purpose: 'purpose',
+                last_post_at: 0,
+                last_root_post_at: 0,
+                creator_id: 'id',
+                scheme_id: 'id',
+                group_constrained: false,
+            },
+            'ts disp',
+        );
+        expect(result).toBe(true);
+    });
+
+    test("matchesFilter should return false, as filter doesn't match with channel display_name", () => {
+        const result = matchesFilter(
+            incomingWebhook,
+            {
+                id: '1jiw9kphbjrntfyrm7xpdcya4o',
+                name: 'town-square',
+                create_at: 1502455422406,
+                delete_at: 0,
+                update_at: 1502455422406,
+                team_id: teamId,
+                type: 'O',
+                display_name: 'TS Display Name',
+                header: 'header',
+                purpose: 'purpose',
+                last_post_at: 0,
+                last_root_post_at: 0,
+                creator_id: 'id',
+                scheme_id: 'id',
+                group_constrained: false,
+            },
+            'ts disop',
+        );
+        expect(result).toBe(false);
     });
 });
