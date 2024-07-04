@@ -18,7 +18,6 @@ import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import Constants from 'utils/constants';
 import {isValidPassword} from 'utils/password';
 
-
 const PasswordResetForm = () => {
     const intl = useIntl();
     const history = useHistory();
