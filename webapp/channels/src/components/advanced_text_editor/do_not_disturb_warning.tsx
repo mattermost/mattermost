@@ -31,7 +31,7 @@ const DoNotDisturbWarning = ({displayName}: Props) => {
             <Icon className='icon-minus-circle'/>
             <FormattedMessage
                 id='advanced_create_post.doNotDisturbWarning'
-                defaultMessage='{displayName} is set to <b>Do Not Disturb.</b>'
+                defaultMessage='{displayName} is set to <b>Do Not Disturb</b>'
                 values={{displayName, b: (chunks: React.ReactNode) => <b>{chunks}</b>}}
             />
         </Container>
