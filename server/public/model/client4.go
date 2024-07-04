@@ -698,7 +698,7 @@ func (c *Client4) DoUploadFile(ctx context.Context, url string, data []byte, con
 }
 
 func (c *Client4) doUploadFile(ctx context.Context, url string, body io.Reader, contentType string, contentLength int64) (*FileUploadResponse, *Response, error) {
-	rq, err := http.NewRequest("POST", c.APIURL+url, body)
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+url, body)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -757,7 +757,7 @@ func (c *Client4) DoEmojiUploadFile(ctx context.Context, url string, data []byte
 }
 
 func (c *Client4) DoUploadImportTeam(ctx context.Context, url string, data []byte, contentType string) (map[string]string, *Response, error) {
-	rq, err := http.NewRequest("POST", c.APIURL+url, bytes.NewReader(data))
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+url, bytes.NewReader(data))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1817,7 +1817,7 @@ func (c *Client4) SetProfileImage(ctx context.Context, userId string, data []byt
 		return nil, NewAppError("SetProfileImage", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.userRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.userRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -2889,7 +2889,7 @@ func (c *Client4) SetTeamIcon(ctx context.Context, teamId string, data []byte) (
 		return nil, NewAppError("SetTeamIcon", "model.client.set_team_icon.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.teamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.teamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -3726,6 +3726,23 @@ func (c *Client4) AddChannelMember(ctx context.Context, channelId, userId string
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("AddChannelMember", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
+// AddChannelMembers adds users to a channel and return an array of channel members.
+func (c *Client4) AddChannelMembers(ctx context.Context, channelId, postRootId string, userIds []string) ([]*ChannelMember, *Response, error) {
+	requestBody := map[string]any{"user_ids": userIds, "post_root_id": postRootId}
+	r, err := c.DoAPIPost(ctx, c.channelMembersRoute(channelId)+"", StringInterfaceToJSON(requestBody))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch []*ChannelMember
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("AddChannelMembers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ch, BuildResponse(r), nil
 }
@@ -4850,7 +4867,7 @@ func (c *Client4) UploadLicenseFile(ctx context.Context, data []byte) (*Response
 		return nil, NewAppError("UploadLicenseFile", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.licenseRoute(), bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.licenseRoute(), bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -5422,7 +5439,7 @@ func (c *Client4) GetComplianceReport(ctx context.Context, reportId string) (*Co
 
 // DownloadComplianceReport returns a full compliance report as a file.
 func (c *Client4) DownloadComplianceReport(ctx context.Context, reportId string) ([]byte, *Response, error) {
-	rq, err := http.NewRequest("GET", c.APIURL+c.complianceReportDownloadRoute(reportId), nil)
+	rq, err := http.NewRequestWithContext(ctx, "GET", c.APIURL+c.complianceReportDownloadRoute(reportId), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5826,7 +5843,7 @@ func (c *Client4) UploadBrandImage(ctx context.Context, data []byte) (*Response,
 		return nil, NewAppError("UploadBrandImage", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.brandRoute()+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.brandRoute()+"/image", bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -5860,6 +5877,20 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 	}
 	defer closeBody(r)
 	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
+}
+
+// Download logs as mattermost.log file
+func (c *Client4) DownloadLogs(ctx context.Context) ([]byte, *Response, error) {
+	r, err := c.DoAPIGet(ctx, "/logs/download", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("DownloadLogs", "model.client.read_file.app_error", nil, "", r.StatusCode).Wrap(err)
+	}
+
+	return data, BuildResponse(r), nil
 }
 
 // PostLog is a convenience Web Service call so clients can log messages into
@@ -6023,7 +6054,7 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 // GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
 func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*AccessResponse, *Response, error) {
 	url := c.URL + "/oauth/access_token"
-	rq, err := http.NewRequest(http.MethodPost, url, strings.NewReader(data.Encode()))
+	rq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -7018,8 +7049,8 @@ func (c *Client4) GetJob(ctx context.Context, id string) (*Job, *Response, error
 }
 
 // GetJobs gets all jobs, sorted with the job that was created most recently first.
-func (c *Client4) GetJobs(ctx context.Context, page int, perPage int) ([]*Job, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.jobsRoute()+fmt.Sprintf("?page=%v&per_page=%v", page, perPage), "")
+func (c *Client4) GetJobs(ctx context.Context, jobType string, status string, page int, perPage int) ([]*Job, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.jobsRoute()+fmt.Sprintf("?page=%v&per_page=%v&job_type=%v&status=%v", page, perPage, jobType, status), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7086,6 +7117,23 @@ func (c *Client4) DownloadJob(ctx context.Context, jobId string) ([]byte, *Respo
 		return nil, BuildResponse(r), NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, "", r.StatusCode).Wrap(err)
 	}
 	return data, BuildResponse(r), nil
+}
+
+// UpdateJobStatus updates the status of a job
+func (c *Client4) UpdateJobStatus(ctx context.Context, jobId string, status string, force bool) (*Response, error) {
+	buf, err := json.Marshal(map[string]any{
+		"status": status,
+		"force":  force,
+	})
+	if err != nil {
+		return nil, NewAppError("UpdateJobStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPatchBytes(ctx, c.jobsRoute()+fmt.Sprintf("/%v/status", jobId), buf)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // Roles Section
@@ -7305,7 +7353,7 @@ func (c *Client4) uploadPlugin(ctx context.Context, file io.Reader, force bool) 
 		return nil, nil, err
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.pluginsRoute(), body)
+	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.pluginsRoute(), body)
 	if err != nil {
 		return nil, nil, err
 	}

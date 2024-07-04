@@ -16,6 +16,8 @@ import type {PerformanceLongTaskTiming} from './long_task';
 import type {PlatformLabel, UserAgentLabel} from './platform_detection';
 import {getPlatformLabel, getUserAgentLabel} from './platform_detection';
 
+import {Measure} from '.';
+
 type PerformanceReportMeasure = {
 
     /**
@@ -65,6 +67,7 @@ export default class PerformanceReporter {
     private observer: PerformanceObserver;
     private reportTimeout: number | undefined;
 
+    // These values are protected instead of private so that they can be modified by unit tests
     protected reportPeriodBase = 60 * 1000;
     protected reportPeriodJitter = 15 * 1000;
 
@@ -93,6 +96,10 @@ export default class PerformanceReporter {
             entryTypes: observedEntryTypes,
         });
 
+        // Record the page load separately because it arrived before we were observing and because you can't use
+        // the buffered option for PerformanceObserver with multiple entry types.
+        this.measurePageLoad();
+
         // Register handlers for standard metrics and Web Vitals
         onCLS((metric) => this.handleWebVital(metric));
         onFCP((metric) => this.handleWebVital(metric));
@@ -107,6 +114,20 @@ export default class PerformanceReporter {
         // Send any remaining metrics when the page becomes hidden rather than when it's unloaded because that's
         // what's recommended by various sites due to unload handlers being unreliable, particularly on mobile.
         addEventListener('visibilitychange', this.handleVisibilityChange);
+    }
+
+    private measurePageLoad() {
+        const entries = performance.getEntriesByType('navigation');
+
+        if (entries.length === 0) {
+            return;
+        }
+
+        this.histogramMeasures.push({
+            metric: Measure.PageLoad,
+            value: entries[0].duration,
+            timestamp: Date.now(),
+        });
     }
 
     /**
@@ -141,7 +162,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: entry.name,
             value: entry.duration,
-            timestamp: performance.timeOrigin + entry.startTime,
+            timestamp: Date.now(),
         });
     }
 
@@ -166,7 +187,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: metric.name,
             value: metric.value,
-            timestamp: performance.timeOrigin + performance.now(),
+            timestamp: Date.now(),
         });
     }
 
@@ -278,12 +299,21 @@ export default class PerformanceReporter {
         const url = this.client.getClientMetricsRoute();
         const data = JSON.stringify(report);
 
-        const beaconSent = navigator.sendBeacon(url, data);
+        const beaconSent = this.sendBeacon(url, data);
 
         if (!beaconSent) {
             // The data couldn't be queued as a beacon for some reason, so fall back to sending an immediate fetch
             fetch(url, {method: 'POST', body: data});
         }
+    }
+
+    protected sendBeacon(url: string | URL, data?: BodyInit | null | undefined): boolean {
+        // Confirm that sendBeacon exists because it doesn't on Firefox with certain settings enabled
+        if (!navigator.sendBeacon) {
+            return false;
+        }
+
+        return navigator.sendBeacon(url, data);
     }
 }
 

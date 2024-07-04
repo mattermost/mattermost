@@ -42,6 +42,7 @@ const (
 	MetricsSubsystemSystem             = "system"
 	MetricsSubsystemJobs               = "jobs"
 	MetricsSubsystemNotifications      = "notifications"
+	MetricsSubsystemClientsMobileApp   = "mobileapp"
 	MetricsSubsystemClientsWeb         = "webapp"
 	MetricsCloudInstallationLabel      = "installationId"
 	MetricsCloudDatabaseClusterLabel   = "databaseClusterName"
@@ -217,10 +218,15 @@ type MetricsInterfaceImpl struct {
 	ClientInteractionToNextPaint    *prometheus.HistogramVec
 	ClientCumulativeLayoutShift     *prometheus.HistogramVec
 	ClientLongTasks                 *prometheus.CounterVec
+	ClientPageLoadDuration          *prometheus.HistogramVec
 	ClientChannelSwitchDuration     *prometheus.HistogramVec
 	ClientTeamSwitchDuration        *prometheus.HistogramVec
 	ClientRHSLoadDuration           *prometheus.HistogramVec
 	ClientGlobalThreadsLoadDuration *prometheus.HistogramVec
+
+	MobileClientLoadDuration          *prometheus.HistogramVec
+	MobileClientChannelSwitchDuration *prometheus.HistogramVec
+	MobileClientTeamSwitchDuration    *prometheus.HistogramVec
 }
 
 func init() {
@@ -1151,6 +1157,9 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "first_contentful_paint",
 			Help:      "Duration of how long it takes for any content to be displayed on screen to a user (seconds)",
+
+			// Extend the range of buckets for this while we get a better idea of the expected range of this metric is
+			Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20},
 		},
 		[]string{"platform", "agent"},
 	)
@@ -1162,6 +1171,9 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "largest_contentful_paint",
 			Help:      "Duration of how long it takes for large content to be displayed on screen to a user (seconds)",
+
+			// Extend the range of buckets for this while we get a better idea of the expected range of this metric is
+			Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20},
 		},
 		[]string{"platform", "agent"},
 	)
@@ -1199,6 +1211,18 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"platform", "agent"},
 	)
 	m.Registry.MustRegister(m.ClientLongTasks)
+
+	m.ClientPageLoadDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "page_load",
+			Help:      "The amount of time from when the browser starts loading the web app until when the web app's load event has finished (seconds)",
+			Buckets:   []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 40},
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientPageLoadDuration)
 
 	m.ClientChannelSwitchDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -1243,6 +1267,42 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"platform", "agent"},
 	)
 	m.Registry.MustRegister(m.ClientGlobalThreadsLoadDuration)
+
+	m.MobileClientLoadDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_load",
+			Help:      "Duration of the time taken from when a user opens the app and the app finally loads all relevant information (seconds)",
+			Buckets:   []float64{1, 1.5, 2, 3, 4, 4.5, 5, 5.5, 6, 7.5, 10, 20, 25, 30},
+		},
+		[]string{"platform"},
+	)
+	m.Registry.MustRegister(m.MobileClientLoadDuration)
+
+	m.MobileClientChannelSwitchDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_channel_switch",
+			Help:      "Duration of the time taken from when a user clicks on a channel name, and the full channel sreen is loaded (seconds)",
+			Buckets:   []float64{0.150, 0.200, 0.300, 0.400, 0.450, 0.500, 0.550, 0.600, 0.750, 1, 2, 3},
+		},
+		[]string{"platform"},
+	)
+	m.Registry.MustRegister(m.MobileClientChannelSwitchDuration)
+
+	m.MobileClientTeamSwitchDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_team_switch",
+			Help:      "Duration of the time taken from when a user clicks on a team, and the full categories screen is loaded (seconds)",
+			Buckets:   []float64{0.150, 0.200, 0.250, 0.300, 0.350, 0.400, 0.500, 0.750, 1, 2, 3},
+		},
+		[]string{"platform"},
+	)
+	m.Registry.MustRegister(m.MobileClientTeamSwitchDuration)
 
 	return m
 }
@@ -1726,6 +1786,10 @@ func (mi *MetricsInterfaceImpl) IncrementClientLongTasks(platform, agent string,
 	mi.ClientLongTasks.With(prometheus.Labels{"platform": platform, "agent": agent}).Add(inc)
 }
 
+func (mi *MetricsInterfaceImpl) ObserveClientPageLoadDuration(platform, agent string, elapsed float64) {
+	mi.ClientPageLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
 func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, agent string, elapsed float64) {
 	mi.ClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
@@ -1740,6 +1804,18 @@ func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent str
 
 func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent string, elapsed float64) {
 	mi.ClientGlobalThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientLoadDuration(platform string, elapsed float64) {
+	mi.MobileClientLoadDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientChannelSwitchDuration(platform string, elapsed float64) {
+	mi.MobileClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64) {
+	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
 
 func extractDBCluster(driver, connectionString string) (string, error) {

@@ -17,9 +17,6 @@ import {markAndReport, measureAndReport} from '.';
 
 jest.mock('web-vitals');
 
-const sendBeacon = jest.fn().mockReturnValue(true);
-navigator.sendBeacon = sendBeacon;
-
 const siteUrl = 'http://localhost:8065';
 
 describe('PerformanceReporter', () => {
@@ -29,16 +26,20 @@ describe('PerformanceReporter', () => {
     });
 
     test('should report measurements to the server as histograms', async () => {
-        const {reporter} = newTestReporter();
+        const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
 
-        const testMarkA = performance.mark('testMarkA');
-        const testMarkB = performance.mark('testMarkB');
+        performance.mark('testMarkA');
+        performance.mark('testMarkB');
+
         measureAndReport('testMeasureA', 'testMarkA', 'testMarkB');
 
-        const testMarkC = performance.mark('testMarkC');
+        await waitForObservations();
+
+        performance.mark('testMarkC');
+
         measureAndReport('testMeasureB', 'testMarkA', 'testMarkC');
         measureAndReport('testMeasureC', 'testMarkB', 'testMarkC');
 
@@ -52,32 +53,29 @@ describe('PerformanceReporter', () => {
         expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/client_perf');
         const report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
-            start: performance.timeOrigin + testMarkA.startTime,
-            end: performance.timeOrigin + testMarkB.startTime,
             histograms: [
                 {
                     metric: 'testMeasureA',
-                    value: testMarkB.startTime - testMarkA.startTime,
-                    timestamp: performance.timeOrigin + testMarkA.startTime,
                 },
                 {
                     metric: 'testMeasureB',
-                    value: testMarkC.startTime - testMarkA.startTime,
-                    timestamp: performance.timeOrigin + testMarkA.startTime,
                 },
                 {
                     metric: 'testMeasureC',
-                    value: testMarkC.startTime - testMarkB.startTime,
-                    timestamp: performance.timeOrigin + testMarkB.startTime,
                 },
             ],
         });
+        expect(report.start).toEqual(Math.min(report.histograms[0].timestamp, report.histograms[1].timestamp, report.histograms[2].timestamp));
+        expect(report.end).toEqual(Math.max(report.histograms[0].timestamp, report.histograms[1].timestamp, report.histograms[2].timestamp));
+        expect(report.histograms[0].timestamp).toBeDefined();
+        expect(report.histograms[1].timestamp).toBeDefined();
+        expect(report.histograms[2].timestamp).toBeDefined();
 
         reporter.disconnect();
     });
 
     test('should report some marks to the server as counters', async () => {
-        const {reporter} = newTestReporter();
+        const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -121,7 +119,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should report longtasks to the server as counters', async () => {
-        const {reporter} = newTestReporter();
+        const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -166,7 +164,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should report web vitals to the server as histograms', async () => {
-        const {reporter} = newTestReporter();
+        const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -229,7 +227,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should not report anything there is no data to report', async () => {
-        const {reporter} = newTestReporter();
+        const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -247,7 +245,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should not report anything if EnableClientMetrics is false', async () => {
-        const {reporter} = newTestReporter(false);
+        const {reporter, sendBeacon} = newTestReporter(false);
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -267,7 +265,7 @@ describe('PerformanceReporter', () => {
     });
 
     test('should not report anything if the user is not logged in', async () => {
-        const {reporter} = newTestReporter(true, false);
+        const {reporter, sendBeacon} = newTestReporter(true, false);
         reporter.observe();
 
         expect(sendBeacon).not.toHaveBeenCalled();
@@ -290,7 +288,7 @@ describe('PerformanceReporter', () => {
         setPlatform('MacIntel');
         setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0');
 
-        const {reporter} = newTestReporter();
+        const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 
         markAndReport('reportedA');
@@ -317,7 +315,11 @@ describe('PerformanceReporter', () => {
     });
 
     test('should fall back to making a fetch request if a beacon cannot be sent', async () => {
-        const {client, reporter} = newTestReporter();
+        const {
+            client,
+            reporter,
+            sendBeacon,
+        } = newTestReporter();
         reporter.observe();
 
         sendBeacon.mockReturnValue(false);
@@ -344,6 +346,7 @@ describe('PerformanceReporter', () => {
 });
 
 class TestPerformanceReporter extends PerformanceReporter {
+    public sendBeacon: jest.Mock = jest.fn(() => true);
     public reportPeriodBase = 10;
     public reportPeriodJitter = 0;
 
@@ -371,7 +374,11 @@ function newTestReporter(telemetryEnabled = true, loggedIn = true) {
         },
     }));
 
-    return {client, reporter};
+    return {
+        client,
+        reporter,
+        sendBeacon: reporter.sendBeacon,
+    };
 }
 
 function waitForReport() {

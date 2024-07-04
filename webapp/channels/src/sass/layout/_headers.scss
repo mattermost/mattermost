@@ -361,6 +361,10 @@
         display: flex;
         margin-right: 8px;
         gap: 4px;
+
+        .btn-icon {
+            margin: 0;
+        }
     }
 
     .channel-header__description {

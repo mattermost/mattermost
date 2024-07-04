@@ -43,6 +43,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         if (this.props.config?.EnableBanner === 'true' && this.props.config.BannerText?.trim()) {
             adminConfiguredAnnouncementBar = (
                 <TextDismissableBar
+                    className='admin-announcement'
                     color={this.props.config.BannerColor}
                     textColor={this.props.config.BannerTextColor}
                     allowDismissal={this.props.config.AllowBannerDismissal === 'true'}
@@ -98,6 +99,8 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         //    Baz
         // }
         // Even if all Foo, Bar and Baz render, only Baz is visible as it's further down.
+        // One exception to this rule is for admin configured announcement banners
+        // If set with class 'admin-announcement', they will always be visible, stacked vertically.
         return (
             <>
                 <NotificationPermissionBar/>
