@@ -2544,6 +2544,28 @@ func (a *OpenTracingAppLayer) CreatePostMissingChannel(c request.CTX, post *mode
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) CreateRemoteClusterInvite(remoteId string, siteURL string, token string, password string) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateRemoteClusterInvite")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.CreateRemoteClusterInvite(remoteId, siteURL, token, password)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) CreateRetentionPolicy(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateRetentionPolicy")
@@ -3048,6 +3070,28 @@ func (a *OpenTracingAppLayer) DeauthorizeOAuthAppForUser(c request.CTX, userID s
 	}
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) DecryptRemoteClusterInvite(inviteCode string, password string) (*model.RemoteClusterInvite, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DecryptRemoteClusterInvite")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.DecryptRemoteClusterInvite(inviteCode, password)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) DefaultChannelNames(c request.CTX) []string {
@@ -5023,7 +5067,7 @@ func (a *OpenTracingAppLayer) GetAllPublicTeams() ([]*model.Team, *model.AppErro
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAllRemoteClusters(page int, perPage int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllRemoteClusters")
 
@@ -5035,7 +5079,7 @@ func (a *OpenTracingAppLayer) GetAllRemoteClusters(filter model.RemoteClusterQue
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllRemoteClusters(filter)
+	resultVar0, resultVar1 := a.app.GetAllRemoteClusters(page, perPage, filter)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7607,6 +7651,28 @@ func (a *OpenTracingAppLayer) GetMarketplacePlugins(rctx request.CTX, filter *mo
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetMarketplacePlugins(rctx, filter)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetMattermostLog(ctx request.CTX) (*model.FileData, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMattermostLog")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetMattermostLog(ctx)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13345,6 +13411,28 @@ func (a *OpenTracingAppLayer) PatchPost(c request.CTX, postID string, patch *mod
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.PatchPost(c, postID, patch)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) PatchRemoteCluster(rcId string, patch *model.RemoteClusterPatch) (*model.RemoteCluster, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchRemoteCluster")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.PatchRemoteCluster(rcId, patch)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
