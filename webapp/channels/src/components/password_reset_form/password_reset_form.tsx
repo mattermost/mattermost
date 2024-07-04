@@ -8,7 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useLocation, useHistory} from 'react-router-dom';
 
 import {resetUserPassword} from 'mattermost-redux/actions/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getPasswordConfig} from 'mattermost-redux/selectors/entities/general';
 
 import WomanWithLockSvg from 'components/common/svg_images_components/woman_with_lock_svg';
 import BrandedButton from 'components/custom_branding/branded_button';
@@ -16,7 +16,8 @@ import BrandedInput from 'components/custom_branding/branded_input';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
 import Constants from 'utils/constants';
-import {isValidPassword, getPasswordConfig} from 'utils/utils';
+import {isValidPassword} from 'utils/password';
+
 
 const PasswordResetForm = () => {
     const intl = useIntl();
@@ -24,8 +25,9 @@ const PasswordResetForm = () => {
     const location = useLocation();
     const config = useSelector(getConfig);
     const siteName = config.SiteName;
+    const passwordConfig = useSelector(getPasswordConfig);
     const dispatch = useDispatch();
-    const {error: passwordInfo} = isValidPassword('', getPasswordConfig(config), intl);
+    const {error: passwordInfo} = isValidPassword('', passwordConfig, intl);
 
     const [error, setError] = useState<React.ReactNode>(null);
     const [password, setPassword] = useState<string>('');
