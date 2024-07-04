@@ -3045,6 +3045,7 @@
   "channelHeader.unmute": "Avtysta",
   "channelHeader.viewInfo": "Visa info",
   "channelView.login.successfull": "Inloggning lyckad",
+  "channel_bookmarks.addBookmark": "Lägg till ett bokmärke",
   "channel_groups": "{channel} grupper",
   "channel_header.addChannelHeader": "Lägg till en rubrik på kanalen",
   "channel_header.channelFiles": "Kanalfiler",
