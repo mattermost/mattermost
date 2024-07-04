@@ -20,6 +20,9 @@ const (
 	PacketMetadataFileName = "metadata.yaml"
 )
 
+// PacketMetadata contains information about the server and the configured license (if there is one),
+// It's used in file archives, so called Packets, that customer send to Mattermost Staff for review.
+// For example, this metadata is attached to the Support Packet and the Metrics plugin Packet.
 type PacketMetadata struct {
 	// Required Fields
 
