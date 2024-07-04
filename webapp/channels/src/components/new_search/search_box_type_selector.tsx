@@ -53,7 +53,7 @@ type Props = {
 const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
     const license = useSelector(getLicense);
     const setMessagesSearchType = useCallback(() => setSearchType('messages'), [setSearchType]);
-    const setFilesSearchType = useCallback(() => setSearchType('messages'), [setSearchType]);
+    const setFilesSearchType = useCallback(() => setSearchType('files'), [setSearchType]);
 
     let SearchPluginButtons = useSelector((state: GlobalState) => state.plugins.components.SearchButtons) || [];
     if (license.IsLicensed !== 'true') {
