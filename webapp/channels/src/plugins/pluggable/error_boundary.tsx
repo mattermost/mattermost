@@ -8,6 +8,7 @@ import styled from 'styled-components';
 type Props = {
     children: React.ReactNode;
     pluginId?: string;
+    hideRefresh?: boolean;
 }
 
 type State = {
@@ -63,6 +64,8 @@ export default class PluggableErrorBoundary extends React.PureComponent<Props, S
                         }}
                     />
                     <br/>
+
+                    { !this.props.hideRefresh &&
                     <a
                         href='#'
                         onClick={this.clearErrorState}
@@ -75,6 +78,7 @@ export default class PluggableErrorBoundary extends React.PureComponent<Props, S
                             }}
                         />
                     </a>
+                    }
                 </WrapperDiv>
             );
         }

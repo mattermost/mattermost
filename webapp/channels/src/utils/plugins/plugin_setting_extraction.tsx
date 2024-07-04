@@ -57,9 +57,12 @@ export function extractPluginConfiguration(pluginConfiguration: unknown, pluginI
     };
 
     for (const section of pluginConfiguration.sections) {
-        const validSections = extractPluginConfigurationSection(section);
+        const validSections = extractPluginConfigurationSection(section, pluginId);
         if (validSections) {
             result.sections.push(validSections);
+        } else {
+            // eslint-disable-next-line no-console
+            console.warn(`Plugin ${pluginId} is trying to register an invalid configuration section. Contact the plugin developer to fix this issue.`);
         }
     }
 
@@ -103,7 +106,7 @@ function extractPluginConfigurationAction(action: unknown): PluginConfigurationA
     };
 }
 
-function extractPluginConfigurationSection(section: unknown) {
+function extractPluginConfigurationSection(section: unknown, pluginId: string) {
     if (!section) {
         return undefined;
     }
@@ -117,7 +120,16 @@ function extractPluginConfigurationSection(section: unknown) {
     }
 
     if ('component' in section) {
-        if (!section.component || typeof section.component !== 'function' || !React.isValidElement(section.component())) {
+        if (!section.component || typeof section.component !== 'function') {
+            return undefined;
+        }
+
+        try {
+            const Component = section.component;
+            if (!React.isValidElement((<Component/>))) {
+                return undefined;
+            }
+        } catch {
             return undefined;
         }
 
@@ -164,6 +176,9 @@ function extractPluginConfigurationSection(section: unknown) {
         const validSetting = extractPluginConfigurationSetting(setting);
         if (validSetting) {
             result.settings.push(validSetting);
+        } else {
+            // eslint-disable-next-line no-console
+            console.warn(`Plugin ${pluginId} is trying to register an invalid configuration section setting. Contact the plugin developer to fix this issue.`);
         }
     }
 
@@ -236,8 +251,16 @@ function extractPluginConfigurationCustomSetting(setting: unknown, base: BasePlu
         return undefined;
     }
 
-    if (!('component' in setting) || !setting.component ||
-        typeof setting.component !== 'function' || !React.isValidElement(setting.component())) {
+    if (!('component' in setting) || !setting.component || typeof setting.component !== 'function') {
+        return undefined;
+    }
+
+    try {
+        const Component = setting.component;
+        if (!React.isValidElement((<Component/>))) {
+            return undefined;
+        }
+    } catch {
         return undefined;
     }
 

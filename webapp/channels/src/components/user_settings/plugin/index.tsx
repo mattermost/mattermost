@@ -4,6 +4,8 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
+
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 
 import PluginAction from './plugin_action';
@@ -49,7 +51,14 @@ const PluginTab = ({
                     let sectionEl;
                     if ('component' in v) {
                         const CustomComponent = v.component;
-                        sectionEl = (<CustomComponent/>);
+                        sectionEl = (
+                            <PluggableErrorBoundary
+                                pluginId={settings.id}
+                                hideRefresh={true}
+                            >
+                                <CustomComponent/>
+                            </PluggableErrorBoundary>
+                        );
                     } else {
                         sectionEl = (
                             <PluginSetting

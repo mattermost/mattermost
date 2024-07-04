@@ -82,6 +82,10 @@ function getFullExample(): PluginConfiguration {
     };
 }
 describe('plugin setting extraction', () => {
+    beforeAll(() => {
+        console.warn = jest.fn();
+    });
+
     it('happy path', () => {
         const config = getFullExample();
         const res = extractPluginConfiguration(config, 'PluginId');
@@ -154,6 +158,7 @@ describe('plugin setting extraction', () => {
     it('filter out sections without a title', () => {
         const config: any = getFullExample();
         config.sections[0].title = '';
+
         let res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections).toHaveLength(1);
