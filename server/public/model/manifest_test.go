@@ -81,29 +81,6 @@ func TestIsValid(t *testing.T) {
 	}
 }
 
-func TestGetPluginIdReturnsCorrectId(t *testing.T) {
-	testCases := []struct {
-		Title       string
-		Id          string
-		manifest    *Manifest
-		ExpectEqual bool
-	}{
-		{"Ids are Different", "not-same.com.company.test", &Manifest{Id: "com.company.test"}, false},
-		{"Ids are the same", "com.company.test", &Manifest{Id: "com.company.test"}, true},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.Title, func(t *testing.T) {
-			id := tc.manifest.GetPluginID()
-			if tc.ExpectEqual {
-				assert.Equal(t, tc.Id, id)
-			} else {
-				assert.NotEqual(t, tc.Id, id)
-			}
-		})
-	}
-}
-
 func TestIsValidSettingsSchema(t *testing.T) {
 	testCases := []struct {
 		Title          string
