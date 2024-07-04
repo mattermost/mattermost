@@ -106,13 +106,13 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 className="link"
               >
                 Sign up at 
-                <ExternalLink
+                <ForwardRef
                   href="https://mattermost.com/security-updates/"
                   key=".1"
                   location="signup"
                 >
                   https://mattermost.com/security-updates/
-                </ExternalLink>
+                </ForwardRef>
                 .
               </span>
             </div>
@@ -283,13 +283,13 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 className="link"
               >
                 Sign up at 
-                <ExternalLink
+                <ForwardRef
                   href="https://mattermost.com/security-updates/"
                   key=".1"
                   location="signup"
                 >
                   https://mattermost.com/security-updates/
-                </ExternalLink>
+                </ForwardRef>
                 .
               </span>
             </div>

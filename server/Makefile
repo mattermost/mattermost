@@ -144,7 +144,7 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.28.1
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.28.2
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.2.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.1
@@ -271,8 +271,8 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory.
 	@echo Downloading prepackaged plugins: $(PLUGIN_PACKAGES)
 	mkdir -p prepackaged_plugins
 	@cd prepackaged_plugins && for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz.sig; \
+		curl -f -O -L https://plugins.releases.mattermost.com/release/$$plugin_package.tar.gz; \
+		curl -f -O -L https://plugins.releases.mattermost.com/release/$$plugin_package.tar.gz.sig; \
 	done
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory

@@ -65,13 +65,26 @@
 
     .header-back-button {
         position: absolute;
-        top: 80px;
+        top: unset;
+        bottom: -8px;
         width: auto;
         padding: 0 0 0 40px;
         background: none;
 
         a {
             @include link;
+        }
+    }
+
+    &.has-custom-site-name {
+        .header-logo-link ~ .header-logo-link {
+            margin-top: 12px;
+        }
+    }
+
+    &.has-free-banner.has-custom-site-name {
+        .header-back-button {
+            bottom: -20px;
         }
     }
 }
