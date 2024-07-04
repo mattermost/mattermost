@@ -182,9 +182,6 @@ export function onSubmit(draft: PostDraft, options: {ignoreSlash?: boolean}): Ac
 
         dispatch(addMessageIntoHistory(message));
 
-        // const key = rootId ? `${StoragePrefixes.COMMENT_DRAFT}${rootId}` : `${StoragePrefixes.DRAFT}${channelId}`;
-        // dispatch(removeDraft(key, channelId, rootId));
-
         const isReaction = Utils.REACTION_PATTERN.exec(message);
 
         const emojis = getCustomEmojisByName(state);

@@ -30,12 +30,7 @@ const usePriority = (
     handleDraftChange: (draft: PostDraft, options: {instant?: boolean; show?: boolean}) => void,
     focusTextbox: (keepFocus?: boolean) => void,
     shouldShowPreview: boolean,
-): [
-        React.ReactNode,
-        React.ReactNode,
-        boolean,
-        (onConfirm: () => void) => boolean,
-    ] => {
+) => {
     const dispatch = useDispatch();
 
     const isPostPriorityEnabled = useSelector(isPostPriorityEnabledSelector);
@@ -162,7 +157,12 @@ const usePriority = (
             />
         ), [draft.rootId, isPostPriorityEnabled, draft.metadata?.priority, handlePostPriorityApply, handlePostPriorityHide, shouldShowPreview]);
 
-    return [labels, additionalControl, isValidPersistentNotifications, onSubmitCheck];
+    return {
+        labels,
+        additionalControl,
+        isValidPersistentNotifications,
+        onSubmitCheck,
+    };
 };
 
 export default usePriority;

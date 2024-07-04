@@ -34,7 +34,7 @@ const useEmojiPicker = (
     handleDraftChange: (draft: PostDraft) => void,
     shouldShowPreview: boolean,
     focusTextbox: () => void,
-): [React.ReactNode, boolean, (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void] => {
+) => {
     const intl = useIntl();
 
     const enableEmojiPicker = useSelector((state: GlobalState) => getConfig(state).EnableEmojiPicker === 'true');
@@ -164,7 +164,7 @@ const useEmojiPicker = (
         );
     }
 
-    return [emojiPicker, enableEmojiPicker, toggleEmojiPicker];
+    return {emojiPicker, enableEmojiPicker, toggleEmojiPicker};
 };
 
 export default useEmojiPicker;

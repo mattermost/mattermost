@@ -225,8 +225,17 @@ const AdvanceTextEditor = ({
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(draft, postId, channelId, isThreadView, storedDrafts, readOnlyChannel, textboxRef, handleDraftChange, focusTextbox, setServerError);
-    const [emojiPicker, enableEmojiPicker, toggleEmojiPicker] = useEmojiPicker(readOnlyChannel, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox);
-    const [labels, priorityAdditionalControl, isValidPersistentNotifications, prioritySubmitCheck] = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
+    const {
+        emojiPicker,
+        enableEmojiPicker,
+        toggleEmojiPicker,
+    } = useEmojiPicker(readOnlyChannel, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox);
+    const {
+        labels,
+        additionalControl: priorityAdditionalControl,
+        isValidPersistentNotifications,
+        onSubmitCheck: prioritySubmitCheck,
+    } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
     const [handleSubmit, errorClass] = useSubmit(draft, postError, channelId, postId, serverError, lastBlurAt, focusTextbox, setServerError, setPostError, setShowPreview, handleDraftChange, prioritySubmitCheck);
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,

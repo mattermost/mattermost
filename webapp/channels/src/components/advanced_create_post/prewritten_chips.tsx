@@ -12,6 +12,8 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import Chip from 'components/common/chip/chip';
 
+import Constants from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
 
 type Props = {
@@ -33,7 +35,7 @@ const ChipContainer = styled.div`
 
 const PrewrittenChips = ({channelId, currentUserId, currentChannelTeammateUsername, prefillMessage}: Props) => {
     const {formatMessage} = useIntl();
-    const channelType = useSelector((state: GlobalState) => getChannel(state, channelId)?.type || 'O');
+    const channelType = useSelector((state: GlobalState) => getChannel(state, channelId)?.type || Constants.OPEN_CHANNEL);
     const channelTeammate = useSelector((state: GlobalState) => getDirectTeammate(state, channelId)?.id || '');
 
     const chips = useMemo(() => {
@@ -50,7 +52,11 @@ const PrewrittenChips = ({channelId, currentUserId, currentChannelTeammateUserna
             leadingIcon: '',
         };
 
-        if (channelType === 'O' || channelType === 'P' || channelType === 'G') {
+        if (
+            channelType === Constants.OPEN_CHANNEL ||
+            channelType === Constants.PRIVATE_CHANNEL ||
+            channelType === Constants.GM_CHANNEL
+        ) {
             return [
                 {
                     event: 'prefilled_message_selected_team_hi',
