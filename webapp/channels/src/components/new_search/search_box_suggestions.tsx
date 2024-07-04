@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
@@ -11,6 +11,8 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import type {ProviderResult} from 'components/suggestion/provider';
 import type {SuggestionProps} from 'components/suggestion/suggestion';
+
+import ErrorBoundary from 'plugins/pluggable/error_boundary';
 
 import type {GlobalState} from 'types/store';
 
@@ -43,6 +45,16 @@ type Props = {
 
 const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, suggestionsHeader, providerResults, selectedOption, setSelectedOption, focus, onSearch}: Props) => {
     const license = useSelector(getLicense);
+    const updateSearchValue = useCallback((value: string, matchedPretext: string) => {
+        const changedValue = value.replace(matchedPretext, '');
+        setSearchTerms(searchTerms + changedValue + ' ');
+        focus(searchTerms.length + changedValue.length + 1);
+    }, [searchTerms, setSearchTerms, focus]);
+
+    const runSearch = useCallback((searchTerms: string) => {
+        onSearch(searchType, searchTerms);
+    }, [onSearch, searchType]);
+
     let SearchPluginSuggestions = useSelector((state: GlobalState) => state.plugins.components.SearchSuggestions) || [];
     if (license.IsLicensed !== 'true') {
         SearchPluginSuggestions = [];
@@ -64,11 +76,7 @@ const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, suggestions
                             term={providerResults.terms[idx]}
                             matchedPretext={providerResults.matchedPretext}
                             isSelection={idx === selectedOption}
-                            onClick={(value: string, matchedPretext: string) => {
-                                const changedValue = value.replace(matchedPretext, '');
-                                setSearchTerms(searchTerms + changedValue + ' ');
-                                focus(searchTerms.length + changedValue.length + 1);
-                            }}
+                            onClick={updateSearchValue}
                             onMouseMove={() => {
                                 setSelectedOption(idx);
                             }}
@@ -93,18 +101,14 @@ const SearchSuggestions = ({searchType, searchTerms, setSearchTerms, suggestions
     const Component: any = pluginComponentInfo.component;
 
     return (
-        <Component
-            key={pluginComponentInfo.pluginId}
-            searchTerms={searchTerms}
-            onChangeSearch={(value: string, matchedPretext: string) => {
-                const changedValue = value.replace(matchedPretext, '');
-                setSearchTerms(searchTerms + changedValue + ' ');
-                focus(searchTerms.length + changedValue.length + 1);
-            }}
-            onRunSearch={(searchTerms: string) => {
-                onSearch(pluginComponentInfo.pluginId, searchTerms);
-            }}
-        />
+        <ErrorBoundary>
+            <Component
+                key={pluginComponentInfo.pluginId}
+                searchTerms={searchTerms}
+                onChangeSearch={updateSearchValue}
+                onRunSearch={runSearch}
+            />
+        </ErrorBoundary>
     );
 };
 

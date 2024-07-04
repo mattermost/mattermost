@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {useIntl, defineMessages} from 'react-intl';
 import styled from 'styled-components';
 
@@ -95,7 +95,11 @@ const messages: Record<string, {id: string; defaultMessage: string}> = defineMes
 
 const SearchFileExtensionSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<ExtensionItem>>((props, ref) => {
     const intl = useIntl();
-    const {item} = props;
+    const {item, onClick, matchedPretext, isSelection} = props;
+
+    const optionClicked = useCallback(() => {
+        onClick(item.label, matchedPretext);
+    }, [onClick, item.label, matchedPretext]);
 
     let labelName: React.ReactNode = item.type;
     labelName = messages[item.type] ? intl.formatMessage(messages[item.type]) : item.type;
@@ -103,8 +107,8 @@ const SearchFileExtensionSuggestion = React.forwardRef<HTMLDivElement, Suggestio
     return (
         <SearchFileExtensionSuggestionContainer
             ref={ref}
-            className={props.isSelection ? 'selected' : ''}
-            onClick={() => props.onClick(item.label, props.matchedPretext)}
+            className={isSelection ? 'selected' : ''}
+            onClick={optionClicked}
         >
             <div className={'file-icon ' + getCompassIconClassName(item.type)}/>
             {labelName}

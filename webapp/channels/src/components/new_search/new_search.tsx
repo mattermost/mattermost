@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
@@ -121,16 +121,44 @@ const NewSearch = (): JSX.Element => {
         };
     }, []);
 
+    const closeSearchBox = useCallback(() => {
+        setFocused(false);
+        setCurrentChannel('');
+    }, []);
+
+    const openSearchBox = useCallback(() => {
+        setFocused(true);
+    }, []);
+
+    const openSearchBoxOnKeyPress = useCallback((e: React.KeyboardEvent) => {
+        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
+            return;
+        }
+        openSearchBox();
+    }, [openSearchBox]);
+
+    const runSearch = useCallback((searchType: string, searchTerms: string) => {
+        dispatch(updateSearchType(searchType));
+        dispatch(updateSearchTerms(searchTerms));
+
+        if (searchType === '' || searchType === 'messages' || searchType === 'files') {
+            dispatch(showSearchResults(false));
+        } else {
+            pluginSearch.forEach((pluginData: any) => {
+                if (pluginData.pluginId === searchType) {
+                    pluginData.action(searchTerms);
+                }
+            });
+        }
+        setFocused(false);
+        setCurrentChannel('');
+    }, [pluginSearch]);
+
     return (
         <NewSearchContainer
             tabIndex={0}
-            onKeyDown={(e: React.KeyboardEvent) => {
-                if (Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
-                    return;
-                }
-                setFocused(true);
-            }}
-            onClick={() => setFocused(true)}
+            onKeyDown={openSearchBoxOnKeyPress}
+            onClick={openSearchBox}
         >
             <i className='icon icon-magnify'/>
             {searchTerms && <span tabIndex={0}>{searchTerms}</span>}
@@ -147,26 +175,8 @@ const NewSearch = (): JSX.Element => {
                 >
                     <SearchBox
                         ref={searchBoxRef}
-                        onClose={() => {
-                            setFocused(false);
-                            setCurrentChannel('');
-                        }}
-                        onSearch={(searchType: string, searchTerms: string) => {
-                            dispatch(updateSearchType(searchType));
-                            dispatch(updateSearchTerms(searchTerms));
-
-                            if (searchType === '' || searchType === 'messages' || searchType === 'files') {
-                                dispatch(showSearchResults(false));
-                            } else {
-                                pluginSearch.forEach((pluginData: any) => {
-                                    if (pluginData.pluginId === searchType) {
-                                        pluginData.action(searchTerms);
-                                    }
-                                });
-                            }
-                            setFocused(false);
-                            setCurrentChannel('');
-                        }}
+                        onClose={closeSearchBox}
+                        onSearch={runSearch}
                         initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
                     />
                 </PopoverStyled>

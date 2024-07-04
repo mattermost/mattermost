@@ -8,6 +8,8 @@ import styled from 'styled-components';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
+import ErrorBoundary from 'plugins/pluggable/error_boundary';
+
 import type {GlobalState} from 'types/store';
 
 const SearchTypeSelectorContainer = styled.div`
@@ -82,7 +84,9 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
                         selected={searchType === pluginId}
                         onClick={() => setSearchType(pluginId)}
                     >
-                        <Component/>
+                        <ErrorBoundary>
+                            <Component/>
+                        </ErrorBoundary>
                     </SearchTypeItem>
                 );
             })}

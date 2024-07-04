@@ -63,7 +63,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
 
     const [providerResults, suggestionsHeader] = useSearchSuggestions(searchType, searchTerms, setSelectedOption);
 
-    const handleKeyDown = (e: React.KeyboardEvent<Element>): void => {
+    const handleKeyDown = useCallback((e: React.KeyboardEvent<Element>): void => {
         if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
             e.stopPropagation();
             e.preventDefault();
@@ -104,7 +104,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                 setSelectedOption(-1);
             }
         }
-    };
+    }, [providerResults, onClose, selectedOption, onSearch]);
 
     const focus = useCallback((newposition: number) => {
         if (inputRef.current) {
@@ -114,6 +114,11 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
             }, 0);
         }
     }, []);
+
+    const closeHandler = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        onClose();
+    }, [onClose]);
 
     useEffect(() => {
         if (inputRef.current) {
@@ -125,10 +130,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
         <SearchBoxContainer ref={ref}>
             <CloseIcon
                 className='btn btn-icon btn-m'
-                onClick={(e: React.MouseEvent) => {
-                    e.stopPropagation();
-                    onClose();
-                }}
+                onClick={closeHandler}
             >
                 <i className='icon icon-close'/>
             </CloseIcon>

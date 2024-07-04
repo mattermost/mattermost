@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {forwardRef} from 'react';
+import React, {forwardRef, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import styled from 'styled-components';
@@ -87,6 +87,18 @@ const SearchInput = ({searchTerms, searchType, setSearchTerms, onKeyDown, focus}
     }
 
     const dispatch = useDispatch();
+
+    const inputChangeCallback = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerms(e.target.value);
+    }, [setSearchTerms]);
+
+    const clearSearch = useCallback(() => {
+        setSearchTerms('');
+        dispatch(updateSearchTerms(''));
+        dispatch(updateSearchType('messages'));
+        focus(0);
+    }, [focus, setSearchTerms]);
+
     return (
         <SearchInputContainer>
             <i className='icon icon-magnify'/>
@@ -97,7 +109,7 @@ const SearchInput = ({searchTerms, searchType, setSearchTerms, onKeyDown, focus}
                 aria-label={searchPlaceholder}
                 placeholder={searchPlaceholder}
                 value={searchTerms}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerms(e.target.value)}
+                onChange={inputChangeCallback}
                 type='search'
                 delayInputUpdate={true}
                 clearable={true}
@@ -108,12 +120,7 @@ const SearchInput = ({searchTerms, searchType, setSearchTerms, onKeyDown, focus}
             {searchTerms.length > 0 && (
                 <ClearButton
                     className='btn btn-sm'
-                    onClick={() => {
-                        setSearchTerms('');
-                        dispatch(updateSearchTerms(''));
-                        dispatch(updateSearchType('messages'));
-                        focus(0);
-                    }}
+                    onClick={clearSearch}
                 >
                     <i className='icon icon-close-circle'/>
                     <FormattedMessage
