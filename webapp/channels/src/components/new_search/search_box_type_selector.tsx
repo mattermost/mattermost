@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
@@ -52,6 +52,9 @@ type Props = {
 
 const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
     const license = useSelector(getLicense);
+    const setMessagesSearchType = useCallback(() => setSearchType('messages'), [setSearchType]);
+    const setFilesSearchType = useCallback(() => setSearchType('messages'), [setSearchType]);
+
     let SearchPluginButtons = useSelector((state: GlobalState) => state.plugins.components.SearchButtons) || [];
     if (license.IsLicensed !== 'true') {
         SearchPluginButtons = [];
@@ -60,7 +63,7 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
         <SearchTypeSelectorContainer>
             <SearchTypeItem
                 selected={searchType === 'messages'}
-                onClick={() => setSearchType('messages')}
+                onClick={setMessagesSearchType}
             >
                 <FormattedMessage
                     id='search_bar.usage.search_type_messages'
@@ -69,7 +72,7 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
             </SearchTypeItem>
             <SearchTypeItem
                 selected={searchType === 'files'}
-                onClick={() => setSearchType('files')}
+                onClick={setFilesSearchType}
             >
                 <FormattedMessage
                     id='search_bar.usage.search_type_files'
