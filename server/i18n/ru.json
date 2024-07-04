@@ -1373,7 +1373,7 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
-    "translation": " уведоми канал."
+    "translation": " уведомил канал."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
