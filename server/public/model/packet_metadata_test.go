@@ -20,7 +20,7 @@ func TestPacketMetadataValidate(t *testing.T) {
 			metadata: PacketMetadata{
 				Version:       1,
 				Type:          SupportPacketType,
-				GeneratedAt:   1622569200,
+				GeneratedAt:   1720097114454,
 				ServerVersion: "5.33.3",
 				ServerID:      NewId(),
 				LicenseID:     NewId(),
@@ -33,7 +33,7 @@ func TestPacketMetadataValidate(t *testing.T) {
 			metadata: PacketMetadata{
 				Version:       1,
 				Type:          SupportPacketType,
-				GeneratedAt:   1622569200,
+				GeneratedAt:   1720097114454,
 				ServerVersion: "5.33.3",
 				ServerID:      NewId(),
 				Extras:        map[string]interface{}{"key": "value"},
@@ -44,7 +44,7 @@ func TestPacketMetadataValidate(t *testing.T) {
 			metadata: PacketMetadata{
 				Version:       0,
 				Type:          SupportPacketType,
-				GeneratedAt:   1622569200,
+				GeneratedAt:   1720097114454,
 				ServerVersion: "5.33.3",
 				ServerID:      NewId(),
 				LicenseID:     NewId(),
@@ -56,7 +56,19 @@ func TestPacketMetadataValidate(t *testing.T) {
 			metadata: PacketMetadata{
 				Version:       1,
 				Type:          "invalid-type",
-				GeneratedAt:   1622569200,
+				GeneratedAt:   1720097114454,
+				ServerVersion: "5.33.3",
+				ServerID:      NewId(),
+				LicenseID:     NewId(),
+				CustomerID:    NewId(),
+			},
+			expectErr: true,
+		},
+		"Invalid GeneratedAt": {
+			metadata: PacketMetadata{
+				Version:       1,
+				Type:          SupportPacketType,
+				GeneratedAt:   0,
 				ServerVersion: "5.33.3",
 				ServerID:      NewId(),
 				LicenseID:     NewId(),
@@ -68,7 +80,7 @@ func TestPacketMetadataValidate(t *testing.T) {
 			metadata: PacketMetadata{
 				Version:       1,
 				Type:          SupportPacketType,
-				GeneratedAt:   1622569200,
+				GeneratedAt:   1720097114454,
 				ServerVersion: "invalid-version",
 				ServerID:      "valid-server-id",
 				LicenseID:     "valid-license-id",
@@ -80,7 +92,7 @@ func TestPacketMetadataValidate(t *testing.T) {
 			metadata: PacketMetadata{
 				Version:       1,
 				Type:          SupportPacketType,
-				GeneratedAt:   1622569200,
+				GeneratedAt:   1720097114454,
 				ServerVersion: "5.33.3",
 				ServerID:      "",
 				LicenseID:     NewId(),

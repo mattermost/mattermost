@@ -50,6 +50,10 @@ func (md *PacketMetadata) Validate() error {
 		return fmt.Errorf("unrecognized packet type: %s", md.Type)
 	}
 
+	if md.GeneratedAt <= 0 {
+		return fmt.Errorf("generated_at should be a positive number")
+	}
+
 	if _, err := semver.ParseTolerant(md.ServerVersion); err != nil {
 		return fmt.Errorf("could not parse server version: %w", err)
 	}
