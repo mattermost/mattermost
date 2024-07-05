@@ -28,10 +28,10 @@ const styles = {
         height: 'auto',
         width: 'auto',
         display: 'inline-block',
-        position: 'relative',
+        position: 'relative' as const,
         transform: 'translateY(-100%)',
-        wordBreak: 'break-word',
-    } as CSSProperties,
+        wordBreak: 'break-word' as const,
+    },
     placeholder: {
         overflow: 'hidden',
         textOverflow: 'ellipsis',
@@ -43,8 +43,8 @@ const styles = {
         borderColor: 'transparent',
     },
     textArea: {
-        overflowY: 'auto',
-    } as CSSProperties,
+        overflowY: 'auto' as const,
+    },
 };
 
 const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
