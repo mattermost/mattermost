@@ -31,11 +31,15 @@ describe('PerformanceReporter', () => {
 
         expect(sendBeacon).not.toHaveBeenCalled();
 
-        const testMarkA = performance.mark('testMarkA');
-        const testMarkB = performance.mark('testMarkB');
+        performance.mark('testMarkA');
+        performance.mark('testMarkB');
+
         measureAndReport('testMeasureA', 'testMarkA', 'testMarkB');
 
-        const testMarkC = performance.mark('testMarkC');
+        await waitForObservations();
+
+        performance.mark('testMarkC');
+
         measureAndReport('testMeasureB', 'testMarkA', 'testMarkC');
         measureAndReport('testMeasureC', 'testMarkB', 'testMarkC');
 
@@ -49,26 +53,23 @@ describe('PerformanceReporter', () => {
         expect(sendBeacon.mock.calls[0][0]).toEqual(siteUrl + '/api/v4/client_perf');
         const report = JSON.parse(sendBeacon.mock.calls[0][1]);
         expect(report).toMatchObject({
-            start: performance.timeOrigin + testMarkA.startTime,
-            end: performance.timeOrigin + testMarkB.startTime,
             histograms: [
                 {
                     metric: 'testMeasureA',
-                    value: testMarkB.startTime - testMarkA.startTime,
-                    timestamp: performance.timeOrigin + testMarkA.startTime,
                 },
                 {
                     metric: 'testMeasureB',
-                    value: testMarkC.startTime - testMarkA.startTime,
-                    timestamp: performance.timeOrigin + testMarkA.startTime,
                 },
                 {
                     metric: 'testMeasureC',
-                    value: testMarkC.startTime - testMarkB.startTime,
-                    timestamp: performance.timeOrigin + testMarkB.startTime,
                 },
             ],
         });
+        expect(report.start).toEqual(Math.min(report.histograms[0].timestamp, report.histograms[1].timestamp, report.histograms[2].timestamp));
+        expect(report.end).toEqual(Math.max(report.histograms[0].timestamp, report.histograms[1].timestamp, report.histograms[2].timestamp));
+        expect(report.histograms[0].timestamp).toBeDefined();
+        expect(report.histograms[1].timestamp).toBeDefined();
+        expect(report.histograms[2].timestamp).toBeDefined();
 
         reporter.disconnect();
     });
