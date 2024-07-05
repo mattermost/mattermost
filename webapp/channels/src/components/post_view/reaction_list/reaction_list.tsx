@@ -78,15 +78,13 @@ export default class ReactionList extends React.PureComponent<Props, State> {
     }
 
     static getDerivedStateFromProps(props: Props, state: State): Partial<State> | null {
-        let emojiNames = state.emojiNames;
+        const emojiNames = Object.values(props.reactions ?? {}).map((reaction) => reaction.emoji_name);
 
-        for (const {emoji_name: emojiName} of Object.values(props.reactions ?? {})) {
-            if (!emojiNames.includes(emojiName)) {
-                emojiNames = [...emojiNames, emojiName];
-            }
+        if (emojiNames.length !== state.emojiNames.length || !emojiNames.every((name, index) => name === state.emojiNames[index])) {
+            return {emojiNames};
         }
 
-        return (emojiNames === state.emojiNames) ? null : {emojiNames};
+        return null;
     }
 
     getTarget = (): HTMLButtonElement | null => {
@@ -152,7 +150,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
         }
 
         let emojiPicker = null;
-        if (this.props.canAddReactions) {
+        if (this.props.canAddReactions && this.state.emojiNames?.length < 40) {
             emojiPicker = (
                 <span className='emoji-picker__container'>
                     <EmojiPickerOverlay
