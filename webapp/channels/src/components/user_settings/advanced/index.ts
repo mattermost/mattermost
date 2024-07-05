@@ -11,7 +11,7 @@ import {updateUserActive, revokeAllSessionsForUser} from 'mattermost-redux/actio
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
     get,
-    getFromPreferences,
+    getFromPreferences, getUnreadScrollPositionFromPreference,
     getUnreadScrollPositionPreference,
     makeGetCategory, makeGetUserCategory,
     syncedDraftsAreAllowed,
@@ -26,7 +26,7 @@ import AdvancedSettingsDisplay from './user_settings_advanced';
 function makeMapStateToProps(state: GlobalState, props: OwnProps) {
     const getAdvancedSettingsCategory = props.adminMode ? makeGetUserCategory(props.currentUser.id) : makeGetCategory();
 
-    return (state: GlobalState) => {
+    return (state: GlobalState, props: OwnProps) => {
         const config = getConfig(state);
 
         const enablePreviewFeatures = config.EnablePreviewFeatures === 'true';
@@ -41,6 +41,7 @@ function makeMapStateToProps(state: GlobalState, props: OwnProps) {
 
         if (props.adminMode && props.userPreferences) {
             console.log('TRUE TRUE TRUE TRUE TRUE ');
+            console.log(props.userPreferences);
             sendOnCtrlEnter = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', 'false');
             codeBlockOnCtrlEnter = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', 'true');
             formatting = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true');
@@ -55,8 +56,6 @@ function makeMapStateToProps(state: GlobalState, props: OwnProps) {
             syncDrafts = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'sync_drafts', 'true');
         }
 
-        console.log(`TTTTTTTTT, formatting: ${formatting} viaPreferences: ${props.userPreferences['advanced_settings--formatting'].value}`);
-
         return {
             advancedSettingsCategory: getAdvancedSettingsCategory(state, Preferences.CATEGORY_ADVANCED_SETTINGS),
             sendOnCtrlEnter,
@@ -65,7 +64,7 @@ function makeMapStateToProps(state: GlobalState, props: OwnProps) {
             joinLeave,
             syncDrafts,
             currentUser: props.adminMode && props.currentUser ? props.currentUser : getCurrentUser(state),
-            unreadScrollPosition: getUnreadScrollPositionPreference(state),
+            unreadScrollPosition: props.adminMode && props.userPreferences ? getUnreadScrollPositionFromPreference(props.userPreferences) : getUnreadScrollPositionPreference(state),
             enablePreviewFeatures,
             enableUserDeactivation,
             syncedDraftsAreAllowed: syncedDraftsAreAllowed(state),

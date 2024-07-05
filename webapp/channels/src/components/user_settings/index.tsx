@@ -32,7 +32,9 @@ export type Props = {
 };
 
 export default function UserSettings(props: Props) {
-    console.log({LL: props.userPreferences['advanced_settings--formatting'].value});
+    if (props.adminMode && props.userPreferences) {
+        console.log({LL: props.userPreferences['advanced_settings--formatting'].value});
+    }
 
     if (props.activeTab === 'profile') {
         return (

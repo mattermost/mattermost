@@ -327,7 +327,9 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     }
 
     renderFormattingSection = () => {
-        console.log({state: this.state.settings.formatting, props: this.props.userPreferences['advanced_settings--formatting'].value});
+        if (this.props.adminMode) {
+            console.log({state: this.state.settings.formatting, props: this.props.userPreferences['advanced_settings--formatting'].value});
+        }
 
         const active = this.props.activeSection === 'formatting';
         let max = null;
