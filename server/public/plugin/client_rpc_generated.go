@@ -6630,33 +6630,3 @@ func (s *apiRPCServer) UpdateUserRoles(args *Z_UpdateUserRolesArgs, returns *Z_U
 	}
 	return nil
 }
-
-type Z_GenerateSupportMetadataArgs struct {
-	A map[string]any
-}
-
-type Z_GenerateSupportMetadataReturns struct {
-	A *model.Metadata
-	B error
-}
-
-func (g *apiRPCClient) GenerateSupportMetadata(pluginMeta map[string]any) (*model.Metadata, error) {
-	_args := &Z_GenerateSupportMetadataArgs{pluginMeta}
-	_returns := &Z_GenerateSupportMetadataReturns{}
-	if err := g.client.Call("Plugin.GenerateSupportMetadata", _args, _returns); err != nil {
-		log.Printf("RPC call to GenerateSupportMetadata API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) GenerateSupportMetadata(args *Z_GenerateSupportMetadataArgs, returns *Z_GenerateSupportMetadataReturns) error {
-	if hook, ok := s.impl.(interface {
-		GenerateSupportMetadata(pluginMeta map[string]any) (*model.Metadata, error)
-	}); ok {
-		returns.A, returns.B = hook.GenerateSupportMetadata(args.A)
-		returns.B = encodableError(returns.B)
-	} else {
-		return encodableError(fmt.Errorf("API GenerateSupportMetadata called but not implemented."))
-	}
-	return nil
-}

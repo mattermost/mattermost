@@ -13,13 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func TestComparePassword(t *testing.T) {
-	hash := HashPassword("Test")
-
-	assert.NoError(t, ComparePassword(hash, "Test"), "Passwords don't match")
-	assert.Error(t, ComparePassword(hash, "Test2"), "Passwords should not have matched")
-}
-
 func TestIsPasswordValidWithSettings(t *testing.T) {
 	for name, tc := range map[string]struct {
 		Password      string
