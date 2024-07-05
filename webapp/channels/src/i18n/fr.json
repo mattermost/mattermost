@@ -950,7 +950,7 @@
   "admin.group_settings.group_detail.duplicateMentionNameError": "La mention de groupe est déjà employée.",
   "admin.group_settings.group_detail.groupProfileDescription": "Le nom pour ce groupe.",
   "admin.group_settings.group_detail.groupProfileTitle": "Profil du groupe",
-  "admin.group_settings.group_detail.groupTeamsAndChannelsDescription": "Définit les équipes et les canaux par défaut pour les membres du groupe. Les équipes qui seront ajoutées disposeront des canaux par défaut et des canaux « Centre-ville » et « Hors-sujet ». Ajouter une canal sans définir une équipe ajoute implicitement l'équipe dans la liste ci-dessous.",
+  "admin.group_settings.group_detail.groupTeamsAndChannelsDescription": "Définit les équipes et les canaux par défaut pour les membres du groupe. Les équipes qui seront ajoutées disposeront des canaux par défaut et des canaux « Centre-ville » et « Hors-sujet ». Ajouter un canal sans définir une équipe ajoute implicitement l'équipe dans la liste ci-dessous.",
   "admin.group_settings.group_detail.groupTeamsAndChannelsTitle": "Appartenances aux équipes et canaux",
   "admin.group_settings.group_detail.groupUsersDescription": "Liste les utilisateurs de Mattermost associés à ce groupe.",
   "admin.group_settings.group_detail.groupUsersTitle": "Utilisateurs",
