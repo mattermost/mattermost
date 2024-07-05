@@ -2640,8 +2640,6 @@ func (a *App) AfterPostDeletionCleanUp(c request.CTX, post *model.Post, deleteBy
 		}
 	}
 
-	// We should not re-send the message contents of a deleted message
-	post.Message = ""
 	postJSON, err := json.Marshal(post)
 	if err != nil {
 		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
