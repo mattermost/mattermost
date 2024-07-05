@@ -26,6 +26,7 @@ const (
 	SessionPropIsBotValue             = "true"
 	SessionPropOAuthAppID             = "oauth_app_id"
 	SessionPropMattermostAppID        = "mattermost_app_id"
+	SessionPropIgnoreNotificationACK  = "ignore_notification_ack"
 	SessionTypeUserAccessToken        = "UserAccessToken"
 	SessionTypeCloudKey               = "CloudKey"
 	SessionTypeRemoteclusterToken     = "RemoteClusterToken"

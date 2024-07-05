@@ -75,6 +75,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsForUser)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsAllUsers)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/sessions/device", api.APISessionRequired(attachDeviceId)).Methods("PUT")
+	api.BaseRoutes.Users.Handle("/sessions/ignore_ack", api.APISessionRequired(setIgnoreACK)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/audits", api.APISessionRequired(getUserAudits)).Methods("GET")
 
 	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(createUserAccessToken)).Methods("POST")
@@ -2258,6 +2259,38 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	c.LogAudit("")
+
+	ReturnStatusOK(w)
+}
+
+func setIgnoreACK(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJSON(r.Body)
+	ignore := props["ignore"]
+	if ignore != "false" && ignore != "true" {
+		c.SetInvalidParam("ignore")
+		return
+	}
+
+	currentSession := c.AppContext.Session()
+	if currentSession.DeviceId == "" {
+		ReturnStatusOK(w)
+		return
+	}
+
+	if currentSession.Props[model.SessionPropIgnoreNotificationACK] == ignore {
+		ReturnStatusOK(w)
+		return
+	}
+
+	value := false
+	if ignore == "true" {
+		value = true
+	}
+
+	if err := c.App.SetIgnoreNotificationACK(currentSession, value); err != nil {
+		c.Err = err
+		return
+	}
 
 	ReturnStatusOK(w)
 }
