@@ -7,7 +7,7 @@ on:
     inputs:
       ref:
         type: string
-        description: Branch or SHA of the commit to test. Ignored if PR_NUMBER is specified
+        description: Branch, tag or SHA of the commit to test. Ignored if PR_NUMBER is specified. Set to a tag when release testing.
         required: false
       PR_NUMBER:
         type: string
@@ -22,6 +22,7 @@ on:
         options:
           - PR
           - RELEASE
+          - RELEASE_CLOUD
           - MASTER
           - MASTER_UNSTABLE
           - CLOUD
@@ -42,8 +43,12 @@ jobs:
     outputs:
       commit_sha: "${{ steps.resolve-ref.outputs.commit_sha }}"
       BRANCH: "${{ steps.resolve-ref.outputs.BRANCH }}"
+      SERVER_IMAGE_TAG: "${{ steps.resolve-ref.outputs.SERVER_IMAGE_TAG }}"
+      SERVER_IMAGE: "${{ steps.resolve-ref.outputs.SERVER_IMAGE }}"
     env:
+      REF: "${{ inputs.ref || github.sha }}"
       PR_NUMBER: "${{ inputs.PR_NUMBER }}"
+      REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -54,16 +59,50 @@ jobs:
         id: resolve-ref
         run: |
           set -e
-          if [ -n "$PR_NUMBER" ]; then
-            curl -fsSL -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" -H "Authorization: Bearer ${{ github.token }}" "${{ github.api_url }}/repos/${{ github.repository }}/pulls/${PR_NUMBER}" -o pr.json
-            echo "commit_sha=$(jq -r .head.sha <pr.json)" >> $GITHUB_OUTPUT
-            echo "BRANCH=server-pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
-            # For reference, the real branch name may be retrievable as follows:
-            #echo "BRANCH=$(jq -r .head.ref <pr.json)" >> $GITHUB_OUTPUT
-          else
-            echo "commit_sha=$(git rev-parse --verify HEAD)" >> $GITHUB_OUTPUT
-            echo "BRANCH=${{ inputs.ref || github.sha }}" >> $GITHUB_OUTPUT
-          fi
+          # Choose ref resolution method based on REPORT_TYPE
+          case "$REPORT_TYPE" in
+            NONE | PR)
+              # Either use 'inputs.PR_NUMBER' or 'inputs.ref' to generate the refs
+              [ "$REPORT_TYPE" != "PR" -o -n "$PR_NUMBER" ] # If using 'REPORT_TYPE=PR', assert that 'PR_NUMBER' is set
+              if [ -n "$PR_NUMBER" ]; then
+                curl -fsSL -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" -H "Authorization: Bearer ${{ github.token }}" "${{ github.api_url }}/repos/${{ github.repository }}/pulls/${PR_NUMBER}" -o pr.json
+                COMMIT_SHA="$(jq -r .head.sha <pr.json)"
+                BRANCH="server-pr-${PR_NUMBER}"
+                # For reference, the real branch name may be retrievable as follows:
+                #BRANCH="$(jq -r .head.ref <pr.json)"
+              else
+                COMMIT_SHA="$(git rev-parse --verify HEAD)"
+                BRANCH="${REF}"
+              fi
+              SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
+              SERVER_IMAGE_ORG=mattermostdevelopment
+              ;;
+            MASTER | MASTER_UNSTABLE | CLOUD | CLOUD_UNSTABLE)
+              # Ignore both 'inputs.PR_NUMBER' and 'inputs.ref': use master branch directly
+              # The commit_sha is still used for reporting the test result, and for the testing scripts and test cases
+              COMMIT_SHA="$(git rev-parse --verify master)"
+              BRANCH=master
+              SERVER_IMAGE_TAG=master
+              SERVER_IMAGE_ORG=mattermostdevelopment
+              ;;
+            RELEASE | RELEASE_CLOUD)
+              # Assume the 'inputs.ref' is a tag, and use the first two digits to construct the branch name
+              COMMIT_SHA="$(git rev-parse --verify HEAD)"
+              BRANCH=$(sed -E "s/v([0-9]+)\.([0-9]+)\..+$/release-\1.\2/g" <<<$REF)
+              SERVER_IMAGE_TAG=$(cut -c2- <<<$REF)
+              SERVER_IMAGE_ORG=mattermost
+              # Assert that the expected tag and branch actually exist, before proceeding
+              git show-ref --verify "refs/tags/${REF}"
+              git show-ref --verify "refs/heads/${BRANCH}"
+              ;;
+            *)
+              echo "Fatal: unimplemented test type. Aborting."
+              exit 1
+          esac
+          echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+          echo "BRANCH=${BRANCH}" >> $GITHUB_OUTPUT
+          echo "SERVER_IMAGE_TAG=${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "SERVER_IMAGE=${SERVER_IMAGE_ORG}/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
 
   generate-test-variables:
     runs-on: ubuntu-22.04
@@ -84,22 +123,24 @@ jobs:
       TEST_FILTER: "${{ steps.generate.outputs.TEST_FILTER }}"
       BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"
       TM4J_ENABLE: "${{ steps.generate.outputs.TM4J_ENABLE }}"
+      REPORT_TYPE: "${{ steps.generate.outputs.REPORT_TYPE }}"
     env:
       GH_TOKEN: "${{ github.token }}"
       PR_NUMBER: "${{ inputs.PR_NUMBER || '' }}"
       REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"
+      SERVER_IMAGE_TAG: "${{ needs.resolve-ref.outputs.SERVER_IMAGE_TAG }}"
       # We could exclude the @smoke group for PRs, but then we wouldn't have it in the report
       TEST_FILTER_PR: >-
         --stage="@prod"
         --excludeGroup="@te_only,@cloud_only,@high_availability"
         --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap"
         --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
-      TEST_FILTER_DAILY_ONPREM: >-
+      TEST_FILTER_PROD_ONPREM: >-
         --stage="@prod"
         --excludeGroup="@te_only,@cloud_only,@high_availability"
         --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap,@playbooks"
         --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
-      TEST_FILTER_DAILY_CLOUD: >-
+      TEST_FILTER_PROD_CLOUD: >-
         --stage="@prod"
         --excludeGroup="@not_cloud,@cloud_trial,@e20_only,@te_only,@high_availability,@license_removal"
         --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap,@playbooks"
@@ -109,34 +150,45 @@ jobs:
       - name: ci/generate-test-variables
         id: generate
         run: |
-          COMMIT_SHA="${{needs.resolve-ref.outputs.commit_sha}}"
           # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
           # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
-          BUILD_ID_PREFIX="${{ github.run_id }}_${{ github.run_attempt }}-${COMMIT_SHA::7}"
+          BUILD_ID_PREFIX="${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}"
           MM_ENV_HASH=$(md5sum -z <<<"$MM_ENV" | cut -c-8)
-          SERVER=onprem
+          if grep -q CLOUD <<<"$REPORT_TYPE"; then
+            SERVER=cloud
+          else
+            SERVER=onprem
+          fi
           case "$REPORT_TYPE" in
             NONE | PR)
               echo "status_check_context=E2E Tests/test${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
               echo "workers_number=20" >> $GITHUB_OUTPUT
               echo "TEST_FILTER=$TEST_FILTER_PR" >> $GITHUB_OUTPUT
               echo "BUILD_ID=${BUILD_ID_PREFIX}-${REPORT_TYPE@L}-${SERVER}-ent" >> $GITHUB_OUTPUT
+              echo "REPORT_TYPE=${REPORT_TYPE}" >> $GITHUB_OUTPUT
               ;;
             MASTER | MASTER_UNSTABLE | CLOUD | CLOUD_UNSTABLE)
               IS_TEST_UNSTABLE=$(sed -n -E 's/^.*(UNSTABLE).*$/\1/p' <<< "$REPORT_TYPE") # Variable is UNSTABLE if report type is for unstable tests
-              if grep -q CLOUD <<<$REPORT_TYPE; then
-                SERVER=cloud
-              fi
-              TEST_FILTER_VARIABLE="TEST_FILTER_DAILY_${SERVER@U}"
+              TEST_FILTER_VARIABLE="TEST_FILTER_PROD_${SERVER@U}"
               BUILD_ID_SUFFIX="${IS_TEST_UNSTABLE:+unstable-}daily-${SERVER}-ent"
               echo "status_check_context=E2E Tests/test-${BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
               echo "workers_number=10" >> $GITHUB_OUTPUT # Daily tests are not time critical, and it's more efficient to run on fewer workers
               echo "TEST_FILTER=${!TEST_FILTER_VARIABLE} ${IS_TEST_UNSTABLE:+--invert}" >> $GITHUB_OUTPUT
               echo "BUILD_ID=${BUILD_ID_PREFIX}-${BUILD_ID_SUFFIX}" >> $GITHUB_OUTPUT
               echo "TM4J_ENABLE=true" >> $GITHUB_OUTPUT
+              echo "REPORT_TYPE=${REPORT_TYPE}" >> $GITHUB_OUTPUT
+              ;;
+            RELEASE | RELEASE_CLOUD)
+              TEST_FILTER_VARIABLE="TEST_FILTER_PROD_${SERVER@U}"
+              BUILD_ID_SUFFIX="release-${SERVER}-ent"
+              echo "status_check_context=E2E Tests/test-${BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
+              echo "workers_number=20" >> $GITHUB_OUTPUT
+              echo "TEST_FILTER=${!TEST_FILTER_VARIABLE}" >> $GITHUB_OUTPUT
+              echo "BUILD_ID=${BUILD_ID_PREFIX}-${BUILD_ID_SUFFIX}" >> $GITHUB_OUTPUT
+              echo "TM4J_ENABLE=true" >> $GITHUB_OUTPUT
+              echo "REPORT_TYPE=RELEASE" >> $GITHUB_OUTPUT
               ;;
             *)
-              # TODO implement release testing, in the future
               echo "Fatal: unimplemented test type. Aborting."
               exit 1
           esac
@@ -174,12 +226,13 @@ jobs:
       run_preflight_checks: false
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
+      SERVER_IMAGE: "${{ needs.resolve-ref.outputs.SERVER_IMAGE }}"
       ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.resolve-ref.outputs.BRANCH }}"
       BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
-      REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"
+      REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
     secrets:
       MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
