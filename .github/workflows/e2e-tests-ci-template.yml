@@ -30,6 +30,10 @@ on:
         type: boolean
         required: false
         default: false
+      SERVER:
+        type: string # Valid values are: onprem, cloud
+        required: false
+        default: onprem
       ENABLED_DOCKER_SERVICES:
         type: string
         required: false
@@ -62,6 +66,10 @@ on:
       REPORT_TM4J_API_KEY:
         required: false
       REPORT_TM4J_TEST_CYCLE_LINK_PREFIX:
+        required: false
+      CWS_URL:
+        required: false
+      CWS_EXTRA_HTTP_HEADERS:
         required: false
 
 jobs:
@@ -150,21 +158,31 @@ jobs:
     runs-on: ubuntu-22.04
     needs:
       - update-initial-status
+    defaults:
+      run:
+        shell: bash
     outputs:
-      workers: "${{ steps.workers.outputs.workers }}"
+      workers: "${{ steps.generate.outputs.workers }}"
+      SERVER_IMAGE: "${{ steps.generate.outputs.SERVER_IMAGE }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
-      - name: ci/generate-workers
-        id: workers
+      - name: ci/generate-build-variables
+        id: generate
         env:
           WORKERS: ${{ inputs.workers_number }}
+          REPORT_TYPE: ${{ inputs.REPORT_TYPE }}
         run: |
           [ "$WORKERS" -gt "0" ] # Assert that the workers number is an integer greater than 0
           echo "workers="$(jq --slurp --compact-output '[range('"$WORKERS"')] | map(tostring)' /dev/null) >> $GITHUB_OUTPUT
+          if grep -qE '^((MASTER|CLOUD)(_UNSTABLE)?)$' <<<"$REPORT_TYPE"; then
+            # For MASTER, MASTER_UNSTABLE, CLOUD and CLOUD_UNSTABLE runs, always use the latest master image
+            # The commit_sha is still used for reporting the test result, and for the testing scripts and test cases
+            echo "SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:master" >> $GITHUB_OUTPUT
+          fi
 
   generate-test-cycle:
     runs-on: ubuntu-22.04
@@ -237,6 +255,8 @@ jobs:
     env:
       AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
+      SERVER: "${{ inputs.SERVER }}"
+      SERVER_IMAGE: "${{ needs.generate-build-variables.outputs.SERVER_IMAGE }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ inputs.TEST_FILTER }}"
@@ -245,6 +265,8 @@ jobs:
       BUILD_ID: "${{ inputs.BUILD_ID }}"
       CI_BASE_URL: "http://localhost:8065/?worker_index=${{ matrix.worker_index }}"
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
+      CWS_URL: "${{ secrets.CWS_URL }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -282,6 +304,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs:
       - test
+      - generate-build-variables
     defaults:
       run:
         shell: bash
@@ -322,6 +345,8 @@ jobs:
         if: "${{ inputs.enable_reporting }}"
         env:
           TYPE: "${{ inputs.REPORT_TYPE }}"
+          SERVER: "${{ inputs.SERVER }}"
+          SERVER_IMAGE: "${{ needs.generate-build-variables.outputs.SERVER_IMAGE }}"
           WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
           BRANCH: "${{ inputs.BRANCH }}"
           BUILD_ID: "${{ inputs.BUILD_ID }}"

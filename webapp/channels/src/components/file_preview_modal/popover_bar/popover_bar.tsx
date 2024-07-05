@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import WithTooltip from 'components/with_tooltip';
 
-import {Constants, ZoomSettings} from 'utils/constants';
+import {ZoomSettings} from 'utils/constants';
 
 export interface Props {
     scale?: number;

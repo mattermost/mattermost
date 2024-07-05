@@ -18,6 +18,12 @@ function profilesToSet(state: RelationOneToManyUnique<Team, UserProfile>, action
     return users.reduce((nextState, user) => addProfileToSet(nextState, id, user.id), state);
 }
 
+function removeProfilesFromSet(state: RelationOneToManyUnique<Team, UserProfile>, action: AnyAction) {
+    const id = action.id;
+    const users: UserProfile[] = Object.values(action.data);
+    return users.reduce((nextState, user) => removeProfileFromSet(nextState, {type: '', data: {id, user_id: user.id}}), state);
+}
+
 function profileListToSet(state: RelationOneToManyUnique<Team, UserProfile>, action: AnyAction, replace = false) {
     const id = action.id;
     const users: UserProfile[] = action.data || [];
@@ -390,6 +396,9 @@ function profilesNotInChannel(state: UsersState['profilesNotInChannel'] = {}, ac
 
     case UserTypes.RECEIVED_PROFILES_NOT_IN_CHANNEL:
         return profilesToSet(state, action);
+
+    case UserTypes.RECEIVED_PROFILES_IN_CHANNEL:
+        return removeProfilesFromSet(state, action);
 
     case UserTypes.RECEIVED_PROFILE_IN_CHANNEL:
         return removeProfileFromSet(state, action);

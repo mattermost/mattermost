@@ -162,10 +162,18 @@ func (s sqlRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteClus
 	return &rc, nil
 }
 
-func (s sqlRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
+func (s sqlRemoteClusterStore) GetAll(offset, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
+	if offset < 0 {
+		return nil, errors.New("offset must be a positive integer")
+	}
+	if limit < 0 {
+		return nil, errors.New("limit must be a positive integer")
+	}
+
 	query := s.getQueryBuilder().
 		Select(remoteClusterFields("rc")...).
-		From("RemoteClusters rc")
+		From("RemoteClusters rc").
+		OrderBy("rc.DisplayName, rc.Name")
 
 	if filter.InChannel != "" {
 		query = query.Where("rc.RemoteId IN (SELECT scr.RemoteId FROM SharedChannelRemotes scr WHERE scr.ChannelId = ?)", filter.InChannel)
@@ -195,6 +203,10 @@ func (s sqlRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]
 		query = query.Where(sq.NotEq{"rc.PluginID": ""})
 	}
 
+	if filter.ExcludePlugins {
+		query = query.Where(sq.Eq{"rc.PluginID": ""})
+	}
+
 	if filter.RequireOptions != 0 {
 		query = query.Where(sq.NotEq{fmt.Sprintf("(rc.Options & %d)", filter.RequireOptions): 0})
 	}
@@ -207,6 +219,8 @@ func (s sqlRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]
 		queryTopic := fmt.Sprintf("%% %s %%", trimmed)
 		query = query.Where(sq.Or{sq.Like{"rc.Topics": queryTopic}, sq.Eq{"rc.Topics": "*"}})
 	}
+
+	query = query.Offset(uint64(offset)).Limit(uint64(limit))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
