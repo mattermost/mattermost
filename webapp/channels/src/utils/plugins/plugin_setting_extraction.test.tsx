@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+
 import type {PluginConfiguration, PluginConfigurationRadioSetting, PluginConfigurationSection} from 'types/plugins/user_settings';
 
 import {extractPluginConfiguration} from './plugin_setting_extraction';
@@ -81,6 +83,62 @@ function getFullExample(): PluginConfiguration {
         icon: 'some icon',
     };
 }
+
+function CustomSection() {
+    return (
+        <div>{'Custom Section'}</div>
+    );
+}
+
+function CustomInput() {
+    return (
+        <input>{'Custom Input'}</input>
+    );
+}
+
+function getCustomExample(): PluginConfiguration {
+    return {
+        id: '',
+        uiName: 'some name',
+        sections: [
+            {
+                title: 'Section',
+                settings: [
+                    {
+                        name: 'radioA',
+                        options: [
+                            {
+                                text: 'Enabled',
+                                value: 'on',
+                            },
+                            {
+                                text: 'Disabled',
+                                value: 'off',
+                            },
+                        ],
+                        type: 'radio',
+                        default: 'off',
+                    },
+                ],
+            },
+            {
+                title: 'Section with custom setting',
+                settings: [
+                    {
+                        name: 'custom_input',
+                        type: 'custom',
+                        component: CustomInput,
+                    },
+                ],
+            },
+            {
+                title: 'Custom section',
+                component: CustomSection,
+            },
+        ],
+    };
+}
+
 describe('plugin setting extraction', () => {
     beforeAll(() => {
         console.warn = jest.fn();
@@ -90,6 +148,7 @@ describe('plugin setting extraction', () => {
         const config = getFullExample();
         const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
+        expect(console.warn).not.toBeCalled();
         expect(res?.sections).toHaveLength(2);
 
         const sections = res?.sections as PluginConfigurationSection[];
@@ -377,5 +436,59 @@ describe('plugin setting extraction', () => {
         const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect((res?.sections[0] as PluginConfigurationSection).settings).toHaveLength(1);
+    });
+
+    describe('custom components', () => {
+        it('valid', () => {
+            const config = getCustomExample();
+            const res = extractPluginConfiguration(config, 'PluginId');
+            expect(res).toBeTruthy();
+            expect(res?.sections).toHaveLength(3);
+            expect(console.warn).not.toBeCalled();
+        });
+
+        it('missing setting component', () => {
+            const config: any = getCustomExample();
+            delete config.sections[1].settings[0].component;
+            const res = extractPluginConfiguration(config, 'PluginId');
+            expect(res).toBeTruthy();
+            expect(res?.sections).toHaveLength(2);
+            expect(console.warn).toBeCalled();
+            expect(res?.sections[0].title).toEqual('Section');
+            expect(res?.sections[1].title).toEqual('Custom section');
+        });
+
+        it('missing section component', () => {
+            const config: any = getCustomExample();
+            delete config.sections[2].component;
+            const res = extractPluginConfiguration(config, 'PluginId');
+            expect(res).toBeTruthy();
+            expect(res?.sections).toHaveLength(2);
+            expect(console.warn).toBeCalled();
+            expect(res?.sections[0].title).toEqual('Section');
+            expect(res?.sections[1].title).toEqual('Section with custom setting');
+        });
+
+        it('invalid setting component', () => {
+            const config: any = getCustomExample();
+            config.sections[1].settings[0].component = (<div/>); // Not a component but an element
+            const res = extractPluginConfiguration(config, 'PluginId');
+            expect(res).toBeTruthy();
+            expect(res?.sections).toHaveLength(2);
+            expect(console.warn).toBeCalled();
+            expect(res?.sections[0].title).toEqual('Section');
+            expect(res?.sections[1].title).toEqual('Custom section');
+        });
+
+        it('invalid section component', () => {
+            const config: any = getCustomExample();
+            config.sections[2].component = (<div/>); // Not a component but an element
+            const res = extractPluginConfiguration(config, 'PluginId');
+            expect(res).toBeTruthy();
+            expect(res?.sections).toHaveLength(2);
+            expect(console.warn).toBeCalled();
+            expect(res?.sections[0].title).toEqual('Section');
+            expect(res?.sections[1].title).toEqual('Section with custom setting');
+        });
     });
 });
