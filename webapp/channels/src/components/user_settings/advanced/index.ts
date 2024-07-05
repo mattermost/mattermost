@@ -13,7 +13,7 @@ import {
     get,
     getFromPreferences,
     getUnreadScrollPositionPreference,
-    makeGetCategory,
+    makeGetCategory, makeGetUserCategory,
     syncedDraftsAreAllowed,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
@@ -24,7 +24,7 @@ import type {OwnProps} from './user_settings_advanced';
 import AdvancedSettingsDisplay from './user_settings_advanced';
 
 function makeMapStateToProps(state: GlobalState, props: OwnProps) {
-    const getAdvancedSettingsCategory = makeGetCategory();
+    const getAdvancedSettingsCategory = props.adminMode ? makeGetUserCategory(props.currentUser.id) : makeGetCategory();
 
     return (state: GlobalState) => {
         const config = getConfig(state);
@@ -40,18 +40,22 @@ function makeMapStateToProps(state: GlobalState, props: OwnProps) {
         let syncDrafts: string;
 
         if (props.adminMode && props.userPreferences) {
+            console.log('TRUE TRUE TRUE TRUE TRUE ');
             sendOnCtrlEnter = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', 'false');
             codeBlockOnCtrlEnter = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', 'true');
             formatting = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true');
             joinLeave = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', enableJoinLeaveMessage.toString());
             syncDrafts = getFromPreferences(props.userPreferences, Preferences.CATEGORY_ADVANCED_SETTINGS, 'sync_drafts', 'true');
         } else {
+            console.log('FALSE FALSE FALSE FALSE FALSE ');
             sendOnCtrlEnter = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', 'false');
             codeBlockOnCtrlEnter = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', 'true');
             formatting = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true');
             joinLeave = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', enableJoinLeaveMessage.toString());
             syncDrafts = get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'sync_drafts', 'true');
         }
+
+        console.log(`TTTTTTTTT, formatting: ${formatting} viaPreferences: ${props.userPreferences['advanced_settings--formatting'].value}`);
 
         return {
             advancedSettingsCategory: getAdvancedSettingsCategory(state, Preferences.CATEGORY_ADVANCED_SETTINGS),

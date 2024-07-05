@@ -14,7 +14,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
-import {updateMe} from 'mattermost-redux/actions/users';
+import {patchUser, updateMe} from 'mattermost-redux/actions/users';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
     get,
@@ -33,13 +33,7 @@ import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 import type {GlobalState} from 'types/store';
 
-import UserSettingsDisplay from './user_settings_display';
-
-type OwnProps = {
-    user: UserProfile;
-    adminMode?: boolean;
-    userPreferences?: PreferencesType;
-}
+import UserSettingsDisplay, {OwnProps} from './user_settings_display';
 
 export function makeMapStateToProps() {
     return (state: GlobalState, props: OwnProps) => {
@@ -58,7 +52,8 @@ export function makeMapStateToProps() {
         const lastActiveTimeEnabled = config.EnableLastActiveTime === 'true';
 
         let lastActiveDisplay = true;
-        if (getUser(state, currentUserId).props?.show_last_active === 'false') {
+        const user = props.adminMode ? props.user : getUser(state, currentUserId);
+        if (user.props?.show_last_active === 'false') {
             lastActiveDisplay = false;
         }
 
@@ -157,6 +152,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             autoUpdateTimezone,
             savePreferences,
             updateMe,
+            patchUser,
         }, dispatch),
     };
 }

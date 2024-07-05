@@ -52,7 +52,7 @@ export function getMyPreferences() {
 export function getUserPreferences(userID: string) {
     return bindClientFunc({
         clientFunc: () => Client4.getUserPreferences(userID),
-        onSuccess: PreferenceTypes.RECEIVED_USER_PREFERENCES,
+        onSuccess: PreferenceTypes.RECEIVED_USER_ALL_PREFERENCES,
     });
 }
 

@@ -71,6 +71,27 @@ export function makeGetCategory(): (state: GlobalState, category: string) => Pre
     );
 }
 
+export function makeGetUserCategory(userID: string): (state: GlobalState, category: string) => PreferenceType[] {
+    return createSelector(
+        'makeGetCategory',
+        (state) => getUserPreferences(state, userID),
+        (state: GlobalState, category: string) => category,
+        (preferences, category) => {
+            console.log('999999999999');
+            const prefix = category + '--';
+            const prefsInCategory: PreferenceType[] = [];
+
+            for (const key in preferences) {
+                if (key.startsWith(prefix)) {
+                    prefsInCategory.push(preferences[key]);
+                }
+            }
+
+            return prefsInCategory;
+        },
+    );
+}
+
 const getDirectShowCategory = makeGetCategory();
 
 export function getDirectShowPreferences(state: GlobalState) {

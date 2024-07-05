@@ -9,7 +9,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import type {Timezone} from 'timezones.json';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile, UserTimezone} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -31,6 +31,7 @@ import ManageTimezones from './manage_timezones';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
+import {patchUser} from "mattermost-redux/actions/users";
 
 const Preferences = Constants.Preferences;
 
@@ -81,7 +82,13 @@ type SectionProps ={
     onSubmit?: () => void;
 }
 
-type Props = {
+export type OwnProps = {
+    user: UserProfile;
+    adminMode?: boolean;
+    userPreferences?: PreferencesType;
+}
+
+type Props = OwnProps & {
     user: UserProfile;
     updateSection: (section: string) => void;
     activeSection?: string;
@@ -120,6 +127,7 @@ type Props = {
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         autoUpdateTimezone: (deviceTimezone: string) => void;
         updateMe: (user: UserProfile) => Promise<ActionResult>;
+        patchUser: (user: UserProfile) => Promise<ActionResult>;
     };
 }
 
@@ -210,7 +218,8 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             },
         };
 
-        actions.updateMe(updatedUser).
+        const action = this.props.adminMode ? actions.patchUser : actions.updateMe;
+        action(updatedUser).
             then((res) => {
                 if ('data' in res) {
                     this.props.updateSection('');
@@ -876,6 +885,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                         automaticTimezone={userTimezone.automaticTimezone}
                         manualTimezone={userTimezone.manualTimezone}
                         updateSection={this.updateSection}
+                        adminMode={this.props.adminMode}
                     />
                 );
             }
@@ -1079,6 +1089,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                             user={this.props.user}
                             locale={userLocale}
                             updateSection={this.updateSection}
+                            adminMode={this.props.adminMode}
                         />
                     )}
                 />
@@ -1091,7 +1102,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         }
 
         let themeSection;
-        if (this.props.enableThemeSelection) {
+        if (this.props.enableThemeSelection && !this.props.adminMode) {
             themeSection = (
                 <div>
                     <ThemeSetting

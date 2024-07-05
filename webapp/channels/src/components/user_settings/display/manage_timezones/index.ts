@@ -8,15 +8,16 @@ import timezones from 'timezones.json';
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import {updateMe} from 'mattermost-redux/actions/users';
+import {patchUser, updateMe} from 'mattermost-redux/actions/users';
 import {getCurrentTimezoneLabel} from 'mattermost-redux/selectors/entities/timezone';
 
-import ManageTimezones from './manage_timezones';
+import ManageTimezones, {OwnProps} from './manage_timezones';
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             updateMe,
+            patchUser,
         }, dispatch),
     };
 }

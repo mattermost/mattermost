@@ -4,7 +4,7 @@
 import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 
 import {PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
 
@@ -80,10 +80,29 @@ function myPreferences(state: Record<string, PreferenceType> = {}, action: AnyAc
     }
 }
 
-function userPreferences(state: Record<string, PreferenceType> = {}, action: AnyAction) {
+function userPreferences(state: Record<string, PreferencesType> = {}, action: AnyAction) {
     switch (action.type) {
-    case PreferenceTypes.RECEIVED_USER_PREFERENCES:
+    case PreferenceTypes.RECEIVED_USER_ALL_PREFERENCES:
         return setAllUserPreferences(action.data);
+
+    case PreferenceTypes.RECEIVED_USER_PREFERENCES: {
+        console.log('UUUUUU');
+        const nextState = {...state};
+
+        const data = action.data as PreferenceType[];
+        if (action.data && data.length > 0) {
+            const userID = data[0].user_id;
+            nextState[userID] = nextState[userID] ? {...nextState[userID]} : {};
+
+            for (const preference of action.data) {
+                nextState[preference.user_id][getKey(preference)] = preference;
+            }
+        }
+
+        console.log({nextState});
+
+        return nextState;
+    }
 
     case UserTypes.LOGOUT_SUCCESS:
         return {};

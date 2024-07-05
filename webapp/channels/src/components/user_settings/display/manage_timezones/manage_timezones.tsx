@@ -15,10 +15,13 @@ import {getTimezoneLabel} from 'mattermost-redux/utils/timezone_utils';
 import SettingItemMax from 'components/setting_item_max';
 
 import {getBrowserTimezone} from 'utils/timezone';
+import {patchUser} from "mattermost-redux/actions/users";
 
 type Actions = {
     updateMe: (user: UserProfile) => Promise<ActionResult>;
+    patchUser: (user: UserProfile) => Promise<ActionResult>;
 }
+
 
 type Props = {
     user: UserProfile;
@@ -29,6 +32,7 @@ type Props = {
     timezones: Timezone[];
     timezoneLabel: string;
     actions: Actions;
+    adminMode?: boolean;
 }
 type SelectedOption = {
     value: string;
@@ -111,7 +115,8 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
             timezone,
         };
 
-        actions.updateMe(updatedUser).
+        const action = this.props.adminMode ? this.props.actions.patchUser : this.props.actions.updateMe;
+        action(updatedUser).
             then((res) => {
                 if ('data' in res) {
                     this.props.updateSection('');

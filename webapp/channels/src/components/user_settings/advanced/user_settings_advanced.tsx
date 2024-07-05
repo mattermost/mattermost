@@ -86,6 +86,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     }
 
     getStateFromProps = (): State => {
+        console.log({getStateFromProps: this.props.advancedSettingsCategory});
         const advancedSettings = this.props.advancedSettingsCategory;
         const settings: Settings = {
             send_on_ctrl_enter: this.props.sendOnCtrlEnter,
@@ -326,6 +327,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     }
 
     renderFormattingSection = () => {
+        console.log({state: this.state.settings.formatting, props: this.props.userPreferences['advanced_settings--formatting'].value});
+
         const active = this.props.activeSection === 'formatting';
         let max = null;
         if (active) {
@@ -904,6 +907,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 syncDraftsSectionDivider = <div className='divider-light'/>;
             }
         }
+
+        console.log({mm: this.props.userPreferences});
 
         return (
             <div>
