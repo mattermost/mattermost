@@ -267,12 +267,12 @@
     }
 
     .custom-status {
-        display: flex;
-        justify-content: center;
+        display: inline-block;
 
         &-expiry {
             font-weight: 400;
-            opacity: 0.7;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.72);
         }
     }
 }

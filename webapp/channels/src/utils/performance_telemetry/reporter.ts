@@ -126,7 +126,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: Measure.PageLoad,
             value: entries[0].duration,
-            timestamp: performance.timeOrigin + entries[0].startTime,
+            timestamp: Date.now(),
         });
     }
 
@@ -162,7 +162,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: entry.name,
             value: entry.duration,
-            timestamp: performance.timeOrigin + entry.startTime,
+            timestamp: Date.now(),
         });
     }
 
@@ -187,7 +187,7 @@ export default class PerformanceReporter {
         this.histogramMeasures.push({
             metric: metric.name,
             value: metric.value,
-            timestamp: performance.timeOrigin + performance.now(),
+            timestamp: Date.now(),
         });
     }
 
@@ -308,6 +308,11 @@ export default class PerformanceReporter {
     }
 
     protected sendBeacon(url: string | URL, data?: BodyInit | null | undefined): boolean {
+        // Confirm that sendBeacon exists because it doesn't on Firefox with certain settings enabled
+        if (!navigator.sendBeacon) {
+            return false;
+        }
+
         return navigator.sendBeacon(url, data);
     }
 }

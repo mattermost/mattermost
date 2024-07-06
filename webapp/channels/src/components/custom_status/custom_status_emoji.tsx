@@ -33,6 +33,7 @@ function CustomStatusEmoji({
     spanStyle = {},
     emojiStyle = {
         marginLeft: 4,
+        marginTop: -1,
     },
     userID = '',
     onClick,
@@ -63,7 +64,7 @@ function CustomStatusEmoji({
 
     return (
         <WithTooltip
-            id='postEmoji__tooltip'
+            id='custom-status-tooltip'
             title={
                 <>
                     <div className='custom-status'>
