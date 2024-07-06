@@ -2415,6 +2415,12 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	audit.AddEventParameterAuditable(auditRec, "user", user)
 
+	if user.IsRemote() {
+		// remote/synthetic users cannot have access tokens
+		c.SetPermissionError(model.PermissionCreateUserAccessToken)
+		return
+	}
+
 	if c.AppContext.Session().IsOAuth {
 		c.SetPermissionError(model.PermissionCreateUserAccessToken)
 		c.Err.DetailedError += ", attempted access by oauth app"
