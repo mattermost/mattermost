@@ -52,12 +52,12 @@ func (group *Group) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"id":              group.Id,
 		"source":          group.Source,
-		"remote_id":       SafeDereference(group.RemoteId),
+		"remote_id":       group.GetRemoteId(),
 		"create_at":       group.CreateAt,
 		"update_at":       group.UpdateAt,
 		"delete_at":       group.DeleteAt,
 		"has_syncables":   group.HasSyncables,
-		"member_count":    SafeDereference(group.MemberCount),
+		"member_count":    group.GetMemberCount(),
 		"allow_reference": group.AllowReference,
 	}
 }
@@ -68,12 +68,12 @@ func (group *Group) LogClone() any {
 		"name":            group.GetName(),
 		"display_name":    group.DisplayName,
 		"source":          group.Source,
-		"remote_id":       SafeDereference(group.RemoteId),
+		"remote_id":       group.GetRemoteId(),
 		"create_at":       MillisToString(group.CreateAt),
 		"update_at":       MillisToString(group.UpdateAt),
 		"delete_at":       MillisToString(group.DeleteAt),
 		"has_syncables":   group.HasSyncables,
-		"member_count":    SafeDereference(group.MemberCount),
+		"member_count":    group.GetMemberCount(),
 		"allow_reference": group.AllowReference,
 	}
 }
@@ -87,12 +87,12 @@ func (group *GroupWithUserIds) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"id":              group.Id,
 		"source":          group.Source,
-		"remote_id":       SafeDereference(group.RemoteId),
+		"remote_id":       group.GetRemoteId(),
 		"create_at":       group.CreateAt,
 		"update_at":       group.UpdateAt,
 		"delete_at":       group.DeleteAt,
 		"has_syncables":   group.HasSyncables,
-		"member_count":    SafeDereference(group.MemberCount),
+		"member_count":    group.GetMemberCount(),
 		"allow_reference": group.AllowReference,
 		"user_ids":        group.UserIds,
 	}
@@ -285,6 +285,10 @@ func (group *Group) GetName() string {
 
 func (group *Group) GetRemoteId() string {
 	return SafeDereference(group.RemoteId)
+}
+
+func (group *Group) GetMemberCount() int {
+	return SafeDereference(group.MemberCount)
 }
 
 type GroupsWithCount struct {
