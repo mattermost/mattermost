@@ -3,7 +3,8 @@
 
 Cypress.Commands.add('uiSearchPosts', (searchTerm) => {
     // # Enter the search terms and hit enter to start the search
-    cy.get('#searchBox').clear().type(searchTerm).type('{enter}');
+    cy.get('#searchFormContainer').should('be.visible').click();
+    cy.get('#searchBox').find('input').clear().type(searchTerm).type('{enter}');
 
     // * Wait for the RHS to open and the search results to appear
     cy.contains('.sidebar--right__header', 'Search Results').should('be.visible');
