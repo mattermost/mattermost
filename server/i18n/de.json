@@ -7067,10 +7067,6 @@
     "translation": "Einladung von sicherer Verbindung"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Konnte Einladung nicht entschlüsseln. Falsches Passwort oder beschädigte Einladung: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Konnte keine sicheren Verbindungen holen: {{.Error}}"
   },

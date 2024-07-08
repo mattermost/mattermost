@@ -7935,10 +7935,6 @@
     "translation": "Inbjudan från säker anslutning"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Kunde inte dekryptera inbjudan. Felaktigt lösenord eller skadad inbjudan: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[åtgärd]"
   },

@@ -7984,10 +7984,6 @@
     "translation": "Приглашение от защищенного соединения"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Не удалось расшифровать приглашение. Неправильный пароль или испорченное приглашение: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[действие]"
   },

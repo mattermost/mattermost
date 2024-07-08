@@ -8158,10 +8158,6 @@
     "translation": "安全な接続からの招待"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "招待を復号できませんでした。不正なパスワードか、招待が壊れています: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[アクション]"
   },

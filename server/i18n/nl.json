@@ -8131,10 +8131,6 @@
     "translation": "Uitnodiging aangemaakt."
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Kon de uitnodiging niet decoderen. Onjuist wachtwoord of ongeldige uitnodiging: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Kon beveiligde verbindingen niet ophalen: {{.Error}}"
   },
