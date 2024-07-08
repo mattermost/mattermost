@@ -84,7 +84,7 @@ require (
 )
 
 require (
-	github.com/HdrHistogram/hdrhistogram-go v0.9.0 // indirect
+	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
 	github.com/JalfResi/justext v0.0.0-20221106200834-be571e3e3052 // indirect
 	github.com/PuerkitoBio/goquery v1.9.0 // indirect
 	github.com/RoaringBitmap/roaring v1.9.0 // indirect
