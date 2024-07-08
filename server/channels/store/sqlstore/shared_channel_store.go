@@ -476,7 +476,6 @@ func (s SqlSharedChannelStore) GetRemotes(offset, limit int, opts model.SharedCh
 		From("SharedChannelRemotes").
 		OrderBy("Id")
 
-
 	if opts.ChannelId != "" {
 		query = query.Where(sq.Eq{"ChannelId": opts.ChannelId})
 	}
