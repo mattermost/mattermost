@@ -7,9 +7,8 @@ import {injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import TeamInfoIcon from 'components/widgets/icons/team_info_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import * as Utils from 'utils/utils';
 
@@ -33,22 +32,14 @@ export class SelectTeamItem extends React.PureComponent<Props> {
             return null;
         }
 
-        const descriptionTooltip = (
-            <Tooltip id='team-description__tooltip'>
-                {team.description}
-            </Tooltip>
-        );
-
         return (
-            <OverlayTrigger
-                delayShow={1000}
+            <WithTooltip
+                id='team-description__tooltip'
+                title={team.description}
                 placement='top'
-                overlay={descriptionTooltip}
-                rootClose={true}
-                container={this}
             >
                 <TeamInfoIcon className='icon icon--info'/>
-            </OverlayTrigger>
+            </WithTooltip>
         );
     };
 
