@@ -167,6 +167,9 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
               </div>
             </div>
             <span
+              className="backstage-list__hint"
+            />
+            <span
               className="backstage-list__help"
             >
               <FormattedMessage

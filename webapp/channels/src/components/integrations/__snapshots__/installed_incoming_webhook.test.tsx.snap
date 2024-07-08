@@ -73,6 +73,28 @@ exports[`components/integrations/InstalledIncomingWebhook should match snapshot 
       className="item-details__row"
     >
       <span
+        className="item-details__channel_name word-break--all"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Channel: {name}"
+          id="installed_integrations.channel_name"
+          values={
+            Object {
+              "name": "name",
+            }
+          }
+        />
+        <span>
+          <Memo(CopyText)
+            value="name"
+          />
+        </span>
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
         className="item-details__creation"
       >
         <MemoizedFormattedMessage
