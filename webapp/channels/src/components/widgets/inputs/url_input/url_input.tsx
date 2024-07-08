@@ -5,10 +5,8 @@ import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants from 'utils/constants';
 import {getShortenedURL} from 'utils/url';
 
 import Input from '../input/input';
@@ -92,18 +90,15 @@ function UrlInput({
     return (
         <div className={classNames('url-input-main', className)}>
             <div className='url-input-container'>
-                {isShortenedURL ? (
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='top'
-                        overlay={(
-                            <Tooltip id='urlTooltip'>
-                                {fullURL}
-                            </Tooltip>
-                        )}
-                    >
-                        {urlInputLabel}
-                    </OverlayTrigger>
+                {isShortenedURL ? (                   
+                    <WithTooltip
+                        id='urlTooltip'
+            title={fullURL}
+            placement='top'
+        >
+            {urlInputLabel}
+        </WithTooltip>
+                  
                 ) : (
                     urlInputLabel
                 )}
