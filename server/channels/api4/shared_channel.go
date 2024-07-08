@@ -118,7 +118,7 @@ func getSharedChannelRemotesByRemoteCluster(c *Context, w http.ResponseWriter, r
 	filter := model.SharedChannelRemoteFilterOpts{RemoteId: c.Params.RemoteId}
 	sharedChannelRemotes, err := c.App.GetSharedChannelRemotes(c.Params.Page, c.Params.PerPage, filter)
 	if err != nil {
-		c.Err = model.NewAppError("getSharedChannelsByRemoteCluster", "api.shared_channel.get_shared_channel_remotes_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("getSharedChannelRemotesByRemoteCluster", "api.shared_channel.get_shared_channel_remotes_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
