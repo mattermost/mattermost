@@ -140,6 +140,7 @@ const NewSearch = (): JSX.Element => {
     const runSearch = useCallback((searchType: string, searchTerms: string) => {
         dispatch(updateSearchType(searchType));
         dispatch(updateSearchTerms(searchTerms));
+        console.log(searchType, searchTerms)
 
         if (searchType === '' || searchType === 'messages' || searchType === 'files') {
             dispatch(showSearchResults(false));
@@ -159,6 +160,7 @@ const NewSearch = (): JSX.Element => {
             tabIndex={0}
             onKeyDown={openSearchBoxOnKeyPress}
             onClick={openSearchBox}
+            id='searchFormContainer'
         >
             <i className='icon icon-magnify'/>
             {searchTerms && <span tabIndex={0}>{searchTerms}</span>}

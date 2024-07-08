@@ -104,7 +104,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
                 setSelectedOption(-1);
             }
         }
-    }, [providerResults, onClose, selectedOption, onSearch]);
+    }, [providerResults, onClose, selectedOption, onSearch, searchType, searchTerms]);
 
     const focus = useCallback((newposition: number) => {
         if (inputRef.current) {
@@ -127,7 +127,7 @@ const SearchBox = forwardRef(({onClose, onSearch, initialSearchTerms}: Props, re
     }, [searchType]);
 
     return (
-        <SearchBoxContainer ref={ref}>
+        <SearchBoxContainer ref={ref} id='searchBox'>
             <CloseIcon
                 className='btn btn-icon btn-m'
                 onClick={closeHandler}

@@ -119,7 +119,7 @@ const SearchInput = ({searchTerms, searchType, setSearchTerms, onKeyDown, focus}
             />
             {searchTerms.length > 0 && (
                 <ClearButton
-                    className='btn btn-sm'
+                    className='btn btn-sm input-clear-x'
                     onClick={clearSearch}
                 >
                     <i className='icon icon-close-circle'/>
