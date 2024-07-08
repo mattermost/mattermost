@@ -189,6 +189,7 @@
             display: flex;
             width: 100%;
             max-width: 1000px;
+            min-height: 475px;
             min-height: 0;
             flex: 1;
             margin: 0 auto;
@@ -203,11 +204,11 @@
 
             .settings-links {
                 overflow: auto;
-                width: 180px;
-                background: var(--sidebar-bg);
+                width: 232px;
+                background: rgba(var(--center-channel-color-rgb), 0.04);
+                padding: 16px;
 
                 .nav {
-                    position: fixed;
                     margin: 0;
                 }
             }
@@ -530,23 +531,29 @@
         }
 
         .nav-pills > li button {
-            color: rgba(var(--sidebar-text-rgb), 0.75);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
 
     .nav-pills {
         > li {
-            margin: 0;
+            margin-bottom: 8px;
 
             button {
                 overflow: hidden;
                 width: 100%;
                 padding: 8px 15px;
-                border-radius: 0;
+                border-radius: 4px;
                 color: $gray;
                 text-align: left;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+                font-weight: 600;
+
+                &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+                    color: rgba(var(--center-channel-color-rgb), 0.8);
+                }
             }
 
             img {
@@ -565,13 +572,13 @@
                 text-align: center;
             }
 
-            &:hover {
-                button,
-                button:hover,
-                button:focus {
-                    background: var(--sidebar-text-hover-bg);
-                }
-            }
+            //&:hover {
+            //    button,
+            //    button:hover,
+            //    button:focus {
+            //        background: var(--sidebar-text-hover-bg);
+            //    }
+            //}
 
             &.active {
                 div {
@@ -596,7 +603,8 @@
                 }
 
                 button {
-                    @include alpha-property(background-color, $black, 0.1);
+                    background: rgba(var(--button-bg-rgb), 0.08);
+                    color: v(button-bg);
                 }
             }
         }
