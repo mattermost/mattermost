@@ -7,7 +7,7 @@ import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 import {Constants, ModalIdentifiers} from 'utils/constants';
-import {toTitleCase} from 'utils/utils';
+import {getDisplayName, toTitleCase} from 'utils/utils';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {PreferenceType} from '@mattermost/types/lib/preferences';
@@ -46,6 +46,7 @@ import {raw} from 'concurrently/dist/src/defaults';
 import {PreferenceTypes} from 'mattermost-redux/action_types';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {getUserPreferences} from 'mattermost-redux/actions/preferences';
+import Confirm from "components/mfa/confirm";
 
 export type Params = {
     user_id?: UserProfile['id'];
@@ -66,6 +67,7 @@ export type State = {
     showResetPasswordModal: boolean;
     showDeactivateMemberModal: boolean;
     showTeamSelectorModal: boolean;
+    showConfirmEditUserSettingModal: boolean;
 };
 
 export class SystemUserDetail extends PureComponent<Props, State> {
@@ -83,6 +85,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             showResetPasswordModal: false,
             showDeactivateMemberModal: false,
             showTeamSelectorModal: false,
+            showConfirmEditUserSettingModal: false,
         };
     }
 
@@ -295,7 +298,20 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({showTeamSelectorModal: false});
     };
 
-    toggleOpenManageUserSettingsModal = async () => {
+    openConfirmEditUserSettingsModal = () => {
+        this.setState({showConfirmEditUserSettingModal: true});
+    };
+
+    closeConfirmEditUserSettingsModal = () => {
+        this.setState({showConfirmEditUserSettingModal: false});
+    };
+
+    handleConfirmEditUserSettingsModal = async () => {
+        await this.foo();
+        this.closeConfirmEditUserSettingsModal();
+    }
+
+    foo = async () => {
         // LOL
         if (!this.state.user) {
             return;
@@ -454,7 +470,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
                                     <button
                                         className='manageUserSettingsBtn btn btn-tertiary'
-                                        onClick={this.toggleOpenManageUserSettingsModal}
+                                        onClick={this.openConfirmEditUserSettingsModal}
                                     >
                                         <FormattedMessage
                                             id='admin.user_item.manageSettings'
@@ -554,6 +570,32 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     }
                     onConfirm={this.handleDeactivateMember}
                     onCancel={this.toggleCloseModalDeactivateMember}
+                />
+
+                <ConfirmModal
+                    show={this.state.showConfirmEditUserSettingModal}
+                    title={
+                        <FormattedMessage
+                            id='userSettings.adminMode.modal_header'
+                            defaultMessage="Manage {userDisplayName}'s Settings"
+                            values={{userDisplayName: this.state.user ? getDisplayName(this.state.user) : ''}}
+                        />
+                    }
+                    message={
+                        <FormattedMessage
+                            id='admin.user_item.manageSettings.confirm_dialog.body'
+                            defaultMessage="You are about to access {userDisplayName}'s account settings. Any modifications you make will take effect immediately in their account. {userDisplayName} retains the ability to view and modify these settings at any time.\n\nAre you sure you want to proceed with managing {userDisplayName}'s settings?"
+                            values={{userDisplayName: this.state.user ? getDisplayName(this.state.user) : ''}}
+                        />
+                    }
+                    confirmButtonText={
+                        <FormattedMessage
+                            id='admin.user_item.manageSettings'
+                            defaultMessage='Manage User Settings'
+                        />
+                    }
+                    onConfirm={this.handleConfirmEditUserSettingsModal}
+                    onCancel={this.closeConfirmEditUserSettingsModal}
                 />
                 {this.state.showTeamSelectorModal && (
                     <TeamSelectorModal
