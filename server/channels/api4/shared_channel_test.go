@@ -297,6 +297,13 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	_, err = th.App.ShareChannel(th.Context, sc3)
 	require.NoError(t, err)
 
+	// for the pagination test, we need to get the channelId of the
+	// second SharedChannelRemote that belongs to RC1, sorted by ID,
+	// so we accumulate those SharedChannelRemotes on creation and
+	// later sort them to be able to get the right one for the test
+	// result
+	sharedChannelRemotesFromRC1 := []*model.SharedChannelRemote{}
+
 	// create the shared channel remotes
 	for _, sc := range []*model.SharedChannel{sc1, sc2, sc3} {
 		scr := &model.SharedChannelRemote{
@@ -309,7 +316,15 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 		}
 		_, err = th.App.SaveSharedChannelRemote(scr)
 		require.NoError(t, err)
+
+		if scr.RemoteId == rc1.RemoteId {
+			sharedChannelRemotesFromRC1 = append(sharedChannelRemotesFromRC1, scr)
+		}
 	}
+
+	sort.Slice(sharedChannelRemotesFromRC1, func(i, j int) bool {
+		return sharedChannelRemotesFromRC1[i].Id < sharedChannelRemotesFromRC1[j].Id
+	})
 
 	t.Run("should return the expected shared channels", func(t *testing.T) {
 		testCases := []struct {
@@ -358,25 +373,25 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 				PerPage:            1,
 				ExpectedStatusCode: http.StatusOK,
 				ExpectedError:      false,
-				ExpectedIds:        []string{sc2.ChannelId},
+				ExpectedIds:        []string{sharedChannelRemotesFromRC1[1].ChannelId},
 			},
 		}
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				scs, resp, err := tc.Client.GetSharedChannelRemotesByRemoteCluster(context.Background(), tc.RemoteId, tc.Page, tc.PerPage)
+				scrs, resp, err := tc.Client.GetSharedChannelRemotesByRemoteCluster(context.Background(), tc.RemoteId, tc.Page, tc.PerPage)
 				checkHTTPStatus(t, resp, tc.ExpectedStatusCode)
 				if tc.ExpectedError {
 					require.Error(t, err)
 				} else {
 					require.NoError(t, err)
 				}
-				require.Len(t, scs, len(tc.ExpectedIds))
+				require.Len(t, scrs, len(tc.ExpectedIds))
 
 				foundIds := []string{}
-				for _, sc := range scs {
-					require.Equal(t, tc.RemoteId, sc.RemoteId)
-					foundIds = append(foundIds, sc.ChannelId)
+				for _, scr := range scrs {
+					require.Equal(t, tc.RemoteId, scr.RemoteId)
+					foundIds = append(foundIds, scr.ChannelId)
 				}
 				require.ElementsMatch(t, tc.ExpectedIds, foundIds)
 			})
