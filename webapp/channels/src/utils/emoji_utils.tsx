@@ -179,6 +179,10 @@ export function getSkin(emoji: Emoji) {
     return null;
 }
 
+export function trimmedEmojiName(emojiName: string) {
+    return emojiName.startsWith(':') && emojiName.endsWith(':') ? emojiName.slice(1, -1) : emojiName;
+}
+
 export function emojiMatchesSkin(emoji: Emoji, skin: string) {
     const emojiSkin = getSkin(emoji);
     return !emojiSkin || emojiSkin === skin;

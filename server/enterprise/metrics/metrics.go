@@ -1076,7 +1076,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of notification events",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type"},
+		[]string{"type", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationTotalCounters)
 
@@ -1088,7 +1088,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of notification events acknowledged",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type"},
+		[]string{"type", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationAckCounters)
 
@@ -1100,7 +1100,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of successfully sent notifications",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type"},
+		[]string{"type", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationSuccessCounters)
 
@@ -1112,7 +1112,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of errors that stop the notification flow",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type", "reason"},
+		[]string{"type", "reason", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationErrorCounters)
 
@@ -1124,7 +1124,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of notifications the system deliberately did not send",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type", "reason"},
+		[]string{"type", "reason", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationNotSentCounters)
 
@@ -1136,7 +1136,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of untrackable notifications due to an unsupported app version",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type", "reason"},
+		[]string{"type", "reason", "platform"},
 	)
 	m.Registry.MustRegister(m.NotificationUnsupportedCounters)
 
@@ -1730,28 +1730,41 @@ func (mi *MetricsInterfaceImpl) SetReplicaLagTime(node string, value float64) {
 	mi.DbReplicaLagGaugeTime.With(prometheus.Labels{"node": node}).Set(value)
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationCounter(notificationType model.NotificationType) {
-	mi.NotificationTotalCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
+func normalizeNotificationPlatform(platform string) string {
+	switch platform {
+	case "apple_rn-v2", "apple_rnbeta-v2", "ios":
+		return "ios"
+	case "android_rn-v2", "android":
+		return "android"
+	case model.NotificationNoPlatform:
+		return model.NotificationNoPlatform
+	default:
+		return "unknown"
+	}
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationAckCounter(notificationType model.NotificationType) {
-	mi.NotificationAckCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationCounter(notificationType model.NotificationType, platform string) {
+	mi.NotificationTotalCounters.With(prometheus.Labels{"type": string(notificationType), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationSuccessCounter(notificationType model.NotificationType) {
-	mi.NotificationSuccessCounters.With(prometheus.Labels{"type": string(notificationType)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationAckCounter(notificationType model.NotificationType, platform string) {
+	mi.NotificationAckCounters.With(prometheus.Labels{"type": string(notificationType), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason) {
-	mi.NotificationErrorCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(errorReason)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationSuccessCounter(notificationType model.NotificationType, platform string) {
+	mi.NotificationSuccessCounters.With(prometheus.Labels{"type": string(notificationType), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
-	mi.NotificationNotSentCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason, platform string) {
+	mi.NotificationErrorCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(errorReason), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason) {
-	mi.NotificationUnsupportedCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason)}).Inc()
+func (mi *MetricsInterfaceImpl) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string) {
+	mi.NotificationNotSentCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason), "platform": normalizeNotificationPlatform(platform)}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string) {
+	mi.NotificationUnsupportedCounters.With(prometheus.Labels{"type": string(notificationType), "reason": string(notSentReason), "platform": normalizeNotificationPlatform(platform)}).Inc()
 }
 
 func (mi *MetricsInterfaceImpl) IncrementHTTPWebSockets(originClient string) {
