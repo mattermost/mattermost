@@ -17,6 +17,7 @@ type WithTooltipProps = {
     children: OverlayTriggerProps['children'];
     placement: OverlayTriggerProps['placement'];
     onShow?: () => void;
+    delayHide?: number;
     onExit?: () => void;
 } & CommonTooltipProps;
 const WithTooltip = ({
@@ -28,6 +29,7 @@ const WithTooltip = ({
     shortcut,
     placement,
     onShow,
+    delayHide,
     children,
     onExit,
     shouldUpdatePosition,
@@ -47,6 +49,7 @@ const WithTooltip = ({
             overlay={<ThisTooltip/>}
             placement={placement}
             onEnter={onShow}
+            delayHide={delayHide}
             onExit={onExit}
             shouldUpdatePosition={shouldUpdatePosition}
         >

@@ -18,7 +18,7 @@ func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.U
 		return
 	}
 
-	realUsername, ok := user.GetProp(KeyRemoteUsername)
+	realUsername, ok := user.GetProp(model.UserPropsKeyRemoteUsername)
 	if !ok {
 		return
 	}

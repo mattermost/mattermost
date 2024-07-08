@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -47,10 +49,17 @@ func TestUserDeepCopy(t *testing.T) {
 
 func TestUserPreSave(t *testing.T) {
 	user := User{Password: "test"}
-	user.PreSave()
+	err := user.PreSave()
+	require.Nil(t, err)
 	user.Etag(true, true)
 	assert.NotNil(t, user.Timezone, "Timezone is nil")
 	assert.Equal(t, user.Timezone["useAutomaticTimezone"], "true", "Timezone is not set to default")
+}
+
+func TestUserPreSavePwdTooLong(t *testing.T) {
+	user := User{Password: strings.Repeat("1234567890", 8)}
+	err := user.PreSave()
+	assert.ErrorIs(t, err, bcrypt.ErrPasswordTooLong)
 }
 
 func TestUserPreUpdate(t *testing.T) {
@@ -382,5 +391,24 @@ func TestValidateCustomStatus(t *testing.T) {
 
 		user0.Props[UserPropsKeyCustomStatus] = "{\"wrong\": \"hello\"}"
 		assert.True(t, user0.ValidateCustomStatus())
+	})
+}
+
+func TestSanitizeProfile(t *testing.T) {
+	t.Run("should correctly sanitize email and remote email", func(t *testing.T) {
+		user := &User{
+			Email: "john@doe.com",
+			Props: StringMap{UserPropsKeyRemoteEmail: "remote@doe.com"},
+		}
+
+		user.SanitizeProfile(nil)
+
+		require.Equal(t, "john@doe.com", user.Email)
+		require.Equal(t, "remote@doe.com", user.Props[UserPropsKeyRemoteEmail])
+
+		user.SanitizeProfile(map[string]bool{"email": false})
+
+		require.Empty(t, user.Email)
+		require.Empty(t, user.Props[UserPropsKeyRemoteEmail])
 	})
 }
