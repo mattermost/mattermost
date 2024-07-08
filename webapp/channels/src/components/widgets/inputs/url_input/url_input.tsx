@@ -90,15 +90,15 @@ function UrlInput({
     return (
         <div className={classNames('url-input-main', className)}>
             <div className='url-input-container'>
-                {isShortenedURL ? (                   
+                {isShortenedURL ? (
                     <WithTooltip
                         id='urlTooltip'
-            title={fullURL}
-            placement='top'
-        >
-            {urlInputLabel}
-        </WithTooltip>
-                  
+                        title={fullURL}
+                        placement='top'
+                    >
+                        {urlInputLabel}
+                    </WithTooltip>
+
                 ) : (
                     urlInputLabel
                 )}
