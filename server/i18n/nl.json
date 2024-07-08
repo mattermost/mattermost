@@ -10072,5 +10072,13 @@
   {
     "id": "api.user.update_password.password_hash.app_error",
     "translation": "Er is een interne fout opgetreden bij het opslaan van het wachtwoord."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Er is een interne fout opgetreden bij het opslaan van het wachtwoord."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Je wachtwoord mag niet meer dan 72 tekens bevatten."
   }
 ]
