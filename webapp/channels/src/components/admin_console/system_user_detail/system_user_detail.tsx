@@ -6,6 +6,8 @@ import type {ChangeEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
+import {Constants, ModalIdentifiers} from 'utils/constants';
+import {getDisplayName, toTitleCase} from 'utils/utils';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -30,15 +32,16 @@ import EmailIcon from 'components/widgets/icons/email_icon';
 import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import {getDisplayName, toTitleCase} from 'utils/utils';
-
 import type {PropsFromRedux} from './index';
 
 import './system_user_detail.scss';
+import WithTooltip from 'components/with_tooltip';
+
+import classNames from 'classnames';
 
 export type Params = {
     user_id?: UserProfile['id'];
+    canAdminManageUserSettings: boolean;
 };
 
 export type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedComponentProps;
@@ -433,23 +436,60 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         </button>
                                     )}
 
-                                    <button
-                                        className='manageUserSettingsBtn btn btn-tertiary'
-                                        onClick={this.openConfirmEditUserSettingsModal}
-                                    >
-                                        <FormattedMessage
-                                            id='admin.user_item.manageSettings'
-                                            defaultMessage='Manage User Settings'
-                                        />
-                                    </button>
+                                    {
+                                        this.props.canAdminManageUserSettings &&
+                                        <button
+                                            className='manageUserSettingsBtn btn btn-tertiary'
+                                            onClick={this.openConfirmEditUserSettingsModal}
+                                        >
+                                            <FormattedMessage
+                                                id='admin.user_item.manageSettings'
+                                                defaultMessage='Manage User Settings'
+                                            />
+                                        </button>
+                                    }
+
+                                    {
+                                        !this.props.canAdminManageUserSettings &&
+                                        <WithTooltip
+                                            id='adminUserSettingUpdateDisabled'
+                                            title={defineMessage({
+                                                id: 'free.professional_feature.professional',
+                                                defaultMessage: 'Professional feature',
+                                            })}
+                                            hint={defineMessage({
+                                                id: 'admin.user_item.manageSettings.disabled_tooltip',
+                                                defaultMessage: 'Please upgrade to professional to manage user settings',
+                                            })}
+                                            placement='top'
+                                        >
+                                            <button
+                                                className='manageUserSettingsBtn btn disabled'
+                                            >
+                                                <div className='RestrictedIndicator__content'>
+                                                    <i className={classNames('RestrictedIndicator__icon-tooltip', 'icon', 'icon-key-variant')}/>
+                                                </div>
+                                                <FormattedMessage
+                                                    id='admin.user_item.manageSettings'
+                                                    defaultMessage='Manage User Settings'
+                                                />
+                                            </button>
+                                        </WithTooltip>
+                                    }
                                 </>
                             }
                         />
 
                         {/* User's team details */}
                         <AdminPanel
-                            title={defineMessage({id: 'admin.userManagement.userDetail.teamsTitle', defaultMessage: 'Team Membership'})}
-                            subtitle={defineMessage({id: 'admin.userManagement.userDetail.teamsSubtitle', defaultMessage: 'Teams to which this user belongs'})}
+                            title={defineMessage({
+                                id: 'admin.userManagement.userDetail.teamsTitle',
+                                defaultMessage: 'Team Membership',
+                            })}
+                            subtitle={defineMessage({
+                                id: 'admin.userManagement.userDetail.teamsSubtitle',
+                                defaultMessage: 'Teams to which this user belongs',
+                            })}
                             button={
                                 <div className='add-team-button'>
                                     <button

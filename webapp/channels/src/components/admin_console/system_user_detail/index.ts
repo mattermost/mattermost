@@ -3,13 +3,14 @@
 
 import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
+import {LicenseSkus} from 'utils/constants';
 
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getUserPreferences} from 'mattermost-redux/actions/preferences';
 import {addUserToTeam} from 'mattermost-redux/actions/teams';
 import {updateUserActive, getUser, patchUser, updateUserMfa} from 'mattermost-redux/actions/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 import {openModal} from 'actions/views/modals';
@@ -18,9 +19,14 @@ import SystemUserDetail from './system_user_detail';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
+    const license = getLicense(state);
+    const isLicensed = license.IsLicensed === 'true';
+    const isProOrEnterprise = license.SkuShortName === LicenseSkus.Professional || license.SkuShortName === LicenseSkus.Enterprise || license.SkuShortName === LicenseSkus.E20;
+    const canAdminManageUserSettings = isLicensed && isProOrEnterprise;
 
     return {
         mfaEnabled: config?.EnableMultifactorAuthentication === 'true' || false,
+        canAdminManageUserSettings,
     };
 }
 

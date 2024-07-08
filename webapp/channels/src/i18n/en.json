@@ -2708,6 +2708,7 @@
   "admin.user_item.manageSettings": "Manage User Settings",
   "admin.user_item.manageSettings.confirm_dialog.title": "Manage {userDisplayName}'s Settings",
   "admin.user_item.manageSettings.confirm_dialog.body": "You are about to access {userDisplayName}'s account settings. Any modifications you make will take effect immediately in their account. {userDisplayName} retains the ability to view and modify these settings at any time.\n\nAre you sure you want to proceed with managing {userDisplayName}'s settings?",
+  "admin.user_item.manageSettings.disabled_tooltip": "Please upgrade to professional to manage user settings",
   "admin.user_item.sysAdmin": "System Admin",
   "admin.user_item.teamAdmin": "Team Admin",
   "admin.user_item.teamMember": "Team Member",
