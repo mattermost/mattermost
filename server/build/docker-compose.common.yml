@@ -116,7 +116,7 @@ services:
       KC_HOSTNAME_STRICT_HTTPS: 'false'
       KC_HTTP_ENABLED: 'true'
     volumes:
-     - "./docker/keycloak:/opt/keycloak/data/import"
+     - "./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json"
   prometheus:
     image: "prom/prometheus:v2.46.0"
     user: root
