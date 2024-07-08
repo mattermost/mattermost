@@ -1,7 +1,6 @@
 DO $$
 <<remove_manage_team_permission>>
 DECLARE
-  id_offset text := '';
   rows_updated integer;
 BEGIN
   LOOP
