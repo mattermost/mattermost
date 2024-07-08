@@ -511,9 +511,9 @@ type AppIface interface {
 	ConvertGroupMessageToChannel(c request.CTX, convertedByUserId string, gmConversionRequest *model.GroupMessageConversionRequestBody) (*model.Channel, *model.AppError)
 	CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) ([]string, *model.AppError)
 	CopyWranglerPostlist(c request.CTX, wpl *model.WranglerPostList, targetChannel *model.Channel) (*model.Post, *model.AppError)
-	CountNotification(notificationType model.NotificationType)
-	CountNotificationAck(notificationType model.NotificationType)
-	CountNotificationReason(notificationStatus model.NotificationStatus, notificationType model.NotificationType, notificationReason model.NotificationReason)
+	CountNotification(notificationType model.NotificationType, platform string)
+	CountNotificationAck(notificationType model.NotificationType, platform string)
+	CountNotificationReason(notificationStatus model.NotificationStatus, notificationType model.NotificationType, notificationReason model.NotificationReason, platform string)
 	CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError)
 	CreateChannelBookmark(c request.CTX, newBookmark *model.ChannelBookmark, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
@@ -533,6 +533,7 @@ type AppIface interface {
 	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError)
 	CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError)
 	CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool, setOnline bool) (*model.Post, *model.AppError)
+	CreateRemoteClusterInvite(remoteId, siteURL, token, password string) (string, *model.AppError)
 	CreateRetentionPolicy(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError)
 	CreateRole(role *model.Role) (*model.Role, *model.AppError)
 	CreateSamlRelayToken(extra string) (*model.Token, *model.AppError)
@@ -555,6 +556,7 @@ type AppIface interface {
 	DeactivateGuests(c request.CTX) *model.AppError
 	DeactivateMfa(userID string) *model.AppError
 	DeauthorizeOAuthAppForUser(c request.CTX, userID, appID string) *model.AppError
+	DecryptRemoteClusterInvite(inviteCode, password string) (*model.RemoteClusterInvite, *model.AppError)
 	DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError
 	DeleteAllExpiredPluginKeys() *model.AppError
 	DeleteAllKeysForPlugin(pluginID string) *model.AppError
@@ -626,7 +628,7 @@ type AppIface interface {
 	GetAllChannelsCount(c request.CTX, opts model.ChannelSearchOpts) (int64, *model.AppError)
 	GetAllPrivateTeams() ([]*model.Team, *model.AppError)
 	GetAllPublicTeams() ([]*model.Team, *model.AppError)
-	GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError)
+	GetAllRemoteClusters(page, perPage int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError)
 	GetAllRoles() ([]*model.Role, *model.AppError)
 	GetAllTeams() ([]*model.Team, *model.AppError)
 	GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError)
@@ -973,6 +975,7 @@ type AppIface interface {
 	PatchChannel(c request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError)
 	PatchChannelMembersNotifyProps(c request.CTX, members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, *model.AppError)
 	PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError)
+	PatchRemoteCluster(rcId string, patch *model.RemoteClusterPatch) (*model.RemoteCluster, *model.AppError)
 	PatchRetentionPolicy(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError)
 	PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError)
 	PatchScheme(scheme *model.Scheme, patch *model.SchemePatch) (*model.Scheme, *model.AppError)

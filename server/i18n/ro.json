@@ -7760,10 +7760,6 @@
     "translation": "Invitație din clusterul de la distanță"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Nu s-a putut decripta invitația. Parolă incorectă sau invitație coruptă: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[acțiune]"
   },

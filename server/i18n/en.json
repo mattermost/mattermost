@@ -1282,10 +1282,6 @@
     "translation": "[action]"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Could not decrypt invitation. Incorrect password or corrupt invitation: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.invitation.help",
     "translation": "Invitation from secure connection"
   },
@@ -2145,6 +2141,10 @@
     "translation": "Invalid team id provided."
   },
   {
+    "id": "api.get_site_url_error",
+    "translation": "Could not get the instance site url"
+  },
+  {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
   },
@@ -2727,12 +2727,32 @@
     "translation": "You cannot save reaction for the other user."
   },
   {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Could not accept the remote cluster invitation"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Could not decode the base64 string"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Remote cluster has not been deleted"
+  },
+  {
     "id": "api.remote_cluster.delete.app_error",
     "translation": "We encountered an error deleting the secure connection."
   },
   {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Could not encrypt the remote cluster invite using the provided password"
+  },
+  {
     "id": "api.remote_cluster.get.app_error",
     "translation": "We encountered an error retrieving a secure connection."
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Remote Cluster not found"
   },
   {
     "id": "api.remote_cluster.invalid_id.app_error",
@@ -2741,6 +2761,10 @@
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
     "translation": "Invalid topic."
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Could not decrypt the remote cluster invite using the provided password"
   },
   {
     "id": "api.remote_cluster.save.app_error",
@@ -4147,6 +4171,10 @@
     "translation": "Update password failed because the user is logged in through an OAuth service."
   },
   {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "There was an internal error saving the password."
+  },
+  {
     "id": "api.user.update_password.user_and_hashed.app_error",
     "translation": "Only system administrators can set already-hashed passwords."
   },
@@ -5093,6 +5121,10 @@
   {
     "id": "app.import.bulk_import.unsupported_version.error",
     "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Unable to set custom status."
   },
   {
     "id": "app.import.emoji.bad_file.error",
@@ -9757,6 +9789,14 @@
   {
     "id": "model.user.is_valid.username.app_error",
     "translation": "Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \".\", \"-\", and \"_\"."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "There was an internal error saving the password."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Your password must contain no more than 72 characters."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
